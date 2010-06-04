@@ -1,19 +1,51 @@
-#ifndef FIELD_HPP
-#define FIELD_HPP
+#ifndef __FIELD__
+#define __FIELD__
 
-#include "base_object.hpp"
-#include "object_template.hpp"
-#include "xmlio_std.hpp"
+using XMLIOSERVER::XML::XMLNode;
+using XMLIOSERVER::XML::THashAttributes;
 
-
-class Field : public CObjectTemplate<Field>, public CFieldAttribut
+namespace XMLIOSERVER
 {
-  public:
+   class Field : public ObjectTemplate<Field>, public FieldAttribut
+   {
+      public:
+         Field(void) : ObjectTemplate<Field>(), FieldAttribut()
+			{/* Ne rien faire de plus */}	         	
+			Field(const string& _id) : ObjectTemplate<Field>(_id), FieldAttribut()
+         {/* Ne rien faire de plus */}	
+         
+         void setAttributes(const THashAttributes& attr)
+         {
+            for (THashAttributes::ConstIterator it = attr.begin(); it != attr.end(); it++)
+               if ((*it).first.compare(string("id"))) // Non prise en compte de l'identifiant lors de l'affectation des attributs.
+                  this->setSAttribut((*it).first, (*it).second);
+            
+            return;
+         }
+         
+         virtual const char* getName(void) const {return ("Field"); }   
 
-    Field(void) : CObjectTemplate<Field>() {} ;
-    Field(const string & Id) : CObjectTemplate<Field>(Id) {} ;
-    static const char * getName(void) { return "field" ; }
-};
-
-
-#endif
+			void parse (XMLNode& _node)
+			{
+            string name = _node.getElementName();            
+            THashAttributes attributes;
+            
+            /// PARSING GESTION DES ATTRIBUTS ///
+            _node.getAttributes(attributes);  
+            this->setAttributes(attributes);
+            attributes.clear();
+            
+            /// PARSING POUR GESION DES ENFANTS
+            // Rien à faire.
+            
+            return;
+         }
+         
+         ~Field(void) 
+         { /* Ne rien faire de plus */ }    
+      
+   }; // class Field 
+      
+}; // namespace XMLIOSERVER
+   
+#endif // __FIELD__

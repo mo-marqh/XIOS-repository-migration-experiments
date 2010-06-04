@@ -1,92 +1,79 @@
-#ifndef XMLIO_EXCEPTION_HPP
-#define XMLIO_EXCEPTION_HPP
+#ifndef __XMLIO_EXCEPTION__
+#define __XMLIO_EXCEPTION__ 
 
-#include <sstream>
-#include "xmlio_std.hpp"
-using namespace std ;
+// Classes utilisées issues de la STL
+using std::string;
 
-class ex_error
+// Classes utilisées issues de Poco
+using Poco::Exception;
+
+namespace XMLIOSERVER
 {
-  public :
-  string what ;
-  ex_error(const string & what_ ) : what(what_) {} ;
-} ;
-
-//class error;
-//ostringstream & operator << (const error & err,char const * str) ;
-//ostringstream & operator << (const error & err,const string & str) ;
-
-
-class error : public ostringstream
-{
-  public :
-    
-    error(const string & where) : ostringstream()
-    {
-      *this<<"*** Error **** in function : "<<where<<endl<<"------> "<<string("toto") ;
-    } ;
-    
-    error(const char * where) : ostringstream()
-    {
-      *this<<"Error in function : "<<where<<endl<<"------> " ;
-    } ;
-
-    ~error()
-    {
-      StdErr<< this->str() <<endl ;
-      throw(ex_error(this->str())) ;
-    } ;
-
-   ostringstream & operator << (char const * str) const
+   class XMLIOException : public Exception
    {
-     ostringstream * tmp=const_cast <error *>(this) ;
-     *tmp<<str ;
-     return *tmp ;
-   } ;
-
-   ostringstream & operator << (const string& str) const
+      public :
+            
+         XMLIOException(int _code): Exception(_code)                                                   
+         { /* Ne rien faire de plus */ }                                                                     
+         XMLIOException(const std::string& _msg, int _code): Exception(_msg, _code)                              
+         { /* Ne rien faire de plus */ }                                                                        
+         XMLIOException(const std::string& _msg, const std::string& _arg, int _code): Exception(_msg, _arg, _code)      
+         { /* Ne rien faire de plus */ }                                                                        
+         XMLIOException(const std::string& _msg, const Poco::Exception& _exc, int _code): Exception(_msg, _exc, _code)   
+         { /* Ne rien faire de plus */ }   
+         
+                                                                              
+         XMLIOException(const XMLIOException& _exc): Exception(_exc)                                                
+         { /* Ne rien faire de plus */ }
+         
+         ~XMLIOException() throw()
+         { /* Ne rien faire de plus */ }
+         
+         XMLIOException& operator = (const XMLIOException& _exc)                                             
+         { Exception::operator = (_exc); return *this; }   
+                                                                           
+         virtual const char* name(void) const throw() { return ("XMLIO>XMLIOException"); }                                                                     
+         virtual const char* className(void) const throw() { return (typeid(*this).name()); }      
+                                                                     
+         virtual Exception* clone(void) const {   return new XMLIOException(*this); }                                                                     
+         virtual void rethrow(void) const { throw *this; }
+               
+   };// class XMLIOException
+   
+   class XMLIOUndefinedValueException : public XMLIOException
    {
-     ostringstream * tmp=const_cast <error *>(this) ;
-     *tmp<<str ;
-     return *tmp ;
-   } ; 
-
-} ;
-
-class warning : public ostringstream
-{
-  public :
-    
-    warning(const string & where) : ostringstream()
-    {
-      *this<<"*** Warning **** in function : "<<where<<endl<<"------> ";
-    } ;
-    
-    warning(const char * where) : ostringstream()
-    {
-      *this<<"Error in function : "<<where<<endl<<"------> " ;
-    } ;
-
-    ~warning()
-    {
-      StdErr<< this->str() <<endl ;
-    } ;
-
-   ostringstream & operator << (char const * str) const
+      public :
+         XMLIOUndefinedValueException(const std::string& _msg): XMLIOException(_msg, 1001) {}
+         const char* name(void) const throw() { return ("XMLIO>UndefinedValueException"); }
+            
+   }; //class XMLIOUndefinedException
+   
+   class XMLIOStreamException : public XMLIOException
    {
-     ostringstream * tmp=const_cast <warning *>(this) ;
-     *tmp<<str ;
-     return *tmp ;
-   } ;
-
-   ostringstream & operator << (const string& str) const
+      public :
+         XMLIOStreamException(const std::string& _msg): XMLIOException(_msg, 1002) {}
+         const char* name(void) const throw() { return ("XMLIO>StreamException"); }
+            
+   }; //class XMLIOStreamException
+   
+   class XMLParsingException : public XMLIOException
    {
-     ostringstream * tmp=const_cast <warning *>(this) ;
-     *tmp<<str ;
-     return *tmp ;
-   } ; 
+      public :
+         XMLParsingException(const std::string& _msg): XMLIOException(_msg, 1003) {}
+         const char* name(void) const throw() { return ("XMLIO>XMLParsingException"); }
+            
+   }; //class XMLParsingException
+   
+   class XMLIOIncompatibeTypeException : public XMLIOException
+   {
+      public :
+         XMLIOIncompatibeTypeException(const std::string& _msg): XMLIOException(_msg, 1003) {}
+         const char* name(void) const throw() { return ("XMLIO>XMLIOIncompatibeTypeException"); }
+            
+   }; //class XMLIOIncompatibeTypeException
+   
+   // A compléter.
+   
+};// namespace XMLIOSERVER
 
-} ;
-
-
-#endif
+#endif // __XMLIO_EXCEPTION__ 

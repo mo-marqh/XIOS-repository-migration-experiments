@@ -1,58 +1,60 @@
-#ifndef ATTRIBUT_REGISTRAR_HPP
-#define ATTRIBUT_REGISTRAR_HPP
+#ifndef __ATTRIBUT_REGISTRAR__
+#define __ATTRIBUT_REGISTRAR__
 
-#include "base_attribut.hpp"
-#include "xmlio_std.hpp"
+#include "attribut.hpp"
 
-class CAttributRegistrar
+namespace XMLIOSERVER
 {
-  public :
-  
-  
-  void RegisterAttribut(CBaseAttribut & attribut) ;
-  ostream & PrintAttribut(ostream & o) ;
+   class AttributRegistrar
+   {
+      public :
+        
+         AttributRegistrar():attrList()
+         {/* Ne rien faire de plus */}
+      
+         void RegisterAttribut(BaseAttribut* attribut){ attrList.addObject(attribut); }         
+         StrHashMap<BaseAttribut>& getAttributList(void) { return (attrList); }         
+         size_t getNbAttributes() const {return (attrList.getSize()); }
+         bool hasAttribut(const string _id) { return (attrList.hasMappedValue(_id)); }
+         
+         BaseAttribut* getAttribut(const string _id) throw (XMLIOUndefinedValueException) { return (attrList[_id]); }
+        
+         void setSAttribut(const string& att_name, const std::string& value)
+         {
+            //std::cout << "Attribut :" <<  att_name<< ", " << value<< std::endl;
 
-  unordered_map<string,CBaseAttribut *> attrMap ;
-  vector<CBaseAttribut *> attrVector ;
-
-  bool hasAttribut(const string& att_name)
-  {
-    if (attrMap.find(att_name)!=attrMap.end()) return true ;
-    else return false ;
-  }
-  
-  template <class ValueType>
-  void setAttribut(const string& att_name, ValueType value)
-  {
-    unordered_map<string,CBaseAttribut *>::iterator it ;
-    
-    it=attrMap.find(att_name) ;
-    if (it!=attrMap.end()) (*it).second->setValue(value) ;
-    else error("CAttributRegistrar::setAttribut<ValueType>")
-         <<"Could not find <<"<<att_name<<">> attribut in registred list"<<endl ;
-    
-  }
-  
-} ;
-
-inline void CAttributRegistrar::RegisterAttribut(CBaseAttribut& Attribut)
-{
-  attrMap.insert(make_pair(Attribut.getName(),&Attribut)) ;
-  attrVector.push_back(&Attribut) ;
-}
-
-inline ostream & CAttributRegistrar::PrintAttribut(ostream& o)
-{
-  vector<CBaseAttribut *>::iterator it ;
-  o<<"List of attribut"<<IncIndent ;
-  for(it=attrVector.begin(); it!=attrVector.end();it++)
-  {
-    o<<iendl ;
-    (*it)->print(o) ;
-  }
-  o<<DecIndent ;
-  return o ;
-}
+            if (hasAttribut(att_name))
+            { getAttribut(att_name)->setFromString(value) ; }
+            else
+            {
+               ostringstream oss;
+               oss << "CAttributRegistrar::setAttribut<ValueType>, could not find <<" << att_name <<">> attribut in registred list" <<">>";
+               throw XMLIOUndefinedValueException(oss.str());
+            }         
+         }
+         
+         friend ostream& operator<< (ostream& out, const AttributRegistrar& c) 
+         { out << c.toString(); return (out);}   
+               
+      protected :
+      
+         string toString(void) const
+         {
+            ostringstream st("A réimplémenter");
+            // A compléter
+            return (st.str());
+         }
+         
+      public :
+         
+        ~AttributRegistrar(void)
+        {/* Ne rien faire de plus */}
+        
+      private :
+         StrHashMap<BaseAttribut> attrList;
+        
+   }; // class AttributRegistrar  
+}; // namespace XMLIOSERVER
 
 
-#endif
+#endif //__ATTRIBUT_REGISTRAR__

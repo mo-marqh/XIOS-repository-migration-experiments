@@ -1,5 +1,0 @@
-void f(void)
-{
-  class { public : int n ;} toto ;
-  toto.n =1 ;
-}
