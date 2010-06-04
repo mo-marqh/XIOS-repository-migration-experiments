@@ -1,0 +1,291 @@
+<?xml version="1.0"?>
+
+<simulation>
+
+<context id='nemo'>
+<!-- definition des groupes -->
+  <field_definition level="1" prec="4" operation="ave(X)" freq_op="7200" enabled=".TRUE.">
+
+     <field_group id="grid_T" axis_ref="none" grid_ref="grid_T">
+       <field id="votemper" description="Temperature"                       unit="C"    axis_ref="deptht" />
+       <field id="vosaline" description="Salinity"                          unit="PSU"  axis_ref="deptht" />
+       <field id="sosstsst" description="Sea Surface temperature"           unit="C"   />
+       <field id="sosaline" description="Sea Surface Salinity"              unit="PSU"  />
+       <field id="sobarstf" description="Barotropic StreamFunction"         unit="m3/s2"  />
+       <field id="sossheig" description="Sea Surface Height"                unit="m"  />
+       <field id="iowaflup" description="Ice=>ocean net freshwater"         unit="kg/m2/s"  />
+       <field id="sowaflep" description="atmos=>ocean net freshwater"       unit="kg/m2/s"   />
+       <field id="sowaflup" description="Net Upward Water Flux"             unit="Kg/m2/s"   />
+       <field id="sorunoff" description="Runoffs"                           unit="Kg/m2/s"    />
+       <field id="sowaflcd" description="concentration/dilution water flux" unit="Kg/m2/s"   />
+       <field id="sosalflx" description="Surface Salt Flux"                 unit="Kg/m2/s"   />
+       <field id="sohefldo" description="Net Downward Heat Flux"            unit="W/m2"   />
+       <field id="soshfldo" description="Shortwave Radiation"               unit="W/m2"   />
+       <field id="somxl010" description="Mixed Layer Depth 0.01"            unit="m"  />
+       <field id="somixhgt" description="Turbocline Depth"                  unit="m"   />
+       <field id="soicecov" description="Ice Cover"                         unit="[0,1]"   />
+       <field id="sohefldp" description="Surface Heat Flux: Damping"        unit="W/m2"      enabled=".FALSE."/>
+       <field id="sowafldp" description="Surface Water Flux: Damping"       unit="Kg/m2/s"   enabled=".FALSE."/>
+       <field id="sosafldp" description="Surface salt flux: Damping"        unit="Kg/m2/s"   enabled=".FALSE."/>
+       <field id="sosurfps" description="Surface Pressure"                  unit="cm"   />
+       <field id="sobowlin" description="Bowl Index"                        unit="W-point"  />
+       <field id="sothedep" description="Thermocline Depth"                 unit="m"   />
+       <field id="so20chgt" description="Depth of 20C isotherm"             unit="m"  />
+       <field id="so28chgt" description="Depth of 28C isotherm"             unit="m"   />
+       <field id="sohtc300" description="Heat content 300 m"                unit="W" />
+       <field id="soicetem" description="Ice Surface Temperature"           unit="K"   />
+       <field id="soicealb" description="Ice Albedo"                        unit="[0,1]"   />
+     </field_group>
+
+     <field_group id="grid_U"  axis_ref="none" grid_ref="grid_U" src="/local/testsuite/iodef_test_include.xml">
+       <field id="sozotaux" description="Wind Stress along i-axis"        unit="N/m2"    />
+       <field id="sozospgx" description="Zonal Surface Pressure Gradient" unit="N/kg"  />
+     </field_group>
+
+     <field_group id="grid_V"  axis_ref="none" grid_ref="grid_V">
+       <field id="vomecrty" description="Meridional Current"                unit="m/s"  axis_ref="depthv" />
+       <field id="vomeeivv" description="Meridional EIV Current"            unit="m/s"  axis_ref="depthv" />
+       <field id="sometauy" description="Wind Stress along j-axis"          unit="N/m2"  />
+       <field id="somespgy" description="Meridional Surface Pressure Grad." unit="N/kg"  />
+     </field_group>
+
+     <field_group id="grid_W"  axis_ref="depthw" grid_ref="grid_W">
+       <field id="vovecrtz" description="Vertical Velocity"                   unit="m/s"   />
+       <field id="voveeivw" description="Vertical EIV Velocity"               unit="m/s"   />
+       <field id="votkeavt" description="Vertical Eddy Diffusivity"           unit="m2/s"  />
+       <field id="votkeevd" description="Enhanced Vertical Diffusivity"       unit="m2/s"  />
+       <field id="votkeavm" description="Vertical Eddy Viscosity"             unit="m2/s"  />
+       <field id="votkeevm" description="Enhanced Vertical Viscosity"         unit="m2/s"  />
+       <field id="soleahtw" description="lateral eddy diffusivity"            unit="m2/s"  />
+       <field id="soleaeiw" description="eddy induced vel. coeff. at w-point" unit="m2/s"  />
+     </field_group>
+
+  </field_definition>
+
+<!-- definition des fichiers histoires -->
+
+  <file_definition output_level="10" enabled=".TRUE.">
+
+     <file id="GYRE_1d_grid_T" name="grid_T" description="fichier de sortie journaliere" output_freq="86400" output_level="5" >
+       <field ref="votemper"  />
+       <field ref="vosaline"  />
+       <field ref="sosstsst"  />
+       <field ref="sosaline"  />
+       <field ref="sobarstf"  />
+       <field ref="sossheig"  />
+       <field ref="iowaflup"  />
+       <field ref="sowaflep"  />
+       <field ref="sowaflup"  />
+       <field ref="sosalflx"  />
+       <field ref="soshfldo"  />
+       <field ref="sorunoff"  />
+       <field ref="sowaflcd"  />
+       <field ref="sohefldo"  />
+       <field ref="somxl010"  />
+       <field ref="somixhgt"  />
+       <field ref="soicecov"  />
+       <field ref="sohefldp"  />
+       <field ref="sowafldp"  />
+       <field ref="sosafldp"  />
+       <field ref="sosurfps"  />
+       <field ref="sobowlin"  />
+       <field ref="sothedep"  />
+       <field ref="so20chgt"  />
+       <field ref="so28chgt"  />
+       <field ref="sohtc300"  />
+       <field ref="soicetem"  />
+       <field ref="soicealb"  />
+    </file>
+   <file_group id="file_id">
+    <file id="GYRE_1d_grid_U" description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="votemper"  enabled=".FALSE." />
+       <field ref="vozocrtx"  />
+       <field ref="vozoeivu"  />
+       <field ref="sozotaux"  />
+       <field ref="sozospgx"  />
+    </file>
+
+    <file id="GYRE_1d_grid_V" description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="vomecrty"  />
+       <field ref="vomeeivv"  />
+       <field ref="sometauy"  />
+       <field ref="somespgy"  />
+    </file>
+   </file_group>
+    <file id="GYRE_1d_grid_W" description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="vovecrtz" />
+       <field ref="voveeivw" />
+       <field ref="votkeavt" />
+       <field ref="votkeevd" />
+       <field ref="votkeavm" />
+       <field ref="votkeevm" />
+       <field ref="soleahtw" />
+       <field ref="soleaeiw" />
+    </file>
+
+  </file_definition>
+
+
+  <axis_definition>
+     <axis id="deptht" description="Vertical T levels" unit="m" />
+     <axis id="depthu" description="Vertical U levels" unit="m" />
+     <axis id="depthv" description="Vertical V levels" unit="m" />
+     <axis id="depthw" description="Vertical W levels" unit="m" />
+     <axis id="none" description="axe non defini" unit="none" size_axis="1" />
+  </axis_definition>
+
+  <grid_definition>
+    <grid id="grid_T" description="grid T" />
+    <grid id="grid_U" description="grid U" />
+    <grid id="grid_V" description="grid V" />
+    <grid id="grid_W" description="grid W" />
+  </grid_definition>
+
+</context>
+
+<context id="nemo_bis">
+
+<!-- definition des groupes -->
+
+  <field_definition level="1" prec="4" operation="ave(X)" freq_op="7200" enabled=".TRUE.">
+
+     <field_group id="grid_T" axis_ref="none" grid_ref="grid_T">
+       <field id="votemper" description="Temperature"                       unit="C"    axis_ref="deptht" />
+       <field id="vosaline" description="Salinity"                          unit="PSU"  axis_ref="deptht" />
+       <field id="sosstsst" description="Sea Surface temperature"           unit="C"   />
+       <field id="sosaline" description="Sea Surface Salinity"              unit="PSU"  />
+       <field id="sobarstf" description="Barotropic StreamFunction"         unit="m3/s2"  />
+       <field id="sossheig" description="Sea Surface Height"                unit="m"  />
+       <field id="iowaflup" description="Ice=>ocean net freshwater"         unit="kg/m2/s"  />
+       <field id="sowaflep" description="atmos=>ocean net freshwater"       unit="kg/m2/s"   />
+       <field id="sowaflup" description="Net Upward Water Flux"             unit="Kg/m2/s"   />
+       <field id="sorunoff" description="Runoffs"                           unit="Kg/m2/s"    />
+       <field id="sowaflcd" description="concentration/dilution water flux" unit="Kg/m2/s"   />
+       <field id="sosalflx" description="Surface Salt Flux"                 unit="Kg/m2/s"   />
+       <field id="sohefldo" description="Net Downward Heat Flux"            unit="W/m2"   />
+       <field id="soshfldo" description="Shortwave Radiation"               unit="W/m2"   />
+       <field id="somxl010" description="Mixed Layer Depth 0.01"            unit="m"  />
+       <field id="somixhgt" description="Turbocline Depth"                  unit="m"   />
+       <field id="soicecov" description="Ice Cover"                         unit="[0,1]"   />
+       <field id="sohefldp" description="Surface Heat Flux: Damping"        unit="W/m2"      enabled=".FALSE."/>
+       <field id="sowafldp" description="Surface Water Flux: Damping"       unit="Kg/m2/s"   enabled=".FALSE."/>
+       <field id="sosafldp" description="Surface salt flux: Damping"        unit="Kg/m2/s"   enabled=".FALSE."/>
+       <field id="sosurfps" description="Surface Pressure"                  unit="cm"   />
+       <field id="sobowlin" description="Bowl Index"                        unit="W-point"  />
+       <field id="sothedep" description="Thermocline Depth"                 unit="m"   />
+       <field id="so20chgt" description="Depth of 20C isotherm"             unit="m"  />
+       <field id="so28chgt" description="Depth of 28C isotherm"             unit="m"   />
+       <field id="sohtc300" description="Heat content 300 m"                unit="W" />
+       <field id="soicetem" description="Ice Surface Temperature"           unit="K"   />
+       <field id="soicealb" description="Ice Albedo"                        unit="[0,1]"   />
+     </field_group>
+
+     <field_group id="grid_U"  axis_ref="none" grid_ref="grid_U">
+       <field id="vozocrtx" description="Zonal Current"                   unit="m/s"  axis_ref="depthu" />
+       <field id="vozoeivu" description="Zonal EIV Current"               unit="m/s"   axis_ref="depthu" />
+       <field id="sozotaux" description="Wind Stress along i-axis"        unit="N/m2"    />
+       <field id="sozospgx" description="Zonal Surface Pressure Gradient" unit="N/kg"  />
+     </field_group>
+
+     <field_group id="grid_V" axis_ref="none" grid_ref="grid_V">
+       <field id="vomecrty" description="Meridional Current"                unit="m/s"  axis_ref="depthv" />
+       <field id="vomeeivv" description="Meridional EIV Current"            unit="m/s"  axis_ref="depthv" />
+       <field id="sometauy" description="Wind Stress along j-axis"          unit="N/m2"  />
+       <field id="somespgy" description="Meridional Surface Pressure Grad." unit="N/kg"  />
+     </field_group>
+
+     <field_group id="grid_W"  axis_ref="depthw" grid_ref="grid_W">
+       <field id="vovecrtz" description="Vertical Velocity"                   unit="m/s"   />
+       <field id="voveeivw" description="Vertical EIV Velocity"               unit="m/s"   />
+       <field id="votkeavt" description="Vertical Eddy Diffusivity"           unit="m2/s"  />
+       <field id="votkeevd" description="Enhanced Vertical Diffusivity"       unit="m2/s"  />
+       <field id="votkeavm" description="Vertical Eddy Viscosity"             unit="m2/s"  />
+       <field id="votkeevm" description="Enhanced Vertical Viscosity"         unit="m2/s"  />
+       <field id="soleahtw" description="lateral eddy diffusivity"            unit="m2/s"  />
+       <field id="soleaeiw" description="eddy induced vel. coeff. at w-point" unit="m2/s"  />
+     </field_group>
+
+  </field_definition>
+
+<!-- definition des fichiers histoires -->
+
+  <file_definition output_level="10" enabled=".TRUE.">
+
+     <file id="GYRE_1d_grid_T" name="grid_T_bis"  description="fichier de sortie journaliere" output_freq="86400" output_level="5" >
+       <field ref="votemper"  />
+       <field ref="vosaline"  />
+       <field ref="sosstsst"  />
+       <field ref="sosaline"  />
+       <field ref="sobarstf"  />
+       <field ref="sossheig"  />
+       <field ref="iowaflup"  />
+       <field ref="sowaflep"  />
+       <field ref="sowaflup"  />
+       <field ref="sosalflx"  />
+       <field ref="soshfldo"  />
+       <field ref="sorunoff"  />
+       <field ref="sowaflcd"  />
+       <field ref="sohefldo"  />
+       <field ref="somxl010"  />
+       <field ref="somixhgt"  />
+       <field ref="soicecov"  />
+       <field ref="sohefldp"  />
+       <field ref="sowafldp"  />
+       <field ref="sosafldp"  />
+       <field ref="sosurfps"  />
+       <field ref="sobowlin"  />
+       <field ref="sothedep"  />
+       <field ref="so20chgt"  />
+       <field ref="so28chgt"  />
+       <field ref="sohtc300"  />
+       <field ref="soicetem"  />
+       <field ref="soicealb"  />
+    </file>
+
+    <file id="GYRE_1d_grid_U" name="GYRE_1d_grid_U_bis" description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="votemper"  enabled=".FALSE." />
+       <field ref="vozocrtx"  />
+       <field ref="vozoeivu"  />
+       <field ref="sozotaux"  />
+       <field ref="sozospgx"  />
+    </file>
+
+    <file id="GYRE_1d_grid_V" name="GYRE_1d_grid_V_bis" description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="vomecrty"  />
+       <field ref="vomeeivv"  />
+       <field ref="sometauy"  />
+       <field ref="somespgy"  />
+    </file>
+
+    <file id="GYRE_1d_grid_W" name="GYRE_1d_grid_W_bis"  description="fichier de sortie journaliere" output_freq="86400" level="5" >
+       <field ref="vovecrtz" />
+       <field ref="voveeivw" />
+       <field ref="votkeavt" />
+       <field ref="votkeevd" />
+       <field ref="votkeavm" />
+       <field ref="votkeevm" />
+       <field ref="soleahtw" />
+       <field ref="soleaeiw" />
+    </file>
+
+  </file_definition>
+
+
+  <axis_definition>
+     <axis id="deptht" description="Vertical T levels" unit="m" />
+     <axis id="depthu" description="Vertical U levels" unit="m" />
+     <axis id="depthv" description="Vertical V levels" unit="m" />
+     <axis id="depthw" description="Vertical W levels" unit="m" />
+     <axis id="none" description="axe non defini" unit="none" size_axis="1" />
+  </axis_definition>
+
+  <grid_definition>
+    <grid id="grid_T" description="grid T" />
+    <grid id="grid_U" description="grid U" />
+    <grid id="grid_V" description="grid V" />
+    <grid id="grid_W" description="grid W" />
+  </grid_definition>
+
+</context>
+
+</simulation>

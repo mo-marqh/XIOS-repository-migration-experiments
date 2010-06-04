@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<field_group>
+	<field id="vozocrtx" description="Zonal Current" unit="m/s"  axis_ref="depthu" />
+	<field id="vozoeivu" description="Zonal EIV Current"  unit="m/s"   axis_ref="depthu" />
+	<field_group enabled=".TRUE.">
+		<field id="id1" description="t1" unit="m/s"  axis_ref="depthu" />
+		<field id="id2" description="t2"  unit="m/s"   axis_ref="depthu" />
+	</field_group>
+</field_group>
