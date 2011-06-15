@@ -1,7 +1,0 @@
-PROGRAM main
-IMPLICIT NONE
-
-
-  CALL main_c
-  
-END PROGRAM main
