@@ -1,3 +1,5 @@
 #!/bin/bash
 
+make_dir=$PWD
+
 export PATH=$PWD/tools/FCM/bin:$PATH
