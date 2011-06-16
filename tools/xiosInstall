@@ -66,4 +66,12 @@ echo -e "- Décompression des outils de compilation ..."
 tar -xzvf FCM.tar.gz    >/dev/null
 cd $install_dir
 
+# Création de la documentation doxygen.
+if [[ !(-z $doc) ]]
+   then
+      echo -e "- Création de la documentation de code doxygen (désactivée)..."
+      #doxygen -s
+fi
+
+$install_dir/xiosMake
 
