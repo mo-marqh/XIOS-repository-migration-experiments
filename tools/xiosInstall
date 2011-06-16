@@ -51,6 +51,10 @@ else
    echo "Veuillez definir un mode de compilation [debug|dev|prod] !"
 fi
 
+rm -f config.fcm
+echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> config.fcm
+echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> config.fcm
+
 echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
 
 # Décompression des bibliothèques externes.
