@@ -3,3 +3,8 @@
 make_dir=$PWD
 
 export PATH=$PWD/tools/FCM/bin:$PATH
+
+$make_dir/tools/preprocess_cpp $make_dir/src/xmlio/iface/interface.cpp      $make_dir/src/xmlio/iface/interface.cpp.in
+$make_dir/tools/preprocess_f03 $make_dir/src/xmlio/fortran/ixmlioserver.f90 $make_dir/src/xmlio/fortran/ixmlioserver.f03.in
+
+fcm build
