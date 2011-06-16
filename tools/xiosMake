@@ -1,1 +1,3 @@
 #!/bin/bash
+
+export PATH=$PWD/tools/FCM/bin:$PATH

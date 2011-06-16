@@ -1,1 +1,48 @@
 #!/bin/bash
+
+install_dir=$PWD
+
+# Traitement de la ligne de commande
+while (($# > 0))
+   do
+      case $1 in
+         "-h")
+            # A modifier
+            exit;;
+
+         "--prod")  compil_mode="prod"  ; shift ;;
+         "--dev")   compil_mode="dev"   ; shift ;;
+         "--debug") compil_mode="debug" ; shift ;;
+         "--arch")  arch=$2     ; shift ; shift ;;
+         *)         code="$1"           ; shift ;;
+      esac
+   done
+
+if [[ !(-z $arch) ]]
+   then
+      rm -f arch.path
+      rm -f arch.fcm
+      ln -s arch/arch-${arch}.path ./arch.path
+      ln -s arch/arch-${arch}.fcm  ./arch.fcm
+      source arch.path
+   else
+      echo "Veuillez definir une architecture cible !"
+      exit 1
+fi
+
+echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
+
+# Décompression des bibliothèques externes.
+cd $install_dir/extern 
+echo -e "- Décompression des bibliothèques externes ..."
+tar -xzvf boost.tar.gz    >/dev/null
+tar -xzvf rapidxml.tar.gz >/dev/null
+cd $install_dir
+
+# Décompression des outils de compilation.
+cd $install_dir/tools 
+echo -e "- Décompression des outils de compilation ..."
+tar -xzvf FCM.tar.gz    >/dev/null
+cd $install_dir
+
+
