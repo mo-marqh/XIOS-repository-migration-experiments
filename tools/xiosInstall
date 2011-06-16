@@ -14,20 +14,41 @@ while (($# > 0))
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
+         "--doc")   doc="true"          ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
 
+# Vérification de la présence d'un identifiant d'architecture.
+
 if [[ !(-z $arch) ]]
    then
-      rm -f arch.path
-      rm -f arch.fcm
-      ln -s arch/arch-${arch}.path ./arch.path
-      ln -s arch/arch-${arch}.fcm  ./arch.fcm
-      source arch.path
+      rm -f  $install_dir/arch.path
+      rm -f  $install_dir/arch.fcm
+      ln -s  $install_dir/arch/arch-${arch}.path $install_dir/arch.path
+      ln -s  $install_dir/arch/arch-${arch}.fcm  $install_dir/arch.fcm
+      source $install_dir/arch.path
    else
       echo "Veuillez definir une architecture cible !"
       exit 1
+fi
+
+# Vérification de la présence d'un mode de compilation.
+
+if [[ "$compil_mode" == "prod" ]]
+   then
+      COMPIL_CFLAGS="%PROD_CFLAGS"
+      COMPIL_FFLAGS="%PROD_FFLAGS"
+elif [[ "$compil_mode" == "dev" ]]
+   then
+      COMPIL_CFLAGS="%DEV_CFLAGS"
+      COMPIL_FFLAGS="%DEV_FFLAGS"
+elif [[ "$compil_mode" == "debug" ]]
+   then
+      COMPIL_CFLAGS="%DEBUG_CFLAGS"
+      COMPIL_FFLAGS="%DEBUG_FFLAGS"
+else 
+   echo "Veuillez definir un mode de compilation [debug|dev|prod] !"
 fi
 
 echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
