@@ -14,8 +14,10 @@ namespace xmlioserver
          , hour(hr), minute(min), second(sec)
       {
          if(!this->checkDate())
+         {
             DEBUG(<< "La date initialisée a été modifiée "
                   << "car elle était incorrecte par rapport au calendrier souhaité.");
+         }
       }
 
       CDate::CDate(const CDate & date)
@@ -24,8 +26,10 @@ namespace xmlioserver
               hour(date.hour), minute(date.minute), second(date.second)
       {
          if(!this->checkDate())
+         {
             DEBUG(<< "La date initialisée a été modifiée "
                   << "car elle était incorrecte par rapport au calendrier souhaité.");
+         }
       }
 
       CDate::~CDate(void)
@@ -66,9 +70,11 @@ namespace xmlioserver
          in >> date.day  >> c >> date.month  >> c >> date.year   >> c;
          in >> date.hour >> c >> date.minute >> c >> date.second;
          if(!date.checkDate())
+         {
             DEBUG("La date initialisée (depuis une chaîne de caractères) "
                   << "a été modifiée car elle était incorrecte "
                   << "par rapport au calendrier souhaité.");
+         }
          return (in);
       }
 

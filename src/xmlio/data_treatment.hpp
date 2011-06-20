@@ -92,11 +92,12 @@ namespace xmlioserver
          void CDataTreatment::write_data
             (const StdString & fieldId, const ARRAY(float, N) & data)
       {
-         std::vector<boost::multi_array<double, N>::size_type shape() > shape;
-         const size_type *	shapearr = data->shape();
+		 typedef typename boost::multi_array<double, N>::size_type sizetp;
+         std::vector<sizetp> shape;
+         const sizetp *	shapearr = data->shape();
 
          shape.assign(shapearr, shapearr + N);
-         ARRAY_CREATE(datad, double, N, shape);
+         ARRAY_CREATE(datad, double, N, [shape]);
          datad->assign(data->begin(), data->end());
 
          this->write_data(fieldId, datad);
@@ -122,7 +123,7 @@ namespace xmlioserver
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
                { 
                    boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
-                   client.sendData(fieldId, file->getId(), field->getData());
+                   client->sendData(fieldId, file->getId(), field->getData());
                }
                else
                {

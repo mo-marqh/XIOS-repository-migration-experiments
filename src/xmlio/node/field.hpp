@@ -9,6 +9,7 @@
 #include "duration.hpp"
 #include "date.hpp"
 #include "declare_group.hpp"
+#include "calendar_util.hpp"
 
 namespace xmlioserver {
 namespace tree {
