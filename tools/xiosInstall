@@ -49,11 +49,21 @@ elif [[ "$compil_mode" == "debug" ]]
       COMPIL_FFLAGS="%DEBUG_FFLAGS"
 else 
    echo "Veuillez definir un mode de compilation [debug|dev|prod] !"
+   exit 1
 fi
+
+XMLIO_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
+XMLIO_FINCDIR="$MPI_INCDIR"
+
+XMLIO_LIB="$NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
 rm -f config.fcm
 echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> config.fcm
 echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> config.fcm
+
+echo "%CBASE_INC     $XMLIO_CINCDIR" >> config.fcm     
+echo "%FBASE_INC     $XMLIO_FINCDIR" >> config.fcm
+echo "%ARCH_LD       $XMLIO_LIB" >> config.fcm 
 
 echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
 

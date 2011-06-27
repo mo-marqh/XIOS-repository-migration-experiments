@@ -17,6 +17,4 @@
 %DEV_FFLAGS     -D XIOS_DEBUG -g
 %DEBUG_FFLAGS   -D XIOS_DEBUG -g
 
-%CBASE_INC      -I /usr/include/openmpi-i386 -I /work/dev_rv/extra/netcdf4/include -I /work/dev_rv/extra/hdf5/include
-%FBASE_INC      -I /usr/include/openmpi-i386 
-%BASE_LD        -L /work/dev_rv/extra/hdf5/lib -L /work/dev_rv/extra/netcdf4/lib -lnetcdf -lhdf5_hl -lhdf5 -lz -lmpi -lmpi_cxx -lstdc++       
+%BASE_LD        -lstdc++       

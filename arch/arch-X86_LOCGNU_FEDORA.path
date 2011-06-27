@@ -1,1 +1,11 @@
+NETCDF_INCDIR="-I /work/dev_rv/extra/netcdf4/include"
+NETCDF_LIBDIR="-L /work/dev_rv/extra/netcdf4/lib"
+NETCDF_LIB="-lnetcdf"
 
+MPI_INCDIR="-I /usr/include/openmpi-i386"
+MPI_LIBDIR="-L /usr/lib/openmpi/lib"
+MPI_LIB="-lmpi -lmpi_cxx"
+
+HDF5_INCDIR="-I /work/dev_rv/extra/hdf5/include"
+HDF5_LIBDIR="-L /work/dev_rv/extra/hdf5/lib"
+HDF5_LIB="-lhdf5_hl -lhdf5 -lz"
