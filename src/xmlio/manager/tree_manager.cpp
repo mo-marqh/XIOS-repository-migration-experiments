@@ -29,7 +29,7 @@ namespace xmlioserver
 #define DECLARE_NODE(Name_, name_) \
    CObjectFactory::CreateObject<C##Name_##Definition>(C##Name_##Definition::GetDefName());
 #define DECLARE_NODE_PAR(Name_, name_)
-#include "../config/node_type.conf"
+#include "node_type.conf"
 
          return (context);
    }

@@ -1,6 +1,6 @@
 #include "macro.inc"
 
-INCLUDE "../xmlioserver.hpp"
+INCLUDE "xmlioserver.hpp"
 
 INCLUDE "attribute_template_impl.hpp"
 INCLUDE "object_template_impl.hpp"

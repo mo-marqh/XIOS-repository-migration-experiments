@@ -4,6 +4,7 @@
 #include "data_treatment.hpp"
 #include "nc4_data_output.hpp"
 #include "attribute_template_impl.hpp"
+#include "group_template_impl.hpp"
 
 namespace xmlioserver
 {
