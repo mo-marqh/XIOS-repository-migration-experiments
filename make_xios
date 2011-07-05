@@ -1,0 +1,85 @@
+#!/bin/bash
+
+install_dir=$PWD
+
+# Traitement de la ligne de commande
+while (($# > 0))
+   do
+      case $1 in
+         "-h")
+            # A modifier
+            exit;;
+
+         "--prod")  compil_mode="prod"  ; shift ;;
+         "--dev")   compil_mode="dev"   ; shift ;;
+         "--debug") compil_mode="debug" ; shift ;;
+         "--arch")  arch=$2     ; shift ; shift ;;
+         "--doc")   doc="true"          ; shift ;;
+         *)         code="$1"           ; shift ;;
+      esac
+   done
+
+# Vérification de la présence d'un identifiant d'architecture.
+
+if [[ !(-z $arch) ]]
+   then
+      rm -f  $install_dir/arch.path
+      rm -f  $install_dir/arch.fcm
+      ln -s  $install_dir/arch/arch-${arch}.path $install_dir/arch.path
+      ln -s  $install_dir/arch/arch-${arch}.fcm  $install_dir/arch.fcm
+      source $install_dir/arch.path
+   else
+      echo "Veuillez definir une architecture cible !"
+      exit 1
+fi
+
+# Vérification de la présence d'un mode de compilation.
+
+if [[ "$compil_mode" == "prod" ]]
+   then
+      COMPIL_CFLAGS="%PROD_CFLAGS"
+      COMPIL_FFLAGS="%PROD_FFLAGS"
+elif [[ "$compil_mode" == "dev" ]]
+   then 
+      COMPIL_CFLAGS="%DEV_CFLAGS"
+      COMPIL_FFLAGS="%DEV_FFLAGS"
+elif [[ "$compil_mode" == "debug" ]]
+   then
+      COMPIL_CFLAGS="%DEBUG_CFLAGS"
+      COMPIL_FFLAGS="%DEBUG_FFLAGS"
+else 
+   echo "Veuillez definir un mode de compilation [debug|dev|prod] !"
+   exit 1
+fi
+
+XMLIO_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
+XMLIO_FINCDIR="$MPI_INCDIR"
+
+XMLIO_LIB="$NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
+
+rm -f config.fcm
+echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> config.fcm
+echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> config.fcm
+
+echo "%CBASE_INC     $XMLIO_CINCDIR" >> config.fcm     
+echo "%FBASE_INC     $XMLIO_FINCDIR" >> config.fcm
+echo "%ARCH_LD       $XMLIO_LIB" >> config.fcm 
+
+echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
+
+# Création de la documentation doxygen.
+if [[ !(-z $doc) ]]
+   then
+      echo -e "- Création de la documentation de code doxygen (désactivée)..."
+      #doxygen -s
+fi
+
+make_dir=$PWD
+
+export PATH=$PWD/tools/FCM/bin:$PATH
+
+$make_dir/tools/preprocess_cpp $make_dir/src/xmlio/iface/interface.cpp      $make_dir/src/xmlio/iface/interface.cpp.in
+$make_dir/tools/preprocess_f03 $make_dir/src/xmlio/fortran/ixmlioserver.f90 $make_dir/src/xmlio/fortran/ixmlioserver.f03.in
+
+fcm build
+
