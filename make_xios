@@ -67,19 +67,6 @@ echo "%ARCH_LD       $XMLIO_LIB" >> config.fcm
 
 echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
 
-# Décompression des bibliothèques externes.
-cd $install_dir/extern 
-echo -e "- Décompression des bibliothèques externes ..."
-tar -xzvf boost.tar.gz    >/dev/null
-tar -xzvf rapidxml.tar.gz >/dev/null
-cd $install_dir
-
-# Décompression des outils de compilation.
-cd $install_dir/tools 
-echo -e "- Décompression des outils de compilation ..."
-tar -xzvf FCM.tar.gz    >/dev/null
-cd $install_dir
-
 # Création de la documentation doxygen.
 if [[ !(-z $doc) ]]
    then
@@ -87,5 +74,12 @@ if [[ !(-z $doc) ]]
       #doxygen -s
 fi
 
-$install_dir/xiosMake
+make_dir=$PWD
+
+export PATH=$PWD/tools/FCM/bin:$PATH
+
+$make_dir/tools/preprocess_cpp $make_dir/src/xmlio/iface/interface.cpp      $make_dir/src/xmlio/iface/interface.cpp.in
+$make_dir/tools/preprocess_f03 $make_dir/src/xmlio/fortran/ixmlioserver.f90 $make_dir/src/xmlio/fortran/ixmlioserver.f03.in
+
+fcm build
 
