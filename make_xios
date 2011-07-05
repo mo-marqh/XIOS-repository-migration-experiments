@@ -40,7 +40,7 @@ if [[ "$compil_mode" == "prod" ]]
       COMPIL_CFLAGS="%PROD_CFLAGS"
       COMPIL_FFLAGS="%PROD_FFLAGS"
 elif [[ "$compil_mode" == "dev" ]]
-   then
+   then 
       COMPIL_CFLAGS="%DEV_CFLAGS"
       COMPIL_FFLAGS="%DEV_FFLAGS"
 elif [[ "$compil_mode" == "debug" ]]
