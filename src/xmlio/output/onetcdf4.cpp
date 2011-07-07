@@ -48,7 +48,7 @@ namespace xmlioserver
             if (comm != NULL)
             {
                CheckError(nc_create_par
-                  (filename.c_str(), NC_NETCDF4|NC_MPIPOSIX, *comm, MPI_INFO_NULL, &this->ncidp));
+                  (filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
             }
             else CheckError(nc_create(filename.c_str(), NC_NETCDF4, &this->ncidp));
          }

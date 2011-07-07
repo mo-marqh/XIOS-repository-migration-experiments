@@ -11,6 +11,10 @@
 #include <mpi.h>
 #define MPI_INCLUDED
 #include <netcdf.h>
+extern "C" {
+#include <netcdf_par.h>
+}
+
 
 #ifndef UNLIMITED_DIM
    #define UNLIMITED_DIM (size_t)(-1)
