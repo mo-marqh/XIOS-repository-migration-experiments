@@ -8,4 +8,4 @@ MPI_LIB=""
 
 HDF5_INCDIR="-I $HDF5_INC_DIR"
 HDF5_LIBDIR="-L $HDF5_LIB_DIR"
-HDF5_LIB="-lhdf5_hl -lhdf5 -lz"
+HDF5_LIB="-lhdf5_hl -lhdf5 -lz -lcurl"
