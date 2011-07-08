@@ -17,4 +17,4 @@
 %DEBUG_FFLAGS   -D XIOS_DEBUG -g
 
 %BASE_INC       -D NONE
-%BASE_LD        -lstdc++ -lifcore -lintlc
+%BASE_LD        -lstdc++

@@ -79,6 +79,9 @@ void mpi_group_incl(int * group, int * n, const int rank[], int * newgroup, int 
 /// Barrière ///
 void mpi_barrier(int * comm, int * err);
 
+/// Collecte de données et rediffusion ///
+void mpi_allgather(int sendbuf[], int * sendcount, int recvbuf[], int * recvcount, int * comm, int * ierror);
+
 #ifdef __cplusplus
 }
 #endif //__cplusplus

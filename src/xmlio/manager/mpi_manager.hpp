@@ -39,6 +39,12 @@ namespace xmlioserver
             /// Autre ///
             static void Barrier(MPIComm comm = CMPIManager::GetCommWorld());
 
+            static bool DispatchClient(bool      is_server,
+                                       MPIComm & comm_client,
+                                       MPIComm & comm_client_server,
+                                       MPIComm & comm_server,
+                                       MPIComm   comm_parent = CMPIManager::GetCommWorld());
+
             /// Groupes ///
             static MPIGroup GetGroupWorld(void);
             static MPIGroup CreateSubGroup(MPIGroup pgroup, const std::vector<int> & ranks);
@@ -52,6 +58,13 @@ namespace xmlioserver
             static void Send (MPIComm comm, int dest_rank, char * data, StdSize size, MPIRequest & request);
             static void Wait (MPIRequest & request);
             static bool Test (MPIRequest & request);
+
+            static void AllGather(int indata, std::vector<int> & outdata,
+                                  MPIComm comm = CMPIManager::GetCommWorld());
+
+            static void AllGather(std::vector<int> & indata,
+                                  std::vector<int> & outdata,
+                                  MPIComm comm = CMPIManager::GetCommWorld());
 
             static bool HasReceivedData(MPIComm comm, int src_rank);
             static StdSize GetReceivedDataSize(MPIComm comm, int src_rank);

@@ -175,4 +175,11 @@ include "mpif.h"
       CALL MPI_BARRIER(comm, err)
    END SUBROUTINE xios_mpi_barrier
 
+   ! Collecte de données et rediffusion
+   SUBROUTINE xios_mpi_allgather(sendbuf, sendcount, recvbuf, recvcount, comm, ierror) BIND (C, NAME ="mpi_allgather")
+      INTEGER (kind = C_INT), DIMENSION(*) :: sendbuf, recvbuf
+      INTEGER (kind = C_INT)               :: sendcount, recvcount, comm, ierror
+       CALL MPI_ALLGATHER(sendbuf, sendcount, MPI_INTEGER, recvbuf, recvcount, MPI_INTEGER, comm, ierror)
+   END SUBROUTINE xios_mpi_allgather
+
 END MODULE IMPI_INTERFACE

@@ -87,6 +87,63 @@ namespace xmlioserver
             ERROR("CMPIManager::Barrier(comm)", << " MPI Error !");
       }
 
+      bool CMPIManager::DispatchClient(bool      is_server,
+                                       MPIComm & comm_client,
+                                       MPIComm & comm_client_server,
+                                       MPIComm & comm_server,
+                                       MPIComm   comm_parent)
+      {
+         int value = (is_server) ? 1 : 2;
+         StdSize nbClient = 0, nbServer = 0, nbClientByServer = 0;
+         std::vector<int> info, rank_client, rank_server;
+         CMPIManager::AllGather(value, info, comm_parent);
+
+         for (StdSize s = 0;  s < info.size(); s++)
+         {
+            if (info[s] == 1) rank_server.push_back(s);
+            else rank_client.push_back(s);
+         }
+         nbClient = rank_client.size();
+         nbServer = rank_server.size();
+         
+
+         comm_client = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
+                       CMPIManager::GetGroupWorld(), rank_client), comm_parent);
+
+         if (nbServer != 0)
+         {
+            StdSize currentServer = 0;
+            nbClientByServer = nbClient/nbServer;
+            comm_server = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
+                          CMPIManager::GetGroupWorld(), rank_server), comm_parent);
+
+            //std::cout << nbClient << "," << nbServer  << "," << nbClientByServer << std::endl;
+
+            for (StdSize mm = 0; mm < nbClient; mm += nbClientByServer)
+            {
+               std::vector<int> group_rank;
+               group_rank.push_back(rank_server[currentServer++]);
+               for (StdSize nn = 0; nn < nbClientByServer; nn++)
+                  group_rank.push_back(rank_client[nn+mm]);
+               MPIComm comm_client_server_ = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
+                                             CMPIManager::GetGroupWorld(), group_rank), comm_parent);
+
+               if (std::find(group_rank.begin(), group_rank.end(), CMPIManager::GetCommRank()) != group_rank.end())
+               {
+                  comm_client_server = comm_client_server_;
+               }
+               
+               group_rank.clear();
+            }
+            return (true);
+         }
+         else
+         {
+            comm_server = comm_client;
+            return (false);
+         }
+      }
+
       //---------------------------------------------------------------
 
       MPIGroup CMPIManager::GetGroupWorld(void)
@@ -208,6 +265,23 @@ namespace xmlioserver
          if (error != mpi_success)
             ERROR("CMPIManager::Receive (comm, src_rank, data)", << " MPI Error !");
          CMPIManager::Wait (req); // Temporaire
+      }
+
+      void CMPIManager::AllGather(int indata, std::vector<int> & outdata, MPIComm comm)
+      {
+         std::vector<int> data; data.push_back(indata);
+         CMPIManager::AllGather(data, outdata, comm);
+      }
+
+      void  CMPIManager::AllGather(std::vector<int> & indata,
+                                   std::vector<int> & outdata, MPIComm comm)
+      {
+         int error = 0;
+         int sendcount = indata.size(), recvcount = indata.size() * CMPIManager::GetCommSize(comm);
+         outdata.resize(recvcount);
+         mpi_allgather(&(indata[0]), &sendcount, &(outdata[0]), &sendcount, &comm, &error);
+         if (error != mpi_success)
+            ERROR("CMPIManager::AllGather (indata, outdata, comm)", << " MPI Error !");
       }
 
       //--------------------------------------------------------------
