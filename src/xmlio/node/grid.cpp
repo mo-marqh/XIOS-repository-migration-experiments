@@ -1,3 +1,4 @@
+
 #include "grid.hpp"
 
 #include "attribute_template_impl.hpp"
@@ -99,21 +100,43 @@ namespace tree {
 
    //---------------------------------------------------------------
 
-   std::vector<StdSize> CGrid::getShape(void) const
+   std::vector<StdSize> CGrid::getLocalShape(void) const
    {
       std::vector<StdSize> retvalue;
-      retvalue.push_back(this->domain->ni.getValue());
-      retvalue.push_back(this->domain->nj.getValue());
+      retvalue.push_back(domain->zoom_ni_loc.getValue());
+      retvalue.push_back(domain->zoom_nj_loc.getValue());
       if (this->withAxis)
          retvalue.push_back(this->axis->size.getValue());
       return (retvalue);
    }
    //---------------------------------------------------------------
    
-   StdSize CGrid::getSize(void) const
+   StdSize CGrid::getLocalSize(void) const
    {
       StdSize retvalue = 1;
-      std::vector<StdSize> shape_ = this->getShape();
+      std::vector<StdSize> shape_ = this->getLocalShape();
+      for (StdSize s = 0; s < shape_.size(); s++)
+         retvalue *= shape_[s];
+      return (retvalue);
+   }
+   
+   //---------------------------------------------------------------
+
+   std::vector<StdSize> CGrid::getGlobalShape(void) const
+   {
+      std::vector<StdSize> retvalue;
+      retvalue.push_back(domain->ni.getValue());
+      retvalue.push_back(domain->nj.getValue());
+      if (this->withAxis)
+         retvalue.push_back(this->axis->size.getValue());
+      return (retvalue);
+   }
+   //---------------------------------------------------------------
+   
+   StdSize CGrid::getGlobalSize(void) const
+   {
+      StdSize retvalue = 1;
+      std::vector<StdSize> shape_ = this->getGlobalShape();
       for (StdSize s = 0; s < shape_.size(); s++)
          retvalue *= shape_[s];
       return (retvalue);
@@ -128,12 +151,19 @@ namespace tree {
       this->solveAxisRef() ;
       if (this->storeIndex.size() == 1)
       {
+         
          this->computeIndex() ;
+         ARRAY_CREATE(storeIndex_ , int, 1, [0]);
+         ARRAY_CREATE(out_l_index_, int, 1, [0]);
+         ARRAY_CREATE(out_i_index_, int, 1, [0]);
+         ARRAY_CREATE(out_j_index_, int, 1, [0]);
+                 
+         this->storeIndex .push_front(storeIndex_);
+         this->out_i_index.push_front(out_i_index_);
+         this->out_j_index.push_front(out_j_index_);
+         this->out_l_index.push_front(out_l_index_);
       }
-      else
-      {
-         this->computeIndexServer();
-      }
+      this->computeIndexServer();
       this->isChecked = true;
    }
 
@@ -176,7 +206,8 @@ namespace tree {
    //---------------------------------------------------------------
 
    void CGrid::computeIndex(void)
-   {  
+   {    
+   
       const int ni   = domain->ni.getValue() ,
                 nj   = domain->nj.getValue() ,
                 size = (this->hasAxis()) ? axis->size.getValue() : 1 ;
@@ -199,6 +230,7 @@ namespace tree {
                   << data_j_index  << std::endl; */
 
       ARRAY(bool, 2) mask = domain->mask.getValue() ;
+      ARRAY(int, 2) local_mask =  this->domain->getLocalMask();
 
       int indexCount = 0;
 
@@ -209,9 +241,9 @@ namespace tree {
             int temp_i = (*data_i_index)[n] + data_ibegin,
                 temp_j = (data_dim == 1) ? -1
                        : (*data_j_index)[n] + data_jbegin;
-            i = (data_dim == 1) ? (temp_i - 2) % ni
+            i = (data_dim == 1) ? (temp_i - 1) % ni
                                 : (temp_i - 1) ;
-            j = (data_dim == 1) ? (temp_i - 2) / ni
+            j = (data_dim == 1) ? (temp_i - 1) / ni
                                 : (temp_j - 1) ;
 
             if ((i >= 0 && i < ni) &&
@@ -225,7 +257,13 @@ namespace tree {
       ARRAY_ASSIGN(this->out_l_index[0], int, 1, [indexCount]);
       ARRAY_ASSIGN(this->out_i_index[0], int, 1, [indexCount]);
       ARRAY_ASSIGN(this->out_j_index[0], int, 1, [indexCount]);
+      
+      // for(int count = 0, indexCount = 0,  l = 0; l < size; l++)
+      // for(int n = 0, i = 0, j = 0; n < data_n_index; n++, count++)
 
+      //for(int n = 0, i = 0, j = 0, count = 0, indexCount = 0; n < data_n_index;  n++)
+      //for(int l = 0; l < size; l++, count++)
+      
       for(int count = 0, indexCount = 0,  l = 0; l < size; l++)
       {
          for(int n = 0, i = 0, j = 0; n < data_n_index; n++, count++)
@@ -233,9 +271,9 @@ namespace tree {
             int temp_i = (*data_i_index)[n] + data_ibegin,
                 temp_j = (data_dim == 1) ? -1
                        : (*data_j_index)[n] + data_jbegin;
-            i = (data_dim == 1) ? (temp_i - 2) % ni
+            i = (data_dim == 1) ? (temp_i - 1) % ni
                                 : (temp_i - 1) ;
-            j = (data_dim == 1) ? (temp_i - 2) / ni
+            j = (data_dim == 1) ? (temp_i - 1) / ni
                                 : (temp_j - 1) ;
 
             if ((i >= 0 && i < ni) &&
@@ -249,6 +287,23 @@ namespace tree {
             }
          }
       }
+
+
+//      if (this->storeIndex[0]->size() != 0)
+//         for (StdSize u = 0; u < this->storeIndex[0]->size(); u++)
+//            (*local_mask)[(*out_i_index[0])[u]][(*out_j_index[0])[u]] = 1;
+                                 
+//      std::cout << "indexCount" << indexCount << std::endl; 
+//      std::cout << this->getId() << " : "  << (*this->storeIndex[0]).num_elements() << std::endl;
+//      StdOFStream ofs2(("log_client_"+this->getId()).c_str());
+//      for (StdSize h = 0; h < storeIndex[0]->size(); h++)
+//      {
+//        ofs2 << "(" << (*storeIndex[0])[h]  << ";"
+//             << (*out_i_index[0])[h] << ","
+//             << (*out_j_index[0])[h] << ","
+//             << (*out_l_index[0])[h] << ")" << std::endl;
+//      }
+//      ofs2.close();   
    }
 
    //----------------------------------------------------------------
@@ -281,8 +336,20 @@ namespace tree {
       void CGrid::outputField
          (const ARRAY(double, 1) stored,  ARRAY(double, 3) field) const
    {
+      //std::cout <<"champ : " ;
       for(StdSize n = 0; n < storeIndex[0]->num_elements(); n++)
+      {
          (*field)[(*out_i_index[0])[n]][(*out_j_index[0])[n]][(*out_l_index[0])[n]] = (*stored)[n] ;
+         /*if (storeIndex[0]->num_elements() == 31)
+         {
+            std::cout << "( " << (*field)[(*out_i_index[0])[n]][(*out_j_index[0])[n]][(*out_l_index[0])[n]] << ", "
+                      << (*out_i_index[0])[n] << ", "
+                      << (*out_j_index[0])[n] << ", "
+                      << (*out_l_index[0])[n] << ")";
+         }*/
+      }
+      //std::cout << std::endl;
+
    }
 
    //---------------------------------------------------------------
@@ -310,7 +377,8 @@ namespace tree {
    void CGrid::storeField_arr
       (const double * const data, ARRAY(double, 1) stored) const
    {
-      const StdSize size = storeIndex[0]->num_elements() ;
+      const StdSize size = (this->storeIndex[0])->num_elements() ;
+//    std::cout << this->getId() << "> size : " << size << std::endl;
       stored->resize(boost::extents[size]) ;
       for(StdSize i = 0; i < size; i++)
          (*stored)[i] = data[(*storeIndex[0])[i]] ;
@@ -364,20 +432,15 @@ namespace tree {
    
    void CGrid::computeIndexServer(void)
    {
-      ARRAY(int, 1) storeIndex_srv   =  this->storeIndex[0];
-      ARRAY(int, 1) out_i_index_srv  =  this->out_i_index[0];
-      ARRAY(int, 1) out_j_index_srv  =  this->out_j_index[0];
-      ARRAY(int, 1) out_l_index_srv  =  this->out_l_index[0];
-
       ARRAY(int, 2) local_mask =  this->domain->getLocalMask();
       
       const std::vector<int> & ibegin = this->domain->getIBeginSub();
       const std::vector<int> & jbegin = this->domain->getJBeginSub();
       
-      const int ibegin_srv = this->domain->ibegin.getValue();
-      const int jbegin_srv = this->domain->jbegin.getValue();
-      const int zoom_ni_srv   = this->domain->zoom_ni_loc.getValue();
-      const int zoom_nj_srv   = this->domain->zoom_nj_loc.getValue();
+      const int ibegin_srv  = this->domain->ibegin.getValue();
+      const int jbegin_srv  = this->domain->jbegin.getValue();
+      const int zoom_ni_srv = this->domain->zoom_ni_loc.getValue();
+      const int zoom_nj_srv = this->domain->zoom_nj_loc.getValue();
       
       const int ibegin_zoom_srv = this->domain->zoom_ibegin_loc.getValue();
       const int jbegin_zoom_srv = this->domain->zoom_jbegin_loc.getValue();
@@ -386,10 +449,10 @@ namespace tree {
       for (StdSize j = 1; j < this->out_i_index.size(); j++)
          dn += this->out_i_index[j]->size();
          
-      ARRAY_ASSIGN(storeIndex_srv , int, 1, [dn]);
-      ARRAY_ASSIGN(out_i_index_srv, int, 1, [dn]);
-      ARRAY_ASSIGN(out_j_index_srv, int, 1, [dn]);
-      ARRAY_ASSIGN(out_l_index_srv, int, 1, [dn]);
+      ARRAY_CREATE(storeIndex_srv , int, 1, [dn]);
+      ARRAY_CREATE(out_i_index_srv, int, 1, [dn]);
+      ARRAY_CREATE(out_j_index_srv, int, 1, [dn]);
+      ARRAY_CREATE(out_l_index_srv, int, 1, [dn]);
       
       for (StdSize i = 0, dn = 0; i < ibegin.size(); i++)
       {
@@ -403,7 +466,7 @@ namespace tree {
          
          for (StdSize n = dn, m = 0; n < (dn + storeIndex_cl->size()); n++, m++)
          {
-            (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]  + dn; // Faux mais inutile dans tous les cas.
+            (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
             (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
                                   + (ibegin_cl - 1) - (ibegin_srv - 1) - (ibegin_zoom_srv - 1);
             (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
@@ -437,15 +500,21 @@ namespace tree {
          for (StdSize u = 0; u < storeIndex_srv->size(); u++)
             (*local_mask)[(*out_i_index_srv)[u]][(*out_j_index_srv)[u]] = 1;
 
-      //~ StdOFStream ofs(this->getId().c_str());
-      //~ for (StdSize h = 0; h < storeIndex_srv->size(); h++)
-      //~ {
-        //~ ofs << "(" << (*storeIndex_srv)[h]  << ";"
-            //~ << (*out_i_index_srv)[h] << ","
-            //~ << (*out_j_index_srv)[h] << ","
-            //~ << (*out_l_index_srv)[h] << ")" << std::endl;
-      //~ }
-      //~ ofs.close();
+//      StdOFStream ofs(("log_server_"+this->getId()).c_str());
+//      for (StdSize h = 0; h < storeIndex_srv->size(); h++)
+//      {
+//        ofs << "(" << (*storeIndex_srv)[h]  << ";"
+//            << (*out_i_index_srv)[h] << ","
+//            << (*out_j_index_srv)[h] << ","
+//            << (*out_l_index_srv)[h] << ")" << std::endl;
+//      }
+//       ofs.close();
+   
+      this->storeIndex [0] = storeIndex_srv ;
+      this->out_i_index[0] = out_i_index_srv;
+      this->out_j_index[0] = out_j_index_srv;
+      this->out_l_index[0] = out_l_index_srv;
+      
       this->storeIndex.resize(1);
       this->out_i_index.resize(1);
       this->out_j_index.resize(1);
@@ -453,7 +522,6 @@ namespace tree {
       
    }
    
-   //----------------------------------------------------------------
    
    void CGrid::inputFieldServer
          (const std::deque<ARRAY(double, 1)> storedClient,

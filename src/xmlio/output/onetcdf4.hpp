@@ -93,8 +93,10 @@ namespace xmlioserver
             int getGroup(const CONetCDF4Path & path);
             int getVariable(const StdString & varname);
             int getDimension(const StdString & dimname);
-            std::vector<StdSize> getDimensions(const StdString & varname);
-            int getUnlimitedDimension(void);
+            std::vector<StdSize>   getDimensions       (const StdString & varname);
+            std::vector<StdString> getDimensionsIdList (const StdString * varname);
+            int       getUnlimitedDimension(void);
+            StdString getUnlimitedDimensionName(void);
 
             bool varExist(const StdString & varname);
 
@@ -143,6 +145,14 @@ namespace xmlioserver
 
          this->getWriteDataInfos
          (name, record, array_size,  sstart, scount, start, count);
+         if (data->num_elements() != array_size)
+         {
+            ERROR("CONetCDF4::writeData(...)",
+                  << "[ input array size = "  << data->num_elements()
+                  << ", intern array size = " << array_size
+                  << " ] Invalid input data !" );
+         }
+         
          this->writeData_(grpid, varid, sstart, scount, data->data());
       }
       

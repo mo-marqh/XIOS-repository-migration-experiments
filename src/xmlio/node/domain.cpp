@@ -380,9 +380,12 @@ namespace tree {
             ARRAY_CREATE(__arrj, int, 1, [dni]);               
             data_n_index.setValue(dni);
             
-            for(int count = 0, i = 0; i  < data_ni.getValue(); i++)
+            //for(int count = 0, i = 0; i  < data_ni.getValue(); i++)
+            //for(int j = 0; j < data_nj.getValue(); j++, count++)
+            
+            for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
             {
-               for(int j = 0; j < data_nj.getValue(); j++, count++)
+               for(int i = 0; i < data_ni.getValue(); i++, count++)
                {
                   (*__arri)[count] = i+1 ;
                   (*__arrj)[count] = j+1 ;
@@ -398,7 +401,60 @@ namespace tree {
 
    //----------------------------------------------------------------
    
-   void CDomain::completeLonLat(void)
+   void CDomain::completeLonLatClient(void)
+   {
+      ARRAY_CREATE(lonvalue_temp, double, 1, [0]);
+      ARRAY_CREATE(latvalue_temp, double, 1, [0]);
+      
+      const int zoom_ibegin_client  = zoom_ibegin_loc.getValue(),
+                zoom_jbegin_client  = zoom_jbegin_loc.getValue(),
+                zoom_ni_client      = zoom_ni_loc.getValue(),
+                zoom_nj_client      = zoom_nj_loc.getValue();
+                
+      ARRAY(double, 1) lonvalue_ = this->lonvalue.getValue(),
+                       latvalue_ = this->latvalue.getValue();
+                
+      if (this->data_dim.getValue() == 2)
+      {
+         StdSize dm = zoom_ni_client * zoom_nj_client;
+
+         lonvalue_temp->resize(boost::extents[dm]);
+         latvalue_temp->resize(boost::extents[dm]);
+         
+         for (int i = 0; i < zoom_ni_client; i++)
+         {
+            for (int j = 0; j < zoom_nj_client; j++)
+            {
+               (*lonvalue_temp)[i + j * zoom_ni_client] = (*lonvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];              
+               (*latvalue_temp)[i + j * zoom_ni_client] = (*latvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];
+            }
+         }
+         this->lonvalue.setValue(lonvalue_temp);
+         this->latvalue.setValue(latvalue_temp);
+      }
+      else
+      {
+         lonvalue_temp->resize(boost::extents[zoom_ni_client]);
+         latvalue_temp->resize(boost::extents[zoom_nj_client]);
+         
+         for (int i = zoom_ibegin_client - 1; i < (zoom_ni_client - zoom_ibegin_client + 1); i++)
+         {
+            (*lonvalue_temp)[i] = (*lonvalue_)[i]; 
+         }
+         
+         for (int j = zoom_ibegin_client - 1; j < (zoom_nj_client - zoom_jbegin_client + 1); j++)
+         {
+            (*latvalue_temp)[j] = (*latvalue_)[j];
+         }
+         
+         this->lonvalue.setValue(lonvalue_temp);
+         this->latvalue.setValue(latvalue_temp);
+      }  
+   }
+ 
+   //----------------------------------------------------------------
+      
+   void CDomain::completeLonLatServer(void)
    {
       ARRAY_CREATE(lonvalue_temp, double, 1, [0]);
       ARRAY_CREATE(latvalue_temp, double, 1, [0]);
@@ -440,8 +496,8 @@ namespace tree {
             {
                for (int j = jbegin_loc - jbegin_serv; j < (jend_loc - jbegin_serv + 1); j++)
                {
-                  (*lonvalue_)[i + j * this->ni.getValue()] = (*lonvalue_loc)[l];              
-                  (*latvalue_)[i + j * this->ni.getValue()] = (*latvalue_loc)[l++];
+                  (*lonvalue_)[i + j * this->ni.getValue()] = (*lonvalue_loc)[l];      // erreur        
+                  (*latvalue_)[i + j * this->ni.getValue()] = (*latvalue_loc)[l++];    // erreur
                }
             }
          }
@@ -571,11 +627,24 @@ namespace tree {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
+         
+         this->ibegin_sub.push_back(this->ibegin.getValue());
+         this->jbegin_sub.push_back(this->jbegin.getValue());
+         this->iend_sub.push_back(this->iend.getValue());
+         this->jend_sub.push_back(this->jend.getValue()); 
+      
+         this->latvalue_sub.push_back(this->latvalue.getValue());
+         this->lonvalue_sub.push_back(this->lonvalue.getValue());  
+         
+         if (!this->isEmpty())
+         {
+            this->completeLonLatClient();
+         }
       }
       else
       { // Côté serveur uniquement
          if (!this->isEmpty())
-            this->completeLonLat();
+            this->completeLonLatServer();
       }
       this->completeMask();
 

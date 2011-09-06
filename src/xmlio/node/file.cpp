@@ -105,7 +105,7 @@ namespace tree {
    void CFile::setVirtualFieldGroup(const StdString & newVFieldGroupId)
    {
       this->setVirtualFieldGroup
-         (CObjectFactory::CreateObject<CFieldGroup>(newVFieldGroupId));
+         (CObjectFactory::CreateObject<CFieldGroup>(/*newVFieldGroupId*/));
    }
 
    //----------------------------------------------------------------

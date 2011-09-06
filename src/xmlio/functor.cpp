@@ -7,7 +7,7 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CFunctor::CFunctor(const StdString & id, ARRAY(double, 1) doutput)
-         : SuperClass(id), doutput(doutput)
+         : SuperClass(id), doutput(doutput), nbcall(0)
       { /* Ne rien faire de plus */  }
 
       CFunctor::~CFunctor(void)
@@ -38,6 +38,7 @@ namespace xmlioserver
 
       ARRAY(double, 1) CFunctor::operator ()(const ARRAY(double, 1) dinput)
       {
+         this->nbcall++;
          if (dinput->size() != this->doutput->size())
             ERROR("CFunctor::operator ()(dinput)",
                    << "[ input size = "  << dinput->size()
@@ -46,6 +47,11 @@ namespace xmlioserver
          this->apply(dinput, this->doutput);
          return (this->doutput);
       }
+
+      void CFunctor::final(void) 
+      {
+         this->nbcall = 0;
+      } 
 
       //---------------------------------------------------------------
 

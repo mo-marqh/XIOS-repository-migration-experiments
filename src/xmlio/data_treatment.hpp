@@ -80,9 +80,17 @@ namespace xmlioserver
          {
             boost::shared_ptr<CFile> file = *it;
             StdString filename = (!file->name.isEmpty())
-                               ? file->name.getValue() : file->getId();
+                               ?   file->name.getValue() : file->getId();
             StdOStringStream oss;
-            oss << "wk/data/" << filename << "_node" << comm::CMPIManager::GetCommRank() << ".nc";
+            if (!CObjectFactory::GetObject<CContext>
+                (CObjectFactory::GetCurrentContextId())->output_dir.isEmpty())
+            	oss << CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId())->output_dir.getValue();
+            oss << filename;
+            if (!file->name_suffix.isEmpty())
+                oss << file->name_suffix.getValue();
+            if (comm::CMPIManager::GetCommSize() > 1)
+	        oss << "_node" << comm::CMPIManager::GetCommRank();
+	    oss << ".nc";
             boost::shared_ptr<io::CDataOutput> dout(new T(oss.str(), false));
             file->initializeDataOutput(dout);
          }
@@ -92,13 +100,14 @@ namespace xmlioserver
          void CDataTreatment::write_data
             (const StdString & fieldId, const ARRAY(float, N) & data)
       {
-		 typedef typename boost::multi_array<double, N>::size_type sizetp;
+         typedef typename boost::multi_array<double, N>::size_type sizetp;
          std::vector<sizetp> shape;
          const sizetp *	shapearr = data->shape();
 
          shape.assign(shapearr, shapearr + N);
-         ARRAY_CREATE(datad, double, N, [shape]);
-         datad->assign(data->begin(), data->end());
+         ARRAY(double, N) datad(new CArray<double, N>(shape));
+         for (StdSize i = 0; i < datad->num_elements(); i++)
+          datad->data()[i] = data->data()[i];
 
          this->write_data(fieldId, datad);
       }
@@ -109,16 +118,19 @@ namespace xmlioserver
       {
          const date::CDate & currDate =
                 this->currentContext->getCalendar()->getCurrentDate();
+         const date::CDuration & timestep = 
+               this->currentContext->getCalendar()->getTimeStep();
          const std::vector<boost::shared_ptr<CField> > & refField=
                CObjectFactory::GetObject<CField>(fieldId)->getAllReference();
          std::vector<boost::shared_ptr<CField> >::const_iterator
                it = refField.begin(), end = refField.end();
-
+//	 std::cout << "nb :" << refField.size() << std::endl;
          for (; it != end; it++)
          {
             boost::shared_ptr<CField> field = *it;
             boost::shared_ptr<CFile>  file  = field->getRelFile();
-            if (field->updateData(currDate, data))
+//            std::cout << ">> " << fieldId << ", " << file->getId() << std::endl;
+            if (field->updateData(currDate, timestep, data))
             {
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
                { 
@@ -130,7 +142,6 @@ namespace xmlioserver
                   file->getDataOutput()->writeFieldData(field);
                }
             }
-            return;
          }
 
       }

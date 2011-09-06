@@ -26,7 +26,8 @@ namespace xmlioserver
 
             /// Traitement ///
             virtual void apply(const DoubleArray dinput, DoubleArray doutput);
-
+            virtual void final(void) ;
+            
             /// Destructeur ///
             virtual ~CAverage(void);
 

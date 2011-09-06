@@ -63,6 +63,8 @@ namespace tree {
 
       public :
 
+         StdSize getNStep(void) const;
+
          const date::CDuration & getFreqOperation(void) const;
          const date::CDuration & getFreqWrite(void) const;
 
@@ -77,10 +79,11 @@ namespace tree {
 
          /// Mutateur ///
          void setRelFile(const boost::shared_ptr<CFile> _file);
+         void incrementNStep(void);
 
          template <StdSize N>
             inline bool updateData
-               (const date::CDate & currDate, const ARRAY(double, N) data);
+               (const date::CDate & currDate, const date::CDuration & timestep, const ARRAY(double, N) data);
 
          bool updateDataServer
                (const date::CDate & currDate, const std::deque<ARRAY(double, 1)> storedClient);
@@ -117,6 +120,7 @@ namespace tree {
 
          date::CDuration freq_operation, freq_write;
 
+         StdSize nstep;
          boost::shared_ptr<date::CDate>    last_Write, last_operation;
          boost::shared_ptr<func::CFunctor> foperation;
          
@@ -145,22 +149,46 @@ namespace xmlioserver {
 namespace tree {
 
    template <StdSize N>
-      bool CField::updateData(const date::CDate & currDate, const ARRAY(double, N) data)
-   {
-      if ((*last_operation + freq_operation) >= currDate)
+      bool CField::updateData(const date::CDate & currDate, const date::CDuration & timestep, const ARRAY(double, N) _data)
+   {        
+      const date::CDate opeDate      = *last_operation + freq_operation;
+      const date::CDate writeDate    = *last_Write     + freq_write;       
+
+//      std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+//      std::cout << "Champ : "     << this->getBaseFieldId() << std::endl;
+//      std::cout << "CurrDate : "  << currDate  << std::endl;
+//      std::cout << "opeDate : "   << opeDate   << " = " << *last_operation << " + " << freq_operation << std::endl;
+//      std::cout	<< "writeDate : " << writeDate << " = " << *last_Write     << " + " << freq_write     << std::endl;
+//      std::cout << "(opeDate <= currDate)   = " << std::boolalpha << (opeDate <= currDate)   << std::endl;
+//      std::cout	<< "(writeDate <= currDate) = " << std::boolalpha << (writeDate <= currDate) << std::endl;   
+   
+       //std::cout << ">> " << currDate <<  " : Envoi de données " << this->getBaseFieldId() << std::endl;
+      if (opeDate <= currDate)
       {
-         ARRAY_CREATE(input, double, 1, [0]);
-         input->resize(boost::extents[data->size()]);
-         this->grid->inputField(data, input);
+         //std::cout << "> " << currDate << ": Operation du champs" << this->getBaseFieldId() << std::endl;
+         
+         if (this->data->num_elements() != this->grid->storeIndex[0]->num_elements())
+         {
+            this->data->resize(boost::extents[this->grid->storeIndex[0] ->num_elements()]);
+         }
+            
+         ARRAY_CREATE(input, double, 1, [this->data->num_elements()]);
+         this->grid->inputField(_data, input);          
          (*this->foperation)(input);
+         
          *last_operation = currDate;
+//         std::cout << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
       }
       
-      if ((*last_Write + freq_write) >= currDate)
+      if (writeDate < (currDate + freq_operation))
       {
-         *last_Write = currDate;
-         return (true);
+         this->foperation->final();
+         this->incrementNStep();
+         *last_Write = writeDate;
+//         std::cout << "(*last_Write = currDate) : " << *last_Write << " = " << currDate	<< std::endl;
+         return (true);        
       }
+//      std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
       return (false);
    };
 

@@ -52,7 +52,8 @@ namespace xmlioserver
       }
       
       ERROR("CObjectFactory::GetObject(const U * const object)",
-               << "[type = " << U::GetName() << "]"
+               << "[type = " << U::GetName() << ", "
+               << "adress = " << object << "]"
                << " object was not found !");
       return (boost::shared_ptr<U>()); // jamais atteint
    }

@@ -36,8 +36,12 @@ namespace xmlioserver
       CDuration operator-(const CDuration & ddr)
       {
          CDuration dur(ddr);
-         dur.year = -dur.year;  dur.month  = -dur.month ; dur.day    = -dur.day;
-         dur.hour = -dur.hour;  dur.minute = -dur.minute; dur.second = -dur.second;
+         dur.year   = -dur.year;
+         dur.month  = -dur.month;
+         dur.day    = -dur.day;
+         dur.hour   = -dur.hour;
+         dur.minute = -dur.minute;
+         dur.second = -dur.second;
          return (dur);
       }
 
@@ -67,7 +71,7 @@ namespace xmlioserver
          if (hour >= c.getDayLength()) { drr.day ++; hour -= c.getDayLength(); }
 
          // Ajustement des mois en fonction des jours.
-         int signVal = drr.day/fabs(drr.day);
+         int signVal = (drr.day != 0) ? drr.day/fabs(drr.day) : 0;
          CDate dtt(dt); dtt.addMonth (signVal);
 
          for(; c.getMonthLength(dtt) < fabs(drr.day); dtt.addMonth (signVal))
@@ -76,15 +80,15 @@ namespace xmlioserver
          day += dt.getDay() + drr.day;
          if (day <  0) { drr.month --; day += c.getMonthLength(dtt); }
          if (day >= c.getMonthLength(dtt)) { drr.month ++; day -= c.getMonthLength(dtt); } // << Problème ici
-         if (day == 0) day = c.getMonthLength(dtt);
-
+         if (day == 0){ day = c.getMonthLength(dtt); drr.month --; }
+         
          drr.resolve(dt.getRelCalendar());
 
          // Ajustement des années en fonction des mois.
          month += dt.getMonth() + drr.month;
-         if (month <  0) { year --; month += c.getYearLength(); }
-         if (month >= c.getYearLength()) { year ++; month -= c.getYearLength(); }
-         if (month == 0) month = c.getYearLength();
+         if (month <  0) { drr.year --; month += c.getYearLength(); }
+         if (month >  c.getYearLength()) { drr.year ++; month -= c.getYearLength(); }
+         if (month == 0){ month = c.getYearLength(); drr.year--; }
 
          year += dt.getYear() + drr.year;
 
@@ -117,9 +121,43 @@ namespace xmlioserver
       bool operator< (const CDate& dt0, const CDate& dt1)
       {
          // TODO :: Vérifier que les deux dates (dt0 et dt1) ont une référence vers le même calendrier.
-         if (dt0.getYear()   < dt1.getYear())   return true; if (dt0.getMonth()  < dt1.getMonth())  return true;
-         if (dt0.getDay()    < dt1.getDay())    return true; if (dt0.getHour()   < dt1.getHour())   return true;
-         if (dt0.getMinute() < dt1.getMinute()) return true; if (dt0.getSecond() < dt1.getSecond()) return true;
+         if   (dt0.getYear()  < dt1.getYear())
+         { 
+            return true;
+         }
+         else if (dt0.getYear() == dt1.getYear())
+         { 
+            if   (dt0.getMonth()  < dt1.getMonth())
+            {
+               return true;
+            }
+            else if (dt0.getMonth() == dt1.getMonth())
+            {
+               if   (dt0.getDay()  < dt1.getDay())
+               {
+                   return true;
+               }
+               else if (dt0.getDay() == dt1.getDay())
+               {
+                  if    (dt0.getHour()  < dt1.getHour())
+                  {
+                     return true;
+                  }
+                  else if (dt0.getHour() == dt1.getHour())
+                  { 
+                     if   (dt0.getMinute()  < dt1.getMinute())
+                     {
+                        return true;
+                     }
+                     else if (dt0.getMinute() == dt1.getMinute())
+                     {
+                        if (dt0.getSecond() < dt1.getSecond())
+                           return true;
+                     }
+                  }
+               }
+            }
+         }
          return false;
       }
 

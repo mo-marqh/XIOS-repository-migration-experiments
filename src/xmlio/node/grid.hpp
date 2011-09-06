@@ -67,8 +67,11 @@ namespace tree {
          const boost::shared_ptr<CDomain> getRelDomain(void) const;
 
          StdSize getDimension(void) const;
-         StdSize getSize(void) const;
-         std::vector<StdSize> getShape(void) const;
+         
+         StdSize getLocalSize(void) const;
+         StdSize getGlobalSize(void) const;
+         std::vector<StdSize> getLocalShape(void) const;
+         std::vector<StdSize> getGlobalShape(void) const;
 
          /// Entrées-sorties de champs ///
          template <StdSize n>
@@ -129,12 +132,12 @@ namespace tree {
    template <StdSize n>
       void CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored) const
    {
-      if (this->getSize() != field->num_elements())
+      if (this->getGlobalSize() != field->num_elements())
          ERROR("CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored)",
-                << "[ Taille des données attendue = " << this->getSize()       << ", "
+                << "[ Taille des données attendue = " << this->getGlobalSize()       << ", "
                 << "Taille des données reçue = "      << field->num_elements() << " ] "
                 << "Le tableau de données n'a pas la bonne taille !") ;
-      this->storeField_arr(field.data(), stored) ;
+      this->storeField_arr(field->data(), stored) ;
    }
 
    ///--------------------------------------------------------------

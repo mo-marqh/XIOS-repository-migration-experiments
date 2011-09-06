@@ -96,22 +96,42 @@ typedef enum
 
 void xios_handle_create (XPtr * const _ret, XDType _dtype, const XString _id, XSize _id_len)
 {
-   MAKE_STRING(__id, _id, _id_len);
-   switch(_dtype)
+   try
    {
-      case (ECONTEXT):
-         // Si le context n'existe pas, on retourne un handle vide/nul.
-         *_ret = (!CObjectFactory::HasObject<CContext>(__id))
-               ? 0 : CObjectFactory::GetObject<CContext>(__id).get();
-         return ;
-      CASE_ELEM(AXIS   , Axis)
-      CASE_ELEM(DOMAIN , Domain)
-      CASE_ELEM(FIELD  , Field)
-      CASE_ELEM(FILE   , File)
-      CASE_ELEM(GRID   , Grid)
-      default :
-         *_ret = 0;
-         return;
+      MAKE_STRING(__id, _id, _id_len);
+      switch(_dtype)
+      {
+         case (ECONTEXT):
+        {
+             *_ret = 0;
+            // Si le context n'existe pas, on retourne un handle vide/nul.
+            //*_ret = (!CObjectFactory::HasObject<CContext>(__id))
+            //      ? 0 : CObjectFactory::GetObject<CContext>(__id).get();
+            std::vector<boost::shared_ptr<CContext> > def_vector = 
+		CContext::GetContextGroup()->getChildList();
+           for (StdSize i = 0; i < def_vector.size(); i++)
+	   {
+              //std::cout << "_ " << def_vector[i]->getId() << std::endl;  
+              if (def_vector[i]->getId().compare(__id) == 0)
+                 *_ret = def_vector[i].get();
+           }
+           //std::cout << __id << "=" << *_ret << std::endl;	
+            return ;
+         }
+         CASE_ELEM(AXIS   , Axis)
+         CASE_ELEM(DOMAIN , Domain)
+         CASE_ELEM(FIELD  , Field)
+         CASE_ELEM(FILE   , File)
+         CASE_ELEM(GRID   , Grid)
+         default :
+            *_ret = 0;
+            return;
+      }
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
    }
 }
 
@@ -126,7 +146,7 @@ void xios_xml_parse_file  (const XString _filename, XSize _filename_len)
       MAKE_STRING(__filename, _filename, _filename_len)
       CTreeManager::ParseFile(__filename);
       //~ StdOStringStream oss;
-      //~ oss << StdString("data/def/def_client_pre.")
+      //~ oss << StdString("def_client_pre.")
       //~     << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
       //~ CTreeManager::PrintTreeToFile(oss.str());
    }
@@ -146,7 +166,7 @@ void xios_xml_parse_string(const XString _xmlcontent, XSize _xmlcontent_len)
       MAKE_STRING(__xmlcontent, _xmlcontent, _xmlcontent_len)
       CTreeManager::ParseString(__xmlcontent);
       //~ StdOStringStream oss;
-      //~ oss << StdString("data/def/def_client_pre.")
+      //~ oss << StdString("def_client_pre.")
       //~     << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
       //~ CTreeManager::PrintTreeToFile(oss.str());
    }
@@ -161,8 +181,16 @@ void xios_xml_parse_string(const XString _xmlcontent, XSize _xmlcontent_len)
 
 void xios_context_set_current (XPtr const _ctx, bool _wswap)
 {
-   boost::shared_ptr<CContext> context = CObjectFactory::GetObject<CContext> ((CContext*)_ctx);
-   CTreeManager::SetCurrentContextId(context->getId());
+   try
+   {
+      //boost::shared_ptr<CContext> context = CObjectFactory::GetObject<CContext> ((CContext*)_ctx);
+       CTreeManager::SetCurrentContextId(((CContext*)_ctx)->getId());
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
 }
 
 //-------------------------------------------------------------------
@@ -283,11 +311,37 @@ void xios_xml_tree_add(const XPtr _parent, XDType _parent_type, XPtr * _child,
 void xios_xml_tree_show(const XString _filename, XSize _filename_len)
 {
    MAKE_STRING(__filename, _filename, _filename_len);
-   if (_filename_len != -1)
-      CTreeManager::PrintTreeToFile(__filename);
-   else
-      CTreeManager::PrintTreeToStream(std::clog);
+   try
+   {
+      if (_filename_len != -1)
+         CTreeManager::PrintTreeToFile(__filename);
+      else
+         CTreeManager::PrintTreeToStream(std::clog);
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
 }
+
+//-------------------------------------------------------------------
+
+void xios_init_ioserver(MPIComm * comm_client)
+{
+   try
+   {
+      MPIComm comm_client_server, comm_server;
+      CMPIManager::Initialise(NULL, NULL);
+      CMPIManager::DispatchClient(false, *comm_client, comm_client_server, comm_server);
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
+}
+
 
 //-------------------------------------------------------------------
 
@@ -300,15 +354,15 @@ void xios_dtreatment_start
       boost::shared_ptr<CContext> context =
              CObjectFactory::GetObject<CContext>(__context);
       StdOStringStream oss;
-      //~ oss << StdString("data/def/def_client_next.")
-      //~     << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
-      //~ CTreeManager::PrintTreeToFile(oss.str());
-      //~ oss.str("");
+      oss << StdString("def_client_next.")
+          << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
+      CTreeManager::PrintTreeToFile(oss.str());
+      oss.str("");
 
       boost::shared_ptr<CDataTreatment> dt(new CDataTreatment (context));
       context->setDataTreatment(dt);
 
-      oss << StdString("data/def/def_client_end.")
+      oss << StdString("def_client_end.")
           << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
       CTreeManager::PrintTreeToFile(oss.str());
       
@@ -349,7 +403,15 @@ void xios_dtreatment_start
 
 void xios_dtreatment_end(void)
 {
-
+   try
+   {
+  	   CMPIManager::Finalize();
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
 }
 
 //-------------------------------------------------------------------
@@ -357,8 +419,81 @@ void xios_dtreatment_end(void)
 void xios_write_data(const XString _field_id, XSize _field_id_len, double * data_k8,
                      XSize data_Xsize, XSize data_Ysize, XSize data_Zsize)
 {
-
+   MAKE_STRING(__field_id, _field_id, _field_id_len);
+   try
+   {
+      boost::shared_ptr<CContext> context =
+      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<data::CDataTreatment> dtreat = context->getDataTreatment();
+      if (data_Ysize==-1 && data_Zsize==-1)
+      {
+         ARRAY(double, 1) data(new CArray<double, 1>(boost::extents [data_Xsize]));
+         std::copy(data_k8, data_k8+data->num_elements(), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+      else if (data_Zsize==-1)
+      {
+         ARRAY(double, 2) data(new CArray<double, 2>(boost::extents [data_Xsize][data_Ysize]));
+         std::copy(data_k8, data_k8+data->num_elements(), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+      else
+      {
+         ARRAY(double, 3) data(new CArray<double, 3>(boost::extents [data_Xsize][data_Ysize][data_Zsize]));
+         std::copy(data_k8, data_k8+data->num_elements(), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
 }
+
+//-------------------------------------------------------------------
+
+void xios_write_data_f(const XString _field_id, XSize _field_id_len, float * data_k4,
+                       XSize data_Xsize, XSize data_Ysize, XSize data_Zsize)
+{
+   MAKE_STRING(__field_id, _field_id, _field_id_len);
+   try
+   {
+      boost::shared_ptr<CContext> context =
+      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<data::CDataTreatment> dtreat = context->getDataTreatment();
+      if (data_Ysize==-1 && data_Zsize==-1)
+      {
+         ARRAY(float, 1) data(new CArray<float, 1>(boost::extents [data_Xsize]));
+         std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+      else if (data_Zsize==-1)
+      {
+         ARRAY(float, 2) data(new CArray<float, 2>(boost::extents [data_Xsize][data_Ysize]));
+         std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+      else
+      {
+         ARRAY(float, 3) data(new CArray<float, 3>(boost::extents [data_Xsize][data_Ysize][data_Zsize]));
+         std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
+         dtreat->write_data(__field_id, data);
+         return;
+      }
+   }
+   catch (CException & exc)
+   {
+      std::cerr << exc.getMessage() << std::endl;
+      exit (EXIT_FAILURE);
+   }
+}
+
 
 //-------------------------------------------------------------------
 
@@ -366,6 +501,10 @@ void xios_update_calendar(int step)
 {
    try
    {
+      boost::shared_ptr<CContext> context =
+      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<data::CDataTreatment> dtreat = context->getDataTreatment();
+      dtreat->update_calendar(step);
    }
    catch (CException & exc)
    {
@@ -381,6 +520,11 @@ void xios_set_timestep(double ts_year, double ts_month , double ts_day,
 {
    try
    {
+      date::CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
+      boost::shared_ptr<CContext> context =
+      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<data::CDataTreatment> dtreat = context->getDataTreatment();
+      dtreat->set_timestep(dur);
    }
    catch (CException & exc)
    {

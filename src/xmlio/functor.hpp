@@ -27,6 +27,9 @@ namespace xmlioserver
             /// Destructeur ///
             virtual ~CFunctor(void);
 
+            //Traitement ///
+            virtual void final(void);
+
          protected :
 
             /// Traitement ///
@@ -47,6 +50,9 @@ namespace xmlioserver
             /// Propriétés privées ///
             DoubleArray doutput;
             
+         protected :
+            /// Propriétés protégées ///   
+            int nbcall;            
       }; // class CFunctor
    } // namespace func
 } // namespace xmlioserver

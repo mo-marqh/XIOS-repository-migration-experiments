@@ -1,4 +1,6 @@
-#include "instant.hpp"
+#include "maximum.hpp"
+#include <algorithm>
+
 
 namespace xmlioserver
 {
@@ -6,22 +8,24 @@ namespace xmlioserver
    {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CInstant::CInstant(DoubleArray doutput)
-         : SuperClass(StdString("instant"), doutput)
+      CMaximum::CMaximum(DoubleArray doutput)
+         : SuperClass(StdString("maximum"), doutput)
       { /* Ne rien faire de plus */ }
 
-      CInstant::~CInstant(void)
+      CMaximum::~CMaximum(void)
       { /* Ne rien faire de plus */ }
 
       //---------------------------------------------------------------
 
-      void CInstant::apply(const DoubleArray _dinput,
+      void CMaximum::apply(const DoubleArray _dinput,
                                  DoubleArray _doutput)
       {
        	 const double * it1  = _dinput->data(),
        	              * end1 = _dinput->data() + _dinput->num_elements();
-       	 double * it   = _doutput->data();
-       	 for (; it1 != end1; it1++, it++) *it  = *it1;
+       	       double * it   = _doutput->data();
+         if (this->nbcall == 1)
+              for (; it1 != end1; it1++, it++) *it = *it1;
+         else for (; it1 != end1; it1++, it++) *it = std::max(*it1, *it);  
       }
 
       //---------------------------------------------------------------

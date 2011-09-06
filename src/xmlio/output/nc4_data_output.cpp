@@ -1,3 +1,4 @@
+
 #include "nc4_data_output.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -136,7 +137,7 @@ namespace xmlioserver
                   domain->data_ibegin.getValue(),
                   domain->data_jbegin.getValue()*/);
                   
-               SuperClassWriter::setDefaultValue(maskid, &dvm);
+               //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
                SuperClassWriter::writeData(domain->latvalue.getValue(), latid, true, 0);
@@ -222,7 +223,7 @@ namespace xmlioserver
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() : field->getBaseFieldReference()->getId();
 
-         unsigned int ssize = domain->ni.getValue() * domain->nj.getValue();
+         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
          bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
 
          nc_type type = (!field->prec.isEmpty() &&
@@ -379,16 +380,16 @@ namespace xmlioserver
          
          if (grid->hasAxis()) // 3D
          {
-            ARRAY(double, 3) field_data3D;            
+            ARRAY(double, 3) field_data3D (new CArray<double,3>(grid->getLocalShape()/*, boost::c_storage_order()*/));            
             grid->outputField(field_data, field_data3D);
-            SuperClassWriter::writeData(field_data3D, fieldid, true, 0);
+            SuperClassWriter::writeData(field_data3D, fieldid, true, field->getNStep()-1);
             
          }
          else // 2D
          {
-            ARRAY(double, 3) field_data2D;
+            ARRAY(double, 2) field_data2D (new CArray<double, 2>(grid->getLocalShape()/*, boost::c_storage_order()*/));
             grid->outputField(field_data,  field_data2D);
-            SuperClassWriter::writeData(field_data2D, fieldid, true, 0);
+            SuperClassWriter::writeData(field_data2D, fieldid, true, field->getNStep()-1);
          }
       }
 

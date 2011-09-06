@@ -37,6 +37,7 @@ namespace xmlioserver
       {
          // Mise à jour côté client
          this->currentContext->getCalendar()->update(step);
+//         std::cout <<  "current date : " << this->currentContext->getCalendar()->getCurrentDate() << std::endl;
          if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
          { // Mise à jour côté serveur
             boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
@@ -48,6 +49,7 @@ namespace xmlioserver
       {
          // Mise à jour côté client
          this->currentContext->getCalendar()->setTimeStep(duration);
+         std::cout << "timestep :" << duration << std::endl;
          if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
          { // Mise à jour côté serveur
             boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();

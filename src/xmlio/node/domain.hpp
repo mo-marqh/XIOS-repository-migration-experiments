@@ -89,7 +89,8 @@ namespace tree {
       
          /// Mutateur ///
          void addRelFile(const StdString & filename);
-         void completeLonLat(void);
+         void completeLonLatServer(void);
+         void completeLonLatClient(void);
          
          /// Destructeur ///
          virtual ~CDomain(void);

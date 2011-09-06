@@ -24,7 +24,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
       //CXIOSManager::AddClient("orchidee", 1, 1, &orchidee_fake_entry);
       //CXIOSManager::AddClient("lmdz"    , 4, 2, &lmdz_fake_entry);
       CMPIManager::DispatchClient(true, comm_client, comm_client_server,  comm_server);
-      CMPIManager::RunServer("Nemo", comm_client_server, comm_server);
+      CXIOSManager::RunServer("Nemo", comm_client_server, comm_server);
       //CXIOSManager::RunClientServer (comm::CMPIManager::GetCommWorld ());
       CXIOSManager::Finalize ();
    }

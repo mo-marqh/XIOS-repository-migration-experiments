@@ -5,7 +5,7 @@
 MODULE ORCHIDEE_FAKE
 
    ! Modules de la bibliothèque xmlioserver
-   USE IXMLIOSERVER
+   USE XIOS
    USE ISO_C_BINDING
 
 include 'mpif.h'

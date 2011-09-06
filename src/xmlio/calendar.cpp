@@ -52,7 +52,10 @@ namespace xmlioserver
       { this->timestep = duration; }
 
       CDate & CCalendar::update(int step)
-      { return (this->getCurrentDate() = this->getCurrentDate() + step * this->timestep); }
+      { 
+         std::cout << "step : " << step << std::endl;
+         return (this->getCurrentDate() = this->getInitDate() + step * this->timestep);
+      }
 
       //-----------------------------------------------------------------
 

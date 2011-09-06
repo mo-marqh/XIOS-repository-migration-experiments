@@ -18,9 +18,10 @@ namespace tree {
       , refObject(), baseRefObject()
       , grid(), file()
       , freq_operation(), freq_write()
+      , nstep(0)
       , last_Write(), last_operation()
       , foperation()
-      , data()
+      , data(new CArray<double, 1>(boost::extents[0]))
    { /* Ne rien faire de plus */ }
 
    CField::CField(const StdString & id)
@@ -28,9 +29,10 @@ namespace tree {
       , refObject(), baseRefObject()
       , grid(), file()
       , freq_operation(), freq_write()
+      , nstep(0)
       , last_Write(), last_operation()
       , foperation()
-      , data()
+      , data(new CArray<double, 1>(boost::extents[0]))
    { /* Ne rien faire de plus */ }
 
    CField::~CField(void)
@@ -87,6 +89,16 @@ namespace tree {
    boost::shared_ptr<CFile> CField::getRelFile(void) const
    { 
       return (this->file);
+   }
+   
+   StdSize CField::getNStep(void) const
+   {
+      return (this->nstep);
+   }
+   
+   void CField::incrementNStep(void)
+   {
+      this->nstep++;
    }
 
    //----------------------------------------------------------------
@@ -235,12 +247,24 @@ namespace tree {
       }
       else
       {
+         CDuration freq_offset_ = NoneDu;
+         if (!freq_offset.isEmpty())
+         {
+            freq_offset_ = CDuration::FromString(freq_offset.getValue());
+         }
+         else
+         {
+            freq_offset.setValue(NoneDu.toString());
+         }   
+                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
          this->last_Write     = boost::shared_ptr<xmlioserver::date::CDate>
                         (new date::CDate(_context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<xmlioserver::date::CDate>
                         (new date::CDate(_context->getCalendar()->getInitDate()));
+         const CDuration toffset = this->freq_operation - freq_offset_ - _context->getCalendar()->getTimeStep(); 
+         *this->last_operation  = *this->last_operation - toffset;  
          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \

@@ -141,6 +141,19 @@ namespace xmlioserver
          return (dimid);
       }
       
+      StdString CONetCDF4::getUnlimitedDimensionName(void)
+      {
+         char full_name_in[NC_MAX_NAME +1];
+         int grpid = this->getGroup(path);
+         int dimid = this->getUnlimitedDimension();
+                              
+         if (dimid == -1) return (std::string());
+            CheckError(nc_inq_dimname(grpid, dimid, full_name_in));
+                                          
+         StdString dimname(full_name_in);
+         return (dimname);
+      }
+      
       //---------------------------------------------------------------
       
       std::vector<StdSize> CONetCDF4::getDimensions(const StdString & varname)
@@ -165,6 +178,39 @@ namespace xmlioserver
 
          return (retvalue);
       }
+
+      std::vector<std::string> CONetCDF4::getDimensionsIdList (const std::string * _varname)
+      {
+         char full_name_in[NC_MAX_NAME +1];
+         int nbdim = 0, *dimid = NULL;
+         int grpid = this->getCurrentGroup();
+         int varid = (_varname != NULL) ? this->getVariable(*_varname) : NC_GLOBAL;
+         std::vector<std::string> retvalue;
+                                   
+         if (_varname != NULL)
+         {
+            CheckError(nc_inq_varndims(grpid, varid, &nbdim));
+            dimid = new int[nbdim]();
+            CheckError(nc_inq_vardimid(grpid, varid, dimid));
+         }
+         else
+         {
+            CheckError(nc_inq_dimids(grpid, &nbdim, NULL, 1));
+            dimid = new int[nbdim]();
+            CheckError(nc_inq_dimids(grpid, NULL, dimid, 1));
+         }
+                                        
+         for (int i = 0; i < nbdim; i++)
+         {
+            CheckError(nc_inq_dimname(grpid, dimid[i], full_name_in));
+            std::string dimname(full_name_in);
+            retvalue.push_back(dimname);
+         }
+         delete [] dimid;
+                                                                                                                                                      
+         return (retvalue);
+      }
+
 
       //---------------------------------------------------------------
 
@@ -270,46 +316,44 @@ namespace xmlioserver
                                         std::vector<StdSize> & scount,
                                         const std::vector<StdSize> * start,
                                         const std::vector<StdSize> * count)
-      {
-         std::vector<StdSize> sizes = this->getDimensions(name);       
-         std::vector<StdSize>::const_iterator
+      {   
+         std::vector<std::size_t> sizes  = this->getDimensions(name);
+         std::vector<std::string> iddims = this->getDimensionsIdList (&name);   
+         std::vector<std::size_t>::const_iterator
             it  = sizes.begin(), end = sizes.end();
          int i = 0;
+      
+         if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
+         {
+            sstart.push_back(record);
+            scount.push_back(1); 
+            if ((start == NULL) &&
+                (count == NULL)) i++;
+            it++;
+         }
 
          for (;it != end; it++)
-         {
-            StdSize  s = *it;
+         {      
             if ((start != NULL) && (count != NULL))
             {
-               if (s == UNLIMITED_DIM)
-               {
-                  sstart.push_back(record);
-                  scount.push_back(1);
-               }
-               else
-               {
-                  sstart.push_back((*start)[i]);
-                  scount.push_back((*count)[i]);
-                  array_size *= (*count)[i];
-                  i++;
-               }
+               sstart.push_back((*start)[i]);
+               scount.push_back((*count)[i]);
+               array_size *= (*count)[i];
+               i++;
             }
             else
             {
-               if (s == UNLIMITED_DIM)
-               {
-                  sstart.push_back(record);
-                  scount.push_back(1);
-               }
-               else
-               {
-                  sstart.push_back(0);
-                  scount.push_back(sizes[i]);
-                  array_size *= sizes[i];
-               }
+               sstart.push_back(0);
+               scount.push_back(sizes[i]);
+               array_size *= sizes[i];
                i++;
             }
          }
+         
+         
+//         for (StdSize u = 0; u < sstart.size(); u++)
+//            std::cout << "(" << sstart[u] << "," << scount[u]  << ")" ;
+//         std::cout << std::endl;
       }
 
       //---------------------------------------------------------------

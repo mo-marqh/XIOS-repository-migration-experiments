@@ -5,7 +5,7 @@
 
 #include "macro.inc"
 
-MODULE IXMLIOSERVER
+MODULE XIOS
    USE, INTRINSIC :: ISO_C_BINDING
 
    ! Ne jamais modifier les valeurs internes de ce type dans le code fortran.
@@ -109,12 +109,25 @@ MODULE IXMLIOSERVER
       END SUBROUTINE xios_dtreatment_end
 
       SUBROUTINE xios_write_data(fieldid, fieldid_size, data_k8, data_Xsize, data_Ysize, data_Zsize) BIND(C)
-         import C_INT, C_CHAR, C_PTR, C_FLOAT, C_DOUBLE, C_BOOL
+         import C_INT, C_CHAR, C_PTR, C_DOUBLE, C_BOOL
          CHARACTER(kind = C_CHAR), DIMENSION(*) :: fieldid
          INTEGER  (kind = C_INT),  VALUE        :: fieldid_size
          REAL(kind = C_DOUBLE), DIMENSION(*)    :: data_k8
          INTEGER  (kind = C_INT), VALUE         :: data_Xsize, data_Ysize, data_Zsize
       END SUBROUTINE xios_write_data
+      
+      SUBROUTINE xios_write_data_f(fieldid, fieldid_size, data_k4, data_Xsize, data_Ysize, data_Zsize) BIND(C)
+         import C_INT, C_CHAR, C_PTR, C_FLOAT, C_BOOL
+         CHARACTER(kind = C_CHAR), DIMENSION(*) :: fieldid
+         INTEGER  (kind = C_INT),  VALUE        :: fieldid_size
+         REAL(kind = C_FLOAT), DIMENSION(*)     :: data_k4
+         INTEGER  (kind = C_INT), VALUE         :: data_Xsize, data_Ysize, data_Zsize
+      END SUBROUTINE xios_write_data_f
+
+      SUBROUTINE  xios_init_ioserver(comm_client) BIND(C)
+	 import C_INT
+         INTEGER  (kind = C_INT) :: comm_client
+      END SUBROUTINE xios_init_ioserver
 
 #define DECLARE_ATTRIBUTE(type, name) \
         DECLARE_INTERFACE(axis, type, name)
@@ -149,6 +162,11 @@ MODULE IXMLIOSERVER
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
+   SUBROUTINE  init_ioserver(comm_client)
+      INTEGER, INTENT(INOUT) :: comm_client
+      CALL xios_init_ioserver(comm_client)
+   END SUBROUTINE init_ioserver
+
    SUBROUTINE handle_create(ret, dtype, idt)
       TYPE(XHandle), INTENT(OUT)     :: ret
       INTEGER, INTENT(IN)            :: dtype
@@ -164,10 +182,6 @@ MODULE IXMLIOSERVER
 
    SUBROUTINE update_calendar(step)
       INTEGER, INTENT(IN):: step
-      IF (step < 1) THEN
-         PRINT *, "L'argument 'step' ne peut être négatif ou nul"
-         STOP
-      END IF
       CALL xios_update_calendar(step)
    END SUBROUTINE update_calendar
 
@@ -254,30 +268,39 @@ MODULE IXMLIOSERVER
 
    SUBROUTINE dtreatment_end(context_hdl)
       TYPE(XHandle), INTENT(IN), VALUE :: context_hdl
-      CALL context_set_current(context_hdl)
+      !CALL context_set_current(context_hdl)
       CALL xios_dtreatment_end()
    END SUBROUTINE dtreatment_end
 
-   SUBROUTINE write_data (fieldid,                         &
-                          data1d_k8, data2d_k8, data3d_k8)
+   SUBROUTINE write_data (fieldid, data1d_k4, data2d_k4, data3d_k4, data1d_k8, data2d_k8, data3d_k8)
       CHARACTER(len = *), INTENT(IN)                     :: fieldid
       REAL(kind = 8), DIMENSION(*), OPTIONAL, INTENT(IN) :: data1d_k8(:), data2d_k8(:,:), data3d_k8(:,:,:)
+      REAL(kind = 4), DIMENSION(*), OPTIONAL, INTENT(IN) :: data1d_k4(:), data2d_k4(:,:), data3d_k4(:,:,:)
+      
       IF((.NOT. PRESENT(data1d_k8)) .AND. &
          (.NOT. PRESENT(data2d_k8)) .AND. &
          (.NOT. PRESENT(data3d_k8))) THEN
          PRINT *, "(F2003 interface) Veuillez spÃ©cifier des données à écrire !"
          STOP
       END IF
+      
       IF (PRESENT (data1d_k8)) THEN
-         CALL xios_write_data(fieldid, len(fieldid), data1d_k8, &
-                              size(data1d_k8, 1), -1, -1)
+         CALL xios_write_data(fieldid, len(fieldid), data1d_k8, size(data1d_k8, 1), -1, -1)
       ELSE IF (PRESENT (data2d_k8)) THEN
-         CALL xios_write_data(fieldid, len(fieldid), data2d_k8, &
-                              size(data2d_k8, 1), size(data2d_k8, 2), -1)
+         CALL xios_write_data(fieldid, len(fieldid), data2d_k8, size(data2d_k8, 1), size(data2d_k8, 2), -1)
       ELSE IF (PRESENT (data3d_k8)) THEN
-         CALL xios_write_data(fieldid, len(fieldid), data3d_k8, &
-                              size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3))
+         CALL xios_write_data(fieldid, len(fieldid), data3d_k8, size(data3d_k8, 1), size(data3d_k8, 2), size(data3d_k8, 3))
       END IF
+      
+      IF (PRESENT (data1d_k4)) THEN
+         CALL xios_write_data_f(fieldid, len(fieldid), data1d_k4, size(data1d_k4, 1), -1, -1)
+      ELSE IF (PRESENT (data2d_k4)) THEN
+         CALL xios_write_data_f(fieldid, len(fieldid), data2d_k4, size(data2d_k4, 1), size(data2d_k4, 2), -1)
+      ELSE IF (PRESENT (data3d_k4)) THEN
+         CALL xios_write_data_f(fieldid, len(fieldid), data3d_k4, size(data3d_k4, 1), size(data3d_k4, 2), size(data3d_k4, 3))
+      END IF
+      
+      
    END SUBROUTINE
 
    SUBROUTINE  set_axis_attributes( axis_hdl, ftype &
@@ -388,4 +411,4 @@ MODULE IXMLIOSERVER
 
    END SUBROUTINE set_file_attributes
 
-END MODULE IXMLIOSERVER
+END MODULE XIOS

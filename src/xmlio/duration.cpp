@@ -49,28 +49,39 @@ namespace xmlioserver
          char   c = '/';
          while (!in.eof())
          {
-               in >> v >> c;
+               if (!(in >> v >> c)) 
+               {
+                 //DEBUG("----> Pb StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
+                 //if (in.eof())  DEBUG("----> Fin de fichier StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
+               }
+               if (in.eof())  
+               {
+                 //DEBUG("----> Fin de fichier StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
+                 break ;
+               }
                switch (c)
                {
-                  case 'y': duration.year   = v; continue;
-                  case 'd': duration.day    = v; continue;
-                  case 'h': duration.hour   = v; continue;
-                  case 's': duration.second = v; continue;
+                  case 'y': duration.year   = v; break;
+                  case 'd': duration.day    = v; break;
+                  case 'h': duration.hour   = v; break;
+                  case 's': duration.second = v; break;
                   case 'm':
+                  {
                      in >> c;
                      if     (c == 'i') duration.minute = v;
                      else if(c == 'o') duration.month  = v;
                      else
                      {
                         StdString valc("m"); valc.append(1, c);
-                        DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
-                        continue;
+                        //DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
+                        break;
                      }
-                     continue;
+                     break;
+                  }
                   default:
                      StdString valc; valc.append(1, c);
-                     DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
-                     continue;
+                     //DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
+                     break;
                }
             }
             return (in);
