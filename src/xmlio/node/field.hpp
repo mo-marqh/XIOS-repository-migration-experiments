@@ -83,10 +83,13 @@ namespace tree {
 
          template <StdSize N>
             inline bool updateData
-               (const date::CDate & currDate, const date::CDuration & timestep, const ARRAY(double, N) data);
+               (const date::CDate      & currDate,
+                const date::CDuration  & timestep,
+                const ARRAY(double, N)   data);
 
          bool updateDataServer
-               (const date::CDate & currDate, const std::deque<ARRAY(double, 1)> storedClient);
+               (const date::CDate & currDate,
+                const std::deque<ARRAY(double, 1)> storedClient);
 
       public :
 

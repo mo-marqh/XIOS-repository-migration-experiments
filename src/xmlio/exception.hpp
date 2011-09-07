@@ -45,7 +45,7 @@ namespace xmlioserver
 #define INFO(x) \
    "In file \'" __FILE__ "\', line " << __LINE__ << " -> " x << std::endl;
 
-#ifdef XIOS_DEBUG
+#ifdef __XIOS_DEBUG
 #  define DEBUG(x) std::clog << "> Debug " << INFO(x)
 #else
 #  define DEBUG(x)

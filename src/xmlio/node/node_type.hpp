@@ -6,8 +6,7 @@
 #include "field.hpp"
 #include "file.hpp"
 #include "grid.hpp"
-//#include "method.hpp"
-//#include "var.hpp"
+#include "variable.hpp"
 #include "context.hpp"
 
 #endif // __XMLIO_NODE_TYPE__

@@ -368,7 +368,7 @@ void xios_dtreatment_start
       
       if ((comm_client_server != -1))
       {
-         MPIRequest request = 0;
+         MPI_Request request = 0;
          StdOStringStream ostrs;
          if (CMPIManager::GetCommRank(comm_client_server) == 1)
          {

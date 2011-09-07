@@ -129,7 +129,7 @@ namespace xmlioserver
          {
             boost::shared_ptr<CField> field = *it;
             boost::shared_ptr<CFile>  file  = field->getRelFile();
-//            std::cout << ">> " << fieldId << ", " << file->getId() << std::endl;
+//  std::cout << ">> " << fieldId << ", " << file->getId() << std::endl;
             if (field->updateData(currDate, timestep, data))
             {
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)

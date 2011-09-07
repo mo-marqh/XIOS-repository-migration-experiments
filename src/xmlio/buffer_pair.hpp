@@ -37,7 +37,7 @@ namespace xmlioserver
             CLinearBuffer & getCurrentBuffer(void);
             
             /// Traitements divers ///
-            int wait(void);
+            MPI_Request wait(void);
             void sendCurrentBuffer(void); 
                         
             /// Destructeur ///
@@ -53,7 +53,7 @@ namespace xmlioserver
             /// Propriétés privées ///
             MPIComm com_client_server;
             CLinearBuffer first, second;
-            MPIRequest first_request, second_request;
+            MPI_Request first_request, second_request;
             int currentBuffer;
 
       }; // class CBufferPair

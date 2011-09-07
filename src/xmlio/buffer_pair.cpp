@@ -1,6 +1,6 @@
 #include "buffer_pair.hpp"
 
-#include "impi_interface.hpp"
+#include "mpi_manager.hpp"
 
 namespace xmlioserver
 {
@@ -10,7 +10,7 @@ namespace xmlioserver
       CBufferPair::CBufferPair(MPIComm com_client_server)
          : com_client_server(com_client_server) 
          , first(BUFFER_CLIENT_SIZE), second(BUFFER_CLIENT_SIZE)
-         , first_request(mpi_request_null), second_request(mpi_request_null)
+         , first_request(MPI_REQUEST_NULL), second_request(MPI_REQUEST_NULL)
          , currentBuffer(0)
       { /* Ne rien faire de plus */ }
 
@@ -22,11 +22,11 @@ namespace xmlioserver
       bool CBufferPair::mustBeSent(void)
       {
          if ((currentBuffer  ==  0) && (first.getUsedSize()  != 0) &&
-            ((second_request == mpi_request_null) || CMPIManager::Test (second_request)))
+            ((second_request == MPI_REQUEST_NULL) || CMPIManager::Test (second_request)))
              return (true);
              
          if ((currentBuffer  ==  1) && (second.getUsedSize() != 0) &&
-            ((first_request  == mpi_request_null) || CMPIManager::Test (first_request)))
+            ((first_request  == MPI_REQUEST_NULL) || CMPIManager::Test (first_request)))
             return (true);
             
          return (false);
@@ -34,18 +34,18 @@ namespace xmlioserver
       
       //---------------------------------------------------------------
       
-      int CBufferPair::wait(void)
+      MPI_Request CBufferPair::wait(void)
       {
          if (this->currentBuffer == 0)
          {
             CMPIManager::Wait(this->second_request);
-            this->second_request = mpi_request_null;
+            this->second_request = MPI_REQUEST_NULL;
             return (this->second_request);
          }
          else
          {
             CMPIManager::Wait(this->first_request);
-            this->first_request = mpi_request_null;
+            this->first_request = MPI_REQUEST_NULL;
             return (this->first_request);
          }
       }
@@ -59,7 +59,7 @@ namespace xmlioserver
             CMPIManager::SendLinearBuffer
                (this->com_client_server, 0, this->first, this->first_request);
             this->currentBuffer  =  1;
-            this->second_request = mpi_request_null;
+            this->second_request = MPI_REQUEST_NULL;
             this->second.clear();
          }
          else  if(this->currentBuffer == 1)
@@ -67,7 +67,7 @@ namespace xmlioserver
             CMPIManager::SendLinearBuffer
                (this->com_client_server, 0, this->second, this->second_request);
             this->currentBuffer =  0;
-            this->first_request = mpi_request_null;
+            this->first_request = MPI_REQUEST_NULL;
             this->first.clear();
          }
       }

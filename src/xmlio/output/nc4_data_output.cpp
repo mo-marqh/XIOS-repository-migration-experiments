@@ -68,8 +68,6 @@ namespace xmlioserver
          
          if (domain->isEmpty()) return;
 
-         int dvm = 1;
-
          std::vector<StdString> dim0, dim1;
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
