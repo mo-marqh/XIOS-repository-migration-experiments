@@ -42,8 +42,8 @@ namespace xmlioserver
          /// Lancement des serveurs et/ou des clients ///
          static void RunServer(StdString clientName,
                                comm::MPIComm comm_client_server, comm::MPIComm comm_server);
-         static void RunClient(comm::MPIComm comm_client =
-                               comm::CMPIManager::GetCommWorld());
+         static void RunClient(bool launch = false, comm::MPIComm comm_client =
+                                                    comm::CMPIManager::GetCommWorld());
          static void RunClientServer(comm::MPIComm comm_client_server =
                                      comm::CMPIManager::GetCommWorld());
 

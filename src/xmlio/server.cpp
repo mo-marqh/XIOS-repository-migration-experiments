@@ -3,6 +3,7 @@
 #include "tree_manager.hpp"
 #include "duration.hpp"
 #include "data_treatment.hpp"
+#include "group_template_impl.hpp"
 
 namespace xmlioserver {
 namespace comm {

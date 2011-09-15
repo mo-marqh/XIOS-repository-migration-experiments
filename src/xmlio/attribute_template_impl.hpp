@@ -59,9 +59,11 @@ namespace xmlioserver
          T CAttributeTemplate<T>::getValue(void) const
       {
          if (SuperClass::isEmpty())
+         {
             ERROR("T CAttributeTemplate<T>::getValue(void) const",
                   << "[ id = " << this->getId() << "]"
                   << " L'attribut est requis mais n'est pas défini !");
+          }
          return (SuperClass::getValue<T>());
       }
 

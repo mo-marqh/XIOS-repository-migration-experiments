@@ -7,7 +7,7 @@ namespace xmlioserver
    {
       /// ////////////////// Définitions (inline) /////////////////// ///
 
-#define DATA_HEADER_SIZE  sizeof(CBufferDataType) + 2 * sizeof(StdSize) + sizeof(bool)
+#define DATA_HEADER_SIZE  sizeof(CBuffer::CBufferDataType) + 2 * sizeof(StdSize) + sizeof(bool)
 
       template <class T>
          StdSize CBuffer::getRequestedSize(T data) const

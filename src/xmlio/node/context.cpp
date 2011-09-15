@@ -200,7 +200,7 @@ namespace tree {
          ERROR("CContext::fromBinary(StdIStream & is)",                    \
                << "[ renum = " << renum << "] Bad type !");                \
       if (val) CObjectFactory::CreateObject<C##Name_##Definition>          \
-                  (C##Name_##Definition::GetDefName()) -> fromBinary(is);  \
+                   (C##Name_##Definition::GetDefName()) -> fromBinary(is); \
    }   
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"

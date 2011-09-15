@@ -1,4 +1,5 @@
 #include "onetcdf4.hpp"
+#include "group_template_impl.hpp"
 
 namespace xmlioserver
 {

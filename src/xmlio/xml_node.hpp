@@ -32,6 +32,7 @@ namespace xmlioserver
             bool goToNextElement(void);
             bool goToChildElement(void);
             bool goToParentElement(void);
+            bool getContent(StdString & content);
 
             /// Accesseurs statiques ///
             static const StdString & GetRootName(void);

@@ -76,6 +76,9 @@ namespace tree {
          const std::vector<int> & getIEndSub(void) const;
          const std::vector<int> & getJBeginSub(void) const;
          const std::vector<int> & getJEndSub(void) const;
+
+         const std::vector<int> & getIBeginZoomSub(void) const;
+         const std::vector<int> & getJBeginZoomSub(void) const;
          
          const std::vector<ARRAY(double, 1)> & getLonValueSub(void) const;
          const std::vector<ARRAY(double, 1)> & getLatValueSub(void) const;
@@ -109,6 +112,7 @@ namespace tree {
          std::set<StdString> relFiles;
 
          std::vector<int> ibegin_sub, iend_sub, jbegin_sub, jend_sub;
+         std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub;
          std::vector<ARRAY(double, 1)> lonvalue_sub, latvalue_sub;
 
    }; // class CDomain

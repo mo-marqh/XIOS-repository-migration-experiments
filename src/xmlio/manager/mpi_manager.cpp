@@ -250,7 +250,7 @@ namespace comm {
           recvcount = _indata.size() * CMPIManager::GetCommSize(_comm);
       _outdata.resize(recvcount);     
       if (MPI_Allgather ( const_cast<int*>(&(_indata[0])), sendcount, MPI_INTEGER,
-                                          &(_outdata[0]) , recvcount, MPI_INTEGER, _comm) != MPI_SUCCESS)
+                                          &(_outdata[0]) , sendcount, MPI_INTEGER, _comm) != MPI_SUCCESS)
          ERROR("CMPIManager::AllGather (indata, outdata, comm)", << " MPI Error !");
    }
          

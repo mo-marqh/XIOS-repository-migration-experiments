@@ -34,6 +34,8 @@ namespace xmlioserver
             typedef CObjectTemplate<CVariable>   SuperClass;
             typedef CVariableAttributes SuperClassAttribute;
 
+            friend class CVariableGroup;
+
          public :
 
             typedef CVariableAttributes RelAttributes;
@@ -48,17 +50,40 @@ namespace xmlioserver
             /// Destructeur ///
             virtual ~CVariable(void);
 
+         public :
+         
+            /// Autres ///
+            virtual void parse(xml::CXMLNode & node);
+            virtual StdString toString(void) const;
+
+            virtual void toBinary  (StdOStream & os) const;
+            virtual void fromBinary(StdIStream & is);
+
+            /// Accesseur ///
+            const StdString & getContent (void) const;
+
+            
+            template <typename T> inline void getData(T & _data) const;
+            template <typename T, StdSize N>
+               inline void getData(ARRAY(T, N) _data_array) const;
+
+         public :
+         
             /// Accesseurs statiques ///
             static StdString GetName(void);
             static StdString GetDefName(void);
             static ENodeType GetType(void);
+
+         private :
+
+            StdString content;
 
       }; // class CVar
 
       ///--------------------------------------------------------------
 
       // Declare/Define CVarGroup and CVarDefinition
-      DECLARE_GROUP(CVariable);
+      DECLARE_GROUP_PARSE_REDEF(CVariable);
 
 
 

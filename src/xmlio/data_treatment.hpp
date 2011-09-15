@@ -124,12 +124,10 @@ namespace xmlioserver
                CObjectFactory::GetObject<CField>(fieldId)->getAllReference();
          std::vector<boost::shared_ptr<CField> >::const_iterator
                it = refField.begin(), end = refField.end();
-//	 std::cout << "nb :" << refField.size() << std::endl;
          for (; it != end; it++)
          {
             boost::shared_ptr<CField> field = *it;
             boost::shared_ptr<CFile>  file  = field->getRelFile();
-//  std::cout << ">> " << fieldId << ", " << file->getId() << std::endl;
             if (field->updateData(currDate, timestep, data))
             {
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)

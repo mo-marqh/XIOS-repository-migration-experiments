@@ -3,6 +3,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include "attribute_template_impl.hpp"
+#include "group_template_impl.hpp"
 
 #include "file.hpp"
 #include "calendar.hpp"

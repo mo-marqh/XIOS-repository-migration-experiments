@@ -42,7 +42,7 @@ namespace xmlioserver
          virtual void fromBinary(StdIStream & is);
 
          virtual void parse(xml::CXMLNode & node);
-         inline void parse(xml::CXMLNode & node, bool withAttr);
+         virtual void parse(xml::CXMLNode & node, bool withAttr);
          
          /// Test ///
          virtual bool hasChild(void) const;

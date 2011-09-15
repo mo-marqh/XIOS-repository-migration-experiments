@@ -66,6 +66,7 @@ namespace xmlioserver
          // fournies par le client 1 du sous-groupe.
          StdString main_data_tree = clientBuffer[0]->getString(0);        
          tree::CTreeManager::FromBinary(main_data_tree);
+         std::cout << "main_data_tree" << main_data_tree.size() << std::endl;
          
          // Obtention des sous-domaines clients.
          for (StdSize j = 1; j < clientBuffer.size(); j++)
@@ -73,6 +74,11 @@ namespace xmlioserver
             main_data_tree = clientBuffer[j]->getString(0);
             tree::CTreeManager::DomainsFromBinary(main_data_tree);
          }
+         
+         StdOStringStream osss;
+         osss << StdString("./def_server_next.")
+              << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
+         CTreeManager::PrintTreeToFile(osss.str());
 
          {  // Traitement de tous les contextes
             StdString currentContextId = CObjectFactory::GetCurrentContextId();
@@ -81,9 +87,10 @@ namespace xmlioserver
             std::vector<boost::shared_ptr<CContext> >::iterator
                                it = def_vector.begin(), end = def_vector.end();
 
-            for (; it != end; it++)
+            //for (; it != end; it++ )
             {
                boost::shared_ptr<CContext> context = *it;
+               CTreeManager::SetCurrentContextId(context->getId());
                boost::shared_ptr<data::CDataTreatment> dt(new data::CDataTreatment (context));
                context->setDataTreatment(dt);
                dt->createDataOutput<io::CNc4DataOutput>();
@@ -92,7 +99,7 @@ namespace xmlioserver
          }
         
          StdOStringStream oss;
-         oss << StdString("data/def/def_server_end.")
+         oss << StdString("./def_server_end.")
              << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
          CTreeManager::PrintTreeToFile(oss.str());      
  
@@ -232,10 +239,18 @@ namespace xmlioserver
       
       //---------------------------------------------------------------
       
-      void CXIOSManager::RunClient(comm::MPIComm comm_client)
+      void CXIOSManager::RunClient(bool launch, comm::MPIComm comm_client)
       {
-         CXIOSManager::Status  = LOC_CLIENT_SERVER;
-         (CXIOSManager::Clients.begin()->second.entry)(comm_client, comm_client, comm_client);
+         if (launch)
+         {
+            CXIOSManager::Status  = LOC_CLIENT_SERVER;         
+            (CXIOSManager::Clients.begin()->second.entry)
+               (comm_client, comm_client, comm_client);
+         }
+         else
+         {
+            CXIOSManager::Status  = LOC_CLIENT;
+         }
       }
 
       //---------------------------------------------------------------

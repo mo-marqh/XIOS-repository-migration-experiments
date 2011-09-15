@@ -120,12 +120,15 @@ namespace xmlioserver
          boost::shared_ptr<CContextGroup> group_context =
                            CContext::GetContextGroup();
                            
-         is.read (reinterpret_cast<char*>(&renum), sizeof(StdSize));   
-         is.read (reinterpret_cast<char*>(&ctxtnb), sizeof(ENodeType));
+         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));   
+         is.read (reinterpret_cast<char*>(&ctxtnb), sizeof(StdSize));
 
          if (renum != CContextGroup::GetType())
             ERROR("CTreeManager::FromBinary(StdIStream & is)",
                   << "[ renum = " << renum << "] Bad type !");
+                  
+                  
+//         std::cout << "Nombre de contexte :" << ctxtnb << std::endl;
 
          for (StdSize i = 0; i < ctxtnb; i++)
          {
@@ -143,6 +146,8 @@ namespace xmlioserver
                is.read (reinterpret_cast<char*>(&size), sizeof(StdSize));
                StdString id(size, ' ');
                is.read (const_cast<char *>(id.data()), size * sizeof(char));
+               
+//               std::cout << "context ::::" << id << std::endl;
                
                CTreeManager::SetCurrentContextId(id);               
                bool hasctxt = CObjectFactory::HasObject<CContext>(id);

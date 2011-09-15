@@ -436,6 +436,8 @@ namespace tree {
       
       const std::vector<int> & ibegin = this->domain->getIBeginSub();
       const std::vector<int> & jbegin = this->domain->getJBeginSub();
+      const std::vector<int> & ibegin_zoom = this->domain->getIBeginZoomSub();
+      const std::vector<int> & jbegin_zoom = this->domain->getJBeginZoomSub();
       
       const int ibegin_srv  = this->domain->ibegin.getValue();
       const int jbegin_srv  = this->domain->jbegin.getValue();
@@ -464,13 +466,22 @@ namespace tree {
          const int ibegin_cl = ibegin[i];
          const int jbegin_cl = jbegin[i];
          
+         int ibegin_zoom_cl = ibegin[i]; //ibegin_zoom[i];
+         int jbegin_zoom_cl = jbegin[i]; //jbegin_zoom[i];
+         
+         if (ibegin_zoom.size() != 0)
+         {
+            ibegin_zoom_cl = ibegin_zoom[i];
+            jbegin_zoom_cl = jbegin_zoom[i];
+         }
+         
          for (StdSize n = dn, m = 0; n < (dn + storeIndex_cl->size()); n++, m++)
          {
             (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
             (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
-                                  + (ibegin_cl - 1) - (ibegin_srv - 1) - (ibegin_zoom_srv - 1);
+                                  /*+ (ibegin_cl - 1)*/ - (ibegin_srv - 1) + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1); 
             (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
-                                  + (jbegin_cl - 1) - (jbegin_srv - 1) - (jbegin_zoom_srv - 1);
+                                  /*+ (jbegin_cl - 1)*/ - (jbegin_srv - 1) + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
             (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
          }
                   
@@ -492,7 +503,14 @@ namespace tree {
              (iend_t >= zoom_ni_srv) || (jend_t >= zoom_nj_srv))
          {
             ERROR("CGrid::computeIndexServer(void)",
-                  <<"Erreur d'indexation de la grille au niveau du serveur") ;
+                  << "[ grille = "      << this->getId()
+                  << ", ibegin_t = "    << ibegin_t
+                  << ", jbegin_t = "    << jbegin_t
+                  << ", iend_t = "      << iend_t
+                  << ", jend_t = "      << jend_t
+                  << ", zoom_ni_srv = " << zoom_ni_srv
+                  << ", zoom_nj_srv = " << zoom_nj_srv
+                  <<" ] Erreur d'indexation de la grille au niveau du serveur") ;
          }
       }
 

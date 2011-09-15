@@ -6,6 +6,8 @@
 
 #include "mpi_manager.hpp"
 
+#include "tree_manager.hpp"
+
 #include <algorithm>
 
 namespace xmlioserver {
@@ -17,6 +19,7 @@ namespace tree {
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
+      , ibegin_zoom_sub(), jbegin_zoom_sub()
       , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
@@ -24,6 +27,7 @@ namespace tree {
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
+      , ibegin_zoom_sub(), jbegin_zoom_sub()
       , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
@@ -80,13 +84,25 @@ namespace tree {
    {
       SuperClass::fromBinary(is);
       
-      this->ibegin_sub.push_back(this->ibegin.getValue());
-      this->jbegin_sub.push_back(this->jbegin.getValue());
-      this->iend_sub.push_back(this->iend.getValue());
-      this->jend_sub.push_back(this->jend.getValue()); 
+      if ( !this->ibegin.isEmpty()   &&
+           !this->jbegin.isEmpty()   &&
+           !this->iend.isEmpty()     &&
+           !this->jend.isEmpty()     &&
+           !this->latvalue.isEmpty() &&
+           !this->lonvalue.isEmpty())
+      {
       
-      this->latvalue_sub.push_back(this->latvalue.getValue());
-      this->lonvalue_sub.push_back(this->lonvalue.getValue());   
+         this->ibegin_sub.push_back(this->ibegin.getValue());
+         this->jbegin_sub.push_back(this->jbegin.getValue());
+         this->iend_sub.push_back(this->iend.getValue());
+         this->jend_sub.push_back(this->jend.getValue()); 
+         
+         this->ibegin_zoom_sub.push_back(this->zoom_ibegin_loc.getValue());
+         this->jbegin_zoom_sub.push_back(this->zoom_jbegin_loc.getValue());
+      
+         this->latvalue_sub.push_back(this->latvalue.getValue());
+         this->lonvalue_sub.push_back(this->lonvalue.getValue());
+      }
       
 #define CLEAR_ATT(name_)\
       SuperClassAttribute::operator[](#name_)->clear()
@@ -106,10 +122,19 @@ namespace tree {
          
 #undef CLEAR_ATT
 
-      this->ibegin.setValue(*std::min_element(this->ibegin_sub.begin(),this->ibegin_sub.end()));
-      this->jbegin.setValue(*std::min_element(this->jbegin_sub.begin(),this->jbegin_sub.end()));
-      this->iend.setValue(*std::max_element(this->iend_sub.begin(),this->iend_sub.end()));
-      this->jend.setValue(*std::max_element(this->jend_sub.begin(),this->jend_sub.end()));
+      if ( !this->ibegin.isEmpty()   &&
+           !this->jbegin.isEmpty()   &&
+           !this->iend.isEmpty()     &&
+           !this->jend.isEmpty()     &&
+           !this->latvalue.isEmpty() &&
+           !this->lonvalue.isEmpty())
+      {
+
+         this->ibegin.setValue(*std::min_element(this->ibegin_sub.begin(),this->ibegin_sub.end()));
+         this->jbegin.setValue(*std::min_element(this->jbegin_sub.begin(),this->jbegin_sub.end()));
+         this->iend.setValue(*std::max_element(this->iend_sub.begin(),this->iend_sub.end()));
+         this->jend.setValue(*std::max_element(this->jend_sub.begin(),this->jend_sub.end()));
+      }
    }
 
    //----------------------------------------------------------------
@@ -123,11 +148,14 @@ namespace tree {
    void CDomain::checkGlobalDomain(void)
    {
       if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
-          (ni_glo.isEmpty() || nj_glo.getValue() <= 0 ))
+          (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
+      {
+         abort();
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
                << "Le domaine global est mal défini,"
-               << " vérifiez les valeurs de \'ni_glo\' et \'nj_glo\' !") ;
+               << " vérifiez les valeurs de \'ni_glo\' et \'nj_glo\' !") 
+      }
    }
 
    //----------------------------------------------------------------
@@ -674,6 +702,13 @@ namespace tree {
    
    //----------------------------------------------------------------
    
+   const std::vector<int> & CDomain::getIBeginZoomSub(void) const
+   {
+      return (this->ibegin_zoom_sub);
+   }
+               
+   //----------------------------------------------------------------
+                     
    const std::vector<int> & CDomain::getIEndSub(void) const
    {
       return (this->iend_sub);
@@ -685,6 +720,14 @@ namespace tree {
    {
       return (this->jbegin_sub);
    }
+   
+   //----------------------------------------------------------------
+      
+   const std::vector<int> & CDomain::getJBeginZoomSub(void) const
+   {
+      return (this->jbegin_zoom_sub);
+   }
+                  
    
    //----------------------------------------------------------------
    

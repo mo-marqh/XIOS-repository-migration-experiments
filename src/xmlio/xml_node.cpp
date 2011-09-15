@@ -64,6 +64,13 @@ namespace xmlioserver
          return (!retvalue);
       }
 
+      bool CXMLNode::getContent(StdString & content)
+      {
+         if (this->node->value_size() == 0) return (false);
+         content.assign(this->node->value(), this->node->value_size());
+         return (true);
+      }
+
       const StdString & CXMLNode::GetRootName(void)
       { 
          return (CXMLNode::RootName); 
