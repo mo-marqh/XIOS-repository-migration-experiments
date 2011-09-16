@@ -23,25 +23,27 @@ MODULE IFILE
   
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
    
-   SUBROUTINE set_file_attributes_id(file_id, name_ , description_, output_freq_, output_level_, enabled_)
+   SUBROUTINE set_file_attributes_id(file_id, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       IMPLICIT NONE
       TYPE(XFileHandle)                        :: file_hdl
       CHARACTER(len = *)          , INTENT(IN) :: file_id
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description_
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
       
       CALL file_handle_create(file_hdl, file_id)
-      CALL set_file_attributes_hdl(file_hdl, name_ , description_, output_freq_, output_level_, enabled_)
+      CALL set_file_attributes_hdl(file_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       
    END SUBROUTINE set_file_attributes_id
    
-   SUBROUTINE set_file_attributes_hdl(file_hdl, name_ , description_, output_freq_, output_level_, enabled_)
+   SUBROUTINE set_file_attributes_hdl(file_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       TYPE(XFileHandle)           , INTENT(IN) :: file_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description_
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL(kind = 1)                        :: enabled__
@@ -53,6 +55,9 @@ MODULE IFILE
       END IF
       IF (PRESENT(description_))  THEN
          CALL xios_set_file_description(file_hdl%daddr, description_, len(description_))
+      END IF
+      IF (PRESENT(name_suffix_))  THEN
+         CALL xios_set_file_name_suffix(file_hdl%daddr, name_suffix_, len(name_suffix_))
       END IF
       IF (PRESENT(output_freq_))  THEN
          CALL xios_set_file_output_freq(file_hdl%daddr, output_freq_, len(output_freq_))
@@ -66,26 +71,28 @@ MODULE IFILE
 
    END SUBROUTINE set_file_attributes_hdl
    
-   SUBROUTINE set_filegroup_attributes_id(filegroup_id, name_ , description_, output_freq_, output_level_, enabled_)
+   SUBROUTINE set_filegroup_attributes_id(filegroup_id, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       IMPLICIT NONE
       TYPE(XFileGroupHandle)                   :: filegroup_hdl
       CHARACTER(len = *)          , INTENT(IN) :: filegroup_id
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description_
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
       
       CALL filegroup_handle_create(filegroup_hdl, filegroup_id)
-      CALL set_filegroup_attributes_hdl(filegroup_hdl, name_ , description_, output_freq_, output_level_, enabled_)
+      CALL set_filegroup_attributes_hdl(filegroup_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       
    END SUBROUTINE set_filegroup_attributes_id
    
-   SUBROUTINE set_filegroup_attributes_hdl(filegroup_hdl, name_ , description_, output_freq_, output_level_, enabled_)
+   SUBROUTINE set_filegroup_attributes_hdl(filegroup_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
       IMPLICIT NONE
       TYPE(XFileGroupHandle)      , INTENT(IN) :: filegroup_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description_
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL(kind = 1)                        :: enabled__
@@ -97,6 +104,9 @@ MODULE IFILE
       END IF
       IF (PRESENT(description_))  THEN
          CALL xios_set_filegroup_description(filegroup_hdl%daddr, description_, len(description_))
+      END IF
+      IF (PRESENT(name_suffix_))  THEN
+         CALL xios_set_filegroup_name_suffix(filegroup_hdl%daddr, name_suffix_, len(name_suffix_))
       END IF
       IF (PRESENT(output_freq_))  THEN
          CALL xios_set_filegroup_output_freq(filegroup_hdl%daddr, output_freq_, len(output_freq_))

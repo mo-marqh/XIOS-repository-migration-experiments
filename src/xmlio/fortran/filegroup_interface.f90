@@ -16,6 +16,13 @@ MODULE FILEGROUP_INTERFACE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: description
          INTEGER  (kind = C_INT)     , VALUE        :: description_size
       END SUBROUTINE xios_set_filegroup_description
+      
+      SUBROUTINE xios_set_filegroup_name_suffix(filegroup_hdl, name_suffix ,name_suffix_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: filegroup_hdl
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: name_suffix
+         INTEGER  (kind = C_INT)     , VALUE        :: name_suffix_size
+      END SUBROUTINE xios_set_filegroup_name_suffix
 
       SUBROUTINE xios_set_filegroup_output_freq(filegroup_hdl, output_freq ,output_freq_size) BIND(C)
          USE ISO_C_BINDING

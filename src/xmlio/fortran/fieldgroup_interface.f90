@@ -97,12 +97,12 @@ MODULE FIELDGROUP_INTERFACE
          REAL    (kind = C_DOUBLE)  , VALUE :: default_value
       END SUBROUTINE xios_set_fieldgroup_default_value
       
-      SUBROUTINE xios_domaingroup_handle_create(ret, idt, idt_size) BIND(C)
+      SUBROUTINE xios_fieldgroup_handle_create(ret, idt, idt_size) BIND(C)
          import C_CHAR, C_INTPTR_T, C_INT
          INTEGER  (kind = C_INTPTR_T)               :: ret
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: idt
          INTEGER  (kind = C_INT)     , VALUE        :: idt_size
-      END SUBROUTINE xios_domaingroup_handle_create
+      END SUBROUTINE xios_fieldgroup_handle_create
    
    END INTERFACE
    

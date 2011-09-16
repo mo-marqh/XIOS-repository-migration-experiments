@@ -69,6 +69,10 @@ MODULE IDATA
       
    END INTERFACE
    
+   INTERFACE write_data
+      MODULE PROCEDURE write_data_k81,write_data_k82,write_data_k83,write_data_k41,write_data_k42,write_data_k43
+   END INTERFACE
+   
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
    SUBROUTINE  init_ioserver(comm_client)
@@ -77,7 +81,7 @@ MODULE IDATA
    END SUBROUTINE init_ioserver
    
    SUBROUTINE dtreatment_start(context_hdl, filetype, comm_client_server, comm_server)
-      TYPE(XContextHandle), INTENT(IN), VALUE    :: context_hdl
+      TYPE(XContextHandle), INTENT(IN)           :: context_hdl
       INTEGER             , INTENT(IN), OPTIONAL :: filetype , comm_client_server , comm_server
       INTEGER                                    :: filetype_, comm_client_server_, comm_server_
       IF (PRESENT(filetype)) THEN
@@ -100,7 +104,7 @@ MODULE IDATA
    END SUBROUTINE dtreatment_start
    
    SUBROUTINE dtreatment_end(context_hdl)
-      TYPE(XContextHandle), INTENT(IN), VALUE :: context_hdl
+      TYPE(XContextHandle), INTENT(IN), OPTIONAL :: context_hdl
       CALL context_set_current(context_hdl)
       CALL xios_dtreatment_end()
    END SUBROUTINE dtreatment_end

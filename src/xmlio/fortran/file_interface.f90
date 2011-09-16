@@ -16,6 +16,13 @@ MODULE FILE_INTERFACE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: description
          INTEGER  (kind = C_INT)     , VALUE        :: description_size
       END SUBROUTINE xios_set_file_description
+      
+      SUBROUTINE xios_set_file_name_suffix(file_hdl, name_suffix, name_suffix_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: file_hdl
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: name_suffix
+         INTEGER  (kind = C_INT)     , VALUE        :: name_suffix_size
+      END SUBROUTINE xios_set_file_name_suffix
 
       SUBROUTINE xios_set_file_output_freq(file_hdl, output_freq, output_freq_size) BIND(C)
          USE ISO_C_BINDING

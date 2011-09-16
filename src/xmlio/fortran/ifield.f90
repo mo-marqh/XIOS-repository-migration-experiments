@@ -25,7 +25,7 @@ MODULE IFIELD
     
    SUBROUTINE set_fieldgroup_attributes_id                                                 &
    (fieldgroup_id, name_, standard_name_, long_name_, unit_, operation_, freq_op_, level_, &
-    prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, fieldgroup_ref_, default_value_)
+    prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, field_ref_, default_value_)
     
       IMPLICIT NONE
       TYPE(XFieldGroupHandle)                       :: fieldgroup_hdl
@@ -42,19 +42,19 @@ MODULE IFIELD
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: domain_ref_
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: axis_ref_
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: grid_ref_
-      CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: fieldgroup_ref_
+      CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: field_ref_
       REAL(kind=8)           , OPTIONAL, INTENT(IN) :: default_value_
         
       CALL fieldgroup_handle_create(fieldgroup_hdl, fieldgroup_id)
       CALL set_fieldgroup_attributes_hdl                                                          &
          (fieldgroup_hdl, name_, standard_name_, long_name_, unit_, operation_, freq_op_, level_, &
-          prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, fieldgroup_ref_, default_value_)
+          prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, field_ref_, default_value_)
 
    END SUBROUTINE set_fieldgroup_attributes_id
 
    SUBROUTINE set_fieldgroup_attributes_hdl                                                 &
    (fieldgroup_hdl, name_, standard_name_, long_name_, unit_, operation_, freq_op_, level_, &
-    prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, fieldgroup_ref_, default_value_)
+    prec_, enabled_, domain_ref_, axis_ref_, grid_ref_, field_ref_, default_value_)
       IMPLICIT NONE
       TYPE(XFieldgroupHandle)          , INTENT(IN) :: fieldgroup_hdl
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: name_
@@ -70,7 +70,7 @@ MODULE IFIELD
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: domain_ref_
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: axis_ref_
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: grid_ref_
-      CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: fieldgroup_ref_
+      CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: field_ref_
       REAL(kind=8)           , OPTIONAL, INTENT(IN) :: default_value_
       
       enabled__ = enabled_  
@@ -110,8 +110,8 @@ MODULE IFIELD
       IF (PRESENT(grid_ref_))       THEN
          CALL xios_set_fieldgroup_grid_ref(fieldgroup_hdl%daddr, grid_ref_, len(grid_ref_))
       END IF
-      IF (PRESENT(fieldgroup_ref_))      THEN
-         CALL xios_set_fieldgroup_fieldgroup_ref(fieldgroup_hdl%daddr, fieldgroup_ref_, len(fieldgroup_ref_))
+      IF (PRESENT(field_ref_))      THEN
+         CALL xios_set_fieldgroup_field_ref(fieldgroup_hdl%daddr, field_ref_, len(field_ref_))
       END IF
       IF (PRESENT(default_value_))  THEN
          CALL xios_set_fieldgroup_default_value(fieldgroup_hdl%daddr, default_value_)

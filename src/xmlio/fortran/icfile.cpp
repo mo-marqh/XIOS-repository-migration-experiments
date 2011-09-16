@@ -40,6 +40,14 @@ extern "C"
       file_hdl->description.setValue(description_str);
    } 
    
+   void xios_set_file_name_suffix(XFilePtr file_hdl, const char * name_suffix, int name_suffix_size)
+   {
+      std::string name_suffix_str; 
+      if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
+
+      file_hdl->name_suffix.setValue(name_suffix_str);
+   } 
+   
    void xios_set_file_output_freq(XFilePtr file_hdl, const char * output_freq, int output_freq_size)
    {
       std::string output_freq_str; 
@@ -75,6 +83,14 @@ extern "C"
       if (!cstr2string(description, description_size, description_str)) return;
 
       filegroup_hdl->description.setValue(description_str);
+   } 
+   
+   void xios_set_filegroup_name_suffix(XFileGroupPtr filegroup_hdl, const char * name_suffix, int name_suffix_size)
+   {
+      std::string name_suffix_str; 
+      if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
+
+      filegroup_hdl->name_suffix.setValue(name_suffix_str);
    } 
    
    void xios_set_filegroup_output_freq(XFileGroupPtr filegroup_hdl, const char * output_freq, int output_freq_size)

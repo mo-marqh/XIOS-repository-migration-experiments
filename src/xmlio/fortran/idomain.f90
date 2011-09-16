@@ -24,17 +24,17 @@ MODULE IDOMAIN
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
    
    SUBROUTINE set_domaingroup_attributes_id                                                                        &
-   ( domaingroup_id, name_, standard_name_, long_name_, domaingroup_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_,  &
+   ( domaingroup_id, name_, standard_name_, long_name_, domain_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_,       &
      ni_, jbegin_, jend_, nj_, mask_, data_dim_, data_ni_, data_nj_, data_ibegin_, data_jbegin_,                   &
      zoom_ni_, zoom_nj_, zoom_ibegin_, zoom_jbegin_, zoom_ni_loc_, zoom_nj_loc_, zoom_ibegin_loc_,                 &
      zoom_jbegin_loc_, data_n_index_, data_i_index_, data_j_index_, lonvalue_, latvalue_)
       IMPLICIT NONE
-      TYPE(XDomainGroupHandle)                                   :: domaingroup_hdl
+      TYPE(XDomainGroupHandle)                              :: domaingroup_hdl
       CHARACTER(len = *)                       , INTENT(IN) :: domaingroup_id
       CHARACTER(len = *)             , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *)             , OPTIONAL, INTENT(IN) :: standard_name_
       CHARACTER(len = *)             , OPTIONAL, INTENT(IN) :: long_name_
-      CHARACTER(len = *)             , OPTIONAL, INTENT(IN) :: domaingroup_group_ref_
+      CHARACTER(len = *)             , OPTIONAL, INTENT(IN) :: domain_group_ref_
       INTEGER                        , OPTIONAL, INTENT(IN) :: ni_glo_
       INTEGER                        , OPTIONAL, INTENT(IN) :: nj_glo_
       INTEGER                        , OPTIONAL, INTENT(IN) :: ibegin_
@@ -65,7 +65,7 @@ MODULE IDOMAIN
  
       CALL domaingroup_handle_create(domaingroup_hdl, domaingroup_id)
       CALL set_domaingroup_attributes_hdl                                                                          &
-   ( domaingroup_hdl, name_, standard_name_, long_name_, domaingroup_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_, &
+   ( domaingroup_hdl, name_, standard_name_, long_name_, domain_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_,      &
      ni_, jbegin_, jend_, nj_, mask_, data_dim_, data_ni_, data_nj_, data_ibegin_, data_jbegin_,                   &
      zoom_ni_, zoom_nj_, zoom_ibegin_, zoom_jbegin_, zoom_ni_loc_, zoom_nj_loc_, zoom_ibegin_loc_,                 &
      zoom_jbegin_loc_, data_n_index_, data_i_index_, data_j_index_, lonvalue_, latvalue_)
@@ -73,7 +73,7 @@ MODULE IDOMAIN
    END SUBROUTINE set_domaingroup_attributes_id
    
    SUBROUTINE set_domaingroup_attributes_hdl                                                                       &
-   ( domaingroup_hdl,name_, standard_name_, long_name_, domaingroup_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_,  &
+   ( domaingroup_hdl,name_, standard_name_, long_name_, domain_group_ref_, ni_glo_, nj_glo_, ibegin_, iend_,       &
      ni_, jbegin_, jend_, nj_, mask_, data_dim_, data_ni_, data_nj_, data_ibegin_, data_jbegin_,                   &
      zoom_ni_, zoom_nj_, zoom_ibegin_, zoom_jbegin_, zoom_ni_loc_, zoom_nj_loc_, zoom_ibegin_loc_,                 &
      zoom_jbegin_loc_, data_n_index_, data_i_index_, data_j_index_, lonvalue_, latvalue_)
@@ -82,7 +82,7 @@ MODULE IDOMAIN
       CHARACTER(len = *)               , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *)               , OPTIONAL, INTENT(IN) :: standard_name_
       CHARACTER(len = *)               , OPTIONAL, INTENT(IN) :: long_name_
-      CHARACTER(len = *)               , OPTIONAL, INTENT(IN) :: domaingroup_group_ref_
+      CHARACTER(len = *)               , OPTIONAL, INTENT(IN) :: domain_group_ref_
       INTEGER                          , OPTIONAL, INTENT(IN) :: ni_glo_
       INTEGER                          , OPTIONAL, INTENT(IN) :: nj_glo_
       INTEGER                          , OPTIONAL, INTENT(IN) :: ibegin_
@@ -121,8 +121,8 @@ MODULE IDOMAIN
       IF (PRESENT(long_name_))        THEN
          CALL xios_set_domaingroup_long_name(domaingroup_hdl%daddr, long_name_, len(long_name_))
        END IF
-      IF (PRESENT(domaingroup_group_ref_)) THEN
-         CALL xios_set_domaingroup_domaingroup_group_ref(domaingroup_hdl%daddr, domaingroup_group_ref_, len(domaingroup_group_ref_))
+      IF (PRESENT(domain_group_ref_)) THEN
+         CALL xios_set_domaingroup_domain_group_ref(domaingroup_hdl%daddr, domain_group_ref_, len(domain_group_ref_))
       END IF
       IF (PRESENT(ni_glo_))           THEN
          CALL xios_set_domaingroup_ni_glo(domaingroup_hdl%daddr, ni_glo_)
