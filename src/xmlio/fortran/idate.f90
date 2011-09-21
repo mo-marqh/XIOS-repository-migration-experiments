@@ -37,8 +37,8 @@ MODULE IDATE
    
    SUBROUTINE update_calendar(step)
       INTEGER, INTENT(IN):: step
-      IF (step < 1) THEN
-         PRINT *, "L'argument 'step' ne peut être négatif ou nul"
+      IF (step < 0) THEN
+         PRINT *, "L'argument 'step' ne peut être négatif"
          STOP
       END IF
       CALL xios_update_calendar(step)

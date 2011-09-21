@@ -105,7 +105,6 @@ MODULE IDATA
    
    SUBROUTINE dtreatment_end(context_hdl)
       TYPE(XContextHandle), INTENT(IN), OPTIONAL :: context_hdl
-      CALL context_set_current(context_hdl)
       CALL xios_dtreatment_end()
    END SUBROUTINE dtreatment_end
    
