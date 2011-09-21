@@ -39,13 +39,20 @@ MODULE CONTEXT_INTERFACE
 
       SUBROUTINE xios_context_create(context, context_id, context_id_size, calendar_type, &
                                      year, month, day, hour, minute, second) BIND(C)
-         import C_CHAR, C_INT, C_INTPTR_T
+         USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T)               :: context
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: context_id
          INTEGER  (kind = C_INT)     , VALUE        :: context_id_size
          INTEGER  (kind = C_INT)     , VALUE        :: calendar_type, year, month, day, hour, minute, second
       END SUBROUTINE xios_context_create
-     
+
+      SUBROUTINE xios_context_valid_id(ret, idt, idt_size) BIND(C)
+         USE ISO_C_BINDING
+         LOGICAL  (kind = C_BOOL)                   :: ret
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: idt
+         INTEGER  (kind = C_INT)     , VALUE        :: idt_size
+      END SUBROUTINE xios_context_valid_id
+
    END INTERFACE
      
 END MODULE CONTEXT_INTERFACE

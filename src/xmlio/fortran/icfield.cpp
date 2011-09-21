@@ -243,5 +243,24 @@ extern "C"
 
       *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CFieldGroup>(id).get();
    }
+
+
+   // -------------------- Vérification des identifiants -----------------------
+
+   void xios_field_valid_id (bool * _ret, const char * _id, int _id_len)
+   {
+      std::string id;
+      if (!cstr2string(_id, _id_len, id)) return;
+
+      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CField>(id);
+   }
+
+   void xios_fieldgroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   {
+      std::string id;
+      if (!cstr2string(_id, _id_len, id)) return;
+
+      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CFieldGroup>(id);
+   }
    
 } // extern "C"

@@ -129,4 +129,20 @@ MODULE IAXIS
       CALL xios_axisgroup_handle_create(ret%daddr, idt, len(idt))            
    END SUBROUTINE axisgroup_handle_create
 
+   LOGICAL FUNCTION axis_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_axis_valid_id(val, idt, len(idt));
+      axis_valid_id = val
+   END FUNCTION  axis_valid_id
+
+   LOGICAL FUNCTION axisgroup_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_axisgroup_valid_id(val, idt, len(idt));
+      axisgroup_valid_id = val
+   END FUNCTION  axisgroup_valid_id
+
 END MODULE IAXIS

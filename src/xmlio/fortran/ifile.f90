@@ -133,5 +133,21 @@ MODULE IFILE
       CHARACTER(len = *)    , INTENT(IN) :: idt      
       CALL xios_filegroup_handle_create(ret%daddr, idt, len(idt))            
    END SUBROUTINE filegroup_handle_create
+
+   LOGICAL FUNCTION file_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_file_valid_id(val, idt, len(idt));
+      file_valid_id = val
+   END FUNCTION  file_valid_id
+
+   LOGICAL FUNCTION filegroup_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_filegroup_valid_id(val, idt, len(idt));
+      filegroup_valid_id = val
+   END FUNCTION  filegroup_valid_id
    
 END MODULE IFILE

@@ -108,5 +108,21 @@ MODULE IGRID
       CHARACTER(len = *)     , INTENT(IN) :: idt      
       CALL xios_gridgroup_handle_create(ret%daddr, idt, len(idt))            
    END SUBROUTINE gridgroup_handle_create
+
+   LOGICAL FUNCTION grid_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_grid_valid_id(val, idt, len(idt));
+      grid_valid_id = val
+   END FUNCTION  grid_valid_id
+
+   LOGICAL FUNCTION gridgroup_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_gridgroup_valid_id(val, idt, len(idt));
+      gridgroup_valid_id = val
+   END FUNCTION  gridgroup_valid_id
    
 END MODULE IGRID

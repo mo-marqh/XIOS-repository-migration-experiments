@@ -411,5 +411,21 @@ MODULE IDOMAIN
       CHARACTER(len = *)      , INTENT(IN) :: idt      
       CALL xios_domaingroup_handle_create(ret%daddr, idt, len(idt))            
    END SUBROUTINE domaingroup_handle_create
+
+   LOGICAL FUNCTION domain_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_domain_valid_id(val, idt, len(idt));
+      domain_valid_id = val
+   END FUNCTION  domain_valid_id
+
+   LOGICAL FUNCTION domaingroup_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_domaingroup_valid_id(val, idt, len(idt));
+      domaingroup_valid_id = val
+   END FUNCTION  domaingroup_valid_id
    
 END MODULE IDOMAIN

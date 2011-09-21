@@ -78,5 +78,15 @@ MODULE ICONTEXT
                                  0, 1, 1, 0, 0, 0)
       END IF
    END SUBROUTINE context_create
+
+   LOGICAL FUNCTION context_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_context_valid_id(val, idt, len(idt));
+      context_valid_id = val
+   END FUNCTION  context_valid_id
+
+
    
 END MODULE ICONTEXT

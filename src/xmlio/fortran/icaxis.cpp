@@ -143,5 +143,23 @@ extern "C"
 
       *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CAxisGroup>(id).get();
    }
+
+   // -------------------- Vérification des identifiants -----------------------
+
+   void xios_axis_valid_id (bool * _ret, const char * _id, int _id_len)
+   {
+      std::string id;
+      if (!cstr2string(_id, _id_len, id)) return;
+
+      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CAxis>(id);
+   }
+
+   void xios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   {
+      std::string id;
+      if (!cstr2string(_id, _id_len, id)) return;
+
+      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CAxisGroup>(id);
+   }
    
 } // extern "C"

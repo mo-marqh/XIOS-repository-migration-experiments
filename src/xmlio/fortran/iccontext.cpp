@@ -136,5 +136,22 @@ extern "C"
          exit (EXIT_FAILURE);
       }
    }
-   
+
+   // -------------------- Vérification des identifiants -----------------------
+
+   void xios_context_valid_id (bool * _ret, const char * _id, int _id_len)
+   {
+      std::string id;
+      if (!cstr2string(_id, _id_len, id)) return;
+
+      std::vector<boost::shared_ptr<xmlioserver::tree::CContext> > def_vector =
+            xmlioserver::tree::CContext::GetContextGroup()->getChildList();
+
+      for (std::size_t i = 0; i < def_vector.size(); i++)
+	   {
+          if (def_vector[i]->getId().compare(id) == 0)
+          *_ret = true;
+      }
+     *_ret = false;
+   }
 } // extern "C"

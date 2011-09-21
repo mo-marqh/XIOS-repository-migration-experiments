@@ -228,5 +228,21 @@ MODULE IFIELD
       CHARACTER(len = *)     , INTENT(IN) :: idt      
       CALL xios_fieldgroup_handle_create(ret%daddr, idt, len(idt))            
    END SUBROUTINE fieldgroup_handle_create
-   
+
+   LOGICAL FUNCTION field_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_field_valid_id(val, idt, len(idt));
+      field_valid_id = val
+   END FUNCTION  field_valid_id
+
+   LOGICAL FUNCTION fieldgroup_valid_id(idt)
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: idt
+      LOGICAL  (kind = 1)                 :: val
+      CALL xios_fieldgroup_valid_id(val, idt, len(idt));
+      fieldgroup_valid_id = val
+   END FUNCTION  fieldgroup_valid_id
+
 END MODULE IFIELD

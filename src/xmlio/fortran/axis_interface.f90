@@ -45,12 +45,19 @@ MODULE AXIS_INTERFACE
       END SUBROUTINE xios_set_axis_zvalue
       
       SUBROUTINE xios_axis_handle_create(ret, idt, idt_size) BIND(C)
-         import C_CHAR, C_INTPTR_T, C_INT
+         USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T)               :: ret
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: idt
          INTEGER  (kind = C_INT)     , VALUE        :: idt_size
       END SUBROUTINE xios_axis_handle_create
-       
+
+      SUBROUTINE xios_axis_valid_id(ret, idt, idt_size) BIND(C)
+         USE ISO_C_BINDING
+         LOGICAL  (kind = C_BOOL)                   :: ret
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: idt
+         INTEGER  (kind = C_INT)     , VALUE        :: idt_size
+      END SUBROUTINE xios_axis_valid_id
+
    END INTERFACE
      
 END MODULE AXIS_INTERFACE
