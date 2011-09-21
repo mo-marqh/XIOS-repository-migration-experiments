@@ -21,14 +21,34 @@ while (($# > 0))
 
 # Vérification de la présence d'un identifiant d'architecture.
 
+###############################################################
+# lecture des chemins propres � l'architecture de la machine #
+#           et configuration de l'environnement              #
+###############################################################
+
+rm -f .void_file
+echo > .void_file
+rm -rf .void_dir
+mkdir .void_dir
+
 if [[ !(-z $arch) ]]
    then
       rm -f  $install_dir/arch.path
       rm -f  $install_dir/arch.fcm
+      rm -f  $install_dir/arch.env
       ln -s  $install_dir/arch/arch-${arch}.path $install_dir/arch.path
       ln -s  $install_dir/arch/arch-${arch}.fcm  $install_dir/arch.fcm
+
+      if test -f $install_dir/arch/arch-${arch}.env
+      then
+        ln -s $install_dir/arch/arch-${arch}.env arch.env
+      else
+        ln -s $install_dir/.void_file arch.env
+      fi
+
+      source $install_dir/arch.env
       source $install_dir/arch.path
-   else
+  else
       echo "Veuillez definir une architecture cible !"
       exit 1
 fi
