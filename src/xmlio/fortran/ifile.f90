@@ -49,7 +49,6 @@ MODULE IFILE
       LOGICAL(kind = 1)                        :: enabled__
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
       
-      enabled__ = enabled_        
       IF (PRESENT(name_))         THEN
          CALL xios_set_file_name(file_hdl%daddr, name_, len(name_))
       END IF
@@ -66,6 +65,7 @@ MODULE IFILE
          CALL xios_set_file_output_level(file_hdl%daddr, output_level_)
       END IF
       IF (PRESENT(enabled_))      THEN
+         enabled__ = enabled_        
          CALL xios_set_file_enabled(file_hdl%daddr, enabled__)
       END IF
 
@@ -98,7 +98,6 @@ MODULE IFILE
       LOGICAL(kind = 1)                        :: enabled__
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
       
-      enabled__ = enabled_         
       IF (PRESENT(name_))         THEN
          CALL xios_set_filegroup_name(filegroup_hdl%daddr, name_, len(name_))
       END IF
@@ -115,7 +114,8 @@ MODULE IFILE
          CALL xios_set_filegroup_output_level(filegroup_hdl%daddr, output_level_)
       END IF
       IF (PRESENT(enabled_))      THEN
-         CALL xios_set_filegroup_enabled(filegroup_hdl%daddr, enabled__)
+        enabled__ = enabled_ 
+        CALL xios_set_filegroup_enabled(filegroup_hdl%daddr, enabled__)
       END IF
 
    END SUBROUTINE set_filegroup_attributes_hdl
