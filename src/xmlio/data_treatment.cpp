@@ -49,6 +49,7 @@ namespace xmlioserver
       {
          // Mise à jour côté client
          this->currentContext->getCalendar()->setTimeStep(duration);
+         this->currentContext->timestep.setValue(duration.toString());
          std::cout << "timestep :" << duration << std::endl;
          if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
          { // Mise à jour côté serveur
@@ -78,7 +79,9 @@ namespace xmlioserver
             if (file->getId().compare(fileId) == 0)
             {
                if (field->updateDataServer(currDate, data))
+               {
                   file->getDataOutput()->writeFieldData(field);
+               }
                return;
             }
          }

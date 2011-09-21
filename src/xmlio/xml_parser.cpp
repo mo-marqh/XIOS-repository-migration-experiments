@@ -1,5 +1,7 @@
 #include "xml_parser.hpp"
 
+#include "context.hpp"
+
 #include "attribute_template_impl.hpp"
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
@@ -11,8 +13,10 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       void CXMLParser::ParseFile(const StdString & filename)
-      { StdIFStream ifs ( filename.c_str() , StdIFStream::in );
-        CXMLParser::ParseStream(ifs); }
+      {
+         StdIFStream ifs ( filename.c_str() , StdIFStream::in );
+         CXMLParser::ParseStream(ifs);
+      }
 
       void CXMLParser::ParseString(const StdString & xmlContent)
       {
@@ -85,5 +89,6 @@ namespace xmlioserver
                   << "RapidXML error : " << exc.what() << " !");
          }
       }
+
    }// namespace xml
 } // namespace xmlioserver

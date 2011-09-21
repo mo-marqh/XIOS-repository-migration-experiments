@@ -54,7 +54,7 @@ namespace xmlioserver
          static XIOSStatus GetStatus(void);
          static StdString  GetClientName(void);
          
-      protected :
+      public :
          
          static StdSize GetNbClient(void);
          static StdSize GetNbLocClient(const StdString & clientName = CXIOSManager::ClientName);
@@ -62,7 +62,7 @@ namespace xmlioserver
          static StdSize GetNbServer(void);
          static StdSize GetNbLocServer(const StdString & clientName = CXIOSManager::ClientName);
          
-      private :
+      public :
       
          /// Information ///
          static void ShowInformation_CS(comm::MPIComm comm_client_server);

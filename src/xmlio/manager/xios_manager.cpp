@@ -26,6 +26,7 @@ namespace xmlioserver
       void CXIOSManager::Finalize(void)
       {
          if (CXIOSManager::Type != CLIENT)
+
          {
             // Finalisation de la biliothèque MPI si nécessaire
             comm::CMPIManager::Finalize();
@@ -52,6 +53,9 @@ namespace xmlioserver
          (StdString clientName, comm::MPIComm comm_client_server, comm::MPIComm comm_server)
       {
          using namespace comm;
+         CXIOSManager::Comm_Client_Server = comm_client_server;
+         CXIOSManager::Comm_Server        = comm_server;
+         CXIOSManager::Status             = LOC_SERVER;
          
          // Reconstruction de l'arborescence d'objet à l'aide des données envoyées par chacun des
          // clients associés à ce serveur.
@@ -66,7 +70,6 @@ namespace xmlioserver
          // fournies par le client 1 du sous-groupe.
          StdString main_data_tree = clientBuffer[0]->getString(0);        
          tree::CTreeManager::FromBinary(main_data_tree);
-         std::cout << "main_data_tree" << main_data_tree.size() << std::endl;
          
          // Obtention des sous-domaines clients.
          for (StdSize j = 1; j < clientBuffer.size(); j++)
@@ -155,6 +158,8 @@ namespace xmlioserver
       {
          using namespace comm;
          typedef std::pair<StdString, XIOSClient> StdPairStrClient;
+         CXIOSManager::Comm_Client_Server = comm_client_server;
+         CXIOSManager::Comm_Server        = comm_client_server;
          
          CXIOSManager::ShowInformation_CS(comm_client_server);
          
@@ -243,7 +248,8 @@ namespace xmlioserver
       {
          if (launch)
          {
-            CXIOSManager::Status  = LOC_CLIENT_SERVER;         
+            CXIOSManager::Status       = LOC_CLIENT_SERVER;    
+            CXIOSManager::Comm_Server  = comm_client;    
             (CXIOSManager::Clients.begin()->second.entry)
                (comm_client, comm_client, comm_client);
          }

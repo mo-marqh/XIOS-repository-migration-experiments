@@ -32,7 +32,7 @@ namespace comm {
 
    boost::shared_ptr<CServer> CServer::CreateServer(MPIComm comm_client_server)
    {
-      if (CServer::Server.get() != NULL)
+      if (CServer::Server.get() == NULL)
          CServer::Server = boost::shared_ptr<CServer>(new CServer(comm_client_server));
       return (CServer::GetServer());
    }
@@ -139,13 +139,14 @@ namespace comm {
    
    void CServer::initialize(void) // manager 0, method 0
    {
-      // Ne rien faire de plus
+      std::cout << "initialize" << std::endl;
    }
    
    //--------------------------------------------------------------
    
    void CServer::finalize(void) // manager 0, method 1
    {
+      std::cout << "finalize" << std::endl;
        comm::CMPIManager::Barrier();
    }   
 

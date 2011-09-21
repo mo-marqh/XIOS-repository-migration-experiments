@@ -169,7 +169,6 @@ namespace tree {
       if (opeDate <= currDate)
       {
          //std::cout << "> " << currDate << ": Operation du champs" << this->getBaseFieldId() << std::endl;
-         
          if (this->data->num_elements() != this->grid->storeIndex[0]->num_elements())
          {
             this->data->resize(boost::extents[this->grid->storeIndex[0] ->num_elements()]);

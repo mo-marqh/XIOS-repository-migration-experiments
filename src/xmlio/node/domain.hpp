@@ -112,7 +112,7 @@ namespace tree {
          std::set<StdString> relFiles;
 
          std::vector<int> ibegin_sub, iend_sub, jbegin_sub, jend_sub;
-         std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub;
+         std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub, ni_zoom_sub, nj_zoom_sub;
          std::vector<ARRAY(double, 1)> lonvalue_sub, latvalue_sub;
 
    }; // class CDomain

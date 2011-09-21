@@ -7,6 +7,8 @@
 
 #include "file.hpp"
 #include "calendar.hpp"
+#include "xios_manager.hpp"
+#include "context.hpp"
 
 namespace xmlioserver
 {
@@ -74,8 +76,12 @@ namespace xmlioserver
                              ? domain->name.getValue() : domain->getId();
          StdString lonid     = StdString("lon_").append(domid);
          StdString latid     = StdString("lat_").append(domid);
-         StdString lonid_loc = StdString("lon_").append(domid).append("_local");
-         StdString latid_loc = StdString("lat_").append(domid).append("_local");
+         StdString lonid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+                             ? StdString("lon_").append(domid).append("_local")
+                             : lonid;
+         StdString latid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+                             ? StdString("lat_").append(domid).append("_local")
+                             : latid;
          StdString maskid    = StdString("mask_").append(domid).append("_local");
 
          ARRAY(int, 2) mask = domain->getLocalMask();
@@ -83,8 +89,11 @@ namespace xmlioserver
          unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
          bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
 
-         SuperClassWriter::addDimension(lonid, domain->ni_glo.getValue());
-         SuperClassWriter::addDimension(latid, domain->nj_glo.getValue());
+         if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+         {
+            SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
+            SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
+         }
 
          if (isCurvilinear)
          {
@@ -103,11 +112,15 @@ namespace xmlioserver
             {
                SuperClassWriter::addDimension(lonid_loc, domain->zoom_ni_loc.getValue());
                SuperClassWriter::addDimension(latid_loc, domain->zoom_nj_loc.getValue());
-               this->writeLocalAttributes(domain->zoom_ibegin_loc.getValue(),
-                                          domain->zoom_ni_loc.getValue(),
-                                          domain->zoom_jbegin_loc.getValue(),
-                                          domain->zoom_nj_loc.getValue(),
-                                          domid);
+               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+               {
+                  this->writeLocalAttributes(domain->zoom_ibegin_loc.getValue(),
+                                             domain->zoom_ni_loc.getValue(),
+                                             domain->zoom_jbegin_loc.getValue(),
+                                             domain->zoom_nj_loc.getValue(),
+                                             domid);
+               }
+               
                if (isCurvilinear)
                {
                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
@@ -127,21 +140,25 @@ namespace xmlioserver
                dim0.push_back(latid_loc);
                dim0.push_back(lonid_loc);
 
-               SuperClassWriter::addVariable(maskid, NC_INT, dim0);
+               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+               {
+                  SuperClassWriter::addVariable(maskid, NC_INT, dim0);
 
-               this->writeMaskAttributes(maskid,
-                  domain->data_dim.getValue()/*,
-                  domain->data_ni.getValue(),
-                  domain->data_nj.getValue(),
-                  domain->data_ibegin.getValue(),
-                  domain->data_jbegin.getValue()*/);
+                  this->writeMaskAttributes(maskid,
+                     domain->data_dim.getValue()/*,
+                     domain->data_ni.getValue(),
+                     domain->data_nj.getValue(),
+                     domain->data_ibegin.getValue(),
+                     domain->data_jbegin.getValue()*/);
+               }
                   
                //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
                SuperClassWriter::writeData(domain->latvalue.getValue(), latid, true, 0);
                SuperClassWriter::writeData(domain->lonvalue.getValue(), lonid, true, 0);
-               SuperClassWriter::writeData(mask, maskid);
+               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+                  SuperClassWriter::writeData(mask, maskid);
                SuperClassWriter::definition_start();
 
                break;
@@ -168,6 +185,7 @@ namespace xmlioserver
 
          switch (SuperClass::type)
          {
+            case (ONE_FILE) :
             case (MULTI_FILE) :
             {
                SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
@@ -217,8 +235,12 @@ namespace xmlioserver
                              ? domain->name.getValue() : domain->getId();
          StdString lonid     = StdString("lon_").append(domid);
          StdString latid     = StdString("lat_").append(domid);
-         StdString lonid_loc = StdString("lon_").append(domid).append("_local");
-         StdString latid_loc = StdString("lat_").append(domid).append("_local");
+         StdString lonid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+                             ? StdString("lon_").append(domid).append("_local")
+                             : lonid;
+         StdString latid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+                             ? StdString("lat_").append(domid).append("_local")
+                             : latid;
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() : field->getBaseFieldReference()->getId();
 
@@ -375,13 +397,24 @@ namespace xmlioserver
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() 
                              : field->getBaseFieldReference()->getId();
+         boost::shared_ptr<xmlioserver::tree::CContext> context =
+            CObjectFactory::GetObject<xmlioserver::tree::CContext>
+               (CObjectFactory::GetCurrentContextId());
+                             
+         StdOStringStream oss;
+         oss << "time_" << field->operation.getValue()
+             << "_" << field->getRelFile()->output_freq.getValue();
+             
          ARRAY(double, 1) field_data = field->getData();
+         ARRAY_CREATE(time_data, double, 1, [1]);
+         (*time_data)[0] = date::Time(*field->getLastWriteDate());
          
          if (grid->hasAxis()) // 3D
          {
             ARRAY(double, 3) field_data3D (new CArray<double,3>(grid->getLocalShape()/*, boost::c_storage_order()*/));            
             grid->outputField(field_data, field_data3D);
             SuperClassWriter::writeData(field_data3D, fieldid, true, field->getNStep()-1);
+            SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
             
          }
          else // 2D
@@ -389,6 +422,7 @@ namespace xmlioserver
             ARRAY(double, 2) field_data2D (new CArray<double, 2>(grid->getLocalShape()/*, boost::c_storage_order()*/));
             grid->outputField(field_data,  field_data2D);
             SuperClassWriter::writeData(field_data2D, fieldid, true, field->getNStep()-1);
+            SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
          }
       }
 

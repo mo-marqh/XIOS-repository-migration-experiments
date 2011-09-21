@@ -7,6 +7,7 @@
 #include "group_template_impl.hpp"
 
 #include "calendar_type.hpp"
+#include "duration.hpp"
 
 #include "data_treatment.hpp"
 
@@ -81,12 +82,15 @@ namespace tree {
                << "[ context id = " << this->getId() << " ] "
                << "Impossible de définir un calendrier (un attribut est manquant).");
 
-#define DECLARE_CALENDAR(MType  , mtype)                        \
-   if (calendar_type.getValue().compare(#mtype) == 0)           \
-   {                                                            \
-      this->calendar =  boost::shared_ptr<date::CCalendar>      \
-         (new date::C##MType##Calendar(start_date.getValue())); \
-      return;                                                   \
+#define DECLARE_CALENDAR(MType  , mtype)                            \
+   if (calendar_type.getValue().compare(#mtype) == 0)               \
+   {                                                                \
+      this->calendar =  boost::shared_ptr<date::CCalendar>          \
+         (new date::C##MType##Calendar(start_date.getValue()));     \
+      if (!this->timestep.isEmpty())                                \
+       this->calendar->setTimeStep                                  \
+          (date::CDuration::FromString(this->timestep.getValue())); \
+      return;                                                       \
    }
 #include "calendar_type.conf"
 
@@ -102,7 +106,16 @@ namespace tree {
       CContext::SuperClass::parse(node);
 
       // PARSING POUR GESTION DES ENFANTS
-      xml::THashAttributes attributes;
+      xml::THashAttributes attributes = node.getAttributes();
+
+      if (attributes.end() != attributes.find("src"))
+      {
+         StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
+         if (!ifs.good())
+            ERROR("CContext::parse(xml::CXMLNode & node)",
+                  << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
+         xml::CXMLParser::ParseInclude(ifs, *this);
+      }
 
       if (node.getElementName().compare(CContext::GetName()))
          DEBUG("Le noeud est mal nommé mais sera traité comme un contexte !");

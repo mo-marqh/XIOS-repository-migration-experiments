@@ -15,7 +15,7 @@ namespace comm {
         
    CClient::~CClient(void)
    { 
-      this->finalize();
+      //this->finalize();
    } 
    
    ///--------------------------------------------------------------
@@ -26,7 +26,7 @@ namespace comm {
 
    boost::shared_ptr<CClient> CClient::CreateClient(MPIComm comm_client_server)
    {
-      if (CClient::Client.get() != NULL)
+      if (CClient::Client.get() == NULL)
          CClient::Client = boost::shared_ptr<CClient>(new CClient(comm_client_server));
       return (CClient::GetClient());
    }

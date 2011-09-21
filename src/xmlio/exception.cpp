@@ -22,7 +22,15 @@ namespace xmlioserver
    { (*this) << exception.str(); }
 
    CException::~CException(void)
-   { if (desc_rethrow) throw (*this); }
+   { 
+      if (desc_rethrow)
+#ifdef __XIOS_NOABORT
+        throw (*this); 
+#else
+      std::cerr << this->getMessage() << std::endl;
+      abort();
+#endif
+   }
 
    //---------------------------------------------------------------
 

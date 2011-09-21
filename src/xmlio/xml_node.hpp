@@ -45,6 +45,7 @@ namespace xmlioserver
             CXMLNode(const CXMLNode * const node); // Not implemented yet.
 
             rapidxml::xml_node<char> * node;
+            int level;
 
             static StdString RootName;
 

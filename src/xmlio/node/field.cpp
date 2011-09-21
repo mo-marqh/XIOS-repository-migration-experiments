@@ -46,20 +46,29 @@ namespace tree {
    //----------------------------------------------------------------
 
    bool CField::updateDataServer
-      (const date::CDate & currDate, const std::deque<ARRAY(double, 1)> storedClient)
+      (const date::CDate & currDate,
+       const std::deque<ARRAY(double, 1)> storedClient)
    {
-      if ((*last_operation + freq_operation) >= currDate)
+      const date::CDate opeDate      = *last_operation + freq_operation;
+      const date::CDate writeDate    = *last_Write     + freq_write; 
+      
+      if (opeDate <= currDate)
       {
-         ARRAY_CREATE(input, double, 1, [0]);
-         this->grid->inputFieldServer(storedClient, input);
+         if (this->data->num_elements() != this->grid->storeIndex[0]->num_elements())
+         {
+            this->data->resize(boost::extents[this->grid->storeIndex[0] ->num_elements()]);
+         }  
+         ARRAY_CREATE(input, double, 1, [this->data->num_elements()]);
+         this->grid->inputFieldServer(storedClient, input);          
          (*this->foperation)(input);
          *last_operation = currDate;
       }
-
-      if ((*last_Write + freq_write) >= currDate)
+      if (writeDate < (currDate + freq_operation))
       {
-         *last_Write = currDate;
-         return (true);
+         this->foperation->final();
+         this->incrementNStep();
+         *last_Write = writeDate;
+         return (true);        
       }
       return (false);
    }
@@ -231,6 +240,16 @@ namespace tree {
                << "[ id = " << id << "]"
                << "Impossible de définir une opération pour le champ !");
       }
+      
+      CDuration freq_offset_ = NoneDu;
+      if (!freq_offset.isEmpty())
+      {
+         freq_offset_ = CDuration::FromString(freq_offset.getValue());
+      }
+      else
+      {
+         freq_offset.setValue(NoneDu.toString());
+      }  
 
       if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
       {
@@ -244,27 +263,21 @@ namespace tree {
                         (new date::CDate(_context->getCalendar()->getInitDate()));
          this->foperation     =
              boost::shared_ptr<func::CFunctor>(new CInstant(this->data));
+             
+         const CDuration toffset = this->freq_operation - freq_offset_ - _context->getCalendar()->getTimeStep(); 
+         *this->last_operation   = *this->last_operation - toffset; 
       }
       else
-      {
-         CDuration freq_offset_ = NoneDu;
-         if (!freq_offset.isEmpty())
-         {
-            freq_offset_ = CDuration::FromString(freq_offset.getValue());
-         }
-         else
-         {
-            freq_offset.setValue(NoneDu.toString());
-         }   
-                  
+      {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
          this->last_Write     = boost::shared_ptr<xmlioserver::date::CDate>
                         (new date::CDate(_context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<xmlioserver::date::CDate>
                         (new date::CDate(_context->getCalendar()->getInitDate()));
+                        
          const CDuration toffset = this->freq_operation - freq_offset_ - _context->getCalendar()->getTimeStep(); 
-         *this->last_operation  = *this->last_operation - toffset;  
+         *this->last_operation   = *this->last_operation - toffset;  
          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \

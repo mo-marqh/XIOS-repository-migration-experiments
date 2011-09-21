@@ -19,7 +19,7 @@ namespace tree {
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
-      , ibegin_zoom_sub(), jbegin_zoom_sub()
+      , ibegin_zoom_sub(), jbegin_zoom_sub(), ni_zoom_sub(), nj_zoom_sub()
       , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
@@ -27,7 +27,7 @@ namespace tree {
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
-      , ibegin_zoom_sub(), jbegin_zoom_sub()
+      , ibegin_zoom_sub(), jbegin_zoom_sub(),ni_zoom_sub(), nj_zoom_sub()
       , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
@@ -99,6 +99,8 @@ namespace tree {
          
          this->ibegin_zoom_sub.push_back(this->zoom_ibegin_loc.getValue());
          this->jbegin_zoom_sub.push_back(this->zoom_jbegin_loc.getValue());
+         this->ni_zoom_sub.push_back(this->zoom_ni_loc.getValue());
+         this->nj_zoom_sub.push_back(this->zoom_nj_loc.getValue());
       
          this->latvalue_sub.push_back(this->latvalue.getValue());
          this->lonvalue_sub.push_back(this->lonvalue.getValue());
@@ -150,7 +152,6 @@ namespace tree {
       if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
           (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
       {
-         abort();
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
                << "Le domaine global est mal défini,"
@@ -453,8 +454,10 @@ namespace tree {
          {
             for (int j = 0; j < zoom_nj_client; j++)
             {
-               (*lonvalue_temp)[i + j * zoom_ni_client] = (*lonvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];              
-               (*latvalue_temp)[i + j * zoom_ni_client] = (*latvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];
+               (*lonvalue_temp)[i + j * zoom_ni_client] =
+               (*lonvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];              
+               (*latvalue_temp)[i + j * zoom_ni_client] =
+               (*latvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];
             }
          }
          this->lonvalue.setValue(lonvalue_temp);
@@ -487,45 +490,44 @@ namespace tree {
       ARRAY_CREATE(lonvalue_temp, double, 1, [0]);
       ARRAY_CREATE(latvalue_temp, double, 1, [0]);
       
-      const int ibegin_serv  = ibegin.getValue(),
-                jbegin_serv  = jbegin.getValue(),
-                zoom_ni_serv = zoom_ni_loc.getValue(),
-                zoom_nj_serv = zoom_nj_loc.getValue();
+      const int ibegin_serv     = ibegin.getValue(),
+                jbegin_serv     = jbegin.getValue(),
+                zoom_ni_serv    = zoom_ni_loc.getValue(),
+                zoom_nj_serv    = zoom_nj_loc.getValue(),
+                ibegin_zoom_srv = zoom_ibegin_loc.getValue(),
+                jbegin_zoom_srv = zoom_jbegin_loc.getValue();
                       
       /*std::cout << "Rang du serveur :" << comm::CMPIManager::GetCommRank()   << std::endl
                 << "Begin serv : "     << ibegin_serv << ", " << jbegin_serv <<  std::endl
                 << "End serv : "       << iend_serv   << ", " << jend_serv   <<  std::endl
                 << "Zoom_loc begin : " << zoom_ibegin_loc << ", " << zoom_jbegin_loc <<  std::endl
                 << "Zoom_loc size : "  << zoom_ni_loc << ", " << zoom_nj_loc <<  std::endl;*/
-      
-      
-      ARRAY(double, 1) lonvalue_ = this->lonvalue.getValue(),
-                       latvalue_ = this->latvalue.getValue();
                        
       if (this->data_dim.getValue() == 2)
       {
-         StdSize dm = zoom_ni_serv * zoom_nj_serv;
-         StdSize dn = this->ni.getValue() * this->nj.getValue();
+         StdSize dm = zoom_ni_serv * zoom_nj_serv;      
          
-         lonvalue_->resize(boost::extents[dn]);
-         latvalue_->resize(boost::extents[dn]);
          lonvalue_temp->resize(boost::extents[dm]);
          latvalue_temp->resize(boost::extents[dm]);
          
          for (StdSize k = 0; k < lonvalue_sub.size(); k++)
          {
-            int l = 0;
             ARRAY(double, 1) lonvalue_loc = this->lonvalue_sub[k],
                              latvalue_loc = this->latvalue_sub[k];
-            const int ibegin_loc = ibegin_sub[k], iend_loc = iend_sub[k],
-                      jbegin_loc = jbegin_sub[k], jend_loc = jend_sub[k];
+            const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
+                      zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k],
+                      ni_cl = iend_sub[k] - ibegin_sub[k] + 1;
                       
-            for (int i = ibegin_loc - ibegin_serv; i < (iend_loc - ibegin_serv + 1); i++)
+            for (int i = 0; i < zoom_ni_cl; i++)
             {
-               for (int j = jbegin_loc - jbegin_serv; j < (jend_loc - jbegin_serv + 1); j++)
+               for (int j = 0; j < zoom_nj_cl; j++)
                {
-                  (*lonvalue_)[i + j * this->ni.getValue()] = (*lonvalue_loc)[l];      // erreur        
-                  (*latvalue_)[i + j * this->ni.getValue()] = (*latvalue_loc)[l++];    // erreur
+                  int ii = i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1);
+                  int jj = j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1);
+                  (*lonvalue_temp)[ii + jj * zoom_ni_serv] =
+                  (*lonvalue_loc)[i + j * zoom_ni_cl];
+                  (*latvalue_temp)[ii + jj * zoom_ni_serv] = 
+                  (*latvalue_loc)[i + j * zoom_ni_cl];
                }
             }
          }
@@ -534,24 +536,23 @@ namespace tree {
       }
       else
       {
-         lonvalue_->resize(boost::extents[this->ni.getValue()]);
-         latvalue_->resize(boost::extents[this->nj.getValue()]);
          lonvalue_temp->resize(boost::extents[zoom_ni_serv]);
          latvalue_temp->resize(boost::extents[zoom_nj_serv]);
          
          for (StdSize k = 0; k < lonvalue_sub.size(); k++)
          {
-            int l = 0;
             ARRAY(double, 1) lonvalue_loc = this->lonvalue_sub[k],
                              latvalue_loc = this->latvalue_sub[k];
-            const int ibegin_loc = ibegin_sub[k], iend_loc = iend_sub[k],
-                      jbegin_loc = jbegin_sub[k], jend_loc = jend_sub[k];
+            const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
+                      zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k];
                       
-            for (int i = ibegin_loc - ibegin_serv; i < (iend_loc - ibegin_loc + 1); i++)
-               (*lonvalue_)[i] = (*lonvalue_loc)[l++];
+            for (int i = 0; i < zoom_ni_cl; i++)
+               (*lonvalue_temp)[i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1)] =
+               (*lonvalue_loc)[i];
                
-            for (int j = jbegin_loc - jbegin_serv; j < (jend_loc - jbegin_loc + 1); j++)
-               (*latvalue_)[j] = (*latvalue_loc)[l++];
+            for (int j = 0; j < zoom_nj_cl; j++)
+               (*latvalue_temp)[j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1)] =
+               (*latvalue_loc)[j];
          }       
          this->lonvalue.setValue(lonvalue_temp);
          this->latvalue.setValue(latvalue_temp);

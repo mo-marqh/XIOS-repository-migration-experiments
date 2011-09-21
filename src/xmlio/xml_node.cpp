@@ -10,6 +10,7 @@ namespace xmlioserver
 
       CXMLNode::CXMLNode(rapidxml::xml_node<char> * const root)
          : node(root)
+         , level(0)
       { /* Ne rien faire de plus */ }
 
       CXMLNode::~CXMLNode(void)
@@ -47,7 +48,8 @@ namespace xmlioserver
                if (nextElement == NULL) break;
                else if (nextElement->type() == rapidxml::node_element)
                { 
-                  node = nextElement; 
+                  node = nextElement;
+                  level++;
                   return (!retvalue); 
                }
             }
@@ -58,9 +60,10 @@ namespace xmlioserver
       bool CXMLNode::goToParentElement(void)
       {
          bool retvalue = false;
-         if (!(this->getElementName().compare(CXMLNode::RootName)))
+         if (!(this->getElementName().compare(CXMLNode::RootName)) || (level == 0))
             return (retvalue);
          node = node->parent();
+         level--;
          return (!retvalue);
       }
 

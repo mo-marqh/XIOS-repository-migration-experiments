@@ -9,6 +9,7 @@
 #include "exception.hpp"
 #include "object_factory.hpp"
 #include "group_template.hpp"
+#include "xml_parser.hpp"
 
 namespace xmlioserver
 {

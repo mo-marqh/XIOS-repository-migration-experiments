@@ -462,10 +462,7 @@ namespace tree {
          ARRAY(int, 1) out_i_index_cl  =  this->out_i_index[i + 1];
          ARRAY(int, 1) out_j_index_cl  =  this->out_j_index[i + 1];
          ARRAY(int, 1) out_l_index_cl  =  this->out_l_index[i + 1];
-         
-         const int ibegin_cl = ibegin[i];
-         const int jbegin_cl = jbegin[i];
-         
+                 
          int ibegin_zoom_cl = ibegin[i]; //ibegin_zoom[i];
          int jbegin_zoom_cl = jbegin[i]; //jbegin_zoom[i];
          
@@ -479,9 +476,9 @@ namespace tree {
          {
             (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
             (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
-                                  /*+ (ibegin_cl - 1)*/ - (ibegin_srv - 1) + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1); 
+                                  /*+ (ibegin_cl - 1) - (ibegin_srv - 1)*/ + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1);
             (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
-                                  /*+ (jbegin_cl - 1)*/ - (jbegin_srv - 1) + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
+                                  /*+ (jbegin_cl - 1) - (jbegin_srv - 1)*/ + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
             (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
          }
                   
@@ -531,13 +528,7 @@ namespace tree {
       this->storeIndex [0] = storeIndex_srv ;
       this->out_i_index[0] = out_i_index_srv;
       this->out_j_index[0] = out_j_index_srv;
-      this->out_l_index[0] = out_l_index_srv;
-      
-      this->storeIndex.resize(1);
-      this->out_i_index.resize(1);
-      this->out_j_index.resize(1);
-      this->out_l_index.resize(1);
-      
+      this->out_l_index[0] = out_l_index_srv;      
    }
    
    
@@ -551,9 +542,9 @@ namespace tree {
                 << "[ Nombre de tableau reçu = "    << storedClient.size() << "] "
                 << "Les données d'un client sont manquantes !") ;
       if (storedServer.get() != NULL)
-         storedServer->resize(boost::extents[this->storeIndex.size()-1]);
+         storedServer->resize(boost::extents[this->storeIndex[0]->num_elements()]);
       else 
-         ARRAY_ASSIGN(storedServer, double, 1, [this->storeIndex.size()-1]);
+         ARRAY_ASSIGN(storedServer, double, 1, [this->storeIndex[0]->num_elements()]);
          
       for (StdSize i = 0, n = 0; i < storedClient.size(); i++)
          for (StdSize j = 0; j < storedClient[i]->num_elements(); j++)

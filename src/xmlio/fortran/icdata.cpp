@@ -38,7 +38,6 @@ extern "C"
              << CMPIManager::GetCommRank(CMPIManager::GetCommWorld());
          CTreeManager::PrintTreeToFile(oss.str());
          oss.str("");
-
          boost::shared_ptr<CDataTreatment> dt(new CDataTreatment (context));
          context->setDataTreatment(dt);
 
@@ -66,10 +65,12 @@ extern "C"
                CMPIManager::SendLinearBuffer(comm_client_server, 0, lbuffer, request);
                CMPIManager::Wait(request);  // Pas encore en mode RPC
             }
+            CXIOSManager::RunClient(false, CMPIManager::GetCommWorld());
+            CClient::CreateClient(comm_client_server);
          }
          else
          {
-            dt->createDataOutput<CNc4DataOutput>();
+            dt->createDataOutput<CNc4DataOutput>(CMPIManager::GetCommWorld());
          }
       }
       catch (CException & exc)

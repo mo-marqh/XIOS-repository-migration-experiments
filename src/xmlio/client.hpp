@@ -23,7 +23,7 @@ namespace comm {
          /// Destructeur ///
          ~CClient(void);  
          
-      protected : 
+      public : 
       
          /// Accesseur ///
          const CBufferPair & getBufferPair(void) const;

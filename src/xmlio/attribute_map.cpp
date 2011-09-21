@@ -95,12 +95,14 @@ namespace xmlioserver
          for (xml::THashAttributes::const_iterator it  = attributes.begin();
                                                    it != attributes.end();
                                                    it ++)
+         {
             if ((*it).first.compare(StdString("id")) != 0 &&
                 (*it).first.compare(StdString("src"))!= 0)
             {
                //if (CAttributeMap::operator[]((*it).first)->isEmpty())
                CAttributeMap::operator[]((*it).first)->fromString((*it).second);
             }
+         }
       }
       
       //---------------------------------------------------------------

@@ -29,7 +29,16 @@ extern "C"
          xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
             (CObjectFactory::GetCurrentContextId());
          boost::shared_ptr<xmlioserver::data::CDataTreatment> dtreat = context->getDataTreatment();
-         dtreat->set_timestep(dur);
+         if (dtreat.get() != 0)
+         {
+            dtreat->set_timestep(dur);     
+         }
+         else
+         {
+            context->solveCalendar();
+            context->timestep.setValue(dur.toString());
+            context->getCalendar()->setTimeStep(dur);
+         }       
       }
       catch (xmlioserver::CException & exc)
       {

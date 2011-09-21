@@ -12,11 +12,21 @@ namespace xmlioserver
    {
 
       StdString name = node.getElementName();
+      xml::THashAttributes attributes = node.getAttributes();
       if (withAttr)
+      {
          CGroupTemplate<U, V, W>::SuperClass::parse(node);
+         if (attributes.end() != attributes.find("src"))
+         {
+            StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
+            if (!ifs.good())
+               ERROR("CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
+                     << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
+            xml::CXMLParser::ParseInclude(ifs, *this);
+         }
+      }
 
       // PARSING POUR GESTION DES ENFANTS
-      xml::THashAttributes attributes;
       boost::shared_ptr<V> group_ptr = (this->hasId())
          ? CObjectFactory::GetObject<V>(this->getId())
          : CObjectFactory::GetObject(boost::polymorphic_downcast<V*>(this));
@@ -60,7 +70,7 @@ namespace xmlioserver
                   << "\', un objet de type \'" << V::GetName()
                   << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                   << "\' ou de type \'" << U::GetName()
-                  << "\' !");
+                  << "\' (reçu : " << name << ") !");
 
          } while (node.goToNextElement());
          node.goToParentElement(); // Retour au parent

@@ -46,7 +46,7 @@ namespace xmlioserver
             void set_timestep(const date::CDuration & duration);
 
             /// Création des sorties ///
-            template <class T> void createDataOutput(void);
+            template <class T> void createDataOutput(comm::MPIComm comm_server = CXIOSManager::Comm_Server);
 
             /// Destructeur ///
             ~CDataTreatment(void);
@@ -71,13 +71,14 @@ namespace xmlioserver
       //----------------------------------------------------------------
 
       template <class T>
-         void CDataTreatment::createDataOutput(void)
+         void CDataTreatment::createDataOutput(comm::MPIComm comm_server )
       {
          std::vector<boost::shared_ptr<CFile> >::const_iterator
             it = this->enabledFiles.begin(), end = this->enabledFiles.end();
          
          for (; it != end; it++)
          {
+            CXIOSManager::Comm_Server = comm_server;
             boost::shared_ptr<CFile> file = *it;
             StdString filename = (!file->name.isEmpty())
                                ?   file->name.getValue() : file->getId();
@@ -88,9 +89,9 @@ namespace xmlioserver
             oss << filename;
             if (!file->name_suffix.isEmpty())
                 oss << file->name_suffix.getValue();
-            if (comm::CMPIManager::GetCommSize() > 1)
-	        oss << "_node" << comm::CMPIManager::GetCommRank();
-	    oss << ".nc";
+            if (comm::CMPIManager::GetCommSize(comm_server) > 1)
+	             oss << "." << comm::CMPIManager::GetCommRank(comm_server);
+	         oss << ".nc";
             boost::shared_ptr<io::CDataOutput> dout(new T(oss.str(), false));
             file->initializeDataOutput(dout);
          }
