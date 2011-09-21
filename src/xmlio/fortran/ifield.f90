@@ -73,7 +73,6 @@ MODULE IFIELD
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: field_ref_
       REAL(kind=8)           , OPTIONAL, INTENT(IN) :: default_value_
       
-      enabled__ = enabled_  
       IF (PRESENT(name_))           THEN
          CALL xios_set_fieldgroup_name(fieldgroup_hdl%daddr, name_, len(name_))
       END IF
@@ -99,6 +98,7 @@ MODULE IFIELD
          CALL xios_set_fieldgroup_prec(fieldgroup_hdl%daddr, prec_)
       END IF
       IF (PRESENT(enabled_))        THEN
+         enabled__ = enabled_  
          CALL xios_set_fieldgroup_enabled(fieldgroup_hdl%daddr, enabled__)
       END IF
       IF (PRESENT(domain_ref_))     THEN
@@ -169,7 +169,6 @@ MODULE IFIELD
       CHARACTER(len = *)     , OPTIONAL, INTENT(IN) :: field_ref_
       REAL(kind=8)           , OPTIONAL, INTENT(IN) :: default_value_
       
-      enabled__ = enabled_  
       IF (PRESENT(name_))           THEN
          CALL xios_set_field_name(field_hdl%daddr, name_, len(name_))
       END IF
@@ -195,6 +194,7 @@ MODULE IFIELD
          CALL xios_set_field_prec(field_hdl%daddr, prec_)
       END IF
       IF (PRESENT(enabled_))        THEN
+         enabled__ = enabled_  
          CALL xios_set_field_enabled(field_hdl%daddr, enabled__)
       END IF
       IF (PRESENT(domain_ref_))     THEN
