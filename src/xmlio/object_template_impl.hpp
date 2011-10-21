@@ -14,6 +14,9 @@ namespace xmlioserver
       std::vector<boost::shared_ptr<T> > > CObjectTemplate<T>::AllVectObj;
 
    template <class T>
+      xios_map<StdString,long int> CObjectTemplate<T>::GenId;
+
+   template <class T>
       CObjectTemplate<T>::CObjectTemplate(void)
          : tree::CAttributeMap()
          , CObject()

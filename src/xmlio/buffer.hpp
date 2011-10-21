@@ -41,7 +41,7 @@ namespace xmlioserver
                inline StdSize getRequestedSize(ARRAY(T, 1) data) const;
 
             StdSize getNextDataPosition(StdSize position);
-
+            static inline StdSize getDataHeaderSize(void) { return sizeof(CBufferDataType) + 2 * sizeof(StdSize) + sizeof(bool) ; }
          //--------------------------------------------------------------
 
             char     getChar  (StdSize position) const;

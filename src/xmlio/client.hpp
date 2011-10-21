@@ -17,7 +17,7 @@ namespace comm {
    {
       public :
 
-         static boost::shared_ptr<CClient> CreateClient(MPIComm comm_client_server);
+         static boost::shared_ptr<CClient> CreateClient(MPI_Comm comm_client_server);
          static boost::shared_ptr<CClient> GetClient(void);
                 
          /// Destructeur ///
@@ -49,7 +49,7 @@ namespace comm {
       private :
 
          /// Constructeurs ///
-         CClient(MPIComm comm_client_server);
+         CClient(MPI_Comm comm_client_server);
       
          /// Propriété privée ///
          CBufferPair bpair;

@@ -516,14 +516,16 @@ namespace tree {
                              latvalue_loc = this->latvalue_sub[k];
             const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
                       zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k],
+                      ibegin_cl = ibegin_sub[k] ,
+                      jbegin_cl = jbegin_sub[k] ,
                       ni_cl = iend_sub[k] - ibegin_sub[k] + 1;
                       
             for (int i = 0; i < zoom_ni_cl; i++)
             {
                for (int j = 0; j < zoom_nj_cl; j++)
                {
-                  int ii = i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1);
-                  int jj = j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1);
+                  int ii = i + (ibegin_cl-1) - (ibegin_serv - 1) + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1);
+                  int jj = j + (jbegin_cl-1) - (jbegin_serv - 1) + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1);
                   (*lonvalue_temp)[ii + jj * zoom_ni_serv] =
                   (*lonvalue_loc)[i + j * zoom_ni_cl];
                   (*latvalue_temp)[ii + jj * zoom_ni_serv] = 
@@ -601,7 +603,7 @@ namespace tree {
              (zoom_iend < ibegin.getValue()))
          {
             zoom_ni_loc.setValue(0);
-            zoom_ibegin_loc.setValue(-1);
+            zoom_ibegin_loc.setValue(zoom_ibegin.getValue());
          }
          else
          {
@@ -621,7 +623,7 @@ namespace tree {
              (zoom_jend < jbegin.getValue()))
          {
             zoom_nj_loc.setValue(0);
-            zoom_jbegin_loc.setValue(-1);
+            zoom_jbegin_loc.setValue(zoom_jbegin.getValue());
          }
          else
          {
@@ -661,18 +663,24 @@ namespace tree {
          this->jbegin_sub.push_back(this->jbegin.getValue());
          this->iend_sub.push_back(this->iend.getValue());
          this->jend_sub.push_back(this->jend.getValue()); 
+
+         this->ibegin_zoom_sub.push_back(this->zoom_ibegin_loc.getValue());
+         this->jbegin_zoom_sub.push_back(this->zoom_jbegin_loc.getValue());
+         this->ni_zoom_sub.push_back(this->zoom_ni_loc.getValue());
+         this->nj_zoom_sub.push_back(this->zoom_nj_loc.getValue());
       
          this->latvalue_sub.push_back(this->latvalue.getValue());
          this->lonvalue_sub.push_back(this->lonvalue.getValue());  
-         
-         if (!this->isEmpty())
-         {
+
+
+//         if (!this->isEmpty())
+//         {
             this->completeLonLatClient();
-         }
+//         }
       }
       else
       { // Côté serveur uniquement
-         if (!this->isEmpty())
+//         if (!this->isEmpty())
             this->completeLonLatServer();
       }
       this->completeMask();
@@ -707,6 +715,11 @@ namespace tree {
    {
       return (this->ibegin_zoom_sub);
    }
+
+   const std::vector<int> & CDomain::getNiZoomSub(void) const
+   {
+      return (this->ni_zoom_sub);
+   }
                
    //----------------------------------------------------------------
                      
@@ -728,13 +741,18 @@ namespace tree {
    {
       return (this->jbegin_zoom_sub);
    }
+
+   const std::vector<int> & CDomain::getNjZoomSub(void) const
+   {
+      return (this->nj_zoom_sub);
+   }
                   
    
    //----------------------------------------------------------------
    
    const std::vector<int> & CDomain::getJEndSub(void) const
    {
-      return (this->iend_sub);
+      return (this->jend_sub);
    }
    
    //----------------------------------------------------------------

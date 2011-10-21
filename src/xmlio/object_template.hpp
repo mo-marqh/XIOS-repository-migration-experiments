@@ -70,6 +70,8 @@ namespace xmlioserver
                 boost::shared_ptr<DerivedType> > > AllMapObj; 
          static xios_map<StdString,
                 std::vector<boost::shared_ptr<DerivedType> > > AllVectObj;
+                
+         static xios_map< StdString, long int > GenId ;
 
    }; // class CObjectTemplate
 } // namespace xmlioserver

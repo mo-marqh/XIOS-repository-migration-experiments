@@ -24,7 +24,7 @@ namespace xmlioserver
          public :
 
             /// Construteurs ///
-            CBufferList(MPIComm com_client_server = CMPIManager::GetCommWorld());
+            CBufferList(MPI_Comm com_client_server = CMPIManager::GetCommWorld());
             CBufferList(const CBufferList & buffer_list);         // Not implemented yet.
             CBufferList(const CBufferList * const buffer_list);   // Not implemented yet.
 
@@ -44,7 +44,7 @@ namespace xmlioserver
 
          private :
 
-            MPIComm com_client_server;
+            MPI_Comm com_client_server;
             StdSize nbbuffer;
 
       }; // class CBufferList

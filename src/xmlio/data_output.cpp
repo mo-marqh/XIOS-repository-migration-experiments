@@ -43,6 +43,11 @@ namespace xmlioserver
          this->writeFile_(file);
       }
 
+      void CDataOutput::closeFile(void)
+      {
+         this->closeFile_();
+      }
+
       //----------------------------------------------------------------
 
       void CDataOutput::writeGrid
@@ -91,7 +96,7 @@ namespace xmlioserver
          boost::shared_ptr<CDomain> domain =
             CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue());
             
-         if (domain->isEmpty()) return;
+//         if (domain->isEmpty()) return;
          this->writeFieldData_(field);
       }
       

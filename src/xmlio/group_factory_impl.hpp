@@ -45,8 +45,9 @@ namespace xmlioserver
       (CGroupFactory::GetCurrentContextId());
       if (id.size() == 0)
       {
-         boost::shared_ptr<U> value = CObjectFactory::CreateObject<U>();
+         boost::shared_ptr<U> value = CObjectFactory::CreateObject<U>(CObjectFactory::GenUId<U>());
          group->groupList.insert(group->groupList.end(), value);
+         group->groupMap.insert(std::make_pair(value->getId(), value));
          return (value);
       }
       else if (CGroupFactory::HasGroup(group, id))
@@ -71,6 +72,7 @@ namespace xmlioserver
          boost::shared_ptr<typename U::RelChild> value =
                CObjectFactory::CreateObject<typename U::RelChild>();
          group->childList.insert(group->childList.end(), value);
+         group->childMap.insert(std::make_pair(value->getId(), value));
          return (value);
       }
       else if (CGroupFactory::HasChild(group, id))

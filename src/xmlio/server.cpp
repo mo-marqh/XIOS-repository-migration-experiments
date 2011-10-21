@@ -1,3 +1,4 @@
+#include "xmlioserver_spl.hpp"
 #include "server.hpp"
 
 #include "tree_manager.hpp"
@@ -10,7 +11,7 @@ namespace comm {
 
    /// ////////////////////// Définitions ////////////////////// ///
    
-   CServer::CServer(MPIComm comm_client_server)
+   CServer::CServer(MPI_Comm comm_client_server)
       : blist(comm_client_server)
    { /* Ne rien faire de plus */ }  
         
@@ -30,7 +31,7 @@ namespace comm {
 
    ///--------------------------------------------------------------
 
-   boost::shared_ptr<CServer> CServer::CreateServer(MPIComm comm_client_server)
+   boost::shared_ptr<CServer> CServer::CreateServer(MPI_Comm comm_client_server)
    {
       if (CServer::Server.get() == NULL)
          CServer::Server = boost::shared_ptr<CServer>(new CServer(comm_client_server));
@@ -75,9 +76,11 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
+//                  std::cout<<"--> Request initialize()"<<std::endl ;
                   this->initialize();
                   continue;
                case (1) :
+//                  std::cout<<"--> Request finalize()"<<std::endl ;
                   this->finalize();
                   return;
                default  :
@@ -93,12 +96,15 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
+//                  std::cout<<"--> Request setContext()"<<std::endl ;
                   this->setContext(lbuffer);
                   continue;
                case (1) :
+//                  std::cout<<"--> Request updateCalendar()"<<std::endl ;
                   this->updateCalendar(lbuffer);
                   continue;
                case (2) :
+//                  std::cout<<"--> Request setTimestep()"<<std::endl ;
                   this->setTimestep(lbuffer);
                   continue;
                default  :
@@ -114,9 +120,11 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
+//                  std::cout<<"--> Request writeData()"<<std::endl ;
                   this->writeData(lbuffer, 4);
                   continue;
                case (1) :
+//                  std::cout<<"--> Request writeData()"<<std::endl ;
                   this->writeData(lbuffer, 8);
                   continue;
                default  :
@@ -139,15 +147,18 @@ namespace comm {
    
    void CServer::initialize(void) // manager 0, method 0
    {
-      std::cout << "initialize" << std::endl;
    }
    
    //--------------------------------------------------------------
    
    void CServer::finalize(void) // manager 0, method 1
    {
-      std::cout << "finalize" << std::endl;
-       comm::CMPIManager::Barrier();
+      boost::shared_ptr<CContext> context =
+         CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<data::CDataTreatment> dtreat = context->getDataTreatment();
+      dtreat->finalize() ;
+
+       comm::CMPIManager::Barrier(CMPIManager::GetCommClientServer());
    }   
 
    //--------------------------------------------------------------
@@ -172,7 +183,6 @@ namespace comm {
          else durationstr = durationstr_;
 
       }
-      std::cout << "setTimestep called " << durationstr << std::endl;
       dtreat->set_timestep(date::CDuration::FromString(durationstr));
    }
 
@@ -194,7 +204,6 @@ namespace comm {
          else contextId = contextId_;
          
       }
-      std::cout << "setContext called " << contextId << std::endl;
       CTreeManager::SetCurrentContextId(contextId);
    }
    
@@ -219,7 +228,6 @@ namespace comm {
          }
          else timestep = timestep_;
       }
-      std::cout << "updateCalendar called " << timestep <<std::endl;
       dtreat->update_calendar(timestep);
    }
    

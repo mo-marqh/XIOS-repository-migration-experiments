@@ -70,6 +70,7 @@ namespace tree {
          
          StdSize getLocalSize(void) const;
          StdSize getGlobalSize(void) const;
+         StdSize  getDataSize(void) const;
          std::vector<StdSize> getLocalShape(void) const;
          std::vector<StdSize> getGlobalShape(void) const;
 
@@ -132,9 +133,9 @@ namespace tree {
    template <StdSize n>
       void CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored) const
    {
-      if (this->getGlobalSize() != field->num_elements())
+      if (this->getDataSize() != field->num_elements())
          ERROR("CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored)",
-                << "[ Taille des données attendue = " << this->getGlobalSize()       << ", "
+                << "[ Taille des données attendue = " << this->getDataSize()       << ", "
                 << "Taille des données reçue = "      << field->num_elements() << " ] "
                 << "Le tableau de données n'a pas la bonne taille !") ;
       this->storeField_arr(field->data(), stored) ;

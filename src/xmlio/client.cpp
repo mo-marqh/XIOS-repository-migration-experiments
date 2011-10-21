@@ -7,7 +7,7 @@ namespace comm {
 
    /// ////////////////////// Définitions ////////////////////// ///
    
-   CClient::CClient(MPIComm comm_client_server)
+   CClient::CClient(MPI_Comm comm_client_server)
       : bpair(comm_client_server)
    { 
       this->initialize();
@@ -24,7 +24,7 @@ namespace comm {
 
    ///--------------------------------------------------------------
 
-   boost::shared_ptr<CClient> CClient::CreateClient(MPIComm comm_client_server)
+   boost::shared_ptr<CClient> CClient::CreateClient(MPI_Comm comm_client_server)
    {
       if (CClient::Client.get() == NULL)
          CClient::Client = boost::shared_ptr<CClient>(new CClient(comm_client_server));
@@ -66,7 +66,7 @@ namespace comm {
                                        CLinearBuffer::NULL_ARG);
       // Pas d'argument à ajouter.
       this->bpair.sendCurrentBuffer();
-      comm::CMPIManager::Barrier();
+      comm::CMPIManager::Barrier(CMPIManager::GetCommClientServer());
    }
    
    //---------------------------------------------------------------
@@ -84,7 +84,7 @@ namespace comm {
    
    void CClient::updateCalendar(long int timestep)
    {
-      this->bpair.prepareRequest(1, 1, &timestep,
+       this->bpair.prepareRequest(1, 1, &timestep,
                                        CLinearBuffer::NULL_ARG,
                                        CLinearBuffer::NULL_ARG,
                                        CLinearBuffer::NULL_ARG);

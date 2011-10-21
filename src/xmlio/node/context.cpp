@@ -142,7 +142,7 @@ namespace tree {
    continue; }
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
-            std::cout << name << std::endl;
+
             DEBUG(<< "L'élément nommé \'"     << name
                   << "\' dans le contexte \'" << CObjectFactory::GetCurrentContextId()
                   << "\' ne représente pas une définition !");

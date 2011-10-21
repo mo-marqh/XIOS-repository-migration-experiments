@@ -22,7 +22,7 @@ namespace xmlioserver
          public :
 
             /// Construteurs ///
-            CBufferPair(MPIComm com_client_server = CMPIManager::GetCommWorld());
+            CBufferPair(MPI_Comm com_client_server = CMPIManager::GetCommWorld());
             CBufferPair(const CBufferPair & buffer_pair);       // Not implemented yet.
             CBufferPair(const CBufferPair * const buffer_pair); // Not implemented yet.
 
@@ -51,7 +51,7 @@ namespace xmlioserver
          private :
 
             /// Propriétés privées ///
-            MPIComm com_client_server;
+            MPI_Comm com_client_server;
             CLinearBuffer first, second;
             MPI_Request first_request, second_request;
             int currentBuffer;

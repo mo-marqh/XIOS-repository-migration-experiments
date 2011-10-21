@@ -62,7 +62,8 @@ namespace tree {
          void setVirtualFieldGroup(const StdString & newVFieldGroupId);
 
          void initializeDataOutput(boost::shared_ptr<io::CDataOutput> dout);
-
+         void close(void) ;
+         
          /// Traitements ///
          virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
          void solveFieldRefInheritance(void);

@@ -9,6 +9,7 @@
 #include "duration.hpp"
 #include "client.hpp"
 #include "xios_manager.hpp"
+#include <mpi.h>
 
 namespace xmlioserver
 {
@@ -44,10 +45,12 @@ namespace xmlioserver
 
             void update_calendar(int step);
             void set_timestep(const date::CDuration & duration);
-
+            void finalize(void) ;
+            
             /// Création des sorties ///
-            template <class T> void createDataOutput(comm::MPIComm comm_server = CXIOSManager::Comm_Server);
+            template <class T> void createDataOutput(MPI_Comm comm_server = CXIOSManager::Comm_Server);
 
+           
             /// Destructeur ///
             ~CDataTreatment(void);
 
@@ -55,6 +58,7 @@ namespace xmlioserver
 
             /// Traitements ///
             void doTreatment(void);
+            void closeAllFile(void ) ;
 
             void findAllEnabledFields(void);
             void solveAllGridRef(void);
@@ -65,13 +69,13 @@ namespace xmlioserver
             /// Propriétés privées ///
             boost::shared_ptr<CContext> currentContext;
             std::vector<boost::shared_ptr<CFile> > enabledFiles;
-
+     
       }; // CDataTreatment
 
       //----------------------------------------------------------------
 
       template <class T>
-         void CDataTreatment::createDataOutput(comm::MPIComm comm_server )
+         void CDataTreatment::createDataOutput(MPI_Comm comm_server )
       {
          std::vector<boost::shared_ptr<CFile> >::const_iterator
             it = this->enabledFiles.begin(), end = this->enabledFiles.end();
@@ -89,10 +93,25 @@ namespace xmlioserver
             oss << filename;
             if (!file->name_suffix.isEmpty())
                 oss << file->name_suffix.getValue();
-            if (comm::CMPIManager::GetCommSize(comm_server) > 1)
-	             oss << "." << comm::CMPIManager::GetCommRank(comm_server);
-	         oss << ".nc";
-            boost::shared_ptr<io::CDataOutput> dout(new T(oss.str(), false));
+
+            bool multifile=true ;
+            if (!file->type.isEmpty())
+            {
+              StdString str=file->type.getValue() ; 
+              if (str.compare("one_file")==0) multifile=false ;
+              else if (str.compare("multi_file")==0) multifile=true ;
+              else ERROR("void CDataTreatment::createDataOutput(MPI_Comm comm_server)",
+                         "incorrect file <type> attribut : must be <multi_file> or <one_file>, "
+                        <<"having : <"<<str<<">") ;
+            } 
+            if (multifile) 
+            {
+              if (comm::CMPIManager::GetCommSize(comm_server) > 1)
+	               oss << "_" << comm::CMPIManager::GetCommRank(comm_server);
+            }
+            oss << ".nc";
+
+            boost::shared_ptr<io::CDataOutput> dout(new T(oss.str(), false,comm_server,multifile));
             file->initializeDataOutput(dout);
          }
       }
@@ -134,7 +153,9 @@ namespace xmlioserver
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
                { 
                    boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
-                   client->sendData(fieldId, file->getId(), field->getData());
+//                   std::cout<<"--> sendData :: fieldId : "<<fieldId<<", fileId : "<<file->getId()<<std::endl ;
+//                   client->sendData(fieldId, file->getId(), field->getData());
+                   client->sendData(field->getId(), file->getId(), field->getData());
                }
                else
                {

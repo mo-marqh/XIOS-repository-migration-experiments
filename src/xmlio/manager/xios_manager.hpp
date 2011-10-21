@@ -24,7 +24,7 @@ namespace xmlioserver
          {
             StdSize nbClient;
             StdSize nbClientPServer;
-            void (*entry)(comm::MPIComm, comm::MPIComm, comm::MPIComm) ;
+            void (*entry)(MPI_Comm, MPI_Comm, MPI_Comm) ;
          } XIOSClient;
          
       public:
@@ -37,15 +37,12 @@ namespace xmlioserver
 
          /// Ajout de client en mode CLIENT_SERVER et CLIENT///
          static void AddClient(StdString clientName, StdSize nbClient, StdSize nbClientPServer,
-                               void (*entry_point)(comm::MPIComm, comm::MPIComm, comm::MPIComm));
+                               void (*entry_point)(MPI_Comm, MPI_Comm, MPI_Comm));
 
          /// Lancement des serveurs et/ou des clients ///
-         static void RunServer(StdString clientName,
-                               comm::MPIComm comm_client_server, comm::MPIComm comm_server);
-         static void RunClient(bool launch = false, comm::MPIComm comm_client =
-                                                    comm::CMPIManager::GetCommWorld());
-         static void RunClientServer(comm::MPIComm comm_client_server =
-                                     comm::CMPIManager::GetCommWorld());
+         static void RunServer(StdString clientName,MPI_Comm comm_client_server,MPI_Comm comm_server);
+         static void RunClient(bool launch = false, MPI_Comm comm_client = comm::CMPIManager::GetCommWorld());
+         static void RunClientServer(MPI_Comm comm_client_server = comm::CMPIManager::GetCommWorld());
 
       public :
 
@@ -65,7 +62,7 @@ namespace xmlioserver
       public :
       
          /// Information ///
-         static void ShowInformation_CS(comm::MPIComm comm_client_server);
+         static void ShowInformation_CS(MPI_Comm comm_client_server);
 
          /// Variables statiques privées ///
          static StdString ExeName;
@@ -74,7 +71,7 @@ namespace xmlioserver
          static XIOSType   Type;
          static XIOSStatus Status;
          static StdString  ClientName;
-         static comm::MPIComm Comm_Client_Server, Comm_Server;
+         static MPI_Comm Comm_Client_Server, Comm_Server;
          static xios_map<StdString, XIOSClient> Clients;
 
    }; // class CXIOSManager

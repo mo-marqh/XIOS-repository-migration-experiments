@@ -38,7 +38,7 @@ extern "C"
    
    // ----------------------- Ajout d'enfant à un parent -----------------------
    
-   void xios_xml_tree_add_field
+   void cxios_xml_tree_add_field
       (XFieldGroupPtr  parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -51,7 +51,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateChild(fieldgroup).get();
    }
    
-   void xios_xml_tree_add_grid
+   void cxios_xml_tree_add_grid
       (XGridGroupPtr   parent_, XGridPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -64,7 +64,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateChild(gridgroup).get();
    }
    
-   void xios_xml_tree_add_file
+   void cxios_xml_tree_add_file
       (XFileGroupPtr parent_, XFilePtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -77,7 +77,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateChild(filegroup).get();
    }
    
-   void xios_xml_tree_add_axis
+   void cxios_xml_tree_add_axis
       (XAxisGroupPtr parent_, XAxisPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -90,7 +90,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateChild(axisgroup).get();
    }
    
-   void xios_xml_tree_add_domain
+   void cxios_xml_tree_add_domain
       (XDomainGroupPtr parent_, XDomainPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -103,7 +103,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateChild(domaingroup).get();
    }
    
-   void xios_xml_tree_add_fieldtofile
+   void cxios_xml_tree_add_fieldtofile
       (XFilePtr parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -121,7 +121,7 @@ extern "C"
 
    // ----------------------- Ajout de groupe à un parent ----------------------
 
-   void xios_xml_tree_add_fieldgroup
+   void cxios_xml_tree_add_fieldgroup
       (XFieldGroupPtr  parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
@@ -134,7 +134,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateGroup(fieldgroup).get();
    }
 
-   void xios_xml_tree_add_gridgroup
+   void cxios_xml_tree_add_gridgroup
       (XGridGroupPtr   parent_, XGridGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
@@ -147,7 +147,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateGroup(gridgroup).get();
    }
 
-   void xios_xml_tree_add_filegroup
+   void cxios_xml_tree_add_filegroup
       (XFileGroupPtr parent_, XFileGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
@@ -160,7 +160,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateGroup(filegroup).get();
    }
 
-   void xios_xml_tree_add_axisgroup
+   void cxios_xml_tree_add_axisgroup
       (XAxisGroupPtr parent_, XAxisGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
@@ -173,7 +173,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateGroup(axisgroup).get();
    }
 
-   void xios_xml_tree_add_domaingroup
+   void cxios_xml_tree_add_domaingroup
       (XDomainGroupPtr parent_, XDomainGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
@@ -186,7 +186,7 @@ extern "C"
          *child_ = xmlioserver::CGroupFactory::CreateGroup(domaingroup).get();
    }
 
-   void xios_xml_tree_add_fieldgrouptofile
+   void cxios_xml_tree_add_fieldgrouptofile
       (XFilePtr parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
@@ -205,7 +205,7 @@ extern "C"
    
    // ----------------------- Affichage de l'arborescence ----------------------
    
-   void xios_xml_tree_show   (const char * filename, int filename_size) 
+   void cxios_xml_tree_show   (const char * filename, int filename_size) 
    {
       std::string filename_str;
       try
@@ -225,7 +225,7 @@ extern "C"
    
    // ----------------------- Parsing de document xml --------------------------
    
-   void xios_xml_parse_file  (const char * filename  , int filename_size)
+   void cxios_xml_parse_file  (const char * filename  , int filename_size)
    {
       std::string filename_str; 
       if (!cstr2string(filename, filename_size, filename_str)) return;
@@ -241,7 +241,7 @@ extern "C"
       }
    }
    
-   void xios_xml_parse_string(const char * xmlcontent, int xmlcontent_size)
+   void cxios_xml_parse_string(const char * xmlcontent, int xmlcontent_size)
    {
       std::string xmlcontent_str; 
       if (!cstr2string(xmlcontent, xmlcontent_size, xmlcontent_str)) return;

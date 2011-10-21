@@ -23,7 +23,7 @@ extern "C"
    typedef xmlioserver::tree::CAxisGroup * XAxisGroupPtr;
 
    // ------------------------- Attributs des axes -----------------------------
-   void xios_set_axis_name 
+   void cxios_set_axis_name 
       (XAxisPtr axis_hdl, const char * name , int name_size)
    {
       std::string name_str; 
@@ -32,7 +32,7 @@ extern "C"
       axis_hdl->name.setValue(name_str);
    }
 
-   void xios_set_axis_standard_name
+   void cxios_set_axis_standard_name
       (XAxisPtr axis_hdl, const char * standard_name , int standard_name_size)
    {
       std::string standard_name_str; 
@@ -41,7 +41,7 @@ extern "C"
       axis_hdl->standard_name.setValue(standard_name_str);
    }
     
-   void xios_set_axis_long_name 
+   void cxios_set_axis_long_name 
       (XAxisPtr axis_hdl, const char * long_name , int long_name_size)
    {
       std::string long_name_str; 
@@ -50,7 +50,7 @@ extern "C"
       axis_hdl->long_name.setValue(long_name_str);
    }
 
-   void xios_set_axis_unit 
+   void cxios_set_axis_unit 
       (XAxisPtr axis_hdl, const char * unit , int unit_size)
    {
       std::string unit_str; 
@@ -59,12 +59,12 @@ extern "C"
       axis_hdl->unit.setValue(unit_str);
    }
     
-   void xios_set_axis_size(XAxisPtr axis_hdl, int size)
+   void cxios_set_axis_size(XAxisPtr axis_hdl, int size)
    {
       axis_hdl->size.setValue(size);
    }
 
-   void xios_set_axis_zvalue 
+   void cxios_set_axis_zvalue 
       (XAxisPtr axis_hdl, const double * zvalue , int zvalue_extent1)
    {
       ARRAY(double, 1) zvalue_val(new CArray<double, 1>(boost::extents [zvalue_extent1]));
@@ -76,7 +76,7 @@ extern "C"
    
    // -------------------- Attributs des groupes d'axes -------------------------
    
-   void xios_set_axisgroup_name 
+   void cxios_set_axisgroup_name 
       (XAxisGroupPtr axisgroup_hdl, const char * name , int name_size)
    {
       std::string name_str;
@@ -85,7 +85,7 @@ extern "C"
       axisgroup_hdl->name.setValue(name_str);
    }
 
-   void xios_set_axisgroup_standard_name
+   void cxios_set_axisgroup_standard_name
       (XAxisGroupPtr axisgroup_hdl, const char * standard_name , int standard_name_size)
    {
       std::string standard_name_str;
@@ -94,7 +94,7 @@ extern "C"
       axisgroup_hdl->standard_name.setValue(standard_name_str);
    }
     
-   void xios_set_axisgroup_long_name 
+   void cxios_set_axisgroup_long_name 
       (XAxisGroupPtr axisgroup_hdl, const char * long_name , int long_name_size)
    {
       std::string long_name_str;
@@ -103,7 +103,7 @@ extern "C"
       axisgroup_hdl->long_name.setValue(long_name_str);
    }
 
-   void xios_set_axisgroup_unit 
+   void cxios_set_axisgroup_unit 
       (XAxisGroupPtr axisgroup_hdl, const char * unit , int unit_size)
    {
       std::string unit_str;
@@ -112,12 +112,12 @@ extern "C"
       axisgroup_hdl->unit.setValue(unit_str);
    }
     
-   void xios_set_axisgroup_size(XAxisGroupPtr axisgroup_hdl, int size)
+   void cxios_set_axisgroup_size(XAxisGroupPtr axisgroup_hdl, int size)
    {
       axisgroup_hdl->size.setValue(size);
    }
 
-   void xios_set_axisgroup_zvalue 
+   void cxios_set_axisgroup_zvalue 
       (XAxisGroupPtr axisgroup_hdl, const double * zvalue , int zvalue_extent1)
    {
       ARRAY(double, 1) zvalue_val(new CArray<double, 1>(boost::extents [zvalue_extent1]));
@@ -128,7 +128,7 @@ extern "C"
    
    // ------------------------ Création des handle -----------------------------
    
-   void xios_axis_handle_create (XAxisPtr * _ret, const char * _id, int _id_len)
+   void cxios_axis_handle_create (XAxisPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -136,7 +136,7 @@ extern "C"
       *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CAxis>(id).get();
    }
    
-   void xios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
+   void cxios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -146,7 +146,7 @@ extern "C"
 
    // -------------------- Vérification des identifiants -----------------------
 
-   void xios_axis_valid_id (bool * _ret, const char * _id, int _id_len)
+   void cxios_axis_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -154,7 +154,7 @@ extern "C"
       *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CAxis>(id);
    }
 
-   void xios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   void cxios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;

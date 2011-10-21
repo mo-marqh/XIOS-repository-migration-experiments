@@ -63,7 +63,9 @@ namespace xmlioserver
             const StdString & getContent (void) const;
 
             
-            template <typename T> inline void getData(T & _data) const;
+            template <typename T> inline T getData(void) const;
+//            bool inline getData<bool>(void) const ;
+            
             template <typename T, StdSize N>
                inline void getData(ARRAY(T, N) _data_array) const;
 
@@ -80,6 +82,28 @@ namespace xmlioserver
 
       }; // class CVar
 
+     
+      template <typename T>
+      T CVariable::getData(void) const
+      {
+         T retval ;
+         std::stringstream sstr(std::stringstream::in | std::stringstream::out); 
+         sstr<<content ;
+         sstr>>retval ;
+         if (sstr.fail()) ERROR("CVariable::getdata()",
+               << "Cannot convert string <" << content << "> into type required" );
+         return retval ;
+      } 
+
+      template<>
+      bool CVariable::getData<bool>(void) const
+      {
+         if (content.compare("true")==0 || content.compare(".true.")==0 || content.compare(".TRUE.")==0) return true ; 
+         else if (content.compare("false")==0 || content.compare(".false.")==0 || content.compare(".FALSE.")==0) return false ; 
+         else ERROR("CVariable::getdata()",
+               << "Cannot convert string <" << content << "> into type required" );
+         return false ;
+      } 
       ///--------------------------------------------------------------
 
       // Declare/Define CVarGroup and CVarDefinition

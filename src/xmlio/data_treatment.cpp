@@ -50,7 +50,6 @@ namespace xmlioserver
          // Mise à jour côté client
          this->currentContext->getCalendar()->setTimeStep(duration);
          this->currentContext->timestep.setValue(duration.toString());
-         std::cout << "timestep :" << duration << std::endl;
          if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
          { // Mise à jour côté serveur
             boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
@@ -58,6 +57,27 @@ namespace xmlioserver
          }
       }
 
+      void CDataTreatment::finalize(void)
+      {
+         // Mise à jour côté client
+         if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
+         { // Mise à jour côté serveur
+            boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
+            client->finalize();
+         }
+         else closeAllFile() ;
+      }
+
+      void CDataTreatment::closeAllFile(void )
+      {
+         std::vector<boost::shared_ptr<CFile> >::const_iterator
+            it = this->enabledFiles.begin(), end = this->enabledFiles.end();
+         
+         for (; it != end; it++)
+         {
+            (*it)->close();
+         }
+      }
       //----------------------------------------------------------------
       
       void CDataTreatment::write_data
@@ -76,6 +96,7 @@ namespace xmlioserver
          {
             boost::shared_ptr<CField> field = *it;
             boost::shared_ptr<CFile>  file  = field->getRelFile();
+            
             if (file->getId().compare(fileId) == 0)
             {
                if (field->updateDataServer(currDate, data))

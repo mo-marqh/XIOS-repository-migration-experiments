@@ -219,7 +219,7 @@ namespace tree {
          SuperClassAttribute::setAttributes(refer_ptr);
          sset.insert(refer_ptr);
          baseRefObject = refer_sptr;
-         refObject.push_back(refer_sptr);
+//ym         refObject.push_back(refer_sptr);
       }
    }
 

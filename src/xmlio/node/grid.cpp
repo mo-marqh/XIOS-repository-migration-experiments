@@ -4,6 +4,8 @@
 #include "attribute_template_impl.hpp"
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
+#include <iostream>
+#include "mpi_manager.hpp"
 
 namespace xmlioserver {
 namespace tree {
@@ -139,6 +141,16 @@ namespace tree {
       std::vector<StdSize> shape_ = this->getGlobalShape();
       for (StdSize s = 0; s < shape_.size(); s++)
          retvalue *= shape_[s];
+      return (retvalue);
+   }
+
+   StdSize CGrid::getDataSize(void) const
+   {
+      StdSize retvalue ;
+      retvalue=domain->data_ni.getValue() ;
+      if (domain->data_dim.getValue()==2) retvalue*=domain->data_nj.getValue() ;
+      if (this->withAxis) retvalue*=this->axis->size.getValue() ;
+
       return (retvalue);
    }
 
@@ -436,17 +448,26 @@ namespace tree {
       
       const std::vector<int> & ibegin = this->domain->getIBeginSub();
       const std::vector<int> & jbegin = this->domain->getJBeginSub();
+      const std::vector<int> & iend = this->domain->getIEndSub();
+      const std::vector<int> & jend = this->domain->getJEndSub();
       const std::vector<int> & ibegin_zoom = this->domain->getIBeginZoomSub();
       const std::vector<int> & jbegin_zoom = this->domain->getJBeginZoomSub();
+      const std::vector<int> & ni_zoom = this->domain->getNiZoomSub();
+      const std::vector<int> & nj_zoom = this->domain->getNjZoomSub();
       
       const int ibegin_srv  = this->domain->ibegin.getValue();
       const int jbegin_srv  = this->domain->jbegin.getValue();
+      const int iend_srv  = this->domain->iend.getValue();
+      const int jend_srv  = this->domain->jend.getValue();
       const int zoom_ni_srv = this->domain->zoom_ni_loc.getValue();
       const int zoom_nj_srv = this->domain->zoom_nj_loc.getValue();
       
       const int ibegin_zoom_srv = this->domain->zoom_ibegin_loc.getValue();
       const int jbegin_zoom_srv = this->domain->zoom_jbegin_loc.getValue();
-           
+       const int iend_zoom_srv = ibegin_zoom_srv + zoom_ni_srv-1 ;
+      const int  jend_zoom_srv = jbegin_zoom_srv + zoom_nj_srv-1 ;
+        
+//      std::cout<<"----> computeIndexServer !!"<<std::endl ;
       StdSize dn = 0;      
       for (StdSize j = 1; j < this->out_i_index.size(); j++)
          dn += this->out_i_index[j]->size();
@@ -465,26 +486,66 @@ namespace tree {
                  
          int ibegin_zoom_cl = ibegin[i]; //ibegin_zoom[i];
          int jbegin_zoom_cl = jbegin[i]; //jbegin_zoom[i];
+         int iend_zoom_cl = iend[i]; //ibegin_zoom[i];
+         int jend_zoom_cl = jend[i]; //jbegin_zoom[i];
+
+         int ibegin_cl = ibegin[i]; //ibegin[i];
+         int jbegin_cl = jbegin[i]; //jbegin[i];
+         int iend_cl = iend[i]; //ibegin[i];
+         int jend_cl = jend[i]; //jbegin[i];
          
          if (ibegin_zoom.size() != 0)
          {
             ibegin_zoom_cl = ibegin_zoom[i];
             jbegin_zoom_cl = jbegin_zoom[i];
+            iend_zoom_cl = ibegin_zoom[i]+ni_zoom[i]-1;
+            jend_zoom_cl = jbegin_zoom[i]+nj_zoom[i]-1;
          }
          
-         for (StdSize n = dn, m = 0; n < (dn + storeIndex_cl->size()); n++, m++)
+//         std::cout<<"--> client No "<<i<<std::endl ;
+//         std::cout<<" ibegin "<<ibegin[i]<<" iend "<<iend[i]<<" jbegin "<<jbegin[i]<<" jend "<<jend[i]<<std::endl ;
+//         std::cout<<"zoom cl : ibegin "<<ibegin_zoom_cl<<" iend "<<iend_zoom_cl<<" jbegin "<<jbegin_zoom_cl<<" jend "<<jend_zoom_cl<<std::endl ;
+//         std::cout<<"--> server "<<std::endl ;
+//         std::cout<<" ibegin "<<ibegin_srv<<" iend "<<iend_srv<<" jbegin "<<jbegin_srv<<" jend "<<jend_srv<<std::endl ;
+//        std::cout<<"zoom : ibegin "<<ibegin_zoom_srv<<" iend "<<iend_zoom_srv<< " ni "<<zoom_ni_srv<<" jbegin "<<jbegin_zoom_srv<<" jend "<<jend_zoom_srv<<" nj "<<zoom_nj_srv<<std::endl ;
+//         std::cout<<"zoom_size "<<ibegin_zoom.size()<<std::endl ;
+
+         if (comm::CMPIManager::IsClient())
          {
-            (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
+           for (StdSize n = dn, m = 0; n < (dn + storeIndex_cl->size()); n++, m++)
+           {
+              (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
+
+//            (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
+//                                  /*+ (ibegin_cl - 1) - (ibegin_srv - 1)*/ + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1);
+//            (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
+//                                  /*+ (jbegin_cl - 1) - (jbegin_srv - 1)*/ + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
+//            (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
+              (*out_i_index_srv)[n] = (*out_i_index_cl)[m] + ibegin_cl - 1 - (ibegin_srv + ibegin_zoom_srv - 1) + 1 ;
+              (*out_j_index_srv)[n] = (*out_j_index_cl)[m] + jbegin_cl - 1 - (jbegin_srv + jbegin_zoom_srv - 1) + 1 ;
+              (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
+           }
+         }
+         else
+         {
+           for (StdSize n = dn, m = 0; n < (dn + storeIndex_cl->size()); n++, m++)
+           {
+              (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
             (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
-                                  /*+ (ibegin_cl - 1) - (ibegin_srv - 1)*/ + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1);
+                                   + (ibegin_cl - 1) - (ibegin_srv - 1) + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1);
             (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
-                                  /*+ (jbegin_cl - 1) - (jbegin_srv - 1)*/ + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
+                                   + (jbegin_cl - 1) - (jbegin_srv - 1) + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
             (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
+           }         
+            
          }
                   
-         dn += storeIndex_cl->size();                 
+         dn += storeIndex_cl->size(); 
+//         std::cout<<"storeIndex_cl->size() "<<storeIndex_cl->size()<<std::endl;               
+      
+//         std::cout<<"storeIndex_srv->size() "<<storeIndex_srv->size()<<std::endl;               
       }
-           
+      
       if (storeIndex_srv->size() != 0)
       {
          const int ibegin_t = 
@@ -495,7 +556,16 @@ namespace tree {
             *std::min_element(out_j_index_srv->begin(), out_j_index_srv->end());
          const int jend_t   =
             *std::max_element(out_j_index_srv->begin(), out_j_index_srv->end());
-            
+               
+//                std::cout<< "[ grille = "      << this->getId()
+//                         << ", ibegin_t = "    << ibegin_t
+//                         << ", jbegin_t = "    << jbegin_t
+//                         << ", iend_t = "      << iend_t
+//                         << ", jend_t = "      << jend_t
+//                         << ", zoom_ni_srv = " << zoom_ni_srv
+//                         << ", zoom_nj_srv = " << zoom_nj_srv
+//                         << ", nb subdomain = "   << out_i_index.size()-1<<std::endl   ;  
+                                 
          if ((ibegin_t < 0) || (jbegin_t < 0) ||
              (iend_t >= zoom_ni_srv) || (jend_t >= zoom_nj_srv))
          {
@@ -507,6 +577,7 @@ namespace tree {
                   << ", jend_t = "      << jend_t
                   << ", zoom_ni_srv = " << zoom_ni_srv
                   << ", zoom_nj_srv = " << zoom_nj_srv
+                  << ", nb subdomain = "   << out_i_index.size()-1
                   <<" ] Erreur d'indexation de la grille au niveau du serveur") ;
          }
       }

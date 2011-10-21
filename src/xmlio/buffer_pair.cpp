@@ -7,7 +7,7 @@ namespace xmlioserver
    namespace comm
    {
       /// ////////////////////// Définitions ////////////////////// ///
-      CBufferPair::CBufferPair(MPIComm com_client_server)
+      CBufferPair::CBufferPair(MPI_Comm com_client_server)
          : com_client_server(com_client_server) 
          , first(BUFFER_CLIENT_SIZE), second(BUFFER_CLIENT_SIZE)
          , first_request(MPI_REQUEST_NULL), second_request(MPI_REQUEST_NULL)

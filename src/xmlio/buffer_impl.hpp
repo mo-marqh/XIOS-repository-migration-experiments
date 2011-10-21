@@ -81,7 +81,7 @@ namespace xmlioserver
       {
          if (this->size < (position + this->getRequestedSize(data)))
             ERROR("CBuffer::setDataArray<T>(data, size, position)",
-                   << " Buffer size <  size + position !");
+                   << " Buffer size <  size + position !  :  "<<this->size<<" < "<<this->getRequestedSize(data)<<" + "<<position);
          CBufferData bufdata;
          bufdata.type     = this->getBufferDataType<T>();
          bufdata.isArray  = true;

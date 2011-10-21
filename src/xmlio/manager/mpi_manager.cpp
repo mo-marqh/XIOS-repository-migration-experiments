@@ -11,7 +11,9 @@
  */
  
 // XMLIOServer headers
+#include "xmlioserver.hpp"
 #include "mpi_manager.hpp"
+#include "oasis_cinterface.hpp"
 
 
 // /////////////////////////////// Définitions ////////////////////////////// //
@@ -20,6 +22,18 @@ namespace xmlioserver {
 namespace comm {
 
    // ---------------------- Initialisation & Finalisation ---------------------
+
+   bool CMPIManager::Initialized=false ;
+   MPI_Comm CMPIManager::CommClient ;
+   MPI_Comm CMPIManager::CommServer ;
+   MPI_Comm CMPIManager::CommClientServer ;
+   int CMPIManager::NbClient ;
+   int CMPIManager::NbServer ;   
+   bool CMPIManager::_IsClient ;
+   bool CMPIManager::_IsServer ;   
+   bool CMPIManager::using_server ;
+   bool CMPIManager::using_oasis ;
+
 
    void CMPIManager::Initialise(int * _argc, char *** _argv)
    {
@@ -30,14 +44,66 @@ namespace comm {
       {
          if (MPI_Init(_argc, _argv) != MPI_SUCCESS)
             ERROR("CMPIManager::Initialise(arc, argv)", << " MPI Error !");
+         Initialized=true ;
       }
 
    }
+   void CMPIManager::InitialiseClient(int * _argc, char *** _argv)
+   {
+      int flag = 0;
+      using_oasis=CObjectFactory::GetObject<CVariable>("xios","using_oasis")->getData<bool>() ; 
+      using_server=CObjectFactory::GetObject<CVariable>("xios","using_server")->getData<bool>(); 
+
+      Initialized=false ;
+
+      if (MPI_Initialized(&flag) != MPI_SUCCESS)
+         ERROR("CMPIManager::Initialise(arc, argv)", << " MPI Error !");
+
+      if (!flag)
+      {
+         if (using_oasis) 
+         {
+           StdString oasisClientId=CObjectFactory::GetObject<CVariable>("xios","client_id")->getData<StdString>();
+           oasis_init(oasisClientId) ;
+         }
+         else
+         {        
+           if (MPI_Init(_argc, _argv) != MPI_SUCCESS)
+            ERROR("CMPIManager::Initialise(arc, argv)", << " MPI Error !");
+         }
+         Initialized=true ;
+       }
+
+   }
    
+   void CMPIManager::InitialiseServer(int * _argc, char *** _argv)
+   {
+      int flag = 0;
+      
+      using_oasis=CObjectFactory::GetObject<CVariable>("xios","using_oasis")->getData<bool>(); 
+      using_server=CObjectFactory::GetObject<CVariable>("xios","using_server")->getData<bool>(); 
+   
+      if (using_oasis)
+      {
+         StdString oasisServerId=CObjectFactory::GetObject<CVariable>("xios","server_id")->getData<StdString>(); 
+         oasis_init(oasisServerId) ;
+      }
+      else
+      {
+         if (MPI_Init(_argc, _argv) != MPI_SUCCESS)
+            ERROR("CMPIManager::Initialise(arc, argv)", << " MPI Error !");
+      }
+      Initialized=true ;
+   }
+    
    void CMPIManager::Finalize(void)
    {
-      if (MPI_Finalize() != MPI_SUCCESS)
-         ERROR("CMPIManager::Finalize(void)", << " MPI Error !");
+      if (Initialized)
+      {
+        if (using_oasis) oasis_finalize() ;
+        else if (MPI_Finalize() != MPI_SUCCESS)
+                ERROR("CMPIManager::Finalize(void)", << " MPI Error !");
+      }
    }
    
    // ------------------------------ Communicateurs ----------------------------
@@ -85,8 +151,42 @@ namespace comm {
                                     MPI_Comm & _comm_server,
                                     MPI_Comm   _comm_parent)
    {
+      if (_is_server) { _IsServer=true ; _IsClient=false ; }
+      else { _IsServer=false ; _IsClient=true; }
+
+      if (_is_server)
+      {
+        if (using_oasis)
+        {
+          StdString oasisClientId=CObjectFactory::GetObject<CVariable>("xios","client_id")->getData<StdString>() ;
+          oasis_get_intracomm(_comm_parent,oasisClientId) ;
+        }
+        else _comm_parent=MPI_COMM_WORLD ;
+      }
+      else
+      {
+        if (!using_server)
+        {
+          NbClient=GetCommSize(_comm_parent) ;
+          NbServer=0 ;
+          _comm_server = _comm_client = _comm_parent ;
+          CommClient=_comm_client ;
+          CommServer=_comm_server ;
+          CommClientServer=_comm_client_server ;
+           return false ;
+        }
+        if (using_oasis)  
+        {
+          StdString oasisServerId=CObjectFactory::GetObject<CVariable>("xios","server_id")->getData<StdString>() ;
+          oasis_get_intracomm(_comm_parent,oasisServerId) ;
+        }
+      }    
+      
+      
       int value = (_is_server) ? 1 : 2;
-      std::size_t nbClient = 0, nbServer = 0, nbClientByServer = 0;
+      std::size_t nbClient = 0, nbServer = 0 ;
+      std::vector<int> nbClientByServer ;
+      
       std::vector<int> info, rank_client, rank_server;
       CMPIManager::AllGather(value, info, _comm_parent);
 
@@ -98,30 +198,39 @@ namespace comm {
       nbClient = rank_client.size();
       nbServer = rank_server.size();
       
+      NbClient=nbClient ;
+      NbServer=nbServer ;
+      
       if (nbClient == 0)
          ERROR("CMPIManager::DispatchClient()", << " Aucun client disponible !");
          
 
       _comm_client = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
-                     CMPIManager::GetGroupWorld(), rank_client), _comm_parent);
+                     CMPIManager::GetGroup(_comm_parent), rank_client), _comm_parent);
 
       if (nbServer != 0)
       {
          std::size_t currentServer = 0;
-         nbClientByServer = nbClient/nbServer;
+         
+//         nbClientByServer = nbClient/nbServer;
          _comm_server = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
-                        CMPIManager::GetGroupWorld(), rank_server), _comm_parent);
+                        CMPIManager::GetGroup(_comm_parent), rank_server), _comm_parent);
 
-         //std::cout << nbClient << "," << nbServer  << "," << nbClientByServer << std::endl;
+         for(std::size_t mm=0;mm<nbServer;mm++) 
+         {
+           int x=nbClient/nbServer ;
+           if (mm<nbClient%nbServer) x++ ;
+           nbClientByServer.push_back(x) ;
+         }
 
-         for (std::size_t mm = 0; mm < nbClient; mm += nbClientByServer)
+         for (std::size_t mm = 0; mm < nbClient; mm += nbClientByServer[currentServer],currentServer++ )
          {
             std::vector<int> group_rank;
-            group_rank.push_back(rank_server[currentServer++]);
-            for (std::size_t nn = 0; nn < nbClientByServer; nn++)
+            group_rank.push_back(rank_server[currentServer]);
+            for (std::size_t nn = 0; nn < nbClientByServer[currentServer]; nn++)
                group_rank.push_back(rank_client[nn+mm]);
             MPI_Comm comm_client_server_ = CMPIManager::CreateComm(CMPIManager::CreateSubGroup(
-                                           CMPIManager::GetGroupWorld(), group_rank), _comm_parent);
+                                           CMPIManager::GetGroup(_comm_parent), group_rank), _comm_parent);
 
             if (std::find(group_rank.begin(), group_rank.end(),
                          CMPIManager::GetCommRank(_comm_parent)) != group_rank.end())
@@ -131,11 +240,17 @@ namespace comm {
                
             group_rank.clear();
          }
+         CommClient=_comm_client ;
+         CommServer=_comm_server ;
+         CommClientServer=_comm_client_server ;
          return (true);
       }
       else
       {
          _comm_server = _comm_client;
+         CommClient=_comm_client ;
+         CommServer=_comm_server ;
+         CommClientServer=_comm_client_server ;
          return (false);
       }
    }
@@ -148,6 +263,14 @@ namespace comm {
       MPI_Group group = 0;
       if (MPI_Comm_group(MPI_COMM_WORLD, &group) != MPI_SUCCESS)
          ERROR("CMPIManager::GetGroupWorld()", << " MPI Error !");
+      return (group);
+   }
+
+   MPI_Group CMPIManager::GetGroup(MPI_Comm comm)
+   {
+      MPI_Group group = 0;
+      if (MPI_Comm_group(comm, &group) != MPI_SUCCESS)
+         ERROR("CMPIManager::GetGroup()", << " MPI Error !");
       return (group);
    }
    

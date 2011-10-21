@@ -165,7 +165,8 @@ namespace tree {
 //      std::cout << "(opeDate <= currDate)   = " << std::boolalpha << (opeDate <= currDate)   << std::endl;
 //      std::cout	<< "(writeDate <= currDate) = " << std::boolalpha << (writeDate <= currDate) << std::endl;   
    
-       //std::cout << ">> " << currDate <<  " : Envoi de données " << this->getBaseFieldId() << std::endl;
+      std::cout << ">> " << currDate <<  " : Envoi de données " << this->getBaseFieldId() << std::endl;
+      std::cout << ">> next operation "  << opeDate<<std::endl;
       if (opeDate <= currDate)
       {
          //std::cout << "> " << currDate << ": Operation du champs" << this->getBaseFieldId() << std::endl;
@@ -179,7 +180,7 @@ namespace tree {
          (*this->foperation)(input);
          
          *last_operation = currDate;
-//         std::cout << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
+         std::cout << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
       }
       
       if (writeDate < (currDate + freq_operation))
@@ -187,7 +188,7 @@ namespace tree {
          this->foperation->final();
          this->incrementNStep();
          *last_Write = writeDate;
-//         std::cout << "(*last_Write = currDate) : " << *last_Write << " = " << currDate	<< std::endl;
+         std::cout << "(*last_Write = currDate) : " << *last_Write << " = " << currDate	<< std::endl;
          return (true);        
       }
 //      std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;

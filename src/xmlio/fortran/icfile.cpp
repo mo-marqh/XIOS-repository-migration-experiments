@@ -24,7 +24,7 @@ extern "C"
 
    // ------------------------- Attributs des axes -----------------------------
    
-   void xios_set_file_name(XFilePtr file_hdl, const char * name, int name_size)
+   void cxios_set_file_name(XFilePtr file_hdl, const char * name, int name_size)
    {
       std::string name_str; 
       if (!cstr2string(name, name_size, name_str)) return;
@@ -32,7 +32,7 @@ extern "C"
       file_hdl->name.setValue(name_str);
    }
    
-   void xios_set_file_description(XFilePtr file_hdl, const char * description, int description_size)
+   void cxios_set_file_description(XFilePtr file_hdl, const char * description, int description_size)
    {
       std::string description_str; 
       if (!cstr2string(description, description_size, description_str)) return;
@@ -40,7 +40,7 @@ extern "C"
       file_hdl->description.setValue(description_str);
    } 
    
-   void xios_set_file_name_suffix(XFilePtr file_hdl, const char * name_suffix, int name_suffix_size)
+   void cxios_set_file_name_suffix(XFilePtr file_hdl, const char * name_suffix, int name_suffix_size)
    {
       std::string name_suffix_str; 
       if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
@@ -48,7 +48,7 @@ extern "C"
       file_hdl->name_suffix.setValue(name_suffix_str);
    } 
    
-   void xios_set_file_output_freq(XFilePtr file_hdl, const char * output_freq, int output_freq_size)
+   void cxios_set_file_output_freq(XFilePtr file_hdl, const char * output_freq, int output_freq_size)
    {
       std::string output_freq_str; 
       if (!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
@@ -56,19 +56,19 @@ extern "C"
       file_hdl->output_freq.setValue(output_freq_str);
    }
    
-   void xios_set_file_output_level(XFilePtr file_hdl, int output_level)
+   void cxios_set_file_output_level(XFilePtr file_hdl, int output_level)
    {
       file_hdl->output_level.setValue(output_level);
    }
    
-   void xios_set_file_enabled(XFilePtr file_hdl, bool enabled)
+   void cxios_set_file_enabled(XFilePtr file_hdl, bool enabled)
    {
       file_hdl->enabled.setValue(enabled);
    }
    
    // -------------------- Attributs des groupes d'axes ------------------------
    
-   void xios_set_filegroup_name(XFileGroupPtr filegroup_hdl, const char * name, int name_size)
+   void cxios_set_filegroup_name(XFileGroupPtr filegroup_hdl, const char * name, int name_size)
    {
       std::string name_str; 
       if (!cstr2string(name, name_size, name_str)) return;
@@ -77,7 +77,7 @@ extern "C"
       filegroup_hdl->name.setValue(name_str);
    }
    
-   void xios_set_filegroup_description(XFileGroupPtr filegroup_hdl, const char * description, int description_size)
+   void cxios_set_filegroup_description(XFileGroupPtr filegroup_hdl, const char * description, int description_size)
    {
       std::string description_str; 
       if (!cstr2string(description, description_size, description_str)) return;
@@ -85,7 +85,7 @@ extern "C"
       filegroup_hdl->description.setValue(description_str);
    } 
    
-   void xios_set_filegroup_name_suffix(XFileGroupPtr filegroup_hdl, const char * name_suffix, int name_suffix_size)
+   void cxios_set_filegroup_name_suffix(XFileGroupPtr filegroup_hdl, const char * name_suffix, int name_suffix_size)
    {
       std::string name_suffix_str; 
       if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
@@ -93,7 +93,7 @@ extern "C"
       filegroup_hdl->name_suffix.setValue(name_suffix_str);
    } 
    
-   void xios_set_filegroup_output_freq(XFileGroupPtr filegroup_hdl, const char * output_freq, int output_freq_size)
+   void cxios_set_filegroup_output_freq(XFileGroupPtr filegroup_hdl, const char * output_freq, int output_freq_size)
    {
       std::string output_freq_str; 
       if (!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
@@ -101,19 +101,19 @@ extern "C"
       filegroup_hdl->output_freq.setValue(output_freq_str);
    }
    
-   void xios_set_filegroup_output_level(XFileGroupPtr filegroup_hdl, int output_level)
+   void cxios_set_filegroup_output_level(XFileGroupPtr filegroup_hdl, int output_level)
    {
       filegroup_hdl->output_level.setValue(output_level);
    }
    
-   void xios_set_filegroup_enabled(XFileGroupPtr filegroup_hdl, bool enabled)
+   void cxios_set_filegroup_enabled(XFileGroupPtr filegroup_hdl, bool enabled)
    {
       filegroup_hdl->enabled.setValue(enabled);
    }
    
    // ------------------------ Création des handle -----------------------------
    
-   void xios_file_handle_create (XFilePtr * _ret, const char * _id, int _id_len)
+   void cxios_file_handle_create (XFilePtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -121,7 +121,7 @@ extern "C"
       *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CFile>(id).get();
    }
    
-   void xios_filegroup_handle_create (XFileGroupPtr * _ret, const char * _id, int _id_len)
+   void cxios_filegroup_handle_create (XFileGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -131,7 +131,7 @@ extern "C"
 
    // -------------------- Vérification des identifiants -----------------------
 
-   void xios_file_valid_id (bool * _ret, const char * _id, int _id_len)
+   void cxios_file_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -139,7 +139,7 @@ extern "C"
       *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CFile>(id);
    }
 
-   void xios_filegroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   void cxios_filegroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;

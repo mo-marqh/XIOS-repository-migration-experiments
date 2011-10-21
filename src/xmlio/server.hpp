@@ -16,7 +16,7 @@ namespace comm {
    {
       public :
 
-         static boost::shared_ptr<CServer> CreateServer(MPIComm comm_client_server);
+         static boost::shared_ptr<CServer> CreateServer(MPI_Comm comm_client_server);
          static boost::shared_ptr<CServer> GetServer(void);
 
          /// Destructeur ///
@@ -44,7 +44,7 @@ namespace comm {
       private :
 
          /// Constructeurs ///
-         CServer(MPIComm comm_client_server);
+         CServer(MPI_Comm comm_client_server);
       
          /// Propriété privée ///
          CBufferList blist;

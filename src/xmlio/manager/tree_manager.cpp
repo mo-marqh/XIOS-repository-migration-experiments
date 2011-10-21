@@ -128,7 +128,6 @@ namespace xmlioserver
                   << "[ renum = " << renum << "] Bad type !");
                   
                   
-//         std::cout << "Nombre de contexte :" << ctxtnb << std::endl;
 
          for (StdSize i = 0; i < ctxtnb; i++)
          {
@@ -147,7 +146,6 @@ namespace xmlioserver
                StdString id(size, ' ');
                is.read (const_cast<char *>(id.data()), size * sizeof(char));
                
-//               std::cout << "context ::::" << id << std::endl;
                
                CTreeManager::SetCurrentContextId(id);               
                bool hasctxt = CObjectFactory::HasObject<CContext>(id);
@@ -186,7 +184,7 @@ namespace xmlioserver
          
          os.write (reinterpret_cast<const char*>(&genum) , sizeof(ENodeType)); 
          os.write (reinterpret_cast<const char*>(&size) , sizeof(StdSize));
-         
+
          for (StdSize i = 0; i < size; i++)
          {
             boost::shared_ptr<CContext> context = def_vector[i];         
@@ -231,7 +229,7 @@ namespace xmlioserver
                   const StdSize idsize   = id.size();
                      
                   os.write (reinterpret_cast<const char*>(&idsize), sizeof(StdSize));
-                  os.write (id.data(), idsize * sizeof(char));         
+                  os.write (id.data(), idsize * sizeof(char));  
                }         
                domain->toBinary(os);               
             }
@@ -272,8 +270,8 @@ namespace xmlioserver
             
          const StdSize size = def_vector.size();  
                   
-         is.read (reinterpret_cast<char*>(&renum), sizeof(StdSize));   
-         is.read (reinterpret_cast<char*>(&ctxtnb), sizeof(ENodeType));
+         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));   
+         is.read (reinterpret_cast<char*>(&ctxtnb), sizeof(StdSize));
 
          if (renum != CContextGroup::GetType())
             ERROR("CTreeManager::DomainsFromBinary(StdIStream & is)",
@@ -281,7 +279,7 @@ namespace xmlioserver
                   
          if (size != ctxtnb)
             ERROR("CTreeManager::DomainsFromBinary(StdIStream & is)",
-                  << "[ size = " << size << "] Bad context group size !");
+                  << "[ size = " << size << "] != "<<ctxtnb<<" : Bad context group size !");
                   
          for (StdSize i = 0; i < ctxtnb; i++)
          {
@@ -329,6 +327,7 @@ namespace xmlioserver
                      << "] Bad grid group size !");
                      
             // Lecture successive des informations binaires de domaine.
+              
             for (StdSize j = 0; j < alldomain_size; j++)
             {
                boost::shared_ptr<CDomain> domain = alldomain[j];
@@ -351,7 +350,7 @@ namespace xmlioserver
                   
                   if (domain->getId().compare(id) != 0)
                      ERROR("CTreeManager::DomainsFromBinary(StdIStream & is)",
-                           << "[ id = " << id << "] Bad id !"); 
+                           << "[ id = " <<  id <<" != "<<domain->getId()<< "] Bad id !"); 
                }
                domain->fromBinary(is);
             }
@@ -379,7 +378,7 @@ namespace xmlioserver
                   
                   if (grid->getId().compare(id) != 0)
                      ERROR("CTreeManager::DomainsFromBinary(StdIStream & is)",
-                           << "[ id = " << id << "] Bad id !"); 
+                           << "[ id = " << id <<" != "<<grid->getId()<< "] Bad id !"); 
                }
                grid->fromBinary(is);
             }

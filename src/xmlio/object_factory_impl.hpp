@@ -33,6 +33,13 @@ namespace xmlioserver
    }
 
    template <typename U>
+      bool CObjectFactory::HasObject(const StdString & context, const StdString & id)
+   {
+      if (U::AllMapObj.find(context) == U::AllMapObj.end()) return false ;
+      else return (U::AllMapObj[context].find(id) !=  U::AllMapObj[context].end());
+   }
+
+   template <typename U>
       boost::shared_ptr<U> CObjectFactory::GetObject(const U * const object)
    {
       if (CurrContext.size() == 0)
@@ -72,6 +79,16 @@ namespace xmlioserver
    }
 
    template <typename U>
+      boost::shared_ptr<U> CObjectFactory::GetObject(const StdString & context, const StdString & id)
+   {
+      if (!CObjectFactory::HasObject<U>(context,id))
+         ERROR("CObjectFactory::GetObject(const StdString & id)",
+               << "[ id = " << id << ", U = " << U::GetName() <<", context = "<<context<< " ] "
+               << " object is not referenced !");
+      return (U::AllMapObj[CObjectFactory::CurrContext][id]);
+   }
+
+   template <typename U>
       boost::shared_ptr<U> CObjectFactory::CreateObject(const StdString & id)
    {
       if (CurrContext.size() == 0)
@@ -79,9 +96,10 @@ namespace xmlioserver
                << "[ id = " << id << " ] please define current context id !");
       if (id.size() == 0)
       {
-         boost::shared_ptr<U> value(new U);
+         boost::shared_ptr<U> value(new U(CObjectFactory::GenUId<U>()));
          U::AllVectObj[CObjectFactory::CurrContext].insert
             (U::AllVectObj[CObjectFactory::CurrContext].end(), value);
+         U::AllMapObj[CObjectFactory::CurrContext].insert(std::make_pair(value->getId(), value));
          return (value);
       }
       else if (CObjectFactory::HasObject<U>(id))
@@ -104,7 +122,31 @@ namespace xmlioserver
    {
       return (U::AllVectObj[context]);
    }
-
+   
+   template <typename U> 
+       StdString CObjectFactory::GenUId(void)
+       {
+          long int seed ;
+          
+          xios_map<StdString,long int>::iterator it ;
+          it=U::GenId.find(CObjectFactory::CurrContext);
+          if (it==U::GenId.end())
+          {
+            seed=0 ;
+            U::GenId[CObjectFactory::CurrContext]=seed ;
+          }
+          else
+          {
+            seed=it->second ;
+            seed++ ;
+            it->second=seed ;
+          }
+          
+          StdOStringStream oss ;
+          oss<<"__"<<U::GetName()<<"_undef_id_"<<seed ;
+          return StdString(oss.str()) ;
+        }
+          
 } // namespace xmlioserver
 
 #endif // __XMLIO_CObjectFactory_impl__

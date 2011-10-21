@@ -26,9 +26,7 @@ namespace xmlioserver
             CNc4DataOutput
                (const StdString & filename, bool exist);
             CNc4DataOutput
-               (const StdString & filename, bool exist, bool multigroup, MPI_Comm comm_server);
-            CNc4DataOutput
-               (const StdString & filename, bool exist, bool multigroup, comm::MPIComm comm_server, bool);
+               (const StdString & filename, bool exist, MPI_Comm comm_server, bool multifile);
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.
@@ -47,6 +45,7 @@ namespace xmlioserver
             virtual void writeField_     (const boost::shared_ptr<tree::CField>    field);
             virtual void writeFieldData_ (const boost::shared_ptr<tree::CField>    field);
             virtual void writeFile_      (const boost::shared_ptr<tree::CFile>     file);
+            virtual void closeFile_      (void);
             virtual void writeTimeAxis_  (const boost::shared_ptr<tree::CField>    field,
                                           const boost::shared_ptr<date::CCalendar> cal);
 

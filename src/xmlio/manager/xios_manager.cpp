@@ -16,7 +16,7 @@ namespace xmlioserver
          if (type != CLIENT)
          {
             // Initialisation de la biliothèque MPI si nécessaire
-            comm::CMPIManager::Initialise(argc, argv);
+            comm::CMPIManager::InitialiseServer(argc, argv);
             ExeName = StdString((*argv)[0]);
             for (int i = 1; i < *argc; i++)
                ExeOptions.push_back(StdString((*argv)[i]));
@@ -42,15 +42,15 @@ namespace xmlioserver
       CXIOSManager::XIOSStatus CXIOSManager::Status  = LOC_UNUSED;
 
       StdString     CXIOSManager::ClientName("unknown name");
-      comm::MPIComm CXIOSManager::Comm_Client_Server = -1;
-      comm::MPIComm CXIOSManager::Comm_Server = -1;
+      MPI_Comm CXIOSManager::Comm_Client_Server = MPI_COMM_NULL;
+      MPI_Comm CXIOSManager::Comm_Server = MPI_COMM_NULL;
 
       xios_map<StdString, CXIOSManager::XIOSClient> CXIOSManager::Clients;
 
       ///--------------------------------------------------------------
       
       void CXIOSManager::RunServer
-         (StdString clientName, comm::MPIComm comm_client_server, comm::MPIComm comm_server)
+         (StdString clientName, MPI_Comm comm_client_server, MPI_Comm comm_server)
       {
          using namespace comm;
          CXIOSManager::Comm_Client_Server = comm_client_server;
@@ -68,7 +68,7 @@ namespace xmlioserver
          
          // La quasi-totalité de l'arborescence est obtenue depuis les informations
          // fournies par le client 1 du sous-groupe.
-         StdString main_data_tree = clientBuffer[0]->getString(0);        
+/*         StdString main_data_tree = clientBuffer[0]->getString(0);        
          tree::CTreeManager::FromBinary(main_data_tree);
          
          // Obtention des sous-domaines clients.
@@ -77,6 +77,15 @@ namespace xmlioserver
             main_data_tree = clientBuffer[j]->getString(0);
             tree::CTreeManager::DomainsFromBinary(main_data_tree);
          }
+*/
+
+         // Obtention des sous-domaines clients.
+         for (StdSize j = 0; j < clientBuffer.size(); j++)
+         {
+             StdString main_data_tree = clientBuffer[j]->getString(0);
+            tree::CTreeManager::FromBinary(main_data_tree);
+         }
+
          
          StdOStringStream osss;
          osss << StdString("./def_server_next.")
@@ -110,7 +119,7 @@ namespace xmlioserver
       
       //--------------------------------------------------------------
       
-      void CXIOSManager::ShowInformation_CS(comm::MPIComm comm_client_server)
+      void CXIOSManager::ShowInformation_CS(MPI_Comm comm_client_server)
       {
          using namespace comm;
          typedef std::pair<StdString, XIOSClient> StdPairStrClient;
@@ -148,13 +157,13 @@ namespace xmlioserver
             std::cout << " *************************************** " << std::endl;
          }
 
-         comm::CMPIManager::Barrier();
+         comm::CMPIManager::Barrier(comm_client_server);
          
       }
       
       //--------------------------------------------------------------
       
-      void CXIOSManager::RunClientServer(comm::MPIComm comm_client_server)
+      void CXIOSManager::RunClientServer(MPI_Comm comm_client_server)
       {
          using namespace comm;
          typedef std::pair<StdString, XIOSClient> StdPairStrClient;
@@ -170,7 +179,7 @@ namespace xmlioserver
          StdSize start = 0, end   = 0;
          
          bool isClient = true, isIncl = false, isIncl_ = false;
-         MPIComm comm_client = 0, comm_client_grp = 0; comm_client_server = 0;
+         MPI_Comm comm_client = 0, comm_client_grp = 0; comm_client_server = 0;
 
          for (;iit != eend; iit++)
          {
@@ -186,9 +195,9 @@ namespace xmlioserver
             for (StdSize i = 0; i<nbServer; i++)
             {
                end = start + nbClientPServer;
-               MPIComm comm_  =  CMPIManager::CreateComm
+               MPI_Comm comm_  =  CMPIManager::CreateComm
                   (CMPIManager::CreateSubGroup(CMPIManager::GetGroupWorld(), start, end));
-               MPIComm comm__ =  CMPIManager::CreateComm
+               MPI_Comm comm__ =  CMPIManager::CreateComm
                   (CMPIManager::CreateSubGroup(CMPIManager::GetGroupWorld(), start+1, end));
                   
                servindex.push_back(start);
@@ -211,7 +220,7 @@ namespace xmlioserver
                }               
                if (clieindex.size() == nbClient)
                {
-                  MPIComm comm___ = CMPIManager::CreateComm
+                  MPI_Comm comm___ = CMPIManager::CreateComm
                   (CMPIManager::CreateSubGroup(CMPIManager::GetGroupWorld(), clieindex));
                   if (isIncl) comm_client = comm___;
                   clieindex.clear();
@@ -220,7 +229,7 @@ namespace xmlioserver
                
                start = start + nbClientPServer + 1;
             }
-            MPIComm comm____ = CMPIManager::CreateComm
+            MPI_Comm comm____ = CMPIManager::CreateComm
                (CMPIManager::CreateSubGroup(CMPIManager::GetGroupWorld(), servindex));
             if (isIncl_) CXIOSManager::Comm_Server = comm____;               
             servindex.clear();
@@ -244,7 +253,7 @@ namespace xmlioserver
       
       //---------------------------------------------------------------
       
-      void CXIOSManager::RunClient(bool launch, comm::MPIComm comm_client)
+      void CXIOSManager::RunClient(bool launch, MPI_Comm comm_client)
       {
          if (launch)
          {
@@ -262,7 +271,7 @@ namespace xmlioserver
       //---------------------------------------------------------------
 
       void CXIOSManager::AddClient(StdString clientName, StdSize nbClient, StdSize nbClientPServer,
-                                   void (*entry_point)(comm::MPIComm, comm::MPIComm, comm::MPIComm))
+                                   void (*entry_point)(MPI_Comm, MPI_Comm, MPI_Comm))
       {
          StdSize nbprocess  = comm::CMPIManager::GetCommSize(comm::CMPIManager::GetCommWorld());
          StdSize nbprocess_used = CXIOSManager::GetNbClient() + CXIOSManager::GetNbServer();

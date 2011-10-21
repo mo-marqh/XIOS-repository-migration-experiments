@@ -5,7 +5,7 @@ namespace xmlioserver
    namespace comm
    {
       /// ////////////////////// Définitions ////////////////////// ///
-      CBufferList::CBufferList(MPIComm com_client_server)
+      CBufferList::CBufferList(MPI_Comm com_client_server)
          : SuperClass(CMPIManager::GetCommSize(com_client_server) - 1)
          , com_client_server(com_client_server)
          , nbbuffer(CMPIManager::GetCommSize(com_client_server) - 1)

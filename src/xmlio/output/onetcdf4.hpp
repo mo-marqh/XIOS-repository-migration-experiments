@@ -34,15 +34,16 @@ namespace xmlioserver
             typedef std::vector<StdString> CONetCDF4Path;
 
             /// Constructeurs ///
-            CONetCDF4(const StdString & filename, bool exist, const MPI_Comm * comm = NULL);
-            CONetCDF4(const StdString & filename, bool exist, const comm::MPIComm * comm, bool);
+            CONetCDF4(const StdString & filename, bool exist, const MPI_Comm * comm = NULL, bool multifile=true);
 
             CONetCDF4(const CONetCDF4 & onetcdf4);       // Not implemented.
             CONetCDF4(const CONetCDF4 * const onetcdf4); // Not implemented.
 
 
             /// Initialisation ///
-            void initialize(const StdString & filename, bool exist, const MPI_Comm * comm);
+            void initialize(const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile);
+            void close(void) ;
+            void sync(void) ;
             void definition_start(void);
             void definition_end(void);
 

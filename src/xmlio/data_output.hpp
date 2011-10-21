@@ -24,6 +24,7 @@ namespace xmlioserver
 
             /// Ecriture ///
             void writeFile     (const boost::shared_ptr<tree::CFile>  file);
+            void closeFile     (void);
             void writeField    (const boost::shared_ptr<tree::CField> field);
             void writeFieldGrid(const boost::shared_ptr<tree::CField> field);
             void writeFieldData(const boost::shared_ptr<tree::CField> field);
@@ -42,6 +43,7 @@ namespace xmlioserver
             void writeGrid(const boost::shared_ptr<tree::CDomain> domain);
 
             virtual void writeFile_       (const boost::shared_ptr<tree::CFile>     file)   = 0;
+            virtual void closeFile_       (void)                                            = 0;
             virtual void writeField_      (const boost::shared_ptr<tree::CField>    field)  = 0;
             virtual void writeFieldData_  (const boost::shared_ptr<tree::CField>    field)  = 0;
             virtual void writeDomain_     (const boost::shared_ptr<tree::CDomain>   domain) = 0;

@@ -61,6 +61,7 @@ namespace tree {
       std::vector<boost::shared_ptr<CField> >::iterator it;
       this->enabledFields = this->getAllFields();
 
+      std::cout<<"---> File :"<<this->name.getValue()<<std::endl ;
       for ( it = this->enabledFields.begin() ; it != this->enabledFields.end(); it++ )
       {
          if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est défini ...
@@ -85,9 +86,13 @@ namespace tree {
             { it--; this->enabledFields.erase(it+1); continue; }
          }
 
-         // Le champ est finalement actif, on ajoute la référence au champ de base.
+         // Le champ est finalement actif, on y ajoute sa propre reference.
+         (*it)->refObject.push_back(*it);
+         // Le champ est finalement actif, on y ajoute la référence au champ de base.
+         std::cout<<"    Field Enabled : "<<(*it)->getId()<<std::endl ;
          (*it)->setRelFile(CObjectFactory::GetObject(this));
          (*it)->baseRefObject->refObject.push_back(*it);
+         // A faire, ajouter les references intermediaires...
       }
 
       return (this->enabledFields);
@@ -132,6 +137,10 @@ namespace tree {
       this->data_out->definition_end();
    }
 
+   void CFile::close(void)
+   {
+     this->data_out->closeFile();
+   }
    //----------------------------------------------------------------
 
    void CFile::parse(xml::CXMLNode & node)

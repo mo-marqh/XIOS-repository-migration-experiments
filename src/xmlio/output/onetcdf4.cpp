@@ -1,5 +1,6 @@
 #include "onetcdf4.hpp"
 #include "group_template_impl.hpp"
+#include "mpi_manager.hpp"
 
 namespace xmlioserver
 {
@@ -8,58 +9,50 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4
-         (const StdString & filename, bool exist, const MPI_Comm * comm)
+         (const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile)
             : path()
       {
-         this->wmpi = (comm != NULL);
-         this->initialize(filename, exist, comm);
+         this->wmpi = (comm != NULL) && !multifile;
+         this->initialize(filename, exist, comm,multifile);
       }
       
       //---------------------------------------------------------------
       
-      CONetCDF4::CONetCDF4
-         (const StdString & filename, bool exist, const comm::MPIComm * comm, bool)
-         : path()
-      {
-         this->wmpi = (comm != NULL);
-         MPI_Comm * null_comm = NULL;
-         if (comm == NULL)
-            this->initialize(filename, exist, null_comm);
-         else
-         {
-            MPI_Comm comm_c = MPI_Comm_f2c(*comm);
-            this->initialize(filename, exist, &comm_c);
-         }
-      }
       
-      //---------------------------------------------------------------
-      
+
       CONetCDF4::~CONetCDF4(void)
       {
-         CheckError(nc_close(this->ncidp));
+//         CheckError(nc_close(this->ncidp));
       }
 
       ///--------------------------------------------------------------
 
       void CONetCDF4::initialize
-         (const StdString & filename, bool exist, const MPI_Comm * comm)
+         (const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile)
       {
          if (!exist)
          {
             if (comm != NULL)
             {
-               CheckError(nc_create_par
-                  (filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+               if (!multifile) CheckError(nc_create_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+               else CheckError(nc_create(filename.c_str(), NC_NETCDF4, &this->ncidp));
             }
             else CheckError(nc_create(filename.c_str(), NC_NETCDF4, &this->ncidp));
          }
          else
          {
             if (comm != NULL)
-               CheckError(nc_open_par
-                  (filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+            {
+               if (!multifile) CheckError(nc_open_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+               else CheckError(nc_open(filename.c_str(), NC_NETCDF4, &this->ncidp));
+            }
             else  CheckError(nc_open(filename.c_str(), NC_NETCDF4, &this->ncidp));
          }
+      }
+      
+      void CONetCDF4::close()
+      {
+        CheckError(nc_close(this->ncidp));
       }
       
       //---------------------------------------------------------------
@@ -261,6 +254,7 @@ namespace xmlioserver
             const StdString & dimid = *it;
             dimids.push_back(this->getDimension(dimid));
          }
+         std::cout<<"--> Var "<<name.c_str()<<std::endl ;
          CheckError(nc_def_var (grpid, name.c_str(), type, dimids.size(), &(dimids[0]), &retvalue));
          return (retvalue);
       }
@@ -351,7 +345,10 @@ namespace xmlioserver
             }
          }
          
-         
+//         if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
+//         {
+//            if (array_size==0) scount[0]=0 ;
+//         }         
 //         for (StdSize u = 0; u < sstart.size(); u++)
 //            std::cout << "(" << sstart[u] << "," << scount[u]  << ")" ;
 //         std::cout << std::endl;
@@ -365,6 +362,7 @@ namespace xmlioserver
                                     const std::vector<StdSize> & scount, double * data)
       {
          CheckError(nc_put_vara_double(grpid, varid, &(sstart[0]), &(scount[0]), data));
+//         sync() ;
       }
       
       //---------------------------------------------------------------
@@ -375,6 +373,7 @@ namespace xmlioserver
                                     const std::vector<StdSize> & scount, int * data)
       {
           CheckError(nc_put_vara_int(grpid, varid, &(sstart[0]), &(scount[0]), data));
+//          sync() ;
       }
       
       //---------------------------------------------------------------
@@ -385,6 +384,7 @@ namespace xmlioserver
                                     const std::vector<StdSize> & scount, float * data)
       {
           CheckError(nc_put_vara_float(grpid, varid, &(sstart[0]), &(scount[0]), data));
+//          sync() ;
       }
 
       //---------------------------------------------------------------
@@ -409,6 +409,12 @@ namespace xmlioserver
          return (nc_inq_varid (grpid, varname.c_str(), &varid) == NC_NOERR);
       }
 
+      void CONetCDF4::sync(void)
+      {
+        
+         comm::CMPIManager::Barrier(comm::CMPIManager::GetCommServer());
+         CheckError(nc_sync(this->ncidp)) ;
+      } 
       ///--------------------------------------------------------------
    } // namespace io
 } // namespace xmlioserver

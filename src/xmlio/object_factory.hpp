@@ -26,6 +26,9 @@ namespace xmlioserver
             static inline boost::shared_ptr<U> GetObject(const StdString & id);
 
          template <typename U>
+            static inline boost::shared_ptr<U> GetObject(const StdString& context,const StdString & id);
+
+         template <typename U>
             static inline boost::shared_ptr<U> GetObject(const U * const object);
 
          template <typename U>
@@ -41,10 +44,14 @@ namespace xmlioserver
          template <typename U>
             static inline bool HasObject(const StdString & id);
 
+         template <typename U>
+            static inline bool HasObject(const StdString& context,const StdString & id);
+
          /// Instanciateur ///
          template <typename U>
             static inline boost::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
 
+         template <typename U> static inline StdString GenUId(void) ; 
 
       private :
 

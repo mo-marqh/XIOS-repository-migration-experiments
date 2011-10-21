@@ -79,6 +79,8 @@ namespace tree {
 
          const std::vector<int> & getIBeginZoomSub(void) const;
          const std::vector<int> & getJBeginZoomSub(void) const;
+         const std::vector<int> & getNiZoomSub(void) const;
+         const std::vector<int> & getNjZoomSub(void) const;
          
          const std::vector<ARRAY(double, 1)> & getLonValueSub(void) const;
          const std::vector<ARRAY(double, 1)> & getLatValueSub(void) const;

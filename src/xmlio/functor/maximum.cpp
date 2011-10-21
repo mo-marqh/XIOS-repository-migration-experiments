@@ -25,7 +25,13 @@ namespace xmlioserver
        	       double * it   = _doutput->data();
          if (this->nbcall == 1)
               for (; it1 != end1; it1++, it++) *it = *it1;
-         else for (; it1 != end1; it1++, it++) *it = std::max(*it1, *it);  
+         else for (; it1 != end1; it1++, it++) *it = std::max(*it1, *it);
+
+         it1  = _dinput->data(),
+         end1 = _dinput->data() + _dinput->num_elements();
+       	 it  = _doutput->data();
+         double sum=0 ;
+         for (; it1 != end1; it1++, it++) sum+=*it;
       }
 
       //---------------------------------------------------------------

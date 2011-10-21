@@ -19,7 +19,7 @@ extern "C"
 {
 // /////////////////////////////// Définitions ////////////////////////////// //
 
-   void xios_set_timestep(double ts_year, double ts_month,  double ts_day,
+   void cxios_set_timestep(double ts_year, double ts_month,  double ts_day,
                           double ts_hour, double ts_minute, double ts_second)
    {
       try
@@ -47,7 +47,7 @@ extern "C"
       }
    }
    
-   void xios_update_calendar(int step)
+   void cxios_update_calendar(int step)
    {
       try
       {
