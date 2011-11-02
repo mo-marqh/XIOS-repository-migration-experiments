@@ -30,7 +30,7 @@ namespace xmlioserver
       }
 
       StdString CAllLeapCalendar::getType(void) const
-      { return (StdString("allleap")); }
+      { return (StdString("all_leap")); }
 
       ///--------------------------------------------------------------
    } // namespace date

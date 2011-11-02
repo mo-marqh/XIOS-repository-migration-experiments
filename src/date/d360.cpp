@@ -27,7 +27,7 @@ namespace xmlioserver
       { return (30); }
 
       StdString CD360Calendar::getType(void) const
-      { return (StdString("d360")); }
+      { return (StdString("360_day")); }
 
       ///--------------------------------------------------------------
    } // namespace date
