@@ -559,10 +559,15 @@ namespace xmlioserver
          if (!SuperClassWriter::varExist(axisid))
          {
             SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
+            date::CDate initDate=cal->getInitDate() ;
+            StdOStringStream oss2;
+            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
+                <<initDate.getHour()<<"-"<<initDate.getMinute()<<"-"<<initDate.getSecond() ;
+            StdString strInitdate=oss2.str() ;
             this->writeTimeAxisAttributes
-               (axisid, cal->getId(),
-                StdString("seconds since ").append(cal->getInitDate().toString()),
-                cal->getInitDate().toString());
+               (axisid, cal->getType(),
+                StdString("seconds since ").append(strInitdate),
+                strInitdate);
          }
 
       }
