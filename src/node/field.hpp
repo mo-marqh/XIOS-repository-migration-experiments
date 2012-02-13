@@ -10,6 +10,8 @@
 #include "date.hpp"
 #include "declare_group.hpp"
 #include "calendar_util.hpp"
+//#include "context.hpp"
+
 
 namespace xmlioserver {
 namespace tree {
@@ -22,7 +24,7 @@ namespace tree {
 
    class CFile;
    class CGrid;
-
+   class CContext ;
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -47,6 +49,11 @@ namespace tree {
          typedef CFieldAttributes RelAttributes;
          typedef CFieldGroup      RelGroup;
 
+         enum EEventId
+         {
+           EVENT_ID_UPDATE_DATA
+         } ;
+         
          /// Constructeurs ///
          CField(void);
          explicit CField(const StdString & id);
@@ -81,17 +88,13 @@ namespace tree {
          void setRelFile(const boost::shared_ptr<CFile> _file);
          void incrementNStep(void);
 
-         template <StdSize N>
-            inline bool updateData
-               (const date::CDate      & currDate,
-                const date::CDuration  & timestep,
-                const ARRAY(double, N)   data);
-
+         template <StdSize N> bool updateData(const ARRAY(double, N)   data);
+         
          bool updateDataServer
                (const date::CDate & currDate,
                 const std::deque<ARRAY(double, 1)> storedClient);
-
-      public :
+ 
+       public :
 
          /// Test ///
          bool hasDirectFieldReference(void) const;
@@ -111,8 +114,17 @@ namespace tree {
          static StdString GetDefName(void);
          
          static ENodeType GetType(void);
-
-      private :
+         
+        template <StdSize N> void setData(const ARRAY(double, N) _data) ;
+        static bool dispatchEvent(CEventServer& event) ;
+        void sendUpdateData(void) ;
+        static void recvUpdateData(CEventServer& event) ;
+        void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers) ;
+        void writeField(void) ;
+        void outputField(ARRAY(double,3) fieldOut) ;
+        void outputField(ARRAY(double,2) fieldOut) ;
+        
+      public :
 
          /// Propriétés privées ///
          
@@ -122,12 +134,17 @@ namespace tree {
          boost::shared_ptr<CFile>  file;
 
          date::CDuration freq_operation, freq_write;
+         date::CDuration freq_operation_srv, freq_write_srv;
 
          StdSize nstep;
          boost::shared_ptr<date::CDate>    last_Write, last_operation;
+         boost::shared_ptr<date::CDate>    last_Write_srv, last_operation_srv;
+         
          boost::shared_ptr<func::CFunctor> foperation;
+         map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
          
          ARRAY(double, 1) data;
+         map<int,ARRAY(double,1)> data_srv ;
 
    }; // class CField
 
@@ -152,27 +169,31 @@ namespace xmlioserver {
 namespace tree {
 
    template <StdSize N>
-      bool CField::updateData(const date::CDate & currDate, const date::CDuration & timestep, const ARRAY(double, N) _data)
+   void CField::setData(const ARRAY(double, N) _data)
+   {
+     const std::vector<boost::shared_ptr<CField> > & refField=getAllReference();
+     std::vector<boost::shared_ptr<CField> >::const_iterator  it = refField.begin(), end = refField.end();
+     
+     for (; it != end; it++) (*it)->updateData(_data) ;
+    }
+    
+   template <StdSize N>
+      bool CField::updateData(const ARRAY(double, N) _data)
    {        
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      const date::CDate & currDate = context->getCalendar()->getCurrentDate();
       const date::CDate opeDate      = *last_operation + freq_operation;
       const date::CDate writeDate    = *last_Write     + freq_write;       
 
-//      std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
-//      std::cout << "Champ : "     << this->getBaseFieldId() << std::endl;
-//      std::cout << "CurrDate : "  << currDate  << std::endl;
-//      std::cout << "opeDate : "   << opeDate   << " = " << *last_operation << " + " << freq_operation << std::endl;
-//      std::cout	<< "writeDate : " << writeDate << " = " << *last_Write     << " + " << freq_write     << std::endl;
-//      std::cout << "(opeDate <= currDate)   = " << std::boolalpha << (opeDate <= currDate)   << std::endl;
-//      std::cout	<< "(writeDate <= currDate) = " << std::boolalpha << (writeDate <= currDate) << std::endl;   
    
-      std::cout << ">> " << currDate <<  " : Envoi de données " << this->getBaseFieldId() << std::endl;
-      std::cout << ">> next operation "  << opeDate<<std::endl;
+      info(50) << "CField::updateData " << currDate <<  " : send data to " << this->getBaseFieldId() << std::endl;
+      info(50) << "Next operation "  << opeDate<<std::endl;
+
       if (opeDate <= currDate)
       {
-         //std::cout << "> " << currDate << ": Operation du champs" << this->getBaseFieldId() << std::endl;
-         if (this->data->num_elements() != this->grid->storeIndex[0]->num_elements())
+         if (this->data->num_elements() != this->grid->storeIndex_client->num_elements())
          {
-            this->data->resize(boost::extents[this->grid->storeIndex[0] ->num_elements()]);
+            this->data->resize(boost::extents[this->grid->storeIndex_client ->num_elements()]);
          }
             
          ARRAY_CREATE(input, double, 1, [this->data->num_elements()]);
@@ -180,20 +201,20 @@ namespace tree {
          (*this->foperation)(input);
          
          *last_operation = currDate;
-         std::cout << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
+         info(50) << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
       }
       
       if (writeDate < (currDate + freq_operation))
       {
          this->foperation->final();
-         this->incrementNStep();
          *last_Write = writeDate;
-         std::cout << "(*last_Write = currDate) : " << *last_Write << " = " << currDate	<< std::endl;
+         info(50) << "(*last_Write = currDate) : " << *last_Write << " = " << currDate	<< std::endl;
+         sendUpdateData() ;
          return (true);        
       }
-//      std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+
       return (false);
-   };
+   }
 
 } // namespace tree
 } // namespace xmlioserver

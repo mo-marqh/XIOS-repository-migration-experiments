@@ -9,6 +9,7 @@
 #include "calendar.hpp"
 #include "xios_manager.hpp"
 #include "context.hpp"
+#include "context_server.hpp"
 
 namespace xmlioserver
 {
@@ -57,36 +58,41 @@ namespace xmlioserver
 
       void CNc4DataOutput::writeDomain_(const boost::shared_ptr<tree::CDomain> domain)
       {
+         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+         CContextServer* server=context->server ;
+         
          if (domain->IsWritten(this->filename)) return;
          domain->checkAttributes();
          
-//         if (domain->isEmpty()) return;
+         if (domain->isEmpty()) 
+           if (SuperClass::type==MULTI_FILE) return ;
 
          std::vector<StdString> dim0, dim1;
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
          StdString lonid     = StdString("lon_").append(domid);
          StdString latid     = StdString("lat_").append(domid);
-         StdString lonid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+         StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon_").append(domid).append("_local")
                              : lonid;
-         StdString latid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+         StdString latid_loc = (server->intraCommSize > 1)
                              ? StdString("lat_").append(domid).append("_local")
                              : latid;
-         StdString maskid    = StdString("mask_").append(domid).append("_local");
+// supress mask         StdString maskid    = StdString("mask_").append(domid).append("_local");
 
-         ARRAY(int, 2) mask = domain->getLocalMask();
+// supress mask         ARRAY(int, 2) mask = domain->getLocalMask();
 
-         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
-         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
+//         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
+//         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
+         bool isCurvilinear = true ; //for moment
 
          switch (SuperClass::type)
          {
             case (MULTI_FILE) :
             {
-               if (domain->isEmpty()) return;
+//               if (domain->isEmpty()) return;
                
-               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+               if (server->intraCommSize > 1)
                {
                  SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
                  SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
@@ -104,14 +110,14 @@ namespace xmlioserver
                  dim1.push_back(lonid_loc);
                }
 
-               SuperClassWriter::addDimension(lonid_loc, domain->zoom_ni_loc.getValue());
-               SuperClassWriter::addDimension(latid_loc, domain->zoom_nj_loc.getValue());
-               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+               SuperClassWriter::addDimension(lonid_loc, domain->zoom_ni_srv);
+               SuperClassWriter::addDimension(latid_loc, domain->zoom_nj_srv);
+               if (server->intraCommSize > 1)
                {
-                  this->writeLocalAttributes(domain->zoom_ibegin_loc.getValue(),
-                                             domain->zoom_ni_loc.getValue(),
-                                             domain->zoom_jbegin_loc.getValue(),
-                                             domain->zoom_nj_loc.getValue(),
+                  this->writeLocalAttributes(domain->zoom_ibegin_srv,
+                                             domain->zoom_ni_srv,
+                                             domain->zoom_jbegin_srv,
+                                             domain->zoom_nj_srv,
                                              domid);
                }
                
@@ -134,25 +140,25 @@ namespace xmlioserver
                dim0.push_back(latid_loc);
                dim0.push_back(lonid_loc);
 
-               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
-               {
-                  SuperClassWriter::addVariable(maskid, NC_INT, dim0);
 
-                  this->writeMaskAttributes(maskid,
-                     domain->data_dim.getValue()/*,
-                     domain->data_ni.getValue(),
-                     domain->data_nj.getValue(),
-                     domain->data_ibegin.getValue(),
-                     domain->data_jbegin.getValue()*/);
-               }
+// supress mask               if (server->intraCommSize > 1)
+// supress mask               {
+// supress mask                  SuperClassWriter::addVariable(maskid, NC_INT, dim0);
+// supress mask
+// supress mask                  this->writeMaskAttributes(maskid,
+// supress mask                     domain->data_dim.getValue()/*,
+// supress mask                     domain->data_ni.getValue(),
+// supress mask                     domain->data_nj.getValue(),
+// supress mask                     domain->data_ibegin.getValue(),
+// supress mask                     domain->data_jbegin.getValue()*/);
+// supress mask               }
                   
                //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(domain->latvalue.getValue(), latid, true, 0);
-               SuperClassWriter::writeData(domain->lonvalue.getValue(), lonid, true, 0);
-               if (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
-                  SuperClassWriter::writeData(mask, maskid);
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, true, 0);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, true, 0);
+// supress mask               if (server->intraCommSize > 1) SuperClassWriter::writeData(mask, maskid);
                SuperClassWriter::definition_start();
 
                break;
@@ -194,12 +200,12 @@ namespace xmlioserver
                }
                else
                {
-                 start[1]=domain->zoom_ibegin_loc.getValue()+domain->ibegin.getValue()-1-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_loc.getValue()+domain->jbegin.getValue()-1-domain->zoom_jbegin.getValue() ; 
-                 count[1]=domain->zoom_ni_loc.getValue() ; count[0]=domain->zoom_nj_loc.getValue() ; 
+                 start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                 count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
                }
                
-               SuperClassWriter::writeData(domain->latvalue.getValue(), latid, true, 0,&start,&count);
-               SuperClassWriter::writeData(domain->lonvalue.getValue(), lonid, true, 0,&start,&count);
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, true, 0,&start,&count);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, true, 0,&start,&count);
                SuperClassWriter::definition_start();
 
                break;
@@ -264,11 +270,12 @@ namespace xmlioserver
 
       void CNc4DataOutput::writeField_(const boost::shared_ptr<tree::CField> field)
       {
+         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+         CContextServer* server=context->server ;
+
          std::vector<StdString> dims, coodinates;
-         boost::shared_ptr<CGrid> grid =
-            CObjectFactory::GetObject<CGrid>(field->grid_ref.getValue());
-         boost::shared_ptr<CDomain> domain =
-            CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue());
+         boost::shared_ptr<CGrid> grid = field->grid;
+         boost::shared_ptr<CDomain> domain = grid->domain;
            
          if (domain->isEmpty()) 
            if (SuperClass::type==MULTI_FILE) return ;
@@ -278,18 +285,19 @@ namespace xmlioserver
                              ? domain->name.getValue() : domain->getId();
          StdString lonid     = StdString("lon_").append(domid);
          StdString latid     = StdString("lat_").append(domid);
-         StdString lonid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+         StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon_").append(domid).append("_local")
                              : lonid;
-         StdString latid_loc = (comm::CMPIManager::GetCommSize(CXIOSManager::Comm_Server) > 1)
+         StdString latid_loc = (server->intraCommSize > 1)
                              ? StdString("lat_").append(domid).append("_local")
                              : latid;
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() : field->getBaseFieldReference()->getId();
 
-         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
-         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
-
+//         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
+//         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
+          bool isCurvilinear = true ; // for moment 
+          
          nc_type type = (!field->prec.isEmpty() &&
                         ( field->prec.getValue() == 4))
                         ? NC_FLOAT : NC_DOUBLE;
@@ -308,10 +316,8 @@ namespace xmlioserver
 
          if (!grid->axis_ref.isEmpty())
          {
-            boost::shared_ptr<CAxis> axis =
-               CObjectFactory::GetObject<CAxis>(grid->axis_ref.getValue());
-            StdString axisid = (!axis->name.isEmpty())
-                             ? axis->name.getValue() : axis->getId();
+            boost::shared_ptr<CAxis> axis = grid->axis ;
+            StdString axisid = (!axis->name.isEmpty()) ? axis->name.getValue() : axis->getId();
             dims.push_back(axisid);
             coodinates.push_back(axisid);
          }
@@ -424,7 +430,6 @@ namespace xmlioserver
 
       void CNc4DataOutput::closeFile_ (void)
       {
-         std::cout<<"--> Close file "<<filename<<std::endl ;
          SuperClassWriter::close() ;
       }
 
@@ -448,34 +453,31 @@ namespace xmlioserver
       
       void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<tree::CField>  field)
       {
-         boost::shared_ptr<CGrid> grid =
-            CObjectFactory::GetObject<CGrid>(field->grid_ref.getValue());
-         boost::shared_ptr<CDomain> domain =
-            CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue());
+         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+
+         boost::shared_ptr<CGrid> grid = field->grid ;
+         boost::shared_ptr<CDomain> domain = grid->domain ;
          
          if(SuperClass::type==MULTI_FILE) if (domain->isEmpty()) return;
 
 
-         StdString fieldid   = (!field->name.isEmpty())
+         StdString fieldid   = (!field->name.isEmpty()) 
                              ? field->name.getValue() 
                              : field->getBaseFieldReference()->getId();
-         boost::shared_ptr<xmlioserver::tree::CContext> context =
-            CObjectFactory::GetObject<xmlioserver::tree::CContext>
-               (CObjectFactory::GetCurrentContextId());
                              
          StdOStringStream oss;
          oss << "time_" << field->operation.getValue()
              << "_" << field->getRelFile()->output_freq.getValue();
              
-         ARRAY(double, 1) field_data = field->getData();
+ //        ARRAY(double, 1) field_data = field->data_srv;
          ARRAY_CREATE(time_data, double, 1, [1]);
-         (*time_data)[0] = date::Time(*field->getLastWriteDate());
+         (*time_data)[0] = date::Time(*field->last_Write_srv);
          
          if (grid->hasAxis()) // 3D
          {
-            boost::shared_ptr<CAxis> axis = CObjectFactory::GetObject<CAxis>(grid->axis_ref.getValue());
-            ARRAY(double, 3) field_data3D (new CArray<double,3>(grid->getLocalShape()/*, boost::c_storage_order()*/));            
-            grid->outputField(field_data, field_data3D);
+            boost::shared_ptr<CAxis> axis = grid->axis ;
+            ARRAY_CREATE(field_data3D,double,3,[domain->zoom_ni_srv][domain->zoom_nj_srv][axis->size.getValue()]) ;
+            field->outputField(field_data3D);
             switch (SuperClass::type)
            {
               case (MULTI_FILE) :
@@ -496,8 +498,8 @@ namespace xmlioserver
                  else
                  {
 //                 start[2]=domain->zoom_ibegin_loc.getValue()-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_loc.getValue()-domain->zoom_jbegin.getValue() ; start[0]=0 ;
-                   start[2]=domain->zoom_ibegin_loc.getValue()+domain->ibegin.getValue()-1-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_loc.getValue()+domain->jbegin.getValue()-1-domain->zoom_jbegin.getValue() ; start[0]=0 ; 
-                   count[2]=domain->zoom_ni_loc.getValue() ; count[1]=domain->zoom_nj_loc.getValue() ; count[0] = axis->size.getValue();
+                   start[2]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; start[0]=0 ;
+                   count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->size.getValue();
                  }
                  SuperClassWriter::writeData(field_data3D, fieldid, true, field->getNStep()-1,&start,&count );
                  SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1 );
@@ -508,8 +510,8 @@ namespace xmlioserver
          }
          else // 2D
          {
-            ARRAY(double, 2) field_data2D (new CArray<double, 2>(grid->getLocalShape()/*, boost::c_storage_order()*/));
-            grid->outputField(field_data,  field_data2D);
+            ARRAY_CREATE(field_data2D,double,2,[domain->zoom_ni_srv][domain->zoom_nj_srv]) ;
+            field->outputField(field_data2D);
             switch (SuperClass::type)
             {
               case (MULTI_FILE) :
@@ -529,9 +531,10 @@ namespace xmlioserver
                  }
                  else
                  {
-                   start[1]=domain->zoom_ibegin_loc.getValue()+domain->ibegin.getValue()-1-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_loc.getValue()+domain->jbegin.getValue()-1-domain->zoom_jbegin.getValue() ; 
-                   count[1]=domain->zoom_ni_loc.getValue() ; count[0]=domain->zoom_nj_loc.getValue() ; 
+                   start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                   count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
                  }
+
                  SuperClassWriter::writeData(field_data2D, fieldid, true, field->getNStep()-1,&start,&count);
                  SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
                  break;

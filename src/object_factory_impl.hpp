@@ -85,7 +85,7 @@ namespace xmlioserver
          ERROR("CObjectFactory::GetObject(const StdString & id)",
                << "[ id = " << id << ", U = " << U::GetName() <<", context = "<<context<< " ] "
                << " object is not referenced !");
-      return (U::AllMapObj[CObjectFactory::CurrContext][id]);
+      return (U::AllMapObj[context][id]);
    }
 
    template <typename U>

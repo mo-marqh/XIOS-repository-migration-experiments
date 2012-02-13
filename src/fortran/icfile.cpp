@@ -30,6 +30,7 @@ extern "C"
       if (!cstr2string(name, name_size, name_str)) return;
 
       file_hdl->name.setValue(name_str);
+      file_hdl->sendAttributToServer(file_hdl->name) ;
    }
    
    void cxios_set_file_description(XFilePtr file_hdl, const char * description, int description_size)
@@ -38,6 +39,7 @@ extern "C"
       if (!cstr2string(description, description_size, description_str)) return;
 
       file_hdl->description.setValue(description_str);
+      file_hdl->sendAttributToServer(file_hdl->description) ;
    } 
    
    void cxios_set_file_name_suffix(XFilePtr file_hdl, const char * name_suffix, int name_suffix_size)
@@ -46,6 +48,7 @@ extern "C"
       if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
 
       file_hdl->name_suffix.setValue(name_suffix_str);
+      file_hdl->sendAttributToServer(file_hdl->name_suffix) ;
    } 
    
    void cxios_set_file_output_freq(XFilePtr file_hdl, const char * output_freq, int output_freq_size)
@@ -54,16 +57,28 @@ extern "C"
       if (!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
 
       file_hdl->output_freq.setValue(output_freq_str);
+      file_hdl->sendAttributToServer(file_hdl->output_freq) ;
    }
    
    void cxios_set_file_output_level(XFilePtr file_hdl, int output_level)
    {
       file_hdl->output_level.setValue(output_level);
+      file_hdl->sendAttributToServer(file_hdl->output_level) ;
    }
    
    void cxios_set_file_enabled(XFilePtr file_hdl, bool enabled)
    {
       file_hdl->enabled.setValue(enabled);
+      file_hdl->sendAttributToServer(file_hdl->enabled) ;
+   }
+   
+   void cxios_set_file_type(XFilePtr file_hdl, const char * type, int type_size)
+   {
+      std::string type_str; 
+      if (!cstr2string(type, type_size, type_str)) return;
+
+      file_hdl->type.setValue(type_str);
+      file_hdl->sendAttributToServer(file_hdl->type) ;
    }
    
    // -------------------- Attributs des groupes d'axes ------------------------
@@ -72,9 +87,9 @@ extern "C"
    {
       std::string name_str; 
       if (!cstr2string(name, name_size, name_str)) return;
-      if (!cstr2string(name, name_size, name_str)) return;
 
       filegroup_hdl->name.setValue(name_str);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->name) ;
    }
    
    void cxios_set_filegroup_description(XFileGroupPtr filegroup_hdl, const char * description, int description_size)
@@ -83,6 +98,7 @@ extern "C"
       if (!cstr2string(description, description_size, description_str)) return;
 
       filegroup_hdl->description.setValue(description_str);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->description) ;
    } 
    
    void cxios_set_filegroup_name_suffix(XFileGroupPtr filegroup_hdl, const char * name_suffix, int name_suffix_size)
@@ -91,6 +107,7 @@ extern "C"
       if (!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
 
       filegroup_hdl->name_suffix.setValue(name_suffix_str);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->name_suffix) ;
    } 
    
    void cxios_set_filegroup_output_freq(XFileGroupPtr filegroup_hdl, const char * output_freq, int output_freq_size)
@@ -99,16 +116,28 @@ extern "C"
       if (!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
 
       filegroup_hdl->output_freq.setValue(output_freq_str);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->output_freq) ;
    }
    
    void cxios_set_filegroup_output_level(XFileGroupPtr filegroup_hdl, int output_level)
    {
       filegroup_hdl->output_level.setValue(output_level);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->output_level) ;
    }
    
    void cxios_set_filegroup_enabled(XFileGroupPtr filegroup_hdl, bool enabled)
    {
       filegroup_hdl->enabled.setValue(enabled);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->enabled) ;
+   }
+   
+   void cxios_set_filegroup_type(XFileGroupPtr filegroup_hdl, const char * type, int type_size)
+   {
+      std::string type_str; 
+      if (!cstr2string(type, type_size, type_str)) return;
+
+      filegroup_hdl->type.setValue(type_str);
+      filegroup_hdl->sendAttributToServer(filegroup_hdl->type) ;
    }
    
    // ------------------------ Création des handle -----------------------------

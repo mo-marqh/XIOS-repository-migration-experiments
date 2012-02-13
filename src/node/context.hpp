@@ -7,6 +7,11 @@
 #include "calendar.hpp"
 
 #include "declare_group.hpp"
+//#include "context_client.hpp"
+//#include "context_server.hpp"
+#include "data_output.hpp"
+
+#include <mpi.h>
 
 namespace xmlioserver {
 namespace data {
@@ -15,13 +20,16 @@ namespace data {
 } // namespace xmlioserver
 
 namespace xmlioserver {
+   class CContextClient ;
+   class CContextServer ;
+   
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
    class CContextGroup;
    class CContextAttributes;
    class CContext;
-
+  
    ///--------------------------------------------------------------
 
    // Declare/Define CFileAttribute
@@ -35,6 +43,13 @@ namespace tree {
       : public CObjectTemplate<CContext>
       , public CContextAttributes
    {
+         public :
+         enum EEventId
+         {
+           EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
+           EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE
+         } ;
+         
          /// typedef ///
          typedef CObjectTemplate<CContext>   SuperClass;
          typedef CContextAttributes SuperClassAttribute;
@@ -89,6 +104,37 @@ namespace tree {
 
          /// Test ///
          virtual bool hasChild(void) const;
+
+         bool eventLoop(void) ;
+         bool serverLoop(void) ;
+         void clientLoop(void) ;
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm) ;
+         void initClient(MPI_Comm intraComm, MPI_Comm interComm) ;
+         CContextServer* server ;
+         CContextClient* client ;
+         bool hasClient ;
+         bool hasServer ;
+         void finalize(void) ;
+         void closeDefinition(void) ;
+         void findAllEnabledFields(void);
+         void solveAllGridRef(void);
+         void solveAllOperation(void);
+         void solveAllInheritance(void) ;
+         void findEnabledFiles(void);
+         void closeAllFile(void) ;
+         void updateCalendar(int step) ;
+         void createFileHeader(void ) ;
+      // dispatch event
+         static bool dispatchEvent(CEventServer& event) ;
+         void sendCloseDefinition(void) ;
+         void sendUpdateCalendar(int step) ;
+         void sendCreateFileHeader(void) ;
+         static void recvUpdateCalendar(CEventServer& event) ;
+         void recvUpdateCalendar(CBufferIn& buffer) ;
+         static void recvCloseDefinition(CEventServer& event) ;
+         static void recvCreateFileHeader(CEventServer& event) ;
+         void recvCreateFileHeader(CBufferIn& buffer) ;
+         static shared_ptr<CContext> current(void) ;
          
       public :
       
@@ -99,10 +145,13 @@ namespace tree {
          virtual void toBinary  (StdOStream & os) const;
          virtual void fromBinary(StdIStream & is);
          
-      private :
+      public :
       
          boost::shared_ptr<date::CCalendar>      calendar;
          boost::shared_ptr<data::CDataTreatment> datat;
+ 
+         std::vector<boost::shared_ptr<CFile> > enabledFiles;
+
 
    }; // class CContext
 

@@ -7,13 +7,17 @@
 /// xmlioserver headers ///
 #include "xmlioserver_spl.hpp"
 #include "object.hpp"
+#include "base_type.hpp"
+#include "message.hpp"
+#include "buffer_in.hpp"
+#include "buffer_out.hpp"
 
 namespace xmlioserver
 {
    namespace tree
    {
       /// ////////////////////// Déclarations ////////////////////// ///
-      class CAttribute : public CObject
+      class CAttribute : public CObject, public CBaseType
       {
             typedef CObject SuperClass;
 
@@ -28,6 +32,7 @@ namespace xmlioserver
             const StdString & getName(void) const;
             const boost::any & getAnyValue(void) const;
             template <typename T> inline T getValue(void) const;
+            template <typename T> inline T* getRef(void);
 
             /// Mutateurs ///
             template <typename T> inline void setValue(const T & value);
@@ -53,8 +58,6 @@ namespace xmlioserver
             /// Constructeurs ///
             CAttribute(void);  // Not implemented.
 
-         private :
-
             /// Propriété ///
             boost::any value;
 
@@ -65,6 +68,12 @@ namespace xmlioserver
          T CAttribute::getValue(void) const
       { 
          return (boost::any_cast<T>(this->value)); 
+      }
+
+      template <typename T>
+         T* CAttribute::getRef(void)
+      { 
+         return (boost::any_cast<T>(&value)); 
       }
 
       template <typename T>
@@ -80,6 +89,13 @@ namespace xmlioserver
       }
 
    } // namespace tree
-} // namespace xmlioserver
+ 
+   CMessage& operator<<(CMessage& msg,tree::CAttribute& type) ;
+   CMessage& operator<<(CMessage& msg, const tree::CAttribute&  type) ;
+ 
+   CBufferOut& operator<<(CBufferOut& buffer,tree::CAttribute& type) ;
+   CBufferIn& operator>>(CBufferIn& buffer, tree::CAttribute&  type) ;
+}
+  // namespace xmlioserver
 
 #endif // __XMLIO_CAttribute__

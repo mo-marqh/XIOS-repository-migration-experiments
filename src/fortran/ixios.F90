@@ -7,7 +7,8 @@ USE icontext, ONLY : txios(context), xios(set_context_attr), xios(set_context_at
                      xios(get_context_handle), xios(set_current_context),                  &
                      xios(is_valid_context)
 
-USE idata, ONLY : xios(initialize), xios(finalize), xios(close_context_definition),       &
+USE idata, ONLY : xios(initialize),xios(init_server), xios(finalize), xios(context_initialize),  &
+                  xios(close_context_definition),       &
                   xios(context_finalize), xios(send_field_r8_1d), xios(send_field_r8_2d), &
                   xios(send_field_r8_3d), xios(send_field_r4_1d), xios(send_field_r4_2d), &
                   xios(send_field_r4_3d)
@@ -39,10 +40,6 @@ USE iaxis, ONLY : txios(axis), txios(axisgroup), xios(set_axis_attr), xios(set_a
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),          &
                      xios(add_fieldtofile), xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), &
                      xios(add_fieldgroup), xios(add_domaingroup), xios(add_fieldgrouptofile)
-
-USE idata, ONLY : xios(initialize), xios(finalize), xios(close_context_definition), xios(context_finalize), &
-                  xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d),                   &
-                  xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d)
                   
 
 PRIVATE
@@ -84,6 +81,7 @@ END INTERFACE xios(send_field)
           xios(set_axisgroup_attr), xios(set_context_attr)
 
  PUBLIC :: xios(get_handle) 
+ PUBLIC :: xios(add_child) 
 
  PUBLIC :: xios(is_valid_context),xios(is_valid_domain), xios(is_valid_domaingroup),xios(is_valid_field),        &
           xios(is_valid_fieldgroup), xios(is_valid_file), xios(is_valid_filegroup), xios(is_valid_grid),         &
@@ -91,6 +89,7 @@ END INTERFACE xios(send_field)
           
  PUBLIC :: xios(set_current_context)  
  PUBLIC :: xios(set_timestep),xios(update_calendar)
- PUBLIC :: xios(initialize), xios(finalize), xios(close_context_definition), xios(context_finalize), xios(send_field)
+ PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),                       &
+           xios(close_context_definition), xios(context_finalize), xios(send_field)
 
 END MODULE XIOS

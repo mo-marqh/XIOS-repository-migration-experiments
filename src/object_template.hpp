@@ -5,6 +5,9 @@
 #include "xmlioserver_spl.hpp"
 #include "attribute_map.hpp"
 #include "node_enum.hpp"
+#include "buffer_in.hpp"
+#include "event_server.hpp"
+#include "attribute.hpp"
 
 namespace xmlioserver
 {
@@ -22,6 +25,11 @@ namespace xmlioserver
          typedef tree::CAttributeMap SuperClassMap;
          typedef CObject SuperClass;
          typedef T DerivedType;
+         
+         enum EEventId
+         {
+           EVENT_ID_SEND_ATTRIBUTE=100
+         } ;
 
       public :
 
@@ -45,6 +53,10 @@ namespace xmlioserver
 
          /// Traitement statique ///
          static void ClearAllAttributes(void);
+         void sendAttributToServer(const string& id);
+         void sendAttributToServer(tree::CAttribute& attr) ;
+         static void recvAttributFromClient(CEventServer& event) ;
+         static bool dispatchEvent(CEventServer& event) ;
 
          /// Accesseur statique ///
          static std::vector<boost::shared_ptr<DerivedType> > &
@@ -52,7 +64,12 @@ namespace xmlioserver
 
          /// Destructeur ///
          virtual ~CObjectTemplate(void);
-
+         
+         static bool has(const string& id) ;
+         static boost::shared_ptr<T> get(const string& id) ;
+         boost::shared_ptr<T> get(void) ;
+         static boost::shared_ptr<T> create(const string& id=string("")) ;
+         
       protected :
 
          /// Constructeurs ///
@@ -75,5 +92,7 @@ namespace xmlioserver
 
    }; // class CObjectTemplate
 } // namespace xmlioserver
+
+//#include "object_template_impl.hpp"
 
 #endif // __XMLIO_CObjectTemplate__

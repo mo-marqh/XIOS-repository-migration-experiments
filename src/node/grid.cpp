@@ -159,9 +159,12 @@ namespace tree {
    void CGrid::solveReference(void)
    {
       if (this->isChecked) return;
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      CContextClient* client=context->client ;
+      
       this->solveDomainRef() ;
       this->solveAxisRef() ;
-      if (this->storeIndex.size() == 1)
+      if (context->hasClient)
       {
          
          this->computeIndex() ;
@@ -175,7 +178,7 @@ namespace tree {
          this->out_j_index.push_front(out_j_index_);
          this->out_l_index.push_front(out_l_index_);
       }
-      this->computeIndexServer();
+//      this->computeIndexServer();
       this->isChecked = true;
    }
 
@@ -224,9 +227,6 @@ namespace tree {
                 nj   = domain->nj.getValue() ,
                 size = (this->hasAxis()) ? axis->size.getValue() : 1 ;
 
-      /*std::cout << ni   << " : "
-                  << nj   << " : "
-                  << size << std::endl;*/
 
       const int data_dim     = domain->data_dim.getValue() ,
                 data_n_index = domain->data_n_index.getValue() ,
@@ -237,9 +237,6 @@ namespace tree {
       ARRAY(int, 1) data_i_index = domain->data_i_index.getValue() ,
                     data_j_index = domain->data_j_index.getValue() ;
 
-      /*std::cout << data_n_index  << " : "
-                  << data_i_index  << " : "
-                  << data_j_index  << std::endl; */
 
       ARRAY(bool, 2) mask = domain->mask.getValue() ;
       ARRAY(int, 2) local_mask =  this->domain->getLocalMask();
@@ -264,17 +261,16 @@ namespace tree {
          }
       }
       
-      //std::cout << indexCount  << std::endl;
       ARRAY_ASSIGN(this->storeIndex[0] , int, 1, [indexCount]);
       ARRAY_ASSIGN(this->out_l_index[0], int, 1, [indexCount]);
       ARRAY_ASSIGN(this->out_i_index[0], int, 1, [indexCount]);
       ARRAY_ASSIGN(this->out_j_index[0], int, 1, [indexCount]);
       
-      // for(int count = 0, indexCount = 0,  l = 0; l < size; l++)
-      // for(int n = 0, i = 0, j = 0; n < data_n_index; n++, count++)
-
-      //for(int n = 0, i = 0, j = 0, count = 0, indexCount = 0; n < data_n_index;  n++)
-      //for(int l = 0; l < size; l++, count++)
+      ARRAY_ASSIGN(storeIndex_client,int,1,[indexCount]);
+      ARRAY_ASSIGN(out_i_client,int,1,[indexCount]);
+      ARRAY_ASSIGN(out_j_client,int,1,[indexCount]);
+      ARRAY_ASSIGN(out_l_client,int,1,[indexCount]);
+      
       
       for(int count = 0, indexCount = 0,  l = 0; l < size; l++)
       {
@@ -295,27 +291,18 @@ namespace tree {
                (*this->out_l_index[0])[indexCount] = l ;
                (*this->out_i_index[0])[indexCount] = i ;
                (*this->out_j_index[0])[indexCount] = j ;
+               
+               (*storeIndex_client)[indexCount] = count ;
+               (*out_i_client)[indexCount]=i+domain->ibegin_client-1 ;
+               (*out_j_client)[indexCount]=j+domain->jbegin_client-1 ;
+               (*out_l_client)[indexCount]=l ;
                indexCount++ ;
             }
          }
       }
+      sendIndex() ;
 
 
-//      if (this->storeIndex[0]->size() != 0)
-//         for (StdSize u = 0; u < this->storeIndex[0]->size(); u++)
-//            (*local_mask)[(*out_i_index[0])[u]][(*out_j_index[0])[u]] = 1;
-                                 
-//      std::cout << "indexCount" << indexCount << std::endl; 
-//      std::cout << this->getId() << " : "  << (*this->storeIndex[0]).num_elements() << std::endl;
-//      StdOFStream ofs2(("log_client_"+this->getId()).c_str());
-//      for (StdSize h = 0; h < storeIndex[0]->size(); h++)
-//      {
-//        ofs2 << "(" << (*storeIndex[0])[h]  << ";"
-//             << (*out_i_index[0])[h] << ","
-//             << (*out_j_index[0])[h] << ","
-//             << (*out_l_index[0])[h] << ")" << std::endl;
-//      }
-//      ofs2.close();   
    }
 
    //----------------------------------------------------------------
@@ -344,56 +331,45 @@ namespace tree {
 
    //----------------------------------------------------------------
 
-   template <>
-      void CGrid::outputField
-         (const ARRAY(double, 1) stored,  ARRAY(double, 3) field) const
+   void CGrid::outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 3) field) 
    {
-      //std::cout <<"champ : " ;
-      for(StdSize n = 0; n < storeIndex[0]->num_elements(); n++)
-      {
-         (*field)[(*out_i_index[0])[n]][(*out_j_index[0])[n]][(*out_l_index[0])[n]] = (*stored)[n] ;
-         /*if (storeIndex[0]->num_elements() == 31)
-         {
-            std::cout << "( " << (*field)[(*out_i_index[0])[n]][(*out_j_index[0])[n]][(*out_l_index[0])[n]] << ", "
-                      << (*out_i_index[0])[n] << ", "
-                      << (*out_j_index[0])[n] << ", "
-                      << (*out_l_index[0])[n] << ")";
-         }*/
-      }
-      //std::cout << std::endl;
+      ARRAY(int,1) out_i=out_i_fromClient[rank] ;
+      ARRAY(int,1) out_j=out_j_fromClient[rank] ;
+      ARRAY(int,1) out_l=out_l_fromClient[rank] ;
+      
+      for(StdSize n = 0; n < stored->num_elements(); n++)
+         (*field)[(*out_i)[n]][(*out_j)[n]][(*out_l)[n]] = (*stored)[n] ;
+   }
 
+   void CGrid::outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 2) field) 
+   {
+      ARRAY(int,1) out_i=out_i_fromClient[rank] ;
+      ARRAY(int,1) out_j=out_j_fromClient[rank] ;
+
+       for(StdSize n = 0; n < stored->num_elements(); n++)
+         (*field)[(*out_i)[n]][(*out_j)[n]] = (*stored)[n] ;
    }
 
    //---------------------------------------------------------------
 
-   template <>
-      void CGrid::outputField
-         (const ARRAY(double, 1) stored,  ARRAY(double, 2) field) const
+   void CGrid::outputField(int rank,const ARRAY(double, 1) stored,  ARRAY(double, 1) field)
    {
-      for(StdSize n = 0; n < storeIndex[0]->num_elements(); n++)
-         (*field)[(*out_i_index[0])[n]][(*out_j_index[0])[n]] = (*stored)[n] ;
-   }
-
-   //---------------------------------------------------------------
-
-   template <>
-      void CGrid::outputField
-         (const ARRAY(double, 1) stored,  ARRAY(double, 1) field) const
-   {
-      for(StdSize n = 0; n < storeIndex[0]->num_elements(); n++)
-         (*field)[(*out_i_index[0])[n]] = (*stored)[n] ;
+      ARRAY(int,1) out_i = out_i_fromClient[rank] ;
+      for(StdSize n = 0; n < stored->num_elements(); n++)
+         (*field)[(*out_i)[n]] = (*stored)[n] ;
    }
 
    //----------------------------------------------------------------
+  
 
    void CGrid::storeField_arr
       (const double * const data, ARRAY(double, 1) stored) const
    {
-      const StdSize size = (this->storeIndex[0])->num_elements() ;
-//    std::cout << this->getId() << "> size : " << size << std::endl;
+      const StdSize size = (this->storeIndex_client)->num_elements() ;
+
       stored->resize(boost::extents[size]) ;
       for(StdSize i = 0; i < size; i++)
-         (*stored)[i] = data[(*storeIndex[0])[i]] ;
+         (*stored)[i] = data[(*storeIndex_client)[i]] ;
    }
    
    //---------------------------------------------------------------
@@ -441,7 +417,122 @@ namespace tree {
    }
    
    //---------------------------------------------------------------
-   
+  void CGrid::sendIndex(void)
+  {
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    CContextClient* client=context->client ;
+    
+    CEventClient event(getType(),EVENT_ID_INDEX) ;
+    int rank ;
+    list<shared_ptr<CMessage> > list_msg ;
+    list<ARRAY(int,1) > list_out_i,list_out_j,list_out_l ;
+     
+    for(int ns=0;ns<domain->connectedServer.size();ns++)
+    {
+       rank=domain->connectedServer[ns] ;
+       int ib=domain->ib_srv[ns] ;
+       int ie=domain->ie_srv[ns] ;
+       int jb=domain->jb_srv[ns] ;
+       int je=domain->je_srv[ns] ;
+       
+       int i,j ;
+       int nb=0 ;
+       for(int k=0;k<storeIndex_client->num_elements();k++)
+       {
+         i=(*out_i_client)[k] ;
+         j=(*out_j_client)[k] ;
+         if (i>=ib-1 && i<=ie-1 && j>=jb-1 && j<=je-1) nb++ ; 
+       }
+       
+       ARRAY_CREATE(storeIndex,int,1,[nb]) ;
+       ARRAY_CREATE(out_i,int,1,[nb]) ;
+       ARRAY_CREATE(out_j,int,1,[nb]) ;
+       ARRAY_CREATE(out_l,int,1,[nb]) ;
+       
+       nb=0 ;
+       for(int k=0;k<storeIndex_client->num_elements();k++)
+       {
+         i=(*out_i_client)[k] ;
+         j=(*out_j_client)[k] ;
+         if (i>=ib-1 && i<=ie-1 && j>=jb-1 && j<=je-1) 
+         {
+            (*storeIndex)[nb]=k ;
+            (*out_i)[nb]=(*out_i_client)[k] ;
+            (*out_j)[nb]=(*out_j_client)[k] ;
+            (*out_l)[nb]=(*out_l_client)[k] ;
+            nb++ ;
+         }
+       }
+       
+       storeIndex_toSrv.insert(pair<int,ARRAY(int,1) >(rank,storeIndex)) ;
+       nbSenders.insert(pair<int,int>(rank,domain->nbSenders[ns])) ;
+       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+       list_out_i.push_back(out_i) ;
+       list_out_j.push_back(out_j) ;
+       list_out_l.push_back(out_l) ;
+
+       *list_msg.back()<<getId()<<list_out_i.back()<<list_out_j.back()<<list_out_l.back() ;
+       event.push(rank,domain->nbSenders[ns],*list_msg.back()) ;
+    }
+    client->sendEvent(event) ;
+  }
+  
+  void CGrid::recvIndex(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it ;
+    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    {
+      int rank=it->rank;
+      CBufferIn* buffer=it->buffer;
+      string domainId ;
+      *buffer>>domainId ;
+      get(domainId)->recvIndex(rank,*buffer) ;
+    }
+  }
+  
+  void CGrid::recvIndex(int rank, CBufferIn& buffer)
+  {
+    ARRAY_CREATE(out_i,int,1,[0]) ;
+    ARRAY_CREATE(out_j,int,1,[0]) ;
+    ARRAY_CREATE(out_l,int,1,[0]) ;
+    
+    buffer>>out_i>>out_j>>out_l ;
+    int offset ;
+    
+    offset=domain->zoom_ibegin_srv-1 ;
+    for(int k=0;k<out_i->num_elements();k++) (*out_i)[k]=(*out_i)[k]-offset ;
+    
+    offset=domain->zoom_jbegin_srv-1 ;
+    for(int k=0;k<out_i->num_elements();k++) (*out_j)[k]=(*out_j)[k]-offset ;
+    
+    out_i_fromClient.insert(pair< int,ARRAY(int,1) >(rank,out_i)) ;
+    out_j_fromClient.insert(pair< int,ARRAY(int,1) >(rank,out_j)) ;
+    out_l_fromClient.insert(pair< int,ARRAY(int,1) >(rank,out_l)) ;
+  }
+
+  bool CGrid::dispatchEvent(CEventServer& event)
+  {
+     
+    if (SuperClass::dispatchEvent(event)) return true ;
+    else
+    {
+      switch(event.type)
+      {
+        case EVENT_ID_INDEX :
+          recvIndex(event) ;
+          return true ;
+          break ;
+ 
+        default :
+          ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
+                <<"Unknown Event") ;
+          return false ;
+      }
+    }
+  }
+
+
+
    void CGrid::computeIndexServer(void)
    {
       ARRAY(int, 2) local_mask =  this->domain->getLocalMask();
@@ -467,7 +558,6 @@ namespace tree {
        const int iend_zoom_srv = ibegin_zoom_srv + zoom_ni_srv-1 ;
       const int  jend_zoom_srv = jbegin_zoom_srv + zoom_nj_srv-1 ;
         
-//      std::cout<<"----> computeIndexServer !!"<<std::endl ;
       StdSize dn = 0;      
       for (StdSize j = 1; j < this->out_i_index.size(); j++)
          dn += this->out_i_index[j]->size();
@@ -502,13 +592,6 @@ namespace tree {
             jend_zoom_cl = jbegin_zoom[i]+nj_zoom[i]-1;
          }
          
-//         std::cout<<"--> client No "<<i<<std::endl ;
-//         std::cout<<" ibegin "<<ibegin[i]<<" iend "<<iend[i]<<" jbegin "<<jbegin[i]<<" jend "<<jend[i]<<std::endl ;
-//         std::cout<<"zoom cl : ibegin "<<ibegin_zoom_cl<<" iend "<<iend_zoom_cl<<" jbegin "<<jbegin_zoom_cl<<" jend "<<jend_zoom_cl<<std::endl ;
-//         std::cout<<"--> server "<<std::endl ;
-//         std::cout<<" ibegin "<<ibegin_srv<<" iend "<<iend_srv<<" jbegin "<<jbegin_srv<<" jend "<<jend_srv<<std::endl ;
-//        std::cout<<"zoom : ibegin "<<ibegin_zoom_srv<<" iend "<<iend_zoom_srv<< " ni "<<zoom_ni_srv<<" jbegin "<<jbegin_zoom_srv<<" jend "<<jend_zoom_srv<<" nj "<<zoom_nj_srv<<std::endl ;
-//         std::cout<<"zoom_size "<<ibegin_zoom.size()<<std::endl ;
 
          if (comm::CMPIManager::IsClient())
          {
@@ -516,11 +599,6 @@ namespace tree {
            {
               (*storeIndex_srv)[n]  = (*storeIndex_cl)[m]; // Faux mais inutile dans le cas serveur.
 
-//            (*out_i_index_srv)[n] = (*out_i_index_cl)[m] 
-//                                  /*+ (ibegin_cl - 1) - (ibegin_srv - 1)*/ + (ibegin_zoom_cl - 1) - (ibegin_zoom_srv - 1);
-//            (*out_j_index_srv)[n] = (*out_j_index_cl)[m]
-//                                  /*+ (jbegin_cl - 1) - (jbegin_srv - 1)*/ + (jbegin_zoom_cl - 1) - (jbegin_zoom_srv - 1);
-//            (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
               (*out_i_index_srv)[n] = (*out_i_index_cl)[m] + ibegin_cl - 1 - (ibegin_srv + ibegin_zoom_srv - 1) + 1 ;
               (*out_j_index_srv)[n] = (*out_j_index_cl)[m] + jbegin_cl - 1 - (jbegin_srv + jbegin_zoom_srv - 1) + 1 ;
               (*out_l_index_srv)[n] = (*out_l_index_cl)[m];
@@ -541,9 +619,6 @@ namespace tree {
          }
                   
          dn += storeIndex_cl->size(); 
-//         std::cout<<"storeIndex_cl->size() "<<storeIndex_cl->size()<<std::endl;               
-      
-//         std::cout<<"storeIndex_srv->size() "<<storeIndex_srv->size()<<std::endl;               
       }
       
       if (storeIndex_srv->size() != 0)
@@ -557,14 +632,6 @@ namespace tree {
          const int jend_t   =
             *std::max_element(out_j_index_srv->begin(), out_j_index_srv->end());
                
-//                std::cout<< "[ grille = "      << this->getId()
-//                         << ", ibegin_t = "    << ibegin_t
-//                         << ", jbegin_t = "    << jbegin_t
-//                         << ", iend_t = "      << iend_t
-//                         << ", jend_t = "      << jend_t
-//                         << ", zoom_ni_srv = " << zoom_ni_srv
-//                         << ", zoom_nj_srv = " << zoom_nj_srv
-//                         << ", nb subdomain = "   << out_i_index.size()-1<<std::endl   ;  
                                  
          if ((ibegin_t < 0) || (jbegin_t < 0) ||
              (iend_t >= zoom_ni_srv) || (jend_t >= zoom_nj_srv))
@@ -622,6 +689,14 @@ namespace tree {
             (*storedServer)[n++] = (*storedClient[i])[j];
    }
 
+   void CGrid::outputFieldToServer(ARRAY(double, 1) fieldIn, int rank, ARRAY(double, 1) fieldOut)
+   {
+     ARRAY(int,1) index=storeIndex_toSrv[rank] ;
+     int nb=index->num_elements() ;
+     fieldOut->resize(extents[nb]) ;
+     
+     for(int k=0;k<nb;k++) (*fieldOut)[k]=(*fieldIn)[(*index)[k]] ;
+    }
    ///---------------------------------------------------------------
 
 } // namespace tree

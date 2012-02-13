@@ -1,0 +1,149 @@
+#include "xmlioserver_spl.hpp"
+#include "context_client.hpp"
+#include "event_client.hpp"
+#include "buffer_out.hpp"
+#include "buffer_client.hpp"
+#include "type.hpp"
+#include <mpi.h>
+
+namespace xmlioserver
+{
+
+
+    CContextClient::CContextClient(MPI_Comm intraComm_, MPI_Comm interComm_)
+    {
+      intraComm=intraComm_ ;
+      interComm=interComm_ ;
+      MPI_Comm_rank(intraComm,&clientRank) ;
+      MPI_Comm_size(intraComm,&clientSize) ;
+      MPI_Comm_remote_size(interComm,&serverSize) ;
+      
+      timeLine=0 ;
+      locked=false; 
+    }
+
+
+
+    void CContextClient::registerEvent(CEventClient& event)
+    {
+      list<int>::iterator it;
+      map<int,CClientBuffer*> clientBuffer ;
+      
+      for(it=event.serverList.begin();it!=event.serverList.end();it++)
+      {
+        
+        if (connectedServer.find(*it)==connectedServer.end())
+        {
+          connectedServer.insert(*it) ;
+          buffers[*it]=new CClientBuffer(interComm,*it) ;
+        }
+      }
+    }
+
+
+
+    list<CBufferOut*> CContextClient::newEvent(CEventClient& event,list<int>& sizes)
+    {
+      
+      if (locked==true) ERROR("list<CBufferOut*> CContextClient::newEvent(CEventClient& event,list<int>& sizes)",
+                              "event is locked. Please send last event before requesting a new event") ; 
+      
+      list<CBufferOut*> buffers ; 
+      list<CBufferOut*>::iterator itBuff ; 
+      list<int>::iterator it ;
+      
+//      CType<size_t> ttimeLine(timeLine) ;
+//      int size ;
+//      CType<int> tsize(size) ;
+//      int offset=tsize.size()+ttimeLine.size() ;
+
+      int size ;
+      timeLine++ ;
+      CMessage msg ;
+      msg<<size<<timeLine ;
+            
+      for(it=sizes.begin();it!=sizes.end();it++) *it+=msg.size() ;
+      buffers=getBuffers(event.serverList,sizes) ;
+      
+      it=sizes.begin() ;
+      for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++)
+      {
+        size=*it ;
+        *(*itBuff)<<msg ;
+        it++ ;
+      }      
+    
+      locked=true ;
+      return buffers ;
+    
+    }
+    
+
+
+    void CContextClient::sendEvent(CEventClient& event)
+    {
+      list<int>::iterator itServer ;
+      list<int>::ranks ;
+      list<int>::sizes ;  
+      list<int>::iterator itSize ;
+      
+//      if (locked==false) ERROR("void CContextClient::sendEvent(CEventClient& event)",
+//                              "event is not locked. Please request a new event before sending it") ;
+      ranks=event.getRanks() ;
+      sizes=event.getSizes() ;
+      
+      list<CMessage> msg<<sizes.begin()<<timeLine ;
+      
+      for(list<int>::iterator it=sizes.begin();it!=sizes.end();it++) *it+=msg.size() ;
+      list<CBufferOut*> buffList=getBuffers(ranks,sizes) ;
+      
+      
+      
+      for(list<CBufferOut*>::iterator it=buffList.begin(),itSize=sizes.begin() ;;it!=buffList.end();it++)
+      {
+         **it<<
+        
+      
+      
+                               
+      for(itServer=event.serverList.begin();itServer!=event.serverList.end();itServer++) 
+      {
+        buffers[*itServer]->checkBuffer() ;
+      }
+    }
+    
+
+
+    list<CBufferOut*> CContextClient::getBuffers(list<int>& serverList, list<int>& sizeList)
+    {
+      list<int>::iterator itServer,itSize ;
+      list<CClientBuffer*> bufferList ; 
+      list<CClientBuffer*>::iterator itBuffer ; 
+      list<CBufferOut*>  retBuffer ;
+      bool free ;
+      
+      for(itServer=serverList.begin();itServer!=serverList.end();itServer++) bufferList.push_back(buffers[*itServer]) ;
+
+      free=false ;
+      while(!free)
+      {
+        free=true ;
+        for(itBuffer=bufferList.begin(),itSize=sizeList.begin(); itBuffer!=bufferList.end();itBuffer++,itSize++)
+        {
+          (*itBuffer)->checkBuffer() ;
+          free&=(*itBuffer)->isBufferFree(*itSize) ;
+        }
+      }
+      
+      for(itBuffer=bufferList.begin(),itSize=sizeList.begin(); itBuffer!=bufferList.end();itBuffer++,itSize++)
+      {
+        retBuffer.push_back((*itBuffer)->getBuffer(*itSize)) ;
+      }
+      
+      return retBuffer ;             
+   
+   }
+     
+      
+
+}      

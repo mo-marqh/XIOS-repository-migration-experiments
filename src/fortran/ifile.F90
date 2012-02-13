@@ -34,7 +34,7 @@ MODULE IFILE
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
 
-   SUBROUTINE xios(set_file_attr)(file_id, name , description, name_suffix, output_freq, output_level, enabled)
+   SUBROUTINE xios(set_file_attr)(file_id, name , description, name_suffix, output_freq, output_level, enabled, type)
       IMPLICIT NONE
       TYPE(txios(file))                       :: file_hdl
       CHARACTER(len = *)          , INTENT(IN) :: file_id
@@ -44,14 +44,15 @@ MODULE IFILE
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled
-      
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type
+            
       CALL xios(get_file_handle)(file_id,file_hdl)
-      CALL xios(set_file_attr_hdl_)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+      CALL xios(set_file_attr_hdl_)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled, type)
       
    END SUBROUTINE xios(set_file_attr)
    
 
-   SUBROUTINE xios(set_file_attr_hdl)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+   SUBROUTINE xios(set_file_attr_hdl)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled,type)
       TYPE(txios(file))          , INTENT(IN) :: file_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description
@@ -59,12 +60,13 @@ MODULE IFILE
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(set_file_attr_hdl_)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+      CALL xios(set_file_attr_hdl_)(file_hdl, name , description, name_suffix, output_freq, output_level, enabled, type)
       
    END SUBROUTINE xios(set_file_attr_hdl)
 
-   SUBROUTINE xios(set_file_attr_hdl_)(file_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
+   SUBROUTINE xios(set_file_attr_hdl_)(file_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_, type_)
       TYPE(txios(file))          , INTENT(IN) :: file_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: description_
@@ -73,7 +75,8 @@ MODULE IFILE
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL(kind = 1)                        :: enabled__
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
-      
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type_
+            
       IF (PRESENT(name_))         THEN
          CALL cxios_set_file_name(file_hdl%daddr, name_, len(name_))
       END IF
@@ -93,12 +96,16 @@ MODULE IFILE
          enabled__ = enabled_        
          CALL cxios_set_file_enabled(file_hdl%daddr, enabled__)
       END IF
-
+      
+      IF (PRESENT(type_))         THEN
+         CALL cxios_set_file_type(file_hdl%daddr, type_, len(type_))
+      END IF
+      
    END SUBROUTINE xios(set_file_attr_hdl_)
 
 
    
-   SUBROUTINE xios(set_filegroup_attr)(filegroup_id, name , description, name_suffix, output_freq, output_level, enabled)
+   SUBROUTINE xios(set_filegroup_attr)(filegroup_id, name , description, name_suffix, output_freq, output_level, enabled, type)
       IMPLICIT NONE
       TYPE(txios(filegroup))                  :: filegroup_hdl
       CHARACTER(len = *)          , INTENT(IN) :: filegroup_id
@@ -108,14 +115,15 @@ MODULE IFILE
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type
       
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
-      CALL xios(set_filegroup_attr_hdl_)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+      CALL xios(set_filegroup_attr_hdl_)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled, type)
       
    END SUBROUTINE xios(set_filegroup_attr)
 
 
-   SUBROUTINE xios(set_filegroup_attr_hdl)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+   SUBROUTINE xios(set_filegroup_attr_hdl)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled, type)
       IMPLICIT NONE
       TYPE(txios(filegroup))     , INTENT(IN) :: filegroup_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name
@@ -124,13 +132,15 @@ MODULE IFILE
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: output_freq
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type
       
-     CALL xios(set_filegroup_attr_hdl_)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled)
+     CALL xios(set_filegroup_attr_hdl_)(filegroup_hdl, name , description, name_suffix, output_freq, output_level, enabled, type)
 
    END SUBROUTINE xios(set_filegroup_attr_hdl)
       
    
-   SUBROUTINE xios(set_filegroup_attr_hdl_)(filegroup_hdl, name_ , description_, name_suffix_, output_freq_, output_level_, enabled_)
+   SUBROUTINE xios(set_filegroup_attr_hdl_)(filegroup_hdl, name_ , description_, name_suffix_, output_freq_, output_level_,     &
+                   enabled_,type_)
       IMPLICIT NONE
       TYPE(txios(filegroup))     , INTENT(IN) :: filegroup_hdl
       CHARACTER(len = *), OPTIONAL, INTENT(IN) :: name_
@@ -140,6 +150,7 @@ MODULE IFILE
       INTEGER           , OPTIONAL, INTENT(IN) :: output_level_
       LOGICAL(kind = 1)                        :: enabled__
       LOGICAL           , OPTIONAL, INTENT(IN) :: enabled_
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: type_
       
       IF (PRESENT(name_))         THEN
          CALL cxios_set_filegroup_name(filegroup_hdl%daddr, name_, len(name_))
@@ -159,6 +170,10 @@ MODULE IFILE
       IF (PRESENT(enabled_))      THEN
         enabled__ = enabled_ 
         CALL cxios_set_filegroup_enabled(filegroup_hdl%daddr, enabled__)
+      END IF
+      
+      IF (PRESENT(type_))         THEN
+         CALL cxios_set_filegroup_type(filegroup_hdl%daddr, type_, len(type_))
       END IF
 
    END SUBROUTINE xios(set_filegroup_attr_hdl_)

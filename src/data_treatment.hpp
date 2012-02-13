@@ -112,7 +112,7 @@ namespace xmlioserver
             oss << ".nc";
 
             boost::shared_ptr<io::CDataOutput> dout(new T(oss.str(), false,comm_server,multifile));
-            file->initializeDataOutput(dout);
+//            file->initializeDataOutput(dout);
          }
       }
 
@@ -148,13 +148,11 @@ namespace xmlioserver
          {
             boost::shared_ptr<CField> field = *it;
             boost::shared_ptr<CFile>  file  = field->getRelFile();
-            if (field->updateData(currDate, timestep, data))
+            if (field->updateData(data))
             {
                if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
                { 
                    boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
-//                   std::cout<<"--> sendData :: fieldId : "<<fieldId<<", fileId : "<<file->getId()<<std::endl ;
-//                   client->sendData(fieldId, file->getId(), field->getData());
                    client->sendData(field->getId(), file->getId(), field->getData());
                }
                else

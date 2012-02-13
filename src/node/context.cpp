@@ -1,5 +1,4 @@
 #include "context.hpp"
-
 #include "tree_manager.hpp"
 
 #include "attribute_template_impl.hpp"
@@ -10,6 +9,9 @@
 #include "duration.hpp"
 
 #include "data_treatment.hpp"
+#include "context_client.hpp"
+#include "context_server.hpp"
+#include "nc4_data_output.hpp"
 
 namespace xmlioserver {
 namespace tree {
@@ -18,16 +20,19 @@ namespace tree {
 
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
-      , calendar()
+      , calendar(),hasClient(false),hasServer(false)
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
-      , calendar()
+      , calendar(),hasClient(false),hasServer(false)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
-   { /* Ne rien faire de plus */ }
+   { 
+     if (hasClient) delete client ;
+     if (hasServer) delete server ;
+   }
 
    //----------------------------------------------------------------
 
@@ -298,6 +303,280 @@ namespace tree {
 #include "node_type.conf"
    }
    ///---------------------------------------------------------------
+   
+   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm)
+   {
+     hasClient=true ;
+     client = new CContextClient(this,intraComm, interComm) ;
+   } 
 
+   void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm)
+   {
+     hasServer=true ;
+     server = new CContextServer(this,intraComm,interComm) ;
+   } 
+
+   bool CContext::eventLoop(void)
+   {
+     return server->eventLoop() ;
+   } 
+   
+   void CContext::finalize(void)
+   {
+      if (hasClient && !hasServer)
+      {
+         client->finalize() ;
+      }
+      if (hasServer)
+      {
+        closeAllFile() ;
+      }
+   }
+       
+       
+ 
+   
+   void CContext::closeDefinition(void)
+   {
+      if (hasClient && !hasServer) sendCloseDefinition() ;
+      
+      solveCalendar();         
+         
+      // Résolution des héritages pour le context actuel.
+      this->solveAllInheritance();
+
+      //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
+      this->findEnabledFiles();
+
+      //Recherche des champs à sortir (enable à true + niveau de sortie correct)
+      // pour chaque fichier précédemment listé.
+      this->findAllEnabledFields();
+
+      // Résolution des références de grilles pour chacun des champs.
+      this->solveAllGridRef();
+
+      // Traitement des opérations.
+      this->solveAllOperation();
+
+      // Nettoyage de l'arborescence
+      CleanTree();
+      if (hasClient) sendCreateFileHeader() ;
+   }
+   
+   void CContext::findAllEnabledFields(void)
+   {
+     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
+     (void)this->enabledFiles[i]->getEnabledFields();
+   }
+
+   void CContext::solveAllGridRef(void)
+   {
+     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
+     this->enabledFiles[i]->solveEFGridRef();
+   }
+
+   void CContext::solveAllOperation(void)
+   {
+      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
+      this->enabledFiles[i]->solveEFOperation();
+   }
+
+   void CContext::solveAllInheritance(void)
+   {
+     // Résolution des héritages descendants (càd des héritages de groupes)
+     // pour chacun des contextes.
+      solveDescInheritance();
+
+     // Résolution des héritages par référence au niveau des fichiers.
+      const std::vector<boost::shared_ptr<CFile> > & allFiles
+             = CObjectFactory::GetObjectVector<CFile>();
+
+      for (unsigned int i = 0; i < allFiles.size(); i++)
+         allFiles[i]->solveFieldRefInheritance();
+   }
+
+   void CContext::findEnabledFiles(void)
+   {
+      const std::vector<boost::shared_ptr<CFile> > & allFiles
+          = CObjectFactory::GetObjectVector<CFile>();
+
+      for (unsigned int i = 0; i < allFiles.size(); i++)
+         if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
+            if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
+               enabledFiles.push_back(allFiles[i]);
+
+      if (enabledFiles.size() == 0)
+         DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
+               << getId() << "\" !");
+   }
+
+   void CContext::closeAllFile(void)
+   {
+     std::vector<boost::shared_ptr<CFile> >::const_iterator
+            it = this->enabledFiles.begin(), end = this->enabledFiles.end();
+         
+     for (; it != end; it++)
+     {
+       info(30)<<"Closing File : "<<(*it)->getId()<<endl;
+       (*it)->close();
+     }
+   }
+   
+   bool CContext::dispatchEvent(CEventServer& event)
+   {
+      
+      if (SuperClass::dispatchEvent(event)) return true ;
+      else
+      {
+        switch(event.type)
+        {
+           case EVENT_ID_CLOSE_DEFINITION :
+             recvCloseDefinition(event) ;
+             return true ;
+             break ;
+           case EVENT_ID_UPDATE_CALENDAR :
+             recvUpdateCalendar(event) ;
+             return true ;
+             break ;
+           case EVENT_ID_CREATE_FILE_HEADER :
+             recvCreateFileHeader(event) ;
+             return true ;
+             break ;
+           default :
+             ERROR("bool CContext::dispatchEvent(CEventServer& event)",
+                    <<"Unknown Event") ;
+           return false ;
+         }
+      }
+   }
+   
+   void CContext::sendCloseDefinition(void)
+   {
+
+     CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION) ;   
+     if (client->isServerLeader())
+     {
+       CMessage msg ;
+       msg<<this->getId() ;
+       event.push(client->getServerLeader(),1,msg) ;
+       client->sendEvent(event) ;
+     }
+     else client->sendEvent(event) ;
+   }
+   
+   void CContext::recvCloseDefinition(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->closeDefinition() ;
+   }
+   
+   void CContext::sendUpdateCalendar(int step)
+   {
+     if (!hasServer)
+     {
+       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId()<<step ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+     }
+   }
+   
+   void CContext::recvUpdateCalendar(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvUpdateCalendar(*buffer) ;
+   }
+   
+   void CContext::recvUpdateCalendar(CBufferIn& buffer)
+   {
+      int step ;
+      buffer>>step ;
+      updateCalendar(step) ;
+   }
+   
+   void CContext::sendCreateFileHeader(void)
+   {
+
+     CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER) ;   
+     if (client->isServerLeader())
+     {
+       CMessage msg ;
+       msg<<this->getId() ;
+       event.push(client->getServerLeader(),1,msg) ;
+       client->sendEvent(event) ;
+     }
+     else client->sendEvent(event) ;
+   }
+   
+   void CContext::recvCreateFileHeader(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvCreateFileHeader(*buffer) ;
+   }
+   
+   void CContext::recvCreateFileHeader(CBufferIn& buffer)
+   {
+      createFileHeader() ;
+   }
+   
+   void CContext::updateCalendar(int step)
+   {
+      calendar->update(step) ;
+   }
+ 
+   void CContext::createFileHeader(void )
+   {
+      vector<shared_ptr<CFile> >::const_iterator it ;
+         
+      for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
+      {
+/*         shared_ptr<CFile> file = *it;
+         StdString filename = (!file->name.isEmpty()) ?   file->name.getValue() : file->getId();
+         StdOStringStream oss;
+         if (! output_dir.isEmpty()) oss << output_dir.getValue();
+         oss << filename;
+         if (!file->name_suffix.isEmpty()) oss << file->name_suffix.getValue();
+
+         bool multifile=true ;
+         if (!file->type.isEmpty())
+         {
+           StdString str=file->type.getValue() ; 
+           if (str.compare("one_file")==0) multifile=false ;
+           else if (str.compare("multi_file")==0) multifile=true ;
+           else ERROR("void Context::createDataOutput(void)",
+                      "incorrect file <type> attribut : must be <multi_file> or <one_file>, "
+                      <<"having : <"<<str<<">") ;
+         } 
+         if (multifile) 
+         {
+            if (server->intraCommSize > 1) oss << "_" << server->intraCommRank;
+         }
+         oss << ".nc";
+
+         shared_ptr<io::CDataOutput> dout(new T(oss.str(), false,server->intraComm,multifile));
+*/
+         (*it)->createHeader();
+      }
+   } 
+   
+   shared_ptr<CContext> CContext::current(void)
+   {
+     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+   }
+   
 } // namespace tree
 } // namespace xmlioserver

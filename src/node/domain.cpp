@@ -7,8 +7,10 @@
 #include "mpi_manager.hpp"
 
 #include "tree_manager.hpp"
-
-#include <algorithm>
+#include "xmlioserver_spl.hpp"
+#include "event_client.hpp"
+#include "event_server.hpp"
+#include "buffer_in.hpp"
 
 namespace xmlioserver {
 namespace tree {
@@ -20,7 +22,8 @@ namespace tree {
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
       , ibegin_zoom_sub(), jbegin_zoom_sub(), ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub()
+      , lonvalue_sub(), latvalue_sub(),lonvalue_srv(new CArray<double,1>())
+      , latvalue_srv(new CArray<double,1>())
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
@@ -28,7 +31,8 @@ namespace tree {
       , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
       , ibegin_zoom_sub(), jbegin_zoom_sub(),ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub()
+      , lonvalue_sub(), latvalue_sub(),lonvalue_srv(new CArray<double,1>())
+      , latvalue_srv(new CArray<double,1>())
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -60,8 +64,8 @@ namespace tree {
    
    bool CDomain::isEmpty(void) const
    {
-      return ((this->zoom_ni_loc.getValue() == 0) || 
-              (this->zoom_nj_loc.getValue() == 0));
+      return ((this->zoom_ni_srv == 0) || 
+              (this->zoom_nj_srv == 0));
    }
 
    //----------------------------------------------------------------
@@ -257,14 +261,6 @@ namespace tree {
          jend_mask   -= jbegin.getValue();
       }
       
-      //~ std::cout << "-------------------" << std::endl
-                //~ << "zoom : " << std::boolalpha << this->hasZoom() << std::endl
-                //~ << "size : " << ni.getValue()  << " X " << nj.getValue()   << std::endl
-                //~ << "it : " << ibegin.getValue() << ", " << iend.getValue() << std::endl
-                //~ << "jt : " << jbegin.getValue() << ", " << jend.getValue() << std::endl
-                //~ << "im : " << ibegin_mask << ", " << iend_mask << std::endl
-                //~ << "jm : " << jbegin_mask << ", " << jend_mask << std::endl
-                //~ << "-------------------" << std::endl;
 
       if (!mask.isEmpty())
       {
@@ -497,11 +493,6 @@ namespace tree {
                 ibegin_zoom_srv = zoom_ibegin_loc.getValue(),
                 jbegin_zoom_srv = zoom_jbegin_loc.getValue();
                       
-      /*std::cout << "Rang du serveur :" << comm::CMPIManager::GetCommRank()   << std::endl
-                << "Begin serv : "     << ibegin_serv << ", " << jbegin_serv <<  std::endl
-                << "End serv : "       << iend_serv   << ", " << jend_serv   <<  std::endl
-                << "Zoom_loc begin : " << zoom_ibegin_loc << ", " << zoom_jbegin_loc <<  std::endl
-                << "Zoom_loc size : "  << zoom_ni_loc << ", " << zoom_nj_loc <<  std::endl;*/
                        
       if (this->data_dim.getValue() == 2)
       {
@@ -646,14 +637,15 @@ namespace tree {
    void CDomain::checkAttributes(void)
    {
       if (this->isChecked) return;
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
 
       this->checkGlobalDomain();
       this->checkLocalIDomain();
       this->checkLocalJDomain();
       
       this->checkZoom();
-
-      if (this->latvalue_sub.size() == 0)
+      
+      if (context->hasClient)
       { // Côté client uniquement
          this->checkMask();
          this->checkDomainData();
@@ -677,17 +669,323 @@ namespace tree {
 //         {
             this->completeLonLatClient();
 //         }
+         this->completeMask();
+
       }
       else
       { // Côté serveur uniquement
 //         if (!this->isEmpty())
-            this->completeLonLatServer();
+// ne sert plus //   this->completeLonLatServer();
       }
-      this->completeMask();
-
+    
+      if (context->hasClient)
+      {
+        computeConnectedServer() ;
+        sendServerAttribut() ;
+        sendLonLat() ;
+      }
+      
       this->isChecked = true;
    }
    
+  void CDomain::sendServerAttribut(void)
+  {
+    int ni_srv=ni_glo.getValue() ;
+    int ibegin_srv=1 ;
+    int iend_srv=ni_glo.getValue() ;
+     
+    int nj_srv ;
+    int jbegin_srv ;
+    int jend_srv ;
+    
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    CContextClient* client=context->client ;
+    int nbServer=client->serverSize ;
+    int serverRank=client->getServerLeader() ;
+    
+    jend_srv=0 ;
+    for(int i=0;i<=serverRank;i++)
+    {
+      jbegin_srv=jend_srv+1 ;
+      nj_srv=nj_glo.getValue()/nbServer ;
+      if (i<nj_glo.getValue()%nbServer) nj_srv++ ;
+      jend_srv=jbegin_srv+nj_srv-1 ;
+    }
+    
+     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;   
+     if (client->isServerLeader())
+     {
+       CMessage msg ;
+       msg<<this->getId() ;
+       msg<<ni_srv<<ibegin_srv<<iend_srv<<nj_srv<<jbegin_srv<<jend_srv;
+       event.push(client->getServerLeader(),1,msg) ;
+       client->sendEvent(event) ;
+     }
+     else client->sendEvent(event) ;
+  }
+  
+  void CDomain::computeConnectedServer(void)
+  {
+    int ib,ie,in;
+    int jb,je,jn ;
+    
+    int ni_srv=ni_glo.getValue() ;
+    int ibegin_srv=1 ;
+    int iend_srv=ni_glo.getValue() ;
+     
+    int nj_serv,jbegin_srv, jend_srv ;
+    int zoom_ibegin_srv,zoom_iend_srv,zoom_ni_srv ;
+    int zoom_jbegin_srv,zoom_jend_srv,zoom_nj_srv ;
+    
+    ibegin_client=ibegin.getValue() ; iend_client=iend.getValue() ; ni_client=ni.getValue() ;
+    jbegin_client=jbegin.getValue() ; jend_client=jend.getValue() ; nj_client=nj.getValue() ;
+     
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    CContextClient* client=context->client ;
+    int nbServer=client->serverSize ;
+    
+    // compute client zoom indices
+    int zoom_iend=zoom_ibegin.getValue()+zoom_ni.getValue()-1 ;
+    zoom_ibegin_client = ibegin_client > zoom_ibegin.getValue() ? ibegin_client : zoom_ibegin.getValue() ;
+    zoom_iend_client = iend_client < zoom_iend ? iend_client : zoom_iend ;
+    zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
+    if (zoom_ni_client<0) zoom_ni_client=0 ;
+
+    int zoom_jend=zoom_jbegin.getValue()+zoom_nj.getValue()-1 ;
+    zoom_jbegin_client = jbegin_client > zoom_jbegin.getValue() ? jbegin_client : zoom_jbegin.getValue() ;
+    zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
+    zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
+    if (zoom_nj_client<0) zoom_nj_client=0 ;
+ 
+    // find how much client are connected to a server
+    jend_srv=0 ;
+    for(int ns=0;ns<nbServer;ns++)
+    {
+      jbegin_srv=jend_srv+1 ;
+      nj_srv=nj_glo.getValue()/nbServer ;
+      if (ns<nj_glo.getValue()%nbServer) nj_srv++ ;
+      jend_srv=jbegin_srv+nj_srv-1 ;
+      
+      ib = ibegin_client>ibegin_srv ? ibegin_client : ibegin_srv ;
+      ie=  iend_client< iend_srv? iend_client : iend_srv ;
+      in=ie-ib+1 ;
+      if (in<0) in=0 ;
+      
+      jb= jbegin_client>jbegin_srv ? jbegin_client : jbegin_srv ;
+      je= jend_client<jend_srv ? jend_client : jend_srv ;
+      jn=je-jb+1 ;
+      if (jn<0) jn=0 ;
+        
+      if (in>0 && jn>0)
+      {
+        zoom_ibegin_srv = zoom_ibegin.getValue() > ibegin_srv ? zoom_ibegin.getValue() : ibegin_srv ;
+        zoom_iend_srv = zoom_iend < iend_srv ? zoom_iend : iend_srv ;
+        zoom_ni_srv=zoom_iend_srv-zoom_ibegin_srv+1 ;
+        if (zoom_ni_srv<0) zoom_ni_srv=0 ;
+      
+        zoom_jbegin_srv = zoom_jbegin.getValue() > jbegin_srv ? zoom_jbegin.getValue() : jbegin_srv ;
+        zoom_jend_srv = zoom_jend < jend_srv ? zoom_jend : jend_srv ;
+        zoom_nj_srv=zoom_jend_srv-zoom_jbegin_srv+1 ;
+        if (zoom_nj_srv<0) zoom_nj_srv=0 ;
+ 
+        if (zoom_ni_srv>0 && zoom_nj_srv>0 && zoom_ni_client>0 && zoom_nj_client>0)
+        {
+          ib = zoom_ibegin_client>zoom_ibegin_srv ? zoom_ibegin_client : zoom_ibegin_srv ;
+          ie=zoom_iend_client<zoom_iend_srv?zoom_iend_client:zoom_iend_srv ;
+          in=ie-ib+1 ;
+          if (in<0) in=0 ;
+        
+          jb=zoom_jbegin_client>zoom_jbegin_srv?zoom_jbegin_client:zoom_jbegin_srv ;
+          je=zoom_jend_client<zoom_jend_srv?zoom_jend_client:zoom_jend_srv ;
+          jn=je-jb+1 ;
+          if (jn<0) jn=0 ;
+        }
+        else
+        {
+          ib=1 ; ie=0 ; in=0 ;
+          jb=1 ; je=0 ; jn=0 ;
+        }
+        
+//          if (in>0 && jn>0) 
+//          { 
+            connectedServer.push_back(ns) ;
+            ib_srv.push_back(ib) ;
+            ie_srv.push_back(ie) ;
+            in_srv.push_back(in) ;
+            jb_srv.push_back(jb) ;
+            je_srv.push_back(je) ;
+            jn_srv.push_back(jn) ;
+//           }
+        
+      }
+    }
+    int nbConnectedServer=connectedServer.size() ;
+    int* recvCount=new int[client->clientSize] ;
+    int* displ=new int[client->clientSize] ;
+    int* sendBuff=new int[nbConnectedServer] ;
+    valarray<int> nbClient(0,client->serverSize) ;
+    
+    for(int n=0;n<nbConnectedServer;n++) sendBuff[n]=connectedServer[n] ;
+    
+    // get connected server for everybody
+    MPI_Allgather(&nbConnectedServer,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm) ;
+    
+    displ[0]=0 ;
+    for(int n=1;n<client->clientSize;n++) displ[n]=displ[n-1]+recvCount[n-1] ;
+    int recvSize=displ[client->clientSize-1]+recvCount[client->clientSize-1] ;
+    int* recvBuff=new int[recvSize] ;
+ 
+    
+    MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,client->intraComm) ;
+    for(int n=0;n<recvSize;n++) nbClient[recvBuff[n]]++ ;
+    
+    for(int n=0;n<nbConnectedServer;n++) nbSenders.push_back(nbClient[connectedServer[n]]) ;
+   
+    delete [] recvCount ;
+    delete [] displ ;
+    delete [] sendBuff ;
+    delete [] recvBuff ;
+  }
+  
+  void CDomain::sendLonLat(void)
+  {
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    CContextClient* client=context->client ;
+    // send lon lat for each connected server
+    CEventClient event(getType(),EVENT_ID_LON_LAT) ;
+    
+    ARRAY(double, 1) lonvalue_client = lonvalue.getValue(),
+                     latvalue_client = latvalue.getValue();
+    
+    int ib,ie,in ;
+    int jb,je,jn ;
+  
+    list<shared_ptr<CMessage> > list_msg ;    
+    list<ARRAY(double,1)> list_indi,list_indj,list_lon,list_lat ;
+
+    for(int ns=0;ns<connectedServer.size();ns++)
+    {
+      ib=ib_srv[ns] ; ie=ie_srv[ns] ; in=in_srv[ns] ;
+      jb=jb_srv[ns] ; je=je_srv[ns] ; jn=jn_srv[ns] ;
+      
+      ARRAY_CREATE(indi,double,1,[in*jn]) ;
+      ARRAY_CREATE(indj,double,1,[in*jn]) ;
+      ARRAY_CREATE(lon,double,1,[in*jn]) ;
+      ARRAY_CREATE(lat,double,1,[in*jn]) ;
+
+          
+      int ind_client,ind_loc ;
+      
+      for(int j=jb;j<=je;j++)
+        for(int i=ib;i<=ie;i++)
+        {
+          ind_client=(i-zoom_ibegin_client)+(j-zoom_jbegin_client)*zoom_ni_client ;
+          ind_loc=(i-ib)+(j-jb)*in ;
+          (*lon)[ind_loc]=(*lonvalue_client)[ind_client] ;
+          (*lat)[ind_loc]=(*latvalue_client)[ind_client] ;
+          (*indi)[ind_loc]=i ;
+          (*indj)[ind_loc]=j ;
+        }
+      
+      list_indi.push_back(indi) ; list_indj.push_back(indj) ;
+      list_lon.push_back(lon) ; list_lat.push_back(lat) ;
+      list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+
+      *list_msg.back()<<this->getId() ;
+      *list_msg.back()<<list_indi.back()<<list_indj.back()<<list_lon.back()<<list_lat.back() ;
+      event.push(connectedServer[ns],nbSenders[ns],*list_msg.back()) ;
+    }
+
+    client->sendEvent(event) ;
+  }
+  
+  bool CDomain::dispatchEvent(CEventServer& event)
+   {
+      
+      if (SuperClass::dispatchEvent(event)) return true ;
+      else
+      {
+        switch(event.type)
+        {
+           case EVENT_ID_SERVER_ATTRIBUT :
+             recvServerAttribut(event) ;
+             return true ;
+             break ;
+           case EVENT_ID_LON_LAT :
+             recvLonLat(event) ;
+             return true ;
+             break ;
+           default :
+             ERROR("bool CContext::dispatchEvent(CEventServer& event)",
+                    <<"Unknown Event") ;
+           return false ;
+         }
+      }
+   }
+   
+  void CDomain::recvServerAttribut(CEventServer& event)
+  {
+    CBufferIn* buffer=event.subEvents.begin()->buffer;
+    string domainId ;
+    *buffer>>domainId ;
+    get(domainId)->recvServerAttribut(*buffer) ;
+  }
+  
+  void CDomain::recvServerAttribut(CBufferIn& buffer)
+  {
+    int zoom_iend=zoom_ibegin.getValue()+zoom_ni.getValue()-1 ;
+    int zoom_jend=zoom_jbegin.getValue()+zoom_nj.getValue()-1 ;
+
+     buffer>>ni_srv>>ibegin_srv>>iend_srv>>nj_srv>>jbegin_srv>>jend_srv;
+    
+    zoom_ibegin_srv = zoom_ibegin.getValue() > ibegin_srv ? zoom_ibegin.getValue() : ibegin_srv ;
+    zoom_iend_srv = zoom_iend < iend_srv ? zoom_iend : iend_srv ;
+    zoom_ni_srv=zoom_iend_srv-zoom_ibegin_srv+1 ;
+      
+    zoom_jbegin_srv = zoom_jbegin.getValue() > jbegin_srv ? zoom_jbegin.getValue() : jbegin_srv ;
+    zoom_jend_srv = zoom_jend < jend_srv ? zoom_jend : jend_srv ;
+    zoom_nj_srv=zoom_jend_srv-zoom_jbegin_srv+1 ;
+
+    if (zoom_ni_srv<=0 || zoom_nj_srv<=0) 
+    {
+      zoom_ibegin_srv=1 ; zoom_iend_srv=0 ; zoom_ni_srv=0 ;
+      zoom_jbegin_srv=1 ; zoom_jend_srv=0 ; zoom_nj_srv=0 ;
+    }
+    
+    lonvalue_srv->resize(extents[zoom_ni_srv*zoom_nj_srv]) ;
+    latvalue_srv->resize(extents[zoom_ni_srv*zoom_nj_srv]) ;
+  }
+    
+  void CDomain::recvLonLat(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it ;
+    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    {
+      CBufferIn* buffer=it->buffer;
+      string domainId ;
+      *buffer>>domainId ;
+      get(domainId)->recvLonLat(*buffer) ;
+    }
+  }
+  
+  void CDomain::recvLonLat(CBufferIn& buffer)
+  {
+    ARRAY_CREATE(indi,double,1,[0]) ;
+    ARRAY_CREATE(indj,double,1,[0]) ;
+    ARRAY_CREATE(lon,double,1,[0]) ;
+    ARRAY_CREATE(lat,double,1,[0]) ;
+    
+    buffer>>indi>>indj>>lon>>lat ;
+    int i,j,ind_srv ;
+
+    for(int ind=0;ind<indi->num_elements();ind++)
+    {
+      i=(*indi)[ind] ; j=(*indj)[ind] ;
+      ind_srv=(i-zoom_ibegin_srv)+(j-zoom_jbegin_srv)*zoom_ni_srv ;
+      (*lonvalue_srv)[ind_srv]=(*lon)[ind] ;
+      (*latvalue_srv)[ind_srv]=(*lat)[ind] ;
+    }
+  }
    //----------------------------------------------------------------
    
    void CDomain::completeMask(void)

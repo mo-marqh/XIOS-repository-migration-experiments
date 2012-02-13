@@ -4,6 +4,7 @@
 #include "tree_manager.hpp"
 #include "duration.hpp"
 #include "data_treatment.hpp"
+#include "group_template.hpp"
 #include "group_template_impl.hpp"
 
 namespace xmlioserver {
@@ -61,9 +62,6 @@ namespace comm {
             lbuffer[i].getRequestInfos(0, managerId, methodId, nbargs);
             if (((managerId_ != managerId) || (methodId_ != methodId) || (nbargs_ != nbargs)) && (i != 0 ))
             {
-               //std::cout << managerId_ << "<->" << managerId << std::endl
-               //          << methodId_  << "<->" << methodId  << std::endl
-               //          << nbargs_    << "<->" << nbargs    << std::endl;
                ERROR("CServer::run(void)", << "[" << i << "] Les requêtes ne sont pas synchronisées !");
             }
             managerId_ = managerId;
@@ -76,11 +74,9 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
-//                  std::cout<<"--> Request initialize()"<<std::endl ;
                   this->initialize();
                   continue;
                case (1) :
-//                  std::cout<<"--> Request finalize()"<<std::endl ;
                   this->finalize();
                   return;
                default  :
@@ -96,15 +92,12 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
-//                  std::cout<<"--> Request setContext()"<<std::endl ;
                   this->setContext(lbuffer);
                   continue;
                case (1) :
-//                  std::cout<<"--> Request updateCalendar()"<<std::endl ;
                   this->updateCalendar(lbuffer);
                   continue;
                case (2) :
-//                  std::cout<<"--> Request setTimestep()"<<std::endl ;
                   this->setTimestep(lbuffer);
                   continue;
                default  :
@@ -120,11 +113,9 @@ namespace comm {
             switch(methodId)
             {
                case (0) :
-//                  std::cout<<"--> Request writeData()"<<std::endl ;
                   this->writeData(lbuffer, 4);
                   continue;
                case (1) :
-//                  std::cout<<"--> Request writeData()"<<std::endl ;
                   this->writeData(lbuffer, 8);
                   continue;
                default  :
@@ -269,7 +260,6 @@ namespace comm {
          std::deque<ARRAY(float, 1)> dataArray(buffer.size());
          for (StdSize i = 0; i < buffer.size(); i++)
             dataArray[i] = buffer[i].getFloatArray(5);
-         std::cout << "writeData called (float) " << fieldId << ", " << dataArray[0] << std::endl;
          // Jamais atteint car les données sont transférées en tant que double
          return;
       }      
@@ -278,7 +268,6 @@ namespace comm {
          std::deque<ARRAY(double, 1)> dataArray(buffer.size());
          for (StdSize i = 0; i < buffer.size(); i++)
             dataArray[i] = buffer[i].getDoubleArray(5);
-         std::cout << "writeData called (double) " << fieldId << ", " << dataArray[0]  << std::endl;
          dtreat->write_data(fieldId, fileId, dataArray);
          return;
       }      

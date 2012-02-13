@@ -101,7 +101,6 @@ namespace tree {
            enddata   = content.find_first_of ( ";", begindata );
            subdata   = content.substr ( begindata, enddata-begindata);
 
-           //std::cout << "\"" << subid << "\":\"" << subdata << "\"" << std::endl;
            CGroupFactory::CreateChild(group_ptr, subid)->content = subdata;
         }
       }

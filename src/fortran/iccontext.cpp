@@ -32,8 +32,8 @@ extern "C"
    {
       std::string calendar_type_str; 
       if (!cstr2string(calendar_type, calendar_type_size, calendar_type_str)) return;
-
       context_hdl->calendar_type.setValue(calendar_type_str);
+      context_hdl->sendAttributToServer(context_hdl->calendar_type) ;
    }
    
    void cxios_set_context_start_date(XContextPtr context_hdl, const char * start_date, int start_date_size)
@@ -42,6 +42,7 @@ extern "C"
       if (!cstr2string(start_date, start_date_size, start_date_str)) return;
 
       context_hdl->start_date.setValue(start_date_str);
+      context_hdl->sendAttributToServer(context_hdl->start_date) ; 
    }
    
    void cxios_set_context_output_dir(XContextPtr context_hdl, const char * output_dir, int output_dir_size)
@@ -50,6 +51,7 @@ extern "C"
       if (!cstr2string(output_dir, output_dir_size, output_dir_str)) return;
 
       context_hdl->output_dir.setValue(output_dir_str);
+      context_hdl->sendAttributToServer(context_hdl->output_dir) ; 
    }
    
    // ------------------------ Création des handle -----------------------------

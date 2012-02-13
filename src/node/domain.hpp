@@ -6,6 +6,9 @@
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
+#include "event_client.hpp"
+#include "event_server.hpp"
+#include "buffer_in.hpp"
 
 namespace xmlioserver {
 namespace tree {
@@ -29,6 +32,11 @@ namespace tree {
       : public CObjectTemplate<CDomain>
       , public CDomainAttributes
    {
+         enum EEventId
+         {
+           EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_LON_LAT
+         } ;
+         
          /// typedef ///
          typedef CObjectTemplate<CDomain>   SuperClass;
          typedef CDomainAttributes SuperClassAttribute;
@@ -90,12 +98,40 @@ namespace tree {
          bool hasZoom(void) const;
          bool isEmpty(void) const;
          
+         
+         int ni_client,ibegin_client,iend_client ;
+         int zoom_ni_client,zoom_ibegin_client,zoom_iend_client ;
+
+         int nj_client,jbegin_client,jend_client ;
+         int zoom_nj_client,zoom_jbegin_client,zoom_jend_client ;
+
+         int ni_srv,ibegin_srv,iend_srv ;
+         int zoom_ni_srv,zoom_ibegin_srv,zoom_iend_srv ;
+
+         int nj_srv,jbegin_srv,jend_srv ;
+         int zoom_nj_srv,zoom_jbegin_srv,zoom_jend_srv ;
+
+         ARRAY(double, 1) lonvalue_srv, latvalue_srv ;
+         
+         
+        vector<int> connectedServer,nbSenders ;
+        vector<int> ib_srv, ie_srv, in_srv ;
+        vector<int> jb_srv, je_srv, jn_srv ;
+         
       public :
       
          /// Mutateur ///
          void addRelFile(const StdString & filename);
          void completeLonLatServer(void);
          void completeLonLatClient(void);
+         void sendServerAttribut(void) ;
+         void sendLonLat(void) ;
+         void computeConnectedServer(void) ;
+         static bool dispatchEvent(CEventServer& event) ;
+         static void recvLonLat(CEventServer& event) ;
+         static void recvServerAttribut(CEventServer& event) ;
+         void recvLonLat(CBufferIn& buffer) ;
+         void recvServerAttribut(CBufferIn& buffer) ;
          
          /// Destructeur ///
          virtual ~CDomain(void);
@@ -116,6 +152,7 @@ namespace tree {
          std::vector<int> ibegin_sub, iend_sub, jbegin_sub, jend_sub;
          std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub, ni_zoom_sub, nj_zoom_sub;
          std::vector<ARRAY(double, 1)> lonvalue_sub, latvalue_sub;
+         
 
    }; // class CDomain
 

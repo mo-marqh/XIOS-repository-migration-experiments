@@ -40,6 +40,11 @@ namespace tree {
          typedef CGridAttributes RelAttributes;
          typedef CGridGroup      RelGroup;
 
+         enum EEventId
+         {
+           EVENT_ID_INDEX
+         } ;
+         
          /// Constructeurs ///
          CGrid(void);
          explicit CGrid(const StdString & id);
@@ -80,10 +85,14 @@ namespace tree {
             
          void inputFieldServer(const std::deque<ARRAY(double, 1)> storedClient,
                                                 ARRAY(double, 1)  storedServer) const;
-
+/*
          template <StdSize n>
             void outputField(const ARRAY(double, 1) stored,  ARRAY(double, n) field) const;
-
+*/
+         void outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 3) field)  ;
+         void outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 2) field)  ;
+         void outputField(int rank,const ARRAY(double, 1) stored,  ARRAY(double, 1) field)  ; 
+   
          /// Destructeur ///
          virtual ~CGrid(void);
 
@@ -101,7 +110,7 @@ namespace tree {
          static boost::shared_ptr<CGrid>
             CreateGrid(boost::shared_ptr<CDomain> domain, boost::shared_ptr<CAxis> axis);
 
-      protected :
+      public :
 
          /// Entrées-sorties de champs (interne) ///
          void storeField_arr(const double * const data, ARRAY(double, 1) stored) const;
@@ -112,6 +121,12 @@ namespace tree {
          void solveDomainRef(void);
          void solveAxisRef(void);
 
+         static bool dispatchEvent(CEventServer& event) ;
+         void outputFieldToServer(ARRAY(double, 1) fieldIn, int rank, ARRAY(double, 1) fieldOut) ;
+         static void recvIndex(CEventServer& event) ;
+         void recvIndex(int rank, CBufferIn& buffer) ;
+         void sendIndex(void) ;
+         
       public:
 
          /// Propriétés privées ///
@@ -125,7 +140,21 @@ namespace tree {
          std::deque<ARRAY(int, 1)> out_i_index ;
          std::deque<ARRAY(int, 1)> out_j_index ;
          std::deque<ARRAY(int, 1)> out_l_index ;
-
+         ARRAY(int, 1) storeIndex_client ;
+         ARRAY(int, 1) out_i_client ;
+         ARRAY(int, 1) out_j_client ;
+         ARRAY(int, 1) out_l_client ;
+         
+         map<int,ARRAY(int, 1)>  storeIndex_toSrv ;
+         map<int,int> nbSenders ;
+//         std::deque<ARRAY(int, 1)> out_i_toSrv ;
+//         std::deque<ARRAY(int, 1)> out_j_toSrv ;
+//         std::deque<ARRAY(int, 1)> out_l_toSrv ;
+         
+         map<int,ARRAY(int, 1)> out_i_fromClient ;
+         map<int,ARRAY(int, 1)> out_j_fromClient ;
+         map<int,ARRAY(int, 1)> out_l_fromClient ;
+         
    }; // class CGrid
 
    ///--------------------------------------------------------------

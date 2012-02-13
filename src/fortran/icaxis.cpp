@@ -30,6 +30,7 @@ extern "C"
       if (!cstr2string(name, name_size, name_str)) return;
 
       axis_hdl->name.setValue(name_str);
+      axis_hdl->sendAttributToServer(axis_hdl->name) ;
    }
 
    void cxios_set_axis_standard_name
@@ -38,8 +39,9 @@ extern "C"
       std::string standard_name_str; 
       if (!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
 
-      axis_hdl->standard_name.setValue(standard_name_str);
-   }
+      axis_hdl->standard_name.setValue(standard_name_str); 
+      axis_hdl->sendAttributToServer(axis_hdl->standard_name); 
+  }
     
    void cxios_set_axis_long_name 
       (XAxisPtr axis_hdl, const char * long_name , int long_name_size)
@@ -48,6 +50,7 @@ extern "C"
       if (!cstr2string(long_name, long_name_size, long_name_str)) return;
 
       axis_hdl->long_name.setValue(long_name_str);
+      axis_hdl->sendAttributToServer(axis_hdl->long_name) ;
    }
 
    void cxios_set_axis_unit 
@@ -57,11 +60,13 @@ extern "C"
       if (!cstr2string(unit, unit_size, unit_str)) return;
 
       axis_hdl->unit.setValue(unit_str);
+      axis_hdl->sendAttributToServer(axis_hdl->unit) ;
    }
     
    void cxios_set_axis_size(XAxisPtr axis_hdl, int size)
    {
       axis_hdl->size.setValue(size);
+      axis_hdl->sendAttributToServer(axis_hdl->size) ;
    }
 
    void cxios_set_axis_zvalue 
@@ -71,6 +76,7 @@ extern "C"
       std::copy(zvalue, &(zvalue[zvalue_val->num_elements()]), zvalue_val->data());
 
       axis_hdl->zvalue.setValue(zvalue_val);
+      axis_hdl->sendAttributToServer(axis_hdl->zvalue) ;
 
    }
    
@@ -83,6 +89,7 @@ extern "C"
       if (!cstr2string(name, name_size, name_str)) return;
 
       axisgroup_hdl->name.setValue(name_str);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->name) ;
    }
 
    void cxios_set_axisgroup_standard_name
@@ -92,6 +99,7 @@ extern "C"
       if (!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
 
       axisgroup_hdl->standard_name.setValue(standard_name_str);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->standard_name) ;
    }
     
    void cxios_set_axisgroup_long_name 
@@ -101,6 +109,7 @@ extern "C"
       if (!cstr2string(long_name, long_name_size, long_name_str)) return;
 
       axisgroup_hdl->long_name.setValue(long_name_str);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->long_name) ;
    }
 
    void cxios_set_axisgroup_unit 
@@ -110,11 +119,13 @@ extern "C"
       if (!cstr2string(unit, unit_size, unit_str)) return;
 
       axisgroup_hdl->unit.setValue(unit_str);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->unit) ;
    }
     
    void cxios_set_axisgroup_size(XAxisGroupPtr axisgroup_hdl, int size)
    {
       axisgroup_hdl->size.setValue(size);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->size) ;
    }
 
    void cxios_set_axisgroup_zvalue 
@@ -124,6 +135,7 @@ extern "C"
       std::copy(zvalue, &(zvalue[zvalue_val->num_elements()]), zvalue_val->data());
 
       axisgroup_hdl->zvalue.setValue(zvalue_val);
+      axisgroup_hdl->sendAttributToServer(axisgroup_hdl->zvalue) ;
    }
    
    // ------------------------ Création des handle -----------------------------

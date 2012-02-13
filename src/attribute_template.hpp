@@ -9,6 +9,9 @@
 #include "exception.hpp"
 #include "array.hpp"
 #include "attribute.hpp"
+#include "buffer_in.hpp"
+#include "buffer_out.hpp"
+
 
 namespace xmlioserver
 {
@@ -39,6 +42,7 @@ namespace xmlioserver
 
             /// Accesseur ///
             inline ValueType getValue(void) const;
+            inline ValueType* getRef(void) ;
 
             /// Mutateurs ///
             inline void setValue(const ValueType & value);
@@ -55,6 +59,11 @@ namespace xmlioserver
 
             virtual void toBinary  (StdOStream & os) const;
             virtual void fromBinary(StdIStream & is);            
+
+            virtual bool toBuffer  (CBufferOut& buffer) const;
+            virtual bool fromBuffer(CBufferIn& buffer) ;
+            virtual size_t size(void) const;
+   
 
          protected :
 

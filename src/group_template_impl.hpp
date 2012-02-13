@@ -1,6 +1,15 @@
 #ifndef __XMLIO_CGroupTemplate_impl__
 #define __XMLIO_CGroupTemplate_impl__
 
+#include "xmlioserver_spl.hpp"
+#include "event_server.hpp"
+#include "object_template_impl.hpp"
+#include "group_template.hpp"
+#include "context.hpp"
+#include "event_client.hpp"
+#include "context_client.hpp"
+
+
 namespace xmlioserver
 {
    using namespace tree;
@@ -306,8 +315,152 @@ namespace xmlioserver
    template <class U, class V, class W>
       void CGroupTemplate<U, V, W>::solveRefInheritance(void)
    { /* Ne rien faire de plus */ }
+   
+//   template <class U, class V, class W>
+//   bool CGroupTemplate<U, V, W>::has(const string& id) 
+//   {
+//       return CObjectFactory::HasObject<V>(id) ;
+//   }
 
+//   template <class U, class V, class W>
+//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::get(const string& id) 
+//   {
+//       return CObjectFactory::GetObject<V>(id) ;
+//   }
+
+//   template <class U, class V, class W>
+//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::get() 
+//   {
+//       return CObjectFactory::GetObject<V>(this) ;
+//   }
+   
+//   template <class U, class V, class W>
+//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::create(const string& id) 
+//   {
+//       return CObjectFactory::CreateObject<V>(id) ;
+//   }
    ///--------------------------------------------------------------
+
+   template <class U, class V, class W>
+   boost::shared_ptr<U> CGroupTemplate<U, V, W>::createChild(const string& id) 
+  {
+    return CGroupFactory::CreateChild<V>(this->get(), id) ;
+  }
+  
+   template <class U, class V, class W>
+   boost::shared_ptr<V> CGroupTemplate<U, V, W>::createChildGroup(const string& id) 
+  {
+    return CGroupFactory::CreateGroup<V>(this->get(), id) ;
+  }
+
+
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::sendCreateChild(const string& id)
+   {
+    shared_ptr<CContext> context=CContext::current() ;
+    
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
+   {
+    shared_ptr<CContext> context=CContext::current() ;
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::recvCreateChild(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      V::get(id)->recvCreateChild(*buffer) ;
+   }
+   
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::recvCreateChild(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      createChild(id) ;
+   }
+
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::recvCreateChildGroup(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      V::get(id)->recvCreateChildGroup(*buffer) ;
+   }
+   
+   
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::recvCreateChildGroup(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      createChildGroup(id) ;
+   }
+   
+
+   template <class U, class V, class W>
+   bool CGroupTemplate<U, V, W>::dispatchEvent(CEventServer& event)
+   {
+      if (CObjectTemplate<V>::dispatchEvent(event)) return true ;
+      else
+      {
+        switch(event.type)
+        {
+           case EVENT_ID_CREATE_CHILD :
+             recvCreateChild(event) ;
+             return true ;
+             break ;
+         
+           case EVENT_ID_CREATE_CHILD_GROUP :
+             recvCreateChildGroup(event) ;
+             return true ;
+             break ;       
+         
+           default :
+           return false ;
+        }
+      }
+   }
 
 } // namespace xmlioserver
 

@@ -37,7 +37,6 @@ namespace xmlioserver
       {
          // Mise à jour côté client
          this->currentContext->getCalendar()->update(step);
-//         std::cout <<  "current date : " << this->currentContext->getCalendar()->getCurrentDate() << std::endl;
          if (CXIOSManager::GetStatus() == CXIOSManager::LOC_CLIENT)
          { // Mise à jour côté serveur
             boost::shared_ptr<comm::CClient> client = comm::CClient::GetClient();
@@ -117,20 +116,16 @@ namespace xmlioserver
          this->currentContext->solveCalendar();         
          
          // Résolution des héritages pour le context actuel.
-         //std::cout << "(Message temporaire) Résolution des héritages ..." << std::endl;
          this->solveAllInheritance();
 
          //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
-         //std::cout << "(Message temporaire) Initialisation du vecteur enabledFiles ..." << std::endl;
          this->findEnabledFiles();
 
          //Recherche des champs à sortir (enable à true + niveau de sortie correct)
          // pour chaque fichier précédemment listé.
-         //std::cout << "(Message temporaire) Recherche des champs à sortir ..." << std::endl;
          this->findAllEnabledFields();
 
          // Résolution des références de grilles pour chacun des champs.
-         //std::cout << "(Message temporaire) Résolution des références de grilles ..." << std::endl;
          this->solveAllGridRef();
 
          // Traitement des opérations.
@@ -139,7 +134,6 @@ namespace xmlioserver
          // Nettoyage de l'arborescence
          CContext::CleanTree();
 
-         //std::cout << "(Message temporaire) fin traitement sorties ..." << std::endl;
       }
 
       void CDataTreatment::findAllEnabledFields(void)

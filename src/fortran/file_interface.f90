@@ -57,6 +57,13 @@ MODULE FILE_INTERFACE
          INTEGER  (kind = C_INT)     , VALUE        :: idt_size
       END SUBROUTINE cxios_file_valid_id
 
+     SUBROUTINE cxios_set_file_type(file_hdl, type, type_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: file_hdl
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: type
+         INTEGER  (kind = C_INT)     , VALUE        :: type_size
+      END SUBROUTINE cxios_set_file_type
+      
    END INTERFACE
    
 END MODULE FILE_INTERFACE

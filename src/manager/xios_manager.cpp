@@ -125,17 +125,6 @@ namespace xmlioserver
          typedef std::pair<StdString, XIOSClient> StdPairStrClient;
          if (CMPIManager::IsMaster(comm_client_server))
          {
-            std::cout << " *************************************** " << std::endl
-                      << " *     XmlIOServer (Client/Server)     * " << std::endl
-                      << " *************************************** " << std::endl;
-            std::cout << " > Nombre de processus : "
-                      << CMPIManager::GetCommSize(comm_client_server) << std::endl;
-            std::cout << " > Nombre de processus utilisés : "
-                      << (CXIOSManager::GetNbClient() + CXIOSManager::GetNbServer()) << std::endl;
-            std::cout << " > Nombre de clients : "
-                      << CXIOSManager::GetNbClient() << std::endl;
-            std::cout << " > Nombre de serveurs : "
-                      << CXIOSManager::GetNbServer() << std::endl;
 
             xios_map<StdString, XIOSClient>::iterator
                iit  = CXIOSManager::Clients.begin(),
@@ -144,17 +133,8 @@ namespace xmlioserver
             for (;iit != eend; iit++)
             {
                const StdPairStrClient & elem = *iit;
-               std::cout << " - " << elem.first
-                         << " > nombre de clients : "             
-                         << elem.second.nbClient
-                         << " , nombre de clients par serveur : " 
-                         << elem.second.nbClientPServer
-                         << " , nombre de serveurs : "            
-                         << elem.second.nbClient/elem.second.nbClientPServer
-                         << std::endl;
             }
 
-            std::cout << " *************************************** " << std::endl;
          }
 
          comm::CMPIManager::Barrier(comm_client_server);

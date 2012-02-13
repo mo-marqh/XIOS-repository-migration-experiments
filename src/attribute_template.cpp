@@ -98,6 +98,7 @@ namespace xmlioserver
          std::vector<double> vect;
 
          iss >> d; vect.push_back(d);
+         size = vect.size();
          if (!iss.eof ())
          {
             iss >> c;
@@ -137,7 +138,7 @@ namespace xmlioserver
 
          array.resize(boost::extents[size]);
          for (int i = 0; i < size; i++)
-            array[i] = vect[i];
+            array[i] = vect[i]; 
 
       }
 

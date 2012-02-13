@@ -35,7 +35,6 @@ namespace xmlioserver
                   StdSize size = CMPIManager::GetReceivedDataSize(com_client_server, i);
                   if (SuperClass::operator[](i-1).isAvailable(size))
                   {
-                     //std::cout << "Données reçues de " << i << std::endl;
                      CMPIManager::ReceiveCircularBuffer
                         (com_client_server, i, SuperClass::operator[](i-1));
                   }
@@ -50,14 +49,7 @@ namespace xmlioserver
             }
          }
          
-         //static int u = 0;
-         //std::cout << "Nouvelle requête disponible " << u++ << std::endl;
-         /*if (u == 3046)
-            for (int i = 1; i < CMPIManager::GetCommSize(com_client_server); i++)
-            {
-               StdOStringStream oss; oss << "data/buffer"<<i<<".txt";
-               SuperClass::operator[](i-1).printToTextFile (oss.str());
-            }*/
+
             
          return (true);
       }
@@ -66,7 +58,6 @@ namespace xmlioserver
       {
          for (StdSize i = 0; i < this->nbbuffer; i++)
          {
-            //std::cout << "Récupération de la requête " << (i+1) << std::endl;
             lbuffer.push_back(SuperClass::operator[](i).getNextRequest());
          }
       }

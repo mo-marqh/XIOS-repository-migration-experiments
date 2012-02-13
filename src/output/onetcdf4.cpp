@@ -254,7 +254,6 @@ namespace xmlioserver
             const StdString & dimid = *it;
             dimids.push_back(this->getDimension(dimid));
          }
-         std::cout<<"--> Var "<<name.c_str()<<std::endl ;
          CheckError(nc_def_var (grpid, name.c_str(), type, dimids.size(), &(dimids[0]), &retvalue));
          return (retvalue);
       }
@@ -345,13 +344,6 @@ namespace xmlioserver
             }
          }
          
-//         if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
-//         {
-//            if (array_size==0) scount[0]=0 ;
-//         }         
-//         for (StdSize u = 0; u < sstart.size(); u++)
-//            std::cout << "(" << sstart[u] << "," << scount[u]  << ")" ;
-//         std::cout << std::endl;
       }
 
       //---------------------------------------------------------------

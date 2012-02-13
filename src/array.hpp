@@ -8,9 +8,18 @@
 
 /// xmlioserver headers ///
 #include "xmlioserver_spl.hpp"
+#include "buffer_in.hpp"
+#include "buffer_out.hpp"
+
 
 namespace xmlioserver
 {
+   template<size_t numDims>
+   detail::multi_array::extent_gen<numDims> getExtentNull(void) { return getExtentNull<numDims-1>()[0];}
+   
+   template<>
+   detail::multi_array::extent_gen<1> getExtentNull<1>(void) { return extents[0]; }
+
    /// ////////////////////// Déclarations ////////////////////// ///
    template <typename ValueType, StdSize  NumDims,
              typename Allocator = std::allocator<ValueType> >
@@ -28,6 +37,8 @@ namespace xmlioserver
          template <typename ExtentList>
             explicit CArray(const ExtentList & sizes);
 
+         explicit CArray();
+
          template <typename ExtentList>
             CArray(const ExtentList & sizes, const boost::general_storage_order<NumDims> & store);
 
@@ -35,7 +46,7 @@ namespace xmlioserver
          CArray(const CArray * const array); // NEVER IMPLEMENTED.
 
       public:
-      
+
          /// Flux ///
          template <typename U, StdSize V, typename W>
             friend StdOStream & operator << 
@@ -50,10 +61,16 @@ namespace xmlioserver
          void toBinary  (StdOStream & os) const;
          void fromBinary(StdIStream & is);
 
+         size_t getSize(void) const ;
+         bool toBuffer  (CBufferOut& buffer) const;
+         bool fromBuffer(CBufferIn& buffer);
+
+
          /// Destructeur ///
          virtual ~CArray(void);
 
    }; // class CArray
+   
 
    ///---------------------------------------------------------------
 

@@ -72,7 +72,121 @@ namespace tree {
       }
       return (false);
    }
+   
+   bool CField::dispatchEvent(CEventServer& event)
+  {
+     
+    if (SuperClass::dispatchEvent(event)) return true ;
+    else
+    {
+      switch(event.type)
+      {
+        case EVENT_ID_UPDATE_DATA :
+          recvUpdateData(event) ;
+          return true ;
+          break ;
+ 
+        default :
+          ERROR("bool CField::dispatchEvent(CEventServer& event)",<<"Unknown Event") ;
+          return false ;
+      }
+    }
+  }
+  
+  void CField::sendUpdateData(void)
+  {
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    CContextClient* client=context->client ;
+    
+    CEventClient event(getType(),EVENT_ID_UPDATE_DATA) ;
+    
+    map<int,ARRAY(int, 1)>::iterator it ;
+    list<shared_ptr<CMessage> > list_msg ;
+    list<ARRAY(double,1) > list_data ;
+    
+    for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
+    {
+      int rank=(*it).first ;
+      ARRAY(int,1) index=(*it).second ;
+      ARRAY_CREATE(data_tmp,double,1,[index->num_elements()]) ;
+      for(int n=0;n<data_tmp->num_elements();n++) (*data_tmp)[n]=(*data)[(*index)[n]] ;
+      list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+      list_data.push_back(data_tmp) ;
+      *list_msg.back()<<getId()<<list_data.back() ;
+      event.push(rank,grid->nbSenders[rank],*list_msg.back()) ;
+    }
+    client->sendEvent(event) ;
+  }
+  
+  void CField::recvUpdateData(CEventServer& event)
+  {
+    vector<int> ranks ;
+    vector<CBufferIn*> buffers ;
+      
+    list<CEventServer::SSubEvent>::iterator it ;
+    string fieldId ;
 
+    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    {
+      int rank=it->rank;
+      CBufferIn* buffer=it->buffer;
+      *buffer>>fieldId ;
+      ranks.push_back(rank) ;
+      buffers.push_back(buffer) ;
+    }
+    get(fieldId)->recvUpdateData(ranks,buffers) ;   
+  }
+  
+  void  CField::recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers)
+  {
+    
+    if (data_srv.empty())
+    {
+      for(map<int,ARRAY(int, 1)>::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
+      {
+        int rank=it->first ;
+        ARRAY_CREATE(data_tmp,double,1,[it->second->num_elements()]) ;
+        data_srv.insert(pair<int, ARRAY(double,1)>(rank,data_tmp)) ;
+        foperation_srv.insert(pair<int,boost::shared_ptr<func::CFunctor> >(rank,boost::shared_ptr<func::CFunctor>(new func::CInstant(data_srv[rank])))) ;
+      }
+    }
+
+    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    const date::CDate & currDate = context->getCalendar()->getCurrentDate();
+    const date::CDate opeDate      = *last_operation_srv + freq_operation_srv;
+    const date::CDate writeDate    = *last_Write_srv     + freq_write_srv; 
+    
+
+    
+    if (opeDate <= currDate)
+    {
+      for(int n=0;n<ranks.size();n++)
+      {
+        ARRAY_CREATE(data_tmp,double,1,[0]) ;
+        *buffers[n]>>data_tmp ;
+        (*foperation_srv[ranks[n]])(data_tmp) ;
+      }
+      *last_operation_srv = currDate;
+    }
+     
+    if (writeDate < (currDate + freq_operation_srv))
+    {
+      for(int n=0;n<ranks.size();n++)
+      {
+        this->foperation_srv[ranks[n]]->final();
+      }
+      
+      this->incrementNStep();
+      *last_Write_srv = writeDate;
+      writeField() ;
+    }
+  }
+  
+  void CField::writeField(void)
+  {
+    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file") 
+      getRelFile()->getDataOutput()->writeFieldData(CObjectFactory::GetObject<CField>(this));
+  }
    //----------------------------------------------------------------
 
    void CField::setRelFile(const boost::shared_ptr<CFile> _file)
@@ -231,7 +345,7 @@ namespace tree {
       using namespace date;
        
       StdString id = this->getBaseFieldReference()->getId();
-      boost::shared_ptr<CContext> _context =
+      boost::shared_ptr<CContext> context =
          CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
 
       if (operation.isEmpty() || freq_op.isEmpty() || this->file->output_freq.isEmpty())
@@ -251,32 +365,34 @@ namespace tree {
          freq_offset.setValue(NoneDu.toString());
       }  
 
-      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
+//      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
+      if (context->hasServer)
       {
-         this->freq_operation =
+         this->freq_operation_srv =
              CDuration::FromString(this->file->output_freq.getValue());
-         this->freq_write     =
+         this->freq_write_srv     =
              CDuration::FromString(this->file->output_freq.getValue());
-         this->last_Write     = boost::shared_ptr<xmlioserver::date::CDate>
-                        (new date::CDate(_context->getCalendar()->getInitDate()));
-         this->last_operation = boost::shared_ptr<xmlioserver::date::CDate>
-                        (new date::CDate(_context->getCalendar()->getInitDate()));
-         this->foperation     =
-             boost::shared_ptr<func::CFunctor>(new CInstant(this->data));
+         this->last_Write_srv     = boost::shared_ptr<xmlioserver::date::CDate>
+                        (new date::CDate(context->getCalendar()->getInitDate()));
+         this->last_operation_srv = boost::shared_ptr<xmlioserver::date::CDate>
+                        (new date::CDate(context->getCalendar()->getInitDate()));
+//         this->foperation_srv     =
+//             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
              
-         const CDuration toffset = this->freq_operation - freq_offset_ - _context->getCalendar()->getTimeStep(); 
-         *this->last_operation   = *this->last_operation - toffset; 
+         const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep(); 
+         *this->last_operation_srv   = *this->last_operation_srv - toffset; 
       }
-      else
+      
+      if (context->hasClient)
       {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
          this->last_Write     = boost::shared_ptr<xmlioserver::date::CDate>
-                        (new date::CDate(_context->getCalendar()->getInitDate()));
+                        (new date::CDate(context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<xmlioserver::date::CDate>
-                        (new date::CDate(_context->getCalendar()->getInitDate()));
+                        (new date::CDate(context->getCalendar()->getInitDate()));
                         
-         const CDuration toffset = this->freq_operation - freq_offset_ - _context->getCalendar()->getTimeStep(); 
+         const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
          *this->last_operation   = *this->last_operation - toffset;  
          
 #define DECLARE_FUNCTOR(MType, mtype)              \
@@ -408,7 +524,24 @@ namespace tree {
             CGroupFactory::CreateChild(owner)->field_ref.setValue(child->getId());
       }
    }
+   
+   void CField::outputField(ARRAY(double,3) fieldOut)
+   {
+      map<int,ARRAY(double,1)>::iterator it;
+      for(it=data_srv.begin();it!=data_srv.end();it++)
+         grid->outputField(it->first,it->second, fieldOut) ;
+      
+   }
+   
+   void CField::outputField(ARRAY(double,2) fieldOut)
+   {
+      map<int,ARRAY(double,1)>::iterator it;
 
+      for(it=data_srv.begin();it!=data_srv.end();it++)
+      {
+         grid->outputField(it->first,it->second, fieldOut) ;
+      }
+   }
    ///-------------------------------------------------------------------
 
 } // namespace xmlioserver

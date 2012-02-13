@@ -1,0 +1,18 @@
+#ifndef __TRANSFERT_PARAMETERS_HPP__
+#define __TRANSFERT_PARAMETERS_HPP__
+
+
+
+#define CLASS_ID_CONTEXT 1
+#define CLASS_ID_FIELD 2
+#define CLASS_ID_FILE 3
+#define CLASS_ID_AXIS 3
+#define CLASS_ID_DOMAIN 4
+#define CLASS_ID_GRID 5
+
+#define TYPE_ID_FINALIZE 2
+#define TYPE_ID_SEND_ATTR 3
+
+
+
+#endif

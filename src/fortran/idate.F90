@@ -18,7 +18,7 @@ MODULE IDATE
    END TYPE txios(date)
 
    TYPE txios(time)
-      REAL(kind = 8) :: year, month, day, hour, minute, second
+      REAL(kind = 8) :: year=0, month=0, day=0, hour=0, minute=0, second=0
    END TYPE txios(time)   
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99

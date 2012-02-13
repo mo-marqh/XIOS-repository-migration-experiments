@@ -28,17 +28,9 @@ extern "C"
          boost::shared_ptr<xmlioserver::tree::CContext> context =
          xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
             (CObjectFactory::GetCurrentContextId());
-         boost::shared_ptr<xmlioserver::data::CDataTreatment> dtreat = context->getDataTreatment();
-         if (dtreat.get() != 0)
-         {
-            dtreat->set_timestep(dur);     
-         }
-         else
-         {
-            context->solveCalendar();
+         
             context->timestep.setValue(dur.toString());
-            context->getCalendar()->setTimeStep(dur);
-         }       
+            context->sendAttributToServer("timestep") ;
       }
       catch (xmlioserver::CException & exc)
       {
@@ -49,19 +41,12 @@ extern "C"
    
    void cxios_update_calendar(int step)
    {
-      try
-      {
-         boost::shared_ptr<xmlioserver::tree::CContext> context =
-         xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
+      boost::shared_ptr<xmlioserver::tree::CContext> context =
+            xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
             (CObjectFactory::GetCurrentContextId());
-         boost::shared_ptr<xmlioserver::data::CDataTreatment> dtreat = context->getDataTreatment();
-         dtreat->update_calendar(step);
-      }
-      catch (xmlioserver::CException & exc)
-      {
-         std::cerr << exc.getMessage() << std::endl;
-         exit (EXIT_FAILURE);
-      }
+      context->updateCalendar(step) ;
+      context->sendUpdateCalendar(step) ;
+      
    }
 
 } // extern "C"

@@ -1,7 +1,10 @@
 #ifndef __XMLIO_CGroupTemplate__
 #define __XMLIO_CGroupTemplate__
 
+#include "xmlioserver_spl.hpp"
 #include "declare_attribute.hpp"
+#include "event_server.hpp"
+#include "object_template.hpp"
 
 namespace xmlioserver
 {
@@ -22,6 +25,11 @@ namespace xmlioserver
          typedef CObjectTemplate<V> SuperClass;
 
       public :
+      
+         enum EEventId
+         {
+           EVENT_ID_CREATE_CHILD=200, EVENT_ID_CREATE_CHILD_GROUP
+         } ;
 
          /// Spécifique ///
          DECLARE_ATTRIBUTE(StdString, group_ref)
@@ -54,7 +62,19 @@ namespace xmlioserver
          /// Traitements ///
          virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
          void solveRefInheritance(void);
-
+//         static bool has(const string & id); 
+//         static boost::shared_ptr<V> get(const string& id) ;
+//         static boost::shared_ptr<V> create(const string& id=string("")) ;
+         boost::shared_ptr<U> createChild(const string& id="") ; 
+         boost::shared_ptr<V> createChildGroup(const string& id="") ; 
+         static bool dispatchEvent(CEventServer& event) ;
+         void sendCreateChild(const string& id="") ;
+         void sendCreateChildGroup(const string& id="") ;
+         static void recvCreateChild(CEventServer& event) ;
+         void recvCreateChild(CBufferIn& buffer) ;
+         static void recvCreateChildGroup(CEventServer& event) ;
+         void recvCreateChildGroup(CBufferIn& buffer) ;
+         
          /// Destructeur ///
          virtual ~CGroupTemplate(void);
 
@@ -80,5 +100,7 @@ namespace xmlioserver
 
    }; // class CGroupTemplate
 } // namespace xmlioserver
+
+//#include "group_template_impl.hpp"
 
 #endif // __XMLIO_CGroupTemplate__

@@ -68,7 +68,6 @@ namespace xmlioserver
         
          this->movePRead(currsize);
          this->nbrequest--;
-         //std::cout <<  this->nbrequest << std::endl;
         
          return (CLinearBuffer(SuperClass::getData(startpos), currsize));
       }

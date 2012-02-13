@@ -1,8 +1,6 @@
 #ifndef __XMLIO_Configure__
 #define __XMLIO_Configure__
 
-/// xmlioserver headers ///
-#include "xmlioserver_spl.hpp"
 
 /// /////////// Macros /////////// ///
 #define DECLARE_PROPERTY(type, name, value) \

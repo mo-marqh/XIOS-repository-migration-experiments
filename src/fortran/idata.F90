@@ -6,6 +6,33 @@ MODULE IDATA
    
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
+      SUBROUTINE  cxios_init_server() BIND(C)
+      END SUBROUTINE cxios_init_server
+
+     SUBROUTINE cxios_init_client(client_id, len_client_id, f_local_comm, f_return_comm) BIND(C)
+         USE ISO_C_BINDING
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: client_id
+         INTEGER  (kind = C_INT)     , VALUE        :: len_client_id
+         INTEGER  (kind = C_INT)                    :: f_local_comm
+         INTEGER  (kind = C_INT)                    :: f_return_comm
+      END SUBROUTINE cxios_init_client
+      
+      SUBROUTINE  cxios_context_initialize(context_id,len_context_id,f_comm) BIND(C)
+         USE ISO_C_BINDING
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: context_id
+         INTEGER  (kind = C_INT)     , VALUE        :: len_context_id
+         INTEGER  (kind = C_INT)                    :: f_comm
+      END SUBROUTINE cxios_context_initialize
+
+       SUBROUTINE  cxios_context_close_definition() BIND(C)
+         USE ISO_C_BINDING
+      END SUBROUTINE cxios_context_close_definition
+     
+
+       SUBROUTINE  cxios_context_finalize() BIND(C)
+         USE ISO_C_BINDING
+      END SUBROUTINE cxios_context_finalize
+     
       SUBROUTINE  cxios_init_ioserver(comm_client,comm_parent) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INT) :: comm_client
@@ -14,6 +41,9 @@ MODULE IDATA
 
       SUBROUTINE  cxios_finalize_ioserver BIND(C)
       END SUBROUTINE cxios_finalize_ioserver
+ 
+      SUBROUTINE  cxios_finalize BIND(C)
+      END SUBROUTINE cxios_finalize
 
       SUBROUTINE cxios_dtreatment_start() BIND(C)
          USE ISO_C_BINDING
@@ -79,44 +109,60 @@ MODULE IDATA
    
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
-
-   SUBROUTINE  xios(initialize)(local_comm,return_comm )
+   SUBROUTINE  xios(init_server)()
+   IMPLICIT NONE
+     CALL cxios_init_server()
+   END SUBROUTINE xios(init_server)
+   
+   SUBROUTINE  xios(initialize)(client_id, local_comm, return_comm)
    IMPLICIT NONE
    INCLUDE 'mpif.h'
-      INTEGER, INTENT(OUT),OPTIONAL :: return_comm
-      INTEGER, INTENT(IN),OPTIONAL :: local_comm
-
-      INTEGER  :: comm_client
-      INTEGER  :: comm_parent
-      
+   CHARACTER(LEN=*),INTENT(IN) :: client_id
+   INTEGER,INTENT(IN),OPTIONAL         :: local_comm  
+   INTEGER,INTENT(OUT),OPTIONAL        :: return_comm
+   INTEGER :: f_local_comm
+   INTEGER :: f_return_comm
+   
       IF (PRESENT(local_comm)) THEN
-        comm_parent=local_comm
+        f_local_comm=local_comm 
       ELSE
-        comm_parent=MPI_COMM_WORLD
+        f_local_comm = MPI_COMM_NULL 
       ENDIF
       
-      CALL cxios_init_ioserver(comm_client,comm_parent)
-      IF (PRESENT(return_comm)) return_comm=comm_client ;
+      CALL cxios_init_client(client_id,LEN(client_id),f_local_comm,f_return_comm)
+ 
+      IF (PRESENT(return_comm)) return_comm=f_return_comm
 
-    END SUBROUTINE  xios(initialize)
+   END SUBROUTINE  xios(initialize)
 
+
+   SUBROUTINE  xios(context_initialize)(context_id,comm)
+   IMPLICIT NONE
+   CHARACTER(LEN=*),INTENT(IN)  :: context_id
+   INTEGER, INTENT(IN)          :: comm
+      
+      CALL cxios_context_initialize(context_id,LEN(context_id),comm)
+ 
+    END SUBROUTINE  xios(context_initialize)
+    
+    
    SUBROUTINE  xios(finalize)
    IMPLICIT NONE
 
-      CALL cxios_finalize_ioserver
+      CALL cxios_finalize
 
     END SUBROUTINE  xios(finalize)
 
    
    SUBROUTINE xios(close_context_definition)()
    IMPLICIT NONE
-      CALL cxios_dtreatment_start()
+      CALL cxios_context_close_definition()
    END SUBROUTINE xios(close_context_definition)
 
    
    SUBROUTINE xios(context_finalize)()
    IMPLICIT NONE
-      CALL cxios_dtreatment_end()
+      CALL cxios_context_finalize()
    END SUBROUTINE xios(context_finalize)
    
 

@@ -30,6 +30,7 @@ extern "C"
       if (!cstr2string(name, name_size, name_str)) return;
 
       field_hdl->name.setValue(name_str);
+      field_hdl->sendAttributToServer(field_hdl->name) ; 
    }
    
    void cxios_set_field_standard_name(XFieldPtr field_hdl, const char * standard_name, int standard_name_size)
@@ -38,6 +39,7 @@ extern "C"
       if (!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
 
       field_hdl->standard_name.setValue(standard_name_str);
+      field_hdl->sendAttributToServer(field_hdl->standard_name) ; 
    }
    
    void cxios_set_field_long_name(XFieldPtr field_hdl, const char * long_name, int long_name_size)
@@ -46,6 +48,7 @@ extern "C"
       if (!cstr2string(long_name, long_name_size, long_name_str)) return;
 
       field_hdl->long_name.setValue(long_name_str);
+      field_hdl->sendAttributToServer(field_hdl->long_name) ;
    }
    
    void cxios_set_field_unit(XFieldPtr field_hdl, const char * unit, int unit_size)
@@ -54,6 +57,8 @@ extern "C"
       if (!cstr2string(unit, unit_size, unit_str)) return;
 
       field_hdl->unit.setValue(unit_str);
+      field_hdl->sendAttributToServer(field_hdl->unit) ;
+
    }
    
    void cxios_set_field_operation(XFieldPtr field_hdl, const char * operation, int operation_size) 
@@ -62,6 +67,7 @@ extern "C"
       if (!cstr2string(operation, operation_size, operation_str)) return;
 
       field_hdl->operation.setValue(operation_str);
+      field_hdl->sendAttributToServer(field_hdl->operation) ;
    }
    
    void cxios_set_field_freq_op(XFieldPtr field_hdl, const char * freq_op, int freq_op_size)
@@ -70,21 +76,25 @@ extern "C"
       if (!cstr2string(freq_op, freq_op_size, freq_op_str)) return;
 
       field_hdl->freq_op.setValue(freq_op_str);
+      field_hdl->sendAttributToServer(field_hdl->freq_op) ;
    }
    
    void cxios_set_field_level(XFieldPtr field_hdl, int level)
    {
       field_hdl->level.setValue(level);
+      field_hdl->sendAttributToServer(field_hdl->level) ;
    }
    
    void cxios_set_field_prec(XFieldPtr field_hdl, int prec)
    {
       field_hdl->prec.setValue(prec);
+      field_hdl->sendAttributToServer(field_hdl->prec) ;
    }
    
    void cxios_set_field_enabled(XFieldPtr field_hdl, bool enabled)
    {
       field_hdl->enabled.setValue(enabled);
+      field_hdl->sendAttributToServer(field_hdl->enabled) ;
    }
    
    void cxios_set_field_domain_ref(XFieldPtr field_hdl,  const char * domain_ref, int domain_ref_size)
@@ -93,6 +103,7 @@ extern "C"
       if (!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
 
       field_hdl->domain_ref.setValue(domain_ref_str);
+      field_hdl->sendAttributToServer(field_hdl->domain_ref) ;
    }
    
    void cxios_set_field_axis_ref(XFieldPtr field_hdl,  const char * axis_ref,  int axis_ref_size)
@@ -101,6 +112,7 @@ extern "C"
       if (!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
 
       field_hdl->axis_ref.setValue(axis_ref_str);
+      field_hdl->sendAttributToServer(field_hdl->axis_ref) ;
    }
    
    void cxios_set_field_grid_ref(XFieldPtr field_hdl,  const char * grid_ref, int grid_ref_size)
@@ -109,6 +121,7 @@ extern "C"
       if (!cstr2string(grid_ref, grid_ref_size, grid_ref_str)) return;
 
       field_hdl->grid_ref.setValue(grid_ref_str);
+      field_hdl->sendAttributToServer(field_hdl->grid_ref) ;
    }
    
    void cxios_set_field_field_ref(XFieldPtr field_hdl,  const char * field_ref,  int field_ref_size)
@@ -117,11 +130,13 @@ extern "C"
       if (!cstr2string(field_ref, field_ref_size, field_ref_str)) return;
 
       field_hdl->field_ref.setValue(field_ref_str);
+      field_hdl->sendAttributToServer(field_hdl->field_ref) ;
    }
    
    void cxios_set_field_default_value(XFieldPtr field_hdl, double default_value)
    {
       field_hdl->default_value.setValue(default_value);
+      field_hdl->sendAttributToServer(field_hdl->default_value) ;
    }  
    
    // -------------------- Attributs des groupes de champs ---------------------
@@ -132,6 +147,7 @@ extern "C"
       if (!cstr2string(name, name_size, name_str)) return;
 
       fieldgroup_hdl->name.setValue(name_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->name);
    }
    
    void cxios_set_fieldgroup_standard_name(XFieldGroupPtr fieldgroup_hdl, const char * standard_name, int standard_name_size)
@@ -140,6 +156,7 @@ extern "C"
       if (!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
 
       fieldgroup_hdl->standard_name.setValue(standard_name_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->standard_name);
    }
    
    void cxios_set_fieldgroup_long_name(XFieldGroupPtr fieldgroup_hdl, const char * long_name, int long_name_size)
@@ -148,6 +165,7 @@ extern "C"
       if (!cstr2string(long_name, long_name_size, long_name_str)) return;
 
       fieldgroup_hdl->long_name.setValue(long_name_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->long_name);
    }
    
    void cxios_set_fieldgroup_unit(XFieldGroupPtr fieldgroup_hdl, const char * unit, int unit_size)
@@ -156,6 +174,7 @@ extern "C"
       if (!cstr2string(unit, unit_size, unit_str)) return;
 
       fieldgroup_hdl->unit.setValue(unit_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->unit);
    }
    
    void cxios_set_fieldgroup_operation(XFieldGroupPtr fieldgroup_hdl, const char * operation, int operation_size) 
@@ -164,6 +183,7 @@ extern "C"
       if (!cstr2string(operation, operation_size, operation_str)) return;
 
       fieldgroup_hdl->operation.setValue(operation_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->operation);
    }
    
    void cxios_set_fieldgroup_freq_op(XFieldGroupPtr fieldgroup_hdl, const char * freq_op, int freq_op_size)
@@ -172,21 +192,25 @@ extern "C"
       if (!cstr2string(freq_op, freq_op_size, freq_op_str)) return;
 
       fieldgroup_hdl->freq_op.setValue(freq_op_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->freq_op);
    }
    
    void cxios_set_fieldgroup_level(XFieldGroupPtr fieldgroup_hdl, int level)
    {
       fieldgroup_hdl->level.setValue(level);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->level);
    }
    
    void cxios_set_fieldgroup_prec(XFieldGroupPtr fieldgroup_hdl, int prec)
    {
       fieldgroup_hdl->prec.setValue(prec);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->prec);
    }
    
    void cxios_set_fieldgroup_enabled(XFieldGroupPtr fieldgroup_hdl, bool enabled)
    {
       fieldgroup_hdl->enabled.setValue(enabled);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->enabled);
    }
    
    void cxios_set_fieldgroup_domain_ref(XFieldGroupPtr fieldgroup_hdl,  const char * domain_ref, int domain_ref_size)
@@ -195,6 +219,7 @@ extern "C"
       if (!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
 
       fieldgroup_hdl->domain_ref.setValue(domain_ref_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->domain_ref);
    }
    
    void cxios_set_fieldgroup_axis_ref(XFieldGroupPtr fieldgroup_hdl,  const char * axis_ref,  int axis_ref_size)
@@ -203,6 +228,7 @@ extern "C"
       if (!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
 
       fieldgroup_hdl->axis_ref.setValue(axis_ref_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->axis_ref);
    }
    
    void cxios_set_fieldgroup_grid_ref(XFieldGroupPtr fieldgroup_hdl,  const char * grid_ref, int grid_ref_size)
@@ -211,6 +237,7 @@ extern "C"
       if (!cstr2string(grid_ref, grid_ref_size, grid_ref_str)) return;
 
       fieldgroup_hdl->grid_ref.setValue(grid_ref_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->grid_ref);
    }
    
    void cxios_set_fieldgroup_field_ref(XFieldGroupPtr fieldgroup_hdl,  const char * field_ref,  int field_ref_size)
@@ -219,11 +246,13 @@ extern "C"
       if (!cstr2string(field_ref, field_ref_size, field_ref_str)) return;
 
       fieldgroup_hdl->field_ref.setValue(field_ref_str);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->field_ref);
    }
    
    void cxios_set_fieldgroup_default_value(XFieldGroupPtr fieldgroup_hdl, double default_value)
    {
       fieldgroup_hdl->default_value.setValue(default_value);
+      fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->default_value);
    }  
    
    // ------------------------ Création des handle -----------------------------

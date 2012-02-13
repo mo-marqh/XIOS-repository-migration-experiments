@@ -4,9 +4,10 @@
 /// xmlioserver headers ///
 #include "xmlioserver_spl.hpp"
 #include "field.hpp"
+#include "data_output.hpp"
 #include "declare_group.hpp"
 
-#include "data_output.hpp"
+
 
 namespace xmlioserver {
 namespace tree {
@@ -33,9 +34,13 @@ namespace tree {
          /// typedef ///
          typedef CObjectTemplate<CFile>   SuperClass;
          typedef CFileAttributes SuperClassAttribute;
-
+      
       public :
-
+         enum EEventId
+         {
+           EVENT_ID_ADD_FIELD=0,EVENT_ID_ADD_FIELD_GROUP
+         } ;
+         
          typedef CFileAttributes RelAttributes;
          typedef CFileGroup      RelGroup;
 
@@ -59,9 +64,9 @@ namespace tree {
 
          /// Mutateurs ///
          void setVirtualFieldGroup(boost::shared_ptr<CFieldGroup> newVFieldGroup);
-         void setVirtualFieldGroup(const StdString & newVFieldGroupId);
+         void setVirtualFieldGroup(void);
 
-         void initializeDataOutput(boost::shared_ptr<io::CDataOutput> dout);
+         void createHeader(void);
          void close(void) ;
          
          /// Traitements ///
@@ -85,6 +90,17 @@ namespace tree {
          static StdString GetDefName(void);
          
          static ENodeType GetType(void);
+         
+         bool AllDomainEmpty ;
+         shared_ptr<CField> addField(const string& id="") ;
+         shared_ptr<CFieldGroup> addFieldGroup(const string& id="") ;
+         void sendAddField(const string& id="") ;
+         void sendAddFieldGroup(const string& id="") ;
+         static void recvAddField(CEventServer& event) ;
+         void recvAddField(CBufferIn& buffer) ;
+         static void recvAddFieldGroup(CEventServer& event) ;
+         void recvAddFieldGroup(CBufferIn& buffer) ;
+         static bool dispatchEvent(CEventServer& event) ;
 
       private :
 

@@ -19,7 +19,7 @@
 #include <list>
 #include <map>
 #include <deque>
-
+#include <valarray>
 // Flux.
 #include <iostream>
 #include <fstream>
@@ -27,7 +27,8 @@
 
 /// boost headers ///
 //#include <boost/unordered_map.hpp>
-
+#include <boost/shared_ptr.hpp>
+#include <boost/cast.hpp>
 /// Map ///
 #define xios_map std::map
 
@@ -44,7 +45,15 @@ typedef std::istream       StdIStream;
 typedef std::string        StdString;
 typedef std::size_t        StdSize;
 
+typedef  unsigned short int   ushort;
+typedef  unsigned int         uint;
+typedef  unsigned long int    ulong;
+
 /// xmlioserver headers ///
 #include "configure.hpp"
+#include "log.hpp"
+using namespace std;
+using namespace boost ;
+
 
 #endif //__XMLIO_SPL__

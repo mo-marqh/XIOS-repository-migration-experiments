@@ -2,6 +2,9 @@
 #define __XMLIO_CAttributeTemplate_impl__
 
 #include "array.hpp"
+#include "type.hpp"
+#include "buffer_in.hpp"
+#include "buffer_out.hpp"
 
 namespace xmlioserver
 {
@@ -68,6 +71,18 @@ namespace xmlioserver
       }
 
       template <class T>
+         T* CAttributeTemplate<T>::getRef(void)
+      {
+         if (SuperClass::isEmpty())
+         {
+            ERROR("T CAttributeTemplate<T>::getValue(void) const",
+                  << "[ id = " << this->getId() << "]"
+                  << " L'attribut est requis mais n'est pas défini !");
+          }
+         return (SuperClass::getRef<T>());
+      }
+
+      template <class T>
          void CAttributeTemplate<T>::setValue(const T & value)
       {
          SuperClass::setValue<T>(value);
@@ -114,6 +129,55 @@ namespace xmlioserver
          T value;
          FromBinary(is, value);
          this->setValue(value);
+      }
+
+      template <class T>
+         bool CAttributeTemplate<T>::toBuffer (CBufferOut& buffer) const
+      {
+         if (isEmpty()) return buffer.put(true) ;
+         else
+         {
+           bool ret=true ;
+           CType<T> val(*boost::any_cast<T>(&value)) ;
+           ret&=buffer.put(false) ;
+           ret&=val.toBuffer(buffer) ;
+           return ret ;
+         }
+      }
+
+      template <class T>
+      bool CAttributeTemplate<T>::fromBuffer(CBufferIn& buffer)
+      {
+        bool empty ;
+        bool ret=true ;
+        ret&=buffer.get(empty) ;
+        if (empty) 
+        {
+          clear() ;
+          return ret ;
+        }
+        else
+        {
+          if (isEmpty())
+          {
+            T val ;
+            setValue(val) ;
+          }
+          T* V=const_cast<T*>(boost::any_cast<T>(&value)) ;
+          CType<T> val(*V) ;
+          return val.fromBuffer(buffer) ;
+        }
+      }
+
+      template <class T>
+      size_t CAttributeTemplate<T>::size(void) const
+      {
+        if (isEmpty()) return sizeof(bool) ;
+        else
+        {
+          CType<T> val(*const_cast<T*>(boost::any_cast<T>(&value))) ;
+          return val.size()+sizeof(bool) ;
+        }
       }
 
       //---------------------------------------------------------------
