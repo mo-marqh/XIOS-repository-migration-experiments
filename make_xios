@@ -17,7 +17,7 @@ while (($# > 0))
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
          "--full")  compil_full="true"  ; shift ; shift ;;
-         "--use_oasis")  use_oasis="true"  ; shift ; shift ;;
+         "--use_oasis")  use_oasis="true"  ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
@@ -126,5 +126,5 @@ if [[ $? == 0 ]]
   then
 #    cd $WORKDIR/XMLIO_NEMO_COUPLE/modeles/NEMO/WORK
     cd $WORKDIR/XMLIO_NEMO/modeles/NEMO/WORK
-    make
+#    make
 fi
