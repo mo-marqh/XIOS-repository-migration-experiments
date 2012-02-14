@@ -21,8 +21,10 @@ namespace xmlioserver
      static void clientFinalize(void) ;
    
      template <typename T>
+     static T getin(const string& id,const T& defaultValue) ;
+     
+     template <typename T>
      static T getin(const string& id) ;
-
 
      static bool isClient ;
      static bool isServer ;

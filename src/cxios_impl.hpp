@@ -12,6 +12,13 @@ namespace xmlioserver
     return CObjectFactory::GetObject<CVariable>("xios",id)->getData<T>() ;
   }
 
+  template <typename T>
+  T CXios::getin(const string& id, const T& defaultValue)
+  {
+    if (CObjectFactory::HasObject<CVariable>("xios",id))
+      return CObjectFactory::GetObject<CVariable>("xios",id)->getData<T>() ;
+    else return defaultValue ;
+  }
 
 
 }

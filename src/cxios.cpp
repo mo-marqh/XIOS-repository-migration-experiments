@@ -21,9 +21,9 @@ namespace xmlioserver
   void CXios::initialize()
   {
     tree::CTreeManager::ParseFile(rootFile);
-    usingServer=getin<bool>("using_server") ;
-    usingOasis=getin<bool>("using_oasis") ;
-    info.setLevel(getin<int>("info_level")) ;
+    usingServer=getin<bool>("using_server",false) ;
+    usingOasis=getin<bool>("using_oasis",false) ;
+    info.setLevel(getin<int>("info_level",0)) ;
     globalComm=MPI_COMM_WORLD ;
   }
 
