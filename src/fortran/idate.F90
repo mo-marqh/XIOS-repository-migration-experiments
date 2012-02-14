@@ -5,14 +5,6 @@ MODULE IDATE
    ! enum XCalendarType
    INTEGER(kind = C_INT), PARAMETER :: D360 = 0 , ALLLEAP = 1 , NOLEAP = 2 , JULIAN = 3 , GREGORIAN = 4
 
-   TYPE XDate
-      INTEGER :: year, month, day, hour, minute, second
-   END TYPE XDate
-
-   TYPE XDuration
-      REAL(kind = 8) :: year, month, day, hour, minute, second
-   END TYPE XDuration
-
    TYPE txios(date)
       INTEGER :: year, month, day, hour, minute, second
    END TYPE txios(date)
@@ -62,23 +54,5 @@ MODULE IDATE
       
    END SUBROUTINE xios(update_calendar)
 
-
-!!!!!!!!!!!! anciennes interfaces !!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   
-   SUBROUTINE set_timestep(timestep)
-      TYPE(XDuration), INTENT(IN):: timestep
-      CALL cxios_set_timestep(timestep%year, timestep%month , timestep%day, &
-                             timestep%hour, timestep%minute, timestep%second)
-   END SUBROUTINE set_timestep
-   
-   SUBROUTINE update_calendar(step)
-      INTEGER, INTENT(IN):: step
-      IF (step < 0) THEN
-         PRINT *, "L'argument 'step' ne peut être négatif"
-         STOP
-      END IF
-      CALL cxios_update_calendar(step)
-   END SUBROUTINE update_calendar
    
 END MODULE IDATE

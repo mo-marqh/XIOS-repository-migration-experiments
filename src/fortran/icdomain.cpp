@@ -171,30 +171,6 @@ extern "C"
       domain_hdl->sendAttributToServer(domain_hdl->zoom_jbegin) ; 
    }
    
-   void cxios_set_domain_zoom_ni_loc(XDomainPtr domain_hdl, int zoom_ni_loc)
-   {
-      domain_hdl->zoom_ni_loc.setValue(zoom_ni_loc);
-      domain_hdl->sendAttributToServer(domain_hdl->zoom_ni_loc) ; 
-   }
-   
-   void cxios_set_domain_zoom_nj_loc(XDomainPtr domain_hdl, int zoom_nj_loc)
-   {
-      domain_hdl->zoom_nj_loc.setValue(zoom_nj_loc);
-      domain_hdl->sendAttributToServer(domain_hdl->zoom_nj_loc) ; 
-   }
-   
-   void cxios_set_domain_zoom_ibegin_loc(XDomainPtr domain_hdl, int zoom_ibegin_loc)
-   {
-      domain_hdl->zoom_ibegin_loc.setValue(zoom_ibegin_loc);
-      domain_hdl->sendAttributToServer(domain_hdl->zoom_ibegin_loc) ; 
-   }
-   
-   void cxios_set_domain_zoom_jbegin_loc(XDomainPtr domain_hdl, int zoom_jbegin_loc)
-   {
-      domain_hdl->zoom_jbegin_loc.setValue(zoom_jbegin_loc);
-      domain_hdl->sendAttributToServer(domain_hdl->zoom_jbegin_loc) ; 
-   }
-   
    void cxios_set_domain_data_n_index(XDomainPtr domain_hdl, int data_n_index)
    {
       domain_hdl->data_n_index.setValue(data_n_index);
@@ -386,30 +362,6 @@ extern "C"
    {
       domaingroup_hdl->zoom_jbegin.setValue(zoom_jbegin);
       domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_jbegin) ;
-   }
-   
-   void cxios_set_domaingroup_zoom_ni_loc(XDomainGroupPtr domaingroup_hdl, int zoom_ni_loc)
-   {
-      domaingroup_hdl->zoom_ni_loc.setValue(zoom_ni_loc);
-      domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ni_loc) ;
-   }
-   
-   void cxios_set_domaingroup_zoom_nj_loc(XDomainGroupPtr domaingroup_hdl, int zoom_nj_loc)
-   {
-      domaingroup_hdl->zoom_nj_loc.setValue(zoom_nj_loc);
-      domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_nj_loc) ;
-   }
-   
-   void cxios_set_domaingroup_zoom_ibegin_loc(XDomainGroupPtr domaingroup_hdl, int zoom_ibegin_loc)
-   {
-      domaingroup_hdl->zoom_ibegin_loc.setValue(zoom_ibegin_loc);
-      domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ibegin_loc) ;
-   }
-   
-   void cxios_set_domaingroup_zoom_jbegin_loc(XDomainGroupPtr domaingroup_hdl, int zoom_jbegin_loc)
-   {
-      domaingroup_hdl->zoom_jbegin_loc.setValue(zoom_jbegin_loc);
-      domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_jbegin_loc) ;
    }
    
    void cxios_set_domaingroup_data_n_index(XDomainGroupPtr domaingroup_hdl, int data_n_index)

@@ -141,30 +141,6 @@ MODULE DOMAINGROUP_INTERFACE
          INTEGER (kind = C_INT)     , VALUE :: zoom_jbegin
       END SUBROUTINE cxios_set_domaingroup_zoom_jbegin
 
-      SUBROUTINE cxios_set_domaingroup_zoom_ni_loc(domaingroup_hdl, zoom_ni_loc) BIND(C)
-         USE ISO_C_BINDING
-         INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-         INTEGER (kind = C_INT)     , VALUE :: zoom_ni_loc
-      END SUBROUTINE cxios_set_domaingroup_zoom_ni_loc
-
-      SUBROUTINE cxios_set_domaingroup_zoom_nj_loc(domaingroup_hdl, zoom_nj_loc) BIND(C)
-         USE ISO_C_BINDING
-         INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-         INTEGER (kind = C_INT)     , VALUE :: zoom_nj_loc
-      END SUBROUTINE cxios_set_domaingroup_zoom_nj_loc
-
-      SUBROUTINE cxios_set_domaingroup_zoom_ibegin_loc(domaingroup_hdl, zoom_ibegin_loc) BIND(C)
-         USE ISO_C_BINDING
-         INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-         INTEGER (kind = C_INT)     , VALUE :: zoom_ibegin_loc
-      END SUBROUTINE cxios_set_domaingroup_zoom_ibegin_loc
-
-      SUBROUTINE cxios_set_domaingroup_zoom_jbegin_loc(domaingroup_hdl, zoom_jbegin_loc) BIND(C)
-         USE ISO_C_BINDING
-         INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-         INTEGER (kind = C_INT)     , VALUE :: zoom_jbegin_loc
-      END SUBROUTINE cxios_set_domaingroup_zoom_jbegin_loc
-
       SUBROUTINE cxios_set_domaingroup_data_n_index(domaingroup_hdl, data_n_index) BIND(C)
          USE ISO_C_BINDING
          INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
