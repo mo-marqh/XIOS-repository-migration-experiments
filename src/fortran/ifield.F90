@@ -31,6 +31,7 @@ MODULE IFIELD
    END INTERFACE  
    !----------------------------------------------------------------------------
    
+   
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
 
@@ -317,7 +318,27 @@ MODULE IFIELD
 
    END FUNCTION  xios(is_valid_fieldgroup)
    
+  LOGICAL FUNCTION xios(field_is_active_id(field_id))
+      IMPLICIT NONE
+      CHARACTER(len  = *)    , INTENT(IN) :: field_id
+      LOGICAL  (kind = 1)                 :: val
+      TYPE(txios(field))                 :: field_hdl
+      
+      CALL xios(get_field_handle)(field_id,field_hdl)
+      xios(field_is_active_id)=xios(field_is_active_hdl(field_hdl))
+
+   END FUNCTION  xios(field_is_active_id)
    
+   
+   LOGICAL FUNCTION xios(field_is_active_hdl(field_hdl))
+      IMPLICIT NONE
+      TYPE(txios(field)),INTENT(IN)       :: field_hdl
+      LOGICAL  (kind = 1)                 :: ret
+      
+      CALL cxios_field_is_active(field_hdl%daddr, ret);
+      xios(field_is_active_hdl) = ret
+      
+   END FUNCTION  xios(field_is_active_hdl) 
  
    
    
@@ -543,6 +564,7 @@ MODULE IFIELD
       CALL cxios_field_valid_id(val, idt, len(idt));
       field_valid_id = val
    END FUNCTION  field_valid_id
+ 
 
    LOGICAL FUNCTION fieldgroup_valid_id(idt)
       IMPLICIT NONE

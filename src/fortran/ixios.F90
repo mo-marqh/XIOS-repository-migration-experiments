@@ -23,7 +23,7 @@ USE idomain, ONLY : txios(domain), txios(domaingroup), xios(set_domaingroup_attr
 USE ifield, ONLY : txios(field), txios(fieldgroup), xios(set_fieldgroup_attr),           &
                    xios(set_fieldgroup_attr_hdl),xios(set_field_attr),xios(set_field_attr_hdl),      &
                    xios(get_field_handle), xios(get_fieldgroup_handle), xios(is_valid_field),        &
-                   xios(is_valid_fieldgroup)  
+                   xios(is_valid_fieldgroup),xios(field_is_active_id),xios(field_is_active_hdl)  
                    
 USE ifile, ONLY : txios(file), txios(filegroup), xios(set_file_attr),xios(set_file_attr_hdl), &
                   xios(set_filegroup_attr), xios(set_filegroup_attr_hdl), xios(get_file_handle),    & 
@@ -71,6 +71,9 @@ INTERFACE xios(send_field)
                     xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d)
 END INTERFACE xios(send_field)
 
+INTERFACE xios(field_is_active)
+  MODULE PROCEDURE xios(field_is_active_id),xios(field_is_active_hdl)
+END INTERFACE
   
  PUBLIC :: txios(domain), txios(domaingroup),txios(field), txios(fieldgroup),txios(file), txios(filegroup), &
           txios(grid), txios(gridgroup), txios(axis), txios(axisgroup),txios(context), txios(date),txios(time)  
@@ -90,6 +93,6 @@ END INTERFACE xios(send_field)
  PUBLIC :: xios(set_current_context)  
  PUBLIC :: xios(set_timestep),xios(update_calendar)
  PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),                       &
-           xios(close_context_definition), xios(context_finalize), xios(send_field)
+           xios(close_context_definition), xios(context_finalize), xios(send_field),xios(field_is_active)
 
 END MODULE XIOS

@@ -292,4 +292,9 @@ extern "C"
       *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CFieldGroup>(id);
    }
    
+   void cxios_field_is_active (XFieldPtr field_hdl, bool* ret)
+   {
+      *ret = field_hdl->isActive();
+   }
+   
 } // extern "C"

@@ -284,9 +284,13 @@ namespace tree {
 
    bool CField::hasDirectFieldReference(void) const
    { 
-      return (!this->field_ref.isEmpty()); 
+     return (!this->field_ref.isEmpty()); 
    }
    
+   bool CField::isActive(void) const
+   { 
+      return (!this->refObject.empty()); 
+   }
    //----------------------------------------------------------------
    
    ARRAY(double, 1) CField::getData(void) const

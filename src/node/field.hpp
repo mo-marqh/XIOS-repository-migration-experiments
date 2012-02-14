@@ -98,6 +98,7 @@ namespace tree {
 
          /// Test ///
          bool hasDirectFieldReference(void) const;
+         bool isActive(void) const;
 
          /// Traitements ///
          void solveRefInheritance(void);

@@ -97,6 +97,8 @@ END PROGRAM test_cs
     CALL xios_set_timestep(dtime) 
 
     CALL xios_close_context_definition()
+    
+    PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
     DO ts=1,96
       CALL xios_update_calendar(ts)
       CALL xios_send_field("field_A",field_A)
