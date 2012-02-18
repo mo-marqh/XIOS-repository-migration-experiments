@@ -1,50 +1,34 @@
-#ifndef __XMLIO_CIndent__
-#define __XMLIO_CIndent__
+#ifndef __XIOS_INDENT_HPP__
+#define __XIOS_INDENT_HPP__
 
-/// xmlioserver headers ///
-#include "xmlioserver_spl.hpp"
-#include "xml_node.hpp"
+#include <ostream>
 
 namespace xmlioserver
 {
-   /// ////////////////////// Déclarations ////////////////////// ///
-   class CIndent
-   {
-      public :
+  class Cindent  
+  {
+    public:
+    static int defaultIncSize;
+    static int index ;
+    int incSize ;
+    int offset ;
+    bool reset ;
+    public :
 
-         /// Méthodes statiques ///
-         static StdOStream & NIndent  (StdOStream & out);
-         static StdOStream & IncIndent(StdOStream & out);
-         static StdOStream & DecEndl  (StdOStream & out);
+    Cindent(int i=0, bool r=false) ;
+    Cindent operator++(int) ;
+    Cindent operator--(int) ;
+    Cindent operator++() ;
+    Cindent operator--() ;
+    Cindent operator+=(int n) ;
+    Cindent operator-=(int n) ;
+    std::ostream& iendl(std::ostream& o) const ;
+  };
+  
+  std::ostream& operator <<(std::ostream& o, const Cindent& indent) ;
 
-      private :
+  extern Cindent iendl;
+  extern Cindent ireset;
 
-         /// Propriétés  statiques ///
-         static unsigned int Indent;
-         static StdString    Increm;
-         static bool         WithLine;
-
-   }; // class CIndent
-
-    ///--------------------------------------------------------------
-    
-   class CIndentedXml
-   {
-      public :
-
-         /// Méthode statique ///
-         static StdString Indented(const StdString & content);
-
-   }; // class CIndentedXml
-
-    ///--------------------------------------------------------------
-
-} // namespace xmlioserver
-
-   /// ////////////////////// Macros ////////////////////// ///
-   
-#define NIndent   CIndent::NIndent
-#define IncIndent CIndent::IncIndent
-#define DecEndl   CIndent::DecEndl
-
-#endif // __XMLIO_CIndent__
+}  
+#endif

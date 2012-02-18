@@ -25,35 +25,6 @@ extern "C"
 
    typedef xmlioserver::tree::CContext * XContextPtr;
 
-   // ------------------------- Attributs des contextes ------------------------
-   
-   
-   void cxios_set_context_calendar_type(XContextPtr context_hdl, const char * calendar_type, int calendar_type_size)
-   {
-      std::string calendar_type_str; 
-      if (!cstr2string(calendar_type, calendar_type_size, calendar_type_str)) return;
-      context_hdl->calendar_type.setValue(calendar_type_str);
-      context_hdl->sendAttributToServer(context_hdl->calendar_type) ;
-   }
-   
-   void cxios_set_context_start_date(XContextPtr context_hdl, const char * start_date, int start_date_size)
-   {
-      std::string start_date_str; 
-      if (!cstr2string(start_date, start_date_size, start_date_str)) return;
-
-      context_hdl->start_date.setValue(start_date_str);
-      context_hdl->sendAttributToServer(context_hdl->start_date) ; 
-   }
-   
-   void cxios_set_context_output_dir(XContextPtr context_hdl, const char * output_dir, int output_dir_size)
-   {
-      std::string output_dir_str; 
-      if (!cstr2string(output_dir, output_dir_size, output_dir_str)) return;
-
-      context_hdl->output_dir.setValue(output_dir_str);
-      context_hdl->sendAttributToServer(context_hdl->output_dir) ; 
-   }
-   
    // ------------------------ Création des handle -----------------------------
    
    void cxios_context_handle_create (XContextPtr * _ret, const char * _id, int _id_len)
@@ -70,7 +41,7 @@ extern "C"
           *_ret = def_vector[i].get();
           return;
       }
-      // Lever une execption ici
+      // Lever une exeception ici
    }
    
    // ------------------------ Changements de contextes ------------------------

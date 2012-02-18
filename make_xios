@@ -3,6 +3,7 @@
 install_dir=$PWD
 compil_full="false"
 use_oasis="false"
+job="1"
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -16,9 +17,10 @@ while (($# > 0))
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
-         "--full")  compil_full="true"  ; shift ; shift ;;
+         "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true"  ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
+         "--job")   job=$2              ; shift ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -116,9 +118,9 @@ export PATH=$PWD/tools/FCM/bin:$PATH
 
 if [[ "$compil_full" == "true" ]]
    then
-   fcm build -f
+   fcm build -f -j $job
 else
-  fcm build
+  fcm build -j $job
 fi
 
 

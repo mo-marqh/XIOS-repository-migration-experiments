@@ -52,10 +52,10 @@ namespace tree {
    {
       if (this->isChecked) return;
       StdSize size = this->size.getValue();
-      StdSize true_size = zvalue.getValue()->num_elements();
+      StdSize true_size = value.getValue()->num_elements();
       if (size != true_size)
          ERROR("CAxis::checkAttributes(void)",
-               << "Le tableau \'zvalue\' a une taille différente de celle indiquée dans l'attribut \'size\'")
+               << "Le tableau \'value\' a une taille différente de celle indiquée dans l'attribut \'size\'")
 
       this->isChecked = true;
    }

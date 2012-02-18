@@ -111,7 +111,13 @@ namespace xmlioserver
    {
       return (T::GetType());
    }
-   
+  
+   template <class T>
+   string CObjectTemplate<T>::getName(void) const
+   {
+      return (T::GetName());
+   }
+  
    //---------------------------------------------------------------
 
    template <class T>
@@ -237,8 +243,98 @@ namespace xmlioserver
     return CObjectFactory::GetObject<T>((T*)this) ;
   }
   
+   template <typename T>
+   void CObjectTemplate<T>::generateCInterface(ostream& oss)
+   {
+     string className=getName() ;
+     int found=className.find_first_of("_") ;
+     if (found!=string::npos) className.replace(found,1,0,'x') ;
+     
+     oss<<"/* ************************************************************************** *"<<iendl ;
+     oss<<" *               Interface auto generated - do not modify                   *"<<iendl ;
+     oss<<" * ************************************************************************** */"<<iendl;
+     oss<<iendl ;
+     oss<<"#include <boost/multi_array.hpp>"<<iendl ;
+     oss<<"#include <boost/shared_ptr.hpp>"<<iendl ;
+     oss<<"#include \"xmlioserver.hpp\""<<iendl;
+     oss<<"#include \"attribute_template_impl.hpp\""<<iendl ;
+     oss<<"#include \"object_template_impl.hpp\""<<iendl;
+     oss<<"#include \"group_template_impl.hpp\""<<iendl ;
+     oss<<"#include \"icutil.hpp\""<<iendl ;
+     oss<<iendl ;
+     oss<<"extern \"C\""<<iendl ;
+     oss<<"{"<<iendl++ ;
+     oss<<"typedef xmlioserver::tree::"<<getStrType<T>()<<"*  "<<className<<"_Ptr;"<<iendl;
+     oss<<iendl ;
+     SuperClassMap::generateCInterface(oss,className) ;
+     oss<<iendl-- ;
+     oss<<"}"<<iendl ;
+   }
 
+   template <typename T>
+   void CObjectTemplate<T>::generateFortran2003Interface(ostream& oss)
+   {
+     string className=getName() ;
+     int found=className.find_first_of("_") ;
+     if (found!=string::npos) className.replace(found,1,0,'x') ;
+     
+     oss<<"! * ************************************************************************** *"<<iendl ;
+     oss<<"! *               Interface auto generated - do not modify                     *"<<iendl ;
+     oss<<"! * ************************************************************************** *"<<iendl;
+     oss<<iendl ;
+     oss<<"MODULE "<<className<<"_interface_attr"<<iendl++ ;
+     oss<<"USE, INTRINSIC :: ISO_C_BINDING"<<iendl ;
+     oss<<iendl ;
+     oss<<"INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99"<<iendl++ ;
+     oss<<iendl ;   
+     oss<<iendl ;
+     SuperClassMap::generateFortran2003Interface(oss,className) ;
+     oss<<"END INTERFACE"<<iendl-- ;
+     oss<<iendl-- ;
+     oss<<"END MODULE "<<className<<"_interface_attr"<<iendl ;
+   }
   
+   template <typename T>
+   void CObjectTemplate<T>::generateFortranInterface(ostream& oss)
+   {
+     string className=getName() ;
+     int found=className.find_first_of('_') ;
+     if (found!=string::npos) className.erase(found,1) ;
+     string superClassName=getName();
+     found=superClassName.find("_group") ;
+     if (found!=string::npos) superClassName.erase(found,6) ;
+     
+     oss<<"! * ************************************************************************** *"<<iendl ;
+     oss<<"! *               Interface auto generated - do not modify                     *"<<iendl ;
+     oss<<"! * ************************************************************************** *"<<iendl;
+     oss<<"#include \"xios_fortran_prefix.hpp\""<<iendl ;
+     oss<<iendl ;
+     oss<<"MODULE i"<<className<<"_attr"<<iendl++ ;
+     oss<<"USE, INTRINSIC :: ISO_C_BINDING"<<iendl ;
+     oss<<"USE i"<<superClassName<<iendl ;
+     oss<<"USE "<<className<<"_interface_attr"<<iendl ;
+//     oss<<"TYPE txios("<<className<<")"<<iendl ;
+//     oss<<"  INTEGER(kind = C_INTPTR_T) :: daddr"<<iendl ;
+//     oss<<"END TYPE txios("<<className<<")"<<iendl ;
+     oss<<iendl-- ;
+     oss<<"CONTAINS"<<iendl++ ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterface_id(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterface_hdl(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterface_hdl_(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceGet_id(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceGet_hdl(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceGet_hdl_(oss,className) ;
+     oss<<iendl-- ;
+     oss<<"END MODULE i"<<className<<"_attr"<<iendl ;
+   }
+
+
 } // namespace xmlioserver
 
 #endif // __XMLIO_CObjectTemplate_impl__

@@ -5,9 +5,13 @@
 #include "type.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
+#include "generate_interface_impl.hpp"
 
+
+  
 namespace xmlioserver
 {
+
    namespace tree
    {
       /// ////////////////////// Définitions ////////////////////// ///
@@ -180,6 +184,55 @@ namespace xmlioserver
         }
       }
 
+      template <typename T>
+      void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)
+      {
+        CInterface::AttributeCInterface<T>(oss, className, this->getName()) ;
+      }
+      
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortran2003Interface(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName()) ;
+      }
+      
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceDeclaration_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()+"_") ;
+      }
+ 
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceBody_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceBody<T>(oss, className, this->getName()) ;
+      }
+
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceDeclaration(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()) ;
+      }
+      
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()+"_") ;
+      }
+ 
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceGetBody_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceGetBody<T>(oss, className, this->getName()) ;
+      }
+
+      template <typename T>
+      void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
+      }
+ 
+      
       //---------------------------------------------------------------
 
       /** Spécialisations des templates pour la fonction [toString] **/

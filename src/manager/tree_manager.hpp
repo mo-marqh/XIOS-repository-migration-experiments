@@ -5,7 +5,7 @@
 #include "xmlioserver_spl.hpp"
 #include "node_type.hpp"
 #include "xml_parser.hpp"
-#include "indent.hpp"
+#include "indent_xml.hpp"
 
 #undef  DECLARE_ATTRIBUTE
 #define DECLARE_ATTRIBUTE(type, name)  , type * name = NULL

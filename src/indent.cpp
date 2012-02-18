@@ -1,53 +1,71 @@
 #include "indent.hpp"
+#include <ostream>
+#include <iostream>
 
-/// boost headers ///
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
+using namespace std ;
 
 namespace xmlioserver
 {
-   /// ////////////////////// Définitions ////////////////////// ///
-   unsigned int CIndent::Indent   = 0;
-   StdString    CIndent::Increm   = StdString("   ");
-   bool         CIndent::WithLine = false;
+  Cindent iendl ;
+  Cindent ireset(0,true) ;
+  int Cindent::defaultIncSize=2 ;
+  int Cindent::index=ios::xalloc() ;
+  
+  Cindent::Cindent(int i,bool r) : offset(i), reset(r), incSize(defaultIncSize) 
+  { }
+  
+  Cindent Cindent::operator++()
+  {
+    return Cindent(incSize) ;
+  }
+  
+  Cindent Cindent::operator--()
+  {
+    return Cindent(-incSize) ;
+  }
 
-   StdOStream & CIndent::NIndent(StdOStream& out)
-   {
-      static unsigned int LineNB = 1;
-      if (CIndent::WithLine) out << LineNB++ << ". ";
-      for(unsigned int i = 0; i < CIndent::Indent; out << CIndent::Increm , i++){}
-      return (out);
-   }
+  Cindent Cindent::operator++(int)
+  {
+    return Cindent(incSize) ;
+  }
+  
+  Cindent Cindent::operator--(int)
+  {
+    return Cindent(-incSize) ;
+  }
 
-   StdOStream & CIndent::IncIndent(StdOStream& out)
-   { CIndent::Indent++; return (CIndent::NIndent(out)); }
+  Cindent Cindent::operator+=(int i)
+  {
+    return Cindent(incSize*i) ;
+  }  
 
-   StdOStream & CIndent::DecEndl  (StdOStream& out)
-   { CIndent::Indent--; return (out); }
+  Cindent Cindent::operator-=(int i)
+  {
+    return Cindent(-incSize*i) ;
+  }  
 
-   ///----------------------------------------
-
-   StdString CIndentedXml::Indented(const StdString & content)
-   {
-      StdOStringStream retvalue;
-      std::vector<StdString> str;
-      boost::split(str, content, boost::is_any_of("\n"));
-      
-      std::vector<StdString>::iterator it = str.begin(), end = str.end();
-      
-      for (; it != end; it++)
-      {
-         StdString & line = *it;
-         if (line.find("<? ") != StdString::npos ||
-             line.find(xml::CXMLNode::GetRootName()) != StdString::npos)
-            retvalue << CIndent::NIndent << line <<  std::endl;
-         else if (line.find("</") != StdString::npos)
-            retvalue << CIndent::NIndent   << line << CIndent::DecEndl << std::endl;
-         else if (line.find(" />") != StdString::npos)
-            retvalue << CIndent::IncIndent << line << CIndent::DecEndl << std::endl;
-         else
-            retvalue << CIndent::IncIndent << line <<  std::endl;
-      }
-      return (retvalue.str());
-   }
-} // namespace xmlioserver
+  ostream& Cindent::iendl(ostream& o) const
+  {
+    if (reset)
+    {
+      o.iword(index)=0 ;
+      return o ;
+    }
+    else
+    {
+      o.iword(index)+=offset ;
+      if (o.iword(index)<0) o.iword(index)=0 ;
+      o<<"\n" ;
+      int mem=o.width(o.iword(index)) ;
+      o<<"";
+      o.width(mem) ;
+      return o ;
+    }
+  }
+  
+  ostream& operator <<(ostream& o, const Cindent& indent) 
+  {
+    return indent.iendl(o) ; 
+  }
+  
+}

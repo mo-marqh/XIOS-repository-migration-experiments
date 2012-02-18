@@ -39,7 +39,7 @@ namespace xmlioserver
 
          virtual void toBinary  (StdOStream & os) const;
          virtual void fromBinary(StdIStream & is);
-
+         virtual string getName(void) const ;
          virtual void parse(xml::CXMLNode & node);
          
          /// Accesseurs ///
@@ -69,6 +69,10 @@ namespace xmlioserver
          static boost::shared_ptr<T> get(const string& id) ;
          boost::shared_ptr<T> get(void) ;
          static boost::shared_ptr<T> create(const string& id=string("")) ;
+         
+         void generateCInterface(ostream& oss) ;
+         void generateFortran2003Interface(ostream& oss) ;
+         void generateFortranInterface(ostream& oss) ;
          
       protected :
 

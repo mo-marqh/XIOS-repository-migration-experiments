@@ -1,4 +1,5 @@
 #include "attribute_map.hpp"
+#include "indent.hpp"
 
 namespace xmlioserver
 {
@@ -185,7 +186,352 @@ namespace xmlioserver
          }
       }
       
+      void CAttributeMap::generateCInterface(ostream& oss, const string& className)
+      {
+         SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();
+         for (; it != end; it++)
+         {
+           it->second->generateCInterface(oss,className) ;
+           oss<<iendl<<iendl ;
+         }
+      }
+
+      void CAttributeMap::generateFortran2003Interface(ostream& oss, const string& className)
+      {
+         SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();
+         for (; it != end; it++)
+         {
+           it->second->generateFortran2003Interface(oss,className) ;
+           oss<<iendl<<iendl ;
+         }
+      }      
+      
       ///--------------------------------------------------------------
+
+      void CAttributeMap::generateFortranInterface_hdl_(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(set_"<<className<<"_attr_hdl_)   &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         
+         *oss2<<"( "<<className<<"_hdl"  ;
+         
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName()<<"_" ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+         oss<<"TYPE(txios("<<className<<")) , INTENT(IN) :: "<<className<<"_hdl"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceDeclaration_(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceBody_(oss,className) ;
+           oss<<iendl ;
+         }
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(set_"<<className<<"_attr_hdl_)"<<iendl ;
+         
+      }      
+
+      void CAttributeMap::generateFortranInterfaceGet_hdl_(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(get_"<<className<<"_attr_hdl_)   &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         
+         *oss2<<"( "<<className<<"_hdl"  ;
+         
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName()<<"_" ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+         oss<<"TYPE(txios("<<className<<")) , INTENT(IN) :: "<<className<<"_hdl"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceGetDeclaration_(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceGetBody_(oss,className) ;
+           oss<<iendl ;
+         }
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(get_"<<className<<"_attr_hdl_)"<<iendl ;
+         
+      }      
+
+      void CAttributeMap::generateFortranInterface_hdl(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(set_"<<className<<"_attr_hdl)  &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         oss2=new ostringstream ;
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+         oss<<"TYPE(txios("<<className<<")) , INTENT(IN) :: "<<className<<"_hdl"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceDeclaration(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         
+         oss<<"CALL xios(set_"<<className<<"_attr_hdl_)  &"<<iendl ;
+         
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str() ;
+         delete oss2 ; 
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(set_"<<className<<"_attr_hdl)"<<iendl ;
+      }      
+      
+ 
+      void CAttributeMap::generateFortranInterfaceGet_hdl(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(get_"<<className<<"_attr_hdl)  &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         oss2=new ostringstream ;
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+         oss<<"TYPE(txios("<<className<<")) , INTENT(IN) :: "<<className<<"_hdl"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceGetDeclaration(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         
+         oss<<"CALL xios(get_"<<className<<"_attr_hdl_)  &"<<iendl ;
+         
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str() ;
+         delete oss2 ; 
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(get_"<<className<<"_attr_hdl)"<<iendl ;
+      }      
+      
+      void CAttributeMap::generateFortranInterface_id(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(set_"<<className<<"_attr)  &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         *oss2<<"( "<<className<<"_id"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         oss2=new ostringstream ;
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+
+         oss<<"TYPE(txios("<<className<<"))  :: "<<className<<"_hdl"<<iendl ;
+         oss<<"CHARACTER(LEN=*), INTENT(IN) ::"<<className<<"_id"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceDeclaration(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         oss<<"CALL xios(get_"<<className<<"_handle)("<<className<<"_id,"<<className<<"_hdl)"<<iendl ; 
+         oss<<"CALL xios(set_"<<className<<"_attr_hdl_)   &"<<iendl ;
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str() ;
+         delete oss2 ; 
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(set_"<<className<<"_attr)"<<iendl ;
+         
+      }      
+      
+      void CAttributeMap::generateFortranInterfaceGet_id(ostream& oss, const string& className)
+      {
+         oss<<"SUBROUTINE xios(get_"<<className<<"_attr)  &"<<iendl++ ;
+         ostringstream* oss2 ;
+         SuperClassMap::const_iterator it ;
+         SuperClassMap::const_iterator begin = SuperClassMap::begin(), end = SuperClassMap::end();
+         
+         oss2=new ostringstream ;
+         *oss2<<"( "<<className<<"_id"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str()<<iendl ;
+         oss<<iendl ;
+         delete oss2 ; 
+         oss2=new ostringstream ;
+         
+         oss<<"IMPLICIT NONE"<<iendl++ ;
+
+         oss<<"TYPE(txios("<<className<<"))  :: "<<className<<"_hdl"<<iendl ;
+         oss<<"CHARACTER(LEN=*), INTENT(IN) ::"<<className<<"_id"<<iendl ;
+         
+         for (it=begin; it != end; it++)
+         {
+           it->second->generateFortranInterfaceGetDeclaration(oss,className) ;
+         }
+         
+         oss<<iendl ;
+         oss<<"CALL xios(get_"<<className<<"_handle)("<<className<<"_id,"<<className<<"_hdl)"<<iendl ; 
+         oss<<"CALL xios(get_"<<className<<"_attr_hdl_)   &"<<iendl ;
+         *oss2<<"( "<<className<<"_hdl"  ;
+         for ( it=begin ; it != end; it++) 
+         {
+           *oss2<<", "<<it->second->getName() ;
+           if (oss2->str().size()>90) 
+           {
+             oss<<oss2->str()<<"  &"<<iendl ;
+             delete oss2 ;
+             oss2=new ostringstream ;
+           }
+         }
+         *oss2<<" )" ;
+         oss<<oss2->str() ;
+         delete oss2 ; 
+         
+         oss<<iendl--<<iendl-- ;
+         oss<<"END SUBROUTINE xios(get_"<<className<<"_attr)"<<iendl ;
+         
+      }      
+      ///--------------------------------------------------------------
+  
 
    } // namespace tree
 } // namespace xmlioser

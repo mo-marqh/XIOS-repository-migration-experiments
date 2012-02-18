@@ -38,7 +38,7 @@ END PROGRAM test_cs
   
   
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo,field_A_glo
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:), lonvalue(:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,ts,n
   
@@ -61,7 +61,7 @@ END PROGRAM test_cs
   
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2))
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2),lonvalue(ni*nj))
   lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
   lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
   field_A(1:ni,1:nj)=field_A_glo(ibegin:iend,jbegin:jend)
@@ -95,6 +95,12 @@ END PROGRAM test_cs
  
     dtime%second=3600
     CALL xios_set_timestep(dtime) 
+    
+    ni=0 ; lonvalue(:)=0
+    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
+    
+    print *,"ni",ni
+    print *,"lonvalue",lonvalue ;
 
     CALL xios_close_context_definition()
     

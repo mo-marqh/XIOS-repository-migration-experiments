@@ -63,8 +63,16 @@ namespace xmlioserver
             virtual bool toBuffer  (CBufferOut& buffer) const;
             virtual bool fromBuffer(CBufferIn& buffer) ;
             virtual size_t size(void) const;
-   
+            virtual void generateCInterface(ostream& oss,const string& className) ;
+            virtual void generateFortran2003Interface(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceDeclaration_(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceBody_(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceDeclaration(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
 
+      
          protected :
 
             /// Constructeurs ///

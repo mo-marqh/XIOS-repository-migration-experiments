@@ -253,7 +253,7 @@ namespace xmlioserver
                      ("units", axis->unit.getValue(), &axisid);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(axis->zvalue.getValue(), axisid, true, 0);
+               SuperClassWriter::writeData(axis->value.getValue(), axisid, true, 0);
                SuperClassWriter::definition_start();
 
                break;

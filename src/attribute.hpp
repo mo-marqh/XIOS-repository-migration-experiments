@@ -52,7 +52,17 @@ namespace xmlioserver
 
             virtual void toBinary  (StdOStream & os) const = 0;
             virtual void fromBinary(StdIStream & is) = 0;
+            virtual void generateCInterface(ostream& oss, const string& className) = 0 ;
+            virtual void generateFortran2003Interface(ostream& oss, const string& className) = 0 ;
+            virtual void generateFortranInterfaceDeclaration_(ostream& oss,const string& className) = 0 ;
+            virtual void generateFortranInterfaceDeclaration(ostream& oss,const string& className) = 0 ;
+            virtual void generateFortranInterfaceBody_(ostream& oss,const string& className) = 0 ;
+            virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) = 0 ;
+            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) = 0 ;
+            virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) = 0 ;
 
+
+            
          protected :
 
             /// Constructeurs ///
