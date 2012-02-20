@@ -6,7 +6,6 @@
 
 #include "node_type.hpp"
 #include "calendar_util.hpp"
-#include "xios_manager.hpp"
 
 namespace xmlioserver{
 namespace tree {

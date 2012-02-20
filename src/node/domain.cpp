@@ -4,8 +4,6 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 
-#include "mpi_manager.hpp"
-
 #include "tree_manager.hpp"
 #include "xmlioserver_spl.hpp"
 #include "event_client.hpp"

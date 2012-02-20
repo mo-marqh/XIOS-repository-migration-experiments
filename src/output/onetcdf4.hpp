@@ -6,7 +6,6 @@
 #include "exception.hpp"
 #include "array.hpp"
 #include "data_output.hpp"
-#include "mpi_manager.hpp"
 
 #include <mpi.h>
 #define MPI_INCLUDED

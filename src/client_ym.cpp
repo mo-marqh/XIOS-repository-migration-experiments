@@ -3,7 +3,6 @@
 #include "client_ym.hpp"
 #include <boost/functional/hash.hpp>
 #include "type.hpp"
-#include "buffer.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
 #include "tree_manager.hpp"
@@ -128,61 +127,6 @@ namespace xmlioserver
       MPI_Comm_dup(intraComm,&returnComm) ;
     }
     
-    
-    
-    
-/*    
-    void CClient::initialize(const string& codeId,MPI_Comm& localComm,MPI_Comm& returnComm)
-    {
-      boost::hash<string> hashString ;    
-    
-      unsigned long hashClient=hashString(codeId) ;
-      unsigned long hashServer=hashString(CXios::xiosCodeId) ;
-      unsigned long* hashAll ;
-      int rank ;
-      int size ;
-      int myColor ;
-      int i,c ;
-      MPI_Comm newComm ;
-      
-      MPI_Comm_size(CXios::globalComm,&size) ;
-      MPI_Comm_rank(CXios::globalComm,&rank);
-      hashAll=new unsigned long[size] ;
-     
-      MPI_Allgather(&hashClient,1,MPI_LONG,hashAll,1,MPI_LONG,CXios::globalComm) ;
-
-      map<unsigned long, int> colors ;
-      map<unsigned long, int> leaders ;
-      
-      for(i=0,c=0;i<size;i++)
-      {
-        if (colors.find(hashAll[i])==colors.end())
-        {
-          colors[hashAll[i]] =c ;
-          leaders[hashAll[i]]=i ;
-          c++ ;
-        }
-        
-      }
-     
-      myColor=colors[hashClient] ;
-      
-      MPI_Comm_split(CXios::globalComm,myColor,rank,&intraComm) ;
-
-      if (!CXios::isServer)
-      {     
-        int clientLeader=leaders[hashClient] ;
-        serverLeader=leaders[hashServer] ;
-        MPI_Intercomm_create(intraComm,0,CXios::globalComm,serverLeader,0,&interComm) ;
-      }
-      else
-      {
-        MPI_Comm_dup(intraComm,&interComm) ;
-      }
-
-      delete [] hashAll ;
-    }
-  */
     
     void CClient::registerContext(const string& id,MPI_Comm contextComm)
     {

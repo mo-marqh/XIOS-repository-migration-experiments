@@ -5,7 +5,6 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 #include <iostream>
-#include "mpi_manager.hpp"
 
 namespace xmlioserver {
 namespace tree {
@@ -532,7 +531,7 @@ namespace tree {
   }
 
 
-
+/*
    void CGrid::computeIndexServer(void)
    {
       ARRAY(int, 2) local_mask =  this->domain->getLocalMask();
@@ -668,7 +667,7 @@ namespace tree {
       this->out_j_index[0] = out_j_index_srv;
       this->out_l_index[0] = out_l_index_srv;      
    }
-   
+*/
    
    void CGrid::inputFieldServer
          (const std::deque<ARRAY(double, 1)> storedClient,

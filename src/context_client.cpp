@@ -7,7 +7,6 @@
 #include "type.hpp"
 #include "message.hpp"
 #include "event_client.hpp"
-#include "transfert_parameters.hpp"
 #include "context.hpp"
 #include <mpi.h>
 

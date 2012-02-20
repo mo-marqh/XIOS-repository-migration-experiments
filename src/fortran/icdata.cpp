@@ -16,8 +16,6 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
-#include "mpi_manager.hpp"
-#include "buffer.hpp"
 #include "cxios.hpp"
 #include "client_ym.hpp"
 #include "field.hpp"

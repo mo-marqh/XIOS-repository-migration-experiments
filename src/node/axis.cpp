@@ -3,7 +3,6 @@
 #include "attribute_template_impl.hpp"
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
-#include "transfert_parameters.hpp"
 
 namespace xmlioserver {
 namespace tree {

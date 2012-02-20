@@ -2,7 +2,6 @@
 #include "cxios.hpp"
 #include "server_ym.hpp"
 #include "type.hpp"
-#include "buffer.hpp"
 #include "context.hpp"
 #include "object_template_impl.hpp"
 #include "tree_manager.hpp"
@@ -349,9 +348,6 @@ namespace xmlioserver
         ERROR("void CServer::registerContext(void* buff,int count, int leaderRank)",
               <<"Context has already been registred") ;
       
-//      tree::CContext* ptr ;
-//      if (tree::CContext::has(contextId)) ptr=tree::CContext::get(contextId).get() ;
-//      else ptr=tree::CContext::create(contextId).get() ;
       shared_ptr<CContext> context=tree::CTreeManager::CreateContext(contextId) ;
       contextList[contextId]=context.get() ;
       context->initServer(intraComm,contextIntercomm) ;

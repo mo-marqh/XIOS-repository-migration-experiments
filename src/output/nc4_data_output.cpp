@@ -7,7 +7,6 @@
 
 #include "file.hpp"
 #include "calendar.hpp"
-#include "xios_manager.hpp"
 #include "context.hpp"
 #include "context_server.hpp"
 

@@ -1,6 +1,5 @@
 #include "onetcdf4.hpp"
 #include "group_template_impl.hpp"
-#include "mpi_manager.hpp"
 
 namespace xmlioserver
 {
@@ -403,8 +402,6 @@ namespace xmlioserver
 
       void CONetCDF4::sync(void)
       {
-        
-         comm::CMPIManager::Barrier(comm::CMPIManager::GetCommServer());
          CheckError(nc_sync(this->ncidp)) ;
       } 
       ///--------------------------------------------------------------
