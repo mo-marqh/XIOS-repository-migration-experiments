@@ -1,5 +1,10 @@
 #include "date.hpp"
 #include "calendar.hpp"
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
+using namespace boost::posix_time ;
+using namespace boost::gregorian ;
 
 namespace xmlioserver
 {
@@ -47,35 +52,53 @@ namespace xmlioserver
 
       StdOStream & operator<<(StdOStream & out, const CDate & date)
       {
-         std::streamsize s = out.width (2);
-         char c = out.fill ('0');
-         out << date.day << '/';
-         s = out.width (2); c = out.fill ('0');
-         out << date.month << '/';
-         s = out.width (4); c = out.fill ('0');
-         out << date.year << '-';
-         s = out.width (2); c = out.fill ('0');
-         out << date.hour << ':';
-         s = out.width (2); c = out.fill ('0');
-         out << date.minute << ':';
-         s = out.width (2); c = out.fill ('0');
-         out << date.second;
+         std::streamsize s ; 
+         char c ;
          
+         s = out.width (4);  c = out.fill ('0') ; out << date.year << '-';
+         s = out.width (2);  c = out.fill ('0') ; out << date.month << '-';
+         s = out.width (2);  c = out.fill ('0') ; out << date.day << ' ';
+         s = out.width (2);  c = out.fill ('0') ; out << date.hour << ':';
+         s = out.width (2);  c = out.fill ('0') ; out << date.minute << ':';
+         s = out.width (2);  c = out.fill ('0') ; out << date.second ;
+
          return (out);
       }
 
       StdIStream & operator>>(StdIStream & in, CDate & date) // Non testée.
       {
-         char c = '/'; // Le caractère c est utilisé pour "recueillir" les séparateurs "/" et ":".
-         in >> date.day  >> c >> date.month  >> c >> date.year   >> c;
-         in >> date.hour >> c >> date.minute >> c >> date.second;
-         if(!date.checkDate())
-         {
-            DEBUG("La date initialisée (depuis une chaîne de caractères) "
-                  << "a été modifiée car elle était incorrecte "
-                  << "par rapport au calendrier souhaité.");
-         }
-         return (in);
+        char sep = '-'; // Le caractère c est utilisé pour "recueillir" les séparateurs "/" et ":".
+        char c ;
+         
+        in >> date.year >> c ;
+        if (c==sep)
+        {
+          in >> date.month >> c ;
+          if (c==sep)
+          {
+            in >> date.day  ;
+            c=in.get();
+            sep=' ' ;
+            if (c==sep)
+            {
+              in >> date.hour >> c ;
+              sep=':' ;
+              if (c==sep) 
+              {
+                in>>date.minute >> c;
+                if (c==sep)
+                {
+                  in>>date.second ;
+                  if(!date.checkDate())
+                    ERROR("StdIStream & operator >> (StdIStream & in, CDate & date)",<<"Bad date format or not conform to calendar" );
+                    return (in);
+                }
+              }
+            }
+          }
+        }
+        ERROR("StdIStream & operator >> (StdIStream & in, CDate & date)",<<"Bad date format or not conform to calendar" );
+        return (in);
       }
 
       CDate::operator Time(void) // Non vérifiée, pas optimisée ...

@@ -76,7 +76,7 @@ END PROGRAM test_cs
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
+!  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",zoom_ni=3,zoom_ibegin=3,zoom_nj=3,zoom_jbegin=6)
