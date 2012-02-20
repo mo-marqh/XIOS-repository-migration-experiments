@@ -17,6 +17,10 @@ namespace xmlioserver
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer ;   
+  size_t CXios::bufferSize ;
+  double CXios::bufferServerFactorSize=2 ;
+  size_t CXios::defaultBufferSize=1024*1024*100 ; // 100Mo
+  double CXios::defaultBufferServerFactorSize=2 ;
   
   void CXios::initialize()
   {
@@ -24,6 +28,8 @@ namespace xmlioserver
     usingServer=getin<bool>("using_server",false) ;
     usingOasis=getin<bool>("using_oasis",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
+    bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
+    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
     globalComm=MPI_COMM_WORLD ;
   }
 

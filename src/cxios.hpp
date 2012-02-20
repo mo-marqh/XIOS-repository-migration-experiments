@@ -33,6 +33,10 @@ namespace xmlioserver
      
      static bool usingOasis ;
      static bool usingServer ;   
+     static size_t bufferSize ;
+     static size_t defaultBufferSize ;
+     static double bufferServerFactorSize ;
+     static double defaultBufferServerFactorSize ;
         
   } ;
 }

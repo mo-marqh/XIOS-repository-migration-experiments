@@ -25,7 +25,7 @@ namespace xmlioserver
     size_t current ; // first free element
     size_t end ;
     size_t size ;
-    static size_t bufferSizeByClient ;
+    size_t bufferSizeByClient ;
   } ;
   
 

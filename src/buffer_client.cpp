@@ -2,15 +2,16 @@
 #include "exception.hpp"
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
+#include "cxios.hpp"
 #include <mpi.h>
 
 namespace xmlioserver
 {
-  int CClientBuffer::bufferSizeByServer=50*1024*1024 ;
-//  int CClientBuffer::bufferSizeByServer=1024*10 ;
-
+ 
   CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_)
   {
+    bufferSizeByServer=CXios::bufferSize ;
+    cout<<"bufferSizeByServer"<<bufferSizeByServer<<endl ;
     interComm=interComm_ ;
     serverRank=serverRank_ ;
     bufferSize=bufferSizeByServer/2 ;

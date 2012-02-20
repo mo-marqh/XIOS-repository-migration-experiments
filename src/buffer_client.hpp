@@ -28,7 +28,7 @@ namespace xmlioserver
     int serverRank ;
     bool pending ;
     
-    static int bufferSizeByServer ;
+    size_t bufferSizeByServer ;
     
     MPI_Request request ;
     

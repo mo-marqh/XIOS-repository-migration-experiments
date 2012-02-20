@@ -1,14 +1,14 @@
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "buffer_server.hpp"
+#include "cxios.hpp"
 
 namespace xmlioserver
 {
-  size_t CServerBuffer::bufferSizeByClient=100*1024*1024 ;
-//  size_t CServerBuffer::bufferSizeByClient=20*1024 ;
 
   CServerBuffer::CServerBuffer(void)
   {
+    bufferSizeByClient=CXios::bufferSize*CXios::bufferServerFactorSize ;
     size=bufferSizeByClient ;
     first=0 ;
     current=1 ;
