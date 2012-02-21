@@ -69,13 +69,15 @@ namespace xmlioserver
          std::vector<StdString> dim0, dim1;
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
-         StdString lonid     = StdString("lon_").append(domid);
-         StdString latid     = StdString("lat_").append(domid);
+         StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+
+         StdString lonid     = StdString("lon").append(appendDomid);
+         StdString latid     = StdString("lat").append(appendDomid);
          StdString lonid_loc = (server->intraCommSize > 1)
-                             ? StdString("lon_").append(domid).append("_local")
+                             ? StdString("lon").append(appendDomid).append("_local")
                              : lonid;
          StdString latid_loc = (server->intraCommSize > 1)
-                             ? StdString("lat_").append(domid).append("_local")
+                             ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
 // supress mask         StdString maskid    = StdString("mask_").append(domid).append("_local");
 
@@ -100,8 +102,8 @@ namespace xmlioserver
                if (isCurvilinear)
                {
                  dim0.push_back(latid_loc); dim0.push_back(lonid_loc);
-                 lonid = StdString("nav_lon_").append(domid);
-                 latid = StdString("nav_lat_").append(domid);
+                 lonid = StdString("nav_lon").append(appendDomid);
+                 latid = StdString("nav_lat").append(appendDomid);
                }
                else
                {
@@ -117,7 +119,7 @@ namespace xmlioserver
                                              domain->zoom_ni_srv,
                                              domain->zoom_jbegin_srv,
                                              domain->zoom_nj_srv,
-                                             domid);
+                                             appendDomid);
                }
                
                if (isCurvilinear)
@@ -171,8 +173,8 @@ namespace xmlioserver
                if (isCurvilinear)
                {
                   dim0.push_back(latid); dim0.push_back(lonid);
-                  lonid = StdString("nav_lon_").append(domid);
-                  latid = StdString("nav_lat_").append(domid);
+                  lonid = StdString("nav_lon").append(appendDomid);
+                  latid = StdString("nav_lat").append(appendDomid);
                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                }
@@ -282,13 +284,15 @@ namespace xmlioserver
          StdString timeid    = StdString("time_counter");
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
-         StdString lonid     = StdString("lon_").append(domid);
-         StdString latid     = StdString("lat_").append(domid);
+         StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+
+         StdString lonid     = StdString("lon").append(appendDomid);
+         StdString latid     = StdString("lat").append(appendDomid);
          StdString lonid_loc = (server->intraCommSize > 1)
-                             ? StdString("lon_").append(domid).append("_local")
+                             ? StdString("lon").append(appendDomid).append("_local")
                              : lonid;
          StdString latid_loc = (server->intraCommSize > 1)
-                             ? StdString("lat_").append(domid).append("_local")
+                             ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() : field->getBaseFieldReference()->getId();
@@ -323,8 +327,8 @@ namespace xmlioserver
 
          if (isCurvilinear)
          {
-            coodinates.push_back(StdString("nav_lat_").append(domid));
-            coodinates.push_back(StdString("nav_lon_").append(domid));
+            coodinates.push_back(StdString("nav_lat").append(appendDomid));
+            coodinates.push_back(StdString("nav_lon").append(appendDomid));
          }
          else
          {
@@ -425,6 +429,8 @@ namespace xmlioserver
                                    StdString ("CF-1.1"),
                                    StdString("An IPSL model"),
                                    this->getTimeStamp());
+         if (file->nbDomain==1) singleDomain=true ;
+         else singleDomain=false ;
       }
 
       void CNc4DataOutput::closeFile_ (void)
@@ -453,6 +459,7 @@ namespace xmlioserver
       void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<tree::CField>  field)
       {
          shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
 
          boost::shared_ptr<CGrid> grid = field->grid ;
          boost::shared_ptr<CDomain> domain = grid->domain ;
@@ -614,10 +621,10 @@ namespace xmlioserver
       void CNc4DataOutput::writeLocalAttributes
          (int ibegin, int ni, int jbegin, int nj, StdString domid)
       {
-         SuperClassWriter::addAttribute(StdString("ibegin_").append(domid), ibegin);
-         SuperClassWriter::addAttribute(StdString("ni_"    ).append(domid), ni);
-         SuperClassWriter::addAttribute(StdString("jbegin_").append(domid), jbegin);
-         SuperClassWriter::addAttribute(StdString("nj_"    ).append(domid), nj);
+         SuperClassWriter::addAttribute(StdString("ibegin").append(domid), ibegin);
+         SuperClassWriter::addAttribute(StdString("ni"    ).append(domid), ni);
+         SuperClassWriter::addAttribute(StdString("jbegin").append(domid), jbegin);
+         SuperClassWriter::addAttribute(StdString("nj"    ).append(domid), nj);
       }
 
       //---------------------------------------------------------------

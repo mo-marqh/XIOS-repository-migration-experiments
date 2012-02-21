@@ -11,7 +11,8 @@ MODULE ifile_attr
 CONTAINS
   
   SUBROUTINE xios(set_file_attr)  &
-    ( file_id, description, enabled, name, name_suffix, output_freq, output_level, type )
+    ( file_id, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+    , type )
     
     IMPLICIT NONE
       TYPE(txios(file))  :: file_hdl
@@ -23,16 +24,20 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       
       CALL xios(get_file_handle)(file_id,file_hdl)
       CALL xios(set_file_attr_hdl_)   &
-      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+      , type )
     
   END SUBROUTINE xios(set_file_attr)
   
   SUBROUTINE xios(set_file_attr_hdl)  &
-    ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+    ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+    , type )
     
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -43,16 +48,19 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       
       CALL xios(set_file_attr_hdl_)  &
-      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+      , type )
     
   END SUBROUTINE xios(set_file_attr_hdl)
   
   SUBROUTINE xios(set_file_attr_hdl_)   &
-    ( file_hdl, description_, enabled_, name_, name_suffix_, output_freq_, output_level_, type_  &
-     )
+    ( file_hdl, description_, enabled_, name_, name_suffix_, output_freq_, output_level_, split_freq_  &
+    , sync_freq_, type_ )
     
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -63,6 +71,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
       
       IF (PRESENT(description_)) THEN
@@ -90,6 +100,14 @@ CONTAINS
         CALL cxios_set_file_output_level(file_hdl%daddr, output_level_)
       ENDIF
       
+      IF (PRESENT(split_freq_)) THEN
+        CALL cxios_set_file_split_freq(file_hdl%daddr, split_freq_, len(split_freq_))
+      ENDIF
+      
+      IF (PRESENT(sync_freq_)) THEN
+        CALL cxios_set_file_sync_freq(file_hdl%daddr, sync_freq_, len(sync_freq_))
+      ENDIF
+      
       IF (PRESENT(type_)) THEN
         CALL cxios_set_file_type(file_hdl%daddr, type_, len(type_))
       ENDIF
@@ -99,7 +117,8 @@ CONTAINS
   END SUBROUTINE xios(set_file_attr_hdl_)
   
   SUBROUTINE xios(get_file_attr)  &
-    ( file_id, description, enabled, name, name_suffix, output_freq, output_level, type )
+    ( file_id, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+    , type )
     
     IMPLICIT NONE
       TYPE(txios(file))  :: file_hdl
@@ -111,16 +130,20 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       
       CALL xios(get_file_handle)(file_id,file_hdl)
       CALL xios(get_file_attr_hdl_)   &
-      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+      , type )
     
   END SUBROUTINE xios(get_file_attr)
   
   SUBROUTINE xios(get_file_attr_hdl)  &
-    ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+    ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+    , type )
     
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -131,16 +154,19 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       
       CALL xios(get_file_attr_hdl_)  &
-      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, type )
+      ( file_hdl, description, enabled, name, name_suffix, output_freq, output_level, split_freq, sync_freq  &
+      , type )
     
   END SUBROUTINE xios(get_file_attr_hdl)
   
   SUBROUTINE xios(get_file_attr_hdl_)   &
-    ( file_hdl, description_, enabled_, name_, name_suffix_, output_freq_, output_level_, type_  &
-     )
+    ( file_hdl, description_, enabled_, name_, name_suffix_, output_freq_, output_level_, split_freq_  &
+    , sync_freq_, type_ )
     
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -151,6 +177,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
       
       IF (PRESENT(description_)) THEN
@@ -176,6 +204,14 @@ CONTAINS
       
       IF (PRESENT(output_level_)) THEN
         CALL cxios_get_file_output_level(file_hdl%daddr, output_level_)
+      ENDIF
+      
+      IF (PRESENT(split_freq_)) THEN
+        CALL cxios_get_file_split_freq(file_hdl%daddr, split_freq_, len(split_freq_))
+      ENDIF
+      
+      IF (PRESENT(sync_freq_)) THEN
+        CALL cxios_get_file_sync_freq(file_hdl%daddr, sync_freq_, len(sync_freq_))
       ENDIF
       
       IF (PRESENT(type_)) THEN

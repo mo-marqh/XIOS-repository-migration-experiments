@@ -6,6 +6,7 @@
 #include "field.hpp"
 #include "data_output.hpp"
 #include "declare_group.hpp"
+#include "date.hpp"
 
 
 
@@ -101,7 +102,10 @@ namespace tree {
          static void recvAddFieldGroup(CEventServer& event) ;
          void recvAddFieldGroup(CBufferIn& buffer) ;
          static bool dispatchEvent(CEventServer& event) ;
-
+         bool isSyncTime(void) ;
+         date::CDate* lastSync ;
+         date::CDuration syncFreq ;
+         int nbDomain ;
       private :
 
          /// Propriétés privées ///

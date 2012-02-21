@@ -10,6 +10,8 @@
 #include "context.hpp"
 #include "context_server.hpp"
 #include "nc4_data_output.hpp"
+#include "calendar_util.hpp"
+#include "date.hpp"
 
 
 namespace xmlioserver {
@@ -124,19 +126,40 @@ namespace tree {
    }
 
    //----------------------------------------------------------------
-
+   bool CFile::isSyncTime(void)
+   {
+     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     date::CDate& currentDate=context->calendar->getCurrentDate() ;
+     if (! sync_freq.isEmpty())
+     {
+       if (*lastSync+syncFreq < currentDate)
+       {
+         *lastSync=currentDate ;
+         return true ;
+        }
+      }
+      return false ;
+    }
+      
    void CFile::createHeader(void)
    {
-    
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+
+      if (! sync_freq.isEmpty()) syncFreq = date::CDuration::FromString(sync_freq.getValue());
+      lastSync=new date::CDate(context->calendar->getCurrentDate()) ;
+      
       std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
 
       AllDomainEmpty=true ;
+      set<CDomain*> setDomain ;
       for (it = this->enabledFields.begin() ;it != end; it++)
       {
          boost::shared_ptr<CField> field = *it;
          AllDomainEmpty&=field->grid->domain->isEmpty() ;
+         setDomain.insert(field->grid->domain.get()) ;
       }
-      
+      nbDomain=setDomain.size() ;
+
       if (!AllDomainEmpty ||  type.getValue()=="one_file")
       {
          StdString filename = (!name.isEmpty()) ?   name.getValue() : getId();
@@ -155,7 +178,6 @@ namespace tree {
                       <<"having : <"<<type.getValue()<<">") ;
          } 
          
-         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
          CContextServer* server=context->server ;
 
          if (multifile) 
@@ -187,6 +209,7 @@ namespace tree {
    {
      if (!AllDomainEmpty ||  type.getValue()=="one_file")
        this->data_out->closeFile();
+     delete lastSync ;
    }
    //----------------------------------------------------------------
 

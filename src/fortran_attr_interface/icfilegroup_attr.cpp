@@ -113,6 +113,36 @@ extern "C"
   }
   
   
+  void cxios_set_filegroup_split_freq(filegroup_Ptr filegroup_hdl, const char * split_freq, int split_freq_size)
+  {
+    std::string split_freq_str;
+    if(!cstr2string(split_freq, split_freq_size, split_freq_str)) return;
+    filegroup_hdl->split_freq.setValue(split_freq_str);
+    filegroup_hdl->sendAttributToServer(filegroup_hdl->split_freq);
+  }
+  
+  void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, char * split_freq, int split_freq_size)
+  {
+    if(!string_copy(filegroup_hdl->split_freq.getValue(),split_freq , split_freq_size))
+      ERROR("void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, char * split_freq, int split_freq_size)", <<"Input string is to short");
+  }
+  
+  
+  void cxios_set_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, const char * sync_freq, int sync_freq_size)
+  {
+    std::string sync_freq_str;
+    if(!cstr2string(sync_freq, sync_freq_size, sync_freq_str)) return;
+    filegroup_hdl->sync_freq.setValue(sync_freq_str);
+    filegroup_hdl->sendAttributToServer(filegroup_hdl->sync_freq);
+  }
+  
+  void cxios_get_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, char * sync_freq, int sync_freq_size)
+  {
+    if(!string_copy(filegroup_hdl->sync_freq.getValue(),sync_freq , sync_freq_size))
+      ERROR("void cxios_get_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, char * sync_freq, int sync_freq_size)", <<"Input string is to short");
+  }
+  
+  
   void cxios_set_filegroup_type(filegroup_Ptr filegroup_hdl, const char * type, int type_size)
   {
     std::string type_str;

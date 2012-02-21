@@ -109,6 +109,36 @@ MODULE filegroup_interface_attr
     END SUBROUTINE cxios_get_filegroup_output_level
     
     
+    SUBROUTINE cxios_set_filegroup_split_freq(filegroup_hdl, split_freq, split_freq_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_freq
+      INTEGER  (kind = C_INT)     , VALUE        :: split_freq_size
+    END SUBROUTINE cxios_set_filegroup_split_freq
+    
+    SUBROUTINE cxios_get_filegroup_split_freq(filegroup_hdl, split_freq, split_freq_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_freq
+      INTEGER  (kind = C_INT)     , VALUE        :: split_freq_size
+    END SUBROUTINE cxios_get_filegroup_split_freq
+    
+    
+    SUBROUTINE cxios_set_filegroup_sync_freq(filegroup_hdl, sync_freq, sync_freq_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: sync_freq
+      INTEGER  (kind = C_INT)     , VALUE        :: sync_freq_size
+    END SUBROUTINE cxios_set_filegroup_sync_freq
+    
+    SUBROUTINE cxios_get_filegroup_sync_freq(filegroup_hdl, sync_freq, sync_freq_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: sync_freq
+      INTEGER  (kind = C_INT)     , VALUE        :: sync_freq_size
+    END SUBROUTINE cxios_get_filegroup_sync_freq
+    
+    
     SUBROUTINE cxios_set_filegroup_type(filegroup_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

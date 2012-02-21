@@ -36,7 +36,7 @@ namespace xmlioserver
 
             /// Destructeur ///
             virtual ~CNc4DataOutput(void);
-
+            bool singleDomain ;
          protected :
 
             /// Ecriture ///
