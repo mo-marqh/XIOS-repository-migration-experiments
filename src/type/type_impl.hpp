@@ -134,7 +134,7 @@ namespace xmlioserver
   template <typename T>
   CBufferIn& operator>>(CBufferIn& buffer, const CType<T>& type)
   {
-    if (! const_cast<CType<T> & > type.fromBuffer(buffer)) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
+    if (! const_cast<CType<T> & >(type).fromBuffer(buffer)) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
                                            <<"Buffer remain size is to low for size type") ;
     return buffer ;
   }
