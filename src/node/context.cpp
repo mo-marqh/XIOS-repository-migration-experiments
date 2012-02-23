@@ -543,32 +543,7 @@ namespace tree {
          
       for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
       {
-/*         shared_ptr<CFile> file = *it;
-         StdString filename = (!file->name.isEmpty()) ?   file->name.getValue() : file->getId();
-         StdOStringStream oss;
-         if (! output_dir.isEmpty()) oss << output_dir.getValue();
-         oss << filename;
-         if (!file->name_suffix.isEmpty()) oss << file->name_suffix.getValue();
-
-         bool multifile=true ;
-         if (!file->type.isEmpty())
-         {
-           StdString str=file->type.getValue() ; 
-           if (str.compare("one_file")==0) multifile=false ;
-           else if (str.compare("multi_file")==0) multifile=true ;
-           else ERROR("void Context::createDataOutput(void)",
-                      "incorrect file <type> attribut : must be <multi_file> or <one_file>, "
-                      <<"having : <"<<str<<">") ;
-         } 
-         if (multifile) 
-         {
-            if (server->intraCommSize > 1) oss << "_" << server->intraCommRank;
-         }
-         oss << ".nc";
-
-         shared_ptr<io::CDataOutput> dout(new T(oss.str(), false,server->intraComm,multifile));
-*/
-         (*it)->createHeader();
+         (*it)->initFile();
       }
    } 
    

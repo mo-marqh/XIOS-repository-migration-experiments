@@ -46,6 +46,7 @@ namespace xmlioserver
             virtual void writeFieldData_ (const boost::shared_ptr<tree::CField>    field);
             virtual void writeFile_      (const boost::shared_ptr<tree::CFile>     file);
             virtual void closeFile_      (void);
+            virtual void syncFile_      (void);
             virtual void writeTimeAxis_  (const boost::shared_ptr<tree::CField>    field,
                                           const boost::shared_ptr<date::CCalendar> cal);
 

@@ -103,9 +103,17 @@ namespace tree {
          void recvAddFieldGroup(CBufferIn& buffer) ;
          static bool dispatchEvent(CEventServer& event) ;
          bool isSyncTime(void) ;
+         bool checkSplit(void) ;
+         bool checkSync(void) ;
+         void checkFile(void) ;
+         void initFile(void) ;
          date::CDate* lastSync ;
+         date::CDate* lastSplit ;
          date::CDuration syncFreq ;
+         date::CDuration splitFreq ;
+         date::CDuration outputFreq ;
          int nbDomain ;
+         bool isOpen ;
       private :
 
          /// Propriétés privées ///

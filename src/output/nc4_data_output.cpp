@@ -432,6 +432,11 @@ namespace xmlioserver
          if (file->nbDomain==1) singleDomain=true ;
          else singleDomain=false ;
       }
+ 
+      void CNc4DataOutput::syncFile_ (void)
+      {
+         SuperClassWriter::sync() ;
+      }
 
       void CNc4DataOutput::closeFile_ (void)
       {
@@ -459,7 +464,7 @@ namespace xmlioserver
       void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<tree::CField>  field)
       {
          shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
+//          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
 
          boost::shared_ptr<CGrid> grid = field->grid ;
          boost::shared_ptr<CDomain> domain = grid->domain ;

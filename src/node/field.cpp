@@ -175,7 +175,6 @@ namespace tree {
         this->foperation_srv[ranks[n]]->final();
       }
       
-      this->incrementNStep();
       *last_Write_srv = writeDate;
       writeField() ;
     }
@@ -183,8 +182,12 @@ namespace tree {
   
   void CField::writeField(void)
   {
-    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file") 
+    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file")
+    {
+      getRelFile()->checkFile();
+      this->incrementNStep();
       getRelFile()->getDataOutput()->writeFieldData(CObjectFactory::GetObject<CField>(this));
+    }
   }
    //----------------------------------------------------------------
 
@@ -221,6 +224,11 @@ namespace tree {
    void CField::incrementNStep(void)
    {
       this->nstep++;
+   }
+ 
+   void CField::resetNStep(void)
+   {
+      this->nstep=0;
    }
 
    //----------------------------------------------------------------

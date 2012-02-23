@@ -56,6 +56,7 @@ namespace xmlioserver
 
             /// Autres ///
             StdString toString(void) const;
+            StdString getStryyyymmdd(void) const;
 
          public : /* static */
 

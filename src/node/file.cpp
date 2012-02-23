@@ -140,13 +140,68 @@ namespace tree {
       }
       return false ;
     }
+    
+   void CFile::initFile(void)
+   {
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      date::CDate& currentDate=context->calendar->getCurrentDate() ;
       
+      if (! sync_freq.isEmpty()) syncFreq = date::CDuration::FromString(sync_freq.getValue());
+      if (! split_freq.isEmpty()) splitFreq = date::CDuration::FromString(split_freq.getValue());
+      if (! output_freq.isEmpty()) outputFreq = date::CDuration::FromString(output_freq.getValue());
+      lastSync=new date::CDate(currentDate) ;
+      lastSplit=new date::CDate(currentDate) ;
+      isOpen=false ;
+    }
+    
+    void CFile::checkFile(void)
+    {
+      if (!isOpen) createHeader() ;
+      checkSync() ;
+      checkSplit() ;
+    }
+      
+     
+   bool CFile::checkSync(void)
+   {
+     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     date::CDate& currentDate=context->calendar->getCurrentDate() ;
+     if (! sync_freq.isEmpty())
+     {
+       if (*lastSync+syncFreq < currentDate)
+       {
+         *lastSync=currentDate ;
+         data_out->syncFile() ;
+         return true ;
+        }
+      }
+      return false ;
+    }
+    
+    
+    bool CFile::checkSplit(void)
+    {
+      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      date::CDate& currentDate=context->calendar->getCurrentDate() ;
+      if (! split_freq.isEmpty())
+      {
+        if (*lastSplit+splitFreq < currentDate)
+        {
+          *lastSplit=currentDate-outputFreq ;
+        
+          std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
+          for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
+          createHeader() ;
+          return true ;
+        }
+      }
+      return false ;
+    }
+    
    void CFile::createHeader(void)
    {
       shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-
-      if (! sync_freq.isEmpty()) syncFreq = date::CDuration::FromString(sync_freq.getValue());
-      lastSync=new date::CDate(context->calendar->getCurrentDate()) ;
+      date::CDate& currentDate=context->calendar->getCurrentDate() ;
       
       std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
 
@@ -167,7 +222,8 @@ namespace tree {
 //         if (! output_dir.isEmpty()) oss << output_dir.getValue();
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
-
+//         if (!split_freq.isEmpty()) oss<<"-["<<currentDate.toString()<<"]" ;
+         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*date::Second)).getStryyyymmdd();
          bool multifile=true ;
          if (!type.isEmpty())
          {
@@ -186,7 +242,10 @@ namespace tree {
          }
          oss << ".nc";
 
+         if (isOpen) data_out->closeFile() ;
+         
          data_out=shared_ptr<io::CDataOutput>(new io::CNc4DataOutput(oss.str(), false,server->intraComm,multifile));
+         isOpen=true ;
 
          data_out->writeFile(CObjectFactory::GetObject<CFile>(this));
          for (it = this->enabledFields.begin() ;it != end; it++)
@@ -207,9 +266,13 @@ namespace tree {
 
    void CFile::close(void)
    {
-     if (!AllDomainEmpty ||  type.getValue()=="one_file")
-       this->data_out->closeFile();
      delete lastSync ;
+     delete lastSplit ;
+     if (!AllDomainEmpty ||  type.getValue()=="one_file")
+       if (isOpen) 
+       {
+         this->data_out->closeFile();
+       }
    }
    //----------------------------------------------------------------
 

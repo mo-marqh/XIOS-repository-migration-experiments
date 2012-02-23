@@ -42,6 +42,11 @@ namespace xmlioserver
       {
          this->writeFile_(file);
       }
+ 
+      void CDataOutput::syncFile(void)
+      {
+         this->syncFile_();
+      }
 
       void CDataOutput::closeFile(void)
       {

@@ -193,6 +193,20 @@ namespace xmlioserver
       
       //----------------------------------------------------------------
       
+      StdString CDate::getStryyyymmdd(void) const
+      { 
+         std::streamsize s ; 
+         char c ;
+
+         ostringstream oss ;
+
+         s = oss.width (4);  c = oss.fill ('0') ; oss << year ;
+         s = oss.width (2);  c = oss.fill ('0') ; oss << month;
+         s = oss.width (2);  c = oss.fill ('0') ; oss << day ;
+
+         return oss.str();
+      }
+      
        StdString CDate::toString(void) const
       { 
          StdOStringStream oss;

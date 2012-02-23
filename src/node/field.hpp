@@ -87,6 +87,7 @@ namespace tree {
          /// Mutateur ///
          void setRelFile(const boost::shared_ptr<CFile> _file);
          void incrementNStep(void);
+         void resetNStep() ;
 
          template <StdSize N> bool updateData(const ARRAY(double, N)   data);
          
