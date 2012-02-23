@@ -4,6 +4,7 @@
 #include "context.hpp"
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
+#include "attribute_template_impl.hpp"
 #include "tree_manager.hpp"
 #include "domain.hpp"
 
