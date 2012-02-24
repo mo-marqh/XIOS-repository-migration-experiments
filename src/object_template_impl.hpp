@@ -1,13 +1,19 @@
 #ifndef __XMLIO_CObjectTemplate_impl__
 #define __XMLIO_CObjectTemplate_impl__
 
+#include "xmlioserver_spl.hpp"
+#include "context_client.hpp"
 #include "object_factory.hpp"
 #include "context.hpp"
 #include "buffer_in.hpp"
 #include "attribute.hpp"
 #include "event_client.hpp"
-#include "context_client.hpp"
 #include "object_template.hpp"
+#include "context_client.hpp"
+#include "indent.hpp"
+#include "type_util.hpp"
+#include "message.hpp"
+#include "type.hpp"
 
 namespace xmlioserver
 {

@@ -1,5 +1,5 @@
 #ifndef __CONTEXT_SERVER_HPP__
-#define __CONTEXT_CLIENT_HPP__
+#define __CONTEXT_SERVER_HPP__
 #include "xmlioserver_spl.hpp"
 #include "event_server.hpp"
 #include "buffer_server.hpp"

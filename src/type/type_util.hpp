@@ -18,17 +18,20 @@ namespace xmlioserver
     class CFileGroup;
     class CContext;
   }
-    typedef tree::CDomain CDomain;
-    typedef tree::CDomainGroup CDomainGroup;
-    typedef tree::CField CField;
-    typedef tree::CFieldGroup CFieldGroup;
-    typedef tree::CGrid CGrid;
-    typedef tree::CGridGroup CGridGroup;
-    typedef tree::CAxis CAxis;
-    typedef tree::CAxisGroup CAxisGroup;
-    typedef tree::CFile CFile;
-    typedef tree::CFileGroup CFileGroup;
-    typedef tree::CContext CContext;
+
+/*
+  typedef tree::CDomain CDomain;
+  typedef tree::CDomainGroup CDomainGroup;
+  typedef tree::CField CField;
+  typedef tree::CFieldGroup CFieldGroup;
+  typedef tree::CGrid CGrid;
+  typedef tree::CGridGroup CGridGroup;
+  typedef tree::CAxis CAxis;
+  typedef tree::CAxisGroup CAxisGroup;
+  typedef tree::CFile CFile;
+  typedef tree::CFileGroup CFileGroup;
+  typedef tree::CContext CContext;
+*/
         
   template <typename T>
   inline string getStrType(void) ;
@@ -48,6 +51,9 @@ namespace xmlioserver
   macro(unsigned char)
   macro(wchar_t)
   macro(bool)
+#undef macro
+  
+#define macro(T) template <> inline string getStrType<tree::T>(void) { return std::string(#T) ; }
   macro(CDomain)
   macro(CDomainGroup)
   macro(CField)

@@ -67,7 +67,7 @@ END PROGRAM test_cs
   field_A(1:ni,1:nj)=field_A_glo(ibegin:iend,jbegin:jend)
   
 
-  CALL xios_initialize(id,local_comm=MPI_COMM_WORLD,return_comm=comm)
+  CALL xios_initialize(id,return_comm=comm)
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)

@@ -4,8 +4,6 @@
 
 namespace xmlioserver
 {
-  namespace ym
-  {
     CBufferOut::CBufferOut(void* buffer,size_t size)
     {
       own=false ;
@@ -67,8 +65,7 @@ namespace xmlioserver
     {
       if (own) delete [] begin ;
     }
-    
-  }
+ 
 }
     
       

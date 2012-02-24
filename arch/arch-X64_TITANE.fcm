@@ -16,5 +16,5 @@
 %DEV_FFLAGS     -DXIOS_DEBUG -g -traceback
 %DEBUG_FFLAGS   -DXIOS_DEBUG -g -traceback
 
-%BASE_INC       -D NONE
+%BASE_INC       -D __NONE__
 %BASE_LD        -lstdc++
