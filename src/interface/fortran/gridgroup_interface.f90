@@ -3,12 +3,12 @@ MODULE GRIDGROUP_INTERFACE
      
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
      
-      SUBROUTINE cxios_domaingroup_handle_create(ret, idt, idt_size) BIND(C)
+      SUBROUTINE cxios_gridgroup_handle_create(ret, idt, idt_size) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T)               :: ret
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: idt
          INTEGER  (kind = C_INT)     , VALUE        :: idt_size
-      END SUBROUTINE cxios_domaingroup_handle_create
+      END SUBROUTINE cxios_gridgroup_handle_create
 
       SUBROUTINE cxios_gridgroup_valid_id(ret, idt, idt_size) BIND(C)
          USE ISO_C_BINDING
