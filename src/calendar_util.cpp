@@ -72,7 +72,8 @@ namespace xmlioserver
 
          // Ajustement des mois en fonction des jours.
          int signVal = (drr.day != 0) ? drr.day/fabs(drr.day) : 0;
-         CDate dtt(dt); dtt.addMonth (signVal);
+         CDate dtt(dt); 
+         if (signVal < 0) dtt.addMonth (signVal);
 
          for(; c.getMonthLength(dtt) < fabs(drr.day); dtt.addMonth (signVal))
          { drr.day -= signVal * c.getMonthLength(dtt); drr.month += signVal; }
