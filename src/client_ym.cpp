@@ -179,10 +179,13 @@ namespace xmlioserver
     {
       int rank ;
       int msg=0 ;
-      MPI_Comm_rank(intraComm,&rank) ;  
-      if (rank==0) 
+      if (!CXios::isServer)
       {
-        MPI_Send(&msg,1,MPI_INT,0,0,interComm) ;
+        MPI_Comm_rank(intraComm,&rank) ;  
+        if (rank==0) 
+        {
+          MPI_Send(&msg,1,MPI_INT,0,0,interComm) ;
+        }
       }
       
       if (!is_MPI_Initialized)
