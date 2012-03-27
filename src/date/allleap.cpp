@@ -7,13 +7,17 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CAllLeapCalendar::CAllLeapCalendar(const StdString & dateStr)
-         : CCalendar("AllLeap", dateStr)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("AllLeap")
+      { initializeDate(dateStr); }
+
+      CAllLeapCalendar::CAllLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr)
+         : CCalendar("AllLeap")
+      { initializeDate(dateStr, timeOriginStr); }
 
       CAllLeapCalendar::CAllLeapCalendar(int yr, int mth, int d,
                                          int hr, int min, int sec)
-         : CCalendar("AllLeap", yr, mth, d, hr, min, sec)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("AllLeap")
+      { initializeDate(yr, mth, d, hr, min, sec) ; }
 
       CAllLeapCalendar::~CAllLeapCalendar(void)
       { /* Ne rien faire de plus */ }

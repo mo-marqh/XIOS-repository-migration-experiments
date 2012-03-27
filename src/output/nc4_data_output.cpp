@@ -482,8 +482,11 @@ namespace xmlioserver
              
  //        ARRAY(double, 1) field_data = field->data_srv;
          ARRAY_CREATE(time_data, double, 1, [1]);
-         (*time_data)[0] = date::Time(*field->last_Write_srv);
-         
+         if (field->operation.getValue()=="instant") (*time_data)[0] = date::Time(*field->last_Write_srv)
+                                                                      -date::Time(context->calendar->getTimeOrigin());
+         else (*time_data)[0] = (date::Time(*field->last_Write_srv)+date::Time(*field->lastlast_Write_srv))/2
+                               -date::Time(context->calendar->getTimeOrigin());
+           
          if (grid->hasAxis()) // 3D
          {
             boost::shared_ptr<CAxis> axis = grid->axis ;
@@ -573,16 +576,16 @@ namespace xmlioserver
          if (!SuperClassWriter::varExist(axisid))
          {
             SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-            date::CDate initDate=cal->getInitDate() ;
+            date::CDate timeOrigin=cal->getTimeOrigin() ;
 //            StdOStringStream oss2;
 //            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
 //                <<initDate.getHour()<<"-"<<initDate.getMinute()<<"-"<<initDate.getSecond() ;
 //            StdString strInitdate=oss2.str() ;
-            StdString strInitdate=initDate.toString() ;
+            StdString strTimeOrigin=timeOrigin.toString() ;
             this->writeTimeAxisAttributes
                (axisid, cal->getType(),
-                StdString("seconds since ").append(strInitdate),
-                strInitdate);
+                StdString("seconds since ").append(strTimeOrigin),
+                strTimeOrigin);
          }
 
       }

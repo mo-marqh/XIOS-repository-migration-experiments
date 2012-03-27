@@ -86,15 +86,18 @@ namespace tree {
                << "[ context id = " << this->getId() << " ] "
                << "Impossible de définir un calendrier (un attribut est manquant).");
 
-#define DECLARE_CALENDAR(MType  , mtype)                            \
-   if (calendar_type.getValue().compare(#mtype) == 0)               \
-   {                                                                \
-      this->calendar =  boost::shared_ptr<date::CCalendar>          \
-         (new date::C##MType##Calendar(start_date.getValue()));     \
-      if (!this->timestep.isEmpty())                                \
-       this->calendar->setTimeStep                                  \
-          (date::CDuration::FromString(this->timestep.getValue())); \
-      return;                                                       \
+#define DECLARE_CALENDAR(MType  , mtype)                              \
+   if (calendar_type.getValue().compare(#mtype) == 0)                 \
+   {                                                                  \
+      if (time_origin.isEmpty())                                       \
+        this->calendar =  boost::shared_ptr<date::CCalendar>          \
+           (new date::C##MType##Calendar(start_date.getValue()));     \
+      else this->calendar =  boost::shared_ptr<date::CCalendar>       \
+           (new date::C##MType##Calendar(start_date.getValue(),time_origin.getValue()));     \
+      if (!this->timestep.isEmpty())                                  \
+       this->calendar->setTimeStep                                    \
+          (date::CDuration::FromString(this->timestep.getValue()));   \
+      return;                                                         \
    }
 #include "calendar_type.conf"
 
@@ -534,7 +537,9 @@ namespace tree {
    
    void CContext::updateCalendar(int step)
    {
+      info(50)<<"updateCalendar : before : "<<calendar->getCurrentDate()<<endl ;
       calendar->update(step) ;
+      info(50)<<"updateCalendar : after : "<<calendar->getCurrentDate()<<endl ;
    }
  
    void CContext::createFileHeader(void )

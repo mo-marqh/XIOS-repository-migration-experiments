@@ -1,5 +1,6 @@
 #include "date.hpp"
 #include "calendar.hpp"
+#include "calendar_type.hpp"
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -11,6 +12,12 @@ namespace xmlioserver
    namespace date
    {
       /// ////////////////////// Définitions ////////////////////// ///
+      CDate::CDate(const CCalendar& calendar)
+         : relCalendar(calendar)
+         , year(0), month(1) , day(1)
+         , hour(0), minute(0), second(0)
+      {   }
+      
       CDate::CDate(const CCalendar& calendar,
                    int yr, int mth, int d,
                    int hr, int min, int sec)
@@ -101,7 +108,7 @@ namespace xmlioserver
         return (in);
       }
 
-      CDate::operator Time(void) // Non vérifiée, pas optimisée ...
+      CDate::operator Time(void) const // Non vérifiée, pas optimisée ...
       {
          // Todo : Tester si la date courante est supérieure à la date initiale.
          Time retvalue = - relCalendar.getNbSecond(relCalendar.getInitDate())
@@ -110,10 +117,10 @@ namespace xmlioserver
          if ((relCalendar.getId().compare("D360")    == 0) ||
              (relCalendar.getId().compare("AllLeap") == 0) ||
              (relCalendar.getId().compare("NoLeap")  == 0))
-         return (retvalue + (getYear() - relCalendar.getInitDate().getYear())
+         return (retvalue + (getYear() - relCalendar.getTimeOrigin().getYear())
                                        * relCalendar.getYearTotalLength(*this));
 
-         for(CDate _d(relCalendar.getInitDate());
+         for(CDate _d(relCalendar.getTimeOrigin());
             _d.getYear() < getYear(); _d.setYear(_d.getYear()+1))
             retvalue += relCalendar.getYearTotalLength(_d);
          return (retvalue);
@@ -132,8 +139,8 @@ namespace xmlioserver
 
          // Vérification de la valeur du jour.
          if (day    < 1) { retValue = false; month  = 1; }
-         if (day    > relCalendar.getMonthLength(*this))
-         { retValue = false; day = relCalendar.getMonthLength(*this); }
+         if (day    > (&relCalendar)->getMonthLength(*this))
+         { retValue = false; day = (&relCalendar)->getMonthLength(*this); }
 
          // Vérification de la valeur de l'heure.
          if (hour   < 0) { retValue = false; hour  = 0; }

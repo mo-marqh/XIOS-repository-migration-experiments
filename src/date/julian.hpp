@@ -18,8 +18,9 @@ namespace xmlioserver
          public :
 
             /// Constructeur ///
-            CJulianCalendar(void);                                   // Not implemented yet.
+//            CJulianCalendar(void);                                   // Not implemented yet.
             CJulianCalendar(const StdString & dateStr);
+            CJulianCalendar(const StdString & dateStr,const StdString & timeOriginStr);
             CJulianCalendar(int yr = 0, int mth = 1, int d   = 1,
                             int hr = 0, int min = 0, int sec = 0);
             CJulianCalendar(const CJulianCalendar & calendar);       // Not implemented yet.

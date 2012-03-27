@@ -11,22 +11,69 @@ namespace xmlioserver
       CCalendar::CCalendar(void)
          : CObject()
          , initDate(*this)
-         , currentDate(initDate)
-      { /* Ne rien faire de plus */ }
+         , timeOrigin(*this)
+         , currentDate(*this)
+      {   }
 
+      CCalendar::CCalendar(const StdString & id)
+               : CObject(id)
+               , initDate(*this)
+               , timeOrigin(*this)
+               , currentDate(*this)
+      { }
+      
       CCalendar::CCalendar(const StdString & id,
                            int yr, int mth, int d  ,
                            int hr, int min, int sec)
                : CObject(id)
-               , initDate(*this, yr, mth, d, hr, min, sec)
-               , currentDate(initDate)
-      { /* Ne rien faire de plus */ }
+               , initDate(*this)
+               , timeOrigin(*this)
+               , currentDate(*this)
+      { 
+        initializeDate(yr, mth, d, hr, min, sec) ;
+      }
 
       CCalendar::CCalendar(const StdString & id, const StdString & dateStr)
                : CObject(id)
                , initDate(CDate::FromString(dateStr, *this))
+               , timeOrigin(initDate)
                , currentDate(initDate)
-      { /* Ne rien faire de plus */ }
+      { 
+        initializeDate(dateStr) ;
+      }
+
+      CCalendar::CCalendar(const StdString & id, const StdString & dateStr, const StdString & timeOriginStr)
+               : CObject(id)
+               , initDate(*this)
+               , timeOrigin(*this)
+               , currentDate(*this)
+      { 
+        initializeDate(dateStr, timeOriginStr) ;
+      }
+
+
+      void CCalendar::initializeDate( int yr, int mth, int d  ,
+                                 int hr, int min, int sec)
+      { 
+        initDate=CDate(*this,yr, mth, d, hr, min, sec) ;
+        timeOrigin=initDate;
+        currentDate=initDate ;
+      }
+
+      void CCalendar::initializeDate(const StdString & dateStr)
+      { 
+        initDate=CDate::FromString(dateStr, *this) ;
+        timeOrigin=initDate ;
+        currentDate=initDate ;
+      }
+
+      void CCalendar::initializeDate(const StdString & dateStr, const StdString & timeOriginStr)
+      { 
+        initDate=CDate::FromString(dateStr, *this) ;
+        timeOrigin=CDate::FromString(timeOriginStr, *this) ;
+        currentDate=initDate ;
+      }
+      
 
       CCalendar::~CCalendar(void)
       { /* Ne rien faire de plus */ }
@@ -61,6 +108,7 @@ namespace xmlioserver
 
       const CDuration & CCalendar::getTimeStep(void) const { return (this->timestep); }
       const CDate & CCalendar::getInitDate(void) const     { return (this->initDate); }
+      const CDate & CCalendar::getTimeOrigin(void) const     { return (this->timeOrigin); }
       CDate & CCalendar::getCurrentDate(void)              { return (this->currentDate); }
 
       //-----------------------------------------------------------------

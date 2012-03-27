@@ -7,13 +7,17 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CD360Calendar::CD360Calendar(const StdString & dateStr)
+         : CCalendar("D360")
+      { initializeDate(dateStr); }
+
+      CD360Calendar::CD360Calendar(const StdString & dateStr,const StdString & timeOriginStr)
          : CCalendar("D360", dateStr)
-      { /* Ne rien faire de plus */ }
+      { initializeDate(dateStr, timeOriginStr); }
 
       CD360Calendar::CD360Calendar(int yr, int mth, int d,
                                    int hr, int min, int sec)
-         : CCalendar("D360", yr, mth, d, hr, min, sec)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("D360")
+      { initializeDate(yr, mth, d, hr, min, sec) ; }
 
       CD360Calendar::~CD360Calendar(void)
       { /* Ne rien faire de plus */ }

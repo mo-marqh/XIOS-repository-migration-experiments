@@ -1,4 +1,5 @@
 #include "noleap.hpp"
+#include "calendar.hpp"
 
 namespace xmlioserver
 {
@@ -8,12 +9,17 @@ namespace xmlioserver
 
       CNoLeapCalendar::CNoLeapCalendar(const StdString & dateStr)
          : CCalendar("NoLeap", dateStr)
-      { /* Ne rien faire de plus */ }
+      { initializeDate(dateStr); }
+
+      CNoLeapCalendar::CNoLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr)
+         : CCalendar("NoLeap", dateStr, timeOriginStr)
+      { initializeDate(dateStr, timeOriginStr); }
 
       CNoLeapCalendar::CNoLeapCalendar(int yr, int mth, int d,
                                        int hr, int min, int sec)
-         : CCalendar("NoLeap", yr, mth, d, hr, min, sec)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("NoLeap")
+      { initializeDate(yr, mth, d, hr, min, sec) ; }
+
 
       CNoLeapCalendar::~CNoLeapCalendar(void)
       { /* Ne rien faire de plus */ }

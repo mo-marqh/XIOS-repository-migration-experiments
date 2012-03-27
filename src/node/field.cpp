@@ -177,6 +177,7 @@ namespace tree {
       
       *last_Write_srv = writeDate;
       writeField() ;
+      *lastlast_Write_srv=*last_Write_srv;
     }
   }
   
@@ -383,6 +384,8 @@ namespace tree {
              CDuration::FromString(this->file->output_freq.getValue());
          this->freq_write_srv     =
              CDuration::FromString(this->file->output_freq.getValue());
+         this->lastlast_Write_srv     = boost::shared_ptr<xmlioserver::date::CDate>
+                        (new date::CDate(context->getCalendar()->getInitDate()));
          this->last_Write_srv     = boost::shared_ptr<xmlioserver::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
          this->last_operation_srv = boost::shared_ptr<xmlioserver::date::CDate>

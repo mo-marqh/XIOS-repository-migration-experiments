@@ -19,9 +19,9 @@ namespace xmlioserver
 
             /// Constructeurs ///
             CDate(void);                      // Not implemented yet
-            CDate(const CCalendar & cal,
-                  int yr = 0, int mth = 1, int d   = 1,
-                  int hr = 0, int min = 0, int sec = 0);
+            CDate(const CCalendar & cal);
+            CDate(const CCalendar & cal,int yr, int mth, int d,
+                                        int hr = 0, int min = 0, int sec = 0);
             CDate(const CDate & odate);
             CDate(const CDate * const odate); // Not implemented yet
 
@@ -33,7 +33,7 @@ namespace xmlioserver
             friend StdOStream & operator<<(StdOStream & out, const CDate & date);
             friend StdIStream & operator>>(StdIStream & in, CDate & date); // Non testée.
 
-            operator Time(void);  // Retourne le nombre de secondes écoulées depuis la date initiale définie dans le calendrier.
+            operator Time(void) const;  // Retourne le nombre de secondes écoulées depuis la date d'origine définie dans le calendrier.
 
             /// Traitements ///
             bool checkDate(void); // Vérifie la validité de la date.

@@ -7,13 +7,17 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CGregorianCalendar::CGregorianCalendar(const StdString & dateStr)
-         : CCalendar("Gregorian", dateStr)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("Gregorian")
+      { initializeDate(dateStr); }
+
+      CGregorianCalendar::CGregorianCalendar(const StdString & dateStr,const StdString & timeOriginStr)
+         : CCalendar("Gregorian")
+      { initializeDate(dateStr, timeOriginStr); }
 
       CGregorianCalendar::CGregorianCalendar(int yr, int mth, int d,
                                              int hr, int min, int sec)
-         : CCalendar("Gregorian", yr, mth, d, hr, min, sec)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("Gregorian")
+      { initializeDate(yr, mth, d, hr, min, sec) ; }
 
       CGregorianCalendar::~CGregorianCalendar(void)
       { /* Ne rien faire de plus */ }

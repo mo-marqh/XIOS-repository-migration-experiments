@@ -18,8 +18,9 @@ namespace xmlioserver
          public :
 
             /// Constructeur ///
-            CNoLeapCalendar(void);                                   // Not implemented yet.
+//            CNoLeapCalendar(void);                                   // Not implemented yet.
             CNoLeapCalendar(const StdString & dateStr);
+            CNoLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr);
             CNoLeapCalendar(int yr = 0, int mth = 1, int d   = 1,
                             int hr = 0, int min = 0, int sec = 0);
             CNoLeapCalendar(const CNoLeapCalendar & calendar);       // Not implemented yet.

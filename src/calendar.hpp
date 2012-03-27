@@ -34,10 +34,13 @@ namespace xmlioserver
 
             /// Constructeurs ///
             CCalendar(void);
+            CCalendar(const StdString & id) ;
             CCalendar(const StdString & id,
-                      int yr = 0, int mth = 1, int d   = 1,
+                      int yr, int mth, int d,
                       int hr = 0, int min = 0, int sec = 0);
             CCalendar(const StdString & id, const StdString & dateStr);
+            CCalendar(const StdString & id, const StdString & dateStr, const StdString & timeOrigin);
+
             CCalendar(const CCalendar & calendar);       // Not implemented yet.
             CCalendar(const CCalendar * const calendar); // Not implemented yet.
 
@@ -58,12 +61,13 @@ namespace xmlioserver
             /// Accesseurs ///
             const CDuration & getTimeStep(void) const;
             const CDate & getInitDate(void) const;
-            CDate & getCurrentDate(void);
+            const CDate & getTimeOrigin(void) const;
+             CDate & getCurrentDate(void);
             
          public :
          
             //------------------------------------------------------------
-            virtual int getMonthLength(const CDate & date) const;
+            virtual int getMonthLength(const CDate & date) const ;
 
             virtual StdString getType(void) const;
 
@@ -78,13 +82,17 @@ namespace xmlioserver
             virtual StdString getMonthName(int month_id) const;
 
             virtual const StdString getMonthShortName(int month_id) const;
+            void initializeDate(int yr, int mth, int d, int hr = 0, int min = 0, int sec = 0) ;
+            void initializeDate(const StdString & dateStr);
+            void initializeDate(const StdString & dateStr, const StdString & timeOrigin);
 
             //------------------------------------------------------------
 
          private :
 
             /// Propriétés privées ///
-            const CDate initDate;
+            CDate initDate;
+            CDate timeOrigin;
             CDate currentDate;
             CDuration timestep;
 

@@ -7,13 +7,17 @@ namespace xmlioserver
       /// ////////////////////// Définitions ////////////////////// ///
 
       CJulianCalendar::CJulianCalendar(const StdString & dateStr)
-         : CCalendar("Julian", dateStr)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("Julian")
+      { initializeDate(dateStr); }
+
+      CJulianCalendar::CJulianCalendar(const StdString & dateStr,const StdString & timeOriginStr)
+         : CCalendar("Julian")
+      { initializeDate(dateStr, timeOriginStr); }
 
       CJulianCalendar::CJulianCalendar(int yr, int mth, int d,
                                        int hr, int min, int sec)
-         : CCalendar("Julian", yr, mth, d, hr, min, sec)
-      { /* Ne rien faire de plus */ }
+         : CCalendar("Julian")
+      { initializeDate(yr, mth, d, hr, min, sec) ; }
 
       CJulianCalendar::~CJulianCalendar(void)
       { /* Ne rien faire de plus */ }

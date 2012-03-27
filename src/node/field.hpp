@@ -140,7 +140,7 @@ namespace tree {
 
          StdSize nstep;
          boost::shared_ptr<date::CDate>    last_Write, last_operation;
-         boost::shared_ptr<date::CDate>    last_Write_srv, last_operation_srv;
+         boost::shared_ptr<date::CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
          
          boost::shared_ptr<func::CFunctor> foperation;
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
