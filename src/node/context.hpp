@@ -13,11 +13,6 @@
 
 #include <mpi.h>
 
-namespace xios {
-namespace data {
-    class CDataTreatment;
-} // namespace tree
-} // namespace xios
 
 namespace xios {
    class CContextClient ;
@@ -78,11 +73,9 @@ namespace tree {
       
          /// Mutateurs ///
          void setCalendar(boost::shared_ptr<CCalendar> newCalendar);
-         void setDataTreatment(boost::shared_ptr<data::CDataTreatment> datat);
       
          /// Accesseurs ///
          boost::shared_ptr<CCalendar>      getCalendar(void) const;
-         boost::shared_ptr<data::CDataTreatment> getDataTreatment(void) const;
 
          /// Accesseurs statiques ///
          static StdString GetName(void);
@@ -148,7 +141,6 @@ namespace tree {
       public :
       
          boost::shared_ptr<CCalendar>      calendar;
-         boost::shared_ptr<data::CDataTreatment> datat;
  
          std::vector<boost::shared_ptr<CFile> > enabledFiles;
 

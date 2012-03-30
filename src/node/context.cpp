@@ -48,17 +48,6 @@ namespace tree {
       return (group_context); 
    }
    
-   //----------------------------------------------------------------
-   void CContext::setDataTreatment(boost::shared_ptr<data::CDataTreatment> ndatat)
-   {
-      this->datat = ndatat;
-   }
-
-   //----------------------------------------------------------------
-   boost::shared_ptr<data::CDataTreatment> CContext::getDataTreatment(void) const
-   {
-      return (this->datat);
-   }
 
    //----------------------------------------------------------------
 
