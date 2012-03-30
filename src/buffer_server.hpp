@@ -2,7 +2,7 @@
 #define __BUFFER_SERVER_HPP__
 
 #include "xmlioserver_spl.hpp"
-#include "buffer_ym.hpp"
+#include "buffer.hpp"
 #include <mpi.h>
 
 namespace xios

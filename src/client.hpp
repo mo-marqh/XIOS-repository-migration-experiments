@@ -1,13 +1,11 @@
-#ifndef __CLIENT_YM__HPP__
-#define __CLIENT_YM__HPP__
+#ifndef __CLIENT_HPP__
+#define __CLIENT_HPP__
 
 #include "xmlioserver_spl.hpp"
 #include <mpi.h>
 
 namespace xios
 {                      
-  namespace ym
-  {
     class CClient
     {
        public:
@@ -21,7 +19,6 @@ namespace xios
        static int serverLeader;
        static bool is_MPI_Initialized ;
     } ;
-  }
 }
 
 #endif

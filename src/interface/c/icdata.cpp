@@ -17,7 +17,7 @@
 
 #include "icutil.hpp"
 #include "cxios.hpp"
-#include "client_ym.hpp"
+#include "client.hpp"
 #include "field.hpp"
 #include "field_impl.hpp"
 #include <mpi.h>
@@ -61,7 +61,7 @@ extern "C"
      
      if (!cstr2string(context_id, len_context_id, str)) return;
      comm=MPI_Comm_f2c(*f_comm) ;
-     ym::CClient::registerContext(str,comm) ;
+     CClient::registerContext(str,comm) ;
    }
  
     void cxios_context_close_definition()

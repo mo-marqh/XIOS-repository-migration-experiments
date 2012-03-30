@@ -1,6 +1,6 @@
 #include "xmlioserver_spl.hpp"
 #include "cxios.hpp"
-#include "client_ym.hpp"
+#include "client.hpp"
 #include <boost/functional/hash.hpp>
 #include "type.hpp"
 #include "context.hpp"
@@ -11,8 +11,6 @@
 
 namespace xios
 {                      
-  namespace ym
-  {
 
     MPI_Comm CClient::intraComm ;
     MPI_Comm CClient::interComm ;
@@ -195,5 +193,4 @@ namespace xios
       }
       info(20) << "Client side context is finalized"<<endl ;
     }
-  }
 }

@@ -1,10 +1,8 @@
-#ifndef __BUFFER_YM_IMPL_HPP__
-#define __BUFFER_YM_IMPL_HPP__
+#ifndef __BUFFER_IMPL_HPP__
+#define __BUFFER_IMPL_HPP__
 
 namespace xios
 {
-  namespace ym
-  {
 
 // template spectialisation : CBuffer::put
     template <> bool CBuffer::put<char>(const char& data) { return put_template(data) ; }  
@@ -171,7 +169,6 @@ namespace xios
       return ret ;
     }    
 
-  }
 }
   
 

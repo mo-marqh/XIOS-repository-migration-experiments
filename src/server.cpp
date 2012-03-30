@@ -1,6 +1,6 @@
 #include "xmlioserver_spl.hpp"
 #include "cxios.hpp"
-#include "server_ym.hpp"
+#include "server.hpp"
 #include "type.hpp"
 #include "context.hpp"
 #include "object_template_impl.hpp"
@@ -12,9 +12,6 @@
 
 namespace xios
 {                      
-  namespace ym
-  {
-
     MPI_Comm CServer::intraComm ;
     list<MPI_Comm> CServer::interComm ;
     bool CServer::isRoot ;
@@ -371,7 +368,4 @@ namespace xios
          
      }
      
-
-
-  }
 }

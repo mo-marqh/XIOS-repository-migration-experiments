@@ -1,8 +1,8 @@
 
 #include "xmlioserver_spl.hpp"
 #include "cxios.hpp"
-#include "client_ym.hpp"
-#include "server_ym.hpp"
+#include "client.hpp"
+#include "server.hpp"
 #include "tree_manager.hpp"
 #include <boost/functional/hash.hpp>
 #include <mpi.h>
@@ -43,13 +43,13 @@ namespace xios
     if (usingServer) isServer=false;
     else isServer=true ;
     
-    ym::CClient::initialize(codeId,localComm,returnComm) ;
+    CClient::initialize(codeId,localComm,returnComm) ;
 
   }   
 
   void CXios::clientFinalize(void)
   {
-     ym::CClient::finalize() ;    
+     CClient::finalize() ;    
   }   
   
   
@@ -61,7 +61,7 @@ namespace xios
     isClient=true;
     isServer=false ;
 
-    ym::CServer::initialize() ;
+    CServer::initialize() ;
   } 
   
 

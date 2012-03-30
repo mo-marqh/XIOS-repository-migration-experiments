@@ -1,5 +1,5 @@
-#ifndef __SERVER_YM__HPP__
-#define __SERVER_YM__HPP__
+#ifndef __SERVER_HPP__
+#define __SERVER_HPP__
 
 #include "xmlioserver_spl.hpp"
 #include "context.hpp"
@@ -7,8 +7,6 @@
 
 namespace xios
 {
-  namespace ym
-  {
     class CServer
     {
        public:
@@ -39,7 +37,6 @@ namespace xios
       static bool finished ;
       static bool is_MPI_Initialized ;
     } ;
-  }
 }
 
 #endif

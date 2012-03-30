@@ -1,14 +1,10 @@
 #include "xmlioserver.hpp"
 #include "attribute_template_impl.hpp"
-/*
-#include "group_template_impl.hpp"
-#include "file.hpp"
-*/
 #include "buffer_out.hpp"
 #include "buffer_in.hpp"
 #include "type.hpp"
 #include "cxios.hpp"
-#include "client_ym.hpp"
+#include "client.hpp"
 #include "event_client.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
@@ -18,7 +14,6 @@
 
 
 using namespace std ;
-using namespace ym ;
 
 int main (int argc, char ** argv, char ** UNUSED (env))
 {
@@ -69,9 +64,9 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    if (rank>=0 && rank<=1) 
    {
      CXios::initClientSide("test1") ;
-     ym::CClient::registerContext("toto",ym::CClient::intraComm) ;
-//     ym::CClient::registerContext("tata",ym::CClient::intraComm) ;
-     ym::CClient::registerContext("tutu",ym::CClient::intraComm) ;
+     CClient::registerContext("toto",CClient::intraComm) ;
+//     CClient::registerContext("tata",CClient::intraComm) ;
+     CClient::registerContext("tutu",CClient::intraComm) ;
      CObjectFactory::SetCurrentContextId("tutu") ;
      CContext*  tutu=(CObjectFactory::GetObject<CContext>("tutu")).get(); 
      
@@ -104,11 +99,11 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    else if (rank>=4 && rank<=6) 
    {
      CXios::initClientSide("test2") ;
-     ym::CClient::registerContext("tito",ym::CClient::intraComm) ;
+     CClient::registerContext("tito",CClient::intraComm) ;
      CObjectFactory::SetCurrentContextId("tito") ;
      CContext*  tito=(CObjectFactory::GetObject<CContext>("tito")).get();
       
-     ym::CClient::registerContext("tete",ym::CClient::intraComm) ;
+     CClient::registerContext("tete",CClient::intraComm) ;
      CObjectFactory::SetCurrentContextId("tete") ;
      CContext*  tete=(CObjectFactory::GetObject<CContext>("tete")).get(); 
 
@@ -119,7 +114,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    else if (rank>=7 && rank<=7) 
    {
      CXios::initClientSide("test3") ;
-     ym::CClient::registerContext("turlututu",ym::CClient::intraComm) ;
+     CClient::registerContext("turlututu",CClient::intraComm) ;
      CObjectFactory::SetCurrentContextId("turlututu") ;
      CContext*  turlututu=(CObjectFactory::GetObject<CContext>("turlututu")).get(); 
      turlututu->client->finalize() ;

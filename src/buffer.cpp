@@ -1,11 +1,9 @@
 #include "xmlioserver_spl.hpp"
-#include "buffer_ym.hpp"
+#include "buffer.hpp"
 
 
 namespace xios
 {
-  namespace ym
-  {
     CBuffer::CBuffer(void* buffer_,size_t size_)
     {
       own=false ;
@@ -45,7 +43,6 @@ namespace xios
       if (own) delete [] buffer ;
     }
     
-  }
 }
     
       

@@ -1,13 +1,11 @@
-#ifndef __BUFFER_YM_HPP__
-#define __BUFFER_YM_HPP__
+#ifndef __BUFFER_HPP__
+#define __BUFFER_HPP__
 
 
 #include "xmlioserver_spl.hpp"
 
 namespace xios
 {
-  namespace ym
-  {
   
     class CBuffer
     {
@@ -72,10 +70,9 @@ namespace xios
     
   
  
-  }
 }
 
-#include "buffer_ym_impl.hpp" 
+#include "buffer_impl.hpp" 
 
 
 #endif
