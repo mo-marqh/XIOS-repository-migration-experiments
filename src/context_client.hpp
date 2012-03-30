@@ -7,7 +7,7 @@
 #include "event_client.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
   namespace tree
   {

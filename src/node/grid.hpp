@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CGrid__
 #define __XMLIO_CGrid__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "group_factory.hpp"
 
@@ -9,7 +9,7 @@
 #include "domain.hpp"
 #include "axis.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -178,6 +178,6 @@ namespace tree {
    ///--------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CGrid__

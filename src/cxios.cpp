@@ -7,7 +7,7 @@
 #include <boost/functional/hash.hpp>
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;

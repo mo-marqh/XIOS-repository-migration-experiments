@@ -1,6 +1,6 @@
 #include "group_factory.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    StdString CGroupFactory::CurrContext("");
@@ -15,4 +15,4 @@ namespace xmlioserver
       return (CGroupFactory::CurrContext);
    }
 
-} // namespace xmlioserver
+} // namespace xios

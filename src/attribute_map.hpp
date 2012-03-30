@@ -1,14 +1,14 @@
 #ifndef __XMLIO_CAttributeMap__
 #define __XMLIO_CAttributeMap__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "attribute.hpp"
 #include "attribute_template.hpp"
 #include "exception.hpp"
 #include "xml_node.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -69,6 +69,6 @@ namespace xmlioserver
       };  // class CAttributeMap
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CAttributeMap__

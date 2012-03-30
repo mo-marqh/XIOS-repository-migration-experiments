@@ -1,11 +1,11 @@
 #ifndef __XMLIO_CGregorianCalendar__
 #define __XMLIO_CGregorianCalendar__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "calendar.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

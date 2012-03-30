@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -19,8 +19,8 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
 
-   typedef xmlioserver::tree::CDomain      * XDomainPtr;
-   typedef xmlioserver::tree::CDomainGroup * XDomainGroupPtr;
+   typedef xios::tree::CDomain      * XDomainPtr;
+   typedef xios::tree::CDomainGroup * XDomainGroupPtr;
 
    // ------------------------ Création des handle -----------------------------
    
@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CDomain>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CDomain>(id).get();
    }
    
    void cxios_domaingroup_handle_create (XDomainGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CDomainGroup>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CDomainGroup>(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CDomain>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CDomain>(id);
    }
 
    void cxios_domaingroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,6 +55,6 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CDomainGroup>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CDomainGroup>(id);
    }
 } // extern "C"

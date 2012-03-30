@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CContext__
 #define __XMLIO_CContext__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "node_type.hpp"
 #include "calendar.hpp"
@@ -13,13 +13,13 @@
 
 #include <mpi.h>
 
-namespace xmlioserver {
+namespace xios {
 namespace data {
     class CDataTreatment;
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
-namespace xmlioserver {
+namespace xios {
    class CContextClient ;
    class CContextServer ;
    
@@ -163,6 +163,6 @@ namespace tree {
    ///--------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CContext__

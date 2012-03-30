@@ -5,7 +5,7 @@
 #include "cxios.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
  
   CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_)

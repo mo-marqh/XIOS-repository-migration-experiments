@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -25,14 +25,14 @@ extern "C"
       try
       {
          date::CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
-         boost::shared_ptr<xmlioserver::tree::CContext> context =
-         xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
+         boost::shared_ptr<xios::tree::CContext> context =
+         xios::CObjectFactory::GetObject<xios::tree::CContext>
             (CObjectFactory::GetCurrentContextId());
          
             context->timestep.setValue(dur.toString());
             context->sendAttributToServer("timestep") ;
       }
-      catch (xmlioserver::CException & exc)
+      catch (xios::CException & exc)
       {
          std::cerr << exc.getMessage() << std::endl;
          exit (EXIT_FAILURE);
@@ -41,8 +41,8 @@ extern "C"
    
    void cxios_update_calendar(int step)
    {
-      boost::shared_ptr<xmlioserver::tree::CContext> context =
-            xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CContext>
+      boost::shared_ptr<xios::tree::CContext> context =
+            xios::CObjectFactory::GetObject<xios::tree::CContext>
             (CObjectFactory::GetCurrentContextId());
       context->updateCalendar(step) ;
       context->sendUpdateCalendar(step) ;

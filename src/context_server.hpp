@@ -5,7 +5,7 @@
 #include "buffer_server.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
   namespace tree
   {

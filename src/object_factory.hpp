@@ -4,12 +4,12 @@
 /// boost headers ///
 #include <boost/shared_ptr.hpp>
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "object_template.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
    class CObjectFactory
@@ -59,7 +59,7 @@ namespace xmlioserver
          static StdString CurrContext;
 
    }; // class CObjectFactory
-} // namespace xmlioserver
+} // namespace xios
 
 #include "object_factory_impl.hpp"
 

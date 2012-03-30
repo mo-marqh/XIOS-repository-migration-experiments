@@ -1,6 +1,6 @@
 #include "average.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

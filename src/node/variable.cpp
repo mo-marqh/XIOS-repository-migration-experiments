@@ -7,7 +7,7 @@
 #include "object_factory.hpp"
 #include "object_factory_impl.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
 
    /// ////////////////////// Définitions ////////////////////// ///
@@ -113,4 +113,4 @@ namespace tree {
    }
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios

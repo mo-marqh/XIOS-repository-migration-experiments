@@ -7,7 +7,7 @@
 using namespace boost::posix_time ;
 using namespace boost::gregorian ;
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {
@@ -224,4 +224,4 @@ namespace xmlioserver
       ///---------------------------------------------------------------
 
    } // namespace date
-} // namespace xmlioserver
+} // namespace xios

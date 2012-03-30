@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xmlioserver::tree::CAxis*  axis_Ptr;
+  typedef xios::tree::CAxis*  axis_Ptr;
   
   void cxios_set_axis_long_name(axis_Ptr axis_hdl, const char * long_name, int long_name_size)
   {

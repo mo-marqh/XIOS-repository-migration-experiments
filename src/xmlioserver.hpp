@@ -3,18 +3,18 @@
 
 #include "xmlioserver_spl.hpp"
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "tree_manager.hpp"
 #include "nc4_data_output.hpp"
 
 //#include "data_manager.hpp"
 //#include "time_manager.hpp"
 
-using namespace xmlioserver;
-using namespace xmlioserver::data;
-using namespace xmlioserver::io;
-using namespace xmlioserver::tree;
-using namespace xmlioserver::xml;
-using namespace xmlioserver::func;
+using namespace xios;
+using namespace xios::data;
+using namespace xios::io;
+using namespace xios::tree;
+using namespace xios::xml;
+using namespace xios::func;
 
 #endif //__XMLIO__

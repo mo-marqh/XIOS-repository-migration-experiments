@@ -1,11 +1,11 @@
 #ifndef __XMLIO_CDuration__
 #define __XMLIO_CDuration__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {
@@ -49,6 +49,6 @@ namespace xmlioserver
       ///---------------------------------------------------------------
 
    } // namespace date
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CDuration__

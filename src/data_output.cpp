@@ -4,7 +4,7 @@
 #include "group_template_impl.hpp"
 #include "context.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -19,7 +19,7 @@ namespace xmlioserver
          (const boost::shared_ptr<tree::CGrid> grid)
       {
          if (grid->domain_ref.isEmpty())
-            ERROR("CONetCDF4Adv::writeGrid(grid)",
+            ERROR("CDataOutput::writeGrid(grid)",
                    << " domain is not defined !");
 
          if (grid->axis_ref.isEmpty())
@@ -108,4 +108,4 @@ namespace xmlioserver
       ///----------------------------------------------------------------
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios

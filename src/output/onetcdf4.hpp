@@ -1,7 +1,7 @@
 #ifndef __XMLIO_INETCDF4__
 #define __XMLIO_INETCDF4__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "array.hpp"
@@ -19,7 +19,7 @@ extern "C" {
    #define UNLIMITED_DIM (size_t)(-1)
 #endif  //UNLIMITED_DIM
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -176,6 +176,6 @@ namespace xmlioserver
       ///---------------------------------------------------------------
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_INETCDF4__

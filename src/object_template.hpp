@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CObjectTemplate__
 #define __XMLIO_CObjectTemplate__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "attribute_map.hpp"
 #include "node_enum.hpp"
@@ -9,7 +9,7 @@
 #include "event_server.hpp"
 #include "attribute.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
    template <class T>
@@ -95,7 +95,7 @@ namespace xmlioserver
          static xios_map< StdString, long int > GenId ;
 
    }; // class CObjectTemplate
-} // namespace xmlioserver
+} // namespace xios
 
 //#include "object_template_impl.hpp"
 

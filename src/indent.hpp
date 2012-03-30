@@ -3,7 +3,7 @@
 
 #include <ostream>
 
-namespace xmlioserver
+namespace xios
 {
   class Cindent  
   {

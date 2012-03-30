@@ -1,6 +1,6 @@
 #include "instant.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

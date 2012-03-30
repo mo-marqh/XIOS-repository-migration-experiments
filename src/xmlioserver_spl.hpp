@@ -49,7 +49,7 @@ typedef  unsigned short int   ushort;
 typedef  unsigned int         uint;
 typedef  unsigned long int    ulong;
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "configure.hpp"
 #include "log.hpp"
 using namespace std;

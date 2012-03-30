@@ -1,6 +1,6 @@
 #include "once.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

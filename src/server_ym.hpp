@@ -5,7 +5,7 @@
 #include "context.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
   namespace ym
   {

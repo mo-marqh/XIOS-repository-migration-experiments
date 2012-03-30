@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -19,8 +19,8 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
    
-   typedef xmlioserver::tree::CField      * XFieldPtr;
-   typedef xmlioserver::tree::CFieldGroup * XFieldGroupPtr;
+   typedef xios::tree::CField      * XFieldPtr;
+   typedef xios::tree::CFieldGroup * XFieldGroupPtr;
    
 // --------------------------------------------------------------------------   
 // ------------------------ Création des handle -----------------------------
@@ -31,7 +31,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CField>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CField>(id).get();
    }
    
    void cxios_fieldgroup_handle_create (XFieldGroupPtr * _ret, const char * _id, int _id_len)
@@ -39,7 +39,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CFieldGroup>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CFieldGroup>(id).get();
    }
 
 
@@ -50,7 +50,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CField>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CField>(id);
    }
 
    void cxios_fieldgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -58,7 +58,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CFieldGroup>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CFieldGroup>(id);
    }
 
 // -----------------------------------------------------------------------------------------------------   

@@ -1,6 +1,6 @@
 #include "nc4_data_input.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -12,4 +12,4 @@ namespace xmlioserver
       { /* ne rien faire de plus */ }
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios

@@ -7,7 +7,7 @@
 #include "node_type.hpp"
 #include "calendar_util.hpp"
 
-namespace xmlioserver{
+namespace xios{
 namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -384,11 +384,11 @@ namespace tree {
              CDuration::FromString(this->file->output_freq.getValue());
          this->freq_write_srv     =
              CDuration::FromString(this->file->output_freq.getValue());
-         this->lastlast_Write_srv     = boost::shared_ptr<xmlioserver::date::CDate>
+         this->lastlast_Write_srv     = boost::shared_ptr<xios::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_Write_srv     = boost::shared_ptr<xmlioserver::date::CDate>
+         this->last_Write_srv     = boost::shared_ptr<xios::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_operation_srv = boost::shared_ptr<xmlioserver::date::CDate>
+         this->last_operation_srv = boost::shared_ptr<xios::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
 //         this->foperation_srv     =
 //             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
@@ -401,9 +401,9 @@ namespace tree {
       {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
-         this->last_Write     = boost::shared_ptr<xmlioserver::date::CDate>
+         this->last_Write     = boost::shared_ptr<xios::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_operation = boost::shared_ptr<xmlioserver::date::CDate>
+         this->last_operation = boost::shared_ptr<xios::date::CDate>
                         (new date::CDate(context->getCalendar()->getInitDate()));
                         
          const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
@@ -558,4 +558,4 @@ namespace tree {
    }
    ///-------------------------------------------------------------------
 
-} // namespace xmlioserver
+} // namespace xios

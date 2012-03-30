@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace xmlioserver
+namespace xios
 {
   using namespace std ;
 

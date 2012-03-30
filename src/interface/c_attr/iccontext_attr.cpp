@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xmlioserver::tree::CContext*  context_Ptr;
+  typedef xios::tree::CContext*  context_Ptr;
   
   void cxios_set_context_calendar_type(context_Ptr context_hdl, const char * calendar_type, int calendar_type_size)
   {

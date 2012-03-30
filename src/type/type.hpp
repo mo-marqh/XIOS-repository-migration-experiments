@@ -8,7 +8,7 @@
 #include "base_type.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
 
   template <typename T> 

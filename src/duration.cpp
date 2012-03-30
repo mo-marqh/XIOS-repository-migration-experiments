@@ -2,7 +2,7 @@
 #include "date.hpp"
 #include "calendar.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {
@@ -141,5 +141,5 @@ namespace xmlioserver
 
 
    } // namespace date
-} // namespace xmlioserver
+} // namespace xios
 

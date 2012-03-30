@@ -8,7 +8,7 @@
 #include "buffer_out.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
 
   class CMessage : public CBaseType 

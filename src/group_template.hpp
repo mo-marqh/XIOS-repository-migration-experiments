@@ -6,7 +6,7 @@
 #include "event_server.hpp"
 #include "object_template.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    using namespace tree;
 
@@ -99,7 +99,7 @@ namespace xmlioserver
          std::vector<boost::shared_ptr<Group> > groupList;
 
    }; // class CGroupTemplate
-} // namespace xmlioserver
+} // namespace xios
 
 //#include "group_template_impl.hpp"
 

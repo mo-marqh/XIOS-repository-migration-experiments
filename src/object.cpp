@@ -1,6 +1,6 @@
 #include "object.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -58,4 +58,4 @@ namespace xmlioserver
       return (os);
    }
 
-} // namespace xmlioserver
+} // namespace xios

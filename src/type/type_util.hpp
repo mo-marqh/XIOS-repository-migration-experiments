@@ -2,7 +2,7 @@
 #define __TYPE_UTIL_HPP__
 
 #include <string>
-namespace xmlioserver
+namespace xios
 {
   namespace tree
   {

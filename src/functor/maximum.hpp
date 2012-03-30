@@ -1,10 +1,10 @@
 #ifndef __XMLIO_CMaximum__
 #define __XMLIO_CMaximum__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "functor.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

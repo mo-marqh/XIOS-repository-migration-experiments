@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CFile__
 #define __XMLIO_CFile__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "field.hpp"
 #include "data_output.hpp"
@@ -10,7 +10,7 @@
 
 
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -131,6 +131,6 @@ namespace tree {
    ///--------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CFile__

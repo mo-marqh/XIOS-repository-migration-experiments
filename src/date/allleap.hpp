@@ -1,11 +1,11 @@
 #ifndef __XMLIO_CAllLeapCalendar__
 #define __XMLIO_CAllLeapCalendar__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "calendar.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

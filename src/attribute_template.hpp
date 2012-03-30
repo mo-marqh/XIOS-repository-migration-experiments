@@ -4,7 +4,7 @@
 /// boost headers ///
 #include <boost/lexical_cast.hpp>
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "array.hpp"
@@ -13,7 +13,7 @@
 #include "buffer_out.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -84,6 +84,6 @@ namespace xmlioserver
    
    template <class T>  void FromBinary(StdIStream & is, T & obj);
    
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CAttributeTemplate__

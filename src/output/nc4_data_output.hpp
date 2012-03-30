@@ -1,12 +1,12 @@
 #ifndef __XMLIO_NC4_DATA_OUTPUT__
 #define __XMLIO_NC4_DATA_OUTPUT__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "onetcdf4.hpp"
 #include "data_output.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -26,7 +26,7 @@ namespace xmlioserver
             CNc4DataOutput
                (const StdString & filename, bool exist);
             CNc4DataOutput
-               (const StdString & filename, bool exist, MPI_Comm comm_server, bool multifile);
+               (const StdString & filename, bool exist, MPI_Comm comm_server, bool multifile, bool isCollective=true);
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.
@@ -37,6 +37,7 @@ namespace xmlioserver
             /// Destructeur ///
             virtual ~CNc4DataOutput(void);
             bool singleDomain ;
+            bool isCollective ;
          protected :
 
             /// Ecriture ///
@@ -100,6 +101,6 @@ namespace xmlioserver
       }; // class CNc4DataOutput
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_NC4_DATA_OUTPUT__

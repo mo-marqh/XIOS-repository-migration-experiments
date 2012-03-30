@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xmlioserver::tree::CFileGroup*  filegroup_Ptr;
+  typedef xios::tree::CFileGroup*  filegroup_Ptr;
   
   void cxios_set_filegroup_description(filegroup_Ptr filegroup_hdl, const char * description, int description_size)
   {

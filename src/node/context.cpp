@@ -12,7 +12,7 @@
 #include "context_server.hpp"
 #include "nc4_data_output.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -558,4 +558,4 @@ namespace tree {
    }
    
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios

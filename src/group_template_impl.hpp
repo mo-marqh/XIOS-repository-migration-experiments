@@ -10,7 +10,7 @@
 #include "context_client.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
    using namespace tree;
 
@@ -462,7 +462,7 @@ namespace xmlioserver
       }
    }
 
-} // namespace xmlioserver
+} // namespace xios
 
 
 #endif // __XMLIO_CGroupTemplate_impl__

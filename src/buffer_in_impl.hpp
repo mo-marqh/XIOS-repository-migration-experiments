@@ -1,7 +1,7 @@
 #ifndef __BUFFER_IN_IMPL_HPP__
 #define __BUFFER_IN_IMPL_HPP__
 
-namespace xmlioserver
+namespace xios
 {
 
 // template spectialisation : CBufferIn::get

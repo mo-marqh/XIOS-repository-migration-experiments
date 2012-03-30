@@ -2,7 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -788,4 +788,4 @@ namespace xmlioserver
       ///--------------------------------------------------------------
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios

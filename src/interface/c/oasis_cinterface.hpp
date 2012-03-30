@@ -13,7 +13,7 @@ extern "C"
   void fxios_oasis_get_intercomm(MPI_Fint* f_comm_client_server,const char* client_id,int str_len) ;
 }
  
-namespace xmlioserver
+namespace xios
 {
   void oasis_init(const std::string& server_id) ;
   void oasis_finalize(void) ;

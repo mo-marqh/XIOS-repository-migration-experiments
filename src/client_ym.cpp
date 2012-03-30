@@ -9,7 +9,7 @@
 #include "oasis_cinterface.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {                      
   namespace ym
   {

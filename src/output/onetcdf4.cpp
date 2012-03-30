@@ -1,7 +1,7 @@
 #include "onetcdf4.hpp"
 #include "group_template_impl.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -406,4 +406,4 @@ namespace xmlioserver
       } 
       ///--------------------------------------------------------------
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios

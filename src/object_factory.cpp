@@ -1,6 +1,6 @@
 #include "object_factory.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -12,4 +12,4 @@ namespace xmlioserver
    StdString & CObjectFactory::GetCurrentContextId(void)
    { return (CObjectFactory::CurrContext); }
 
-} // namespace xmlioserver
+} // namespace xios

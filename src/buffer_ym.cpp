@@ -2,7 +2,7 @@
 #include "buffer_ym.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
   namespace ym
   {

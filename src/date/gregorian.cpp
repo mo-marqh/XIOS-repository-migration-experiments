@@ -1,6 +1,6 @@
 #include "gregorian.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

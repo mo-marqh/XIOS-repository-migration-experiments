@@ -1,6 +1,6 @@
 #include "allleap.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

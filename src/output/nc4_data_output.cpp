@@ -10,7 +10,7 @@
 #include "context.hpp"
 #include "context_server.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -28,11 +28,12 @@ namespace xmlioserver
       }
 
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist, MPI_Comm comm_server,bool multifile)
+         (const StdString & filename, bool exist, MPI_Comm comm_server,bool multifile, bool isCollective)
             : SuperClass()
             , SuperClassWriter(filename, exist, &comm_server,multifile)
             , comm_server(comm_server)
             , filename(filename)
+            , isCollective(isCollective)
       {
          StdString timeid = StdString("time_counter");
 
@@ -157,8 +158,8 @@ namespace xmlioserver
                //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(domain->latvalue_srv, latid, true, 0);
-               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, true, 0);
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
 // supress mask               if (server->intraCommSize > 1) SuperClassWriter::writeData(mask, maskid);
                SuperClassWriter::definition_start();
 
@@ -205,8 +206,8 @@ namespace xmlioserver
                  count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
                }
                
-               SuperClassWriter::writeData(domain->latvalue_srv, latid, true, 0,&start,&count);
-               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, true, 0,&start,&count);
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
                SuperClassWriter::definition_start();
 
                break;
@@ -254,7 +255,7 @@ namespace xmlioserver
                      ("units", axis->unit.getValue(), &axisid);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(axis->value.getValue(), axisid, true, 0);
+               SuperClassWriter::writeData(axis->value.getValue(), axisid, isCollective, 0);
                SuperClassWriter::definition_start();
 
                break;
@@ -424,7 +425,7 @@ namespace xmlioserver
                             ? file->name.getValue() : file->getId();
          StdString description = (!file->description.isEmpty())
                                ? file->description.getValue()
-                               : StdString("Created by xmlioserver");
+                               : StdString("Created by xios");
          this->writeFileAttributes(filename, description,
                                    StdString ("CF-1.1"),
                                    StdString("An IPSL model"),
@@ -469,7 +470,7 @@ namespace xmlioserver
          boost::shared_ptr<CGrid> grid = field->grid ;
          boost::shared_ptr<CDomain> domain = grid->domain ;
          
-         if(SuperClass::type==MULTI_FILE) if (domain->isEmpty()) return;
+         if(SuperClass::type==MULTI_FILE || !isCollective) if (domain->isEmpty()) return;
 
 
          StdString fieldid   = (!field->name.isEmpty()) 
@@ -496,8 +497,8 @@ namespace xmlioserver
            {
               case (MULTI_FILE) :
               {
-                 SuperClassWriter::writeData(field_data3D, fieldid, true, field->getNStep()-1);
-                 SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
+                 SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1);
+                 SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
                  break ;
               }
               case (ONE_FILE) :
@@ -515,8 +516,8 @@ namespace xmlioserver
                    start[2]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; start[0]=0 ;
                    count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->size.getValue();
                  }
-                 SuperClassWriter::writeData(field_data3D, fieldid, true, field->getNStep()-1,&start,&count );
-                 SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1 );
+                 SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
+                 SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1 );
                  break;
               }
             }
@@ -530,8 +531,8 @@ namespace xmlioserver
             {
               case (MULTI_FILE) :
               {
-                SuperClassWriter::writeData(field_data2D, fieldid, true, field->getNStep()-1);
-                SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
+                SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1);
+                SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
                 break;
               }
               case (ONE_FILE) :
@@ -549,8 +550,8 @@ namespace xmlioserver
                    count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
                  }
 
-                 SuperClassWriter::writeData(field_data2D, fieldid, true, field->getNStep()-1,&start,&count);
-                 SuperClassWriter::writeData(time_data, oss.str(), true, field->getNStep()-1);
+                 SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1,&start,&count);
+                 SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
                  break;
               
               }
@@ -669,4 +670,4 @@ namespace xmlioserver
       ///--------------------------------------------------------------
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios

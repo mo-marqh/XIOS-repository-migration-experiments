@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CField__
 #define __XMLIO_CField__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "group_factory.hpp"
 #include "functor.hpp"
@@ -13,7 +13,7 @@
 //#include "context.hpp"
 
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -163,7 +163,7 @@ namespace tree {
       void CGroupTemplate<CField, CFieldGroup, CFieldAttributes>::solveRefInheritance(void);
 
    ///-----------------------------------------------------------------
-} // namespace xmlioserver
+} // namespace xios
 
 
 #endif // __XMLIO_CField__

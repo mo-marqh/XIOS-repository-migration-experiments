@@ -3,7 +3,7 @@
 #include "buffer_server.hpp"
 #include "cxios.hpp"
 
-namespace xmlioserver
+namespace xios
 {
 
   CServerBuffer::CServerBuffer(void)

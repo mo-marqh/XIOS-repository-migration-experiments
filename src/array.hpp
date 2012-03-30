@@ -6,13 +6,13 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/multi_array.hpp>
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
    template<size_t numDims>
    detail::multi_array::extent_gen<numDims> getExtentNull(void) { return getExtentNull<numDims-1>()[0];}
@@ -74,7 +74,7 @@ namespace xmlioserver
 
    ///---------------------------------------------------------------
 
-} // namespace xmlioserver
+} // namespace xios
 
 #include "array_impl.hpp"
 #include "array_mac.hpp"

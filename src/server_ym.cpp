@@ -10,7 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {                      
   namespace ym
   {

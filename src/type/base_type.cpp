@@ -4,7 +4,7 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    CBaseType::CBaseType(void) {}
    

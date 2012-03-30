@@ -1,6 +1,6 @@
 #include "minimum.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

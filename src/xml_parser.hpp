@@ -1,13 +1,13 @@
 #ifndef __XMLIO_CXMLParser__
 #define __XMLIO_CXMLParser__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "xml_node.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
    namespace xml
    {
@@ -46,6 +46,6 @@ namespace xmlioserver
       }
 
    }// namespace xml
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CXMLParser__

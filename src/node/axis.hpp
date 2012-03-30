@@ -1,13 +1,13 @@
 #ifndef __XMLIO_CAxis__
 #define __XMLIO_CAxis__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -81,6 +81,6 @@ namespace tree {
    ///--------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CAxis__

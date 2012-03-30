@@ -4,7 +4,7 @@
 
 #include "xmlioserver_spl.hpp"
 
-namespace xmlioserver
+namespace xios
 {
   namespace ym
   {

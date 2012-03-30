@@ -4,7 +4,7 @@
 #include "event_server.hpp"
 #include "buffer_server.hpp"
 
-namespace xmlioserver
+namespace xios
 {
 
   void CEventServer::push(int rank,CServerBuffer* serverBuffer,char* startBuffer,int size)

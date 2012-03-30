@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CGroupFactory_impl__
 #define __XMLIO_CGroupFactory_impl__
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -133,6 +133,6 @@ namespace xmlioserver
       return (group->childMap[id]);
    }
 
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CGroupFactory_impl__

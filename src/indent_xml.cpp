@@ -4,7 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    unsigned int CIndent::Indent   = 0;
@@ -50,4 +50,4 @@ namespace xmlioserver
       }
       return (retvalue.str());
    }
-} // namespace xmlioserver
+} // namespace xios

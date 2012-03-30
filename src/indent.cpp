@@ -4,7 +4,7 @@
 
 using namespace std ;
 
-namespace xmlioserver
+namespace xios
 {
   Cindent iendl ;
   Cindent ireset(0,true) ;

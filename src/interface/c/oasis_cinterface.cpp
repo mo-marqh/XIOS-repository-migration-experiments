@@ -2,7 +2,7 @@
 #include <string>
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 { 
  
   void oasis_init(const std::string& server_id)

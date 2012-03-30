@@ -4,7 +4,7 @@
 /// boost headers ///
 #include <boost/any.hpp>
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "object.hpp"
 #include "base_type.hpp"
@@ -12,7 +12,7 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -106,6 +106,6 @@ namespace xmlioserver
    CBufferOut& operator<<(CBufferOut& buffer,tree::CAttribute& type) ;
    CBufferIn& operator>>(CBufferIn& buffer, tree::CAttribute&  type) ;
 }
-  // namespace xmlioserver
+  // namespace xios
 
 #endif // __XMLIO_CAttribute__

@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -30,7 +30,7 @@ extern "C"
    
    typedef enum { NETCDF4 = 0 } XFileType;
    
-   typedef xmlioserver::tree::CContext * XContextPtr;
+   typedef xios::tree::CContext * XContextPtr;
 
    // -------------------- Traitement des données ------------------------------
    void cxios_init_server(void)

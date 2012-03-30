@@ -1,6 +1,6 @@
 #include "julian.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

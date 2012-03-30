@@ -3,7 +3,7 @@
 /// boost headers ///
 #include <boost/cast.hpp>
 
-namespace xmlioserver
+namespace xios
 {
   /// ////////////////////// Définitions ////////////////////// ///
    CException::CException(void)
@@ -52,4 +52,4 @@ namespace xmlioserver
 
    //---------------------------------------------------------------
 
-} // namespace xmlioserver
+} // namespace xios

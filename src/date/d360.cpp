@@ -1,6 +1,6 @@
 #include "d360.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

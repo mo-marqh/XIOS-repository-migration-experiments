@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -19,22 +19,22 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
 
-   typedef xmlioserver::tree::CContext * XContextPtr;
+   typedef xios::tree::CContext * XContextPtr;
 
-   typedef xmlioserver::tree::CGrid      * XGridPtr;
-   typedef xmlioserver::tree::CGridGroup * XGridGroupPtr;
+   typedef xios::tree::CGrid      * XGridPtr;
+   typedef xios::tree::CGridGroup * XGridGroupPtr;
 
-   typedef xmlioserver::tree::CFile      * XFilePtr;
-   typedef xmlioserver::tree::CFileGroup * XFileGroupPtr;
+   typedef xios::tree::CFile      * XFilePtr;
+   typedef xios::tree::CFileGroup * XFileGroupPtr;
 
-   typedef xmlioserver::tree::CField      * XFieldPtr;
-   typedef xmlioserver::tree::CFieldGroup * XFieldGroupPtr;
+   typedef xios::tree::CField      * XFieldPtr;
+   typedef xios::tree::CFieldGroup * XFieldGroupPtr;
 
-   typedef xmlioserver::tree::CDomain      * XDomainPtr;
-   typedef xmlioserver::tree::CDomainGroup * XDomainGroupPtr;
+   typedef xios::tree::CDomain      * XDomainPtr;
+   typedef xios::tree::CDomainGroup * XDomainGroupPtr;
 
-   typedef xmlioserver::tree::CAxis      * XAxisPtr;
-   typedef xmlioserver::tree::CAxisGroup * XAxisGroupPtr;
+   typedef xios::tree::CAxis      * XAxisPtr;
+   typedef xios::tree::CAxisGroup * XAxisGroupPtr;
    
    // ----------------------- Ajout d'enfant à un parent -----------------------
    
@@ -246,11 +246,11 @@ extern "C"
       try
       {
          if (cstr2string(filename, filename_size, filename_str))
-            xmlioserver::CTreeManager::PrintTreeToFile(filename_str);
+            xios::CTreeManager::PrintTreeToFile(filename_str);
          else
-            xmlioserver::CTreeManager::PrintTreeToStream(std::clog);
+            xios::CTreeManager::PrintTreeToStream(std::clog);
       }
-      catch (xmlioserver::CException & exc)
+      catch (xios::CException & exc)
       {
          std::cerr << exc.getMessage() << std::endl;
          exit (EXIT_FAILURE);
@@ -267,9 +267,9 @@ extern "C"
 
       try
       {
-         xmlioserver::CTreeManager::ParseFile(filename_str);
+         xios::CTreeManager::ParseFile(filename_str);
       }
-      catch (xmlioserver::CException & exc)
+      catch (xios::CException & exc)
       {
          std::cerr << exc.getMessage() << std::endl;
          exit (EXIT_FAILURE);
@@ -283,9 +283,9 @@ extern "C"
 
       try
       {
-         xmlioserver::CTreeManager::ParseString(xmlcontent_str);
+         xios::CTreeManager::ParseString(xmlcontent_str);
       }
-      catch (xmlioserver::CException & exc)
+      catch (xios::CException & exc)
       {
          std::cerr << exc.getMessage() << std::endl;
          exit (EXIT_FAILURE);

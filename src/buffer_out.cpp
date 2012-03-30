@@ -2,7 +2,7 @@
 #include "buffer_out.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
     CBufferOut::CBufferOut(void* buffer,size_t size)
     {

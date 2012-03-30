@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *      Copyright © IPSL/LSCE, XMLIOServer, Avril 2010 - Octobre 2011         *
+ *      Copyright © IPSL/LSCE, xios, Avril 2010 - Octobre 2011         *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -19,8 +19,8 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
    
-   typedef xmlioserver::tree::CGrid      * XGridPtr;
-   typedef xmlioserver::tree::CGridGroup * XGridGroupPtr;
+   typedef xios::tree::CGrid      * XGridPtr;
+   typedef xios::tree::CGridGroup * XGridGroupPtr;
 
    // ------------------------ Création des handle -----------------------------
   
@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CGrid>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CGrid>(id).get();
    }
    
    void cxios_gridgroup_handle_create (XGridGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::GetObject<xmlioserver::tree::CGridGroup>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::tree::CGridGroup>(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CGrid>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CGrid>(id);
    }
 
    void cxios_gridgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,6 +55,6 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xmlioserver::CObjectFactory::HasObject<xmlioserver::tree::CGridGroup>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::tree::CGridGroup>(id);
    }
 } // extern "C"

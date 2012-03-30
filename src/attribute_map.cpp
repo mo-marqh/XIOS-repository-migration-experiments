@@ -1,7 +1,7 @@
 #include "attribute_map.hpp"
 #include "indent.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {

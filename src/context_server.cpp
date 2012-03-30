@@ -12,7 +12,7 @@
 
 
 
-namespace xmlioserver
+namespace xios
 {
 
   CContextServer::CContextServer(tree::CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)

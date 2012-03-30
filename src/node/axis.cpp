@@ -4,7 +4,7 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -62,4 +62,4 @@ namespace tree {
    ///---------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios

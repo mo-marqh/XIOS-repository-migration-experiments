@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CBuffer_impl__
 #define __XMLIO_CBuffer_impl__
 
-namespace xmlioserver
+namespace xios
 {
    namespace comm
    {
@@ -95,6 +95,6 @@ namespace xmlioserver
       ///----------------------------------------------------------------
 
    } // namespace comm
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CBuffer_impl__

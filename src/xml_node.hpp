@@ -4,10 +4,10 @@
 /// rapidXML headers ///
 #include <rapidxml.hpp>
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace xml
    {
@@ -52,6 +52,6 @@ namespace xmlioserver
       }; //class CXMLParser
 
    }// namespace xml
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CXMLNode__

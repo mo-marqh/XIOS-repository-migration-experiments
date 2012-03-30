@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xmlioserver::tree::CAxisGroup*  axisgroup_Ptr;
+  typedef xios::tree::CAxisGroup*  axisgroup_Ptr;
   
   void cxios_set_axisgroup_group_ref(axisgroup_Ptr axisgroup_hdl, const char * group_ref, int group_ref_size)
   {

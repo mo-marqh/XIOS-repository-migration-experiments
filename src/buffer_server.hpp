@@ -5,7 +5,7 @@
 #include "buffer_ym.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
 
   class CServerBuffer

@@ -1,6 +1,6 @@
 #include "log.hpp"
 
-namespace xmlioserver
+namespace xios
 {
   CLog info ;
 }

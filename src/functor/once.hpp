@@ -1,10 +1,10 @@
 #ifndef __XMLIO_COnce__
 #define __XMLIO_COnce__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "functor.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {
@@ -32,7 +32,7 @@ namespace xmlioserver
       }; // class COnce
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_COnce__
 

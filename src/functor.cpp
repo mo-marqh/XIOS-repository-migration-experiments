@@ -1,6 +1,6 @@
 #include "functor.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {
@@ -56,4 +56,4 @@ namespace xmlioserver
       //---------------------------------------------------------------
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios

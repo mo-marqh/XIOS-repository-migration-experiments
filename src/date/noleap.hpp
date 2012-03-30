@@ -5,7 +5,7 @@
 #include "xmlioserver_spl.hpp"
 #include "calendar.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {

@@ -6,9 +6,9 @@
 #define DECLARE_PROPERTY(type, name, value) \
    extern type name; // = value
 
-namespace xmlioserver
+namespace xios
 {
 #include "properties.conf"
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_Configure__

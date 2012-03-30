@@ -1,6 +1,6 @@
 #include "xml_node.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace xml
    {

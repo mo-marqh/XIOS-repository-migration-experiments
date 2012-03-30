@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CVar__
 #define __XMLIO_CVar__
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -97,6 +97,6 @@ namespace xmlioserver
       StdString CVar::GetDefName(void){ return (CVar::GetName()); }
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CVar__

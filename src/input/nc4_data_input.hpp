@@ -5,7 +5,7 @@
 #include "xmlioserver_spl.hpp"
 #include "inetcdf4.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -26,6 +26,6 @@ namespace xmlioserver
       }; // class CNc4DataInput
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_NC4_DATA_INPUT__

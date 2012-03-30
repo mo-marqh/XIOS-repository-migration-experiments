@@ -1,11 +1,11 @@
 #ifndef __XMLIO_CIndent_XML__
 #define __XMLIO_CIndent_XML__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "xml_node.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
    class CIndent
@@ -39,7 +39,7 @@ namespace xmlioserver
 
     ///--------------------------------------------------------------
 
-} // namespace xmlioserver
+} // namespace xios
 
    /// ////////////////////// Macros ////////////////////// ///
    

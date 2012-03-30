@@ -1,7 +1,7 @@
 #ifndef __XMLIO_DATA_OUTPUT__
 #define __XMLIO_DATA_OUTPUT__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "grid.hpp"
@@ -11,7 +11,7 @@
 #define MPI_INCLUDED
 #include <netcdf.h>
 
-namespace xmlioserver
+namespace xios
 {
    namespace io
    {
@@ -60,6 +60,6 @@ namespace xmlioserver
       }; // class CDataOutput
 
    } // namespace io
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_DATA_OUTPUT__

@@ -1,10 +1,10 @@
 #ifndef __XMLIO_CObject__
 #define __XMLIO_CObject__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -52,7 +52,7 @@ namespace xmlioserver
 
    }; // class CObject
 
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CObject__
 

@@ -10,7 +10,7 @@
 #include "event_server.hpp"
 #include "buffer_in.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -1068,4 +1068,4 @@ namespace tree {
    ///---------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios

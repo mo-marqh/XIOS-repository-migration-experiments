@@ -5,7 +5,7 @@
 #include "buffer_in.hpp"
 #include "buffer_server.hpp"
 
-namespace xmlioserver
+namespace xios
 {
 
   class CEventServer

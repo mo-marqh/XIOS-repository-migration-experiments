@@ -2,7 +2,7 @@
 #include <algorithm>
 
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

@@ -5,7 +5,7 @@
 #include "type.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
    CEventClient::CEventClient(int classId_,int typeId_)
    {

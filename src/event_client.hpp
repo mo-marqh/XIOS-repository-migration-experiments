@@ -5,7 +5,7 @@
 #include "buffer_out.hpp" ;
 #include "message.hpp" ;
 
-namespace xmlioserver
+namespace xios
 {
  
   class CEventClient

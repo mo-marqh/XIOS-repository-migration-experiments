@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CObjectFactory_impl__
 #define __XMLIO_CObjectFactory_impl__
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    template <typename U>
@@ -147,6 +147,6 @@ namespace xmlioserver
           return StdString(oss.str()) ;
         }
           
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CObjectFactory_impl__

@@ -4,7 +4,7 @@
 /// xmlioserver headers ///
 #include "functor.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {

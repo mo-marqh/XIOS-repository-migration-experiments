@@ -1,7 +1,7 @@
 #ifndef __BUFFER_YM_IMPL_HPP__
 #define __BUFFER_YM_IMPL_HPP__
 
-namespace xmlioserver
+namespace xios
 {
   namespace ym
   {

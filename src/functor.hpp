@@ -1,12 +1,12 @@
 #ifndef __XMLIO_CFunctor__
 #define __XMLIO_CFunctor__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "array.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace func
    {
@@ -55,7 +55,7 @@ namespace xmlioserver
             int nbcall;            
       }; // class CFunctor
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
 #include "functor_type.hpp"
 

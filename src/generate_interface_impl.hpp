@@ -6,7 +6,7 @@
 #include "type_util.hpp"
 #include "indent.hpp"
 
-namespace xmlioserver
+namespace xios
 { 
 
 

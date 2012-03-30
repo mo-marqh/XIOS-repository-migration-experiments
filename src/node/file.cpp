@@ -14,7 +14,7 @@
 #include "date.hpp"
 
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -243,8 +243,19 @@ namespace tree {
          oss << ".nc";
 
          if (isOpen) data_out->closeFile() ;
-         
-         data_out=shared_ptr<io::CDataOutput>(new io::CNc4DataOutput(oss.str(), false,server->intraComm,multifile));
+         bool isCollective=true ;
+         if (!par_access.isEmpty())
+         {
+           if (par_access.getValue()=="independent") isCollective=false ;
+           else if (par_access.getValue()=="collective") isCollective=true ;
+           else 
+           {
+             ERROR("void Context::createDataOutput(void)",
+                        "incorrect file <par_access> attribut : must be <collective> or <indepedent>, "
+                        <<"having : <"<<type.getValue()<<">") ;
+           }
+         }
+         data_out=shared_ptr<io::CDataOutput>(new io::CNc4DataOutput(oss.str(), false,server->intraComm,multifile, isCollective));
          isOpen=true ;
 
          data_out->writeFile(CObjectFactory::GetObject<CFile>(this));
@@ -490,4 +501,4 @@ namespace tree {
    ///---------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios

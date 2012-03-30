@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CMethod__
 #define __XMLIO_CMethod__
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -97,6 +97,6 @@ namespace xmlioserver
       StdString CMethod::GetDefName(void){ return (CMethod::GetName()); }
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CMethod__

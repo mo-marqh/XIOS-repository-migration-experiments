@@ -1,11 +1,11 @@
 #ifndef __XMLIO_CException__
 #define __XMLIO_CException__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "object.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Déclarations ////////////////////// ///
    class CException
@@ -38,7 +38,7 @@ namespace xmlioserver
          bool desc_rethrow; // throw destructor
 
    }; // CException
-} // namespace xmlioserver
+} // namespace xios
 
 /// //////////////////////////// Macros //////////////////////////// ///
 

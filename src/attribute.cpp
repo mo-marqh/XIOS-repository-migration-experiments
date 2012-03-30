@@ -1,7 +1,7 @@
 #include "attribute.hpp"
 #include "base_type.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -83,4 +83,4 @@ namespace xmlioserver
        return buffer ;
      }
 
-} // namespace xmlioserver
+} // namespace xios

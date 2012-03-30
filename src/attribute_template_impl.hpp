@@ -9,7 +9,7 @@
 
 
   
-namespace xmlioserver
+namespace xios
 {
 
    namespace tree
@@ -293,6 +293,6 @@ namespace xmlioserver
 
       ///--------------------------------------------------------------
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CAttributeTemplate_impl__

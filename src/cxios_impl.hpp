@@ -4,7 +4,7 @@
 #include "xmlioserver_spl.hpp"
 #include "variable.hpp"
 
-namespace xmlioserver
+namespace xios
 {
   template <typename T>
   T CXios::getin(const string& id)

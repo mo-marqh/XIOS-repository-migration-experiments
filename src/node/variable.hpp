@@ -1,13 +1,13 @@
 #ifndef __XMLIO_CVariable__
 #define __XMLIO_CVariable__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "declare_group.hpp"
 
 #include "data_output.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -112,6 +112,6 @@ namespace xmlioserver
 
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CVariable__

@@ -7,7 +7,7 @@
 #include "buffer_out.hpp"
 #include "array.hpp"
 
-namespace xmlioserver
+namespace xios
 {
 
 

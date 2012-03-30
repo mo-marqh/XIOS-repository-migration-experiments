@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CDomain__
 #define __XMLIO_CDomain__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "group_factory.hpp"
 
@@ -10,7 +10,7 @@
 #include "event_server.hpp"
 #include "buffer_in.hpp"
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -164,6 +164,6 @@ namespace tree {
    ///--------------------------------------------------------------
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CDomain__

@@ -8,7 +8,7 @@
 #include "grid.hpp"
 
 
-namespace xmlioserver {
+namespace xios {
 namespace tree {
 
    template <StdSize N>
@@ -60,6 +60,6 @@ namespace tree {
    }
 
 } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif

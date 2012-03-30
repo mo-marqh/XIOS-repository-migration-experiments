@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xmlioserver::tree::CGridGroup*  gridgroup_Ptr;
+  typedef xios::tree::CGridGroup*  gridgroup_Ptr;
   
   void cxios_set_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, const char * axis_ref, int axis_ref_size)
   {

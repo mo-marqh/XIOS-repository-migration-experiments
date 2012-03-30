@@ -5,7 +5,7 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    
    /// ////////////////////// Définitions ////////////////////// ///
@@ -174,6 +174,6 @@ namespace xmlioserver
 
    ///---------------------------------------------------------------
    
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CArray_impl__

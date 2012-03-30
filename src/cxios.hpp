@@ -4,7 +4,7 @@
 #include "xmlioserver_spl.hpp"
 #include <mpi.h>
 
-namespace xmlioserver
+namespace xios
 {
   class CXios
   {

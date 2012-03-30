@@ -2,7 +2,7 @@
 #include "buffer_in.hpp"
 
 
-namespace xmlioserver
+namespace xios
 {
     CBufferIn::CBufferIn(void* buffer,size_t size)
     {

@@ -4,7 +4,7 @@
 //#define DECLARE_NODE(Name_, name_)     ,e##Name_, g##Name_
 //#define DECLARE_NODE_PAR(Name_, name_) ,e##Name_, g##Name_
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -25,6 +25,6 @@ namespace xmlioserver
       } ENodeType;
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_NODE_ENUM__

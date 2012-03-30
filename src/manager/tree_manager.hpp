@@ -1,7 +1,7 @@
 #ifndef __XMLIO_CTreeManager__
 #define __XMLIO_CTreeManager__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "node_type.hpp"
 #include "xml_parser.hpp"
@@ -10,7 +10,7 @@
 #undef  DECLARE_ATTRIBUTE
 #define DECLARE_ATTRIBUTE(type, name)  , type * name = NULL
 
-namespace xmlioserver
+namespace xios
 {
    namespace tree
    {
@@ -50,7 +50,7 @@ namespace xmlioserver
       }; // class CTreeManager
 
    } // namespace tree
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CTreeManager__
 

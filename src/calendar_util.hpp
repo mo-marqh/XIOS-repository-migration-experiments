@@ -1,12 +1,12 @@
 #ifndef __XMLIO_CCalendar_util__
 #define __XMLIO_CCalendar_util__
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "calendar.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    namespace date
    {
@@ -35,6 +35,6 @@ namespace xmlioserver
       ///---------------------------------------------------------------
 
    } // namespace date
-} // namespace xmlioserver
+} // namespace xios
 
 #endif //__XMLIO_CCalendar_util__

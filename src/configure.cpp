@@ -1,6 +1,6 @@
 #define __XMLIO_Configure__ // < Ne pas supprimer
 
-/// xmlioserver headers ///
+/// xios headers ///
 #include "xmlioserver_spl.hpp"
 
 /// /////////// Macros /////////// ///
@@ -8,7 +8,7 @@
 #define DECLARE_PROPERTY(type, name, value) \
    type name = value;
 
-namespace xmlioserver
+namespace xios
 {
 #include "properties.conf"
-} // namespace xmlioserver
+} // namespace xios

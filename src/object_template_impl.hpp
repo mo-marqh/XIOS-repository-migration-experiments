@@ -15,7 +15,7 @@
 #include "message.hpp"
 #include "type.hpp"
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    template <class T>
@@ -269,7 +269,7 @@ namespace xmlioserver
      oss<<iendl ;
      oss<<"extern \"C\""<<iendl ;
      oss<<"{"<<iendl++ ;
-     oss<<"typedef xmlioserver::tree::"<<getStrType<T>()<<"*  "<<className<<"_Ptr;"<<iendl;
+     oss<<"typedef xios::tree::"<<getStrType<T>()<<"*  "<<className<<"_Ptr;"<<iendl;
      oss<<iendl ;
      SuperClassMap::generateCInterface(oss,className) ;
      oss<<iendl-- ;
@@ -340,6 +340,6 @@ namespace xmlioserver
    }
 
 
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_CObjectTemplate_impl__

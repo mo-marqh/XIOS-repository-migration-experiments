@@ -4,7 +4,7 @@
 /// boost headers ///
 #include <boost/cast.hpp>
 
-namespace xmlioserver
+namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
    template <class U, class V, class W>
@@ -77,6 +77,6 @@ namespace xmlioserver
       }
    }
 
-} // namespace xmlioserver
+} // namespace xios
 
 #endif // __XMLIO_GroupParser__
