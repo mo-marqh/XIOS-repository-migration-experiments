@@ -21,8 +21,6 @@ extern "C" {
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CONetCDF4
          : public virtual CDataOutput
@@ -175,7 +173,6 @@ namespace xios
      
       ///---------------------------------------------------------------
 
-   } // namespace io
 } // namespace xios
 
 #endif //__XMLIO_INETCDF4__

@@ -8,8 +8,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       class CNc4DataOutput
@@ -100,7 +98,6 @@ namespace xios
 
       }; // class CNc4DataOutput
 
-   } // namespace io
 } // namespace xios
 
 #endif //__XMLIO_NC4_DATA_OUTPUT__

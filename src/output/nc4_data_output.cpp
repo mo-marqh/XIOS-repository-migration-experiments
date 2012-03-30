@@ -12,8 +12,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CNc4DataOutput::CNc4DataOutput
          (const StdString & filename, bool exist)
@@ -669,5 +667,4 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-   } // namespace io
 } // namespace xios

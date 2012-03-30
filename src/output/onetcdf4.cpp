@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4
@@ -405,5 +403,4 @@ namespace xios
          CheckError(nc_sync(this->ncidp)) ;
       } 
       ///--------------------------------------------------------------
-   } // namespace io
-} // namespace xios
+ } // namespace xios

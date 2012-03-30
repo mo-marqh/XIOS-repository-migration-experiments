@@ -6,8 +6,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CDataOutput::~CDataOutput(void)
@@ -107,5 +105,4 @@ namespace xios
       
       ///----------------------------------------------------------------
 
-   } // namespace io
 } // namespace xios

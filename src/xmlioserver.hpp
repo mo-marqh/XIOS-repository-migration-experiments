@@ -12,7 +12,6 @@
 
 using namespace xios;
 using namespace xios::data;
-using namespace xios::io;
 using namespace xios::tree;
 using namespace xios::xml;
 using namespace xios::func;

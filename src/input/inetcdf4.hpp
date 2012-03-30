@@ -16,8 +16,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       typedef std::vector<StdString> CVarPath;
 
@@ -233,7 +231,6 @@ namespace xios
                                  const CVarPath  * const path, StdSize record);
       ///--------------------------------------------------------------
 
-   } // namespace io
 } // namespace xmlioserver
 
 #endif //__XMLIO_INETCDF4__

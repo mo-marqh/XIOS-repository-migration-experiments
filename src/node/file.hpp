@@ -52,7 +52,7 @@ namespace tree {
          CFile(const CFile * const file); // Not implemented yet.
 
          /// Accesseurs ///
-         boost::shared_ptr<io::CDataOutput> getDataOutput(void) const;
+         boost::shared_ptr<CDataOutput> getDataOutput(void) const;
          boost::shared_ptr<CFieldGroup> getVirtualFieldGroup(void) const;
          std::vector<boost::shared_ptr<CField> > getAllFields(void) const;
 
@@ -118,7 +118,7 @@ namespace tree {
 
          /// Propriétés privées ///
          boost::shared_ptr<CFieldGroup> vFieldGroup;
-         boost::shared_ptr<io::CDataOutput> data_out;
+         boost::shared_ptr<CDataOutput> data_out;
          std::vector<boost::shared_ptr<CField> > enabledFields;
 
    }; // class CFile

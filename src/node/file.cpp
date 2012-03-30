@@ -40,7 +40,7 @@ namespace tree {
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<io::CDataOutput> CFile::getDataOutput(void) const
+   boost::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
    {
       return (data_out);
    }
@@ -255,7 +255,7 @@ namespace tree {
                         <<"having : <"<<type.getValue()<<">") ;
            }
          }
-         data_out=shared_ptr<io::CDataOutput>(new io::CNc4DataOutput(oss.str(), false,server->intraComm,multifile, isCollective));
+         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false,server->intraComm,multifile, isCollective));
          isOpen=true ;
 
          data_out->writeFile(CObjectFactory::GetObject<CFile>(this));

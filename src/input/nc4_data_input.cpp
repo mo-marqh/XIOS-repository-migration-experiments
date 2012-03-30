@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CNc4DataInput::CNc4DataInput(void)
       { /* ne rien faire de plus */ }
@@ -11,5 +9,4 @@ namespace xios
       CNc4DataInput::~CNc4DataInput(void)
       { /* ne rien faire de plus */ }
 
-   } // namespace io
 } // namespace xios

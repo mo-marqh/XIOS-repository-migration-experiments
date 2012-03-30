@@ -4,8 +4,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CINetCDF4::CINetCDF4(const StdString & filename)
       {
@@ -787,5 +785,4 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-   } // namespace io
 } // namespace xios

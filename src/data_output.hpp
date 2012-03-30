@@ -13,8 +13,6 @@
 
 namespace xios
 {
-   namespace io
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CDataOutput
       {
@@ -59,7 +57,6 @@ namespace xios
 
       }; // class CDataOutput
 
-   } // namespace io
 } // namespace xios
 
 #endif //__XMLIO_DATA_OUTPUT__
