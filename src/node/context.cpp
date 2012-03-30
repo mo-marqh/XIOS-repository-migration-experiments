@@ -62,14 +62,14 @@ namespace tree {
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<date::CCalendar> CContext::getCalendar(void) const
+   boost::shared_ptr<CCalendar> CContext::getCalendar(void) const
    {
       return (this->calendar);
    }
    
    //----------------------------------------------------------------
    
-   void CContext::setCalendar(boost::shared_ptr<date::CCalendar> newCalendar)
+   void CContext::setCalendar(boost::shared_ptr<CCalendar> newCalendar)
    {
       this->calendar = newCalendar;
       calendar_type.setValue(this->calendar->getId());
@@ -90,13 +90,13 @@ namespace tree {
    if (calendar_type.getValue().compare(#mtype) == 0)                 \
    {                                                                  \
       if (time_origin.isEmpty())                                       \
-        this->calendar =  boost::shared_ptr<date::CCalendar>          \
-           (new date::C##MType##Calendar(start_date.getValue()));     \
-      else this->calendar =  boost::shared_ptr<date::CCalendar>       \
-           (new date::C##MType##Calendar(start_date.getValue(),time_origin.getValue()));     \
+        this->calendar =  boost::shared_ptr<CCalendar>          \
+           (new C##MType##Calendar(start_date.getValue()));     \
+      else this->calendar =  boost::shared_ptr<CCalendar>       \
+           (new C##MType##Calendar(start_date.getValue(),time_origin.getValue()));     \
       if (!this->timestep.isEmpty())                                  \
        this->calendar->setTimeStep                                    \
-          (date::CDuration::FromString(this->timestep.getValue()));   \
+          (CDuration::FromString(this->timestep.getValue()));   \
       return;                                                         \
    }
 #include "calendar_type.conf"

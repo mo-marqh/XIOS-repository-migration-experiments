@@ -77,11 +77,11 @@ namespace tree {
       public :
       
          /// Mutateurs ///
-         void setCalendar(boost::shared_ptr<date::CCalendar> newCalendar);
+         void setCalendar(boost::shared_ptr<CCalendar> newCalendar);
          void setDataTreatment(boost::shared_ptr<data::CDataTreatment> datat);
       
          /// Accesseurs ///
-         boost::shared_ptr<date::CCalendar>      getCalendar(void) const;
+         boost::shared_ptr<CCalendar>      getCalendar(void) const;
          boost::shared_ptr<data::CDataTreatment> getDataTreatment(void) const;
 
          /// Accesseurs statiques ///
@@ -147,7 +147,7 @@ namespace tree {
          
       public :
       
-         boost::shared_ptr<date::CCalendar>      calendar;
+         boost::shared_ptr<CCalendar>      calendar;
          boost::shared_ptr<data::CDataTreatment> datat;
  
          std::vector<boost::shared_ptr<CFile> > enabledFiles;

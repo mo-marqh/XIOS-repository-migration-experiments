@@ -47,7 +47,7 @@ namespace xios
             virtual void closeFile_      (void);
             virtual void syncFile_      (void);
             virtual void writeTimeAxis_  (const boost::shared_ptr<tree::CField>    field,
-                                          const boost::shared_ptr<date::CCalendar> cal);
+                                          const boost::shared_ptr<CCalendar> cal);
 
          protected :
          

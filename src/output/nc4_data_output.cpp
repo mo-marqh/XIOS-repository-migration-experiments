@@ -481,10 +481,10 @@ namespace xios
              
  //        ARRAY(double, 1) field_data = field->data_srv;
          ARRAY_CREATE(time_data, double, 1, [1]);
-         if (field->operation.getValue()=="instant") (*time_data)[0] = date::Time(*field->last_Write_srv)
-                                                                      -date::Time(context->calendar->getTimeOrigin());
-         else (*time_data)[0] = (date::Time(*field->last_Write_srv)+date::Time(*field->lastlast_Write_srv))/2
-                               -date::Time(context->calendar->getTimeOrigin());
+         if (field->operation.getValue()=="instant") (*time_data)[0] = Time(*field->last_Write_srv)
+                                                                      -Time(context->calendar->getTimeOrigin());
+         else (*time_data)[0] = (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2
+                               -Time(context->calendar->getTimeOrigin());
            
          if (grid->hasAxis()) // 3D
          {
@@ -561,7 +561,7 @@ namespace xios
 
       void CNc4DataOutput::writeTimeAxis_
                   (const boost::shared_ptr<tree::CField>    field,
-                   const boost::shared_ptr<date::CCalendar> cal)
+                   const boost::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;
          oss << "time_" << field->operation.getValue()
@@ -575,7 +575,7 @@ namespace xios
          if (!SuperClassWriter::varExist(axisid))
          {
             SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-            date::CDate timeOrigin=cal->getTimeOrigin() ;
+            CDate timeOrigin=cal->getTimeOrigin() ;
 //            StdOStringStream oss2;
 //            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
 //                <<initDate.getHour()<<"-"<<initDate.getMinute()<<"-"<<initDate.getSecond() ;

@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CGregorianCalendar::CGregorianCalendar(const StdString & dateStr)
@@ -50,6 +48,5 @@ namespace xios
       { return (StdString("gregorian")); }
 
       ///--------------------------------------------------------------
-   } // namespace date
 } // namespace xmlioserver
 

@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CD360Calendar::CD360Calendar(const StdString & dateStr)
@@ -34,6 +32,5 @@ namespace xios
       { return (StdString("360_day")); }
 
       ///--------------------------------------------------------------
-   } // namespace date
 } // namespace xmlioserver
 

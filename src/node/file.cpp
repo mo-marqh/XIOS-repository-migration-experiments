@@ -129,7 +129,7 @@ namespace tree {
    bool CFile::isSyncTime(void)
    {
      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-     date::CDate& currentDate=context->calendar->getCurrentDate() ;
+     CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
        if (*lastSync+syncFreq < currentDate)
@@ -144,13 +144,13 @@ namespace tree {
    void CFile::initFile(void)
    {
       shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-      date::CDate& currentDate=context->calendar->getCurrentDate() ;
+      CDate& currentDate=context->calendar->getCurrentDate() ;
       
-      if (! sync_freq.isEmpty()) syncFreq = date::CDuration::FromString(sync_freq.getValue());
-      if (! split_freq.isEmpty()) splitFreq = date::CDuration::FromString(split_freq.getValue());
-      if (! output_freq.isEmpty()) outputFreq = date::CDuration::FromString(output_freq.getValue());
-      lastSync=new date::CDate(currentDate) ;
-      lastSplit=new date::CDate(currentDate) ;
+      if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
+      if (! split_freq.isEmpty()) splitFreq = CDuration::FromString(split_freq.getValue());
+      if (! output_freq.isEmpty()) outputFreq = CDuration::FromString(output_freq.getValue());
+      lastSync=new CDate(currentDate) ;
+      lastSplit=new CDate(currentDate) ;
       isOpen=false ;
     }
     
@@ -165,7 +165,7 @@ namespace tree {
    bool CFile::checkSync(void)
    {
      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-     date::CDate& currentDate=context->calendar->getCurrentDate() ;
+     CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
        if (*lastSync+syncFreq < currentDate)
@@ -182,7 +182,7 @@ namespace tree {
     bool CFile::checkSplit(void)
     {
       shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-      date::CDate& currentDate=context->calendar->getCurrentDate() ;
+      CDate& currentDate=context->calendar->getCurrentDate() ;
       if (! split_freq.isEmpty())
       {
         if (*lastSplit+splitFreq < currentDate)
@@ -201,7 +201,7 @@ namespace tree {
    void CFile::createHeader(void)
    {
       shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-      date::CDate& currentDate=context->calendar->getCurrentDate() ;
+      CDate& currentDate=context->calendar->getCurrentDate() ;
       
       std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
 
@@ -223,7 +223,7 @@ namespace tree {
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
 //         if (!split_freq.isEmpty()) oss<<"-["<<currentDate.toString()<<"]" ;
-         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*date::Second)).getStryyyymmdd();
+         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStryyyymmdd();
          bool multifile=true ;
          if (!type.isEmpty())
          {

@@ -45,11 +45,11 @@ namespace tree {
    //----------------------------------------------------------------
 
    bool CField::updateDataServer
-      (const date::CDate & currDate,
+      (const CDate & currDate,
        const std::deque<ARRAY(double, 1)> storedClient)
    {
-      const date::CDate opeDate      = *last_operation + freq_operation;
-      const date::CDate writeDate    = *last_Write     + freq_write; 
+      const CDate opeDate      = *last_operation + freq_operation;
+      const CDate writeDate    = *last_Write     + freq_write; 
       
       if (opeDate <= currDate)
       {
@@ -151,9 +151,9 @@ namespace tree {
     }
 
     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-    const date::CDate & currDate = context->getCalendar()->getCurrentDate();
-    const date::CDate opeDate      = *last_operation_srv + freq_operation_srv;
-    const date::CDate writeDate    = *last_Write_srv     + freq_write_srv; 
+    const CDate & currDate = context->getCalendar()->getCurrentDate();
+    const CDate opeDate      = *last_operation_srv + freq_operation_srv;
+    const CDate writeDate    = *last_Write_srv     + freq_write_srv; 
     
 
     
@@ -270,13 +270,13 @@ namespace tree {
    
    //----------------------------------------------------------------
    
-   const date::CDuration & CField::getFreqOperation(void) const
+   const CDuration & CField::getFreqOperation(void) const
    {
       return (this->freq_operation);
    }
    
    //----------------------------------------------------------------
-   const date::CDuration & CField::getFreqWrite(void) const
+   const CDuration & CField::getFreqWrite(void) const
    {
       return (this->freq_write);
    }
@@ -308,14 +308,14 @@ namespace tree {
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<date::CDate> CField::getLastWriteDate(void) const
+   boost::shared_ptr<CDate> CField::getLastWriteDate(void) const
    {
       return(this->last_Write);
    }
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<date::CDate> CField::getLastOperationDate(void) const
+   boost::shared_ptr<CDate> CField::getLastOperationDate(void) const
    {
       return(this->last_operation);
    }
@@ -354,7 +354,6 @@ namespace tree {
    void  CField::solveOperation(void)
    {
       using namespace func;
-      using namespace date;
        
       StdString id = this->getBaseFieldReference()->getId();
       boost::shared_ptr<CContext> context =
@@ -384,12 +383,12 @@ namespace tree {
              CDuration::FromString(this->file->output_freq.getValue());
          this->freq_write_srv     =
              CDuration::FromString(this->file->output_freq.getValue());
-         this->lastlast_Write_srv     = boost::shared_ptr<xios::date::CDate>
-                        (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_Write_srv     = boost::shared_ptr<xios::date::CDate>
-                        (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_operation_srv = boost::shared_ptr<xios::date::CDate>
-                        (new date::CDate(context->getCalendar()->getInitDate()));
+         this->lastlast_Write_srv     = boost::shared_ptr<CDate>
+                        (new CDate(context->getCalendar()->getInitDate()));
+         this->last_Write_srv     = boost::shared_ptr<CDate>
+                        (new CDate(context->getCalendar()->getInitDate()));
+         this->last_operation_srv = boost::shared_ptr<CDate>
+                        (new CDate(context->getCalendar()->getInitDate()));
 //         this->foperation_srv     =
 //             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
              
@@ -401,10 +400,10 @@ namespace tree {
       {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
-         this->last_Write     = boost::shared_ptr<xios::date::CDate>
-                        (new date::CDate(context->getCalendar()->getInitDate()));
-         this->last_operation = boost::shared_ptr<xios::date::CDate>
-                        (new date::CDate(context->getCalendar()->getInitDate()));
+         this->last_Write     = boost::shared_ptr<CDate>
+                        (new CDate(context->getCalendar()->getInitDate()));
+         this->last_operation = boost::shared_ptr<CDate>
+                        (new CDate(context->getCalendar()->getInitDate()));
                         
          const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
          *this->last_operation   = *this->last_operation - toffset;  

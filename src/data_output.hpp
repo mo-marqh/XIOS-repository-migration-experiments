@@ -50,7 +50,7 @@ namespace xios
             virtual void writeDomain_     (const boost::shared_ptr<tree::CDomain>   domain) = 0;
             virtual void writeAxis_       (const boost::shared_ptr<tree::CAxis>     axis)   = 0;
             virtual void writeTimeAxis_   (const boost::shared_ptr<tree::CField>    field,
-                                           const boost::shared_ptr<date::CCalendar> cal)    = 0;
+                                           const boost::shared_ptr<CCalendar> cal)    = 0;
 
             /// Propriétés protégées ///
             EDataOutputType type;

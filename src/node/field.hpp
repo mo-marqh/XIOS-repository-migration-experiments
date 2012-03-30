@@ -72,11 +72,11 @@ namespace tree {
 
          StdSize getNStep(void) const;
 
-         const date::CDuration & getFreqOperation(void) const;
-         const date::CDuration & getFreqWrite(void) const;
+         const CDuration & getFreqOperation(void) const;
+         const CDuration & getFreqWrite(void) const;
 
-         boost::shared_ptr<date::CDate> getLastWriteDate(void) const;
-         boost::shared_ptr<date::CDate> getLastOperationDate(void) const;
+         boost::shared_ptr<CDate> getLastWriteDate(void) const;
+         boost::shared_ptr<CDate> getLastOperationDate(void) const;
 
          boost::shared_ptr<func::CFunctor> getFieldOperation(void) const;
          
@@ -92,7 +92,7 @@ namespace tree {
          template <StdSize N> bool updateData(const ARRAY(double, N)   data);
          
          bool updateDataServer
-               (const date::CDate & currDate,
+               (const CDate & currDate,
                 const std::deque<ARRAY(double, 1)> storedClient);
  
        public :
@@ -135,12 +135,12 @@ namespace tree {
          boost::shared_ptr<CGrid>  grid ;
          boost::shared_ptr<CFile>  file;
 
-         date::CDuration freq_operation, freq_write;
-         date::CDuration freq_operation_srv, freq_write_srv;
+         CDuration freq_operation, freq_write;
+         CDuration freq_operation_srv, freq_write_srv;
 
          StdSize nstep;
-         boost::shared_ptr<date::CDate>    last_Write, last_operation;
-         boost::shared_ptr<date::CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
+         boost::shared_ptr<CDate>    last_Write, last_operation;
+         boost::shared_ptr<CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
          
          boost::shared_ptr<func::CFunctor> foperation;
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;

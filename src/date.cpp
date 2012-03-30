@@ -9,8 +9,6 @@ using namespace boost::gregorian ;
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CDate::CDate(const CCalendar& calendar)
          : relCalendar(calendar)
@@ -223,5 +221,4 @@ namespace xios
 
       ///---------------------------------------------------------------
 
-   } // namespace date
 } // namespace xios

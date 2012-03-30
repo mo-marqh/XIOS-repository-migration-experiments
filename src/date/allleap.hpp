@@ -7,8 +7,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CAllLeapCalendar : public CCalendar
       {
@@ -36,7 +34,6 @@ namespace xios
 
       }; // class CAllLeapCalendar
 
-   } // namespace date
 } // namespace xmlioserver
 
 #endif // __XMLIO_CAllLeapCalendar__

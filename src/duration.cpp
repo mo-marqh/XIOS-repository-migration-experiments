@@ -4,8 +4,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       const CDuration Year   = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
                       Month  = {0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
@@ -140,6 +138,5 @@ namespace xios
       ///---------------------------------------------------------------
 
 
-   } // namespace date
 } // namespace xios
 

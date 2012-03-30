@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CAllLeapCalendar::CAllLeapCalendar(const StdString & dateStr)
@@ -37,6 +35,5 @@ namespace xios
       { return (StdString("all_leap")); }
 
       ///--------------------------------------------------------------
-   } // namespace date
 } // namespace xmlioserver
 

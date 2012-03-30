@@ -8,8 +8,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       typedef enum _monthEnum
@@ -97,7 +95,6 @@ namespace xios
             CDuration timestep;
 
       }; // class CCalendar
-   } // namespace date
 
 } // namespace xios
 

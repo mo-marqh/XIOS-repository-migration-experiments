@@ -8,8 +8,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       CDuration operator*(const double    & scal, const CDuration & ddr);
@@ -34,7 +32,6 @@ namespace xios
 
       ///---------------------------------------------------------------
 
-   } // namespace date
 } // namespace xios
 
 #endif //__XMLIO_CCalendar_util__

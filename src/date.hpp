@@ -8,8 +8,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CCalendar;
 
@@ -71,7 +69,6 @@ namespace xios
 
       }; // class CDate;
 
-   } // namespace date
 } // namespace xios
 
 #endif // __XMLIO_CDate__

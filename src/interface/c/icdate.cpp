@@ -24,7 +24,7 @@ extern "C"
    {
       try
       {
-         date::CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
+         CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
          boost::shared_ptr<xios::tree::CContext> context =
          xios::CObjectFactory::GetObject<xios::tree::CContext>
             (CObjectFactory::GetCurrentContextId());

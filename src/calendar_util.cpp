@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CDuration operator*(const double & scal, const CDuration & ddr)
@@ -171,7 +169,6 @@ namespace xios
 
       ///----------------------------------------------------------------
 
-   } // namespace date
 } // namespace xios
 
 

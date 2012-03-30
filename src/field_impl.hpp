@@ -24,9 +24,9 @@ namespace tree {
       bool CField::updateData(const ARRAY(double, N) _data)
    {        
       shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
-      const date::CDate & currDate = context->getCalendar()->getCurrentDate();
-      const date::CDate opeDate      = *last_operation + freq_operation;
-      const date::CDate writeDate    = *last_Write     + freq_write;       
+      const CDate & currDate = context->getCalendar()->getCurrentDate();
+      const CDate opeDate      = *last_operation + freq_operation;
+      const CDate writeDate    = *last_Write     + freq_write;       
 
    
       info(50) << "CField::updateData " << currDate <<  " : send data to " << this->getBaseFieldId() << std::endl;

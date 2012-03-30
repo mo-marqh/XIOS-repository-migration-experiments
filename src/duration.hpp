@@ -7,8 +7,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       typedef long long int Time;
       class CCalendar;
@@ -48,7 +46,6 @@ namespace xios
                              Hour, Minute, Second, NoneDu ;
       ///---------------------------------------------------------------
 
-   } // namespace date
 } // namespace xios
 
 #endif // __XMLIO_CDuration__

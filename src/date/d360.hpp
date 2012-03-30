@@ -7,8 +7,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CD360Calendar : public CCalendar
       {
@@ -36,7 +34,6 @@ namespace xios
 
       }; // class CD360Calendar
 
-   } // namespace date
 } // namespace xmlioserver
 
 #endif // __XMLIO_CD360Calendar__

@@ -5,8 +5,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CCalendar::CCalendar(void)
          : CObject()
@@ -152,5 +150,4 @@ namespace xios
 
       ///----------------------------------------------------------------
 
-   } // namespace date
 } // namespace xios

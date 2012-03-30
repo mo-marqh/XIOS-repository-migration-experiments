@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CNoLeapCalendar::CNoLeapCalendar(const StdString & dateStr)
@@ -30,6 +28,5 @@ namespace xios
       { return (StdString("noleap")); }
 
       ///--------------------------------------------------------------
-   } // namespace date
 } // namespace xmlioserver
 

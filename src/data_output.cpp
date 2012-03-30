@@ -76,7 +76,7 @@ namespace xios
       {
          boost::shared_ptr<tree::CContext> context =
          CObjectFactory::GetObject<tree::CContext>(CObjectFactory::GetCurrentContextId());
-         boost::shared_ptr<date::CCalendar> calendar = context->getCalendar();
+         boost::shared_ptr<CCalendar> calendar = context->getCalendar();
          
          this->writeField_(field);
          this->writeTimeAxis_(field, calendar);

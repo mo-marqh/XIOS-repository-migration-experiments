@@ -7,8 +7,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CGregorianCalendar : public CCalendar
       {
@@ -36,7 +34,6 @@ namespace xios
 
       }; // class CGregorianCalendar
 
-   } // namespace date
 } // namespace xmlioserver
 
 #endif // __XMLIO_CGregorianCalendar__

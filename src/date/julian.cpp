@@ -2,8 +2,6 @@
 
 namespace xios
 {
-   namespace date
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       CJulianCalendar::CJulianCalendar(const StdString & dateStr)
@@ -44,5 +42,4 @@ namespace xios
       { return (StdString("julian")); }
 
       ///--------------------------------------------------------------
-   } // namespace date
 } // namespace xmlioserver

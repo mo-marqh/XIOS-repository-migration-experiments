@@ -12,7 +12,6 @@ using namespace std ;
 using namespace boost::posix_time ;
 using namespace boost::gregorian ;
 using namespace xios;
-using namespace date ;
 
 int main(void)
 {

@@ -107,11 +107,11 @@ namespace tree {
          bool checkSync(void) ;
          void checkFile(void) ;
          void initFile(void) ;
-         date::CDate* lastSync ;
-         date::CDate* lastSplit ;
-         date::CDuration syncFreq ;
-         date::CDuration splitFreq ;
-         date::CDuration outputFreq ;
+         CDate* lastSync ;
+         CDate* lastSplit ;
+         CDuration syncFreq ;
+         CDuration splitFreq ;
+         CDuration outputFreq ;
          int nbDomain ;
          bool isOpen ;
       private :
