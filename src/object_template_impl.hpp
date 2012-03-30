@@ -32,20 +32,20 @@ namespace xios
 
    template <class T>
       CObjectTemplate<T>::CObjectTemplate(void)
-         : tree::CAttributeMap()
+         : CAttributeMap()
          , CObject()
    { /* Ne rien faire de plus */ }
 
    template <class T>
       CObjectTemplate<T>::CObjectTemplate(const StdString & id)
-         : tree::CAttributeMap()
+         : CAttributeMap()
          , CObject(id)
    { /* Ne rien faire de plus */ }
 
    template <class T>
       CObjectTemplate<T>::CObjectTemplate
          (const CObjectTemplate<T> & object, bool withAttrList, bool withId)
-         : tree::CAttributeMap()
+         : CAttributeMap()
          , CObject()
    {
       if (object.hasId() && withId)
@@ -112,7 +112,7 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class T>
-      tree::ENodeType CObjectTemplate<T>::getType(void) const
+      ENodeType CObjectTemplate<T>::getType(void) const
    {
       return (T::GetType());
    }
@@ -165,7 +165,7 @@ namespace xios
    }
 
    template <class T>
-   void CObjectTemplate<T>::sendAttributToServer(tree::CAttribute& attr)
+   void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
    {
      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
      
@@ -269,7 +269,7 @@ namespace xios
      oss<<iendl ;
      oss<<"extern \"C\""<<iendl ;
      oss<<"{"<<iendl++ ;
-     oss<<"typedef xios::tree::"<<getStrType<T>()<<"*  "<<className<<"_Ptr;"<<iendl;
+     oss<<"typedef xios::"<<getStrType<T>()<<"*  "<<className<<"_Ptr;"<<iendl;
      oss<<iendl ;
      SuperClassMap::generateCInterface(oss,className) ;
      oss<<iendl-- ;

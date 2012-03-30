@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CAttributeMap * CAttributeMap::Current = NULL;
 
@@ -533,5 +531,4 @@ namespace xios
       ///--------------------------------------------------------------
   
 
-   } // namespace tree
 } // namespace xmlioser

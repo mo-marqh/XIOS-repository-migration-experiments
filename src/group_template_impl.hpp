@@ -12,7 +12,6 @@
 
 namespace xios
 {
-   using namespace tree;
 
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -43,8 +42,8 @@ namespace xios
       
       const StdSize grpnb = this->groupList.size();
       const StdSize chdnb = this->childList.size();
-      tree::ENodeType cenum = U::GetType();
-      tree::ENodeType genum = V::GetType();
+      ENodeType cenum = U::GetType();
+      ENodeType genum = V::GetType();
       
       os.write (reinterpret_cast<const char*>(&grpnb) , sizeof(StdSize));
       os.write (reinterpret_cast<const char*>(&chdnb) , sizeof(StdSize));      
@@ -59,7 +58,7 @@ namespace xios
          boost::shared_ptr<V> group = *itg;
          bool hid = group->hasId();
          
-         os.write (reinterpret_cast<const char*>(&genum), sizeof(tree::ENodeType));      
+         os.write (reinterpret_cast<const char*>(&genum), sizeof(ENodeType));      
          os.write (reinterpret_cast<const char*>(&hid), sizeof(bool));
          
          if (hid)
@@ -78,7 +77,7 @@ namespace xios
          boost::shared_ptr<U> child = *itc;
          bool hid = child->hasId();
          
-         os.write (reinterpret_cast<const char*>(&cenum), sizeof(tree::ENodeType));
+         os.write (reinterpret_cast<const char*>(&cenum), sizeof(ENodeType));
          os.write (reinterpret_cast<const char*>(&hid), sizeof(bool));
          
          if (hid)
@@ -105,7 +104,7 @@ namespace xios
       
       StdSize grpnb = 0;
       StdSize chdnb = 0;
-      tree::ENodeType renum = Unknown;
+      ENodeType renum = Unknown;
       
       is.read (reinterpret_cast<char*>(&grpnb), sizeof(StdSize));
       is.read (reinterpret_cast<char*>(&chdnb), sizeof(StdSize));
@@ -113,7 +112,7 @@ namespace xios
       for (StdSize i = 0; i < grpnb; i++)
       {
          bool hid = false;
-         is.read (reinterpret_cast<char*>(&renum), sizeof(tree::ENodeType));
+         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
          is.read (reinterpret_cast<char*>(&hid), sizeof(bool));
          
          if (renum != V::GetType())
@@ -137,7 +136,7 @@ namespace xios
       for (StdSize j = 0; j < chdnb; j++)
       {
          bool hid = false;
-         is.read (reinterpret_cast<char*>(&renum), sizeof(tree::ENodeType));
+         is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
          is.read (reinterpret_cast<char*>(&hid), sizeof(bool));
          
          if (renum != U::GetType())

@@ -14,7 +14,7 @@ namespace xios
 {
 
 
-    CContextClient::CContextClient(tree::CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_)
+    CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_)
     {
       context=parent ;
       intraComm=intraComm_ ;

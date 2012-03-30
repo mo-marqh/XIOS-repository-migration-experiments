@@ -8,7 +8,6 @@
 #include "declare_group.hpp"
 
 namespace xios {
-namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -80,7 +79,6 @@ namespace tree {
 
    ///--------------------------------------------------------------
 
-} // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CAxis__

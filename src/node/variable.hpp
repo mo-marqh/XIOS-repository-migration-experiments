@@ -9,8 +9,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       class CVariableGroup;
@@ -111,7 +109,6 @@ namespace xios
 
 
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CVariable__

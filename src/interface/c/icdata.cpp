@@ -30,7 +30,7 @@ extern "C"
    
    typedef enum { NETCDF4 = 0 } XFileType;
    
-   typedef xios::tree::CContext * XContextPtr;
+   typedef xios::CContext * XContextPtr;
 
    // -------------------- Traitement des données ------------------------------
    void cxios_init_server(void)

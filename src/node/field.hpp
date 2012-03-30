@@ -14,7 +14,6 @@
 
 
 namespace xios {
-namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -154,8 +153,6 @@ namespace tree {
 
    // Declare/Define CFieldGroup and CFieldDefinition
    DECLARE_GROUP(CField);
-
-   } // namespace tree
 
    ///-----------------------------------------------------------------
 

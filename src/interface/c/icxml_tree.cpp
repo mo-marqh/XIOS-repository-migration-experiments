@@ -19,22 +19,22 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
 
-   typedef xios::tree::CContext * XContextPtr;
+   typedef xios::CContext * XContextPtr;
 
-   typedef xios::tree::CGrid      * XGridPtr;
-   typedef xios::tree::CGridGroup * XGridGroupPtr;
+   typedef xios::CGrid      * XGridPtr;
+   typedef xios::CGridGroup * XGridGroupPtr;
 
-   typedef xios::tree::CFile      * XFilePtr;
-   typedef xios::tree::CFileGroup * XFileGroupPtr;
+   typedef xios::CFile      * XFilePtr;
+   typedef xios::CFileGroup * XFileGroupPtr;
 
-   typedef xios::tree::CField      * XFieldPtr;
-   typedef xios::tree::CFieldGroup * XFieldGroupPtr;
+   typedef xios::CField      * XFieldPtr;
+   typedef xios::CFieldGroup * XFieldGroupPtr;
 
-   typedef xios::tree::CDomain      * XDomainPtr;
-   typedef xios::tree::CDomainGroup * XDomainGroupPtr;
+   typedef xios::CDomain      * XDomainPtr;
+   typedef xios::CDomainGroup * XDomainGroupPtr;
 
-   typedef xios::tree::CAxis      * XAxisPtr;
-   typedef xios::tree::CAxisGroup * XAxisGroupPtr;
+   typedef xios::CAxis      * XAxisPtr;
+   typedef xios::CAxisGroup * XAxisGroupPtr;
    
    // ----------------------- Ajout d'enfant à un parent -----------------------
    

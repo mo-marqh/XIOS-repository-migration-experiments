@@ -14,7 +14,7 @@ namespace xios
       //----------------------------------------------------------------
 
       void CDataOutput::writeGrid
-         (const boost::shared_ptr<tree::CGrid> grid)
+         (const boost::shared_ptr<CGrid> grid)
       {
          if (grid->domain_ref.isEmpty())
             ERROR("CDataOutput::writeGrid(grid)",
@@ -23,20 +23,20 @@ namespace xios
          if (grid->axis_ref.isEmpty())
          {
             this->writeGrid
-            (CObjectFactory::GetObject<tree::CDomain>(grid->domain_ref.getValue()));
+            (CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue()));
          }
          else
          {
             this->writeGrid
-            (CObjectFactory::GetObject<tree::CDomain>(grid->domain_ref.getValue()),
-             CObjectFactory::GetObject<tree::CAxis>(grid->axis_ref.getValue()));
+            (CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue()),
+             CObjectFactory::GetObject<CAxis>(grid->axis_ref.getValue()));
          }
       }
 
       //----------------------------------------------------------------
 
       void CDataOutput::writeFile
-         (const boost::shared_ptr<tree::CFile>  file)
+         (const boost::shared_ptr<CFile>  file)
       {
          this->writeFile_(file);
       }
@@ -54,8 +54,8 @@ namespace xios
       //----------------------------------------------------------------
 
       void CDataOutput::writeGrid
-         (const boost::shared_ptr<tree::CDomain> domain,
-          const boost::shared_ptr<tree::CAxis> axis)
+         (const boost::shared_ptr<CDomain> domain,
+          const boost::shared_ptr<CAxis> axis)
       {
          this->writeDomain_(domain);
          this->writeAxis_(axis);
@@ -64,7 +64,7 @@ namespace xios
       //----------------------------------------------------------------
 
       void CDataOutput::writeGrid
-         (const boost::shared_ptr<tree::CDomain> domain)
+         (const boost::shared_ptr<CDomain> domain)
       {
          this->writeDomain_(domain);
       }
@@ -72,10 +72,10 @@ namespace xios
       //----------------------------------------------------------------
 
       void CDataOutput::writeField
-         (const boost::shared_ptr<tree::CField> field)
+         (const boost::shared_ptr<CField> field)
       {
-         boost::shared_ptr<tree::CContext> context =
-         CObjectFactory::GetObject<tree::CContext>(CObjectFactory::GetCurrentContextId());
+         boost::shared_ptr<CContext> context =
+         CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
          boost::shared_ptr<CCalendar> calendar = context->getCalendar();
          
          this->writeField_(field);
@@ -85,14 +85,14 @@ namespace xios
       //----------------------------------------------------------------
 
       void CDataOutput::writeFieldGrid
-         (const boost::shared_ptr<tree::CField> field)
+         (const boost::shared_ptr<CField> field)
       {
          this->writeGrid(field->getRelGrid());
       }
       
       //----------------------------------------------------------------
       
-      void CDataOutput::writeFieldData(const boost::shared_ptr<tree::CField> field)
+      void CDataOutput::writeFieldData(const boost::shared_ptr<CField> field)
       {
          boost::shared_ptr<CGrid> grid =
             CObjectFactory::GetObject<CGrid>(field->grid_ref.getValue());

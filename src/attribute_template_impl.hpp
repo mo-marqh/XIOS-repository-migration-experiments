@@ -12,8 +12,6 @@
 namespace xios
 {
 
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       template <class T>
          CAttributeTemplate<T>::CAttributeTemplate(const StdString & id)
@@ -292,7 +290,6 @@ namespace xios
          void CAttributeTemplate<double>::fromBinary(StdIStream & is);
 
       ///--------------------------------------------------------------
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CAttributeTemplate_impl__

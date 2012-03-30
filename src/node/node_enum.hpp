@@ -6,8 +6,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       typedef enum _node_type
       {
@@ -24,7 +22,6 @@ namespace xios
 
       } ENodeType;
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_NODE_ENUM__

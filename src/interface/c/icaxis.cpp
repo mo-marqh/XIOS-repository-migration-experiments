@@ -19,8 +19,8 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
    
-   typedef xios::tree::CAxis      * XAxisPtr;
-   typedef xios::tree::CAxisGroup * XAxisGroupPtr;
+   typedef xios::CAxis      * XAxisPtr;
+   typedef xios::CAxisGroup * XAxisGroupPtr;
 
    // ------------------------ Création des handle -----------------------------
    
@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::tree::CAxis>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::CAxis>(id).get();
    }
    
    void cxios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::tree::CAxisGroup>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::CAxisGroup>(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::tree::CAxis>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::CAxis>(id);
    }
 
    void cxios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,7 +55,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::tree::CAxisGroup>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::CAxisGroup>(id);
    }
    
 } // extern "C"

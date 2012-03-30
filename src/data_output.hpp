@@ -22,12 +22,12 @@ namespace xios
             typedef enum { ONE_FILE = 0, MULTI_GROUP, MULTI_FILE } EDataOutputType;
 
             /// Ecriture ///
-            void writeFile     (const boost::shared_ptr<tree::CFile>  file);
+            void writeFile     (const boost::shared_ptr<CFile>  file);
             void syncFile     (void);
             void closeFile     (void);
-            void writeField    (const boost::shared_ptr<tree::CField> field);
-            void writeFieldGrid(const boost::shared_ptr<tree::CField> field);
-            void writeFieldData(const boost::shared_ptr<tree::CField> field);
+            void writeField    (const boost::shared_ptr<CField> field);
+            void writeFieldGrid(const boost::shared_ptr<CField> field);
+            void writeFieldData(const boost::shared_ptr<CField> field);
 
             virtual void definition_start(void) = 0;
             virtual void definition_end(void)   = 0;
@@ -37,19 +37,19 @@ namespace xios
          protected:
 
             /// Ecriture ///
-            void writeGrid(const boost::shared_ptr<tree::CGrid>   grid);
-            void writeGrid(const boost::shared_ptr<tree::CDomain> domain,
-                           const boost::shared_ptr<tree::CAxis>   axis);
-            void writeGrid(const boost::shared_ptr<tree::CDomain> domain);
+            void writeGrid(const boost::shared_ptr<CGrid>   grid);
+            void writeGrid(const boost::shared_ptr<CDomain> domain,
+                           const boost::shared_ptr<CAxis>   axis);
+            void writeGrid(const boost::shared_ptr<CDomain> domain);
 
-            virtual void writeFile_       (const boost::shared_ptr<tree::CFile>     file)   = 0;
+            virtual void writeFile_       (const boost::shared_ptr<CFile>     file)   = 0;
             virtual void closeFile_       (void)                                            = 0;
             virtual void syncFile_       (void)                                            = 0;
-            virtual void writeField_      (const boost::shared_ptr<tree::CField>    field)  = 0;
-            virtual void writeFieldData_  (const boost::shared_ptr<tree::CField>    field)  = 0;
-            virtual void writeDomain_     (const boost::shared_ptr<tree::CDomain>   domain) = 0;
-            virtual void writeAxis_       (const boost::shared_ptr<tree::CAxis>     axis)   = 0;
-            virtual void writeTimeAxis_   (const boost::shared_ptr<tree::CField>    field,
+            virtual void writeField_      (const boost::shared_ptr<CField>    field)  = 0;
+            virtual void writeFieldData_  (const boost::shared_ptr<CField>    field)  = 0;
+            virtual void writeDomain_     (const boost::shared_ptr<CDomain>   domain) = 0;
+            virtual void writeAxis_       (const boost::shared_ptr<CAxis>     axis)   = 0;
+            virtual void writeTimeAxis_   (const boost::shared_ptr<CField>    field,
                                            const boost::shared_ptr<CCalendar> cal)    = 0;
 
             /// Propriétés protégées ///

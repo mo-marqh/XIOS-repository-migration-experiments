@@ -12,8 +12,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CTreeManager
       {
@@ -49,7 +47,6 @@ namespace xios
 
       }; // class CTreeManager
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CTreeManager__

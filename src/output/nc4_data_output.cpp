@@ -54,7 +54,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CNc4DataOutput::writeDomain_(const boost::shared_ptr<tree::CDomain> domain)
+      void CNc4DataOutput::writeDomain_(const boost::shared_ptr<CDomain> domain)
       {
          shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
          CContextServer* server=context->server ;
@@ -220,7 +220,7 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeAxis_(const boost::shared_ptr<tree::CAxis> axis)
+      void CNc4DataOutput::writeAxis_(const boost::shared_ptr<CAxis> axis)
       {
          if (axis->IsWritten(this->filename)) return;
          axis->checkAttributes();
@@ -268,7 +268,7 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeField_(const boost::shared_ptr<tree::CField> field)
+      void CNc4DataOutput::writeField_(const boost::shared_ptr<CField> field)
       {
          shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
          CContextServer* server=context->server ;
@@ -417,7 +417,7 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeFile_ (const boost::shared_ptr<tree::CFile> file)
+      void CNc4DataOutput::writeFile_ (const boost::shared_ptr<CFile> file)
       {
          StdString filename = (!file->name.isEmpty())
                             ? file->name.getValue() : file->getId();
@@ -460,7 +460,7 @@ namespace xios
       
       //---------------------------------------------------------------
       
-      void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<tree::CField>  field)
+      void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<CField>  field)
       {
          shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
 //          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
@@ -560,7 +560,7 @@ namespace xios
       //---------------------------------------------------------------
 
       void CNc4DataOutput::writeTimeAxis_
-                  (const boost::shared_ptr<tree::CField>    field,
+                  (const boost::shared_ptr<CField>    field,
                    const boost::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;

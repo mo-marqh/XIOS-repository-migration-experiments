@@ -5,7 +5,6 @@
 #include "group_template_impl.hpp"
 
 namespace xios {
-namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -61,5 +60,4 @@ namespace tree {
 
    ///---------------------------------------------------------------
 
-} // namespace tree
 } // namespace xios

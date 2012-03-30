@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xios::tree::CFile*  file_Ptr;
+  typedef xios::CFile*  file_Ptr;
   
   void cxios_set_file_description(file_Ptr file_hdl, const char * description, int description_size)
   {

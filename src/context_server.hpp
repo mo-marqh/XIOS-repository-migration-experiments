@@ -7,16 +7,13 @@
 
 namespace xios
 {
-  namespace tree
-  {
-    class CContext ;
-  }
+  class CContext ;
   
   class CContextServer
   {
     public:
     
-    CContextServer(tree::CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
+    CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     bool eventLoop(void) ;
     void listen(void) ;
     void checkPendingRequest(void) ;
@@ -39,7 +36,7 @@ namespace xios
     
     map<size_t,CEventServer*> events ;
     size_t currentTimeLine ;
-    tree::CContext* context ;
+    CContext* context ;
     
     bool finished ;
     bool pendingEvent ;

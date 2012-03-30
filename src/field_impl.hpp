@@ -9,7 +9,6 @@
 
 
 namespace xios {
-namespace tree {
 
    template <StdSize N>
    void CField::setData(const ARRAY(double, N) _data)
@@ -59,7 +58,6 @@ namespace tree {
       return (false);
    }
 
-} // namespace tree
 } // namespace xios
 
 #endif

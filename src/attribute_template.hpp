@@ -15,8 +15,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       template <class T>
          class CAttributeTemplate : public CAttribute
@@ -80,7 +78,6 @@ namespace xios
 
       }; // class CAttribute    
       
-   } // namespace tree
    
    template <class T>  void FromBinary(StdIStream & is, T & obj);
    

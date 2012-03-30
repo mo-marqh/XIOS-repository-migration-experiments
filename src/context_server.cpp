@@ -15,7 +15,7 @@
 namespace xios
 {
 
-  CContextServer::CContextServer(tree::CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
   {
     context=parent ;
     intraComm=intraComm_ ;
@@ -166,7 +166,7 @@ namespace xios
     int MsgSize ;
     int rank ;
     list<CEventServer::SSubEvent>::iterator it ;
-    tree::CTreeManager::SetCurrentContextId(context->getId()) ;
+    CTreeManager::SetCurrentContextId(context->getId()) ;
         
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {

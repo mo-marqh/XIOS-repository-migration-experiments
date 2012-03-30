@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xios::tree::CField*  field_Ptr;
+  typedef xios::CField*  field_Ptr;
   
   void cxios_set_field_axis_ref(field_Ptr field_hdl, const char * axis_ref, int axis_ref_size)
   {

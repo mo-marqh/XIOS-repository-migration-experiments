@@ -24,7 +24,7 @@ namespace xios
   
   void CXios::initialize()
   {
-    tree::CTreeManager::ParseFile(rootFile);
+    CTreeManager::ParseFile(rootFile);
     usingServer=getin<bool>("using_server",false) ;
     usingOasis=getin<bool>("using_oasis",false) ;
     info.setLevel(getin<int>("info_level",0)) ;

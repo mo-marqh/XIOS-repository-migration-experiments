@@ -10,8 +10,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CAttributeMap
          : public xios_map<StdString, CAttribute*>
@@ -68,7 +66,6 @@ namespace xios
 
       };  // class CAttributeMap
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CAttributeMap__

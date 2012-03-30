@@ -9,16 +9,13 @@
 
 namespace xios
 {
-  namespace tree
-  {
-    class CContext ;
-  }
+  class CContext ;
   
   class CContextClient
   {
   
     public:
-    CContextClient(tree::CContext* parent,MPI_Comm intraComm, MPI_Comm interComm) ;
+    CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm) ;
 //    void registerEvent(CEventClient& event) ;
 
 //    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;  
@@ -43,7 +40,7 @@ namespace xios
     void finalize(void) ;
     void waitEvent(list<int>& ranks) ;
 
-    tree::CContext* context ;
+    CContext* context ;
 //    bool locked ;
     
   } ;

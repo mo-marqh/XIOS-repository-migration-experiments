@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
       CAttribute::CAttribute(const StdString & id)
          : CObject(id), CBaseType()
@@ -53,32 +51,31 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-   } // namespace tree
       
-      CMessage& operator<<(CMessage& msg,tree::CAttribute& type)
+      CMessage& operator<<(CMessage& msg,CAttribute& type)
       {
         msg.push(type) ;
         return msg ;
       }
 
-     CMessage& operator<<(CMessage& msg, const tree::CAttribute&  type)
+     CMessage& operator<<(CMessage& msg, const CAttribute&  type)
      {
        msg.push(*type.duplicate()) ;
        return msg ;
      }
  
-      CBufferOut& operator<<(CBufferOut& buffer, tree::CAttribute&  type)
+      CBufferOut& operator<<(CBufferOut& buffer, CAttribute&  type)
      {
     
-       if (!type.toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, tree::CAttribute&  type)",
+       if (!type.toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, CAttribute&  type)",
                                            <<"Buffer remain size is to low for size type") ;
       return buffer ;
      }
      
-     CBufferIn& operator>>(CBufferIn& buffer, tree::CAttribute&  type)
+     CBufferIn& operator>>(CBufferIn& buffer, CAttribute&  type)
      {
     
-       if (!type.fromBuffer(buffer)) ERROR("CBufferInt& operator>>(CBufferIn& buffer, tree::CAttribute&  type)",
+       if (!type.fromBuffer(buffer)) ERROR("CBufferInt& operator>>(CBufferIn& buffer, CAttribute&  type)",
                                            <<"Buffer remain size is to low for size type") ;
        return buffer ;
      }

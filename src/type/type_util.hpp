@@ -4,8 +4,6 @@
 #include <string>
 namespace xios
 {
-  namespace tree
-  {
     class CDomain ;
     class CDomainGroup;
     class CField;
@@ -17,21 +15,7 @@ namespace xios
     class CFile;
     class CFileGroup;
     class CContext;
-  }
 
-/*
-  typedef tree::CDomain CDomain;
-  typedef tree::CDomainGroup CDomainGroup;
-  typedef tree::CField CField;
-  typedef tree::CFieldGroup CFieldGroup;
-  typedef tree::CGrid CGrid;
-  typedef tree::CGridGroup CGridGroup;
-  typedef tree::CAxis CAxis;
-  typedef tree::CAxisGroup CAxisGroup;
-  typedef tree::CFile CFile;
-  typedef tree::CFileGroup CFileGroup;
-  typedef tree::CContext CContext;
-*/
         
   template <typename T>
   inline string getStrType(void) ;
@@ -53,7 +37,7 @@ namespace xios
   macro(bool)
 #undef macro
   
-#define macro(T) template <> inline string getStrType<tree::T>(void) { return std::string(#T) ; }
+#define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T) ; }
   macro(CDomain)
   macro(CDomainGroup)
   macro(CField)

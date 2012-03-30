@@ -18,7 +18,6 @@ namespace xios {
    class CContextClient ;
    class CContextServer ;
    
-namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
    class CContextGroup;
@@ -154,7 +153,6 @@ namespace tree {
 
    ///--------------------------------------------------------------
 
-} // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CContext__

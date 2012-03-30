@@ -25,8 +25,8 @@ extern "C"
       try
       {
          CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
-         boost::shared_ptr<xios::tree::CContext> context =
-         xios::CObjectFactory::GetObject<xios::tree::CContext>
+         boost::shared_ptr<xios::CContext> context =
+         xios::CObjectFactory::GetObject<xios::CContext>
             (CObjectFactory::GetCurrentContextId());
          
             context->timestep.setValue(dur.toString());
@@ -41,8 +41,8 @@ extern "C"
    
    void cxios_update_calendar(int step)
    {
-      boost::shared_ptr<xios::tree::CContext> context =
-            xios::CObjectFactory::GetObject<xios::tree::CContext>
+      boost::shared_ptr<xios::CContext> context =
+            xios::CObjectFactory::GetObject<xios::CContext>
             (CObjectFactory::GetCurrentContextId());
       context->updateCalendar(step) ;
       context->sendUpdateCalendar(step) ;

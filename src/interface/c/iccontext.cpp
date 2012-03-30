@@ -23,7 +23,7 @@ extern "C"
 
    typedef enum { D360 = 0 , ALLLEAP, NOLEAP, JULIAN, GREGORIAN } XCalendarType ;
 
-   typedef xios::tree::CContext * XContextPtr;
+   typedef xios::CContext * XContextPtr;
 
    // ------------------------ Création des handle -----------------------------
    
@@ -32,8 +32,8 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      std::vector<boost::shared_ptr<xios::tree::CContext> > def_vector =
-            xios::tree::CContext::GetContextGroup()->getChildList();
+      std::vector<boost::shared_ptr<xios::CContext> > def_vector =
+            xios::CContext::GetContextGroup()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
 	   {
@@ -59,8 +59,8 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      std::vector<boost::shared_ptr<xios::tree::CContext> > def_vector =
-            xios::tree::CContext::GetContextGroup()->getChildList();
+      std::vector<boost::shared_ptr<xios::CContext> > def_vector =
+            xios::CContext::GetContextGroup()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
 	   {

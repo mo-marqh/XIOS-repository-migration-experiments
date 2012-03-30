@@ -14,8 +14,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
       class CAttribute : public CObject, public CBaseType
       {
@@ -98,13 +96,12 @@ namespace xios
          return (this->value.type() == typeid(T)); 
       }
 
-   } // namespace tree
  
-   CMessage& operator<<(CMessage& msg,tree::CAttribute& type) ;
-   CMessage& operator<<(CMessage& msg, const tree::CAttribute&  type) ;
+   CMessage& operator<<(CMessage& msg,CAttribute& type) ;
+   CMessage& operator<<(CMessage& msg, const CAttribute&  type) ;
  
-   CBufferOut& operator<<(CBufferOut& buffer,tree::CAttribute& type) ;
-   CBufferIn& operator>>(CBufferIn& buffer, tree::CAttribute&  type) ;
+   CBufferOut& operator<<(CBufferOut& buffer,CAttribute& type) ;
+   CBufferIn& operator>>(CBufferIn& buffer, CAttribute&  type) ;
 }
   // namespace xios
 

@@ -15,14 +15,14 @@ namespace xios
    template <class T>
       class CObjectTemplate
          : public CObject
-         , public virtual tree::CAttributeMap
+         , public virtual CAttributeMap
    {
 
          /// Friend ///
          friend class CObjectFactory;
 
          /// Typedef ///
-         typedef tree::CAttributeMap SuperClassMap;
+         typedef CAttributeMap SuperClassMap;
          typedef CObject SuperClass;
          typedef T DerivedType;
          
@@ -43,7 +43,7 @@ namespace xios
          virtual void parse(xml::CXMLNode & node);
          
          /// Accesseurs ///
-         tree::ENodeType getType(void) const;
+         ENodeType getType(void) const;
 
          /// Test ///
          virtual bool hasChild(void) const;
@@ -54,7 +54,7 @@ namespace xios
          /// Traitement statique ///
          static void ClearAllAttributes(void);
          void sendAttributToServer(const string& id);
-         void sendAttributToServer(tree::CAttribute& attr) ;
+         void sendAttributToServer(CAttribute& attr) ;
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 

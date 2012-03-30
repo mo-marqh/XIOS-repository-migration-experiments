@@ -129,7 +129,7 @@ namespace xios
     void CClient::registerContext(const string& id,MPI_Comm contextComm)
     {
       CObjectFactory::SetCurrentContextId(id);
-      shared_ptr<CContext> context=tree::CTreeManager::CreateContext(id) ;
+      shared_ptr<CContext> context=CTreeManager::CreateContext(id) ;
         
       if (!CXios::isServer)
       {

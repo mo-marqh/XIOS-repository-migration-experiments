@@ -11,7 +11,6 @@
 
 
 namespace xios {
-namespace tree {
    
    /// ////////////////////// Déclarations ////////////////////// ///
 
@@ -130,7 +129,6 @@ namespace tree {
 
    ///--------------------------------------------------------------
 
-} // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CFile__

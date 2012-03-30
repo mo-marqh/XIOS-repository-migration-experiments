@@ -8,7 +8,6 @@
 
 namespace xios
 {
-   using namespace tree;
 
    /// ////////////////////// Déclarations ////////////////////// ///
    template <class U, class V, class W>

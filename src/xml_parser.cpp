@@ -51,8 +51,8 @@ namespace xios
             {
                do
                {
-                  boost::shared_ptr<tree::CContextGroup> group_context =
-                                    tree::CContext::GetContextGroup();
+                  boost::shared_ptr<CContextGroup> group_context =
+                                    CContext::GetContextGroup();
                   attributes = node.getAttributes();
 
                   if (attributes.end() == attributes.find("id"))
@@ -64,7 +64,7 @@ namespace xios
                   CObjectFactory::SetCurrentContextId(attributes["id"]);
                   CGroupFactory::SetCurrentContextId(attributes["id"]);
 
-                  bool hasctxt = CObjectFactory::HasObject<tree::CContext>(attributes["id"]);
+                  bool hasctxt = CObjectFactory::HasObject<CContext>(attributes["id"]);
 
                   if(hasctxt)
                   {  
@@ -73,8 +73,8 @@ namespace xios
                      continue; 
                   }
 
-                  boost::shared_ptr<tree::CContext> context =
-                     CObjectFactory::CreateObject<tree::CContext>(attributes["id"]);
+                  boost::shared_ptr<CContext> context =
+                     CObjectFactory::CreateObject<CContext>(attributes["id"]);
                   if (!hasctxt) CGroupFactory::AddChild(group_context, context);
                   context->parse(node);
 

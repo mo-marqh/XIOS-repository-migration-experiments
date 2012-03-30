@@ -6,8 +6,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       void CTreeManager::SetCurrentContextId(const StdString & id)
@@ -22,8 +20,8 @@ namespace xios
          CTreeManager::SetCurrentContextId(id);
          bool hasctxt = CObjectFactory::HasObject<CContext>(id);
          
-         boost::shared_ptr<tree::CContext> context =
-               CObjectFactory::CreateObject<tree::CContext>(id);
+         boost::shared_ptr<CContext> context =
+               CObjectFactory::CreateObject<CContext>(id);
          if (!hasctxt) CGroupFactory::AddChild(group_context, context);
 
 #define DECLARE_NODE(Name_, name_) \
@@ -45,14 +43,14 @@ namespace xios
       void CTreeManager::PrintTreeToString(StdString & content)
       {
          StdOStringStream ostrstream;
-         tree::CContext::ShowTree(ostrstream);
+         CContext::ShowTree(ostrstream);
          content.assign(CIndentedXml::Indented(ostrstream.str()));
       }
 
       void CTreeManager::PrintTreeToStream(StdOStream & out)
       {
          StdOStringStream ostrstream;
-         tree::CContext::ShowTree(ostrstream);
+         CContext::ShowTree(ostrstream);
          out << CIndentedXml::Indented(ostrstream.str());
       }
 
@@ -132,7 +130,7 @@ namespace xios
          for (StdSize i = 0; i < ctxtnb; i++)
          {
             bool hid = false;
-            is.read (reinterpret_cast<char*>(&renum), sizeof(tree::ENodeType));
+            is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
             is.read (reinterpret_cast<char*>(&hid), sizeof(bool));
             
             if (renum != CContext::GetType())
@@ -394,5 +392,4 @@ namespace xios
 
       ///-------------------------------------------------------------
 
-   } // namespace tree
 } // namespace xios

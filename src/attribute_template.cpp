@@ -5,8 +5,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Définitions ////////////////////// ///
 
       /** Spécialisations des templates pour la fonction [toString] **/
@@ -215,5 +213,4 @@ namespace xios
       }
 
       ///--------------------------------------------------------------
-   } // namespace tree
 } // namespace xios

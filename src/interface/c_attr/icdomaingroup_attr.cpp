@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xios::tree::CDomainGroup*  domaingroup_Ptr;
+  typedef xios::CDomainGroup*  domaingroup_Ptr;
   
   void cxios_set_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl, int data_dim)
   {

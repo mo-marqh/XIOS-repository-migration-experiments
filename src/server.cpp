@@ -345,7 +345,7 @@ namespace xios
         ERROR("void CServer::registerContext(void* buff,int count, int leaderRank)",
               <<"Context has already been registred") ;
       
-      shared_ptr<CContext> context=tree::CTreeManager::CreateContext(contextId) ;
+      shared_ptr<CContext> context=CTreeManager::CreateContext(contextId) ;
       contextList[contextId]=context.get() ;
       context->initServer(intraComm,contextIntercomm) ;
              

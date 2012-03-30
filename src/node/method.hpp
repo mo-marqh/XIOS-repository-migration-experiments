@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       class CMethodGroup;
@@ -96,7 +94,6 @@ namespace xios
       StdString CMethod::GetName(void)   { return (StdString("method")); }
       StdString CMethod::GetDefName(void){ return (CMethod::GetName()); }
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CMethod__

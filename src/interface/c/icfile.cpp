@@ -19,8 +19,8 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
    
-   typedef xios::tree::CFile      * XFilePtr;
-   typedef xios::tree::CFileGroup * XFileGroupPtr;
+   typedef xios::CFile      * XFilePtr;
+   typedef xios::CFileGroup * XFileGroupPtr;
 
    // ------------------------ Création des handle -----------------------------
    
@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::tree::CFile>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::CFile>(id).get();
    }
    
    void cxios_filegroup_handle_create (XFileGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::tree::CFileGroup>(id).get();
+      *_ret = xios::CObjectFactory::GetObject<xios::CFileGroup>(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::tree::CFile>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::CFile>(id);
    }
 
    void cxios_filegroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,6 +55,6 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::tree::CFileGroup>(id);
+      *_ret = xios::CObjectFactory::HasObject<xios::CFileGroup>(id);
    }
 } // extern "C"

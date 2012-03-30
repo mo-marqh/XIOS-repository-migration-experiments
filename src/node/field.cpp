@@ -8,7 +8,6 @@
 #include "calendar_util.hpp"
 
 namespace xios{
-namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -505,7 +504,6 @@ namespace tree {
       grid->solveReference() ;
    }
 
-   } // namespace tree
 
    ///-------------------------------------------------------------------
 

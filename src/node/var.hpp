@@ -3,8 +3,6 @@
 
 namespace xios
 {
-   namespace tree
-   {
       /// ////////////////////// Déclarations ////////////////////// ///
 
       class CVarGroup;
@@ -96,7 +94,6 @@ namespace xios
       StdString CVar::GetName(void)   { return (StdString("var")); }
       StdString CVar::GetDefName(void){ return (CVar::GetName()); }
 
-   } // namespace tree
 } // namespace xios
 
 #endif // __XMLIO_CVar__

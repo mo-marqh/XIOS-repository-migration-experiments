@@ -13,7 +13,6 @@
 #include "nc4_data_output.hpp"
 
 namespace xios {
-namespace tree {
    
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -546,5 +545,4 @@ namespace tree {
      return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
    }
    
-} // namespace tree
 } // namespace xios

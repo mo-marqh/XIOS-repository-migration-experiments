@@ -12,7 +12,7 @@
 
 extern "C"
 {
-  typedef xios::tree::CFieldGroup*  fieldgroup_Ptr;
+  typedef xios::CFieldGroup*  fieldgroup_Ptr;
   
   void cxios_set_fieldgroup_axis_ref(fieldgroup_Ptr fieldgroup_hdl, const char * axis_ref, int axis_ref_size)
   {
