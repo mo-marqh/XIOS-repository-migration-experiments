@@ -59,6 +59,21 @@ extern "C"
   }
   
   
+  void cxios_set_context_time_origin(context_Ptr context_hdl, const char * time_origin, int time_origin_size)
+  {
+    std::string time_origin_str;
+    if(!cstr2string(time_origin, time_origin_size, time_origin_str)) return;
+    context_hdl->time_origin.setValue(time_origin_str);
+    context_hdl->sendAttributToServer(context_hdl->time_origin);
+  }
+  
+  void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)
+  {
+    if(!string_copy(context_hdl->time_origin.getValue(),time_origin , time_origin_size))
+      ERROR("void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)", <<"Input string is to short");
+  }
+  
+  
   void cxios_set_context_timestep(context_Ptr context_hdl, const char * timestep, int timestep_size)
   {
     std::string timestep_str;

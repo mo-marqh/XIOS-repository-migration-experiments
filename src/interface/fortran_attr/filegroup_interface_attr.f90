@@ -109,6 +109,21 @@ MODULE filegroup_interface_attr
     END SUBROUTINE cxios_get_filegroup_output_level
     
     
+    SUBROUTINE cxios_set_filegroup_par_access(filegroup_hdl, par_access, par_access_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: par_access
+      INTEGER  (kind = C_INT)     , VALUE        :: par_access_size
+    END SUBROUTINE cxios_set_filegroup_par_access
+    
+    SUBROUTINE cxios_get_filegroup_par_access(filegroup_hdl, par_access, par_access_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: par_access
+      INTEGER  (kind = C_INT)     , VALUE        :: par_access_size
+    END SUBROUTINE cxios_get_filegroup_par_access
+    
+    
     SUBROUTINE cxios_set_filegroup_split_freq(filegroup_hdl, split_freq, split_freq_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

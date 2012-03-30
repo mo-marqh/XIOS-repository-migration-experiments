@@ -94,6 +94,21 @@ MODULE file_interface_attr
     END SUBROUTINE cxios_get_file_output_level
     
     
+    SUBROUTINE cxios_set_file_par_access(file_hdl, par_access, par_access_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: par_access
+      INTEGER  (kind = C_INT)     , VALUE        :: par_access_size
+    END SUBROUTINE cxios_set_file_par_access
+    
+    SUBROUTINE cxios_get_file_par_access(file_hdl, par_access, par_access_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: par_access
+      INTEGER  (kind = C_INT)     , VALUE        :: par_access_size
+    END SUBROUTINE cxios_get_file_par_access
+    
+    
     SUBROUTINE cxios_set_file_split_freq(file_hdl, split_freq, split_freq_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

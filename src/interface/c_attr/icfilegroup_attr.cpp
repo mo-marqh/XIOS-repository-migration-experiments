@@ -113,6 +113,21 @@ extern "C"
   }
   
   
+  void cxios_set_filegroup_par_access(filegroup_Ptr filegroup_hdl, const char * par_access, int par_access_size)
+  {
+    std::string par_access_str;
+    if(!cstr2string(par_access, par_access_size, par_access_str)) return;
+    filegroup_hdl->par_access.setValue(par_access_str);
+    filegroup_hdl->sendAttributToServer(filegroup_hdl->par_access);
+  }
+  
+  void cxios_get_filegroup_par_access(filegroup_Ptr filegroup_hdl, char * par_access, int par_access_size)
+  {
+    if(!string_copy(filegroup_hdl->par_access.getValue(),par_access , par_access_size))
+      ERROR("void cxios_get_filegroup_par_access(filegroup_Ptr filegroup_hdl, char * par_access, int par_access_size)", <<"Input string is to short");
+  }
+  
+  
   void cxios_set_filegroup_split_freq(filegroup_Ptr filegroup_hdl, const char * split_freq, int split_freq_size)
   {
     std::string split_freq_str;

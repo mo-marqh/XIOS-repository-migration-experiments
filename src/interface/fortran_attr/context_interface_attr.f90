@@ -53,6 +53,21 @@ MODULE context_interface_attr
     END SUBROUTINE cxios_get_context_start_date
     
     
+    SUBROUTINE cxios_set_context_time_origin(context_hdl, time_origin, time_origin_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_origin
+      INTEGER  (kind = C_INT)     , VALUE        :: time_origin_size
+    END SUBROUTINE cxios_set_context_time_origin
+    
+    SUBROUTINE cxios_get_context_time_origin(context_hdl, time_origin, time_origin_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_origin
+      INTEGER  (kind = C_INT)     , VALUE        :: time_origin_size
+    END SUBROUTINE cxios_get_context_time_origin
+    
+    
     SUBROUTINE cxios_set_context_timestep(context_hdl, timestep, timestep_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
