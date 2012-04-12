@@ -66,7 +66,7 @@ namespace xios
                continue;
             }
 
-            DEBUG(<< "Dans le contexte \'" << CObjectFactory::GetCurrentContextId()
+            DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
                   << "\', un objet de type \'" << V::GetName()
                   << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
                   << "\' ou de type \'" << U::GetName()

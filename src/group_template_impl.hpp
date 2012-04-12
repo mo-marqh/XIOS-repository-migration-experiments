@@ -340,10 +340,17 @@ namespace xios
 //   }
    ///--------------------------------------------------------------
 
+  
    template <class U, class V, class W>
    boost::shared_ptr<U> CGroupTemplate<U, V, W>::createChild(const string& id) 
   {
     return CGroupFactory::CreateChild<V>(this->get(), id) ;
+  }
+
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::addChild(shared_ptr<U> child) 
+  {
+    return CGroupFactory::AddChild<V>(this->get(),child) ;
   }
   
    template <class U, class V, class W>
@@ -352,11 +359,17 @@ namespace xios
     return CGroupFactory::CreateGroup<V>(this->get(), id) ;
   }
 
+   template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::addChildGroup(shared_ptr<V> childGroup) 
+  {
+    return CGroupFactory::AddGroup<V>(this->get(), childGroup) ;
+  }
+
 
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChild(const string& id)
    {
-    shared_ptr<CContext> context=CContext::current() ;
+    shared_ptr<CContext> context=CContext::getCurrent() ;
     
     if (! context->hasServer )
     {
@@ -379,7 +392,7 @@ namespace xios
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
    {
-    shared_ptr<CContext> context=CContext::current() ;
+    shared_ptr<CContext> context=CContext::getCurrent() ;
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;

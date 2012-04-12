@@ -31,7 +31,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CField>(id).get();
+      *_ret = CField::get(id).get();
    }
    
    void cxios_fieldgroup_handle_create (XFieldGroupPtr * _ret, const char * _id, int _id_len)
@@ -39,7 +39,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CFieldGroup>(id).get();
+      *_ret = CFieldGroup::get(id).get();
    }
 
 
@@ -50,7 +50,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CField>(id);
+      *_ret = CField::has(id);
    }
 
    void cxios_fieldgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -58,7 +58,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CFieldGroup>(id);
+      *_ret = CFieldGroup::has(id);
    }
 
 // -----------------------------------------------------------------------------------------------------   

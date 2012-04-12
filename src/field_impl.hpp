@@ -22,7 +22,7 @@ namespace xios {
    template <StdSize N>
       bool CField::updateData(const ARRAY(double, N) _data)
    {        
-      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      shared_ptr<CContext> context=CContext::getCurrent();
       const CDate & currDate = context->getCalendar()->getCurrentDate();
       const CDate opeDate      = *last_operation + freq_operation;
       const CDate writeDate    = *last_Write     + freq_write;       

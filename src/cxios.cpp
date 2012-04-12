@@ -3,7 +3,8 @@
 #include "cxios.hpp"
 #include "client.hpp"
 #include "server.hpp"
-#include "tree_manager.hpp"
+//#include "tree_manager.hpp"
+#include "xml_parser.hpp"
 #include <boost/functional/hash.hpp>
 #include <mpi.h>
 
@@ -24,7 +25,7 @@ namespace xios
   
   void CXios::initialize()
   {
-    CTreeManager::ParseFile(rootFile);
+    parseFile(rootFile);
     usingServer=getin<bool>("using_server",false) ;
     usingOasis=getin<bool>("using_oasis",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
@@ -63,6 +64,11 @@ namespace xios
 
     CServer::initialize() ;
   } 
+  
+  void CXios::parseFile(const string& filename)
+  {
+    xml::CXMLParser::ParseFile(filename); 
+  }
   
 
 }

@@ -3,20 +3,20 @@
 
 #include "xmlioserver_spl.hpp"
 #include "variable.hpp"
+#include "object_template_impl.hpp"
 
 namespace xios
 {
   template <typename T>
   T CXios::getin(const string& id)
   {
-    return CObjectFactory::GetObject<CVariable>("xios",id)->getData<T>() ;
+    return CVariable::get("xios",id)->getData<T>() ;
   }
 
   template <typename T>
   T CXios::getin(const string& id, const T& defaultValue)
   {
-    if (CObjectFactory::HasObject<CVariable>("xios",id))
-      return CObjectFactory::GetObject<CVariable>("xios",id)->getData<T>() ;
+    if (CVariable::has("xios",id)) return CVariable::get("xios",id)->getData<T>() ;
     else return defaultValue ;
   }
 

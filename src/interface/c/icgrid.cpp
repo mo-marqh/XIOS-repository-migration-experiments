@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CGrid>(id).get();
+      *_ret = CGrid::get(id).get();
    }
    
    void cxios_gridgroup_handle_create (XGridGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CGridGroup>(id).get();
+      *_ret = CGridGroup::get(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CGrid>(id);
+      *_ret = CGrid::has(id);
    }
 
    void cxios_gridgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,6 +55,6 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CGridGroup>(id);
+      *_ret = CGridGroup::has(id);
    }
 } // extern "C"

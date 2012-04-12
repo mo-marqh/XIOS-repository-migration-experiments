@@ -166,7 +166,7 @@ namespace xios
     int MsgSize ;
     int rank ;
     list<CEventServer::SSubEvent>::iterator it ;
-    CTreeManager::SetCurrentContextId(context->getId()) ;
+    CContext::setCurrent(context->getId()) ;
         
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {

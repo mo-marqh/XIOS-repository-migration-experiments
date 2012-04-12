@@ -33,7 +33,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       std::vector<boost::shared_ptr<xios::CContext> > def_vector =
-            xios::CContext::GetContextGroup()->getChildList();
+            xios::CContext::getRoot()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
 	   {
@@ -48,7 +48,7 @@ extern "C"
    
    void cxios_context_set_current(XContextPtr context, bool withswap)
    {
-      CTreeManager::SetCurrentContextId(context->getId());
+      CContext::setCurrent(context->getId());
    }
    
  
@@ -60,7 +60,7 @@ extern "C"
       if (!cstr2string(_id, _id_len, id)) return;
 
       std::vector<boost::shared_ptr<xios::CContext> > def_vector =
-            xios::CContext::GetContextGroup()->getChildList();
+            xios::CContext::getRoot()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
 	   {

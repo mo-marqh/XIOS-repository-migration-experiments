@@ -10,7 +10,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 //  string path="./src/attr_interface/" ;
   string path="./interface/" ;
   
-  CContext* context=CTreeManager::CreateContext("interface").get();
+  CContext* context=CContext::create("interface").get();
   CAxis axis ;
   CAxisGroup axisgroup ;
   CField field;

@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CDomain>(id).get();
+      *_ret = CDomain::get(id).get();
    }
    
    void cxios_domaingroup_handle_create (XDomainGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CDomainGroup>(id).get();
+      *_ret = CDomainGroup::get(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CDomain>(id);
+      *_ret = CDomain::has(id);
    }
 
    void cxios_domaingroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,6 +55,6 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CDomainGroup>(id);
+      *_ret = CDomainGroup::has(id);
    }
 } // extern "C"

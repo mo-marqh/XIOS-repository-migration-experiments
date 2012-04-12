@@ -22,14 +22,12 @@ namespace xios
 
          if (grid->axis_ref.isEmpty())
          {
-            this->writeGrid
-            (CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue()));
+            this->writeGrid(CDomain::get(grid->domain_ref.getValue()));
          }
          else
          {
-            this->writeGrid
-            (CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue()),
-             CObjectFactory::GetObject<CAxis>(grid->axis_ref.getValue()));
+            this->writeGrid(CDomain::get(grid->domain_ref.getValue()),
+                            CAxis::get(grid->axis_ref.getValue()));
          }
       }
 
@@ -74,8 +72,7 @@ namespace xios
       void CDataOutput::writeField
          (const boost::shared_ptr<CField> field)
       {
-         boost::shared_ptr<CContext> context =
-         CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+         boost::shared_ptr<CContext> context = CContext::getCurrent() ;
          boost::shared_ptr<CCalendar> calendar = context->getCalendar();
          
          this->writeField_(field);
@@ -94,10 +91,8 @@ namespace xios
       
       void CDataOutput::writeFieldData(const boost::shared_ptr<CField> field)
       {
-         boost::shared_ptr<CGrid> grid =
-            CObjectFactory::GetObject<CGrid>(field->grid_ref.getValue());
-         boost::shared_ptr<CDomain> domain =
-            CObjectFactory::GetObject<CDomain>(grid->domain_ref.getValue());
+         boost::shared_ptr<CGrid> grid = CGrid::get(field->grid_ref.getValue());
+         boost::shared_ptr<CDomain> domain = CDomain::get(grid->domain_ref.getValue());
             
 //         if (domain->isEmpty()) return;
          this->writeFieldData_(field);

@@ -56,7 +56,7 @@ namespace xios
 
       void CNc4DataOutput::writeDomain_(const boost::shared_ptr<CDomain> domain)
       {
-         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+         shared_ptr<CContext> context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
          
          if (domain->IsWritten(this->filename)) return;
@@ -270,7 +270,7 @@ namespace xios
 
       void CNc4DataOutput::writeField_(const boost::shared_ptr<CField> field)
       {
-         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+         shared_ptr<CContext> context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
 
          std::vector<StdString> dims, coodinates;
@@ -462,7 +462,7 @@ namespace xios
       
       void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<CField>  field)
       {
-         shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+         shared_ptr<CContext> context = CContext::getCurrent() ;
 //          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
 
          boost::shared_ptr<CGrid> grid = field->grid ;

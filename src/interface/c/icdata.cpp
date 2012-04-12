@@ -66,15 +66,13 @@ extern "C"
  
     void cxios_context_close_definition()
    {
-     boost::shared_ptr<CContext> context =
-            CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+     boost::shared_ptr<CContext> context = CContext::getCurrent() ;
      context->closeDefinition() ;
    }  
 
    void cxios_context_finalize()
    {
-     boost::shared_ptr<CContext> context =
-            CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+     boost::shared_ptr<CContext> context = CContext::getCurrent() ;
      context->finalize() ;
    }
    
@@ -90,8 +88,7 @@ extern "C"
    void cxios_write_data_k81(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
       
 //      boost::const_multi_array_ref<double, 1> array_(data_k8,
@@ -107,8 +104,7 @@ extern "C"
    void cxios_write_data_k82(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize, int data_Ysize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
       
 //      boost::const_multi_array_ref<double, 2> array_(data_k8,
@@ -123,8 +119,7 @@ extern "C"
    void cxios_write_data_k83(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
       
 //      boost::const_multi_array_ref<double, 3> array_(data_k8,
@@ -140,8 +135,7 @@ extern "C"
    void cxios_write_data_k41(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
       
 //      boost::const_multi_array_ref<float, 1> array_(data_k4,
@@ -159,8 +153,7 @@ extern "C"
    void cxios_write_data_k42(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize, int data_Ysize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
       
 //      boost::const_multi_array_ref<float, 2> array_(data_k4,
@@ -178,8 +171,7 @@ extern "C"
    void cxios_write_data_k43(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
    {
       std::string fieldid_str;
-      boost::shared_ptr<CContext> context =
-      CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent() ;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
       
 //      boost::const_multi_array_ref<float, 3> array_(data_k4,

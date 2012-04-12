@@ -145,7 +145,7 @@ namespace xios
       void CObjectTemplate<T>::ClearAllAttributes(void)
    {
       std::vector<boost::shared_ptr<T> > & avect =
-         CObjectTemplate<T>::GetAllVectobject(CObjectFactory::GetCurrentContextId());
+         CObjectTemplate<T>::GetAllVectobject(CContext::getCurrent()->getId());
       typename std::vector<boost::shared_ptr<T> >::iterator
             it = avect.begin(), end = avect.end();
 
@@ -167,7 +167,7 @@ namespace xios
    template <class T>
    void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
    {
-     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     shared_ptr<CContext> context=CContext::getCurrent() ;
      
     if (!context->hasServer)
     {
@@ -231,9 +231,40 @@ namespace xios
    }
 
    template <typename T>
+   bool CObjectTemplate<T>::has(const string& contextId, const string & id)
+   {
+     return CObjectFactory::HasObject<T>(contextId,id) ;
+   }
+
+   template <typename T>
    boost::shared_ptr<T> CObjectTemplate<T>::get(const string & id)
    {
      return CObjectFactory::GetObject<T>(id) ;
+   }
+
+   template <typename T>
+   boost::shared_ptr<T> CObjectTemplate<T>::get(const T* ptr)
+   {
+     return CObjectFactory::GetObject<T>(ptr) ;
+   }
+   
+   
+   template <typename T>
+   const vector<boost::shared_ptr<T> >& CObjectTemplate<T>::getAll()
+   {
+     return CObjectFactory::GetObjectVector<T>() ;
+   }
+
+   template <typename T>
+   const vector<boost::shared_ptr<T> >& CObjectTemplate<T>::getAll(const string & id)
+   {
+     return CObjectFactory::GetObjectVector<T>(id) ;
+   }
+
+   template <typename T>
+   boost::shared_ptr<T> CObjectTemplate<T>::get(const string& contextId, const string & id)
+   {
+     return CObjectFactory::GetObject<T>(contextId,id) ;
    }
 
    template <typename T>
@@ -246,6 +277,7 @@ namespace xios
   boost::shared_ptr<T> CObjectTemplate<T>::get(void)
   {
     return CObjectFactory::GetObject<T>((T*)this) ;
+//      return shared_ptr<T>((T*)this) ;
   }
   
    template <typename T>

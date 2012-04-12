@@ -65,7 +65,9 @@ namespace xios
 //         static boost::shared_ptr<V> get(const string& id) ;
 //         static boost::shared_ptr<V> create(const string& id=string("")) ;
          boost::shared_ptr<U> createChild(const string& id="") ; 
+         void addChild(shared_ptr<U> child) ; 
          boost::shared_ptr<V> createChildGroup(const string& id="") ; 
+         void addChildGroup(shared_ptr<V> childGroup) ; 
          static bool dispatchEvent(CEventServer& event) ;
          void sendCreateChild(const string& id="") ;
          void sendCreateChildGroup(const string& id="") ;

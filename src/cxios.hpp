@@ -19,6 +19,7 @@ namespace xios
      static void initClientSide(const string & codeId, MPI_Comm& localComm, MPI_Comm& returnComm) ;
      static void initServerSide(void) ;
      static void clientFinalize(void) ;
+     static void parseFile(const string& filename) ;
    
      template <typename T>
      static T getin(const string& id,const T& defaultValue) ;

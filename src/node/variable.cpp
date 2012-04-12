@@ -82,8 +82,7 @@ namespace xios {
    void CVariableGroup::parse(xml::CXMLNode & node, bool withAttr)
    {
       boost::shared_ptr<CVariableGroup> group_ptr = (this->hasId())
-         ? CObjectFactory::GetObject<CVariableGroup>(this->getId())
-         : CObjectFactory::GetObject(this);
+         ? CVariableGroup::get(this->getId()) : CVariableGroup::get(this);
 
       StdString content;
       if (this->getId().compare(CVariableGroup::GetDefName()) != 0 && node.getContent(content))
@@ -100,7 +99,7 @@ namespace xios {
            enddata   = content.find_first_of ( ";", begindata );
            subdata   = content.substr ( begindata, enddata-begindata);
 
-           CGroupFactory::CreateChild(group_ptr, subid)->content = subdata;
+           group_ptr->createChild(subid)->content = subdata ;
         }
       }
       else

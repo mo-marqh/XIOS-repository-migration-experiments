@@ -93,7 +93,7 @@ namespace xios{
   
   void CField::sendUpdateData(void)
   {
-    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    shared_ptr<CContext> context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     
     CEventClient event(getType(),EVENT_ID_UPDATE_DATA) ;
@@ -149,7 +149,7 @@ namespace xios{
       }
     }
 
-    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    shared_ptr<CContext> context = CContext::getCurrent() ;
     const CDate & currDate = context->getCalendar()->getCurrentDate();
     const CDate opeDate      = *last_operation_srv + freq_operation_srv;
     const CDate writeDate    = *last_Write_srv     + freq_write_srv; 
@@ -186,7 +186,7 @@ namespace xios{
     {
       getRelFile()->checkFile();
       this->incrementNStep();
-      getRelFile()->getDataOutput()->writeFieldData(CObjectFactory::GetObject<CField>(this));
+      getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
     }
   }
    //----------------------------------------------------------------
@@ -238,12 +238,12 @@ namespace xios{
       if (this->field_ref.isEmpty())
          return (this->getBaseFieldReference());
 
-      if (! CObjectFactory::HasObject<CField>(this->field_ref.getValue()))
+      if (! CField::has(this->field_ref.getValue()))
          ERROR("CField::getDirectFieldReference(void)",
                << "[ ref_name = " << this->field_ref.getValue() << "]"
                << " invalid field name !");
 
-      return (CObjectFactory::GetObject<CField>(this->field_ref.getValue()));
+      return (CField::get(this->field_ref.getValue()));
    }
 
    //----------------------------------------------------------------
@@ -327,7 +327,7 @@ namespace xios{
       boost::shared_ptr<CField> refer_sptr;
       CField * refer_ptr = this;
       
-      this->baseRefObject = CObjectFactory::GetObject<CField>(this);
+      this->baseRefObject = CField::get(this);
       
       while (refer_ptr->hasDirectFieldReference())
       {
@@ -355,8 +355,7 @@ namespace xios{
       using namespace func;
        
       StdString id = this->getBaseFieldReference()->getId();
-      boost::shared_ptr<CContext> context =
-         CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId());
+      boost::shared_ptr<CContext> context = CContext::getCurrent();
 
       if (operation.isEmpty() || freq_op.isEmpty() || this->file->output_freq.isEmpty())
       {
@@ -447,8 +446,8 @@ namespace xios{
 
       if (!domain_ref.isEmpty())
       {
-         if (CObjectFactory::HasObject<CDomain>(domain_ref.getValue()))
-            domain = CObjectFactory::GetObject<CDomain>(domain_ref.getValue()) ;
+         if (CDomain::has(domain_ref.getValue()))
+            domain = CDomain::get(domain_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
                   << "Référence au domaine nommé \'"
@@ -457,8 +456,8 @@ namespace xios{
 
       if (!axis_ref.isEmpty())
       {
-         if (CObjectFactory::HasObject<CAxis>(axis_ref.getValue()))
-            axis = CObjectFactory::GetObject<CAxis>(axis_ref.getValue()) ;
+         if (CAxis::has(axis_ref.getValue()))
+            axis = CAxis::get(axis_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
                   << "Référence à l'axe nommé \'"
@@ -467,8 +466,8 @@ namespace xios{
 
       if (!grid_ref.isEmpty())
       {
-         if (CObjectFactory::HasObject<CGrid>(grid_ref.getValue()))
-            this->grid = CObjectFactory::GetObject<CGrid>(grid_ref.getValue()) ;
+         if (CGrid::has(grid_ref.getValue()))
+            this->grid = CGrid::get(grid_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
                   << "Référence à la grille nommée \'"
@@ -513,16 +512,13 @@ namespace xios{
       if (this->group_ref.isEmpty()) return;
       StdString gref = this->group_ref.getValue();
 
-      if (!CObjectFactory::HasObject<CFieldGroup>(gref))
+      if (!CFieldGroup::has(gref))
          ERROR("CGroupTemplate<CField, CFieldGroup, CFieldAttributes>::solveRefInheritance(void)",
                << "[ gref = " << gref << "]"
                << " invalid group name !");
 
-      boost::shared_ptr<CFieldGroup> group
-               = CObjectFactory::GetObject<CFieldGroup>(gref);
-      boost::shared_ptr<CFieldGroup> owner
-               = CObjectFactory::GetObject<CFieldGroup>
-                  (boost::polymorphic_downcast<CFieldGroup*>(this));
+      boost::shared_ptr<CFieldGroup> group = CFieldGroup::get(gref);
+      boost::shared_ptr<CFieldGroup> owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
 
       std::vector<boost::shared_ptr<CField> > allChildren  = group->getAllChildren();
       std::vector<boost::shared_ptr<CField> >::iterator 
@@ -531,8 +527,8 @@ namespace xios{
       for (; it != end; it++)
       {
          boost::shared_ptr<CField> child = *it;
-         if (child->hasId())
-            CGroupFactory::CreateChild(owner)->field_ref.setValue(child->getId());
+         if (child->hasId()) owner->createChild()->field_ref.setValue(child->getId()) ;
+            
       }
    }
    

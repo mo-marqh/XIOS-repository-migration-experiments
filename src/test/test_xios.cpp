@@ -67,12 +67,12 @@ int main (int argc, char ** argv, char ** UNUSED (env))
      CClient::registerContext("toto",CClient::intraComm) ;
 //     CClient::registerContext("tata",CClient::intraComm) ;
      CClient::registerContext("tutu",CClient::intraComm) ;
-     CObjectFactory::SetCurrentContextId("tutu") ;
-     CContext*  tutu=(CObjectFactory::GetObject<CContext>("tutu")).get(); 
+     CContext::setCurrent("tutu") ;
+     CContext*  tutu=CContext::get("tutu").get() ; 
      
      
-     CObjectFactory::SetCurrentContextId("toto") ;
-     CContext*  toto=(CObjectFactory::GetObject<CContext>("toto")).get(); 
+     CContext::setCurrent("toto") ;
+     CContext*  toto=(CContext::get("toto").get() ;
      toto->calendar_type.setValue("NoLeap") ;
      toto->sendAttributToServer("calendar_type" );
 
@@ -100,12 +100,12 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    {
      CXios::initClientSide("test2") ;
      CClient::registerContext("tito",CClient::intraComm) ;
-     CObjectFactory::SetCurrentContextId("tito") ;
-     CContext*  tito=(CObjectFactory::GetObject<CContext>("tito")).get();
+     CContext::setCurrent("tito") ;
+     CContext*  tito=CContext::get("tito").get() ;
       
      CClient::registerContext("tete",CClient::intraComm) ;
-     CObjectFactory::SetCurrentContextId("tete") ;
-     CContext*  tete=(CObjectFactory::GetObject<CContext>("tete")).get(); 
+     CContext::setCurrent("tete") ;
+     CContext*  tete=CContext::get("tete").get() ; 
 
      tito->client->finalize() ;
      tete->client->finalize() ;
@@ -115,8 +115,8 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    {
      CXios::initClientSide("test3") ;
      CClient::registerContext("turlututu",CClient::intraComm) ;
-     CObjectFactory::SetCurrentContextId("turlututu") ;
-     CContext*  turlututu=(CObjectFactory::GetObject<CContext>("turlututu")).get(); 
+     CContext::setCurrent("turlututu") ;
+     CContext*  turlututu=CContext::get("turlututu").get() ; 
      turlututu->client->finalize() ;
      CXios::clientFinalize() ;
    }

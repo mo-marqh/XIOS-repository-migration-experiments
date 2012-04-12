@@ -240,57 +240,57 @@ extern "C"
    
    // ----------------------- Affichage de l'arborescence ----------------------
    
-   void cxios_xml_tree_show   (const char * filename, int filename_size) 
-   {
-      std::string filename_str;
-      try
-      {
-         if (cstr2string(filename, filename_size, filename_str))
-            xios::CTreeManager::PrintTreeToFile(filename_str);
-         else
-            xios::CTreeManager::PrintTreeToStream(std::clog);
-      }
-      catch (xios::CException & exc)
-      {
-         std::cerr << exc.getMessage() << std::endl;
-         exit (EXIT_FAILURE);
-      }
-   }
+//   void cxios_xml_tree_show   (const char * filename, int filename_size) 
+//   {
+//      std::string filename_str;
+//      try
+//      {
+//         if (cstr2string(filename, filename_size, filename_str))
+//            xios::CTreeManager::PrintTreeToFile(filename_str);
+//         else
+//            xios::CTreeManager::PrintTreeToStream(std::clog);
+//      }
+//      catch (xios::CException & exc)
+//      {
+//         std::cerr << exc.getMessage() << std::endl;
+//         exit (EXIT_FAILURE);
+//      }
+//  }
      
    
    // ----------------------- Parsing de document xml --------------------------
    
-   void cxios_xml_parse_file  (const char * filename  , int filename_size)
-   {
-      std::string filename_str; 
-      if (!cstr2string(filename, filename_size, filename_str)) return;
-
-      try
-      {
-         xios::CTreeManager::ParseFile(filename_str);
-      }
-      catch (xios::CException & exc)
-      {
-         std::cerr << exc.getMessage() << std::endl;
-         exit (EXIT_FAILURE);
-      }
-   }
+//   void cxios_xml_parse_file  (const char * filename  , int filename_size)//
+//   {
+//      std::string filename_str; 
+//      if (!cstr2string(filename, filename_size, filename_str)) return;
+//
+//      try
+//      {
+//         xios::CTreeManager::ParseFile(filename_str);
+//      }
+//      catch (xios::CException & exc)
+//      {
+//         std::cerr << exc.getMessage() << std::endl;
+//         exit (EXIT_FAILURE);
+//      }
+//   }
    
-   void cxios_xml_parse_string(const char * xmlcontent, int xmlcontent_size)
-   {
-      std::string xmlcontent_str; 
-      if (!cstr2string(xmlcontent, xmlcontent_size, xmlcontent_str)) return;
-
-      try
-      {
-         xios::CTreeManager::ParseString(xmlcontent_str);
-      }
-      catch (xios::CException & exc)
-      {
-         std::cerr << exc.getMessage() << std::endl;
-         exit (EXIT_FAILURE);
-      }
-   }
+//   void cxios_xml_parse_string(const char * xmlcontent, int xmlcontent_size)
+//   {
+//      std::string xmlcontent_str; 
+//      if (!cstr2string(xmlcontent, xmlcontent_size, xmlcontent_str)) return;
+//
+//      try
+//      {
+//         xios::CTreeManager::ParseString(xmlcontent_str);
+//      }
+//      catch (xios::CException & exc)
+//      {
+//         std::cerr << exc.getMessage() << std::endl;
+//         exit (EXIT_FAILURE);
+//      }
+//   }
    
 
 

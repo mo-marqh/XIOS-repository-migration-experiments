@@ -126,7 +126,10 @@ namespace xios {
          static void recvCloseDefinition(CEventServer& event) ;
          static void recvCreateFileHeader(CEventServer& event) ;
          void recvCreateFileHeader(CBufferIn& buffer) ;
-         static shared_ptr<CContext> current(void) ;
+         static shared_ptr<CContext> getCurrent(void) ;
+         static shared_ptr<CContextGroup> getRoot(void) ;
+         static void setCurrent(const string& id) ;
+         static shared_ptr<CContext> create(const string& id = "") ;
          
       public :
       
@@ -142,6 +145,7 @@ namespace xios {
          boost::shared_ptr<CCalendar>      calendar;
  
          std::vector<boost::shared_ptr<CFile> > enabledFiles;
+         static shared_ptr<CContextGroup> root ;
 
 
    }; // class CContext

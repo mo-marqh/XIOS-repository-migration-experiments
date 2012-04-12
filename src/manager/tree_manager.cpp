@@ -16,7 +16,7 @@ namespace xios
 
       boost::shared_ptr<CContext> CTreeManager::CreateContext(const StdString & id)
       {
-         boost::shared_ptr<CContextGroup> group_context = CContext::GetContextGroup();
+         boost::shared_ptr<CContextGroup> group_context = CContext::getRoot();
          CTreeManager::SetCurrentContextId(id);
          bool hasctxt = CObjectFactory::HasObject<CContext>(id);
          
@@ -78,7 +78,7 @@ namespace xios
          StdString currentContextId =
             CObjectFactory::GetCurrentContextId();
          std::vector<boost::shared_ptr<CContext> > def_vector =
-            CContext::GetContextGroup()->getChildList();
+            CContext::getRoot()->getChildList();
             
          const StdSize size = def_vector.size();         
          const ENodeType cenum = CContext::GetType();
@@ -115,8 +115,7 @@ namespace xios
          StdSize ctxtnb = 0;
          ENodeType renum = Unknown;
          
-         boost::shared_ptr<CContextGroup> group_context =
-                           CContext::GetContextGroup();
+         boost::shared_ptr<CContextGroup> group_context = CContext::getRoot();
                            
          is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));   
          is.read (reinterpret_cast<char*>(&ctxtnb), sizeof(StdSize));
@@ -171,8 +170,7 @@ namespace xios
       {
          StdString currentContextId =
             CObjectFactory::GetCurrentContextId();
-         std::vector<boost::shared_ptr<CContext> > def_vector =
-            CContext::GetContextGroup()->getChildList();
+         std::vector<boost::shared_ptr<CContext> > def_vector = CContext::getRoot()->getChildList();
             
          const StdSize size = def_vector.size();         
          const ENodeType cenum = CContext::GetType();
@@ -261,10 +259,8 @@ namespace xios
          StdSize ctxtnb = 0;
          ENodeType renum = Unknown;
          
-         boost::shared_ptr<CContextGroup> group_context =
-                           CContext::GetContextGroup();
-         std::vector<boost::shared_ptr<CContext> > def_vector =
-            CContext::GetContextGroup()->getChildList();
+         boost::shared_ptr<CContextGroup> group_context = CContext::getRoot();
+         std::vector<boost::shared_ptr<CContext> > def_vector = CContext::getRoot()->getChildList();
             
          const StdSize size = def_vector.size();  
                   

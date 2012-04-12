@@ -11,8 +11,11 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include "nc4_data_output.hpp"
+#include "node_type.hpp"
 
 namespace xios {
+  
+  shared_ptr<CContextGroup> CContext::root ;
    
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -40,11 +43,10 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<CContextGroup> CContext::GetContextGroup(void)
+   boost::shared_ptr<CContextGroup> CContext::getRoot(void)
    {  
-      static boost::shared_ptr<CContextGroup> group_context
-                          (new CContextGroup(xml::CXMLNode::GetRootName()));
-      return (group_context); 
+      if (root.get()==NULL) root=shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName())) ;
+      return root; 
    }
    
 
@@ -133,13 +135,12 @@ namespace xios {
 
 #define DECLARE_NODE(Name_, name_)    \
    if (name.compare(C##Name_##Definition::GetDefName()) == 0) \
-   { CObjectFactory::CreateObject<C##Name_##Definition>(C##Name_##Definition::GetDefName()) -> parse(node); \
-   continue; }
+   { C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> parse(node) ; continue; }
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
             DEBUG(<< "L'élément nommé \'"     << name
-                  << "\' dans le contexte \'" << CObjectFactory::GetCurrentContextId()
+                  << "\' dans le contexte \'" << CContext::getCurrent()->getId()
                   << "\' ne représente pas une définition !");
 
          } while (node.goToNextElement());
@@ -152,10 +153,9 @@ namespace xios {
 
    void CContext::ShowTree(StdOStream & out)
    {
-      StdString currentContextId =
-         CObjectFactory::GetCurrentContextId();
+      StdString currentContextId = CContext::getCurrent() -> getId() ;
       std::vector<boost::shared_ptr<CContext> > def_vector =
-         CContext::GetContextGroup()->getChildList();
+         CContext::getRoot()->getChildList();
       std::vector<boost::shared_ptr<CContext> >::iterator
          it = def_vector.begin(), end = def_vector.end();
 
@@ -165,12 +165,12 @@ namespace xios {
       for (; it != end; it++)
       {
          boost::shared_ptr<CContext> context = *it;         
-         CTreeManager::SetCurrentContextId(context->getId());         
+         CContext::setCurrent(context->getId());         
          out << *context << std::endl;
       }
       
       out << "</" << xml::CXMLNode::GetRootName() << " >" << std::endl;
-      CTreeManager::SetCurrentContextId(currentContextId);  
+      CContext::setCurrent(currentContextId);  
    }
    
    //----------------------------------------------------------------
@@ -178,16 +178,14 @@ namespace xios {
    void CContext::toBinary(StdOStream & os) const
    {
       SuperClass::toBinary(os);
-       
+
 #define DECLARE_NODE(Name_, name_)                                         \
    {                                                                       \
       ENodeType renum = C##Name_##Definition::GetType();                   \
-      bool val = CObjectFactory::HasObject<C##Name_##Definition>           \
-                     (C##Name_##Definition::GetDefName());                 \
+      bool val = C##Name_##Definition::has(C##Name_##Definition::GetDefName()); \
       os.write (reinterpret_cast<const char*>(&renum), sizeof(ENodeType)); \
       os.write (reinterpret_cast<const char*>(&val), sizeof(bool));        \
-      if (val) CObjectFactory::GetObject<C##Name_##Definition>             \
-                     (C##Name_##Definition::GetDefName())->toBinary(os);   \
+      if (val) C##Name_##Definition::get(C##Name_##Definition::GetDefName())->toBinary(os);   \
    }   
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
@@ -207,8 +205,7 @@ namespace xios {
       if (renum != C##Name_##Definition::GetType())                        \
          ERROR("CContext::fromBinary(StdIStream & is)",                    \
                << "[ renum = " << renum << "] Bad type !");                \
-      if (val) CObjectFactory::CreateObject<C##Name_##Definition>          \
-                   (C##Name_##Definition::GetDefName()) -> fromBinary(is); \
+      if (val) C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> fromBinary(is); \
    }   
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
@@ -232,8 +229,8 @@ namespace xios {
       {
 
 #define DECLARE_NODE(Name_, name_)    \
-   if (CObjectFactory::HasObject<C##Name_##Definition>(C##Name_##Definition::GetDefName())) \
-   oss << *CObjectFactory::GetObject<C##Name_##Definition>(C##Name_##Definition::GetDefName()) << std::endl;
+   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
+   oss << * C##Name_##Definition::get(C##Name_##Definition::GetDefName()) << std::endl;
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
@@ -249,8 +246,8 @@ namespace xios {
    void CContext::solveDescInheritance(const CAttributeMap * const UNUSED(parent))
    {
 #define DECLARE_NODE(Name_, name_)    \
-   if (CObjectFactory::HasObject<C##Name_##Definition>(C##Name_##Definition::GetDefName())) \
-   CObjectFactory::GetObject<C##Name_##Definition>(C##Name_##Definition::GetDefName())->solveDescInheritance();
+   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \ 
+     C##Name_##Definition::get(C##Name_##Definition::GetDefName())->solveDescInheritance();
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
@@ -261,7 +258,7 @@ namespace xios {
    {
       return (
 #define DECLARE_NODE(Name_, name_)    \
-   CObjectFactory::HasObject<C##Name_##Definition>  (C##Name_##Definition::GetDefName())   ||
+   C##Name_##Definition::has(C##Name_##Definition::GetDefName())   ||
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
       false);
@@ -272,7 +269,7 @@ namespace xios {
    void CContext::solveFieldRefInheritance(void)
    {
       if (!this->hasId()) return;
-      std::vector<boost::shared_ptr<CField> > allField
+      std::vector<boost::shared_ptr<CField> >& allField
                = CObjectTemplate<CField>::GetAllVectobject(this->getId());
       std::vector<boost::shared_ptr<CField> >::iterator 
          it = allField.begin(), end = allField.end();
@@ -378,8 +375,7 @@ namespace xios {
       solveDescInheritance();
 
      // Résolution des héritages par référence au niveau des fichiers.
-      const std::vector<boost::shared_ptr<CFile> > & allFiles
-             = CObjectFactory::GetObjectVector<CFile>();
+      const std::vector<boost::shared_ptr<CFile> > & allFiles=CFile::getAll() ;
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          allFiles[i]->solveFieldRefInheritance();
@@ -387,8 +383,7 @@ namespace xios {
 
    void CContext::findEnabledFiles(void)
    {
-      const std::vector<boost::shared_ptr<CFile> > & allFiles
-          = CObjectFactory::GetObjectVector<CFile>();
+      const std::vector<boost::shared_ptr<CFile> > & allFiles = CFile::getAll();
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
@@ -540,9 +535,30 @@ namespace xios {
       }
    } 
    
-   shared_ptr<CContext> CContext::current(void)
+   shared_ptr<CContext> CContext::getCurrent(void)
    {
      return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
    }
    
+   void CContext::setCurrent(const string& id)
+   {
+     CObjectFactory::SetCurrentContextId(id);
+     CGroupFactory::SetCurrentContextId(id);
+   }
+   
+  boost::shared_ptr<CContext> CContext::create(const StdString& id)
+  {
+    CContext::setCurrent(id) ;
+ 
+    bool hasctxt = CContext::has(id);
+    boost::shared_ptr<CContext> context = CObjectFactory::CreateObject<CContext>(id);
+    if (!hasctxt) CGroupFactory::AddChild(getRoot(), context);
+
+#define DECLARE_NODE(Name_, name_) \
+    C##Name_##Definition::create(C##Name_##Definition::GetDefName());
+#define DECLARE_NODE_PAR(Name_, name_)
+#include "node_type.conf"
+
+    return (context);
+  }
 } // namespace xios

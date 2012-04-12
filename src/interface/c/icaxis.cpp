@@ -29,7 +29,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CAxis>(id).get();
+      *_ret = xios::CAxis::get(id).get();
    }
    
    void cxios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +37,7 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::GetObject<xios::CAxisGroup>(id).get();
+      *_ret = xios::CAxisGroup::get(id).get();
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,7 +47,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CAxis>(id);
+      *_ret = xios::CAxis::has(id);
    }
 
    void cxios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,7 +55,7 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = xios::CObjectFactory::HasObject<xios::CAxisGroup>(id);
+      *_ret = xios::CAxisGroup::has(id);
    }
    
 } // extern "C"

@@ -100,7 +100,7 @@ namespace xios {
          // Le champ est finalement actif, on y ajoute sa propre reference.
          (*it)->refObject.push_back(*it);
          // Le champ est finalement actif, on y ajoute la référence au champ de base.
-         (*it)->setRelFile(CObjectFactory::GetObject(this));
+         (*it)->setRelFile(CFile::get(this));
          (*it)->baseRefObject->refObject.push_back(*it);
          // A faire, ajouter les references intermediaires...
       }
@@ -120,14 +120,13 @@ namespace xios {
 
    void CFile::setVirtualFieldGroup(void)
    {
-      this->setVirtualFieldGroup
-         (CObjectFactory::CreateObject<CFieldGroup>());
+      this->setVirtualFieldGroup(CFieldGroup::create());
    }
 
    //----------------------------------------------------------------
    bool CFile::isSyncTime(void)
    {
-     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     shared_ptr<CContext> context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
@@ -142,7 +141,7 @@ namespace xios {
     
    void CFile::initFile(void)
    {
-      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      shared_ptr<CContext> context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       
       if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
@@ -163,7 +162,7 @@ namespace xios {
      
    bool CFile::checkSync(void)
    {
-     shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     shared_ptr<CContext> context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
@@ -180,7 +179,7 @@ namespace xios {
     
     bool CFile::checkSplit(void)
     {
-      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      shared_ptr<CContext> context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       if (! split_freq.isEmpty())
       {
@@ -199,7 +198,7 @@ namespace xios {
     
    void CFile::createHeader(void)
    {
-      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      shared_ptr<CContext> context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       
       std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
@@ -257,7 +256,7 @@ namespace xios {
          data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false,server->intraComm,multifile, isCollective));
          isOpen=true ;
 
-         data_out->writeFile(CObjectFactory::GetObject<CFile>(this));
+         data_out->writeFile(CFile::get(this));
          for (it = this->enabledFields.begin() ;it != end; it++)
          {
             boost::shared_ptr<CField> field = *it;
@@ -394,7 +393,7 @@ namespace xios {
   
    void CFile::sendAddField(const string& id)
    {
-    shared_ptr<CContext> context=CContext::current() ;
+    shared_ptr<CContext> context=CContext::getCurrent() ;
     
     if (! context->hasServer )
     {
@@ -416,7 +415,7 @@ namespace xios {
    
    void CFile::sendAddFieldGroup(const string& id)
    {
-    shared_ptr<CContext> context=CContext::current() ;
+    shared_ptr<CContext> context=CContext::getCurrent() ;
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;

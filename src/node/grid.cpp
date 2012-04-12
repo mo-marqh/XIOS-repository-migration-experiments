@@ -157,7 +157,7 @@ namespace xios {
    void CGrid::solveReference(void)
    {
       if (this->isChecked) return;
-      shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+      shared_ptr<CContext> context = CContext::getCurrent() ;
       CContextClient* client=context->client ;
       
       this->solveDomainRef() ;
@@ -186,9 +186,9 @@ namespace xios {
    {
       if (!domain_ref.isEmpty())
       {
-         if (CObjectFactory::HasObject<CDomain>(domain_ref.getValue()))
+         if (CDomain::has(domain_ref.getValue()))
          {
-            this->domain = CObjectFactory::GetObject<CDomain>(domain_ref.getValue()) ;
+            this->domain = CDomain::get(domain_ref.getValue()) ;
             domain->checkAttributes() ;
          }
          else ERROR("CGrid::solveDomainRef(void)",
@@ -205,9 +205,9 @@ namespace xios {
       if (!axis_ref.isEmpty())
       {
          this->withAxis = true ;
-         if (CObjectFactory::GetObject<CAxis>(axis_ref.getValue()))
+         if (CAxis::get(axis_ref.getValue()))
          {
-            this->axis = CObjectFactory::GetObject<CAxis>(axis_ref.getValue()) ;
+            this->axis = CAxis::get(axis_ref.getValue()) ;
             axis->checkAttributes() ;
          }
          else ERROR("CGrid::solveAxisRef(void)",
@@ -309,8 +309,7 @@ namespace xios {
       CGrid::CreateGrid(boost::shared_ptr<CDomain> domain)
    {
       StdString new_id = StdString("__") + domain->getId() + StdString("__") ;
-      boost::shared_ptr<CGrid> grid =
-         CGroupFactory::CreateChild(CObjectFactory::GetObject<CGridGroup> ("grid_definition"), new_id);
+      boost::shared_ptr<CGrid> grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
       grid->domain_ref.setValue(domain->getId());
       return (grid);
    }
@@ -320,8 +319,7 @@ namespace xios {
    {
       StdString new_id = StdString("__") + domain->getId() +
                          StdString("_") + axis->getId() + StdString("__") ;
-      boost::shared_ptr<CGrid> grid =
-         CGroupFactory::CreateChild(CObjectFactory::GetObject<CGridGroup> ("grid_definition"), new_id);
+      boost::shared_ptr<CGrid> grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
       grid->domain_ref.setValue(domain->getId());
       grid->axis_ref.setValue(axis->getId());
       return (grid);
@@ -417,7 +415,7 @@ namespace xios {
    //---------------------------------------------------------------
   void CGrid::sendIndex(void)
   {
-    shared_ptr<CContext> context=CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+    shared_ptr<CContext> context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     
     CEventClient event(getType(),EVENT_ID_INDEX) ;
