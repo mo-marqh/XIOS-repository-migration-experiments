@@ -12,6 +12,7 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -28,16 +29,18 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CGrid::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CGrid::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_gridgroup_handle_create (XGridGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CGridGroup::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CGridGroup::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -46,15 +49,17 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CGrid::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_gridgroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CGridGroup::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 } // extern "C"

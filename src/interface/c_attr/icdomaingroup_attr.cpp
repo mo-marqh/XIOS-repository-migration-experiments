@@ -9,6 +9,7 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -16,8 +17,10 @@ extern "C"
   
   void cxios_set_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl, int data_dim)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_dim.setValue(data_dim);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_dim);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl, int* data_dim)
@@ -28,6 +31,7 @@ extern "C"
   
   void cxios_set_domaingroup_data_i_index(domaingroup_Ptr domaingroup_hdl, int* data_i_index, int extent1)
   {
+     CTimer::get("XIOS").resume();
     ARRAY(int,1) array_tmp(new CArray<int,1>(boost::extents[extent1]));
     std::copy(data_i_index, &(data_i_index[array_tmp->num_elements()]), array_tmp->data());
     domaingroup_hdl->data_i_index.setValue(array_tmp);
@@ -38,13 +42,16 @@ extern "C"
   {
     if (!array_copy(domaingroup_hdl->data_i_index.getValue(), data_i_index, extent1))
      ERROR("void cxios_set_domaingroup_data_i_index(domaingroup_Ptr domaingroup_hdl, int* data_i_index, int extent1)",<<"Output array size is not conform to array size attribute") ;
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl, int data_ibegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_ibegin.setValue(data_ibegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_ibegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl, int* data_ibegin)
@@ -55,6 +62,7 @@ extern "C"
   
   void cxios_set_domaingroup_data_j_index(domaingroup_Ptr domaingroup_hdl, int* data_j_index, int extent1)
   {
+     CTimer::get("XIOS").resume();
     ARRAY(int,1) array_tmp(new CArray<int,1>(boost::extents[extent1]));
     std::copy(data_j_index, &(data_j_index[array_tmp->num_elements()]), array_tmp->data());
     domaingroup_hdl->data_j_index.setValue(array_tmp);
@@ -65,13 +73,16 @@ extern "C"
   {
     if (!array_copy(domaingroup_hdl->data_j_index.getValue(), data_j_index, extent1))
      ERROR("void cxios_set_domaingroup_data_j_index(domaingroup_Ptr domaingroup_hdl, int* data_j_index, int extent1)",<<"Output array size is not conform to array size attribute") ;
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl, int data_jbegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_jbegin.setValue(data_jbegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_jbegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl, int* data_jbegin)
@@ -82,8 +93,10 @@ extern "C"
   
   void cxios_set_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int data_n_index)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_n_index.setValue(data_n_index);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_n_index);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int* data_n_index)
@@ -94,8 +107,10 @@ extern "C"
   
   void cxios_set_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl, int data_ni)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_ni.setValue(data_ni);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_ni);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl, int* data_ni)
@@ -106,8 +121,10 @@ extern "C"
   
   void cxios_set_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl, int data_nj)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->data_nj.setValue(data_nj);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->data_nj);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl, int* data_nj)
@@ -120,14 +137,18 @@ extern "C"
   {
     std::string domain_group_ref_str;
     if(!cstr2string(domain_group_ref, domain_group_ref_size, domain_group_ref_str)) return;
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->domain_group_ref.setValue(domain_group_ref_str);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->domain_group_ref);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl, char * domain_group_ref, int domain_group_ref_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(domaingroup_hdl->domain_group_ref.getValue(),domain_group_ref , domain_group_ref_size))
       ERROR("void cxios_get_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl, char * domain_group_ref, int domain_group_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -135,21 +156,27 @@ extern "C"
   {
     std::string group_ref_str;
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->group_ref.setValue(group_ref_str);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->group_ref);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, char * group_ref, int group_ref_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(domaingroup_hdl->group_ref.getValue(),group_ref , group_ref_size))
       ERROR("void cxios_get_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, char * group_ref, int group_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl, int ibegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->ibegin.setValue(ibegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->ibegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl, int* ibegin)
@@ -160,8 +187,10 @@ extern "C"
   
   void cxios_set_domaingroup_iend(domaingroup_Ptr domaingroup_hdl, int iend)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->iend.setValue(iend);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->iend);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_iend(domaingroup_Ptr domaingroup_hdl, int* iend)
@@ -172,8 +201,10 @@ extern "C"
   
   void cxios_set_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl, int jbegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->jbegin.setValue(jbegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->jbegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl, int* jbegin)
@@ -184,8 +215,10 @@ extern "C"
   
   void cxios_set_domaingroup_jend(domaingroup_Ptr domaingroup_hdl, int jend)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->jend.setValue(jend);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->jend);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_jend(domaingroup_Ptr domaingroup_hdl, int* jend)
@@ -196,6 +229,7 @@ extern "C"
   
   void cxios_set_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl, double* latvalue, int extent1)
   {
+     CTimer::get("XIOS").resume();
     ARRAY(double,1) array_tmp(new CArray<double,1>(boost::extents[extent1]));
     std::copy(latvalue, &(latvalue[array_tmp->num_elements()]), array_tmp->data());
     domaingroup_hdl->latvalue.setValue(array_tmp);
@@ -206,6 +240,7 @@ extern "C"
   {
     if (!array_copy(domaingroup_hdl->latvalue.getValue(), latvalue, extent1))
      ERROR("void cxios_set_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl, double* latvalue, int extent1)",<<"Output array size is not conform to array size attribute") ;
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -213,19 +248,24 @@ extern "C"
   {
     std::string long_name_str;
     if(!cstr2string(long_name, long_name_size, long_name_str)) return;
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->long_name.setValue(long_name_str);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->long_name);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl, char * long_name, int long_name_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(domaingroup_hdl->long_name.getValue(),long_name , long_name_size))
       ERROR("void cxios_get_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl, char * long_name, int long_name_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl, double* lonvalue, int extent1)
   {
+     CTimer::get("XIOS").resume();
     ARRAY(double,1) array_tmp(new CArray<double,1>(boost::extents[extent1]));
     std::copy(lonvalue, &(lonvalue[array_tmp->num_elements()]), array_tmp->data());
     domaingroup_hdl->lonvalue.setValue(array_tmp);
@@ -236,11 +276,13 @@ extern "C"
   {
     if (!array_copy(domaingroup_hdl->lonvalue.getValue(), lonvalue, extent1))
      ERROR("void cxios_set_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl, double* lonvalue, int extent1)",<<"Output array size is not conform to array size attribute") ;
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_mask(domaingroup_Ptr domaingroup_hdl, bool* mask, int extent1, int extent2)
   {
+     CTimer::get("XIOS").resume();
     ARRAY(bool,2) array_tmp(new CArray<bool,2>(boost::extents[extent1][extent2]));
     std::copy(mask, &(mask[array_tmp->num_elements()]), array_tmp->data());
     domaingroup_hdl->mask.setValue(array_tmp);
@@ -251,6 +293,7 @@ extern "C"
   {
     if (!array_copy(domaingroup_hdl->mask.getValue(), mask, extent1, extent2))
      ERROR("void cxios_set_domaingroup_mask(domaingroup_Ptr domaingroup_hdl, bool* mask, int extent1, int extent2)",<<"Output array size is not conform to array size attribute") ;
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -258,21 +301,27 @@ extern "C"
   {
     std::string name_str;
     if(!cstr2string(name, name_size, name_str)) return;
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->name.setValue(name_str);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->name);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_name(domaingroup_Ptr domaingroup_hdl, char * name, int name_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(domaingroup_hdl->name.getValue(),name , name_size))
       ERROR("void cxios_get_domaingroup_name(domaingroup_Ptr domaingroup_hdl, char * name, int name_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_ni(domaingroup_Ptr domaingroup_hdl, int ni)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->ni.setValue(ni);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->ni);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_ni(domaingroup_Ptr domaingroup_hdl, int* ni)
@@ -283,8 +332,10 @@ extern "C"
   
   void cxios_set_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl, int ni_glo)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->ni_glo.setValue(ni_glo);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->ni_glo);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl, int* ni_glo)
@@ -295,8 +346,10 @@ extern "C"
   
   void cxios_set_domaingroup_nj(domaingroup_Ptr domaingroup_hdl, int nj)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->nj.setValue(nj);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->nj);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_nj(domaingroup_Ptr domaingroup_hdl, int* nj)
@@ -307,8 +360,10 @@ extern "C"
   
   void cxios_set_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl, int nj_glo)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->nj_glo.setValue(nj_glo);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->nj_glo);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl, int* nj_glo)
@@ -321,21 +376,27 @@ extern "C"
   {
     std::string standard_name_str;
     if(!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->standard_name.setValue(standard_name_str);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->standard_name);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, char * standard_name, int standard_name_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(domaingroup_hdl->standard_name.getValue(),standard_name , standard_name_size))
       ERROR("void cxios_get_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, char * standard_name, int standard_name_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl, int zoom_ibegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_ibegin.setValue(zoom_ibegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ibegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl, int* zoom_ibegin)
@@ -346,8 +407,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl, int zoom_ibegin_loc)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_ibegin_loc.setValue(zoom_ibegin_loc);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ibegin_loc);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_ibegin_loc)
@@ -358,8 +421,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl, int zoom_jbegin)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_jbegin.setValue(zoom_jbegin);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_jbegin);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl, int* zoom_jbegin)
@@ -370,8 +435,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl, int zoom_jbegin_loc)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_jbegin_loc.setValue(zoom_jbegin_loc);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_jbegin_loc);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_jbegin_loc)
@@ -382,8 +449,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl, int zoom_ni)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_ni.setValue(zoom_ni);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ni);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl, int* zoom_ni)
@@ -394,8 +463,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl, int zoom_ni_loc)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_ni_loc.setValue(zoom_ni_loc);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_ni_loc);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_ni_loc)
@@ -406,8 +477,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl, int zoom_nj)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_nj.setValue(zoom_nj);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_nj);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl, int* zoom_nj)
@@ -418,8 +491,10 @@ extern "C"
   
   void cxios_set_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl, int zoom_nj_loc)
   {
+     CTimer::get("XIOS").resume();
     domaingroup_hdl->zoom_nj_loc.setValue(zoom_nj_loc);
     domaingroup_hdl->sendAttributToServer(domaingroup_hdl->zoom_nj_loc);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_nj_loc)

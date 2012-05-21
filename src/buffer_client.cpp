@@ -4,6 +4,7 @@
 #include "buffer_client.hpp"
 #include "cxios.hpp"
 #include <mpi.h>
+#include "tracer.hpp"
 
 namespace xios
 {
@@ -69,7 +70,9 @@ namespace xios
     
     if (pending)
     {
+      traceOff() ;
       MPI_Test(&request,&flag,&status) ;
+      traceOn() ;
       if (flag==true) pending=false ;
     }
 

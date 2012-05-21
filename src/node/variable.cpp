@@ -81,7 +81,7 @@ namespace xios {
 
    void CVariableGroup::parse(xml::CXMLNode & node, bool withAttr)
    {
-      boost::shared_ptr<CVariableGroup> group_ptr = (this->hasId())
+      CVariableGroup* group_ptr = (this->hasId())
          ? CVariableGroup::get(this->getId()) : CVariableGroup::get(this);
 
       StdString content;

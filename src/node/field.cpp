@@ -35,8 +35,8 @@ namespace xios{
 
    CField::~CField(void)
    {
-      this->grid.reset() ;
-      this->file.reset() ;
+//      this->grid.reset() ;
+//      this->file.reset() ;
       this->foperation.reset() ;
       this->data.reset() ;
    }
@@ -93,7 +93,7 @@ namespace xios{
   
   void CField::sendUpdateData(void)
   {
-    shared_ptr<CContext> context = CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     
     CEventClient event(getType(),EVENT_ID_UPDATE_DATA) ;
@@ -149,7 +149,7 @@ namespace xios{
       }
     }
 
-    shared_ptr<CContext> context = CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent() ;
     const CDate & currDate = context->getCalendar()->getCurrentDate();
     const CDate opeDate      = *last_operation_srv + freq_operation_srv;
     const CDate writeDate    = *last_Write_srv     + freq_write_srv; 
@@ -191,7 +191,7 @@ namespace xios{
   }
    //----------------------------------------------------------------
 
-   void CField::setRelFile(const boost::shared_ptr<CFile> _file)
+   void CField::setRelFile(CFile* _file)
    { 
       this->file = _file; 
    }
@@ -204,14 +204,14 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<CGrid> CField::getRelGrid(void) const
+   CGrid* CField::getRelGrid(void) const
    { 
       return (this->grid); 
    }
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<CFile> CField::getRelFile(void) const
+   CFile* CField::getRelFile(void) const
    { 
       return (this->file);
    }
@@ -233,7 +233,7 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<CField> CField::getDirectFieldReference(void) const
+   CField* CField::getDirectFieldReference(void) const
    {
       if (this->field_ref.isEmpty())
          return (this->getBaseFieldReference());
@@ -248,14 +248,14 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   const boost::shared_ptr<CField> CField::getBaseFieldReference(void) const
+   CField* CField::getBaseFieldReference(void) const
    { 
       return (baseRefObject); 
    }
 
    //----------------------------------------------------------------
 
-   const std::vector<boost::shared_ptr<CField> > & CField::getAllReference(void) const 
+   const std::vector<CField*>& CField::getAllReference(void) const 
    { 
       return (refObject);
    }
@@ -324,7 +324,7 @@ namespace xios{
    void CField::solveRefInheritance(void)
    {
       std::set<CField *> sset;
-      boost::shared_ptr<CField> refer_sptr;
+      CField* refer_sptr;
       CField * refer_ptr = this;
       
       this->baseRefObject = CField::get(this);
@@ -332,7 +332,7 @@ namespace xios{
       while (refer_ptr->hasDirectFieldReference())
       {
          refer_sptr = refer_ptr->getDirectFieldReference();
-         refer_ptr  = refer_sptr.get();
+         refer_ptr  = refer_sptr;
 
          if(sset.end() != sset.find(refer_ptr))
          {
@@ -355,7 +355,7 @@ namespace xios{
       using namespace func;
        
       StdString id = this->getBaseFieldReference()->getId();
-      boost::shared_ptr<CContext> context = CContext::getCurrent();
+      CContext* context = CContext::getCurrent();
 
       if (operation.isEmpty() || freq_op.isEmpty() || this->file->output_freq.isEmpty())
       {
@@ -441,8 +441,8 @@ namespace xios{
 
    void CField::solveGridReference(void)
    {
-      boost::shared_ptr<CDomain> domain;
-      boost::shared_ptr<CAxis> axis;
+      CDomain* domain;
+      CAxis* axis;
 
       if (!domain_ref.isEmpty())
       {
@@ -485,12 +485,12 @@ namespace xios{
          {
             if (!axis_ref.isEmpty())
             {
-               this->grid = CGrid::CreateGrid(domain, axis) ;
+               this->grid = CGrid::createGrid(domain, axis) ;
                this->grid_ref.setValue(this->grid->getId());
             }
             else
             {
-               this->grid = CGrid::CreateGrid(domain) ;
+               this->grid = CGrid::createGrid(domain) ;
                this->grid_ref.setValue(this->grid->getId());
             }
          }
@@ -517,16 +517,16 @@ namespace xios{
                << "[ gref = " << gref << "]"
                << " invalid group name !");
 
-      boost::shared_ptr<CFieldGroup> group = CFieldGroup::get(gref);
-      boost::shared_ptr<CFieldGroup> owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
+      CFieldGroup* group = CFieldGroup::get(gref);
+      CFieldGroup* owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
 
-      std::vector<boost::shared_ptr<CField> > allChildren  = group->getAllChildren();
-      std::vector<boost::shared_ptr<CField> >::iterator 
+      std::vector<CField*> allChildren  = group->getAllChildren();
+      std::vector<CField*>::iterator 
          it = allChildren.begin(), end = allChildren.end();
       
       for (; it != end; it++)
       {
-         boost::shared_ptr<CField> child = *it;
+         CField* child = *it;
          if (child->hasId()) owner->createChild()->field_ref.setValue(child->getId()) ;
             
       }

@@ -51,7 +51,7 @@ namespace xios
             {
                do
                {
-                  boost::shared_ptr<CContextGroup> group_context = CContext::getRoot() ;
+                  CContextGroup* group_context = CContext::getRoot() ;
  
                   attributes = node.getAttributes();
 
@@ -72,7 +72,7 @@ namespace xios
                      continue; 
                   }
 
-                  boost::shared_ptr<CContext> context = CContext::create(attributes["id"]);
+                  CContext* context = CContext::create(attributes["id"]);
 //                  if (!hasctxt)  group_context->addChild(context);
                   context->parse(node);
 

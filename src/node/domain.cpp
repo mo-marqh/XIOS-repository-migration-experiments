@@ -4,7 +4,6 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 
-#include "tree_manager.hpp"
 #include "xmlioserver_spl.hpp"
 #include "event_client.hpp"
 #include "event_server.hpp"
@@ -634,7 +633,7 @@ namespace xios {
    void CDomain::checkAttributes(void)
    {
       if (this->isChecked) return;
-      shared_ptr<CContext> context=CContext::getCurrent() ;
+      CContext* context=CContext::getCurrent() ;
 
       this->checkGlobalDomain();
       this->checkLocalIDomain();
@@ -695,7 +694,7 @@ namespace xios {
     int jbegin_srv ;
     int jend_srv ;
     
-    shared_ptr<CContext> context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize ;
     int serverRank=client->getServerLeader() ;
@@ -737,7 +736,7 @@ namespace xios {
     ibegin_client=ibegin.getValue() ; iend_client=iend.getValue() ; ni_client=ni.getValue() ;
     jbegin_client=jbegin.getValue() ; jend_client=jend.getValue() ; nj_client=nj.getValue() ;
      
-    shared_ptr<CContext> context = CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize ;
     
@@ -846,7 +845,7 @@ namespace xios {
   
   void CDomain::sendLonLat(void)
   {
-    shared_ptr<CContext> context = CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     // send lon lat for each connected server
     CEventClient event(getType(),EVENT_ID_LON_LAT) ;

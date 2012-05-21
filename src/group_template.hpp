@@ -34,12 +34,11 @@ namespace xios
          DECLARE_ATTRIBUTE(StdString, group_ref)
 
          /// Accesseurs ///
-         const xios_map<StdString,
-                           boost::shared_ptr<Group> >& getGroupMap(void) const;
-         const std::vector<boost::shared_ptr<Child> >& getChildList(void) const;
+         const xios_map<StdString,Group*>& getGroupMap(void) const;
+         const vector<Child*>& getChildList(void) const;
 
-         void getAllChildren(std::vector<boost::shared_ptr<Child> > & allc) const;
-         std::vector<boost::shared_ptr<Child> > getAllChildren(void) const;
+         void getAllChildren(vector<Child*> & allc) const;
+         vector<Child*> getAllChildren(void) const;
 
          /// Autres ///
          virtual StdString toString(void) const;
@@ -64,10 +63,11 @@ namespace xios
 //         static bool has(const string & id); 
 //         static boost::shared_ptr<V> get(const string& id) ;
 //         static boost::shared_ptr<V> create(const string& id=string("")) ;
-         boost::shared_ptr<U> createChild(const string& id="") ; 
-         void addChild(shared_ptr<U> child) ; 
-         boost::shared_ptr<V> createChildGroup(const string& id="") ; 
-         void addChildGroup(shared_ptr<V> childGroup) ; 
+         U* createChild(const string& id="") ;
+          
+         void addChild(U* child) ; 
+         V* createChildGroup(const string& id="") ; 
+         void addChildGroup(V* childGroup) ; 
          static bool dispatchEvent(CEventServer& event) ;
          void sendCreateChild(const string& id="") ;
          void sendCreateChildGroup(const string& id="") ;
@@ -91,13 +91,11 @@ namespace xios
       private :
 
          /// Propriétés ///
-         xios_map<StdString,
-                     boost::shared_ptr<Child> > childMap;
-         std::vector<boost::shared_ptr<Child> > childList;
+         xios_map<StdString, Child* > childMap;
+         vector<Child*> childList;
 
-         xios_map<StdString,
-                     boost::shared_ptr<Group> > groupMap;
-         std::vector<boost::shared_ptr<Group> > groupList;
+         xios_map<StdString,Group* > groupMap;
+         vector<Group* > groupList;
 
    }; // class CGroupTemplate
 } // namespace xios

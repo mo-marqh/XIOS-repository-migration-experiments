@@ -67,8 +67,8 @@ namespace xios {
          const std::deque<ARRAY(int, 1)> & getOutJIndex(void)  const;
          const std::deque<ARRAY(int, 1)> & getOutLIndex(void)  const;
 
-         const boost::shared_ptr<CAxis>   getRelAxis  (void) const;
-         const boost::shared_ptr<CDomain> getRelDomain(void) const;
+         const CAxis*   getRelAxis  (void) const;
+         const CDomain* getRelDomain(void) const;
 
          StdSize getDimension(void) const;
          
@@ -104,10 +104,8 @@ namespace xios {
          static ENodeType GetType(void);
 
          /// Instanciateurs Statiques ///
-         static boost::shared_ptr<CGrid>
-            CreateGrid(boost::shared_ptr<CDomain> domain);
-         static boost::shared_ptr<CGrid>
-            CreateGrid(boost::shared_ptr<CDomain> domain, boost::shared_ptr<CAxis> axis);
+         static CGrid* createGrid(CDomain* domain);
+         static CGrid* createGrid(CDomain* domain, CAxis* axis);
 
       public :
 
@@ -132,8 +130,8 @@ namespace xios {
          bool withAxis ;
          bool isChecked;
 
-         boost::shared_ptr<CAxis>   axis ;
-         boost::shared_ptr<CDomain> domain ;
+         CAxis*   axis ;
+         CDomain* domain ;
 
          std::deque<ARRAY(int, 1)> storeIndex ;
          std::deque<ARRAY(int, 1)> out_i_index ;

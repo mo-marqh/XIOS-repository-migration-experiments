@@ -4,11 +4,12 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "object_template_impl.hpp"
-#include "tree_manager.hpp"
 #include "oasis_cinterface.hpp"
 #include <boost/functional/hash.hpp>
 #include <boost/algorithm/string.hpp>
 #include <mpi.h>
+#include "tracer.hpp"
+#include "timer.hpp"
 
 namespace xios
 {                      
@@ -131,12 +132,16 @@ namespace xios
         if (CXios::usingOasis) oasis_finalize();
         else MPI_Finalize() ;
       }
+      report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;
+      report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
+      report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
     }
     
      void CServer::eventLoop(void)
      {
        bool stop=false ;
        
+       CTimer::get("XIOS server").resume() ;
        while(!stop)
        {
          if (isRoot)
@@ -153,7 +158,7 @@ namespace xios
          contextEventLoop() ;
          if (finished && contextList.empty()) stop=true ;
        }
-     
+       CTimer::get("XIOS server").suspend() ;
      }
      
      void CServer::listenFinalize(void)
@@ -165,7 +170,9 @@ namespace xios
         for(it=interComm.begin();it!=interComm.end();it++)
         {
            MPI_Status status ;
+           traceOff() ;
            MPI_Iprobe(0,0,*it,&flag,&status) ;
+           traceOn() ;
            if (flag==true)
            {
               MPI_Recv(&msg,1,MPI_INT,0,0,*it,&status) ;
@@ -198,7 +205,9 @@ namespace xios
         MPI_Status status ;
         int msg ;
         
+        traceOff() ;
         MPI_Iprobe(0,4,intraComm, &flag, &status) ;
+        traceOn() ;
         if (flag==true)
         {
            MPI_Recv(&msg,1,MPI_INT,0,4,intraComm,&status) ;
@@ -219,7 +228,9 @@ namespace xios
        
        if (recept==false)
        {
+         traceOff() ;
          MPI_Iprobe(MPI_ANY_SOURCE,1,CXios::globalComm, &flag, &status) ;
+         traceOn() ;
          if (flag==true) 
          {
            rank=status.MPI_SOURCE ;
@@ -231,7 +242,9 @@ namespace xios
        }
        else
        {
+         traceOff() ;
          MPI_Test(&request,&flag,&status) ;
+         traceOn() ;
          if (flag==true)
          {
            rank=status.MPI_SOURCE ;
@@ -303,7 +316,9 @@ namespace xios
        
        if (recept==false)
        {
+         traceOff() ;
          MPI_Iprobe(root,2,intraComm, &flag, &status) ;
+         traceOn() ;
          if (flag==true) 
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
@@ -345,8 +360,8 @@ namespace xios
         ERROR("void CServer::registerContext(void* buff,int count, int leaderRank)",
               <<"Context has already been registred") ;
       
-      shared_ptr<CContext> context=CContext::create(contextId) ;
-      contextList[contextId]=context.get() ;
+      CContext* context=CContext::create(contextId) ;
+      contextList[contextId]=context ;
       context->initServer(intraComm,contextIntercomm) ;
              
      }    

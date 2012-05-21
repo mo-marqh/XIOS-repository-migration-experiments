@@ -29,11 +29,11 @@ namespace xios
          ERROR("CGroupFactory::AddGroup(boost::shared_ptr<U> pgroup, boost::shared_ptr<U> cgroup)",
                << " pgroup or cgroup NULL !");
       if (!child->hasId())
-         group->childList.insert(group->childList.end(), child);
+         group->childList.insert(group->childList.end(), child.get());
       else
       {
-         group->childList.insert(group->childList.end(), child);
-         group->childMap.insert(std::make_pair(child->getId(), child));
+         group->childList.insert(group->childList.end(), child.get());
+         group->childMap.insert(std::make_pair(child->getId(), child.get()));
       }
    }
 
@@ -46,8 +46,8 @@ namespace xios
       if (id.size() == 0)
       {
          boost::shared_ptr<U> value = CObjectFactory::CreateObject<U>(CObjectFactory::GenUId<U>());
-         group->groupList.insert(group->groupList.end(), value);
-         group->groupMap.insert(std::make_pair(value->getId(), value));
+         group->groupList.insert(group->groupList.end(), value.get());
+         group->groupMap.insert(std::make_pair(value->getId(), value.get()));
          return (value);
       }
       else if (CGroupFactory::HasGroup(group, id))
@@ -55,8 +55,8 @@ namespace xios
       else
       {
          boost::shared_ptr<U> value = CObjectFactory::CreateObject<U>(id);
-         group->groupList.insert(group->groupList.end(), value);
-         group->groupMap.insert(std::make_pair(id, value));
+         group->groupList.insert(group->groupList.end(), value.get());
+         group->groupMap.insert(std::make_pair(id, value.get()));
          return (value);
       }
    }
@@ -71,8 +71,8 @@ namespace xios
       {
          boost::shared_ptr<typename U::RelChild> value =
                CObjectFactory::CreateObject<typename U::RelChild>();
-         group->childList.insert(group->childList.end(), value);
-         group->childMap.insert(std::make_pair(value->getId(), value));
+         group->childList.insert(group->childList.end(), value.get());
+         group->childMap.insert(std::make_pair(value->getId(), value.get()));
          return (value);
       }
       else if (CGroupFactory::HasChild(group, id))
@@ -81,8 +81,8 @@ namespace xios
       {
          boost::shared_ptr<typename U::RelChild> value =
                CObjectFactory::CreateObject<typename U::RelChild>(id);
-         group->childList.insert(group->childList.end(), value);
-         group->childMap.insert(std::make_pair(id, value));
+         group->childList.insert(group->childList.end(), value.get());
+         group->childMap.insert(std::make_pair(id, value.get()));
          return (value);
       }
    }
@@ -119,7 +119,7 @@ namespace xios
          ERROR("CGroupFactory::GetGroup(boost::shared_ptr<U> group, const StdString & id)",
                << "[ id = " << id << ", U = " << U::GetName() << " ] "
                << " group is not referenced !");
-      return (group->groupMap[id]);
+      return (group->groupMap[id]->getShared());
    }
 
    template <typename U>
@@ -130,7 +130,7 @@ namespace xios
          ERROR("CGroupFactory::GetChild(boost::shared_ptr<U> group, const StdString & id)",
                << "[ id = " << id << ", U = " << U::GetName() << " ] "
                << " child is not referenced !");
-      return (group->childMap[id]);
+      return (group->childMap[id]->getShared());
    }
 
 } // namespace xios

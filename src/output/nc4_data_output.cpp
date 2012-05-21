@@ -54,9 +54,9 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CNc4DataOutput::writeDomain_(const boost::shared_ptr<CDomain> domain)
+      void CNc4DataOutput::writeDomain_(CDomain* domain)
       {
-         shared_ptr<CContext> context = CContext::getCurrent() ;
+         CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
          
          if (domain->IsWritten(this->filename)) return;
@@ -220,7 +220,7 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeAxis_(const boost::shared_ptr<CAxis> axis)
+      void CNc4DataOutput::writeAxis_(CAxis* axis)
       {
          if (axis->IsWritten(this->filename)) return;
          axis->checkAttributes();
@@ -268,14 +268,14 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeField_(const boost::shared_ptr<CField> field)
+      void CNc4DataOutput::writeField_(CField* field)
       {
-         shared_ptr<CContext> context = CContext::getCurrent() ;
+         CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
 
          std::vector<StdString> dims, coodinates;
-         boost::shared_ptr<CGrid> grid = field->grid;
-         boost::shared_ptr<CDomain> domain = grid->domain;
+         CGrid* grid = field->grid;
+         CDomain* domain = grid->domain;
            
          if (domain->isEmpty()) 
            if (SuperClass::type==MULTI_FILE) return ;
@@ -318,7 +318,7 @@ namespace xios
 
          if (!grid->axis_ref.isEmpty())
          {
-            boost::shared_ptr<CAxis> axis = grid->axis ;
+            CAxis* axis = grid->axis ;
             StdString axisid = (!axis->name.isEmpty()) ? axis->name.getValue() : axis->getId();
             dims.push_back(axisid);
             coodinates.push_back(axisid);
@@ -417,7 +417,7 @@ namespace xios
 
       //--------------------------------------------------------------
 
-      void CNc4DataOutput::writeFile_ (const boost::shared_ptr<CFile> file)
+      void CNc4DataOutput::writeFile_ (CFile* file)
       {
          StdString filename = (!file->name.isEmpty())
                             ? file->name.getValue() : file->getId();
@@ -460,13 +460,13 @@ namespace xios
       
       //---------------------------------------------------------------
       
-      void CNc4DataOutput::writeFieldData_ (const boost::shared_ptr<CField>  field)
+      void CNc4DataOutput::writeFieldData_ (CField*  field)
       {
-         shared_ptr<CContext> context = CContext::getCurrent() ;
+         CContext* context = CContext::getCurrent() ;
 //          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
 
-         boost::shared_ptr<CGrid> grid = field->grid ;
-         boost::shared_ptr<CDomain> domain = grid->domain ;
+         CGrid* grid = field->grid ;
+         CDomain* domain = grid->domain ;
          
          if(SuperClass::type==MULTI_FILE || !isCollective) if (domain->isEmpty()) return;
 
@@ -488,7 +488,7 @@ namespace xios
            
          if (grid->hasAxis()) // 3D
          {
-            boost::shared_ptr<CAxis> axis = grid->axis ;
+            CAxis* axis = grid->axis ;
             ARRAY_CREATE(field_data3D,double,3,[domain->zoom_ni_srv][domain->zoom_nj_srv][axis->size.getValue()]) ;
             field->outputField(field_data3D);
             switch (SuperClass::type)
@@ -560,7 +560,7 @@ namespace xios
       //---------------------------------------------------------------
 
       void CNc4DataOutput::writeTimeAxis_
-                  (const boost::shared_ptr<CField>    field,
+                  (CField*    field,
                    const boost::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;

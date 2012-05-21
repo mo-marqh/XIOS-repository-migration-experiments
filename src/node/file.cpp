@@ -44,30 +44,31 @@ namespace xios {
       return (data_out);
    }
 
-   boost::shared_ptr<CFieldGroup> CFile::getVirtualFieldGroup(void) const
+   CFieldGroup* CFile::getVirtualFieldGroup(void) const
    {
       return (this->vFieldGroup);
    }
 
-   std::vector<boost::shared_ptr<CField> > CFile::getAllFields(void) const
+   std::vector<CField*> CFile::getAllFields(void) const
    {
       return (this->vFieldGroup->getAllChildren());
    }
 
    //----------------------------------------------------------------
 
-   std::vector<boost::shared_ptr<CField> > CFile::getEnabledFields
-      (int default_outputlevel, int default_level, bool default_enabled)
+   std::vector<CField*> CFile::getEnabledFields(int default_outputlevel, 
+                                                int default_level,
+                                                bool default_enabled)
    {
       if (!this->enabledFields.empty())
          return (this->enabledFields);
 
       const int _outputlevel =
          (!output_level.isEmpty()) ? output_level.getValue() : default_outputlevel;
-      std::vector<boost::shared_ptr<CField> >::iterator it;
+      std::vector<CField*>::iterator it;
       this->enabledFields = this->getAllFields();
 
-      std::vector<boost::shared_ptr<CField> > newEnabledFields;
+      std::vector<CField*> newEnabledFields;
       
       for ( it = this->enabledFields.begin() ; it != this->enabledFields.end(); it++ )
       {
@@ -111,7 +112,7 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   void CFile::setVirtualFieldGroup(boost::shared_ptr<CFieldGroup> newVFieldGroup)
+   void CFile::setVirtualFieldGroup(CFieldGroup* newVFieldGroup)
    { 
       this->vFieldGroup = newVFieldGroup; 
    }
@@ -126,7 +127,7 @@ namespace xios {
    //----------------------------------------------------------------
    bool CFile::isSyncTime(void)
    {
-     shared_ptr<CContext> context = CContext::getCurrent() ;
+     CContext* context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
@@ -141,7 +142,7 @@ namespace xios {
     
    void CFile::initFile(void)
    {
-      shared_ptr<CContext> context = CContext::getCurrent() ;
+      CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       
       if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
@@ -162,7 +163,7 @@ namespace xios {
      
    bool CFile::checkSync(void)
    {
-     shared_ptr<CContext> context = CContext::getCurrent() ;
+     CContext* context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
@@ -179,7 +180,7 @@ namespace xios {
     
     bool CFile::checkSplit(void)
     {
-      shared_ptr<CContext> context = CContext::getCurrent() ;
+      CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       if (! split_freq.isEmpty())
       {
@@ -187,7 +188,7 @@ namespace xios {
         {
           *lastSplit=currentDate-outputFreq ;
         
-          std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
+          std::vector<CField*>::iterator it, end = this->enabledFields.end();
           for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
           createHeader() ;
           return true ;
@@ -198,18 +199,18 @@ namespace xios {
     
    void CFile::createHeader(void)
    {
-      shared_ptr<CContext> context = CContext::getCurrent() ;
+      CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       
-      std::vector<boost::shared_ptr<CField> >::iterator it, end = this->enabledFields.end();
+      std::vector<CField*>::iterator it, end = this->enabledFields.end();
 
       AllDomainEmpty=true ;
       set<CDomain*> setDomain ;
       for (it = this->enabledFields.begin() ;it != end; it++)
       {
-         boost::shared_ptr<CField> field = *it;
+         CField* field = *it;
          AllDomainEmpty&=field->grid->domain->isEmpty() ;
-         setDomain.insert(field->grid->domain.get()) ;
+         setDomain.insert(field->grid->domain) ;
       }
       nbDomain=setDomain.size() ;
 
@@ -259,13 +260,13 @@ namespace xios {
          data_out->writeFile(CFile::get(this));
          for (it = this->enabledFields.begin() ;it != end; it++)
          {
-            boost::shared_ptr<CField> field = *it;
+            CField* field = *it;
             this->data_out->writeFieldGrid(field);
          }
          
          for (it = this->enabledFields.begin() ;it != end; it++)
          {
-            boost::shared_ptr<CField> field = *it;
+            CField* field = *it;
             this->data_out->writeField(field);
          }
          
@@ -305,7 +306,7 @@ namespace xios {
       if (this->hasId())
          oss << " id=\"" << this->getId() << "\" ";
       oss << SuperClassAttribute::toString() << ">" << std::endl;
-      if (this->getVirtualFieldGroup().get() != NULL)
+      if (this->getVirtualFieldGroup() != NULL)
          oss << *this->getVirtualFieldGroup() << std::endl;
       oss << "</" << CFile::GetName() << " >";
       return (oss.str());
@@ -324,7 +325,7 @@ namespace xios {
    void CFile::solveFieldRefInheritance(void)
    {
       // Résolution des héritages par référence de chacun des champs contenus dans le fichier.
-      std::vector<boost::shared_ptr<CField> > allF = this->getAllFields();
+      std::vector<CField*> allF = this->getAllFields();
       for (unsigned int i = 0; i < allF.size(); i++)
          allF[i]->solveRefInheritance();
    }
@@ -350,7 +351,7 @@ namespace xios {
    void CFile::toBinary  (StdOStream & os) const
    {
       ENodeType genum = CFileGroup::GetType();
-      bool hasVFG = (this->getVirtualFieldGroup().get() != NULL);
+      bool hasVFG = (this->getVirtualFieldGroup() != NULL);
       SuperClass::toBinary(os);
       
       os.write (reinterpret_cast<const char*>(&genum) , sizeof(ENodeType));
@@ -380,12 +381,12 @@ namespace xios {
       
    }
    
-   shared_ptr<CField> CFile::addField(const string& id)
+   CField* CFile::addField(const string& id)
    {
      return vFieldGroup->createChild(id) ;
    }
 
-   shared_ptr<CFieldGroup> CFile::addFieldGroup(const string& id)
+   CFieldGroup* CFile::addFieldGroup(const string& id)
    {
      return vFieldGroup->createChildGroup(id) ;
    }
@@ -393,7 +394,7 @@ namespace xios {
   
    void CFile::sendAddField(const string& id)
    {
-    shared_ptr<CContext> context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     
     if (! context->hasServer )
     {
@@ -415,7 +416,7 @@ namespace xios {
    
    void CFile::sendAddFieldGroup(const string& id)
    {
-    shared_ptr<CContext> context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;

@@ -14,6 +14,7 @@
 #include "calendar_type.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -31,16 +32,19 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      std::vector<boost::shared_ptr<xios::CContext> > def_vector =
+      CTimer::get("XIOS").resume() ;
+      
+      std::vector<xios::CContext*> def_vector =
             xios::CContext::getRoot()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
 	   {
           if (def_vector[i]->getId().compare(id) == 0)
-          *_ret = def_vector[i].get();
+          *_ret = def_vector[i];
+           CTimer::get("XIOS").suspend() ;
           return;
       }
+       CTimer::get("XIOS").suspend() ;
       // Lever une exeception ici
    }
    
@@ -48,7 +52,9 @@ extern "C"
    
    void cxios_context_set_current(XContextPtr context, bool withswap)
    {
+      CTimer::get("XIOS").resume() ;
       CContext::setCurrent(context->getId());
+      CTimer::get("XIOS").suspend() ;
    }
    
  
@@ -58,8 +64,9 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
-      std::vector<boost::shared_ptr<xios::CContext> > def_vector =
+      
+      CTimer::get("XIOS").resume() ;
+      std::vector<xios::CContext*> def_vector =
             xios::CContext::getRoot()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
@@ -68,5 +75,6 @@ extern "C"
           *_ret = true;
       }
      *_ret = false;
+     CTimer::get("XIOS").suspend() ;
    }
 } // extern "C"

@@ -3,7 +3,6 @@
 #include "cxios.hpp"
 #include "client.hpp"
 #include "server.hpp"
-//#include "tree_manager.hpp"
 #include "xml_parser.hpp"
 #include <boost/functional/hash.hpp>
 #include <mpi.h>

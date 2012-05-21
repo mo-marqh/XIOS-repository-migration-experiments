@@ -60,12 +60,12 @@ namespace xios {
          CField(const CField * const field); // Not implemented yet.
 
          /// Accesseurs ///
-               boost::shared_ptr<CField> getDirectFieldReference(void) const;
-         const boost::shared_ptr<CField> getBaseFieldReference(void)   const;
-         const std::vector<boost::shared_ptr<CField> > & getAllReference(void) const;
+         CField* getDirectFieldReference(void) const;
+         CField* getBaseFieldReference(void)   const;
+         const std::vector<CField*> & getAllReference(void) const;
 
-         boost::shared_ptr<CGrid> getRelGrid(void) const ;
-         boost::shared_ptr<CFile> getRelFile(void) const ;
+         CGrid* getRelGrid(void) const ;
+         CFile* getRelFile(void) const ;
 
       public :
 
@@ -84,7 +84,7 @@ namespace xios {
          const StdString & getBaseFieldId(void) const;
 
          /// Mutateur ///
-         void setRelFile(const boost::shared_ptr<CFile> _file);
+         void setRelFile(CFile* _file);
          void incrementNStep(void);
          void resetNStep() ;
 
@@ -129,10 +129,10 @@ namespace xios {
 
          /// Propriétés privées ///
          
-         std::vector<boost::shared_ptr<CField> > refObject;
-         boost::shared_ptr<CField> baseRefObject;
-         boost::shared_ptr<CGrid>  grid ;
-         boost::shared_ptr<CFile>  file;
+         std::vector<CField*> refObject;
+         CField* baseRefObject;
+         CGrid*  grid ;
+         CFile*  file;
 
          CDuration freq_operation, freq_write;
          CDuration freq_operation_srv, freq_write_srv;

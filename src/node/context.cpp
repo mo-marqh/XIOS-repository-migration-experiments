@@ -1,6 +1,4 @@
 #include "context.hpp"
-#include "tree_manager.hpp"
-
 #include "attribute_template_impl.hpp"
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
@@ -43,10 +41,10 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<CContextGroup> CContext::getRoot(void)
+   CContextGroup* CContext::getRoot(void)
    {  
       if (root.get()==NULL) root=shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName())) ;
-      return root; 
+      return root.get(); 
    }
    
 
@@ -154,9 +152,9 @@ namespace xios {
    void CContext::ShowTree(StdOStream & out)
    {
       StdString currentContextId = CContext::getCurrent() -> getId() ;
-      std::vector<boost::shared_ptr<CContext> > def_vector =
+      std::vector<CContext*> def_vector =
          CContext::getRoot()->getChildList();
-      std::vector<boost::shared_ptr<CContext> >::iterator
+      std::vector<CContext*>::iterator
          it = def_vector.begin(), end = def_vector.end();
 
       out << "<? xml version=\"1.0\" ?>" << std::endl;
@@ -164,7 +162,7 @@ namespace xios {
       
       for (; it != end; it++)
       {
-         boost::shared_ptr<CContext> context = *it;         
+         CContext* context = *it;         
          CContext::setCurrent(context->getId());         
          out << *context << std::endl;
       }
@@ -269,14 +267,14 @@ namespace xios {
    void CContext::solveFieldRefInheritance(void)
    {
       if (!this->hasId()) return;
-      std::vector<boost::shared_ptr<CField> >& allField
-               = CObjectTemplate<CField>::GetAllVectobject(this->getId());
-      std::vector<boost::shared_ptr<CField> >::iterator 
+      vector<CField*> allField = CField::getAll() ;
+//              = CObjectTemplate<CField>::GetAllVectobject(this->getId());
+      std::vector<CField*>::iterator 
          it = allField.begin(), end = allField.end();
             
       for (; it != end; it++)
       {
-         boost::shared_ptr<CField> field = *it;
+         CField* field = *it;
          field->solveRefInheritance();
       }
    }
@@ -375,7 +373,7 @@ namespace xios {
       solveDescInheritance();
 
      // Résolution des héritages par référence au niveau des fichiers.
-      const std::vector<boost::shared_ptr<CFile> > & allFiles=CFile::getAll() ;
+      const vector<CFile*> allFiles=CFile::getAll() ;
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          allFiles[i]->solveFieldRefInheritance();
@@ -383,7 +381,7 @@ namespace xios {
 
    void CContext::findEnabledFiles(void)
    {
-      const std::vector<boost::shared_ptr<CFile> > & allFiles = CFile::getAll();
+      const std::vector<CFile*> allFiles = CFile::getAll();
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
@@ -397,7 +395,7 @@ namespace xios {
 
    void CContext::closeAllFile(void)
    {
-     std::vector<boost::shared_ptr<CFile> >::const_iterator
+     std::vector<CFile*>::const_iterator
             it = this->enabledFiles.begin(), end = this->enabledFiles.end();
          
      for (; it != end; it++)
@@ -527,7 +525,7 @@ namespace xios {
  
    void CContext::createFileHeader(void )
    {
-      vector<shared_ptr<CFile> >::const_iterator it ;
+      vector<CFile*>::const_iterator it ;
          
       for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
       {
@@ -535,9 +533,9 @@ namespace xios {
       }
    } 
    
-   shared_ptr<CContext> CContext::getCurrent(void)
+   CContext* CContext::getCurrent(void)
    {
-     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()) ;
+     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()).get() ;
    }
    
    void CContext::setCurrent(const string& id)
@@ -546,13 +544,14 @@ namespace xios {
      CGroupFactory::SetCurrentContextId(id);
    }
    
-  boost::shared_ptr<CContext> CContext::create(const StdString& id)
+  CContext* CContext::create(const StdString& id)
   {
     CContext::setCurrent(id) ;
  
     bool hasctxt = CContext::has(id);
-    boost::shared_ptr<CContext> context = CObjectFactory::CreateObject<CContext>(id);
-    if (!hasctxt) CGroupFactory::AddChild(getRoot(), context);
+    CContext* context = CObjectFactory::CreateObject<CContext>(id).get();
+    getRoot() ;
+    if (!hasctxt) CGroupFactory::AddChild(root, context->getShared());
 
 #define DECLARE_NODE(Name_, name_) \
     C##Name_##Definition::create(C##Name_##Definition::GetDefName());

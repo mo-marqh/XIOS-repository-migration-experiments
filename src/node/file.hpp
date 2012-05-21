@@ -52,18 +52,17 @@ namespace xios {
 
          /// Accesseurs ///
          boost::shared_ptr<CDataOutput> getDataOutput(void) const;
-         boost::shared_ptr<CFieldGroup> getVirtualFieldGroup(void) const;
-         std::vector<boost::shared_ptr<CField> > getAllFields(void) const;
+         CFieldGroup* getVirtualFieldGroup(void) const;
+         std::vector<CField*> getAllFields(void) const;
 
-         std::vector<boost::shared_ptr<CField> >
-            getEnabledFields(int default_outputlevel = 5,
-                             int default_level = 1,
-                             bool default_enabled = true);
+         std::vector<CField* > getEnabledFields(int default_outputlevel = 5,
+                                                int default_level = 1,
+                                                bool default_enabled = true);
 
       public :
 
          /// Mutateurs ///
-         void setVirtualFieldGroup(boost::shared_ptr<CFieldGroup> newVFieldGroup);
+         void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
          void setVirtualFieldGroup(void);
 
          void createHeader(void);
@@ -92,8 +91,8 @@ namespace xios {
          static ENodeType GetType(void);
          
          bool AllDomainEmpty ;
-         shared_ptr<CField> addField(const string& id="") ;
-         shared_ptr<CFieldGroup> addFieldGroup(const string& id="") ;
+         CField* addField(const string& id="") ;
+         CFieldGroup* addFieldGroup(const string& id="") ;
          void sendAddField(const string& id="") ;
          void sendAddFieldGroup(const string& id="") ;
          static void recvAddField(CEventServer& event) ;
@@ -116,9 +115,9 @@ namespace xios {
       private :
 
          /// Propriétés privées ///
-         boost::shared_ptr<CFieldGroup> vFieldGroup;
+         CFieldGroup* vFieldGroup;
          boost::shared_ptr<CDataOutput> data_out;
-         std::vector<boost::shared_ptr<CField> > enabledFields;
+         std::vector<CField*> enabledFields;
 
    }; // class CFile
 

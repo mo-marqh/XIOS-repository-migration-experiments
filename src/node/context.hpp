@@ -81,7 +81,7 @@ namespace xios {
          static StdString GetDefName(void);         
          static ENodeType GetType(void);         
 
-         static boost::shared_ptr<CContextGroup> GetContextGroup(void);
+         static CContextGroup* GetContextGroup(void);
 
       public :
 
@@ -126,10 +126,10 @@ namespace xios {
          static void recvCloseDefinition(CEventServer& event) ;
          static void recvCreateFileHeader(CEventServer& event) ;
          void recvCreateFileHeader(CBufferIn& buffer) ;
-         static shared_ptr<CContext> getCurrent(void) ;
-         static shared_ptr<CContextGroup> getRoot(void) ;
+         static CContext* getCurrent(void) ;
+         static CContextGroup* getRoot(void) ;
          static void setCurrent(const string& id) ;
-         static shared_ptr<CContext> create(const string& id = "") ;
+         static CContext* create(const string& id = "") ;
          
       public :
       
@@ -144,7 +144,7 @@ namespace xios {
       
          boost::shared_ptr<CCalendar>      calendar;
  
-         std::vector<boost::shared_ptr<CFile> > enabledFiles;
+         std::vector<CFile*> enabledFiles;
          static shared_ptr<CContextGroup> root ;
 
 

@@ -9,6 +9,7 @@
 #include "event_client.hpp"
 #include "context.hpp"
 #include <mpi.h>
+#include "timer.hpp"
 
 namespace xios
 {
@@ -91,6 +92,8 @@ namespace xios
         bufferList.push_back(it->second) ;
       }
       free=false ;
+
+      CTimer::get("Blocking time").resume();
       while(!free)
       {
         free=true ;
@@ -100,6 +103,8 @@ namespace xios
          free&=(*itBuffer)->isBufferFree(*itSize) ;
         }
       }
+      CTimer::get("Blocking time").suspend();
+
       for(itBuffer=bufferList.begin(),itSize=sizeList.begin(); itBuffer!=bufferList.end();itBuffer++,itSize++)
       {
         retBuffer.push_back((*itBuffer)->getBuffer(*itSize)) ;
@@ -184,14 +189,16 @@ namespace xios
        event.push(getServerLeader(),1,msg) ;
      }
      sendEvent(event) ;
-       
+ 
+     CTimer::get("Blocking time").resume();
      while(stop)
      {
        checkBuffers() ;
        stop=false ;
        for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) stop|=itBuff->second->hasPendingRequest() ;
      }
-         
+     CTimer::get("Blocking time").suspend();
+     
      releaseBuffers() ;
    }
 }      

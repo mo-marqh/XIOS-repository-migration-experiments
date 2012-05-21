@@ -48,14 +48,14 @@ namespace xios
       os.write (reinterpret_cast<const char*>(&grpnb) , sizeof(StdSize));
       os.write (reinterpret_cast<const char*>(&chdnb) , sizeof(StdSize));      
       
-      typename std::vector<boost::shared_ptr<V> >::const_iterator 
+      typename std::vector<V*>::const_iterator  
          itg = this->groupList.begin(), endg = this->groupList.end();
-      typename std::vector<boost::shared_ptr<U> >::const_iterator 
+      typename std::vector<U*>::const_iterator 
          itc = this->childList.begin(), endc = this->childList.end();
             
       for (; itg != endg; itg++)
       { 
-         boost::shared_ptr<V> group = *itg;
+         V* group = *itg;
          bool hid = group->hasId();
          
          os.write (reinterpret_cast<const char*>(&genum), sizeof(ENodeType));      
@@ -74,7 +74,7 @@ namespace xios
             
       for (; itc != endc; itc++)
       { 
-         boost::shared_ptr<U> child = *itc;
+         U* child = *itc;
          bool hid = child->hasId();
          
          os.write (reinterpret_cast<const char*>(&cenum), sizeof(ENodeType));
@@ -98,9 +98,9 @@ namespace xios
    {
       SuperClass::fromBinary(is);
       
-      boost::shared_ptr<V> group_ptr = (this->hasId())
-         ? CObjectFactory::GetObject<V>(this->getId())
-         : CObjectFactory::GetObject(boost::polymorphic_downcast<V*>(this));
+      V* group_ptr = (this->hasId())
+         ? V::get(this->getId())
+         : V::get((V*)this);
       
       StdSize grpnb = 0;
       StdSize chdnb = 0;
@@ -125,11 +125,11 @@ namespace xios
             is.read (reinterpret_cast<char*>(&size), sizeof(StdSize));
             StdString id(size, ' ');
             is.read (const_cast<char *>(id.data()), size * sizeof(char));
-            CGroupFactory::CreateGroup(group_ptr, id)->fromBinary(is);
+            CGroupFactory::CreateGroup(group_ptr->getShared(), id)->fromBinary(is);
          }
          else
          {
-            CGroupFactory::CreateGroup(group_ptr)->fromBinary(is);
+            CGroupFactory::CreateGroup(group_ptr->getShared())->fromBinary(is);
          }
       }
       
@@ -149,11 +149,11 @@ namespace xios
             is.read (reinterpret_cast<char*>(&size), sizeof(StdSize));
             StdString id(size, ' ');
             is.read (const_cast<char *>(id.data()), size * sizeof(char));
-            CGroupFactory::CreateChild(group_ptr, id)->fromBinary(is);            
+            CGroupFactory::CreateChild(group_ptr->getShared(), id)->fromBinary(is);            
          }
          else
          {
-            CGroupFactory::CreateChild(group_ptr)->fromBinary(is);
+            CGroupFactory::CreateChild(group_ptr->getShared())->fromBinary(is);
          }   
       }
    }
@@ -175,20 +175,20 @@ namespace xios
       {
          oss << SuperClassAttribute::toString() << ">" << std::endl;
          
-         typename std::vector<boost::shared_ptr<V> >::const_iterator 
+         typename std::vector<V*>::const_iterator 
             itg = this->groupList.begin(), endg = this->groupList.end();
-         typename std::vector<boost::shared_ptr<U> >::const_iterator 
+         typename std::vector<U*>::const_iterator 
             itc = this->childList.begin(), endc = this->childList.end();
             
          for (; itg != endg; itg++)
          { 
-            boost::shared_ptr<V> group = *itg;
+            V* group = *itg;
             oss << *group << std::endl;
          }
             
          for (; itc != endc; itc++)
          { 
-            boost::shared_ptr<U> child = *itc;
+            U* child = *itc;
             oss << *child << std::endl;
          }
             
@@ -225,7 +225,7 @@ namespace xios
    //---------------------------------------------------------------   
 
    template <class U, class V, class W>
-      const std::vector<boost::shared_ptr<U> >&
+      const std::vector<U*>&
          CGroupTemplate<U, V, W>::getChildList(void) const
    { 
       return (this->childList); 
@@ -234,7 +234,7 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class U, class V, class W>
-      const xios_map<StdString, boost::shared_ptr<V> >&
+      const xios_map<StdString, V*>&
          CGroupTemplate<U, V, W>::getGroupMap(void) const
    { 
       return (this->groupList);
@@ -264,20 +264,20 @@ namespace xios
       if (parent != NULL)
          SuperClassAttribute::setAttributes(parent);
          
-      typename std::vector<boost::shared_ptr<U> >::const_iterator 
+      typename std::vector<U*>::const_iterator 
          itc = this->childList.begin(), endc = this->childList.end();
-      typename std::vector<boost::shared_ptr<V> >::const_iterator 
+      typename std::vector<V*>::const_iterator 
          itg = this->groupList.begin(), endg = this->groupList.end();
              
       for (; itc != endc; itc++)
       { 
-         boost::shared_ptr<U> child = *itc;
+         U* child = *itc;
          child->solveDescInheritance(this);
       }
             
       for (; itg != endg; itg++)
       { 
-         boost::shared_ptr<V> group = *itg;
+         V* group = *itg;
          group->solveRefInheritance();
          group->solveDescInheritance(this);
       }
@@ -286,15 +286,15 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::getAllChildren(std::vector<boost::shared_ptr<U> > & allc) const
+      void CGroupTemplate<U, V, W>::getAllChildren(std::vector<U*>& allc) const
    {
       allc.insert (allc.end(), childList.begin(), childList.end());
-      typename std::vector<boost::shared_ptr<V> >::const_iterator 
+      typename std::vector<V*>::const_iterator 
          itg = this->groupList.begin(), endg = this->groupList.end();
          
       for (; itg != endg; itg++)
       { 
-         boost::shared_ptr<V> group = *itg;
+         V* group = *itg;
          group->getAllChildren(allc);
       }
    }
@@ -302,9 +302,9 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class U, class V, class W>
-      std::vector<boost::shared_ptr<U> > CGroupTemplate<U, V, W>::getAllChildren(void) const
+      std::vector<U*> CGroupTemplate<U, V, W>::getAllChildren(void) const
    { 
-      std::vector<boost::shared_ptr<U> > allc;
+      std::vector<U*> allc;
       this->getAllChildren(allc);
       return (allc);
    }
@@ -342,34 +342,34 @@ namespace xios
 
   
    template <class U, class V, class W>
-   boost::shared_ptr<U> CGroupTemplate<U, V, W>::createChild(const string& id) 
+   U* CGroupTemplate<U, V, W>::createChild(const string& id) 
   {
-    return CGroupFactory::CreateChild<V>(this->get(), id) ;
+    return CGroupFactory::CreateChild<V>(this->getShared(), id).get() ;
   }
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::addChild(shared_ptr<U> child) 
+   void CGroupTemplate<U, V, W>::addChild(U* child) 
   {
-    return CGroupFactory::AddChild<V>(this->get(),child) ;
+    return CGroupFactory::AddChild<V>(this->getShared,child->getShared()) ;
   }
   
    template <class U, class V, class W>
-   boost::shared_ptr<V> CGroupTemplate<U, V, W>::createChildGroup(const string& id) 
+   V* CGroupTemplate<U, V, W>::createChildGroup(const string& id) 
   {
-    return CGroupFactory::CreateGroup<V>(this->get(), id) ;
+    return CGroupFactory::CreateGroup<V>(this->getShared(), id).get() ;
   }
 
    template <class U, class V, class W>
-   void CGroupTemplate<U, V, W>::addChildGroup(shared_ptr<V> childGroup) 
+   void CGroupTemplate<U, V, W>::addChildGroup(V* childGroup) 
   {
-    return CGroupFactory::AddGroup<V>(this->get(), childGroup) ;
+    return CGroupFactory::AddGroup<V>(this->getShared(), childGroup->getShared()) ;
   }
 
 
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChild(const string& id)
    {
-    shared_ptr<CContext> context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     
     if (! context->hasServer )
     {
@@ -392,7 +392,7 @@ namespace xios
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
    {
-    shared_ptr<CContext> context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;

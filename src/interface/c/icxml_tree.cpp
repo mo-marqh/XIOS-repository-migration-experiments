@@ -12,6 +12,7 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -42,98 +43,109 @@ extern "C"
       (XFieldGroupPtr  parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
-
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChild(child_id_str).get() ;
+         *child_ = parent_->createChild(child_id_str) ;
          parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChild().get() ;
+         *child_ = parent_->createChild() ;
          parent_->sendCreateChild() ;
       }
+      CTimer::get("XIOS").suspend() ;
   }
    
    void cxios_xml_tree_add_grid
       (XGridGroupPtr   parent_, XGridPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChild(child_id_str).get() ;
+         *child_ = parent_->createChild(child_id_str) ;
          parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChild().get() ;
+         *child_ = parent_->createChild() ;
          parent_->sendCreateChild() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_xml_tree_add_file
       (XFileGroupPtr parent_, XFilePtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChild(child_id_str).get() ;
+         *child_ = parent_->createChild(child_id_str) ;
          parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChild().get() ;
+         *child_ = parent_->createChild() ;
          parent_->sendCreateChild() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_xml_tree_add_axis
       (XAxisGroupPtr parent_, XAxisPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChild(child_id_str).get() ;
+         *child_ = parent_->createChild(child_id_str) ;
          parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChild().get() ;
+         *child_ = parent_->createChild() ;
          parent_->sendCreateChild() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_xml_tree_add_domain
       (XDomainGroupPtr parent_, XDomainPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChild(child_id_str).get() ;
+         *child_ = parent_->createChild(child_id_str) ;
          parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChild().get() ;
+         *child_ = parent_->createChild() ;
          parent_->sendCreateChild() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_xml_tree_add_fieldtofile
       (XFilePtr parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
  
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->addField(child_id_str).get();
+         *child_ = parent_->addField(child_id_str);
          parent_->sendAddField(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->addField().get();
+         *child_ = parent_->addField();
          parent_->sendAddField() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    // ----------------------- Ajout de groupe à un parent ----------------------
@@ -142,99 +154,108 @@ extern "C"
       (XFieldGroupPtr  parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
      std::string child_id_str; 
-
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChildGroup(child_id_str).get() ;
+         *child_ = parent_->createChildGroup(child_id_str) ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChildGroup().get() ;
+         *child_ = parent_->createChildGroup() ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_xml_tree_add_gridgroup
       (XGridGroupPtr   parent_, XGridGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
- 
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChildGroup(child_id_str).get() ;
+         *child_ = parent_->createChildGroup(child_id_str) ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChildGroup().get() ;
+         *child_ = parent_->createChildGroup() ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_xml_tree_add_filegroup
       (XFileGroupPtr parent_, XFileGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChildGroup(child_id_str).get() ;
+         *child_ = parent_->createChildGroup(child_id_str) ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChildGroup().get() ;
+         *child_ = parent_->createChildGroup() ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_xml_tree_add_axisgroup
       (XAxisGroupPtr parent_, XAxisGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChildGroup(child_id_str).get() ;
+         *child_ = parent_->createChildGroup(child_id_str) ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChildGroup().get() ;
+         *child_ = parent_->createChildGroup() ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_xml_tree_add_domaingroup
       (XDomainGroupPtr parent_, XDomainGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->createChildGroup(child_id_str).get() ;
+         *child_ = parent_->createChildGroup(child_id_str) ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->createChildGroup().get() ;
+         *child_ = parent_->createChildGroup() ;
          parent_->sendCreateChildGroup(child_id_str) ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_xml_tree_add_fieldgrouptofile
       (XFilePtr parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str; 
- 
+      CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
-         *child_ = parent_->addFieldGroup(child_id_str).get();
+         *child_ = parent_->addFieldGroup(child_id_str);
          parent_->sendAddFieldGroup(child_id_str) ;
       }
       else
       {
-         *child_ = parent_->addFieldGroup().get();
+         *child_ = parent_->addFieldGroup();
          parent_->sendAddFieldGroup() ;
       }
+      CTimer::get("XIOS").suspend() ;
    }
    
    

@@ -12,6 +12,7 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -28,16 +29,18 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CFile::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CFile::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_filegroup_handle_create (XFileGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CFileGroup::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CFileGroup::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -46,15 +49,17 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CFile::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_filegroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CFileGroup::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 } // extern "C"

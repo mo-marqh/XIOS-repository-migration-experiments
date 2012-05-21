@@ -13,8 +13,7 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeGrid
-         (const boost::shared_ptr<CGrid> grid)
+      void CDataOutput::writeGrid(CGrid* grid)
       {
          if (grid->domain_ref.isEmpty())
             ERROR("CDataOutput::writeGrid(grid)",
@@ -33,8 +32,7 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeFile
-         (const boost::shared_ptr<CFile>  file)
+      void CDataOutput::writeFile(CFile*  file)
       {
          this->writeFile_(file);
       }
@@ -51,9 +49,7 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeGrid
-         (const boost::shared_ptr<CDomain> domain,
-          const boost::shared_ptr<CAxis> axis)
+      void CDataOutput::writeGrid(CDomain* domain,CAxis* axis)
       {
          this->writeDomain_(domain);
          this->writeAxis_(axis);
@@ -61,18 +57,16 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeGrid
-         (const boost::shared_ptr<CDomain> domain)
+      void CDataOutput::writeGrid(CDomain* domain)
       {
          this->writeDomain_(domain);
       }
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeField
-         (const boost::shared_ptr<CField> field)
+      void CDataOutput::writeField(CField* field)
       {
-         boost::shared_ptr<CContext> context = CContext::getCurrent() ;
+         CContext* context = CContext::getCurrent() ;
          boost::shared_ptr<CCalendar> calendar = context->getCalendar();
          
          this->writeField_(field);
@@ -81,18 +75,17 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeFieldGrid
-         (const boost::shared_ptr<CField> field)
+      void CDataOutput::writeFieldGrid(CField* field)
       {
          this->writeGrid(field->getRelGrid());
       }
       
       //----------------------------------------------------------------
       
-      void CDataOutput::writeFieldData(const boost::shared_ptr<CField> field)
+      void CDataOutput::writeFieldData(CField* field)
       {
-         boost::shared_ptr<CGrid> grid = CGrid::get(field->grid_ref.getValue());
-         boost::shared_ptr<CDomain> domain = CDomain::get(grid->domain_ref.getValue());
+         CGrid* grid = CGrid::get(field->grid_ref.getValue());
+         CDomain* domain = CDomain::get(grid->domain_ref.getValue());
             
 //         if (domain->isEmpty()) return;
          this->writeFieldData_(field);

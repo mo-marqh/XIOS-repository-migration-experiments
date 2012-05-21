@@ -82,9 +82,9 @@ namespace xios
          protected :
 
             /// Ecriture ///
-            virtual void writeField_ (const boost::shared_ptr<CField>  field)  = 0;
-            virtual void writeDomain_(const boost::shared_ptr<CDomain> domain) = 0;
-            virtual void writeAxis_  (const boost::shared_ptr<CAxis>   axis)   = 0;
+            virtual void writeField_ (CField*  field)  = 0;
+            virtual void writeDomain_(CDomain* domain) = 0;
+            virtual void writeAxis_  (CAxis*   axis)   = 0;
 
             /// Accesseurs ///
             int getCurrentGroup(void);

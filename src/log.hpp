@@ -9,13 +9,13 @@ namespace xios
   class CLog : public ostream
   {
     public :
-    CLog(void) : ostream(cout.rdbuf()),level(0) {}
+    CLog(const string& name_) : ostream(cout.rdbuf()),level(0),name(name_) {}
     CLog& operator()(int l) 
     {  
       if (l<=level) 
       {
         rdbuf(cout.rdbuf()) ;
-        *this<<"-> info : " ;
+        *this<<"-> "<<name<<" : " ;
       }
       else rdbuf(NULL) ;
       return *this;
@@ -27,8 +27,10 @@ namespace xios
 
     private :
     int level ;
+    string name ;
   };
 
   extern CLog info;
+  extern CLog report;
 }
 #endif

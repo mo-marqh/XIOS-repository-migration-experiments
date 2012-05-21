@@ -67,13 +67,16 @@ namespace xios
          
          static bool has(const string& id) ;
          static bool has(const string& contextId, const string& id) ;
-         static boost::shared_ptr<T> get(const string& id) ;
-         static boost::shared_ptr<T> get(const T* ptr) ;
-         static boost::shared_ptr<T> get(const string& contextId, const string& id) ;
-         boost::shared_ptr<T> get(void) ;
-         static boost::shared_ptr<T> create(const string& id=string("")) ;
-         static const vector< boost::shared_ptr<T> >& getAll() ;
-         static const vector< boost::shared_ptr<T> >& getAll(const string& contextId) ;
+         static T* get(const string& id) ;
+         static T* get(const T* ptr) ;
+         static T* get(const string& contextId, const string& id) ;
+         T* get(void) ;
+         shared_ptr<T> getShared(void) ;
+         static shared_ptr<T> getShared(const T* ptr) ;
+         
+         static T* create(const string& id=string("")) ;
+         static const vector<T*> getAll() ;
+         static const vector<T*> getAll(const string& contextId) ;
         
          void generateCInterface(ostream& oss) ;
          void generateFortran2003Interface(ostream& oss) ;

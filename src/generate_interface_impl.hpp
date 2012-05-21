@@ -21,8 +21,10 @@ namespace xios
  
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<" "<<name<<")"<<iendl ;
     oss<<"{"<<iendl ;
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue("<<name<<");"<<iendl ;
     oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
     
     oss<<iendl ;
@@ -40,18 +42,21 @@ namespace xios
     oss<<"{"<<iendl ;
     oss<<"  std::string "<<name<<"_str;"<<iendl;
     oss<<"  if(!cstr2string("<<name<<", "<<name<<"_size, "<<name<<"_str)) return;"<<iendl ;
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue("<<name<<"_str);"<<iendl ;
     oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
     
     oss<<iendl ;
     
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  if(!string_copy("<<className<<"_hdl->"<<name<<".getValue(),"<<name<<" , "<<name<<"_size))"<<iendl ;
     oss<<"    ERROR(\"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "
        <<name<<"_size)\", <<\"Input string is to short\");"<<iendl ;
-
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
   
   }
@@ -68,6 +73,7 @@ namespace xios
 \
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1)"<<iendl ;\
     oss<<"{"<<iendl ;\
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  ARRAY("<<typeName<<",1) array_tmp(new CArray<"<<typeName<<",1>(boost::extents[extent1]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
@@ -79,6 +85,7 @@ namespace xios
     oss<<"  if (!array_copy("<<className<<"_hdl->"<<name<<".getValue(), "<<name<<", extent1))"<<iendl ; \
     oss<<"   ERROR(\"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1)\",<<" \
        <<"\"Output array size is not conform to array size attribute\") ;"<<iendl; \
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
   }\
 \
@@ -89,6 +96,7 @@ namespace xios
 \
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2)"<<iendl ;\
     oss<<"{"<<iendl ;\
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  ARRAY("<<typeName<<",2) array_tmp(new CArray<"<<typeName<<",2>(boost::extents[extent1][extent2]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
@@ -100,6 +108,7 @@ namespace xios
     oss<<"  if (!array_copy("<<className<<"_hdl->"<<name<<".getValue(), "<<name<<", extent1, extent2))"<<iendl ; \
     oss<<"   ERROR(\"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2)\",<<" \
        <<"\"Output array size is not conform to array size attribute\") ;"<<iendl; \
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
   }\
 \
@@ -110,6 +119,7 @@ namespace xios
 \
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2, int extent3)"<<iendl ;\
     oss<<"{"<<iendl ;\
+    oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  ARRAY("<<typeName<<",3) array_tmp(new CArray<"<<typeName<<",3>(boost::extents[extent1][extent2][extent3]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
@@ -121,6 +131,7 @@ namespace xios
     oss<<"  if (!array_copy("<<className<<"_hdl->"<<name<<".getValue(), "<<name<<", extent1))"<<iendl ; \
     oss<<"   ERROR(\"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2, int extent3)\",<<" \
        <<"\"Output array size is not conform to array size attribute\") ;"<<iendl; \
+    oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
   }
 

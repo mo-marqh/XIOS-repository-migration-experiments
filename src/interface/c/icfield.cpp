@@ -12,6 +12,7 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -30,16 +31,18 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CField::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CField::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_fieldgroup_handle_create (XFieldGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CFieldGroup::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CFieldGroup::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
 
@@ -49,16 +52,18 @@ extern "C"
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CField::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_fieldgroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CFieldGroup::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
 // -----------------------------------------------------------------------------------------------------   
@@ -67,7 +72,9 @@ extern "C"
 
   void cxios_field_is_active (XFieldPtr field_hdl, bool* ret)
   {
+    CTimer::get("XIOS").resume() ;
     *ret = field_hdl->isActive();
+    CTimer::get("XIOS").suspend() ;
   }
    
 } // extern "C"

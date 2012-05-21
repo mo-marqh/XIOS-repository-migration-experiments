@@ -39,14 +39,14 @@ namespace xios
          protected :
 
             /// Ecriture ///
-            virtual void writeDomain_    (const boost::shared_ptr<CDomain>   domain);
-            virtual void writeAxis_      (const boost::shared_ptr<CAxis>     axis);
-            virtual void writeField_     (const boost::shared_ptr<CField>    field);
-            virtual void writeFieldData_ (const boost::shared_ptr<CField>    field);
-            virtual void writeFile_      (const boost::shared_ptr<CFile>     file);
+            virtual void writeDomain_    (CDomain* domain);
+            virtual void writeAxis_      (CAxis* axis);
+            virtual void writeField_     (CField* field);
+            virtual void writeFieldData_ (CField* field);
+            virtual void writeFile_      (CFile* file);
             virtual void closeFile_      (void);
             virtual void syncFile_      (void);
-            virtual void writeTimeAxis_  (const boost::shared_ptr<CField>    field,
+            virtual void writeTimeAxis_  (CField* field,
                                           const boost::shared_ptr<CCalendar> cal);
 
          protected :

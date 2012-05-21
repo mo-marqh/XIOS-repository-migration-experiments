@@ -2,5 +2,6 @@
 
 namespace xios
 {
-  CLog info ;
+  CLog info("info") ;
+  CLog report("report") ;
 }

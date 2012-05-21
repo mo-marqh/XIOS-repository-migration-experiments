@@ -144,9 +144,8 @@ namespace xios
    template <class T>
       void CObjectTemplate<T>::ClearAllAttributes(void)
    {
-      std::vector<boost::shared_ptr<T> > & avect =
-         CObjectTemplate<T>::GetAllVectobject(CContext::getCurrent()->getId());
-      typename std::vector<boost::shared_ptr<T> >::iterator
+      vector<T*> avect = CObjectTemplate<T>::getAll() ;
+      typename vector<T*>::iterator
             it = avect.begin(), end = avect.end();
 
       for (;it != end; it++)
@@ -164,11 +163,11 @@ namespace xios
       sendAttributToServer(*attr) ;
    }
 
-   template <class T>
-   void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
-   {
-     shared_ptr<CContext> context=CContext::getCurrent() ;
-     
+  template <class T>
+  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
+  {
+    CContext* context=CContext::getCurrent() ;
+    
     if (!context->hasServer)
     {
        CContextClient* client=context->client ;
@@ -186,25 +185,25 @@ namespace xios
        else client->sendEvent(event) ;
     }
       
-   }
+  }
    
-   template <class T>
-   void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)
-   {
+  template <class T>
+  void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)
+  {
       
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
-      string id,attrId;
-      *buffer>>id ;
-      CAttributeMap & attrMap = *get(id);
-      *buffer>>attrId ;
-      CAttribute* attr=attrMap[attrId] ;
-      info(50)<<"attribut recu "<<attrId<<"  " ;
-      if (attr->isEmpty()) info(50)<<"--> empty"<<endl ;
-      else info(50) /*<attr->getValue()*/<<endl ;
-      *buffer>>*attr ;
-       info(50)<<"attribut recu "<<attrId<<"  " ;
-      if (attr->isEmpty()) info(50)<<"--> empty"<<endl ;
-      else info(50) /*attr->getValue()*/<<endl ;
+    CBufferIn* buffer=event.subEvents.begin()->buffer;
+    string id,attrId;
+    *buffer>>id ;
+    CAttributeMap & attrMap = *get(id);
+    *buffer>>attrId ;
+    CAttribute* attr=attrMap[attrId] ;
+    info(50)<<"attribut recu "<<attrId<<"  " ;
+    if (attr->isEmpty()) info(50)<<"--> empty"<<endl ;
+    else info(50) /*<attr->getValue()*/<<endl ;
+    *buffer>>*attr ;
+     info(50)<<"attribut recu "<<attrId<<"  " ;
+    if (attr->isEmpty()) info(50)<<"--> empty"<<endl ;
+    else info(50) /*attr->getValue()*/<<endl ;
   }
 
    template <class T>
@@ -237,47 +236,67 @@ namespace xios
    }
 
    template <typename T>
-   boost::shared_ptr<T> CObjectTemplate<T>::get(const string & id)
+   T* CObjectTemplate<T>::get(const string & id)
    {
-     return CObjectFactory::GetObject<T>(id) ;
+     return CObjectFactory::GetObject<T>(id).get() ;
    }
 
    template <typename T>
-   boost::shared_ptr<T> CObjectTemplate<T>::get(const T* ptr)
+   T* CObjectTemplate<T>::get(const T* ptr)
+   {
+     return CObjectFactory::GetObject<T>(ptr).get() ;
+   }
+   
+   template <typename T>
+   shared_ptr<T> CObjectTemplate<T>::getShared(const T* ptr)
    {
      return CObjectFactory::GetObject<T>(ptr) ;
    }
+
+   template <typename T>
+   shared_ptr<T> CObjectTemplate<T>::getShared(void)
+   {
+     return CObjectFactory::GetObject<T>((T*)this) ;
+   }
    
-   
    template <typename T>
-   const vector<boost::shared_ptr<T> >& CObjectTemplate<T>::getAll()
+   const vector<T*> CObjectTemplate<T>::getAll()
    {
-     return CObjectFactory::GetObjectVector<T>() ;
+     const vector< shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>();
+     vector<T*> vect ;
+    
+     typename vector<shared_ptr<T> >::const_iterator it;
+     for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get()) ;
+     return vect ;
    }
 
    template <typename T>
-   const vector<boost::shared_ptr<T> >& CObjectTemplate<T>::getAll(const string & id)
+   const vector<T*> CObjectTemplate<T>::getAll(const string & id)
    {
-     return CObjectFactory::GetObjectVector<T>(id) ;
+     const vector< shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>(id);
+     vector<T*> vect ;
+    
+     typename vector<shared_ptr<T> >::const_iterator it;
+     for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get()) ;
+     return vect ;
    }
 
    template <typename T>
-   boost::shared_ptr<T> CObjectTemplate<T>::get(const string& contextId, const string & id)
+   T* CObjectTemplate<T>::get(const string& contextId, const string & id)
    {
-     return CObjectFactory::GetObject<T>(contextId,id) ;
+     return CObjectFactory::GetObject<T>(contextId,id).get() ;
    }
 
    template <typename T>
-   boost::shared_ptr<T> CObjectTemplate<T>::create(const string & id)
+   T* CObjectTemplate<T>::create(const string & id)
    {
-     return CObjectFactory::CreateObject<T>(id) ;
+     return CObjectFactory::CreateObject<T>(id).get() ;
    }   ///--------------------------------------------------------------
 
   template <typename T>
-  boost::shared_ptr<T> CObjectTemplate<T>::get(void)
+  T* CObjectTemplate<T>::get(void)
   {
-    return CObjectFactory::GetObject<T>((T*)this) ;
-//      return shared_ptr<T>((T*)this) ;
+    return CObjectFactory::GetObject<T>((T*)this).get() ;
   }
   
    template <typename T>
@@ -298,6 +317,7 @@ namespace xios
      oss<<"#include \"object_template_impl.hpp\""<<iendl;
      oss<<"#include \"group_template_impl.hpp\""<<iendl ;
      oss<<"#include \"icutil.hpp\""<<iendl ;
+     oss<<"#include \"timer.hpp\""<<iendl ;
      oss<<iendl ;
      oss<<"extern \"C\""<<iendl ;
      oss<<"{"<<iendl++ ;

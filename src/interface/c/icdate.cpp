@@ -14,6 +14,7 @@
 #include "calendar_type.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -24,11 +25,13 @@ extern "C"
    {
       try
       {
+         CTimer::get("XIOS").resume() ;
          CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
-         boost::shared_ptr<xios::CContext> context = CContext::getCurrent() ;
+         xios::CContext* context = CContext::getCurrent() ;
          
             context->timestep.setValue(dur.toString());
             context->sendAttributToServer("timestep") ;
+          CTimer::get("XIOS").suspend() ;
       }
       catch (xios::CException & exc)
       {
@@ -39,9 +42,11 @@ extern "C"
    
    void cxios_update_calendar(int step)
    {
-      boost::shared_ptr<xios::CContext> context = CContext::getCurrent() ;
+      CTimer::get("XIOS").resume() ;
+      xios::CContext* context = CContext::getCurrent() ;
       context->updateCalendar(step) ;
       context->sendUpdateCalendar(step) ;
+      CTimer::get("XIOS").suspend() ;
       
    }
 

@@ -12,6 +12,7 @@
 #include "group_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -28,8 +29,9 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = CDomain::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CDomain::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_domaingroup_handle_create (XDomainGroupPtr * _ret, const char * _id, int _id_len)
@@ -37,7 +39,9 @@ extern "C"
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
 
-      *_ret = CDomainGroup::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = CDomainGroup::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    // -------------------- Vérification des identifiants -----------------------
@@ -47,14 +51,17 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
+      CTimer::get("XIOS").resume() ;
       *_ret = CDomain::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_domaingroup_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-
+      CTimer::get("XIOS").resume() ;
       *_ret = CDomainGroup::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 } // extern "C"

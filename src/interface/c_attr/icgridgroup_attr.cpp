@@ -9,6 +9,7 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -18,14 +19,18 @@ extern "C"
   {
     std::string axis_ref_str;
     if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
+     CTimer::get("XIOS").resume();
     gridgroup_hdl->axis_ref.setValue(axis_ref_str);
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->axis_ref);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, char * axis_ref, int axis_ref_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(gridgroup_hdl->axis_ref.getValue(),axis_ref , axis_ref_size))
       ERROR("void cxios_get_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -33,14 +38,18 @@ extern "C"
   {
     std::string description_str;
     if(!cstr2string(description, description_size, description_str)) return;
+     CTimer::get("XIOS").resume();
     gridgroup_hdl->description.setValue(description_str);
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->description);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_description(gridgroup_Ptr gridgroup_hdl, char * description, int description_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(gridgroup_hdl->description.getValue(),description , description_size))
       ERROR("void cxios_get_gridgroup_description(gridgroup_Ptr gridgroup_hdl, char * description, int description_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -48,14 +57,18 @@ extern "C"
   {
     std::string domain_ref_str;
     if(!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
+     CTimer::get("XIOS").resume();
     gridgroup_hdl->domain_ref.setValue(domain_ref_str);
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->domain_ref);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, char * domain_ref, int domain_ref_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(gridgroup_hdl->domain_ref.getValue(),domain_ref , domain_ref_size))
       ERROR("void cxios_get_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, char * domain_ref, int domain_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -63,14 +76,18 @@ extern "C"
   {
     std::string group_ref_str;
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
+     CTimer::get("XIOS").resume();
     gridgroup_hdl->group_ref.setValue(group_ref_str);
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->group_ref);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_group_ref(gridgroup_Ptr gridgroup_hdl, char * group_ref, int group_ref_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(gridgroup_hdl->group_ref.getValue(),group_ref , group_ref_size))
       ERROR("void cxios_get_gridgroup_group_ref(gridgroup_Ptr gridgroup_hdl, char * group_ref, int group_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   
@@ -78,14 +95,18 @@ extern "C"
   {
     std::string name_str;
     if(!cstr2string(name, name_size, name_str)) return;
+     CTimer::get("XIOS").resume();
     gridgroup_hdl->name.setValue(name_str);
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->name);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_name(gridgroup_Ptr gridgroup_hdl, char * name, int name_size)
   {
+     CTimer::get("XIOS").resume();
     if(!string_copy(gridgroup_hdl->name.getValue(),name , name_size))
       ERROR("void cxios_get_gridgroup_name(gridgroup_Ptr gridgroup_hdl, char * name, int name_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
   }
   
   

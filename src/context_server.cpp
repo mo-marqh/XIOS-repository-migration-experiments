@@ -5,10 +5,11 @@
 #include "object_template_impl.hpp"
 #include "group_template_impl.hpp"
 #include "attribute_template_impl.hpp"
-#include "tree_manager.hpp"
 #include "domain.hpp"
 
 #include <mpi.h>
+#include "tracer.hpp"
+#include "timer.hpp"
 
 
 
@@ -60,7 +61,9 @@ namespace xios
     {
       if (pendingRequest.find(rank)==pendingRequest.end())
       {
+        traceOff() ;
         MPI_Iprobe(rank,20,interComm,&flag,&status);     
+        traceOn() ;
         if (flag==true)
         {
           it=buffers.find(rank) ;
@@ -91,7 +94,9 @@ namespace xios
     for(it=pendingRequest.begin();it!=pendingRequest.end();it++)
     {
       rank=it->first ;
+      traceOff() ;
       MPI_Test(& it->second, &flag, &status) ;
+      traceOn() ;
       if (flag==true)
       {
         recvRequest.push_back(rank) ;
@@ -143,7 +148,9 @@ namespace xios
       event=it->second ;
       if (event->isFull())
       {
+         CTimer::get("Process events").resume() ;
          dispatchEvent(*event) ;
+         CTimer::get("Process events").suspend() ;
          pendingEvent=false ;
          delete event ;
          events.erase(it) ;

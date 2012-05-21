@@ -30,8 +30,8 @@ END PROGRAM test_cs
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=10 
-  INTEGER,PARAMETER :: nj_glo=10 
+  INTEGER,PARAMETER :: ni_glo=100 
+  INTEGER,PARAMETER :: nj_glo=100 
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
@@ -79,7 +79,7 @@ END PROGRAM test_cs
 !  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
-  CALL xios_set_domain_attr("domain_A",zoom_ni=3,zoom_ibegin=3,zoom_nj=3,zoom_jbegin=6)
+  !CALL xios_set_domain_attr("domain_A",zoom_ni=3,zoom_ibegin=3,zoom_nj=3,zoom_jbegin=6)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
@@ -105,7 +105,7 @@ END PROGRAM test_cs
     CALL xios_close_context_definition()
     
     PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-    DO ts=1,96
+    DO ts=1,96*200
       CALL xios_update_calendar(ts)
       CALL xios_send_field("field_A",field_A)
     ENDDO

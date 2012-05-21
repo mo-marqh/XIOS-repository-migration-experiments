@@ -5,9 +5,9 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
-#include "tree_manager.hpp"
 #include "oasis_cinterface.hpp"
 #include <mpi.h>
+#include "timer.hpp"
 
 namespace xios
 {                      
@@ -129,7 +129,7 @@ namespace xios
     void CClient::registerContext(const string& id,MPI_Comm contextComm)
     {
       CContext::setCurrent(id) ;
-      shared_ptr<CContext> context=CContext::create(id) ;
+      CContext* context=CContext::create(id) ;
         
       if (!CXios::isServer)
       {
@@ -192,5 +192,9 @@ namespace xios
         else MPI_Finalize() ;
       }
       info(20) << "Client side context is finalized"<<endl ;
+      report(0) <<" Performance report : total time spent for XIOS : "<< CTimer::get("XIOS").getCumulatedTime()<<" s"<<endl ; 
+      report(0)<< " Performance report : time spent for waiting free buffer : "<< CTimer::get("Blocking time").getCumulatedTime()<<" s"<<endl ;
+      report(0)<< " Performance report : Ratio : "<< CTimer::get("Blocking time").getCumulatedTime()/CTimer::get("XIOS").getCumulatedTime()*100.<<" %"<<endl ;
+      report(0)<< " Performance report : This ratio must be close to zero. Otherwise it may be usefull to increase buffer size or numbers of server"<<endl ;
     }
 }

@@ -12,6 +12,7 @@
 #include "attribute_template_impl.hpp"
 
 #include "icutil.hpp"
+#include "timer.hpp"
 
 extern "C"
 {
@@ -28,17 +29,19 @@ extern "C"
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = xios::CAxis::get(id).get();
+      CTimer::get("XIOS").resume() ;
+      *_ret = xios::CAxis::get(id);
+      CTimer::get("XIOS").suspend() ;
    }
    
    void cxios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
-
-      *_ret = xios::CAxisGroup::get(id).get();
-   }
+      CTimer::get("XIOS").resume() ;
+      *_ret = xios::CAxisGroup::get(id);
+      CTimer::get("XIOS").suspend() ;
+    }
 
    // -------------------- Vérification des identifiants -----------------------
 
@@ -47,7 +50,9 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
+      CTimer::get("XIOS").resume() ;
       *_ret = xios::CAxis::has(id);
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
@@ -55,7 +60,10 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
+      CTimer::get("XIOS").resume() ;
       *_ret = xios::CAxisGroup::has(id);
+      CTimer::get("XIOS").suspend() ;
+
    }
    
 } // extern "C"

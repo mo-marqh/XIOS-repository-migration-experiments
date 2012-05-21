@@ -27,9 +27,9 @@ namespace xios
       }
 
       // PARSING POUR GESTION DES ENFANTS
-      boost::shared_ptr<V> group_ptr = (this->hasId())
-         ? CObjectFactory::GetObject<V>(this->getId())
-         : CObjectFactory::GetObject(boost::polymorphic_downcast<V*>(this));
+           V* group_ptr = (this->hasId()) 
+         ? V::get(this->getId())
+         : boost::polymorphic_downcast<V*>(this);
 
       if (!(node.goToChildElement()))
       {
@@ -51,18 +51,18 @@ namespace xios
             if (name.compare(V::GetName()) == 0)
             {
                if (attributes.end() == attributes.find("id"))
-                  CGroupFactory::CreateGroup(group_ptr)->parse(node);
+                  CGroupFactory::CreateGroup(group_ptr->getShared())->parse(node);
                else
-                  CGroupFactory::CreateGroup(group_ptr, attributes["id"])->parse(node);
+                  CGroupFactory::CreateGroup(group_ptr->getShared(), attributes["id"])->parse(node);
                continue;
             }
 
             if (name.compare(U::GetName()) == 0)
             {
                if (attributes.end() == attributes.find("id"))
-                  CGroupFactory::CreateChild(group_ptr)->parse(node);
+                  CGroupFactory::CreateChild(group_ptr->getShared())->parse(node);
                else
-                  CGroupFactory::CreateChild(group_ptr, attributes["id"])->parse(node);
+                  CGroupFactory::CreateChild(group_ptr->getShared(), attributes["id"])->parse(node);
                continue;
             }
 
