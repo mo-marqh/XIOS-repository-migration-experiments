@@ -9,8 +9,8 @@ IMPLICIT NONE
   CALL MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
   CALL MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
   
-  IF (rank<3) THEN
-   CALL client("client",rank,3)
+  IF (rank<8) THEN
+   CALL client("client",rank,8)
   ELSE 
     CALL server
   ENDIF
@@ -22,6 +22,7 @@ END PROGRAM test_cs
 
   SUBROUTINE client(id,rank,size)
   USE xios
+  USE mod_wait
   IMPLICIT NONE
   INCLUDE 'mpif.h'
   CHARACTER(len=*) :: id
@@ -30,8 +31,8 @@ END PROGRAM test_cs
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100 
-  INTEGER,PARAMETER :: nj_glo=100 
+  INTEGER,PARAMETER :: ni_glo=1000 
+  INTEGER,PARAMETER :: nj_glo=1000 
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
@@ -41,6 +42,8 @@ END PROGRAM test_cs
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:), lonvalue(:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,ts,n
+  
+  CALL init_wait
   
   DO j=1,nj_glo
     DO i=1,ni_glo
@@ -105,9 +108,10 @@ END PROGRAM test_cs
     CALL xios_close_context_definition()
     
     PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-    DO ts=1,96*200
+    DO ts=1,24*100
       CALL xios_update_calendar(ts)
       CALL xios_send_field("field_A",field_A)
+      CALL wait_us(5000) ;
     ENDDO
   
     CALL xios_context_finalize()
