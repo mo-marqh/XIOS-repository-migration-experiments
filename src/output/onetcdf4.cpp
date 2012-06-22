@@ -239,8 +239,11 @@ namespace xios
       int CONetCDF4::addVariable(const StdString & name, nc_type type,
                                   const std::vector<StdString> & dim)
       {
-         int retvalue = 0;
+         int varid = 0;
          std::vector<int> dimids;
+         std::vector<StdSize> dimsizes ;
+         StdSize size ;
+         
          int grpid = this->getCurrentGroup();
          
          std::vector<StdString>::const_iterator
@@ -250,9 +253,15 @@ namespace xios
          {
             const StdString & dimid = *it;
             dimids.push_back(this->getDimension(dimid));
+            CheckError(nc_inq_dimlen (grpid, this->getDimension(dimid), &size));
+            if (size==NC_UNLIMITED) size=1 ;
+            dimsizes.push_back(size) ;
          }
-         CheckError(nc_def_var (grpid, name.c_str(), type, dimids.size(), &(dimids[0]), &retvalue));
-         return (retvalue);
+         
+         CheckError(nc_def_var (grpid, name.c_str(), type, dimids.size(), &(dimids[0]), &varid));
+         CheckError(nc_def_var_chunking (grpid, varid, NC_CHUNKED, &(dimsizes[0])));
+         CheckError(nc_def_var_fill(grpid, varid, true, NULL));
+         return (varid);
       }
 
       //---------------------------------------------------------------
