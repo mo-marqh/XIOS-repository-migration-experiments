@@ -224,10 +224,13 @@ namespace xios
       {
          if (axis->IsWritten(this->filename)) return;
          axis->checkAttributes();
+         StdSize zoom_size=axis->zoom_size.getValue() ;
+         StdSize zoom_begin=axis->zoom_begin.getValue()-1 ;
+         
          std::vector<StdString> dims;
          StdString axisid = (!axis->name.isEmpty())
                            ? axis->name.getValue() : axis->getId();
-         SuperClassWriter::addDimension(axisid, axis->size.getValue());
+         SuperClassWriter::addDimension(axisid, zoom_size);
          dims.push_back(axisid);
          
          switch (SuperClass::type)
@@ -253,7 +256,12 @@ namespace xios
                      ("units", axis->unit.getValue(), &axisid);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(axis->value.getValue(), axisid, isCollective, 0);
+               
+               ARRAY(double,1) axis_value=axis->value.getValue() ;
+               ARRAY_CREATE(value,double,1,[zoom_size]) ;
+               for(StdSize i = 0 ; i < zoom_size ; i++) (*value)[i]=(*axis_value)[i+zoom_begin] ;
+               SuperClassWriter::writeData(value, axisid, isCollective, 0);
+               
                SuperClassWriter::definition_start();
 
                break;
@@ -489,7 +497,7 @@ namespace xios
          if (grid->hasAxis()) // 3D
          {
             CAxis* axis = grid->axis ;
-            ARRAY_CREATE(field_data3D,double,3,[domain->zoom_ni_srv][domain->zoom_nj_srv][axis->size.getValue()]) ;
+            ARRAY_CREATE(field_data3D,double,3,[domain->zoom_ni_srv][domain->zoom_nj_srv][axis->zoom_size.getValue()]) ;
             field->outputField(field_data3D);
             switch (SuperClass::type)
            {
@@ -512,7 +520,7 @@ namespace xios
                  {
 //                 start[2]=domain->zoom_ibegin_loc.getValue()-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_loc.getValue()-domain->zoom_jbegin.getValue() ; start[0]=0 ;
                    start[2]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; start[0]=0 ;
-                   count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->size.getValue();
+                   count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->zoom_size.getValue();
                  }
                  SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
                  SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1 );

@@ -100,17 +100,20 @@ namespace xios {
 
    //---------------------------------------------------------------
 
+/*
    std::vector<StdSize> CGrid::getLocalShape(void) const
    {
       std::vector<StdSize> retvalue;
       retvalue.push_back(domain->zoom_ni_loc.getValue());
       retvalue.push_back(domain->zoom_nj_loc.getValue());
       if (this->withAxis)
-         retvalue.push_back(this->axis->size.getValue());
+         retvalue.push_back(this->axis->zoom_size.getValue());
       return (retvalue);
    }
+*/
    //---------------------------------------------------------------
    
+/*
    StdSize CGrid::getLocalSize(void) const
    {
       StdSize retvalue = 1;
@@ -119,9 +122,9 @@ namespace xios {
          retvalue *= shape_[s];
       return (retvalue);
    }
-   
+*/
    //---------------------------------------------------------------
-
+/*
    std::vector<StdSize> CGrid::getGlobalShape(void) const
    {
       std::vector<StdSize> retvalue;
@@ -131,8 +134,10 @@ namespace xios {
          retvalue.push_back(this->axis->size.getValue());
       return (retvalue);
    }
+*/
    //---------------------------------------------------------------
-   
+
+/*   
    StdSize CGrid::getGlobalSize(void) const
    {
       StdSize retvalue = 1;
@@ -141,7 +146,7 @@ namespace xios {
          retvalue *= shape_[s];
       return (retvalue);
    }
-
+*/
    StdSize CGrid::getDataSize(void) const
    {
       StdSize retvalue ;
@@ -223,7 +228,9 @@ namespace xios {
    
       const int ni   = domain->ni.getValue() ,
                 nj   = domain->nj.getValue() ,
-                size = (this->hasAxis()) ? axis->size.getValue() : 1 ;
+                size = (this->hasAxis()) ? axis->size.getValue() : 1 ,
+                lbegin = (this->hasAxis()) ? axis->zoom_begin.getValue()-1 : 0 ,
+                lend = (this->hasAxis()) ? axis->zoom_end.getValue()-1 : 0 ;
 
 
       const int data_dim     = domain->data_dim.getValue() ,
@@ -253,7 +260,8 @@ namespace xios {
             j = (data_dim == 1) ? (temp_i - 1) / ni
                                 : (temp_j - 1) ;
 
-            if ((i >= 0 && i < ni) &&
+            if ((l >=lbegin && l<= lend) &&
+                (i >= 0 && i < ni) &&
                 (j >= 0 && j < nj) && (*mask)[i][j])
                indexCount++ ;
          }
@@ -282,7 +290,8 @@ namespace xios {
             j = (data_dim == 1) ? (temp_i - 1) / ni
                                 : (temp_j - 1) ;
 
-            if ((i >= 0 && i < ni) &&
+            if ((l >= lbegin && l <= lend) &&
+                (i >= 0 && i < ni) &&
                 (j >= 0 && j < nj) && (*mask)[i][j])
             {
                (*this->storeIndex[0]) [indexCount] = count ;
@@ -293,7 +302,7 @@ namespace xios {
                (*storeIndex_client)[indexCount] = count ;
                (*out_i_client)[indexCount]=i+domain->ibegin_client-1 ;
                (*out_j_client)[indexCount]=j+domain->jbegin_client-1 ;
-               (*out_l_client)[indexCount]=l ;
+               (*out_l_client)[indexCount]=l-lbegin ;
                indexCount++ ;
             }
          }

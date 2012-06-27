@@ -72,11 +72,11 @@ namespace xios {
 
          StdSize getDimension(void) const;
          
-         StdSize getLocalSize(void) const;
-         StdSize getGlobalSize(void) const;
+//         StdSize getLocalSize(void) const;
+//         StdSize getGlobalSize(void) const;
          StdSize  getDataSize(void) const;
-         std::vector<StdSize> getLocalShape(void) const;
-         std::vector<StdSize> getGlobalShape(void) const;
+//         std::vector<StdSize> getLocalShape(void) const;
+//         std::vector<StdSize> getGlobalShape(void) const;
 
          /// Entrées-sorties de champs ///
          template <StdSize n>
