@@ -2,8 +2,8 @@
 #include "nc4_data_output.hpp"
 
 #include <boost/lexical_cast.hpp>
-#include "attribute_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "group_template.hpp"
 
 #include "file.hpp"
 #include "calendar.hpp"

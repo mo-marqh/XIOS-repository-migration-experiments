@@ -73,7 +73,7 @@ namespace xios
    }; // class CGroupFactory
 } // namespace xios
 
-#include "group_factory_impl.hpp"
-#include "group_parser.hpp"
+//#include "group_factory_impl.hpp"
+//#include "group_parser.hpp"
 
 #endif // __XMLIO_CGroupFactory__

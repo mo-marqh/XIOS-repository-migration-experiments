@@ -7,7 +7,7 @@
 #include "context.hpp"
 #include "grid.hpp"
 #include "timer.hpp"
-
+#include "array.hpp"
 
 namespace xios {
 

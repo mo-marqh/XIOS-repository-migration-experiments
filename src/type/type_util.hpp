@@ -15,10 +15,11 @@ namespace xios
     class CFile;
     class CFileGroup;
     class CContext;
-
+    class CContextGroup;
+    class CVariable ;
+    class CVariableGroup ;
         
-  template <typename T>
-  inline string getStrType(void) ;
+  template <typename T> inline string getStrType(void) ;
     
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T) ; }
 
@@ -49,7 +50,11 @@ namespace xios
   macro(CFile)
   macro(CFileGroup)
   macro(CContext)
+  macro(CContextGroup)
+  macro(CVariable)
+  macro(CVariableGroup)
   
+ 
 #undef macro
 
 }

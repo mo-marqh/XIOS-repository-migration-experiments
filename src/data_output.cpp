@@ -1,7 +1,7 @@
 #include "data_output.hpp"
 
-#include "attribute_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "group_template.hpp"
 #include "context.hpp"
 
 namespace xios

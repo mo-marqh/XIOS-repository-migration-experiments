@@ -5,11 +5,12 @@
 #include <boost/multi_array.hpp>
 #include <boost/shared_ptr.hpp>
 #include "xmlioserver.hpp"
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 #include "icutil.hpp"
 #include "timer.hpp"
+#include "axis.hpp"
 
 extern "C"
 {

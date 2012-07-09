@@ -1,5 +1,5 @@
 #include "onetcdf4.hpp"
-#include "group_template_impl.hpp"
+#include "group_template.hpp"
 
 namespace xios
 {

@@ -3,7 +3,8 @@
 
 #include "xmlioserver_spl.hpp"
 #include "variable.hpp"
-#include "object_template_impl.hpp"
+#include "object_template.hpp"
+#include "cxios.hpp"
 
 namespace xios
 {

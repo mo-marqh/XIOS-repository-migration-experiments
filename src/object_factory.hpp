@@ -23,35 +23,35 @@ namespace xios
          static StdString & GetCurrentContextId(void);
 
          template <typename U>
-            static inline boost::shared_ptr<U> GetObject(const StdString & id);
+            static  boost::shared_ptr<U> GetObject(const StdString & id);
 
          template <typename U>
-            static inline boost::shared_ptr<U> GetObject(const StdString& context,const StdString & id);
+            static  boost::shared_ptr<U> GetObject(const StdString& context,const StdString & id);
 
          template <typename U>
-            static inline boost::shared_ptr<U> GetObject(const U * const object);
+            static  boost::shared_ptr<U> GetObject(const U * const object);
 
          template <typename U>
-            static inline int GetObjectNum(void);
+            static  int GetObjectNum(void);
          template <typename U>
-            static inline int GetObjectIdNum(void);
+            static  int GetObjectIdNum(void);
 
          template <typename U>
-            static inline const std::vector<boost::shared_ptr<U> > &
+            static  const std::vector<boost::shared_ptr<U> > &
                GetObjectVector(const StdString & context = CObjectFactory::GetCurrentContextId());
 
          /// Tests ///
          template <typename U>
-            static inline bool HasObject(const StdString & id);
+            static  bool HasObject(const StdString & id);
 
          template <typename U>
-            static inline bool HasObject(const StdString& context,const StdString & id);
+            static  bool HasObject(const StdString& context,const StdString & id);
 
          /// Instanciateur ///
          template <typename U>
-            static inline boost::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
+            static  boost::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
 
-         template <typename U> static inline StdString GenUId(void) ; 
+         template <typename U> static  StdString GenUId(void) ; 
 
       private :
 
@@ -61,6 +61,6 @@ namespace xios
    }; // class CObjectFactory
 } // namespace xios
 
-#include "object_factory_impl.hpp"
+//#include "object_factory_impl.hpp"
 
 #endif // __XMLIO_CObjectFactory__

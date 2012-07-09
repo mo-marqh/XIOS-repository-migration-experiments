@@ -1,9 +1,9 @@
 #include "xmlioserver.hpp"
-#include "generate_interface_impl.hpp"
+#include "generate_interface.hpp"
 #include "indent.hpp"
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 
 int main (int argc, char ** argv, char ** UNUSED (env))
 {

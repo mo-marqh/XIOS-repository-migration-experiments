@@ -41,7 +41,7 @@ namespace xios
    
 
   };
-  
+/*  
   template<> string CInterface::getStrFortranType<int>(void) {return string("INTEGER") ;}
   template<> string CInterface::getStrFortranType<bool>(void) {return string("LOGICAL") ;}
   template<> string CInterface::getStrFortranType<double>(void) {return string("REAL") ;}
@@ -61,6 +61,6 @@ namespace xios
   template<> bool CInterface::matchingTypeCFortran<bool>(void) { return false ;} 
   template<> bool CInterface::matchingTypeCFortran<double>(void) { return true; }
   template<> bool CInterface::matchingTypeCFortran<float>(void) { return true; }
-  
+*/
 }
 #endif

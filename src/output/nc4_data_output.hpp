@@ -80,13 +80,14 @@ namespace xios
                                      const StdString & long_name,
                                      const StdString & units,
                                      const StdString & nav_model);
+/*
             template <class T>
                void writeAxisData(const StdString & axis_name,
                                   const ARRAY(T, 1) data,
                                   bool collective, StdSize record,
                                   const std::vector<StdSize> * start = NULL,
                                   const std::vector<StdSize> * count = NULL);
-
+*/
          private :
 
             /// Traitement ///

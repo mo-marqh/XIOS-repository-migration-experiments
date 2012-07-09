@@ -72,7 +72,7 @@ namespace xios
  
 }
 
-#include "buffer_impl.hpp" 
+//#include "buffer_impl.hpp" 
 
 
 #endif

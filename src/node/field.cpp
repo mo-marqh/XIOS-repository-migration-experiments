@@ -1,11 +1,15 @@
 #include "field.hpp"
 
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 
 #include "node_type.hpp"
 #include "calendar_util.hpp"
+#include "message.hpp"
+#include "xmlioserver_spl.hpp"
+#include "type.hpp"
+#include "context_client.hpp"
 
 namespace xios{
    

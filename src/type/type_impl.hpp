@@ -6,6 +6,7 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "message.hpp"
+#include "type.hpp"
 
 
 

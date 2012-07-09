@@ -40,9 +40,10 @@ namespace xios
      static double defaultBufferServerFactorSize ;
         
   } ;
+
 }
 
-#include "cxios_impl.hpp"
+//#include "cxios_impl.hpp"
 
 
 

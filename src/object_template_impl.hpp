@@ -14,6 +14,8 @@
 #include "type_util.hpp"
 #include "message.hpp"
 #include "type.hpp"
+#include "type_util.hpp"
+#include "group_template.hpp"
 
 namespace xios
 {
@@ -313,9 +315,9 @@ namespace xios
      oss<<"#include <boost/multi_array.hpp>"<<iendl ;
      oss<<"#include <boost/shared_ptr.hpp>"<<iendl ;
      oss<<"#include \"xmlioserver.hpp\""<<iendl;
-     oss<<"#include \"attribute_template_impl.hpp\""<<iendl ;
-     oss<<"#include \"object_template_impl.hpp\""<<iendl;
-     oss<<"#include \"group_template_impl.hpp\""<<iendl ;
+     oss<<"#include \"attribute_template.hpp\""<<iendl ;
+     oss<<"#include \"object_template.hpp\""<<iendl;
+     oss<<"#include \"group_template.hpp\""<<iendl ;
      oss<<"#include \"icutil.hpp\""<<iendl ;
      oss<<"#include \"timer.hpp\""<<iendl ;
      oss<<iendl ;

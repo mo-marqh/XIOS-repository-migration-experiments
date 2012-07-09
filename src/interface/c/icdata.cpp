@@ -11,15 +11,15 @@
 #include "xmlioserver.hpp"
 #include "oasis_cinterface.hpp"
 
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 
 #include "icutil.hpp"
 #include "cxios.hpp"
 #include "client.hpp"
 #include "field.hpp"
-#include "field_impl.hpp"
+#include "context.hpp"
 #include <mpi.h>
 #include "timer.hpp"
 

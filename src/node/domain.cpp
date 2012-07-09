@@ -1,13 +1,17 @@
 #include "domain.hpp"
 
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 
 #include "xmlioserver_spl.hpp"
 #include "event_client.hpp"
 #include "event_server.hpp"
 #include "buffer_in.hpp"
+#include "message.hpp"
+#include "type.hpp"
+#include "context.hpp"
+#include "context_client.hpp"
 
 namespace xios {
    

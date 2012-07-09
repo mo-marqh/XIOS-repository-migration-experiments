@@ -20,10 +20,10 @@ namespace xios
             static void ParseString(const StdString & xmlContent);
             static void ParseStream(StdIStream & stream);
             template <class T>
-               static inline void ParseInclude(StdIStream & stream, T & object);
+               static void ParseInclude(StdIStream & stream, T & object);
 
       }; //class CXMLParser
-
+/*
       template <class T>
          void CXMLParser::ParseInclude(StdIStream & stream, T& object)
       {
@@ -44,7 +44,7 @@ namespace xios
                   << "RapidXML error : " << exc.what() << " !");
          }
       }
-
+*/
    }// namespace xml
 } // namespace xios
 

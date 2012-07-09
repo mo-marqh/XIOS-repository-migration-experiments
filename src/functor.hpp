@@ -57,6 +57,6 @@ namespace xios
    } // namespace func
 } // namespace xios
 
-#include "functor_type.hpp"
+//#include "functor_type.hpp"
 
 #endif // __XMLIO_CFunctor__

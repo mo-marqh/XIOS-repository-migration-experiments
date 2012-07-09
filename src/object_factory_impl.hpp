@@ -1,6 +1,8 @@
 #ifndef __XMLIO_CObjectFactory_impl__
 #define __XMLIO_CObjectFactory_impl__
 
+#include "object_factory.hpp"
+
 namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///

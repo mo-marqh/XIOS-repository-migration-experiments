@@ -40,9 +40,42 @@ namespace xios
     T value ; 
   } ;
 
+  class CMessage ;
+  
+  template <typename T>
+  CBufferOut& operator<<(CBufferOut& buffer, const CType<T>& type) ;
+  
+
+  template <typename T>
+  CBufferOut& operator<<(CBufferOut& buffer, T& type) ;
+  
+  template <typename T>
+  CBufferOut& operator<<(CBufferOut& buffer, const T& type) ;
+  
+  template <typename T>
+  CBufferIn& operator>>(CBufferIn& buffer, const CType<T>& type) ;
+  
+  template <typename T>
+  CBufferIn& operator>>(CBufferIn& buffer, T& type) ;
+  
+
+
+  template <typename T>
+  CMessage& operator<<(CMessage& msg, const CType<T>& type) ;
+  
+  template <typename T>
+  CMessage& operator<<(CMessage& msg,CType<T>& type) ;
+  
+  template <typename T>
+  CMessage& operator<<(CMessage& msg, const T& type) ;
+  
+  template <typename T>
+  CMessage& operator<<(CMessage& msg, T& type) ;
+  
 }
 
-#include "type_impl.hpp"
-#include "type_specialisation.hpp"
+
+//#include "type_impl.hpp"
+//#include "type_specialisation.hpp"
 
 #endif

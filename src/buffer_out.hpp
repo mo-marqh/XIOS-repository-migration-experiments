@@ -60,7 +60,7 @@ namespace xios
 
 }
 
-#include "buffer_out_impl.hpp" 
+//#include "buffer_out_impl.hpp" 
 
 
 #endif

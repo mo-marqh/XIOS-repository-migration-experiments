@@ -3,7 +3,7 @@
 #include "server.hpp"
 #include "type.hpp"
 #include "context.hpp"
-#include "object_template_impl.hpp"
+#include "object_template.hpp"
 #include "oasis_cinterface.hpp"
 #include <boost/functional/hash.hpp>
 #include <boost/algorithm/string.hpp>

@@ -3,7 +3,7 @@
 
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
-#include "node_type.hpp"
+//#include "node_type.hpp"
 #include "calendar.hpp"
 
 #include "declare_group.hpp"
@@ -23,7 +23,7 @@ namespace xios {
    class CContextGroup;
    class CContextAttributes;
    class CContext;
-  
+   class CFile;
    ///--------------------------------------------------------------
 
    // Declare/Define CFileAttribute

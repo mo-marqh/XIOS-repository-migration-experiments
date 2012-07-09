@@ -1,5 +1,5 @@
 #include "xmlioserver.hpp"
-#include "attribute_template_impl.hpp"
+#include "attribute_template.hpp"
 #include "buffer_out.hpp"
 #include "buffer_in.hpp"
 #include "type.hpp"
@@ -9,7 +9,7 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "context_server.hpp"
-#include "object_template_impl.hpp"
+#include "object_template.hpp"
 #include <mpi.h>
 
 

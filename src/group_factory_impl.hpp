@@ -1,6 +1,8 @@
 #ifndef __XMLIO_CGroupFactory_impl__
 #define __XMLIO_CGroupFactory_impl__
 
+#include "group_factory.hpp"
+
 namespace xios
 {
    /// ////////////////////// Définitions ////////////////////// ///
@@ -13,11 +15,11 @@ namespace xios
          ERROR("CGroupFactory::AddGroup(boost::shared_ptr<U> pgroup, boost::shared_ptr<U> cgroup)",
                << " pgroup or cgroup NULL !");
       if (!cgroup->hasId())
-         pgroup->groupList.insert(pgroup->groupList.end(), cgroup);
+         pgroup->groupList.insert(pgroup->groupList.end(), cgroup.get());
       else
       {
-         pgroup->groupList.insert(pgroup->groupList.end(), cgroup);
-         pgroup->groupMap.insert(std::make_pair(cgroup->getId(), cgroup));
+         pgroup->groupList.insert(pgroup->groupList.end(), cgroup.get());
+         pgroup->groupMap.insert(std::make_pair(cgroup->getId(), cgroup.get()));
       }
    }
 

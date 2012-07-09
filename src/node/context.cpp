@@ -1,7 +1,7 @@
 #include "context.hpp"
-#include "attribute_template_impl.hpp"
-#include "object_template_impl.hpp"
-#include "group_template_impl.hpp"
+#include "attribute_template.hpp"
+#include "object_template.hpp"
+#include "group_template.hpp"
 
 #include "calendar_type.hpp"
 #include "duration.hpp"
@@ -10,6 +10,9 @@
 #include "context_server.hpp"
 #include "nc4_data_output.hpp"
 #include "node_type.hpp"
+#include "message.hpp"
+#include "type.hpp"
+#include "xmlioserver_spl.hpp"
 
 namespace xios {
   

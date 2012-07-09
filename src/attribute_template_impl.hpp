@@ -5,8 +5,8 @@
 #include "type.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
-#include "generate_interface_impl.hpp"
-
+#include "generate_interface.hpp"
+#include "attribute_template.hpp"
 
   
 namespace xios

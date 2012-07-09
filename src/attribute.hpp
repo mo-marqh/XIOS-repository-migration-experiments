@@ -39,7 +39,7 @@ namespace xios
 
             /// Test ///
             bool isEmpty(void) const;
-            template <typename T> inline bool isType(void);
+            template <typename T> inline bool isType(void) const;
 
             /// Destructeur ///
             virtual ~CAttribute(void);
@@ -91,7 +91,7 @@ namespace xios
       }
 
       template<typename T>
-         bool CAttribute::isType(void)
+         bool CAttribute::isType(void) const
       { 
          return (this->value.type() == typeid(T)); 
       }
