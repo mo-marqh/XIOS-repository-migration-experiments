@@ -1,0 +1,20 @@
+################################################################################
+###################        Projet xios - xmlioserver       #####################
+################################################################################
+
+%CCOMPILER      CC
+%FCOMPILER      ftn
+%LINKER         CC
+
+%BASE_CFLAGS    -DXIOS_LIBRARY  -DMPICH_SKIP_MPICXX -DNONE -DXIOS_LIBRARY -h msglevel_4
+%PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
+%DEV_CFLAGS     -D XIOS_DEBUG -g 
+%DEBUG_CFLAGS   -D XIOS_DEBUG -g 
+
+%BASE_FFLAGS    -em -DXIOS_LIBRARY -DXIOS_LIBRARY -m 4
+%PROD_FFLAGS    -O3
+%DEV_FFLAGS     -DXIOS_DEBUG -g 
+%DEBUG_FFLAGS   -DXIOS_DEBUG -g 
+
+%BASE_INC       -D __NONE__
+%BASE_LD        
