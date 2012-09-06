@@ -39,11 +39,11 @@ namespace xios
           public :
 
             /// Accesseur ///
-            inline ValueType getValue(void) const;
-            inline ValueType* getRef(void) ;
+            ValueType getValue(void) const;
+            ValueType* getRef(void) ;
 
             /// Mutateurs ///
-            inline void setValue(const ValueType & value);
+            void setValue(const ValueType & value);
 
             /// Destructeur ///
             virtual ~CAttributeTemplate(void);

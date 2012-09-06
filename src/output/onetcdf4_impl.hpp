@@ -44,7 +44,7 @@ namespace xios
          
     if (value != NULL)
     {
-      CheckError(nc_def_var_fill(grpid, varid, 0, value));
+      CheckError(nc_def_var_fill(grpid, varid, 0, (void*)value));
       this->addAttribute(StdString("missing_value"), *value, &varname);
     }
     else CheckError(nc_def_var_fill(grpid, varid, 1, NULL));         

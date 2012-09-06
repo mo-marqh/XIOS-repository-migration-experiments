@@ -95,7 +95,7 @@ template<>
 boost::detail::multi_array::extent_gen<1> getExtentNull<1>(void) { return extents[0]; }
 */
 
-#define CTYPE_ARRAY(ValueType,NumsDims)                                \  
+#define CTYPE_ARRAY(ValueType,NumsDims)                                \
   template<>                                                           \
   size_t CType< ARRAY(ValueType,NumsDims)>::size() const                           \
   {                                                                    \

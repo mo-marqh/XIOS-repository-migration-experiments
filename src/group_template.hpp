@@ -54,8 +54,8 @@ namespace xios
          virtual bool hasChild(void) const;
 
          /// Accesseurs statiques ///
-         static inline StdString GetName(void);
-         static inline StdString GetDefName(void);
+         static StdString GetName(void);
+         static StdString GetDefName(void);
 
          /// Traitements ///
          virtual void solveDescInheritance(const CAttributeMap * const parent = 0);

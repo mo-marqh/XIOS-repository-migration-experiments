@@ -247,7 +247,7 @@ namespace xios {
    void CContext::solveDescInheritance(const CAttributeMap * const UNUSED(parent))
    {
 #define DECLARE_NODE(Name_, name_)    \
-   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \ 
+   if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
      C##Name_##Definition::get(C##Name_##Definition::GetDefName())->solveDescInheritance();
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"

@@ -10,9 +10,11 @@
 #include <mpi.h>
 #define MPI_INCLUDED
 #include <netcdf.h>
+#ifdef NETCDF_PAR_HEADER
 extern "C" {
 #include <netcdf_par.h>
 }
+#endif
 
 
 #ifndef UNLIMITED_DIM

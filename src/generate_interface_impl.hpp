@@ -206,7 +206,7 @@ macro(int)
      
    }
     
-#define macro(T)\     
+#define macro(T)\
    template <>\
    void CInterface::AttributeFortran2003Interface<ARRAY(T,1)>(ostream& oss,const string& className,const string& name) \
    { \
@@ -308,7 +308,7 @@ macro(int)
      oss<<"CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: "<<name<<iendl ;
    }
 
-#define macro(T)\   
+#define macro(T)\
    template <> \
    void CInterface::AttributeFortranInterfaceDeclaration<ARRAY(T,1)>(ostream& oss,const string& className,const string& name) \
    { \
