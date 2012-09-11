@@ -6,7 +6,7 @@
 %FCOMPILER      mpif90
 %LINKER         mpif90  -nofor-main
 
-%BASE_CFLAGS    -ansi -DXIOS_LIBRARY -DNONE -DXIOS_LIBRARY -diag-disable 1125 -diag-disable 279
+%BASE_CFLAGS    -ansi -DNETCDF_PAR_HEADER -DXIOS_LIBRARY -DNONE -DXIOS_LIBRARY -diag-disable 1125 -diag-disable 279
 %PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -D XIOS_DEBUG -g -traceback
 %DEBUG_CFLAGS   -D XIOS_DEBUG -g -traceback -fno-inline
