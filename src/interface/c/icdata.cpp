@@ -36,9 +36,7 @@ extern "C"
    // -------------------- Traitement des données ------------------------------
    void cxios_init_server(void)
    {
-     CTimer::get("XIOS").resume() ;
      CXios::initServerSide();      
-     CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_init_client(const char * client_id , int len_client_id, MPI_Fint* f_local_comm, MPI_Fint* f_return_comm )
@@ -49,16 +47,12 @@ extern "C"
       
       if (!cstr2string(client_id, len_client_id, str)) return;
 
-      CTimer::get("XIOS").resume() ;
-      CTimer::get("XIOS init").resume() ;
       int initialized ;
       MPI_Initialized(&initialized) ;
       if (initialized) local_comm=MPI_Comm_f2c(*f_local_comm) ;
       else local_comm=MPI_COMM_NULL ;
       CXios::initClientSide(str,local_comm,return_comm);
       *f_return_comm=MPI_Comm_c2f(return_comm) ;
-      CTimer::get("XIOS init").suspend() ;
-      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_context_initialize(const char * context_id , int len_context_id, MPI_Fint* f_comm)

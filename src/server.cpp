@@ -38,7 +38,8 @@ namespace xios
           char** argv=NULL;
           MPI_Init(&argc,&argv) ;
         }
-         
+        CTimer::get("XIOS").resume() ;
+ 
         boost::hash<string> hashString ;    
       
         unsigned long hashServer=hashString(CXios::xiosCodeId) ;
@@ -95,6 +96,7 @@ namespace xios
       {
         int rank ,size;
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId) ;
+        CTimer::get("XIOS").resume() ;
         oasis_get_localcomm(intraComm) ;
         MPI_Comm_rank(intraComm,&rank) ;
         MPI_Comm_size(intraComm,&size) ;
@@ -123,6 +125,7 @@ namespace xios
       else isRoot=false; 
       eventLoop() ;
       finalize() ;
+      CTimer::get("XIOS").suspend() ;
     }
     
     void CServer::finalize(void)

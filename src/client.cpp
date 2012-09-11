@@ -37,6 +37,8 @@ namespace xios
             char** argv=NULL;
             MPI_Init(&argc,&argv) ;
           }
+          CTimer::get("XIOS").resume() ;
+          CTimer::get("XIOS init").resume() ;
           boost::hash<string> hashString ;    
     
           unsigned long hashClient=hashString(codeId) ;
@@ -107,6 +109,8 @@ namespace xios
           oasis_get_localcomm(intraComm) ;
         }
         else MPI_Comm_dup(localComm,&intraComm) ;
+        CTimer::get("XIOS").resume() ;
+        CTimer::get("XIOS init").resume() ;
   
         if (CXios::usingServer) 
         {
@@ -123,6 +127,8 @@ namespace xios
       }
           
       MPI_Comm_dup(intraComm,&returnComm) ;
+      CTimer::get("XIOS init").suspend() ;
+      CTimer::get("XIOS").suspend() ;
     }
     
     
