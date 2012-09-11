@@ -125,11 +125,11 @@ namespace xios
       else isRoot=false; 
       eventLoop() ;
       finalize() ;
-      CTimer::get("XIOS").suspend() ;
     }
     
     void CServer::finalize(void)
     {
+      CTimer::get("XIOS").suspend() ;
       if (!is_MPI_Initialized)
       { 
         if (CXios::usingOasis) oasis_finalize();

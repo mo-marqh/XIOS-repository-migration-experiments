@@ -53,6 +53,8 @@ extern "C"
       else local_comm=MPI_COMM_NULL ;
       CXios::initClientSide(str,local_comm,return_comm);
       *f_return_comm=MPI_Comm_c2f(return_comm) ;
+      CTimer::get("XIOS init").suspend() ;
+      CTimer::get("XIOS").suspend() ;
    }
 
    void cxios_context_initialize(const char * context_id , int len_context_id, MPI_Fint* f_comm)
@@ -94,8 +96,6 @@ extern "C"
      CTimer::get("XIOS").resume() ;
      CTimer::get("XIOS finalize").resume() ;
      CXios::clientFinalize() ;
-     CTimer::get("XIOS finalize").suspend() ;
-     CTimer::get("XIOS").suspend() ;
    }
 
  

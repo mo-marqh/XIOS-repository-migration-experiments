@@ -127,8 +127,6 @@ namespace xios
       }
           
       MPI_Comm_dup(intraComm,&returnComm) ;
-      CTimer::get("XIOS init").suspend() ;
-      CTimer::get("XIOS").suspend() ;
     }
     
     
@@ -192,6 +190,9 @@ namespace xios
         }
       }
       
+     CTimer::get("XIOS finalize").suspend() ;
+     CTimer::get("XIOS").suspend() ;
+
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
