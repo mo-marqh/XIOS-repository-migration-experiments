@@ -1,5 +1,6 @@
 #ifndef __XIOS_LOG__
 
+#include <string>
 #include <iostream>
 
 namespace xios
