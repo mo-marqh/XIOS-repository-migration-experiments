@@ -2,8 +2,8 @@
 #define __EVENT_CLIENT_HPP__
 
 #include "xmlioserver_spl.hpp"
-#include "buffer_out.hpp" ;
-#include "message.hpp" ;
+#include "buffer_out.hpp"
+#include "message.hpp"
 
 namespace xios
 {
