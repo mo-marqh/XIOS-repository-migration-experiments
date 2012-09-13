@@ -125,6 +125,7 @@ fi
 
 if [[ $? == 0 ]]
   then
+  set nothing
 #    cd $WORKDIR/XMLIO_NEMO_COUPLE/modeles/NEMO/WORK
 #    cd $WORKDIR/XMLIO_NEMO/modeles/NEMO/WORK
 #    make
