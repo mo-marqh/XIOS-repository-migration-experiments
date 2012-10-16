@@ -54,8 +54,8 @@ namespace xios
             virtual void parse(xml::CXMLNode & node);
             virtual StdString toString(void) const;
 
-            virtual void toBinary  (StdOStream & os) const;
-            virtual void fromBinary(StdIStream & is);
+//            virtual void toBinary  (StdOStream & os) const;
+//            virtual void fromBinary(StdIStream & is);
 
             /// Accesseur ///
             const StdString & getContent (void) const;
@@ -66,7 +66,7 @@ namespace xios
 //            template <> getData<bool>(void) const ;
             
             template <typename T, StdSize N>
-               inline void getData(ARRAY(T, N) _data_array) const;
+            inline void getData(CArray<T, N>& _data_array) const;
 
          public :
          

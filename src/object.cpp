@@ -39,7 +39,7 @@ namespace xios
       this->id = id ;
       this->IdDefined = true ;
    }
-
+/*
    bool CObject::operator==(const CObject & other) const
    {
       if(!this->hasId() || !other.hasId())
@@ -51,7 +51,7 @@ namespace xios
    { 
       return (!(*this == other));
    }
-
+*/
    StdOStream & operator << (StdOStream & os, const CObject & object)
    { 
       os << object.toString();

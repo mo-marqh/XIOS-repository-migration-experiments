@@ -6,20 +6,20 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
       CAttribute::CAttribute(const StdString & id)
          : CObject(id), CBaseType()
-         , value()
+//         , value()
       { /* Ne rien faire de plus */ }
-
+/*
       CAttribute::CAttribute(const CAttribute & attribut)
          : CObject(attribut.getId()),CBaseType()
       { 
-         this->value = attribut.getAnyValue(); 
+ //        this->value = attribut.getAnyValue(); 
       }
-      
+*/      
       CAttribute::~CAttribute(void)
       { /* Ne rien faire de plus */ }
       
       ///--------------------------------------------------------------
-
+/*
       const boost::any & CAttribute::getAnyValue(void) const
       { 
          return (this->value); 
@@ -42,7 +42,7 @@ namespace xios
       { 
          return (this->value.empty()); 
       }
-
+*/
       const StdString & CAttribute::getName(void) const
       { 
          return (this->getId()); 
@@ -51,7 +51,7 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-      
+
       CMessage& operator<<(CMessage& msg,CAttribute& type)
       {
         msg.push(type) ;
@@ -60,7 +60,7 @@ namespace xios
 
      CMessage& operator<<(CMessage& msg, const CAttribute&  type)
      {
-       msg.push(*type.duplicate()) ;
+//       msg.push(*type.clone()) ;
        return msg ;
      }
  

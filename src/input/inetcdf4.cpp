@@ -709,7 +709,7 @@ namespace xios
       }
 
       template <>
-         void CINetCDF4::getData(ARRAY(int, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<int, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record)
       {
 
@@ -718,12 +718,12 @@ namespace xios
          int varid = this->getVariable(var, path);
          StdSize array_size = 1;
          this->getDataInfo(var, path, record, start, count, array_size);
-         data->resize(boost::extents[array_size]);
-         CheckError(nc_get_vara_int (grpid, varid, &(start[0]), &(count[0]), data->data()));
+         data.resize(array_size);
+         CheckError(nc_get_vara_int (grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
       }
 
       template <>
-         void CINetCDF4::getData(ARRAY(double, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<double, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record)
       {
          std::vector<StdSize> start, count;
@@ -731,12 +731,12 @@ namespace xios
          int varid = this->getVariable(var, path);
          StdSize array_size = 1;
          this->getDataInfo(var, path, record, start, count, array_size);
-         data->resize(boost::extents[array_size]);
-         CheckError(nc_get_vara_double (grpid, varid, &(start[0]), &(count[0]), data->data()));
+         data.resize(array_size);
+         CheckError(nc_get_vara_double (grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
       }
 
       template <>
-         void CINetCDF4::getData(ARRAY(float, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<float, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record)
       {
          std::vector<StdSize> start, count;
@@ -744,8 +744,8 @@ namespace xios
          int varid = this->getVariable(var, path);
          StdSize array_size = 1;
          this->getDataInfo(var, path, record, start, count, array_size);
-         data->resize(boost::extents[array_size]);
-         CheckError(nc_get_vara_float (grpid, varid, &(start[0]), &(count[0]), data->data()));
+         data.resize(array_size);
+         CheckError(nc_get_vara_float (grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
       }
 
       //---------------------------------------------------------------

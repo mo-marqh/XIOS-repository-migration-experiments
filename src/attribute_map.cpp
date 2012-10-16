@@ -22,8 +22,7 @@ namespace xios
          for (; it != end; it++)
          {
             const StdStrAttPair & att = *it;
-            if (!att.second->isEmpty())
-               att.second->clear();
+            att.second->reset();
          }
       }
 
@@ -44,7 +43,8 @@ namespace xios
          if (attr == NULL)
             ERROR("CAttributeMap::setAttribute(key, attr)",
                    << "[ key = " << key << "] attr is null !");
-         this->find(key)->second->setAnyValue(attr->getAnyValue());
+         this->find(key)->second->set(*attr) ;
+//         this->find(key)->second->setAnyValue(attr->getAnyValue());
       }
       
       //---------------------------------------------------------------
@@ -126,7 +126,7 @@ namespace xios
       }
       
       //---------------------------------------------------------------
-      
+/*      
       void CAttributeMap::toBinary(StdOStream & os) const
       {
          typedef std::pair<StdString, CAttribute*> StdStrAttPair;
@@ -183,7 +183,7 @@ namespace xios
                this->operator[](key)->fromBinary(is);
          }
       }
-      
+ */     
       void CAttributeMap::generateCInterface(ostream& oss, const string& className)
       {
          SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();
@@ -203,7 +203,7 @@ namespace xios
            oss<<iendl<<iendl ;
          }
       }      
-      
+ 
       ///--------------------------------------------------------------
 
       void CAttributeMap::generateFortranInterface_hdl_(ostream& oss, const string& className)

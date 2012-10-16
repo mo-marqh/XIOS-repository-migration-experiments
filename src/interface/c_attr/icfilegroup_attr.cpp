@@ -10,7 +10,7 @@
 #include "group_template.hpp"
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "file.hpp"
+#include "node_type.hpp"
 
 extern "C"
 {
@@ -201,7 +201,7 @@ extern "C"
     std::string type_str;
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
-    filegroup_hdl->type.setValue(type_str);
+    filegroup_hdl->type.fromString(type_str);
     filegroup_hdl->sendAttributToServer(filegroup_hdl->type);
      CTimer::get("XIOS").suspend();
   }
@@ -209,7 +209,7 @@ extern "C"
   void cxios_get_filegroup_type(filegroup_Ptr filegroup_hdl, char * type, int type_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(filegroup_hdl->type.getValue(),type , type_size))
+    if(!string_copy(filegroup_hdl->type.getStringValue(),type , type_size))
       ERROR("void cxios_get_filegroup_type(filegroup_Ptr filegroup_hdl, char * type, int type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }

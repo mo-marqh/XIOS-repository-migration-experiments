@@ -137,8 +137,8 @@ namespace xios {
          virtual void parse(xml::CXMLNode & node);
 
          virtual StdString toString(void) const;
-         virtual void toBinary  (StdOStream & os) const;
-         virtual void fromBinary(StdIStream & is);
+//         virtual void toBinary  (StdOStream & os) const;
+//         virtual void fromBinary(StdIStream & is);
          
       public :
       

@@ -7,12 +7,13 @@
 #include "context.hpp"
 #include "grid.hpp"
 #include "timer.hpp"
-#include "array.hpp"
+#include "array_new.hpp"
+
 
 namespace xios {
 
-   template <StdSize N>
-   void CField::setData(const ARRAY(double, N) _data)
+   template <int N>
+   void CField::setData(const CArray<double, N>& _data)
    {
      const std::vector<CField*>& refField=getAllReference();
      std::vector<CField*>::const_iterator  it = refField.begin(), end = refField.end();
@@ -20,8 +21,8 @@ namespace xios {
      for (; it != end; it++) (*it)->updateData(_data) ;
     }
     
-   template <StdSize N>
-      bool CField::updateData(const ARRAY(double, N) _data)
+   template <int N>
+      bool CField::updateData(const CArray<double, N>& _data)
    {        
       CContext* context=CContext::getCurrent();
       const CDate & currDate = context->getCalendar()->getCurrentDate();
@@ -34,12 +35,12 @@ namespace xios {
 
       if (opeDate <= currDate)
       {
-         if (this->data->num_elements() != this->grid->storeIndex_client->num_elements())
+         if (this->data.numElements() != this->grid->storeIndex_client.numElements())
          {
-            this->data->resize(boost::extents[this->grid->storeIndex_client ->num_elements()]);
+            this->data.resize(this->grid->storeIndex_client.numElements());
          }
             
-         ARRAY_CREATE(input, double, 1, [this->data->num_elements()]);
+         CArray<double,1> input(data.numElements()) ;
          this->grid->inputField(_data, input);          
          (*this->foperation)(input);
          

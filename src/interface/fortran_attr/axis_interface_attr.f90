@@ -96,6 +96,45 @@ MODULE axis_interface_attr
     END SUBROUTINE cxios_get_axis_value
     
     
+    SUBROUTINE cxios_set_axis_zoom_begin(axis_hdl, zoom_begin) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: zoom_begin
+    END SUBROUTINE cxios_set_axis_zoom_begin
+    
+    SUBROUTINE cxios_get_axis_zoom_begin(axis_hdl, zoom_begin) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: zoom_begin
+    END SUBROUTINE cxios_get_axis_zoom_begin
+    
+    
+    SUBROUTINE cxios_set_axis_zoom_end(axis_hdl, zoom_end) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: zoom_end
+    END SUBROUTINE cxios_set_axis_zoom_end
+    
+    SUBROUTINE cxios_get_axis_zoom_end(axis_hdl, zoom_end) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: zoom_end
+    END SUBROUTINE cxios_get_axis_zoom_end
+    
+    
+    SUBROUTINE cxios_set_axis_zoom_size(axis_hdl, zoom_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: zoom_size
+    END SUBROUTINE cxios_set_axis_zoom_size
+    
+    SUBROUTINE cxios_get_axis_zoom_size(axis_hdl, zoom_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: zoom_size
+    END SUBROUTINE cxios_get_axis_zoom_size
+    
+    
     END INTERFACE
   
 END MODULE axis_interface_attr

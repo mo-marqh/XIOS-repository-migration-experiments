@@ -39,6 +39,7 @@ inline bool string_copy(const string& str, char* cstr,int cstr_size)
     return true ;
   }
 }
+/*
   template<class T>
   inline  bool array_copy(ARRAY(T,1) array_in, T* array_out, size_t extent1)
   {
@@ -62,6 +63,6 @@ inline bool string_copy(const string& str, char* cstr,int cstr_size)
     std::copy(array_in->data(), array_in->data() + array_in->num_elements(), array_out);
     return true ;
   }        
-
+*/
 
 #endif // __ICUTIL_HPP__

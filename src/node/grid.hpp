@@ -8,6 +8,8 @@
 #include "declare_group.hpp"
 #include "domain.hpp"
 #include "axis.hpp"
+#include "array_new.hpp"
+#include "attribute_array.hpp"
 
 namespace xios {
    
@@ -53,8 +55,8 @@ namespace xios {
          /// Traitements ///
          void solveReference(void);
 
-         virtual void toBinary  (StdOStream & os) const;
-         virtual void fromBinary(StdIStream & is);
+ //        virtual void toBinary  (StdOStream & os) const;
+//         virtual void fromBinary(StdIStream & is);
 
          /// Tests ///
          bool hasAxis(void) const;
@@ -62,10 +64,10 @@ namespace xios {
       public :
 
          /// Accesseurs ///
-         const std::deque<ARRAY(int, 1)> & getStoreIndex(void) const;
-         const std::deque<ARRAY(int, 1)> & getOutIIndex(void)  const;
-         const std::deque<ARRAY(int, 1)> & getOutJIndex(void)  const;
-         const std::deque<ARRAY(int, 1)> & getOutLIndex(void)  const;
+         const std::deque< CArray<int, 1>* > & getStoreIndex(void) const;
+         const std::deque< CArray<int, 1>* > & getOutIIndex(void)  const;
+         const std::deque< CArray<int, 1>* > & getOutJIndex(void)  const;
+         const std::deque< CArray<int, 1>* > & getOutLIndex(void)  const;
 
          const CAxis*   getRelAxis  (void) const;
          const CDomain* getRelDomain(void) const;
@@ -79,18 +81,15 @@ namespace xios {
 //         std::vector<StdSize> getGlobalShape(void) const;
 
          /// Entrées-sorties de champs ///
-         template <StdSize n>
-            void inputField(const ARRAY(double, n) field, ARRAY(double, 1) stored) const;
+         template <int n>
+            void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
             
-         void inputFieldServer(const std::deque<ARRAY(double, 1)> storedClient,
-                                                ARRAY(double, 1)  storedServer) const;
-/*
-         template <StdSize n>
-            void outputField(const ARRAY(double, 1) stored,  ARRAY(double, n) field) const;
-*/
-         void outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 3) field)  ;
-         void outputField(int rank, const ARRAY(double, 1) stored,  ARRAY(double, 2) field)  ;
-         void outputField(int rank,const ARRAY(double, 1) stored,  ARRAY(double, 1) field)  ; 
+         void inputFieldServer(const std::deque< CArray<double, 1>* > storedClient,
+                               CArray<double, 1>&  storedServer) const;
+
+         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,3>& field)  ;
+         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,2>& field)  ;
+         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ; 
    
          /// Destructeur ///
          virtual ~CGrid(void);
@@ -110,7 +109,7 @@ namespace xios {
       public :
 
          /// Entrées-sorties de champs (interne) ///
-         void storeField_arr(const double * const data, ARRAY(double, 1) stored) const;
+         void storeField_arr(const double * const data, CArray<double,1>& stored) const;
 
          /// Traitements protégés ///
          void computeIndexServer(void);
@@ -119,7 +118,7 @@ namespace xios {
          void solveAxisRef(void);
 
          static bool dispatchEvent(CEventServer& event) ;
-         void outputFieldToServer(ARRAY(double, 1) fieldIn, int rank, ARRAY(double, 1) fieldOut) ;
+         void outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut) ;
          static void recvIndex(CEventServer& event) ;
          void recvIndex(int rank, CBufferIn& buffer) ;
          void sendIndex(void) ;
@@ -133,38 +132,39 @@ namespace xios {
          CAxis*   axis ;
          CDomain* domain ;
 
-         std::deque<ARRAY(int, 1)> storeIndex ;
-         std::deque<ARRAY(int, 1)> out_i_index ;
-         std::deque<ARRAY(int, 1)> out_j_index ;
-         std::deque<ARRAY(int, 1)> out_l_index ;
-         ARRAY(int, 1) storeIndex_client ;
-         ARRAY(int, 1) out_i_client ;
-         ARRAY(int, 1) out_j_client ;
-         ARRAY(int, 1) out_l_client ;
+         std::deque< CArray<int, 1>* > storeIndex ;
+         std::deque< CArray<int, 1>* > out_i_index ;
+         std::deque< CArray<int, 1>* > out_j_index ;
+         std::deque< CArray<int, 1>* > out_l_index ;
          
-         map<int,ARRAY(int, 1)>  storeIndex_toSrv ;
+        CArray<int, 1>  storeIndex_client ;
+        CArray<int, 1>  out_i_client ;
+        CArray<int, 1>  out_j_client ;
+        CArray<int, 1>  out_l_client ;
+         
+         map<int, CArray<int, 1>* >  storeIndex_toSrv ;
          map<int,int> nbSenders ;
 //         std::deque<ARRAY(int, 1)> out_i_toSrv ;
 //         std::deque<ARRAY(int, 1)> out_j_toSrv ;
 //         std::deque<ARRAY(int, 1)> out_l_toSrv ;
          
-         map<int,ARRAY(int, 1)> out_i_fromClient ;
-         map<int,ARRAY(int, 1)> out_j_fromClient ;
-         map<int,ARRAY(int, 1)> out_l_fromClient ;
+         map<int, CArray<int, 1>* > out_i_fromClient ;
+         map<int, CArray<int, 1>* > out_j_fromClient ;
+         map<int, CArray<int, 1>* > out_l_fromClient ;
          
    }; // class CGrid
 
    ///--------------------------------------------------------------
 
-   template <StdSize n>
-      void CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored) const
+   template <int n>
+      void CGrid::inputField(const CArray<double,n>& field, CArray<double,1>& stored) const
    {
-      if (this->getDataSize() != field->num_elements())
-         ERROR("CGrid::inputField(const  ARRAY(double, n) field, ARRAY(double, 1) stored)",
+      if (this->getDataSize() != field.numElements())
+         ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
                 << "[ Taille des données attendue = " << this->getDataSize()       << ", "
-                << "Taille des données reçue = "      << field->num_elements() << " ] "
+                << "Taille des données reçue = "      << field.numElements() << " ] "
                 << "Le tableau de données n'a pas la bonne taille !") ;
-      this->storeField_arr(field->data(), stored) ;
+      this->storeField_arr(field.dataFirst(), stored) ;
    }
 
    ///--------------------------------------------------------------

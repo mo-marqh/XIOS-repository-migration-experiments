@@ -37,7 +37,7 @@ namespace xios
    { /* Ne rien faire de plus */ }
    
    ///--------------------------------------------------------------
-   
+/*
    template <class U, class V, class W>
       void CGroupTemplate<U, V, W>::toBinary(StdOStream & os) const
    {
@@ -160,7 +160,7 @@ namespace xios
          }   
       }
    }
-
+*/
    //--------------------------------------------------------------
 
    template <class U, class V, class W>

@@ -11,7 +11,7 @@
 namespace xios
 {
 
-  class CMessage : public CBaseType 
+  class CMessage
   {
     public:
     
@@ -22,7 +22,7 @@ namespace xios
     virtual size_t size(void) const;
   
     CMessage& push(const CBaseType& type) ; 
-    CMessage& push(CBaseType& type) ;
+//    CMessage& push(CBaseType& type) ;
     void clear(void) ;  
     ~CMessage() ;    
   } ;
@@ -30,7 +30,7 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, CMessage& msg) ;
   CBufferIn& operator>>(CBufferIn& buffer, CMessage& msg) ;
 
-  CMessage& operator<<(CMessage& msg,CBaseType& type) ;
+//  CMessage& operator<<(CMessage& msg,CBaseType& type) ;
   CMessage& operator<<(CMessage& msg,const CBaseType& type) ;
  
 }

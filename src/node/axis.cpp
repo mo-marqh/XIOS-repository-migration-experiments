@@ -72,7 +72,7 @@ namespace xios {
       this->zoom_end.setValue(zoom_end) ;
       this->zoom_size.setValue(zoom_size) ;
       
-      StdSize true_size = value.getValue()->num_elements();
+      StdSize true_size = value.numElements();
       if (size != true_size)
          ERROR("CAxis::checkAttributes(void)",
                << "Le tableau \'value\' a une taille différente de celle indiquée dans l'attribut \'size\'")

@@ -4,7 +4,7 @@
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
-#include "array.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {
@@ -15,14 +15,13 @@ namespace xios
       {
          /// Définition de type ///
          typedef CObject SuperClass;
-         typedef ARRAY(double, 1) DoubleArray;
 
          public :
 
             /// Accesseurs ///
-            DoubleArray getDataOutput(void) const;
+            CArray<double,1> getDataOutput(void) const;
             /// Opérateur ///
-            DoubleArray operator ()(const DoubleArray dinput);
+            CArray<double,1> operator ()(const CArray<double,1>& dinput);
 
             /// Destructeur ///
             virtual ~CFunctor(void);
@@ -33,7 +32,7 @@ namespace xios
          protected :
 
             /// Traitement ///
-            virtual void apply(const DoubleArray dinput, DoubleArray doutput) = 0;
+            virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput) = 0;
 
             /// Autres ///
             virtual StdString toString(void) const;
@@ -41,16 +40,13 @@ namespace xios
 
             /// Constructeurs ///
             CFunctor(void);                             // Not implemented.
-            CFunctor(const StdString & id, DoubleArray doutput);
+            CFunctor(const StdString & id, CArray<double,1>& doutput);
             CFunctor(const CFunctor & functor);         // Not implemented.
             CFunctor(const CFunctor * const functor);   // Not implemented.
 
-         private :
-
-            /// Propriétés privées ///
-            DoubleArray doutput;
-            
          protected :
+            /// Propriétés privées ///
+            CArray<double,1>& doutput;
             /// Propriétés protégées ///   
             int nbcall;            
       }; // class CFunctor

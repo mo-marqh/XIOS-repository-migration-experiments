@@ -4,8 +4,8 @@
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
-#include "array.hpp"
 #include "data_output.hpp"
+#include "array_new.hpp"
 
 #include <mpi.h>
 #define MPI_INCLUDED
@@ -65,13 +65,13 @@ namespace xios
                   (const StdString & name, const T & value, const StdString * varname = NULL);
 
             /// Ecriture des données ///
-            template <class T, StdSize ndim>
-               void writeData(const ARRAY(T, ndim) data, const StdString & name,
+            template <class T, int ndim>
+               void writeData(const CArray<T,ndim>& data, const StdString & name,
                               bool collective, StdSize record,
                               const std::vector<StdSize> * start = NULL,
                               const std::vector<StdSize> * count = NULL);
 
-            void writeData(const ARRAY(int, 2) data, const StdString & name);
+            void writeData(const CArray<int, 2>& data, const StdString & name);
 
             /// Accesseur ///
             const CONetCDF4Path & getCurrentPath(void) const;

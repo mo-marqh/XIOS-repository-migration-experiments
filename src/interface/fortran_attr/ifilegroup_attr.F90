@@ -12,7 +12,7 @@ CONTAINS
   
   SUBROUTINE xios(set_filegroup_attr)  &
     ( filegroup_id, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-    , split_freq, sync_freq, type )
+    , par_access, split_freq, sync_freq, type )
     
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -25,6 +25,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
@@ -32,13 +33,13 @@ CONTAINS
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(set_filegroup_attr_hdl_)   &
       ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-      , split_freq, sync_freq, type )
+      , par_access, split_freq, sync_freq, type )
     
   END SUBROUTINE xios(set_filegroup_attr)
   
   SUBROUTINE xios(set_filegroup_attr_hdl)  &
     ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-    , split_freq, sync_freq, type )
+    , par_access, split_freq, sync_freq, type )
     
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -50,19 +51,20 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       
       CALL xios(set_filegroup_attr_hdl_)  &
       ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-      , split_freq, sync_freq, type )
+      , par_access, split_freq, sync_freq, type )
     
   END SUBROUTINE xios(set_filegroup_attr_hdl)
   
   SUBROUTINE xios(set_filegroup_attr_hdl_)   &
     ( filegroup_hdl, description_, enabled_, group_ref_, name_, name_suffix_, output_freq_, output_level_  &
-    , split_freq_, sync_freq_, type_ )
+    , par_access_, split_freq_, sync_freq_, type_ )
     
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -74,6 +76,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
@@ -107,6 +110,10 @@ CONTAINS
         CALL cxios_set_filegroup_output_level(filegroup_hdl%daddr, output_level_)
       ENDIF
       
+      IF (PRESENT(par_access_)) THEN
+        CALL cxios_set_filegroup_par_access(filegroup_hdl%daddr, par_access_, len(par_access_))
+      ENDIF
+      
       IF (PRESENT(split_freq_)) THEN
         CALL cxios_set_filegroup_split_freq(filegroup_hdl%daddr, split_freq_, len(split_freq_))
       ENDIF
@@ -125,7 +132,7 @@ CONTAINS
   
   SUBROUTINE xios(get_filegroup_attr)  &
     ( filegroup_id, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-    , split_freq, sync_freq, type )
+    , par_access, split_freq, sync_freq, type )
     
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -138,6 +145,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
@@ -145,13 +153,13 @@ CONTAINS
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(get_filegroup_attr_hdl_)   &
       ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-      , split_freq, sync_freq, type )
+      , par_access, split_freq, sync_freq, type )
     
   END SUBROUTINE xios(get_filegroup_attr)
   
   SUBROUTINE xios(get_filegroup_attr_hdl)  &
     ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-    , split_freq, sync_freq, type )
+    , par_access, split_freq, sync_freq, type )
     
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -163,19 +171,20 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       
       CALL xios(get_filegroup_attr_hdl_)  &
       ( filegroup_hdl, description, enabled, group_ref, name, name_suffix, output_freq, output_level  &
-      , split_freq, sync_freq, type )
+      , par_access, split_freq, sync_freq, type )
     
   END SUBROUTINE xios(get_filegroup_attr_hdl)
   
   SUBROUTINE xios(get_filegroup_attr_hdl_)   &
     ( filegroup_hdl, description_, enabled_, group_ref_, name_, name_suffix_, output_freq_, output_level_  &
-    , split_freq_, sync_freq_, type_ )
+    , par_access_, split_freq_, sync_freq_, type_ )
     
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -187,6 +196,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
@@ -218,6 +228,10 @@ CONTAINS
       
       IF (PRESENT(output_level_)) THEN
         CALL cxios_get_filegroup_output_level(filegroup_hdl%daddr, output_level_)
+      ENDIF
+      
+      IF (PRESENT(par_access_)) THEN
+        CALL cxios_get_filegroup_par_access(filegroup_hdl%daddr, par_access_, len(par_access_))
       ENDIF
       
       IF (PRESENT(split_freq_)) THEN

@@ -3,6 +3,7 @@
 
 /// xmlioserver headers ///
 #include "functor.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {
@@ -13,19 +14,18 @@ namespace xios
       {
          /// Définition de type ///
          typedef CFunctor SuperClass;
-         typedef ARRAY(double, 1) DoubleArray;
 
          public :
 
             /// Constructeurs ///
             //CMinimum(void);                             // Not implemented.
             //CMinimum(const CFunData & data);
-            CMinimum(DoubleArray doutput);
+            CMinimum(CArray<double,1>& doutput);
             //CMinimum(const CMinimum & Minimum);         // Not implemented.
             //CMinimum(const CMinimum * const Minimum);   // Not implemented.
 
             /// Traitement ///
-            virtual void apply(const DoubleArray dinput, DoubleArray doutput);
+            virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
 
             /// Destructeur ///
             virtual ~CMinimum(void);

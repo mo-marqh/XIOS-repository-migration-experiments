@@ -10,6 +10,7 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include "object_template.hpp"
+#include "array_new.hpp"
 #include <mpi.h>
 
 
@@ -26,28 +27,14 @@ int main (int argc, char ** argv, char ** UNUSED (env))
    CBufferOut bufferOut(&buff,sizeof(buff)) ;
    CBufferIn  bufferIn(&buff,sizeof(buff)) ;
    CMessage msg ;
-/*
-   msg<<(int)3<<(int)2<<(int)1<<str ;
-//   msg<<a<<b<<c ;
-   std::cout<<"message size : "<<msg.size()<<std::endl ;
-   str="turlututu" ;
-   bufferOut<<msg ;
-   msg.clear() ;
-   msg<<a<<b<<c<<str ;
-//   bufferIn>>c>>b>>a>>str ;
-   bufferIn>>msg ;
-   std::cout<<a<<"  "<<b<<"  "<<c<<"  "<<str<<endl ;
-*/
-//   CAttributeTemplate<ARRAY(double,1)> tabIn ;
- //  CAttributeTemplate<ARRAY(double,1)> tabOut ;
-   CAttributeTemplate<ARRAY(double,1)> tabIn("in") ;
-   CAttributeTemplate<ARRAY(double,1)> tabOut("out") ;
 
-   ARRAY_CREATE(tab,double,1,[5]) ; 
- //   tab->resize(extents[5]) ;
-    (*tab)[0]=0 ; (*tab)[1]=1 ;(*tab)[2]=2 ; (*tab)[3]=3 ;(*tab)[4]=4 ;
+   CAttributeArray<double,1> tabIn("in") ;
+   CAttributeArray<double,1> tabOut("out") ;
+
+   CArray<double,1> tab(5)
+    tab=0,1,2,3,4 ;
     tabIn=tab ;
-    (*tab)[0]=4 ; (*tab)[1]=3 ;(*tab)[2]=2 ; (*tab)[3]=1 ;(*tab)[4]=0 ;
+    tab= 4,3,2,1,0
     tabOut=tab ;
 //   tabOut=1 ;
    tabIn.toBuffer(bufferOut) ;

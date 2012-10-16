@@ -23,8 +23,7 @@ namespace xios{
       , nstep(0)
       , last_Write(), last_operation()
       , foperation()
-      , data(new CArray<double, 1>(boost::extents[0]))
-   { /* Ne rien faire de plus */ }
+      { /* Ne rien faire de plus */ }
 
    CField::CField(const StdString & id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
@@ -34,7 +33,6 @@ namespace xios{
       , nstep(0)
       , last_Write(), last_operation()
       , foperation()
-      , data(new CArray<double, 1>(boost::extents[0]))
    { /* Ne rien faire de plus */ }
 
    CField::~CField(void)
@@ -42,25 +40,24 @@ namespace xios{
 //      this->grid.reset() ;
 //      this->file.reset() ;
       this->foperation.reset() ;
-      this->data.reset() ;
    }
 
    //----------------------------------------------------------------
 
    bool CField::updateDataServer
       (const CDate & currDate,
-       const std::deque<ARRAY(double, 1)> storedClient)
+       const std::deque< CArray<double, 1>* > storedClient)
    {
       const CDate opeDate      = *last_operation + freq_operation;
       const CDate writeDate    = *last_Write     + freq_write; 
       
       if (opeDate <= currDate)
       {
-         if (this->data->num_elements() != this->grid->storeIndex[0]->num_elements())
+         if (this->data.numElements() != this->grid->storeIndex[0]->numElements())
          {
-            this->data->resize(boost::extents[this->grid->storeIndex[0] ->num_elements()]);
+            this->data.resize(this->grid->storeIndex[0] ->numElements());
          }  
-         ARRAY_CREATE(input, double, 1, [this->data->num_elements()]);
+         CArray<double,1> input(data.numElements()) ;
          this->grid->inputFieldServer(storedClient, input);          
          (*this->foperation)(input);
          *last_operation = currDate;
@@ -102,22 +99,25 @@ namespace xios{
     
     CEventClient event(getType(),EVENT_ID_UPDATE_DATA) ;
     
-    map<int,ARRAY(int, 1)>::iterator it ;
+    map<int,CArray<int, 1>* >::iterator it ;
     list<shared_ptr<CMessage> > list_msg ;
-    list<ARRAY(double,1) > list_data ;
+    list< CArray<double,1>* > list_data ;
     
     for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
     {
       int rank=(*it).first ;
-      ARRAY(int,1) index=(*it).second ;
-      ARRAY_CREATE(data_tmp,double,1,[index->num_elements()]) ;
-      for(int n=0;n<data_tmp->num_elements();n++) (*data_tmp)[n]=(*data)[(*index)[n]] ;
+      CArray<int,1>& index = *(it->second) ;
+      CArray<double,1> data_tmp(index.numElements()) ;
+      
+      for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
-      list_data.push_back(data_tmp) ;
-      *list_msg.back()<<getId()<<list_data.back() ;
+      list_data.push_back(new CArray<double,1>(data_tmp)) ;
+      *list_msg.back()<<getId()<<*list_data.back() ;
       event.push(rank,grid->nbSenders[rank],*list_msg.back()) ;
     }
     client->sendEvent(event) ;
+    
+    for(list< CArray<double,1>* >::iterator it=list_data.begin();it!=list_data.end();it++) delete *it ;
   }
   
   void CField::recvUpdateData(CEventServer& event)
@@ -144,12 +144,12 @@ namespace xios{
     
     if (data_srv.empty())
     {
-      for(map<int,ARRAY(int, 1)>::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
+      for(map<int, CArray<int, 1>* >::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
       {
         int rank=it->first ;
-        ARRAY_CREATE(data_tmp,double,1,[it->second->num_elements()]) ;
-        data_srv.insert(pair<int, ARRAY(double,1)>(rank,data_tmp)) ;
-        foperation_srv.insert(pair<int,boost::shared_ptr<func::CFunctor> >(rank,boost::shared_ptr<func::CFunctor>(new func::CInstant(data_srv[rank])))) ;
+        CArray<double,1> data_tmp(it->second->numElements()) ;
+        data_srv.insert( pair<int, CArray<double,1>* >(rank, new CArray<double,1>(data_tmp) ) ) ;
+        foperation_srv.insert(pair<int,boost::shared_ptr<func::CFunctor> >(rank,boost::shared_ptr<func::CFunctor>(new func::CInstant(*data_srv[rank])))) ;
       }
     }
 
@@ -164,7 +164,7 @@ namespace xios{
     {
       for(int n=0;n<ranks.size();n++)
       {
-        ARRAY_CREATE(data_tmp,double,1,[0]) ;
+        CArray<double,1> data_tmp ;
         *buffers[n]>>data_tmp ;
         (*foperation_srv[ranks[n]])(data_tmp) ;
       }
@@ -186,7 +186,8 @@ namespace xios{
   
   void CField::writeField(void)
   {
-    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file")
+//    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file")
+    if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
     {
       getRelFile()->checkFile();
       this->incrementNStep();
@@ -304,7 +305,7 @@ namespace xios{
    }
    //----------------------------------------------------------------
    
-   ARRAY(double, 1) CField::getData(void) const
+   CArray<double, 1> CField::getData(void) const
    {
       return(this->data);
    }
@@ -409,6 +410,7 @@ namespace xios{
                         
          const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
          *this->last_operation   = *this->last_operation - toffset;  
+         cout<<operation<<endl ;
          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
@@ -428,19 +430,19 @@ namespace xios{
    }
    
    //----------------------------------------------------------------
-   
+/*
    void CField::fromBinary(StdIStream & is)
    {
       SuperClass::fromBinary(is);
 #define CLEAR_ATT(name_)\
-      SuperClassAttribute::operator[](#name_)->clear()
+      SuperClassAttribute::operator[](#name_)->reset()
 
          CLEAR_ATT(domain_ref);
          CLEAR_ATT(axis_ref);
 #undef CLEAR_ATT
 
    }
-
+*/
    //----------------------------------------------------------------
 
    void CField::solveGridReference(void)
@@ -536,21 +538,21 @@ namespace xios{
       }
    }
    
-   void CField::outputField(ARRAY(double,3) fieldOut)
+   void CField::outputField(CArray<double,3>& fieldOut)
    {
-      map<int,ARRAY(double,1)>::iterator it;
+      map<int, CArray<double,1>* >::iterator it;
       for(it=data_srv.begin();it!=data_srv.end();it++)
-         grid->outputField(it->first,it->second, fieldOut) ;
+         grid->outputField(it->first,*it->second, fieldOut) ;
       
    }
    
-   void CField::outputField(ARRAY(double,2) fieldOut)
+   void CField::outputField(CArray<double,2>& fieldOut)
    {
-      map<int,ARRAY(double,1)>::iterator it;
+      map<int, CArray<double,1>* >::iterator it;
 
       for(it=data_srv.begin();it!=data_srv.end();it++)
       {
-         grid->outputField(it->first,it->second, fieldOut) ;
+         grid->outputField(it->first,*it->second, fieldOut) ;
       }
    }
    ///-------------------------------------------------------------------

@@ -5,9 +5,10 @@
 
 namespace xios
 {
+/*
       /// ////////////////////// Définitions ////////////////////// ///
 
-      /** Spécialisations des templates pour la fonction [toString] **/
+      /// Spécialisations des templates pour la fonction [toString] ///
       
       template <>
          StdString CAttributeTemplate<bool>::toString(void) const
@@ -25,7 +26,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [fromString] **/
+      /// Spécialisations des templates pour la fonction [fromString] ///
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::fromString(const StdString & str)
@@ -142,7 +143,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [toBinary] **/
+      /// Spécialisations des templates pour la fonction [toBinary] ///
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::toBinary (StdOStream & os) const
@@ -176,7 +177,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [fromBinary] **/
+      /// Spécialisations des templates pour la fonction [fromBinary] ///
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::fromBinary(StdIStream & is)
@@ -211,6 +212,6 @@ namespace xios
          is.read (reinterpret_cast<char*>(&value), sizeof(double));
          this->setValue(value);
       }
-
       ///--------------------------------------------------------------
+*/
 } // namespace xios

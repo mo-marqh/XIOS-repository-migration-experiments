@@ -9,6 +9,8 @@
 #include "event_client.hpp"
 #include "event_server.hpp"
 #include "buffer_in.hpp"
+#include "array_new.hpp"
+#include "attribute_array.hpp"
 
 namespace xios {
    
@@ -72,10 +74,10 @@ namespace xios {
       public :
       
          /// Autres ///
-         virtual void fromBinary(StdIStream & is);
+//         virtual void fromBinary(StdIStream & is);
 
          /// Accesseurs ///
-         ARRAY(int, 2) getLocalMask(void) const;
+         CArray<int, 2> getLocalMask(void) const;
          
          const std::set<StdString> & getRelFiles(void) const;
 
@@ -89,8 +91,8 @@ namespace xios {
          const std::vector<int> & getNiZoomSub(void) const;
          const std::vector<int> & getNjZoomSub(void) const;
          
-         const std::vector<ARRAY(double, 1)> & getLonValueSub(void) const;
-         const std::vector<ARRAY(double, 1)> & getLatValueSub(void) const;
+         const std::vector<CArray<double,1>* > & getLonValueSub(void) const;
+         const std::vector<CArray<double,1>* > & getLatValueSub(void) const;
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
@@ -110,7 +112,7 @@ namespace xios {
          int nj_srv,jbegin_srv,jend_srv ;
          int zoom_nj_srv,zoom_jbegin_srv,zoom_jend_srv ;
 
-         ARRAY(double, 1) lonvalue_srv, latvalue_srv ;
+         CArray<double, 1> lonvalue_srv, latvalue_srv ;
          
          
         vector<int> connectedServer,nbSenders ;
@@ -141,16 +143,17 @@ namespace xios {
          
          static ENodeType GetType(void);
 
+         CArray<int, 2> local_mask;
+
        private :
 
          /// Proriétés protégées ///
          bool isChecked;
-         ARRAY(int, 2) local_mask;
          std::set<StdString> relFiles;
 
          std::vector<int> ibegin_sub, iend_sub, jbegin_sub, jend_sub;
          std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub, ni_zoom_sub, nj_zoom_sub;
-         std::vector<ARRAY(double, 1)> lonvalue_sub, latvalue_sub;
+         std::vector<CArray<double,1>* > lonvalue_sub, latvalue_sub;
          
 
    }; // class CDomain

@@ -10,7 +10,7 @@
 #include "group_template.hpp"
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "axis.hpp"
+#include "node_type.hpp"
 
 extern "C"
 {
@@ -108,18 +108,59 @@ extern "C"
   
   void cxios_set_axis_value(axis_Ptr axis_hdl, double* value, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(double,1) array_tmp(new CArray<double,1>(boost::extents[extent1]));
-    std::copy(value, &(value[array_tmp->num_elements()]), array_tmp->data());
-    axis_hdl->value.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
+    axis_hdl->value.reference(tmp.copy());
     axis_hdl->sendAttributToServer(axis_hdl->value);
   }
   
   void cxios_get_axis_value(axis_Ptr axis_hdl, double* value, int extent1)
   {
-    if (!array_copy(axis_hdl->value.getValue(), value, extent1))
-     ERROR("void cxios_set_axis_value(axis_Ptr axis_hdl, double* value, int extent1)",<<"Output array size is not conform to array size attribute") ;
+    CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
+    tmp=axis_hdl->value ;
      CTimer::get("XIOS").suspend();
+  }
+  
+  
+  void cxios_set_axis_zoom_begin(axis_Ptr axis_hdl, int zoom_begin)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->zoom_begin.setValue(zoom_begin);
+    axis_hdl->sendAttributToServer(axis_hdl->zoom_begin);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_zoom_begin(axis_Ptr axis_hdl, int* zoom_begin)
+  {
+    *zoom_begin = axis_hdl->zoom_begin.getValue();
+  }
+  
+  
+  void cxios_set_axis_zoom_end(axis_Ptr axis_hdl, int zoom_end)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->zoom_end.setValue(zoom_end);
+    axis_hdl->sendAttributToServer(axis_hdl->zoom_end);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_zoom_end(axis_Ptr axis_hdl, int* zoom_end)
+  {
+    *zoom_end = axis_hdl->zoom_end.getValue();
+  }
+  
+  
+  void cxios_set_axis_zoom_size(axis_Ptr axis_hdl, int zoom_size)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->zoom_size.setValue(zoom_size);
+    axis_hdl->sendAttributToServer(axis_hdl->zoom_size);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_zoom_size(axis_Ptr axis_hdl, int* zoom_size)
+  {
+    *zoom_size = axis_hdl->zoom_size.getValue();
   }
   
   

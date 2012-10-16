@@ -3,6 +3,7 @@
 
 /// xios headers ///
 #include "functor.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {
@@ -13,19 +14,18 @@ namespace xios
       {
          /// Définition de type ///
          typedef CFunctor SuperClass;
-         typedef ARRAY(double, 1) DoubleArray;
 
          public :
 
             /// Constructeurs ///
             //CMaximum(void);                             // Not implemented.
             //CMaximum(const CFunData & data);
-            CMaximum(DoubleArray doutput);
+            CMaximum(CArray<double,1>& doutput);
             //CMaximum(const CMaximum & Maximum);         // Not implemented.
             //CMaximum(const CMaximum * const Maximum);   // Not implemented.
 
             /// Traitement ///
-            virtual void apply(const DoubleArray dinput, DoubleArray doutput);
+            virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
 
             /// Destructeur ///
             virtual ~CMaximum(void);

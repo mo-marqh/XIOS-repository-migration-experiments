@@ -11,15 +11,15 @@ namespace xios
    
    CMessage& CMessage::push(const CBaseType& type)
    {
-     typeList.push_back(type.duplicate());
+     typeList.push_back(type.clone());
      return *this ;
    }
    
-    CMessage& CMessage::push(CBaseType& type)
-   {
-     typeList.push_back(&type);
-     return *this ;
-   }
+//    CMessage& CMessage::push(CBaseType& type)
+//   {
+//     typeList.push_back(&type);
+//     return *this ;
+//   }
    
    size_t CMessage::size(void) const
    {
@@ -65,7 +65,7 @@ namespace xios
     void CMessage::clear()
     {
       list<CBaseType*>::iterator it; 
-      for(it=typeList.begin();it!=typeList.end();it++) (*it)->destroy() ;
+      for(it=typeList.begin();it!=typeList.end();it++) delete *it ;
       typeList.clear() ;
     }
 
@@ -96,10 +96,10 @@ namespace xios
     return msg ;
   }
 
-  CMessage& operator<<(CMessage& msg, const CBaseType&  type)
-  {
-    msg.push(*type.duplicate()) ;
-    return msg ;
-  } 
+//  CMessage& operator<<(CMessage& msg, const CBaseType&  type)
+//  {
+//    msg.push(*type.clone()) ;
+//    return msg ;
+//  } 
   
 }

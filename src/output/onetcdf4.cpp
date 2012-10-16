@@ -357,7 +357,7 @@ namespace xios
       template <>
          void CONetCDF4::writeData_(int grpid, int varid,
                                     const std::vector<StdSize> & sstart,
-                                    const std::vector<StdSize> & scount, double * data)
+                                    const std::vector<StdSize> & scount, const double * data)
       {
          cout<<"writeData_"<<endl ;
          for(int i=0;i<sstart.size();i++) cout<<sstart[i]<<"   " ;
@@ -374,7 +374,7 @@ namespace xios
       template <>
          void CONetCDF4::writeData_(int grpid, int varid,
                                     const std::vector<StdSize> & sstart,
-                                    const std::vector<StdSize> & scount, int * data)
+                                    const std::vector<StdSize> & scount, const int * data)
       {
           CheckError(nc_put_vara_int(grpid, varid, &(sstart[0]), &(scount[0]), data));
 //          sync() ;
@@ -385,7 +385,7 @@ namespace xios
       template <>
          void CONetCDF4::writeData_(int grpid, int varid,
                                     const std::vector<StdSize> & sstart,
-                                    const std::vector<StdSize> & scount, float * data)
+                                    const std::vector<StdSize> & scount, const float * data)
       {
           CheckError(nc_put_vara_float(grpid, varid, &(sstart[0]), &(scount[0]), data));
 //          sync() ;
@@ -393,7 +393,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CONetCDF4::writeData(const ARRAY(int, 2) data, const StdString & name)
+      void CONetCDF4::writeData(const CArray<int, 2>& data, const StdString & name)
       {
          int grpid = this->getCurrentGroup();
          int varid = this->getVariable(name);
@@ -401,7 +401,7 @@ namespace xios
          std::vector<StdSize> sstart, scount;
 
          this->getWriteDataInfos(name, 0, array_size,  sstart, scount, NULL, NULL);
-         this->writeData_(grpid, varid, sstart, scount, data->data());
+         this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
       }
 
       //---------------------------------------------------------------

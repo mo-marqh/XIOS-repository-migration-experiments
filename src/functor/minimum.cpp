@@ -1,4 +1,6 @@
 #include "minimum.hpp"
+#include "array_new.hpp"
+#include <algorithm>
 
 namespace xios
 {
@@ -6,7 +8,7 @@ namespace xios
    {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CMinimum::CMinimum(DoubleArray doutput)
+      CMinimum::CMinimum(CArray<double,1>& doutput)
          : SuperClass(StdString("minimum"), doutput)
       { /* Ne rien faire de plus */ }
 
@@ -15,15 +17,16 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      void CMinimum::apply(const DoubleArray _dinput,
-                                 DoubleArray _doutput)
+      void CMinimum::apply(const CArray<double,1>& _dinput,
+                                 CArray<double,1>& _doutput)
       {
-         const double * it1  = _dinput->data(),
-                      * end1 = _dinput->data() + _dinput->num_elements();
-         double * it   = _doutput->data();
-         if (this->nbcall == 1)
-              for (; it1 != end1; it1++, it++) *it = *it1;
-         else for (; it1 != end1; it1++, it++) *it = std::min(*it1, *it);
+        const double * it1  = _dinput.dataFirst(),
+                      * end1 = _dinput.dataFirst() + _dinput.numElements();
+        double * it   = _doutput.dataFirst();
+        
+        if (this->nbcall == 1)  for (; it1 != end1; it1++, it++) *it = *it1;
+        else for (; it1 != end1; it1++, it++) *it = std::min(*it1, *it);
+
       }
 
       //---------------------------------------------------------------

@@ -15,7 +15,7 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
-      class CAttribute : public CObject, public CBaseType
+      class CAttribute : public CObject, public virtual CBaseType
       {
             typedef CObject SuperClass;
 
@@ -23,24 +23,24 @@ namespace xios
 
             /// Constructeurs ///
             explicit CAttribute(const StdString & id);
-            CAttribute(const CAttribute & attribut);
-            CAttribute(const CAttribute * const attribut); // Not implemented.
+//            CAttribute(const CAttribute & attribut);
+//            CAttribute(const CAttribute * const attribut); // Not implemented.
 
             /// Accesseurs ///
             const StdString & getName(void) const;
-            const boost::any & getAnyValue(void) const;
-            template <typename T> inline T getValue(void) const;
-            template <typename T> inline T* getRef(void);
+//            const boost::any & getAnyValue(void) const;
+//            template <typename T> inline T getValue(void) const;
+//            template <typename T> inline T* getRef(void);
 
-            /// Mutateurs ///
-            template <typename T> inline void setValue(const T & value);
-            void setAnyValue(const boost::any & value);
-            void clear(void);
+//            /// Mutateurs ///
+//            template <typename T> inline void setValue(const T & value);
+//            void setAnyValue(const boost::any & value);
+//            void clear(void);
 
             /// Test ///
-            bool isEmpty(void) const;
-            template <typename T> inline bool isType(void) const;
-
+//            bool isEmpty(void) const;
+//            template <typename T> inline bool isType(void) const;
+            virtual void set(const CAttribute& ) =0 ;
             /// Destructeur ///
             virtual ~CAttribute(void);
 
@@ -48,8 +48,9 @@ namespace xios
             virtual StdString toString(void) const = 0;
             virtual void fromString(const StdString & str) = 0;
 
-            virtual void toBinary  (StdOStream & os) const = 0;
-            virtual void fromBinary(StdIStream & is) = 0;
+//            virtual void toBinary  (StdOStream & os) const = 0;
+//            virtual void fromBinary(StdIStream & is) = 0;
+
             virtual void generateCInterface(ostream& oss, const string& className) = 0 ;
             virtual void generateFortran2003Interface(ostream& oss, const string& className) = 0 ;
             virtual void generateFortranInterfaceDeclaration_(ostream& oss,const string& className) = 0 ;
@@ -64,14 +65,15 @@ namespace xios
          protected :
 
             /// Constructeurs ///
-            CAttribute(void);  // Not implemented.
+//            CAttribute(void);  // Not implemented.
 
             /// Propriété ///
-            boost::any value;
+//            boost::any value;
 
       }; // class CAttribute
 
       /// ////////////////////// Définitions ////////////////////// ///
+/*
       template <typename T>
          T CAttribute::getValue(void) const
       { 
@@ -95,13 +97,14 @@ namespace xios
       { 
          return (this->value.type() == typeid(T)); 
       }
-
+*/
  
    CMessage& operator<<(CMessage& msg,CAttribute& type) ;
    CMessage& operator<<(CMessage& msg, const CAttribute&  type) ;
  
    CBufferOut& operator<<(CBufferOut& buffer,CAttribute& type) ;
    CBufferIn& operator>>(CBufferIn& buffer, CAttribute&  type) ;
+
 }
   // namespace xios
 

@@ -3,7 +3,7 @@
 namespace xios
 {
 # define  macro(type,size) \
-  template void CONetCDF4::writeData<type,size>(const ARRAY(type, size) data, const StdString & name, \
+  template void CONetCDF4::writeData<type,size>(const CArray<type, size>& data, const StdString & name, \
                                                bool collective, StdSize record, \
                                                const std::vector<StdSize> * start, \
                                                const std::vector<StdSize> * count) ;

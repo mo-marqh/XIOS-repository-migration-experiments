@@ -10,6 +10,8 @@
 #include "date.hpp"
 #include "declare_group.hpp"
 #include "calendar_util.hpp"
+#include "array_new.hpp"
+#include "attribute_array.hpp"
 //#include "context.hpp"
 
 
@@ -79,7 +81,7 @@ namespace xios {
 
          boost::shared_ptr<func::CFunctor> getFieldOperation(void) const;
          
-         ARRAY(double, 1) getData(void) const;
+         CArray<double, 1> getData(void) const;
 
          const StdString & getBaseFieldId(void) const;
 
@@ -88,11 +90,11 @@ namespace xios {
          void incrementNStep(void);
          void resetNStep() ;
 
-         template <StdSize N> bool updateData(const ARRAY(double, N)   data);
+         template <int N> bool updateData(const CArray<double, N>&   data);
          
          bool updateDataServer
                (const CDate & currDate,
-                const std::deque<ARRAY(double, 1)> storedClient);
+                const std::deque< CArray<double, 1>* > storedClient);
  
        public :
 
@@ -105,7 +107,7 @@ namespace xios {
          void solveGridReference(void);
          void solveOperation(void);
 
-         virtual void fromBinary(StdIStream & is);
+//         virtual void fromBinary(StdIStream & is);
 
          /// Destructeur ///
          virtual ~CField(void);
@@ -116,14 +118,14 @@ namespace xios {
          
          static ENodeType GetType(void);
          
-        template <StdSize N> void setData(const ARRAY(double, N) _data) ;
+        template <int N> void setData(const CArray<double, N>& _data) ;
         static bool dispatchEvent(CEventServer& event) ;
         void sendUpdateData(void) ;
         static void recvUpdateData(CEventServer& event) ;
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers) ;
         void writeField(void) ;
-        void outputField(ARRAY(double,3) fieldOut) ;
-        void outputField(ARRAY(double,2) fieldOut) ;
+        void outputField(CArray<double,3>& fieldOut) ;
+        void outputField(CArray<double,2>& fieldOut) ;
         
       public :
 
@@ -144,8 +146,8 @@ namespace xios {
          boost::shared_ptr<func::CFunctor> foperation;
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
          
-         ARRAY(double, 1) data;
-         map<int,ARRAY(double,1)> data_srv ;
+         CArray<double, 1> data;
+         map<int, CArray<double,1>* > data_srv ;
 
    }; // class CField
 

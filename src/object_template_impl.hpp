@@ -89,7 +89,8 @@ namespace xios
    }
    
    //---------------------------------------------------------------
-   
+
+/*   
    template <class T>
       void CObjectTemplate<T>::toBinary(StdOStream & os) const
    {
@@ -101,7 +102,8 @@ namespace xios
    {
       SuperClassMap::fromBinary(is); 
    }
-   
+*/
+
    //---------------------------------------------------------------
 
    template <class T>
@@ -320,6 +322,7 @@ namespace xios
      oss<<"#include \"group_template.hpp\""<<iendl ;
      oss<<"#include \"icutil.hpp\""<<iendl ;
      oss<<"#include \"timer.hpp\""<<iendl ;
+     oss<<"#include \"node_type.hpp\""<<iendl ;
      oss<<iendl ;
      oss<<"extern \"C\""<<iendl ;
      oss<<"{"<<iendl++ ;

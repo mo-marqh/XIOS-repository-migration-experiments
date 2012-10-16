@@ -10,7 +10,7 @@
 #include "group_template.hpp"
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "context.hpp"
+#include "node_type.hpp"
 
 extern "C"
 {

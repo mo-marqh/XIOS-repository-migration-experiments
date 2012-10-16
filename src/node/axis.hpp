@@ -6,6 +6,7 @@
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
+#include "attribute_array.hpp"
 
 namespace xios {
    

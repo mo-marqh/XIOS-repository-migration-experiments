@@ -4,6 +4,8 @@
 #include "attribute_template.hpp"
 #include "object_template.hpp"
 #include "group_template.hpp"
+#include "context.hpp"
+#include "file.hpp"
 
 int main (int argc, char ** argv, char ** UNUSED (env))
 {

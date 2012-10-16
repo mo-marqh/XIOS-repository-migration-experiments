@@ -175,7 +175,7 @@ namespace xios {
    }
    
    //----------------------------------------------------------------
-   
+/*
    void CContext::toBinary(StdOStream & os) const
    {
       SuperClass::toBinary(os);
@@ -191,9 +191,9 @@ namespace xios {
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
-   
+*/
    //----------------------------------------------------------------
-   
+/*
    void CContext::fromBinary(StdIStream & is)
    {
       SuperClass::fromBinary(is);
@@ -212,7 +212,7 @@ namespace xios {
 #include "node_type.conf"
       
    }
-   
+ */
    
    //----------------------------------------------------------------
 

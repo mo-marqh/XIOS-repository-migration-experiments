@@ -1,7 +1,6 @@
 #ifndef __XMLIO_CAttributeTemplate_impl__
 #define __XMLIO_CAttributeTemplate_impl__
 
-#include "array.hpp"
 #include "type.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
@@ -24,7 +23,7 @@ namespace xios
       {
          this->setValue(value);
       }
-
+/*
       template <class T>
          CAttributeTemplate<T>::CAttributeTemplate(const CAttribute & attribut)
          throw (CException)
@@ -33,7 +32,7 @@ namespace xios
          if (!attribut.isEmpty() && !attribut.isType<T>())
             ERROR("CAttributeTemplate", << "Invalid instantiation !");
       }
-
+*/
       template <class T>
          CAttributeTemplate<T>::CAttributeTemplate(const StdString & id,
                               xios_map<StdString, CAttribute*> & umap)
@@ -51,18 +50,21 @@ namespace xios
          this->setValue(value);
          umap.insert(umap.end(), std::make_pair(id, this));
       }
-
+/*
       template <class T>
-         CAttributeTemplate<T>::~CAttributeTemplate(void)
+      CAttributeTemplate<T>::~CAttributeTemplate(void)
       { 
-         this->clear();
+//         this->CType<T>::reset() ;
+//         this->clear();
       }
-
+*/
       ///--------------------------------------------------------------
 
       template <class T>
          T CAttributeTemplate<T>::getValue(void) const
       {
+         return CType<T>::get() ;
+/*
          if (SuperClass::isEmpty())
          {
             ERROR("T CAttributeTemplate<T>::getValue(void) const",
@@ -70,8 +72,10 @@ namespace xios
                   << " L'attribut est requis mais n'est pas défini !");
           }
          return (SuperClass::getValue<T>());
+*/
       }
 
+/*
       template <class T>
          T* CAttributeTemplate<T>::getRef(void)
       {
@@ -83,42 +87,56 @@ namespace xios
           }
          return (SuperClass::getRef<T>());
       }
+*/
 
       template <class T>
          void CAttributeTemplate<T>::setValue(const T & value)
       {
-         SuperClass::setValue<T>(value);
+         CType<T>::set(value) ;
+//         SuperClass::setValue<T>(value);
       }
+
+    template <class T>
+    void CAttributeTemplate<T>::set(const CAttribute& attr)
+    {
+      this->set(dynamic_cast<const CAttributeTemplate<T>& >(attr)) ;
+    } 
+
+   template <class T>
+    void CAttributeTemplate<T>::set(const CAttributeTemplate& attr)
+    {
+      CType<T>::set(attr) ;
+    } 
 
       //---------------------------------------------------------------
 
       template <class T>
-         T CAttributeTemplate<T>::operator=(const T & value)
+         CAttributeTemplate<T>& CAttributeTemplate<T>::operator=(const T & value)
       {
          this->setValue(value);
-         return (this->getValue());
+//         return (this->getValue());
+         return *this;
       }
 
       //---------------------------------------------------------------
 
       template <class T>
-         StdString CAttributeTemplate<T>::toString(void) const
+         StdString CAttributeTemplate<T>::_toString(void) const
       {
          StdOStringStream oss;
-         if (!this->isEmpty() && this->hasId())
-            oss << this->getName() << "=\"" << this->getValue() << "\"";
+         if (!CType<T>::isEmpty() && this->hasId())
+            oss << this->getName() << "=\"" << CType<T>::toString() << "\"";
          return (oss.str());
       }
 
       template <class T>
-         void CAttributeTemplate<T>::fromString(const StdString & str)
+         void CAttributeTemplate<T>::_fromString(const StdString & str)
       {
-         ERROR("CAttributeTemplate<T>::fromString(const StdString & str)",
-               << "[ str = " << str << " ] Not implemented yet !");
+        CType<T>::fromString(str) ;
       }
 
       //---------------------------------------------------------------
-
+/*
       template <class T>
          void CAttributeTemplate<T>::toBinary (StdOStream & os) const
       {
@@ -132,10 +150,12 @@ namespace xios
          FromBinary(is, value);
          this->setValue(value);
       }
-
+*/
       template <class T>
-         bool CAttributeTemplate<T>::toBuffer (CBufferOut& buffer) const
+         bool CAttributeTemplate<T>::_toBuffer (CBufferOut& buffer) const
       {
+         return CType<T>::toBuffer(buffer) ;
+/*         
          if (isEmpty()) return buffer.put(true) ;
          else
          {
@@ -145,11 +165,14 @@ namespace xios
            ret&=val.toBuffer(buffer) ;
            return ret ;
          }
+*/
       }
 
       template <class T>
-      bool CAttributeTemplate<T>::fromBuffer(CBufferIn& buffer)
+      bool CAttributeTemplate<T>::_fromBuffer(CBufferIn& buffer)
       {
+        return CType<T>::fromBuffer(buffer) ;
+/*        
         bool empty ;
         bool ret=true ;
         ret&=buffer.get(empty) ;
@@ -169,18 +192,22 @@ namespace xios
           CType<T> val(*V) ;
           return val.fromBuffer(buffer) ;
         }
+*/
       }
-
+/*
       template <class T>
       size_t CAttributeTemplate<T>::size(void) const
-      {
+      { 
+        return CType<T>::size() ;*/
+/*        
         if (isEmpty()) return sizeof(bool) ;
         else
         {
           CType<T> val(*const_cast<T*>(boost::any_cast<T>(&value))) ;
           return val.size()+sizeof(bool) ;
         }
-      }
+*/
+ /*     }*/
 
       template <typename T>
       void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)
@@ -230,17 +257,17 @@ namespace xios
         CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
       }
  
-      
+/*      
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [toString] **/
+      // Spécialisations des templates pour la fonction [toString] 
 
       template <>
          StdString CAttributeTemplate<bool>::toString(void) const;
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [fromString] **/
+      // Spécialisations des templates pour la fonction [fromString] 
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::fromString(const StdString & str);
@@ -259,7 +286,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [toBinary] **/
+      // Spécialisations des templates pour la fonction [toBinary] //
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::toBinary (StdOStream & os) const;
@@ -275,7 +302,7 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      /** Spécialisations des templates pour la fonction [fromBinary] **/
+      // Spécialisations des templates pour la fonction [fromBinary] //
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::fromBinary(StdIStream & is);
@@ -290,6 +317,7 @@ namespace xios
          void CAttributeTemplate<double>::fromBinary(StdIStream & is);
 
       ///--------------------------------------------------------------
+*/      
 } // namespace xios
 
 #endif // __XMLIO_CAttributeTemplate_impl__

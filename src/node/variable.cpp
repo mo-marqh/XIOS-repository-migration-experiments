@@ -59,7 +59,7 @@ namespace xios {
       oss << "</" << CVariable::GetName() << " >";
       return (oss.str());
    }
-
+/*
    void CVariable::toBinary(StdOStream & os) const
    {
      const StdString & content = this->content;
@@ -78,7 +78,7 @@ namespace xios {
       this->content.assign(size, ' ');
       is.read (const_cast<char *>(this->content.data()), size * sizeof(char));
    }
-
+*/
    void CVariableGroup::parse(xml::CXMLNode & node, bool withAttr)
    {
       CVariableGroup* group_ptr = (this->hasId())

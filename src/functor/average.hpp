@@ -3,6 +3,7 @@
 
 /// xmlioserver headers ///
 #include "functor.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {
@@ -13,19 +14,18 @@ namespace xios
       {
          /// Définition de type ///
          typedef CFunctor SuperClass;
-         typedef ARRAY(double, 1) DoubleArray;
 
          public :
 
             /// Constructeurs ///
             //CAverage(void);                             // Not implemented.
             //CAverage(const CFunData & data);
-            CAverage(DoubleArray doutput);
+            CAverage(CArray<double,1>& doutput);
             //CAverage(const CAverage & average);         // Not implemented.
             //CAverage(const CAverage * const average);   // Not implemented.
 
             /// Traitement ///
-            virtual void apply(const DoubleArray dinput, DoubleArray doutput);
+            virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
             virtual void final(void) ;
             
             /// Destructeur ///

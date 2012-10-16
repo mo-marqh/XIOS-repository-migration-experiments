@@ -26,8 +26,8 @@ namespace xios
          bool hasId(void) const;
 
          /// Opérateurs ///
-         bool operator==(const CObject & other) const;
-         bool operator!=(const CObject & other) const;
+//         bool operator==(const CObject & other) const;
+//         bool operator!=(const CObject & other) const;
 
          /// Flux ///
          friend StdOStream & operator << (StdOStream & os, const CObject & object);

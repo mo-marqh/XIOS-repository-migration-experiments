@@ -10,7 +10,7 @@
 #include "group_template.hpp"
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "domain.hpp"
+#include "node_type.hpp"
 
 extern "C"
 {
@@ -32,17 +32,16 @@ extern "C"
   
   void cxios_set_domain_data_i_index(domain_Ptr domain_hdl, int* data_i_index, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(int,1) array_tmp(new CArray<int,1>(boost::extents[extent1]));
-    std::copy(data_i_index, &(data_i_index[array_tmp->num_elements()]), array_tmp->data());
-    domain_hdl->data_i_index.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
+    domain_hdl->data_i_index.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->data_i_index);
   }
   
   void cxios_get_domain_data_i_index(domain_Ptr domain_hdl, int* data_i_index, int extent1)
   {
-    if (!array_copy(domain_hdl->data_i_index.getValue(), data_i_index, extent1))
-     ERROR("void cxios_set_domain_data_i_index(domain_Ptr domain_hdl, int* data_i_index, int extent1)",<<"Output array size is not conform to array size attribute") ;
+    CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
+    tmp=domain_hdl->data_i_index ;
      CTimer::get("XIOS").suspend();
   }
   
@@ -63,17 +62,16 @@ extern "C"
   
   void cxios_set_domain_data_j_index(domain_Ptr domain_hdl, int* data_j_index, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(int,1) array_tmp(new CArray<int,1>(boost::extents[extent1]));
-    std::copy(data_j_index, &(data_j_index[array_tmp->num_elements()]), array_tmp->data());
-    domain_hdl->data_j_index.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
+    domain_hdl->data_j_index.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->data_j_index);
   }
   
   void cxios_get_domain_data_j_index(domain_Ptr domain_hdl, int* data_j_index, int extent1)
   {
-    if (!array_copy(domain_hdl->data_j_index.getValue(), data_j_index, extent1))
-     ERROR("void cxios_set_domain_data_j_index(domain_Ptr domain_hdl, int* data_j_index, int extent1)",<<"Output array size is not conform to array size attribute") ;
+    CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
+    tmp=domain_hdl->data_j_index ;
      CTimer::get("XIOS").suspend();
   }
   
@@ -211,17 +209,16 @@ extern "C"
   
   void cxios_set_domain_latvalue(domain_Ptr domain_hdl, double* latvalue, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(double,1) array_tmp(new CArray<double,1>(boost::extents[extent1]));
-    std::copy(latvalue, &(latvalue[array_tmp->num_elements()]), array_tmp->data());
-    domain_hdl->latvalue.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
+    domain_hdl->latvalue.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->latvalue);
   }
   
   void cxios_get_domain_latvalue(domain_Ptr domain_hdl, double* latvalue, int extent1)
   {
-    if (!array_copy(domain_hdl->latvalue.getValue(), latvalue, extent1))
-     ERROR("void cxios_set_domain_latvalue(domain_Ptr domain_hdl, double* latvalue, int extent1)",<<"Output array size is not conform to array size attribute") ;
+    CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
+    tmp=domain_hdl->latvalue ;
      CTimer::get("XIOS").suspend();
   }
   
@@ -247,34 +244,32 @@ extern "C"
   
   void cxios_set_domain_lonvalue(domain_Ptr domain_hdl, double* lonvalue, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(double,1) array_tmp(new CArray<double,1>(boost::extents[extent1]));
-    std::copy(lonvalue, &(lonvalue[array_tmp->num_elements()]), array_tmp->data());
-    domain_hdl->lonvalue.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
+    domain_hdl->lonvalue.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->lonvalue);
   }
   
   void cxios_get_domain_lonvalue(domain_Ptr domain_hdl, double* lonvalue, int extent1)
   {
-    if (!array_copy(domain_hdl->lonvalue.getValue(), lonvalue, extent1))
-     ERROR("void cxios_set_domain_lonvalue(domain_Ptr domain_hdl, double* lonvalue, int extent1)",<<"Output array size is not conform to array size attribute") ;
+    CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
+    tmp=domain_hdl->lonvalue ;
      CTimer::get("XIOS").suspend();
   }
   
   
   void cxios_set_domain_mask(domain_Ptr domain_hdl, bool* mask, int extent1, int extent2)
   {
-     CTimer::get("XIOS").resume();
-    ARRAY(bool,2) array_tmp(new CArray<bool,2>(boost::extents[extent1][extent2]));
-    std::copy(mask, &(mask[array_tmp->num_elements()]), array_tmp->data());
-    domain_hdl->mask.setValue(array_tmp);
+    CTimer::get("XIOS").resume();
+    CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
+    domain_hdl->mask.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->mask);
   }
   
   void cxios_get_domain_mask(domain_Ptr domain_hdl, bool* mask, int extent1, int extent2)
   {
-    if (!array_copy(domain_hdl->mask.getValue(), mask, extent1, extent2))
-     ERROR("void cxios_set_domain_mask(domain_Ptr domain_hdl, bool* mask, int extent1, int extent2)",<<"Output array size is not conform to array size attribute") ;
+    CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domain_hdl->mask ;
      CTimer::get("XIOS").suspend();
   }
   

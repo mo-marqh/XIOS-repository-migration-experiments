@@ -4,7 +4,7 @@
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
-#include "array.hpp"
+#include "array_new.hpp"
 
 #include <mpi.h>
 #define MPI_INCLUDED
@@ -91,7 +91,7 @@ namespace xios
                                    const CVarPath  * const path = NULL);
 
             template <class T>
-               void getData(ARRAY(T, 1) data,
+               void getData(CArray<T, 1>& data,
                             const StdString & var,
                             const CVarPath  * const path = NULL,
                             StdSize record   = UNLIMITED_DIM);
@@ -219,15 +219,15 @@ namespace xios
 
       //---------------------------------------------------------------
       template <>
-         void CINetCDF4::getData(ARRAY(int, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<int, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record);
 
       template <>
-         void CINetCDF4::getData(ARRAY(double, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<double, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record);
 
       template <>
-         void CINetCDF4::getData(ARRAY(float, 1) data, const StdString & var,
+         void CINetCDF4::getData(CArray<float, 1>& data, const StdString & var,
                                  const CVarPath  * const path, StdSize record);
       ///--------------------------------------------------------------
 

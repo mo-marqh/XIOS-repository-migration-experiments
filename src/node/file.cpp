@@ -215,7 +215,7 @@ namespace xios {
       }
       nbDomain=setDomain.size() ;
 
-      if (!AllDomainEmpty ||  type.getValue()=="one_file")
+      if (!AllDomainEmpty ||  type == type_attr::one_file)
       {
          StdString filename = (!name.isEmpty()) ?   name.getValue() : getId();
          StdOStringStream oss;
@@ -227,8 +227,8 @@ namespace xios {
          bool multifile=true ;
          if (!type.isEmpty())
          {
-           if (type.getValue()=="one_file") multifile=false ;
-           else if (type.getValue()=="multi_file") multifile=true ;
+           if (type==type_attr::one_file) multifile=false ;
+           else if (type==type_attr::multiple_file) multifile=true ;
            else ERROR("void Context::createDataOutput(void)",
                       "incorrect file <type> attribut : must be <multi_file> or <one_file>, "
                       <<"having : <"<<type.getValue()<<">") ;
@@ -279,7 +279,7 @@ namespace xios {
    {
      delete lastSync ;
      delete lastSplit ;
-     if (!AllDomainEmpty ||  type.getValue()=="one_file")
+     if (!AllDomainEmpty ||  type==type_attr::one_file)
        if (isOpen) 
        {
          this->data_out->closeFile();
@@ -348,7 +348,7 @@ namespace xios {
    }
    
    //---------------------------------------------------------------
-   
+/*
    void CFile::toBinary  (StdOStream & os) const
    {
       ENodeType genum = CFileGroup::GetType();
@@ -381,7 +381,8 @@ namespace xios {
       if (hasVFG)this->getVirtualFieldGroup()->fromBinary(is);
       
    }
-   
+*/
+
    CField* CFile::addField(const string& id)
    {
      return vFieldGroup->createChild(id) ;

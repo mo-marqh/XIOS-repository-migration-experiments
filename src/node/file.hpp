@@ -7,6 +7,8 @@
 #include "data_output.hpp"
 #include "declare_group.hpp"
 #include "date.hpp"
+#include "attribute_enum.hpp"
+#include "attribute_enum_impl.hpp"
 
 
 
@@ -81,8 +83,8 @@ namespace xios {
          virtual void parse(xml::CXMLNode & node);
          virtual StdString toString(void) const;
          
-         virtual void toBinary  (StdOStream & os) const;
-         virtual void fromBinary(StdIStream & is);
+//         virtual void toBinary  (StdOStream & os) const;
+//         virtual void fromBinary(StdIStream & is);
 
          /// Accesseurs statiques ///
          static StdString GetName(void);

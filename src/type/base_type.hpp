@@ -12,16 +12,17 @@ namespace xios
   {
     public:
     
-    CBaseType(void) ;
-    virtual void fromString(const string& str) ;
-    virtual string toString(void) const;
+    CBaseType(void) {}
+    virtual ~CBaseType() {}
+    virtual void fromString(const string& str) =0 ;
+    virtual string toString(void) const =0;
     
-    virtual bool fromBuffer(CBufferIn& buffer) ;
-    virtual bool toBuffer(CBufferOut& buffer) const;
-    virtual CBaseType* duplicate(void) const;
-    virtual CBaseType* duplicate(void) ;
-    virtual void destroy(void) ;
-    virtual size_t size(void) const;
+    virtual bool fromBuffer(CBufferIn& buffer) =0;
+    virtual bool toBuffer(CBufferOut& buffer) const =0;
+    virtual CBaseType* clone(void) const =0;
+    virtual size_t size(void) const =0;
+    virtual bool isEmpty(void) const =0;
+    virtual void reset(void) =0;
   } ;
 
 }

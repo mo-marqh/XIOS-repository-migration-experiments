@@ -3,6 +3,7 @@
 
 /// xios headers ///
 #include "functor.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {
@@ -13,18 +14,17 @@ namespace xios
       {
          /// Définition de type ///
          typedef CFunctor SuperClass;
-         typedef ARRAY(double, 1) DoubleArray;
 
          public :
 
             /// Constructeurs ///
             //COnce(void);                       // Not implemented.
-            COnce(DoubleArray doutput);
+            COnce(CArray<double,1>& doutput);
             //COnce(const COnce & once);         // Not implemented.
             //COnce(const COnce * const once);   // Not implemented.
 
             /// Traitement ///
-            virtual void apply(const DoubleArray dinput, DoubleArray doutput);
+            virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
 
             /// Destructeur ///
             virtual ~COnce(void);

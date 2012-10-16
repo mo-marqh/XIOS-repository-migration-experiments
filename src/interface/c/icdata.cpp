@@ -22,6 +22,7 @@
 #include "context.hpp"
 #include <mpi.h>
 #include "timer.hpp"
+#include "array_new.hpp"
 
 extern "C"
 {
@@ -110,14 +111,11 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-//      boost::const_multi_array_ref<double, 1> array_(data_k8,
-//          boost::extents [data_Xsize],
-//          boost::fortran_storage_order());
-      ARRAY(double, 1) data(new CArray<double, 1>(boost::extents [data_Xsize]));
-      std::copy(data_k8, &(data_k8[data->num_elements()]), data->data());
-      
-//      dtreat->write_data(fieldid_str, data);
+
+      CArray<double,(StdSize)1> data(data_k8,shape(data_Xsize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
+      CField toto ;
+      toto.setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
@@ -131,12 +129,7 @@ extern "C"
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
       
-//      boost::const_multi_array_ref<double, 2> array_(data_k8,
-//          boost::extents [data_Xsize][data_Ysize],
-//          boost::fortran_storage_order());
-      ARRAY(double, 2) data(new CArray<double, 2>(boost::extents [data_Xsize][data_Ysize]));
-      std::copy(data_k8, &(data_k8[data->num_elements()]), data->data());
-//      dtreat->write_data(fieldid_str, data);
+      CArray<double,2>data(data_k8,shape(data_Xsize,data_Ysize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
@@ -150,12 +143,8 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-//      boost::const_multi_array_ref<double, 3> array_(data_k8,
-//          boost::extents [data_Xsize][data_Ysize][data_Zsize],
-//          boost::fortran_storage_order());
-      ARRAY(double, 3) data(new CArray<double, 3>(boost::extents [data_Xsize][data_Ysize][data_Zsize]));
-      std::copy(data_k8, &(data_k8[data->num_elements()]), data->data());
-//      dtreat->write_data(fieldid_str, data);
+
+      CArray<double,3>data(data_k8,shape(data_Xsize,data_Ysize,data_Zsize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
@@ -169,15 +158,9 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-//      boost::const_multi_array_ref<float, 1> array_(data_k4,
-//          boost::extents [data_Xsize],
-//          boost::fortran_storage_order());
-//      ARRAY(float, 1) data(new CArray<float, 1>(boost::extents [data_Xsize]));
-//      std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
-//      dtreat->write_data(fieldid_str, data);
-      ARRAY(double, 1) data(new CArray<double, 1>(boost::extents [data_Xsize]));
-      double* ptr_data=data->data() ; 
-      for(int i=0;i<data->num_elements();i++) ptr_data[i]=data_k4[i];
+      CArray<float,1> data_tmp(data_k4,shape(data_Xsize),neverDeleteData) ;
+      CArray<double,1> data(data_Xsize) ;
+      data=data_tmp ;
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
@@ -191,15 +174,9 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-//      boost::const_multi_array_ref<float, 2> array_(data_k4,
-//          boost::extents [data_Xsize][data_Ysize],
-//          boost::fortran_storage_order());
-//      ARRAY(float, 2) data(new CArray<float, 2>(boost::extents [data_Xsize][data_Ysize]));
-//      std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
-//      dtreat->write_data(fieldid_str, data);
-      ARRAY(double, 2) data(new CArray<double, 2>(boost::extents [data_Xsize][data_Ysize]));
-      double* ptr_data=data->data() ; 
-      for(int i=0;i<data->num_elements();i++) ptr_data[i]=data_k4[i];
+      CArray<float,2> data_tmp(data_k4,shape(data_Xsize,data_Ysize),neverDeleteData) ;
+      CArray<double,2> data(data_Xsize,data_Ysize) ;
+      data=data_tmp ;
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
@@ -214,16 +191,11 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-     
-//      boost::const_multi_array_ref<float, 3> array_(data_k4,
-//          boost::extents [data_Xsize][data_Ysize][data_Zsize],
-//          boost::fortran_storage_order());
-//      ARRAY(float, 3) data(new CArray<float, 3>(boost::extents [data_Xsize][data_Ysize][data_Zsize]));
-//      std::copy(data_k4, &(data_k4[data->num_elements()]), data->data());
-//      dtreat->write_data(fieldid_str, data);
-      ARRAY(double, 3) data(new CArray<double, 3>(boost::extents [data_Xsize][data_Ysize][data_Zsize]));
-      double* ptr_data=data->data() ; 
-      for(int i=0;i<data->num_elements();i++) ptr_data[i]=data_k4[i];
+
+      CArray<float,3> data_tmp(data_k4,shape(data_Xsize,data_Ysize,data_Zsize),neverDeleteData) ;
+      CArray<double,3> data(data_Xsize,data_Ysize,data_Zsize) ;
+      data=data_tmp ;
+ 
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;

@@ -5,8 +5,8 @@
 
 namespace xios
 {
-  template <class T, StdSize ndim>
-  void CONetCDF4::writeData(const ARRAY(T, ndim) data, const StdString & name,
+  template <class T, int ndim>
+  void CONetCDF4::writeData(const CArray<T, ndim>& data, const StdString & name,
                             bool collective, StdSize record,
                             const std::vector<StdSize> * start,
                             const std::vector<StdSize> * count)
@@ -23,15 +23,15 @@ namespace xios
 
     this->getWriteDataInfos
     (name, record, array_size,  sstart, scount, start, count);
-    if (data->num_elements() != array_size)
+    if (data.numElements() != array_size)
     {
       ERROR("CONetCDF4::writeData(...)",
-      << "[ input array size = "  << data->num_elements()
+      << "[ input array size = "  << data.numElements()
       << ", intern array size = " << array_size
       << " ] Invalid input data !" );
     }
          
-    this->writeData_(grpid, varid, sstart, scount, data->data());
+    this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
   }
       
 //----------------------------------------------------------------
@@ -53,15 +53,6 @@ namespace xios
   ///---------------------------------------------------------------
 
 }
-
-
-
-
-
-
-
-
-
 
 
 

@@ -78,12 +78,7 @@ namespace xios
          StdString latid_loc = (server->intraCommSize > 1)
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
-// supress mask         StdString maskid    = StdString("mask_").append(domid).append("_local");
 
-// supress mask         ARRAY(int, 2) mask = domain->getLocalMask();
-
-//         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
-//         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
          bool isCurvilinear = true ; //for moment
 
          switch (SuperClass::type)
@@ -257,10 +252,9 @@ namespace xios
 
                SuperClassWriter::definition_end();
                
-               ARRAY(double,1) axis_value=axis->value.getValue() ;
-               ARRAY_CREATE(value,double,1,[zoom_size]) ;
-               for(StdSize i = 0 ; i < zoom_size ; i++) (*value)[i]=(*axis_value)[i+zoom_begin] ;
-               SuperClassWriter::writeData(value, axisid, isCollective, 0);
+               CArray<double,1> axis_value(zoom_size) ;
+               for(StdSize i = 0 ; i < zoom_size ; i++) axis_value(i)=axis->value(i+zoom_begin) ;
+               SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
                
                SuperClassWriter::definition_start();
 
@@ -487,17 +481,16 @@ namespace xios
          oss << "time_" << field->operation.getValue()
              << "_" << field->getRelFile()->output_freq.getValue();
              
- //        ARRAY(double, 1) field_data = field->data_srv;
-         ARRAY_CREATE(time_data, double, 1, [1]);
-         if (field->operation.getValue()=="instant") (*time_data)[0] = Time(*field->last_Write_srv)
+         CArray<double,1> time_data(1) ;
+         if (field->operation.getValue()=="instant") time_data(0) = Time(*field->last_Write_srv)
                                                                       -Time(context->calendar->getTimeOrigin());
-         else (*time_data)[0] = (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2
+         else time_data(0) = (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2
                                -Time(context->calendar->getTimeOrigin());
            
          if (grid->hasAxis()) // 3D
          {
             CAxis* axis = grid->axis ;
-            ARRAY_CREATE(field_data3D,double,3,[domain->zoom_ni_srv][domain->zoom_nj_srv][axis->zoom_size.getValue()]) ;
+            CArray<double,3> field_data3D(domain->zoom_ni_srv,domain->zoom_nj_srv,axis->zoom_size) ;
             field->outputField(field_data3D);
             switch (SuperClass::type)
            {
@@ -531,7 +524,7 @@ namespace xios
          }
          else // 2D
          {
-            ARRAY_CREATE(field_data2D,double,2,[domain->zoom_ni_srv][domain->zoom_nj_srv]) ;
+            CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
             field->outputField(field_data2D);
             switch (SuperClass::type)
             {

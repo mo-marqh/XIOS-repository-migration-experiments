@@ -12,6 +12,7 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "array_new.hpp"
 
 namespace xios {
    
@@ -19,30 +20,25 @@ namespace xios {
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
-      , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
+      , isChecked(false),  relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
       , ibegin_zoom_sub(), jbegin_zoom_sub(), ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub(),lonvalue_srv(new CArray<double,1>())
-      , latvalue_srv(new CArray<double,1>())
+      , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
-      , isChecked(false), local_mask(new CArray<int, 2>(boost::extents[0][0])), relFiles()
+      , isChecked(false), relFiles()
       , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
       , ibegin_zoom_sub(), jbegin_zoom_sub(),ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub(),lonvalue_srv(new CArray<double,1>())
-      , latvalue_srv(new CArray<double,1>())
+      , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
    { 
-      this->local_mask.reset();
-      for (StdSize i = 0; i < this->lonvalue_sub.size(); i++)
-      {
-         this->lonvalue_sub[i].reset();
-         this->latvalue_sub[i].reset();
-      }     
+     vector<CArray<double,1>* >::iterator it;
+     for(it=lonvalue_sub.begin();it<lonvalue_sub.end();it++) delete *it;
+     for(it=latvalue_sub.begin();it<latvalue_sub.end();it++) delete *it;
    }
 
    ///---------------------------------------------------------------
@@ -83,7 +79,7 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
+/*
    void CDomain::fromBinary(StdIStream & is)
    {
       SuperClass::fromBinary(is);
@@ -111,7 +107,7 @@ namespace xios {
       }
       
 #define CLEAR_ATT(name_)\
-      SuperClassAttribute::operator[](#name_)->clear()
+      SuperClassAttribute::operator[](#name_)->reset()
 
          CLEAR_ATT(mask);
          CLEAR_ATT(data_n_index);
@@ -142,7 +138,7 @@ namespace xios {
          this->jend.setValue(*std::max_element(this->jend_sub.begin(),this->jend_sub.end()));
       }
    }
-
+*/
    //----------------------------------------------------------------
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
@@ -264,10 +260,9 @@ namespace xios {
 
       if (!mask.isEmpty())
       {
-         ARRAY(bool, 2) mask_ = mask.getValue();
          unsigned int niu = ni.getValue(), nju = nj.getValue();
-         if ((mask_->shape()[0] != niu) ||
-             (mask_->shape()[1] != nju))
+         if ((mask.extent(0) != niu) ||
+             (mask.extent(1) != nju))
             ERROR("CDomain::checkAttributes(void)",
                   <<"Le masque n'a pas la même taille que le domaine local") ;
                   
@@ -277,27 +272,24 @@ namespace xios {
             {
                if (i < ibegin_mask && i > iend_mask &&
                    j < jbegin_mask && j > jend_mask )
-                     (*mask_)[i][j] = false;
+                     mask(i,j) = false;
             }
          }
       }
       else // (!mask.hasValue())
       { // Si aucun masque n'est défini,
         // on en crée un nouveau qui valide l'intégralité du domaine.
-         ARRAY_CREATE(__arr, bool, 2, [ni.getValue()][nj.getValue()]);
+         mask.resize(ni,nj) ;
          for (int i = 0; i < ni.getValue(); i++)
          {
             for (int j = 0; j < nj.getValue(); j++)
             {
                if (i >= ibegin_mask && i <= iend_mask &&
                    j >= jbegin_mask && j <= jend_mask )
-                     (*__arr)[i][j] = true;
-               else  (*__arr)[i][j] = false;
+                     mask(i,j) = true;
+               else  mask(i,j) = false;
             }
          }
-               
-         mask.setValue(__arr);
-         __arr.reset();
       }
    }
 
@@ -354,7 +346,7 @@ namespace xios {
    {
       if (!data_i_index.isEmpty())
       {
-         int ssize = data_i_index.getValue()->size();
+         int ssize = data_i_index.numElements();
          if (!data_n_index.isEmpty() &&
             (data_n_index.getValue() != ssize))
          {
@@ -367,7 +359,7 @@ namespace xios {
          if (data_dim.getValue() == 2)
          {
             if (!data_j_index.isEmpty() &&
-               (data_j_index.getValue()->size() != data_i_index.getValue()->size()))
+               (data_j_index.numElements() != data_i_index.numElements()))
             {
                ERROR("CDomain::checkAttributes(void)",
                      <<"Dimension data_j_index incompatible avec data_i_index.") ;
@@ -391,35 +383,26 @@ namespace xios {
          if (data_dim.getValue() == 1)
          {
             const int dni = data_ni.getValue();
-            ARRAY_CREATE(__arri, int, 1, [dni]);
+            data_i_index.resize(dni) ;
             data_n_index.setValue(dni);
-            for (int i = 0; i < dni; i++)
-               (*__arri)[i] = i+1 ;
-            data_i_index.setValue(__arri) ;
+            for (int i = 0; i < dni; i++) data_i_index(i) = i+1 ;
          }
          else   // (data_dim == 2)
          {
             const int dni = data_ni.getValue() * data_nj.getValue();
+            data_i_index.resize(dni) ;
+            data_j_index.resize(dni) ;
             
-            ARRAY_CREATE(__arri, int, 1, [dni]);
-            ARRAY_CREATE(__arrj, int, 1, [dni]);               
             data_n_index.setValue(dni);
-            
-            //for(int count = 0, i = 0; i  < data_ni.getValue(); i++)
-            //for(int j = 0; j < data_nj.getValue(); j++, count++)
             
             for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
             {
                for(int i = 0; i < data_ni.getValue(); i++, count++)
                {
-                  (*__arri)[count] = i+1 ;
-                  (*__arrj)[count] = j+1 ;
+                  data_i_index(count) = i+1 ;
+                  data_j_index(count) = j+1 ;
                }
             }
-            data_i_index.setValue(__arri) ;
-            data_j_index.setValue(__arrj) ;            
-            __arri.reset();
-            __arrj.reset();
          }
       }
    }
@@ -428,54 +411,52 @@ namespace xios {
    
    void CDomain::completeLonLatClient(void)
    {
-      ARRAY_CREATE(lonvalue_temp, double, 1, [0]);
-      ARRAY_CREATE(latvalue_temp, double, 1, [0]);
+      CArray<double,1> lonvalue_temp ;
+      CArray<double,1> latvalue_temp ;
       
       const int zoom_ibegin_client  = zoom_ibegin_loc.getValue(),
                 zoom_jbegin_client  = zoom_jbegin_loc.getValue(),
                 zoom_ni_client      = zoom_ni_loc.getValue(),
                 zoom_nj_client      = zoom_nj_loc.getValue();
                 
-      ARRAY(double, 1) lonvalue_ = this->lonvalue.getValue(),
-                       latvalue_ = this->latvalue.getValue();
-                
       if (this->data_dim.getValue() == 2)
       {
          StdSize dm = zoom_ni_client * zoom_nj_client;
 
-         lonvalue_temp->resize(boost::extents[dm]);
-         latvalue_temp->resize(boost::extents[dm]);
+         lonvalue_temp.resize(dm);
+         latvalue_temp.resize(dm);
          
          for (int i = 0; i < zoom_ni_client; i++)
          {
             for (int j = 0; j < zoom_nj_client; j++)
             {
-               (*lonvalue_temp)[i + j * zoom_ni_client] =
-               (*lonvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];              
-               (*latvalue_temp)[i + j * zoom_ni_client] =
-               (*latvalue_)[(i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue()];
+               lonvalue_temp(i + j * zoom_ni_client) = lonvalue( (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni.getValue() ); 
+               latvalue_temp(i + j * zoom_ni_client) = latvalue( (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue() );
             }
          }
-         this->lonvalue.setValue(lonvalue_temp);
-         this->latvalue.setValue(latvalue_temp);
+         lonvalue.reference(lonvalue_temp.copy()) ;
+         latvalue.reference(latvalue_temp.copy()) ;
+         cout<<lonvalue<<endl ;
+         cout<<latvalue<<endl ;
       }
       else
       {
-         lonvalue_temp->resize(boost::extents[zoom_ni_client]);
-         latvalue_temp->resize(boost::extents[zoom_nj_client]);
-         
+         lonvalue_temp.resize(zoom_ni_client);
+         latvalue_temp.resize(zoom_nj_client);
+
+// Attention ici à revoir, probablement faux         
          for (int i = zoom_ibegin_client - 1; i < (zoom_ni_client - zoom_ibegin_client + 1); i++)
          {
-            (*lonvalue_temp)[i] = (*lonvalue_)[i]; 
+            lonvalue_temp(i) = lonvalue(i); 
          }
          
-         for (int j = zoom_ibegin_client - 1; j < (zoom_nj_client - zoom_jbegin_client + 1); j++)
+         for (int j = zoom_jbegin_client - 1; j < (zoom_nj_client - zoom_jbegin_client + 1); j++)
          {
-            (*latvalue_temp)[j] = (*latvalue_)[j];
+            latvalue_temp(j) = latvalue(j);
          }
          
-         this->lonvalue.setValue(lonvalue_temp);
-         this->latvalue.setValue(latvalue_temp);
+         lonvalue.reference(lonvalue_temp.copy()) ;
+         latvalue.reference(latvalue_temp.copy()) ;
       }  
    }
  
@@ -483,8 +464,8 @@ namespace xios {
       
    void CDomain::completeLonLatServer(void)
    {
-      ARRAY_CREATE(lonvalue_temp, double, 1, [0]);
-      ARRAY_CREATE(latvalue_temp, double, 1, [0]);
+      CArray<double,1> lonvalue_temp ;
+      CArray<double,1> latvalue_temp ;
       
       const int ibegin_serv     = ibegin.getValue(),
                 jbegin_serv     = jbegin.getValue(),
@@ -498,13 +479,14 @@ namespace xios {
       {
          StdSize dm = zoom_ni_serv * zoom_nj_serv;      
          
-         lonvalue_temp->resize(boost::extents[dm]);
-         latvalue_temp->resize(boost::extents[dm]);
+         lonvalue_temp.resize(dm);
+         latvalue_temp.resize(dm);
          
          for (StdSize k = 0; k < lonvalue_sub.size(); k++)
          {
-            ARRAY(double, 1) lonvalue_loc = this->lonvalue_sub[k],
-                             latvalue_loc = this->latvalue_sub[k];
+            CArray<double,1> lonvalue_loc(*(lonvalue_sub[k])) ;
+            CArray<double,1> latvalue_loc (*(latvalue_sub[k]));
+            
             const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
                       zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k],
                       ibegin_cl = ibegin_sub[k] ,
@@ -517,38 +499,36 @@ namespace xios {
                {
                   int ii = i + (ibegin_cl-1) - (ibegin_serv - 1) + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1);
                   int jj = j + (jbegin_cl-1) - (jbegin_serv - 1) + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1);
-                  (*lonvalue_temp)[ii + jj * zoom_ni_serv] =
-                  (*lonvalue_loc)[i + j * zoom_ni_cl];
-                  (*latvalue_temp)[ii + jj * zoom_ni_serv] = 
-                  (*latvalue_loc)[i + j * zoom_ni_cl];
+                  lonvalue_temp(ii + jj * zoom_ni_serv) = lonvalue_loc(i + j * zoom_ni_cl);
+                  latvalue_temp(ii + jj * zoom_ni_serv) = latvalue_loc(i + j * zoom_ni_cl);
                }
             }
          }
-         this->lonvalue.setValue(lonvalue_temp);
-         this->latvalue.setValue(latvalue_temp);
+         
+         lonvalue.reference(lonvalue_temp.copy()) ;
+         latvalue.reference(latvalue_temp.copy()) ;
       }
       else
       {
-         lonvalue_temp->resize(boost::extents[zoom_ni_serv]);
-         latvalue_temp->resize(boost::extents[zoom_nj_serv]);
+         lonvalue_temp.resize(zoom_ni_serv);
+         latvalue_temp.resize(zoom_nj_serv);
          
          for (StdSize k = 0; k < lonvalue_sub.size(); k++)
          {
-            ARRAY(double, 1) lonvalue_loc = this->lonvalue_sub[k],
-                             latvalue_loc = this->latvalue_sub[k];
+            CArray<double,1> lonvalue_loc(*(lonvalue_sub[k]));
+            CArray<double,1> latvalue_loc(*(latvalue_sub[k]));
+            
             const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
                       zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k];
                       
             for (int i = 0; i < zoom_ni_cl; i++)
-               (*lonvalue_temp)[i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1)] =
-               (*lonvalue_loc)[i];
+              lonvalue_temp(i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1)) = lonvalue_loc(i);
                
             for (int j = 0; j < zoom_nj_cl; j++)
-               (*latvalue_temp)[j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1)] =
-               (*latvalue_loc)[j];
+              latvalue_temp(j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1)) = latvalue_loc(j);
          }       
-         this->lonvalue.setValue(lonvalue_temp);
-         this->latvalue.setValue(latvalue_temp);
+         lonvalue.reference(lonvalue_temp.copy()) ;
+         latvalue.reference(latvalue_temp.copy()) ;
       }
    }
 
@@ -661,8 +641,8 @@ namespace xios {
          this->ni_zoom_sub.push_back(this->zoom_ni_loc.getValue());
          this->nj_zoom_sub.push_back(this->zoom_nj_loc.getValue());
       
-         this->latvalue_sub.push_back(this->latvalue.getValue());
-         this->lonvalue_sub.push_back(this->lonvalue.getValue());  
+         this->latvalue_sub.push_back(new CArray<double,1>(latvalue.copy()));
+         this->lonvalue_sub.push_back(new CArray<double,1>(lonvalue.copy()));  
 
 
 //         if (!this->isEmpty())
@@ -854,24 +834,21 @@ namespace xios {
     // send lon lat for each connected server
     CEventClient event(getType(),EVENT_ID_LON_LAT) ;
     
-    ARRAY(double, 1) lonvalue_client = lonvalue.getValue(),
-                     latvalue_client = latvalue.getValue();
-    
     int ib,ie,in ;
     int jb,je,jn ;
   
     list<shared_ptr<CMessage> > list_msg ;    
-    list<ARRAY(double,1)> list_indi,list_indj,list_lon,list_lat ;
+    list<CArray<double,1>* > list_indi,list_indj,list_lon,list_lat ;
 
     for(int ns=0;ns<connectedServer.size();ns++)
     {
       ib=ib_srv[ns] ; ie=ie_srv[ns] ; in=in_srv[ns] ;
       jb=jb_srv[ns] ; je=je_srv[ns] ; jn=jn_srv[ns] ;
       
-      ARRAY_CREATE(indi,double,1,[in*jn]) ;
-      ARRAY_CREATE(indj,double,1,[in*jn]) ;
-      ARRAY_CREATE(lon,double,1,[in*jn]) ;
-      ARRAY_CREATE(lat,double,1,[in*jn]) ;
+      CArray<double,1> indi(in*jn) ;
+      CArray<double,1> indj(in*jn) ;
+      CArray<double,1> lon(in*jn) ;
+      CArray<double,1> lat(in*jn) ;
 
           
       int ind_client,ind_loc ;
@@ -881,22 +858,32 @@ namespace xios {
         {
           ind_client=(i-zoom_ibegin_client)+(j-zoom_jbegin_client)*zoom_ni_client ;
           ind_loc=(i-ib)+(j-jb)*in ;
-          (*lon)[ind_loc]=(*lonvalue_client)[ind_client] ;
-          (*lat)[ind_loc]=(*latvalue_client)[ind_client] ;
-          (*indi)[ind_loc]=i ;
-          (*indj)[ind_loc]=j ;
+          lon(ind_loc)=lonvalue(ind_client) ;
+          lat(ind_loc)=latvalue(ind_client) ;
+          indi(ind_loc)=i ;
+          indj(ind_loc)=j ;
         }
       
-      list_indi.push_back(indi) ; list_indj.push_back(indj) ;
-      list_lon.push_back(lon) ; list_lat.push_back(lat) ;
+      list_indi.push_back(new CArray<double,1>(indi.copy())) ;
+      list_indj.push_back(new CArray<double,1>(indj.copy())) ;
+      list_lon.push_back(new CArray<double,1>(lon.copy())) ;
+      list_lat.push_back(new CArray<double,1>(lat.copy())) ;
+
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
 
       *list_msg.back()<<this->getId() ;
-      *list_msg.back()<<list_indi.back()<<list_indj.back()<<list_lon.back()<<list_lat.back() ;
+      *list_msg.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back()<<*list_lat.back() ;
       event.push(connectedServer[ns],nbSenders[ns],*list_msg.back()) ;
     }
 
     client->sendEvent(event) ;
+    
+    list<CArray<double,1>* >::iterator it;
+    for(it=list_indi.begin();it!=list_indi.end();it++) delete *it;
+    for(it=list_indj.begin();it!=list_indj.end();it++) delete *it;
+    for(it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
+    for(it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
+    
   }
   
   bool CDomain::dispatchEvent(CEventServer& event)
@@ -952,8 +939,8 @@ namespace xios {
       zoom_jbegin_srv=1 ; zoom_jend_srv=0 ; zoom_nj_srv=0 ;
     }
     
-    lonvalue_srv->resize(extents[zoom_ni_srv*zoom_nj_srv]) ;
-    latvalue_srv->resize(extents[zoom_ni_srv*zoom_nj_srv]) ;
+    lonvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
+    latvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
   }
     
   void CDomain::recvLonLat(CEventServer& event)
@@ -970,32 +957,32 @@ namespace xios {
   
   void CDomain::recvLonLat(CBufferIn& buffer)
   {
-    ARRAY_CREATE(indi,double,1,[0]) ;
-    ARRAY_CREATE(indj,double,1,[0]) ;
-    ARRAY_CREATE(lon,double,1,[0]) ;
-    ARRAY_CREATE(lat,double,1,[0]) ;
-    
+    CArray<double,1> indi ;
+    CArray<double,1> indj ;
+    CArray<double,1> lon ;
+    CArray<double,1> lat ;
+     
     buffer>>indi>>indj>>lon>>lat ;
     int i,j,ind_srv ;
 
-    for(int ind=0;ind<indi->num_elements();ind++)
+    for(int ind=0;ind<indi.numElements();ind++)
     {
-      i=(*indi)[ind] ; j=(*indj)[ind] ;
+      i=indi(ind) ; j=indj(ind) ;
       ind_srv=(i-zoom_ibegin_srv)+(j-zoom_jbegin_srv)*zoom_ni_srv ;
-      (*lonvalue_srv)[ind_srv]=(*lon)[ind] ;
-      (*latvalue_srv)[ind_srv]=(*lat)[ind] ;
+      lonvalue_srv(ind_srv)=lon(ind) ;
+      latvalue_srv(ind_srv)=lat(ind) ;
     }
   }
    //----------------------------------------------------------------
    
    void CDomain::completeMask(void)
    {
-      this->local_mask->resize(boost::extents[zoom_ni_loc.getValue()][zoom_nj_loc.getValue()]);
+      this->local_mask.resize(zoom_ni_loc,zoom_nj_loc);
    }
 
    //----------------------------------------------------------------
 
-   ARRAY(int, 2) CDomain::getLocalMask(void) const
+   CArray<int,2> CDomain::getLocalMask(void) const
    {
       return (this->local_mask);
    }
@@ -1055,14 +1042,14 @@ namespace xios {
    
    //----------------------------------------------------------------
    
-   const std::vector<ARRAY(double, 1)> & CDomain::getLonValueSub(void) const
+   const std::vector<CArray<double, 1>* > & CDomain::getLonValueSub(void) const
    {
       return (this->lonvalue_sub);
    }
    
    //----------------------------------------------------------------
    
-   const std::vector<ARRAY(double, 1)> & CDomain::getLatValueSub(void) const
+   const std::vector<CArray<double,1>*> & CDomain::getLatValueSub(void) const
    {
       return (this->latvalue_sub);
    }   
