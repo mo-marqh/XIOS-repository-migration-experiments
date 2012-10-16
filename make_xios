@@ -10,13 +10,26 @@ while (($# > 0))
    do
       case $1 in
          "-h")
-            # A modifier
+            echo "make_xios - installs XIOS on your architecture"
+	    echo "make_xios [options]"
+	    echo "options :"
+	    echo "       [--prod] : compilation in production mode"
+	    echo "       [--dev] : compilation in development mode"
+	    echo "       [--debug] : compilation in debug mode"
+	    echo "       --arch arch : to choose target architecture"
+	    echo "       [--avail] : to know available target architectures "
+	    echo "       [--full] : to generate dependencies and recompile from scratch"
+	    echo "       [--use_oasis] : to use Oasis coupler"
+	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
+	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
+	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
+	    echo "Example : ./make_xios --avail"
             exit;;
-
          "--prod")  compil_mode="prod"  ; shift ;;
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
+	 "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d".fcm" -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true"  ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
@@ -25,10 +38,17 @@ while (($# > 0))
       esac
    done
 
+# Installation des sources
+for tarname in `ls $install_dir/tools/archive | grep tar.gz` ; do
+    echo -e "- uncompress archives ..."
+    gunzip -f "$tarname"
+    tar -xf ${tarname%.gz}
+done
+
 # Vérification de la présence d'un identifiant d'architecture.
 
 ###############################################################
-# lecture des chemins propres � l'architecture de la machine #
+# lecture des chemins propres a l'architecture de la machine #
 #           et configuration de l'environnement              #
 ###############################################################
 
