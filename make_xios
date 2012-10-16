@@ -28,7 +28,7 @@ while (($# > 0))
 # Vérification de la présence d'un identifiant d'architecture.
 
 ###############################################################
-# lecture des chemins propres � l'architecture de la machine #
+# lecture des chemins propres � l'architecture de la machine #
 #           et configuration de l'environnement              #
 ###############################################################
 
