@@ -39,11 +39,15 @@ while (($# > 0))
    done
 
 # Installation des sources
-for tarname in `ls $install_dir/tools/archive | grep tar.gz` ; do
-    echo -e "- uncompress archives ..."
-    gunzip -f "$tarname"
-    tar -xf ${tarname%.gz}
-done
+is_existing_gz=`ls $install_dir/tools/archive | grep tar.gz | wc -l`
+if [ "x$is_existing_gz" != "x0" ]
+then
+    for tarname in `ls $install_dir/tools/archive/*.tar.gz` ; do
+	echo -e "- uncompress archives ..."
+	gunzip -f "$tarname"
+	tar -xf ${tarname%.gz}
+    done
+fi
 
 # Vérification de la présence d'un identifiant d'architecture.
 
