@@ -6,7 +6,7 @@
 %FCOMPILER      vtf90 -vt:f90 mpif90 -vt:inst manual -DVTRACE
 %LINKER         vtf90  -vt:f90 mpif90 -vt:inst manual -nofor-main -DVTRACE
 
-%BASE_CFLAGS    -ansi -DXIOS_LIBRARY -DNONE -DXIOS_LIBRARY -diag-disable 1125 -diag-disable 279
+%BASE_CFLAGS    -ansi -DNETCDF_PAR_HEADER -DXIOS_LIBRARY -DNONE -DXIOS_LIBRARY -diag-disable 1125 -diag-disable 279
 %PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -D XIOS_DEBUG -g -traceback
 %DEBUG_CFLAGS   -D XIOS_DEBUG -g -traceback -fno-inline

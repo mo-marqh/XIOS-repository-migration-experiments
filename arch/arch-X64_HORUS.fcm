@@ -2,19 +2,20 @@
 ###################        Projet xios - xmlioserver       #####################
 ################################################################################
 
-%CCOMPILER      mpCC_r
-%FCOMPILER      mpxlf2003_r
-%LINKER         mpCC_r 
+%CCOMPILER      mpicc
+%FCOMPILER      mpif90
+%LINKER         mpif90  
 
-%BASE_CFLAGS    -qmkshrobj  -DNETCDF_PAR_HEADER -qrtti -DXIOS_LIBRARY -DNONE -DXIOS_LIBRARY 
+%NO_WARN        -W -Wall -Wno-unused-parameter -Wno-long-long -Wno-deprecated
+%BASE_CFLAGS    -ansi -DNETCDF_PAR_HEADER -D_NONE_  -w
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -DXIOS_DEBUG -g 
 %DEBUG_CFLAGS   -DXIOS_DEBUG -g 
 
-%BASE_FFLAGS    -qmkshrobj -DXIOS_LIBRARY -DXIOS_LIBRARY 
+%BASE_FFLAGS    -D_NONE_ 
 %PROD_FFLAGS    -O3
 %DEV_FFLAGS     -DXIOS_DEBUG -g 
-%DEBUG_FFLAGS   -DXIOS_DEBUG -g
+%DEBUG_FFLAGS   -DXIOS_DEBUG -g 
 
-%BASE_INC       -D__NONE__
-%BASE_LD        -lxlf90
+%BASE_INC       -D _NONE_
+%BASE_LD        -lstdc++ -lmpi_cxx
