@@ -238,7 +238,15 @@ namespace xios {
 
          if (multifile) 
          {
-            if (server->intraCommSize > 1) oss << "_" << server->intraCommRank;
+            if (server->intraCommSize > 1) 
+            {
+              oss << "_"  ;
+              int width=0 ; int n=server->intraCommSize-1 ;
+              while(n != 0) { n=n/10 ; width++ ;}
+              oss.width(width) ;
+              oss.fill('0') ;
+              oss<<right<< server->intraCommRank;
+            }
          }
          oss << ".nc";
 
