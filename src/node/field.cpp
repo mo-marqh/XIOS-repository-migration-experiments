@@ -186,13 +186,13 @@ namespace xios{
   
   void CField::writeField(void)
   {
-//    if (! grid->domain->isEmpty() || getRelFile()->type.getValue()=="one_file")
-    if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
-    {
-      getRelFile()->checkFile();
-      this->incrementNStep();
-      getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
-    }
+    if (! getRelFile()->allDomainEmpty )
+      if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
+      {
+        getRelFile()->checkFile();
+        this->incrementNStep();
+        getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
+      }
   }
    //----------------------------------------------------------------
 
@@ -410,8 +410,7 @@ namespace xios{
                         
          const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
          *this->last_operation   = *this->last_operation - toffset;  
-         cout<<operation<<endl ;
-         
+          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
    {                                               \

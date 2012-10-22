@@ -6,16 +6,8 @@
 #include "exception.hpp"
 #include "data_output.hpp"
 #include "array_new.hpp"
-
 #include <mpi.h>
-#define MPI_INCLUDED
-#include <netcdf.h>
-#ifdef NETCDF_PAR_HEADER
-extern "C" {
-#include <netcdf_par.h>
-}
-#endif
-
+#include "netcdf.hpp"
 
 #ifndef UNLIMITED_DIM
    #define UNLIMITED_DIM (size_t)(-1)

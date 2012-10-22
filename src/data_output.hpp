@@ -7,9 +7,6 @@
 #include "grid.hpp"
 #include "field.hpp"
 
-#include <mpi.h>
-#define MPI_INCLUDED
-#include <netcdf.h>
 
 namespace xios
 {

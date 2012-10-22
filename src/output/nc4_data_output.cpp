@@ -26,10 +26,10 @@ namespace xios
       }
 
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist, MPI_Comm comm_server,bool multifile, bool isCollective)
+         (const StdString & filename, bool exist, MPI_Comm comm_file,bool multifile, bool isCollective)
             : SuperClass()
-            , SuperClassWriter(filename, exist, &comm_server,multifile)
-            , comm_server(comm_server)
+            , SuperClassWriter(filename, exist, &comm_file,multifile)
+            , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
       {

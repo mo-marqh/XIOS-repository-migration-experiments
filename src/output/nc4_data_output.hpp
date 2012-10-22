@@ -24,7 +24,7 @@ namespace xios
             CNc4DataOutput
                (const StdString & filename, bool exist);
             CNc4DataOutput
-               (const StdString & filename, bool exist, MPI_Comm comm_server, bool multifile, bool isCollective=true);
+               (const StdString & filename, bool exist, MPI_Comm comm_file, bool multifile, bool isCollective=true);
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.
@@ -87,7 +87,7 @@ namespace xios
             StdString getTimeStamp(void) const;
 
             /// Propriétés privées ///
-            MPI_Comm comm_server;
+            MPI_Comm comm_file;
             const StdString filename;
 
       }; // class CNc4DataOutput

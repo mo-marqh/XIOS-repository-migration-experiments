@@ -9,6 +9,7 @@
 #include "date.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include <mpi.h>
 
 
 
@@ -92,7 +93,7 @@ namespace xios {
          
          static ENodeType GetType(void);
          
-         bool AllDomainEmpty ;
+         bool allDomainEmpty ;
          CField* addField(const string& id="") ;
          CFieldGroup* addFieldGroup(const string& id="") ;
          void sendAddField(const string& id="") ;
@@ -114,6 +115,7 @@ namespace xios {
          CDuration outputFreq ;
          int nbDomain ;
          bool isOpen ;
+         MPI_Comm fileComm ;
       private :
 
          /// Propriétés privées ///

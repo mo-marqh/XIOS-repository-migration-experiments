@@ -14,6 +14,7 @@
 #include "type.hpp"
 #include "xmlioserver_spl.hpp"
 #include "context_client.hpp"
+#include <mpi.h>
 
 namespace xios {
    
@@ -21,12 +22,12 @@ namespace xios {
 
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
-      , vFieldGroup(), data_out(), enabledFields()
+      , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
    { setVirtualFieldGroup() ;}
 
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
-      , vFieldGroup(), data_out(), enabledFields()
+      , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
    { setVirtualFieldGroup() ;}
 
    CFile::~CFile(void)
@@ -145,13 +146,33 @@ namespace xios {
    {
       CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
-      
+      CContextServer* server=context->server ;
+            
       if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
       if (! split_freq.isEmpty()) splitFreq = CDuration::FromString(split_freq.getValue());
       if (! output_freq.isEmpty()) outputFreq = CDuration::FromString(output_freq.getValue());
       lastSync=new CDate(currentDate) ;
       lastSplit=new CDate(currentDate) ;
       isOpen=false ;
+
+      allDomainEmpty=true ;
+      set<CDomain*> setDomain ;
+
+      std::vector<CField*>::iterator it, end = this->enabledFields.end();
+      for (it = this->enabledFields.begin() ;it != end; it++)
+      {
+         CField* field = *it;
+         allDomainEmpty&=field->grid->domain->isEmpty() ;
+         setDomain.insert(field->grid->domain) ;
+      }
+      nbDomain=setDomain.size() ;
+
+      // create sub communicator for file  
+      int color=allDomainEmpty?0:1 ;
+      MPI_Comm_split(server->intraComm,color,server->intraCommRank,&fileComm) ;
+      if (allDomainEmpty) MPI_Comm_free(&fileComm) ;
+      //
+      
     }
     
     void CFile::checkFile(void)
@@ -201,51 +222,43 @@ namespace xios {
    void CFile::createHeader(void)
    {
       CContext* context = CContext::getCurrent() ;
-      CDate& currentDate=context->calendar->getCurrentDate() ;
-      
-      std::vector<CField*>::iterator it, end = this->enabledFields.end();
-
-      AllDomainEmpty=true ;
-      set<CDomain*> setDomain ;
-      for (it = this->enabledFields.begin() ;it != end; it++)
-      {
-         CField* field = *it;
-         AllDomainEmpty&=field->grid->domain->isEmpty() ;
-         setDomain.insert(field->grid->domain) ;
-      }
-      nbDomain=setDomain.size() ;
-
-      if (!AllDomainEmpty ||  type == type_attr::one_file)
+      CContextServer* server=context->server ;
+     
+      if (!allDomainEmpty)
       {
          StdString filename = (!name.isEmpty()) ?   name.getValue() : getId();
          StdOStringStream oss;
-//         if (! output_dir.isEmpty()) oss << output_dir.getValue();
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
-//         if (!split_freq.isEmpty()) oss<<"-["<<currentDate.toString()<<"]" ;
          if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStryyyymmdd();
          bool multifile=true ;
          if (!type.isEmpty())
          {
            if (type==type_attr::one_file) multifile=false ;
            else if (type==type_attr::multiple_file) multifile=true ;
-           else ERROR("void Context::createDataOutput(void)",
-                      "incorrect file <type> attribut : must be <multi_file> or <one_file>, "
-                      <<"having : <"<<type.getValue()<<">") ;
-         } 
-         
-         CContextServer* server=context->server ;
 
+         } 
+#ifndef USING_NETCDF_PAR
+         if (!multifile)
+         {
+            info(0)<<"!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : "<<filename<<" ..."<<endl ;
+            multifile=true ;
+          }
+#endif
          if (multifile) 
          {
+            int commSize, commRank ;
+            MPI_Comm_size(fileComm,&commSize) ;
+            MPI_Comm_rank(fileComm,&commRank) ;
+            
             if (server->intraCommSize > 1) 
             {
               oss << "_"  ;
-              int width=0 ; int n=server->intraCommSize-1 ;
+              int width=0 ; int n=commSize-1 ;
               while(n != 0) { n=n/10 ; width++ ;}
               oss.width(width) ;
               oss.fill('0') ;
-              oss<<right<< server->intraCommRank;
+              oss<<right<< commRank;
             }
          }
          oss << ".nc";
@@ -263,10 +276,11 @@ namespace xios {
                         <<"having : <"<<type.getValue()<<">") ;
            }
          }
-         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false,server->intraComm,multifile, isCollective));
+         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false, fileComm, multifile, isCollective));
          isOpen=true ;
 
          data_out->writeFile(CFile::get(this));
+         std::vector<CField*>::iterator it, end = this->enabledFields.end();
          for (it = this->enabledFields.begin() ;it != end; it++)
          {
             CField* field = *it;
@@ -287,11 +301,12 @@ namespace xios {
    {
      delete lastSync ;
      delete lastSplit ;
-     if (!AllDomainEmpty ||  type==type_attr::one_file)
+     if (!allDomainEmpty)
        if (isOpen) 
        {
          this->data_out->closeFile();
        }
+      if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm) ;
    }
    //----------------------------------------------------------------
 

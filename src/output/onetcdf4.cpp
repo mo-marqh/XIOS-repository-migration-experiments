@@ -1,5 +1,7 @@
 #include "onetcdf4.hpp"
 #include "group_template.hpp"
+#include <mpi.h>
+#include "netcdf.hpp"
 
 namespace xios
 {
@@ -31,7 +33,7 @@ namespace xios
          {
             if (comm != NULL)
             {
-               if (!multifile) CheckError(nc_create_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+               if (!multifile) CheckError(xios::nc_create_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
                else CheckError(nc_create(filename.c_str(), NC_NETCDF4, &this->ncidp));
             }
             else CheckError(nc_create(filename.c_str(), NC_NETCDF4, &this->ncidp));
@@ -40,7 +42,7 @@ namespace xios
          {
             if (comm != NULL)
             {
-               if (!multifile) CheckError(nc_open_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
+               if (!multifile) CheckError(xios::nc_open_par(filename.c_str(), NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, &this->ncidp));
                else CheckError(nc_open(filename.c_str(), NC_NETCDF4, &this->ncidp));
             }
             else  CheckError(nc_open(filename.c_str(), NC_NETCDF4, &this->ncidp));
