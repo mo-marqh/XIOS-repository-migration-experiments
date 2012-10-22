@@ -1,5 +1,6 @@
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
+#include "log.hpp"
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
 #include "cxios.hpp"
@@ -12,7 +13,7 @@ namespace xios
   CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_)
   {
     bufferSizeByServer=CXios::bufferSize ;
-    cout<<"bufferSizeByServer"<<bufferSizeByServer<<endl ;
+    info(10)<<"bufferSizeByServer "<<bufferSizeByServer<<endl ;
     interComm=interComm_ ;
     serverRank=serverRank_ ;
     bufferSize=bufferSizeByServer/2 ;

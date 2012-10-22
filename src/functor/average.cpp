@@ -9,7 +9,7 @@ namespace xios
 
       CAverage::CAverage(CArray<double,1>& doutput)
          : SuperClass(StdString("average"), doutput)
-      { doutput.dumpStructureInformation(cout) ;/* Ne rien faire de plus */ }
+      { /* Ne rien faire de plus */ }
 
       CAverage::~CAverage(void)
       { /* Ne rien faire de plus */ }

@@ -1,4 +1,5 @@
-#ifndef __XIOS_LOG__
+#ifndef __XIOS_LOG_HPP__
+#define __XIOS_LOG_HPP__
 
 #include <string>
 #include <iostream>

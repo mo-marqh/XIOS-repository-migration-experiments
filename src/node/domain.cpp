@@ -436,8 +436,6 @@ namespace xios {
          }
          lonvalue.reference(lonvalue_temp.copy()) ;
          latvalue.reference(latvalue_temp.copy()) ;
-         cout<<lonvalue<<endl ;
-         cout<<latvalue<<endl ;
       }
       else
       {

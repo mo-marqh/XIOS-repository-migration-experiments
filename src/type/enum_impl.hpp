@@ -122,7 +122,6 @@ namespace xios
   template <typename T>
   CEnum<T>::operator T_enum&()
   {
-    cout<<"CEnum<T>::operator T_enum&()"<<endl ;
     checkEmpty();
     return *ptrValue ;
    }

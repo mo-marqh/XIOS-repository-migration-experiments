@@ -79,7 +79,6 @@ namespace xios
       template <class T>
       CAttributeEnum<T>& CAttributeEnum<T>::operator=(const T_enum & value)
       {
-         cout<<"CAttributeEnum<T>& CAttributeEnum<T>::operator=(const T_enum & value)"<<endl ;
          this->setValue(value);
          return *this;
       }

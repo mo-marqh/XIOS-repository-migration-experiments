@@ -361,12 +361,6 @@ namespace xios
                                     const std::vector<StdSize> & sstart,
                                     const std::vector<StdSize> & scount, const double * data)
       {
-         cout<<"writeData_"<<endl ;
-         for(int i=0;i<sstart.size();i++) cout<<sstart[i]<<"   " ;
-         cout<<endl ;
-         for(int i=0;i<scount.size();i++) cout<<scount[i]<<"   " ;
-         cout<<endl ;
-         
          CheckError(nc_put_vara_double(grpid, varid, &(sstart[0]), &(scount[0]), data));
 //         sync() ;
       }
