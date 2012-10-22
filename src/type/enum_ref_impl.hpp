@@ -165,7 +165,8 @@ namespace xios
   template <typename T>
   string CEnum_ref<T>::_toString(void) const
   {
-    if (!empty) return string((T::getStr())[(int)(*ptrValue)]) ;
+    if (empty) return string("empty"); 
+    return string((T::getStr())[(int)(*ptrValue)]) ;
   }
 
     
@@ -178,6 +179,7 @@ namespace xios
     else if (sizeof(*ptrValue)==sizeof(long int)) return buffer.put((long int) *ptrValue) ;
     else ERROR("template <typename T>  bool CEnum_ref<T>::_toBuffer(CBufferOut& buffer) const",
                <<"incompatibility between enumeration and standard integer type") ;
+    return false ;
   }
   
   template <typename T>
