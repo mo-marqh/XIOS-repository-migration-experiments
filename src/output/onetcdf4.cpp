@@ -1,6 +1,6 @@
 #include "onetcdf4.hpp"
 #include "group_template.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "netcdf.hpp"
 
 namespace xios

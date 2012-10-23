@@ -20,7 +20,7 @@
 #include "client.hpp"
 #include "field.hpp"
 #include "context.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "timer.hpp"
 #include "array_new.hpp"
 

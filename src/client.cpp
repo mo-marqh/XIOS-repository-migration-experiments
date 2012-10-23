@@ -6,7 +6,7 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "oasis_cinterface.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "timer.hpp"
 
 namespace xios

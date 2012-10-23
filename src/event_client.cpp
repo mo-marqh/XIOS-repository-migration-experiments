@@ -3,7 +3,7 @@
 #include "buffer_out.hpp"
 #include "message.hpp"
 #include "type.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

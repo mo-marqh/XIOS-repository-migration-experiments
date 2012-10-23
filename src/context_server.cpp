@@ -9,7 +9,7 @@
 #include "field.hpp"
 #include "file.hpp"
 #include "grid.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
 

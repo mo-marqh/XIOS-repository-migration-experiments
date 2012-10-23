@@ -14,7 +14,7 @@
 #include "type.hpp"
 #include "xmlioserver_spl.hpp"
 #include "context_client.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios {
    

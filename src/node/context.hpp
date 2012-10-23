@@ -11,7 +11,7 @@
 //#include "context_server.hpp"
 #include "data_output.hpp"
 
-#include <mpi.h>
+#include "mpi.hpp"
 
 
 namespace xios {

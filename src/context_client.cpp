@@ -8,7 +8,7 @@
 #include "message.hpp"
 #include "event_client.hpp"
 #include "context.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "timer.hpp"
 
 namespace xios

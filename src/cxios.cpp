@@ -5,7 +5,7 @@
 #include "server.hpp"
 #include "xml_parser.hpp"
 #include <boost/functional/hash.hpp>
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

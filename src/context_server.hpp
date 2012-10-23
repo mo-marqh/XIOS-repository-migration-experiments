@@ -3,7 +3,7 @@
 #include "xmlioserver_spl.hpp"
 #include "event_server.hpp"
 #include "buffer_server.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

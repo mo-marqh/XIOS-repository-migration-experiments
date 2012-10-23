@@ -5,7 +5,7 @@
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
 #include "event_client.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

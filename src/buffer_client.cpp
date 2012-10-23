@@ -4,7 +4,7 @@
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
 #include "cxios.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "tracer.hpp"
 
 namespace xios

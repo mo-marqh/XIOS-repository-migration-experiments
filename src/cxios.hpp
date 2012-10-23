@@ -2,7 +2,7 @@
 #define __XIOS_HPP__
 
 #include "xmlioserver_spl.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

@@ -6,9 +6,8 @@
 #include "exception.hpp"
 #include "array_new.hpp"
 
-#include <mpi.h>
-#define MPI_INCLUDED
-#include <netcdf.h>
+#include "mpi.hpp"
+#include "netcdf.hpp"
 
 #ifndef UNLIMITED_DIM
    #define UNLIMITED_DIM (size_t)(-1)

@@ -3,7 +3,7 @@
 
 #include "xmlioserver_spl.hpp"
 #include "buffer_out.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace xios
 {

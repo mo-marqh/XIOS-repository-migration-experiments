@@ -11,7 +11,7 @@
 #include "context_server.hpp"
 #include "object_template.hpp"
 #include "array_new.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 
 using namespace std ;

@@ -1,7 +1,7 @@
 #ifndef __OASIS_CINTERFACE__
 #define __OASIS_CINTERFACE__
 #include <string>
-#include <mpi.h>
+#include "mpi.hpp"
 
 extern "C"
 {

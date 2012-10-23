@@ -9,7 +9,7 @@
 #include "date.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 
 
 

@@ -7,7 +7,7 @@
 #include "oasis_cinterface.hpp"
 #include <boost/functional/hash.hpp>
 #include <boost/algorithm/string.hpp>
-#include <mpi.h>
+#include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
 

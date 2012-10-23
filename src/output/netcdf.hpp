@@ -1,9 +1,8 @@
 #ifndef __XIOS_NETCDF_HPP__
 #define __XIOS_NETCDF_HPP__
-#include <mpi.h>
+#include "mpi.hpp"
 #define MPI_INCLUDED
 #include <netcdf.h>
-#undef MPI_INCLUDED
 
 #include "netcdf_version.hpp"
 
