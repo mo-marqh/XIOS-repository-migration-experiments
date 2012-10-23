@@ -4,6 +4,8 @@ install_dir=$PWD
 compil_full="false"
 use_oasis="false"
 job="1"
+netcdf_lib="netcdf4_par"
+compil_mode="prod"
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -13,7 +15,7 @@ while (($# > 0))
             echo "make_xios - installs XIOS on your architecture"
 	    echo "make_xios [options]"
 	    echo "options :"
-	    echo "       [--prod] : compilation in production mode"
+	    echo "       [--prod] : compilation in production mode (default)"
 	    echo "       [--dev] : compilation in development mode"
 	    echo "       [--debug] : compilation in debug mode"
 	    echo "       --arch arch : to choose target architecture"
@@ -22,6 +24,7 @@ while (($# > 0))
 	    echo "       [--use_oasis] : to use Oasis coupler"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
+	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq' : default netcdf4_par] : choice of netcdf library"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
             exit;;
@@ -29,11 +32,12 @@ while (($# > 0))
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
-	 "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
+	 "--") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true"  ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
+         "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -79,7 +83,7 @@ if [[ !(-z $arch) ]]
       source $install_dir/arch.env
       source $install_dir/arch.path
   else
-      echo "Veuillez definir une architecture cible !"
+      echo "Please choose a target achitecture --> list all available architecture using make_xios --avail!"
       exit 1
 fi
 
@@ -97,9 +101,17 @@ elif [[ "$compil_mode" == "debug" ]]
    then
       COMPIL_CFLAGS="%DEBUG_CFLAGS"
       COMPIL_FFLAGS="%DEBUG_FFLAGS"
-else 
-   echo "Veuillez definir un mode de compilation [debug|dev|prod] !"
-   exit 1
+fi
+
+if [[ "$netcdf_lib" == "netcdf4_par" ]]
+   then
+      XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR"
+elif [[ "$netcdf_lib" == "netcdf4_seq" ]]
+  then 
+    set nothing  
+else
+   echo "Bad choice for --netcdf_lib argument : choose between 'netcdf4_par' or 'netcdf4_seq'"
+   exit
 fi
 
 if [[ "$use_oasis" == "true" ]]
@@ -123,12 +135,12 @@ echo "%CBASE_INC     $XMLIO_CINCDIR" >> config.fcm
 echo "%FBASE_INC     $XMLIO_FINCDIR" >> config.fcm
 echo "%ARCH_LD       $XMLIO_LIB" >> config.fcm 
 
-echo "=> Activation du mode "$compil_mode" pour la distribution sous l'architecture \""$arch"\" !"
+echo "=> Using "$compil_mode" mode for compiling under architecture \""$arch"\" !"
 
 # Création de la documentation doxygen.
 if [[ !(-z $doc) ]]
    then
-      echo -e "- Création de la documentation de code doxygen (désactivée)..."
+      echo -e "- Create Doxygen documentation (disabled)..."
       #doxygen -s
 fi
 
