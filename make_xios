@@ -11,7 +11,7 @@ compil_mode="prod"
 while (($# > 0))
    do
       case $1 in
-         "-h")
+         "-h"|"--help"|"-help")
             echo "make_xios - installs XIOS on your architecture"
 	    echo "make_xios [options]"
 	    echo "options :"
@@ -32,7 +32,7 @@ while (($# > 0))
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
          "--arch")  arch=$2     ; shift ; shift ;;
-	 "--") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
+         "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true"  ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
