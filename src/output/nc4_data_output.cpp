@@ -79,7 +79,7 @@ namespace xios
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
 
-         bool isCurvilinear = true ; //for moment
+         bool isCurvilinear = domain->isCurvilinear ;
 
          switch (SuperClass::type)
          {
@@ -151,9 +151,20 @@ namespace xios
                //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
-               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
-               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
+               if (isCurvilinear)
+               {
+ 
+                 SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
+                 SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
 // supress mask               if (server->intraCommSize > 1) SuperClassWriter::writeData(mask, maskid);
+               }
+               else
+               {
+                  CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
+                  SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
+                  CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
+                  SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
+               }
                SuperClassWriter::definition_start();
 
                break;
@@ -186,23 +197,48 @@ namespace xios
 
 
                SuperClassWriter::definition_end();
-               std::vector<StdSize> start(2) ; 
-               std::vector<StdSize> count(2) ;
-               if (domain->isEmpty())
+               if (isCurvilinear)
                {
-                 start[0]=0 ; start [1]=0 ; 
-                 count[0]=0 ; count[1]=0 ; 
+                 std::vector<StdSize> start(2) ; 
+                 std::vector<StdSize> count(2) ;
+                 if (domain->isEmpty())
+                 {
+                   start[0]=0 ; start [1]=0 ; 
+                   count[0]=0 ; count[1]=0 ; 
+                 }
+                 else
+                 {
+                   start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                   count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
+                 }
+                 
+                 SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
+                 SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
                }
                else
                {
-                 start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
-                 count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
-               }
-               
-               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
-               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
-               SuperClassWriter::definition_start();
+                 std::vector<StdSize> start(1) ; 
+                 std::vector<StdSize> count(1) ;
+                 if (domain->isEmpty())
+                 {
+                   start[0]=0 ;  
+                   count[0]=0 ;  
+                   SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
+                   SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);                 }
+                 else
+                 {
+                   start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                   count[0]=domain->zoom_nj_srv ; 
+                   CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
+                   SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
+                   start[0]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; 
+                   count[0]=domain->zoom_ni_srv ; 
+                   CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
+                   SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
+                 }
+               }
+               SuperClassWriter::definition_start();
                break;
             }           
             default :
@@ -300,7 +336,7 @@ namespace xios
 
 //         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
 //         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
-          bool isCurvilinear = true ; // for moment 
+          bool isCurvilinear = domain->isCurvilinear ; 
           
          nc_type type = (!field->prec.isEmpty() &&
                         ( field->prec.getValue() == 4))
@@ -491,6 +527,7 @@ namespace xios
          {
             CAxis* axis = grid->axis ;
             CArray<double,3> field_data3D(domain->zoom_ni_srv,domain->zoom_nj_srv,axis->zoom_size) ;
+            if (!field->default_value.isEmpty()) field_data3D = field->default_value ;
             field->outputField(field_data3D);
             switch (SuperClass::type)
            {
@@ -525,6 +562,7 @@ namespace xios
          else // 2D
          {
             CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
+            if (!field->default_value.isEmpty()) field_data2D = field->default_value ;
             field->outputField(field_data2D);
             switch (SuperClass::type)
             {

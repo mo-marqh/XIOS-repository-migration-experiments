@@ -144,7 +144,7 @@ namespace xios {
          static ENodeType GetType(void);
 
          CArray<int, 2> local_mask;
-
+         bool isCurvilinear ;
        private :
 
          /// Proriétés protégées ///

@@ -411,51 +411,50 @@ namespace xios {
    
    void CDomain::completeLonLatClient(void)
    {
-      CArray<double,1> lonvalue_temp ;
-      CArray<double,1> latvalue_temp ;
+      int i,j,k ;
+      CArray<double,1> lonvalue_temp(ni*nj) ;
+      CArray<double,1> latvalue_temp(ni*nj) ;
       
+      if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj ) isCurvilinear=true ;
+      else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj ) isCurvilinear=false ;
+      else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
+                                                            <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
+                                                            <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
+      if (isCurvilinear)
+      {
+        lonvalue_temp=lonvalue ;
+        latvalue_temp=latvalue ;
+      }
+      else
+      {
+        for(j=0;j<nj;j++)
+          for(i=0;i<ni;i++) 
+          {
+            k=j*ni+i ;
+            lonvalue_temp(k)=lonvalue(i) ;
+            latvalue_temp(k)=latvalue(j) ;
+          }
+      }
+         
+        
       const int zoom_ibegin_client  = zoom_ibegin_loc.getValue(),
                 zoom_jbegin_client  = zoom_jbegin_loc.getValue(),
                 zoom_ni_client      = zoom_ni_loc.getValue(),
                 zoom_nj_client      = zoom_nj_loc.getValue();
                 
-      if (this->data_dim.getValue() == 2)
-      {
-         StdSize dm = zoom_ni_client * zoom_nj_client;
+      StdSize dm = zoom_ni_client * zoom_nj_client;
 
-         lonvalue_temp.resize(dm);
-         latvalue_temp.resize(dm);
+      lonvalue.resize(dm);
+      latvalue.resize(dm);
          
-         for (int i = 0; i < zoom_ni_client; i++)
-         {
-            for (int j = 0; j < zoom_nj_client; j++)
-            {
-               lonvalue_temp(i + j * zoom_ni_client) = lonvalue( (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni.getValue() ); 
-               latvalue_temp(i + j * zoom_ni_client) = latvalue( (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue() );
-            }
-         }
-         lonvalue.reference(lonvalue_temp.copy()) ;
-         latvalue.reference(latvalue_temp.copy()) ;
+      for (int i = 0; i < zoom_ni_client; i++)
+      {
+        for (int j = 0; j < zoom_nj_client; j++)
+        {
+          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni.getValue() ); 
+          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue() );
+        }
       }
-      else
-      {
-         lonvalue_temp.resize(zoom_ni_client);
-         latvalue_temp.resize(zoom_nj_client);
-
-// Attention ici à revoir, probablement faux         
-         for (int i = zoom_ibegin_client - 1; i < (zoom_ni_client - zoom_ibegin_client + 1); i++)
-         {
-            lonvalue_temp(i) = lonvalue(i); 
-         }
-         
-         for (int j = zoom_jbegin_client - 1; j < (zoom_nj_client - zoom_jbegin_client + 1); j++)
-         {
-            latvalue_temp(j) = latvalue(j);
-         }
-         
-         lonvalue.reference(lonvalue_temp.copy()) ;
-         latvalue.reference(latvalue_temp.copy()) ;
-      }  
    }
  
    //----------------------------------------------------------------
@@ -538,11 +537,11 @@ namespace xios {
       if (!this->zoom_ni.isEmpty() || !this->zoom_nj.isEmpty() ||
           !this->zoom_ibegin.isEmpty() || !this->zoom_jbegin.isEmpty())
       {
-         if (this->zoom_ni.isEmpty()     && this->zoom_nj.isEmpty() &&
-             this->zoom_ibegin.isEmpty() && this->zoom_jbegin.isEmpty())
+         if (this->zoom_ni.isEmpty()     || this->zoom_nj.isEmpty() ||
+             this->zoom_ibegin.isEmpty() || this->zoom_jbegin.isEmpty())
          {
             ERROR("CDomain::checkZoom(void)",
-                  <<"Les attributs définissant un zoom doivent tous être définis") ;
+                  <<"if one of zoom attributes is defined then all zoom attributes must be defined") ;
          }
          else
          {
@@ -869,7 +868,7 @@ namespace xios {
 
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
 
-      *list_msg.back()<<this->getId() ;
+      *list_msg.back()<<this->getId()<<isCurvilinear ;
       *list_msg.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back()<<*list_lat.back() ;
       event.push(connectedServer[ns],nbSenders[ns],*list_msg.back()) ;
     }
@@ -960,7 +959,9 @@ namespace xios {
     CArray<double,1> lon ;
     CArray<double,1> lat ;
      
-    buffer>>indi>>indj>>lon>>lat ;
+    buffer>>isCurvilinear>>indi>>indj>>lon>>lat ;
+    if (isCurvilinear) cout<<"Grid Curvilinear"<<endl ;
+    else cout<<"Grid Cartesian"<<endl ;
     int i,j,ind_srv ;
 
     for(int ind=0;ind<indi.numElements();ind++)

@@ -9,8 +9,8 @@ IMPLICIT NONE
   CALL MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
   CALL MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
   
-  IF (rank<7) THEN
-   CALL client("client",rank,7)
+  IF (rank<11) THEN
+   CALL client("client",rank,11)
   ELSE 
     CALL server
   ENDIF
@@ -42,9 +42,11 @@ END PROGRAM test_cs
   
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:) ;
-  INTEGER :: ni,ibegin,iend,nj,jbegin,jend
-  INTEGER :: i,j,l,ts,n
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:),lat(:),field_A(:,:), lonvalue(:) ;
+  LOGICAL,ALLOCATABLE :: mask(:,:)
+  INTEGER :: ni,ibegin,iend,nj,jbegin,jend,data_ibegin,data_ni
+  INTEGER :: i,j,k,l,ts,n,nij_begin
+  
   
   CALL init_wait
   
@@ -60,20 +62,38 @@ END PROGRAM test_cs
   ENDDO
   ni=ni_glo ; ibegin=1
 
-  jbegin=1
+  
+  nij_begin=1
   DO n=0,size-1
-    nj=nj_glo/size
-    IF (n<MOD(nj_glo,size)) nj=nj+1
-    IF (n==rank) exit 
-    jbegin=jbegin+nj
+    data_ni=(ni_glo*nj_glo)/size
+    IF (n < MOD (ni_glo*nj_glo,size)) data_ni=data_ni+1
+    IF (n==rank) THEN
+      ibegin=1 ; iend=ni_glo ; ni=iend-ibegin+1
+      jbegin=(nij_begin-1)/ni_glo +1 
+      jend=MOD(nij_begin-1 + data_ni-1,ni_glo) +1
+      nj = jend-jbegin+1
+      data_ibegin=MOD(nij_begin-1,ni_glo)
+      exit
+    ELSE
+      nij_begin=nij_begin+data_ni
+    ENDIF
   ENDDO
   
-  iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
-  lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
-  lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
-  field_A(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
+  ALLOCATE(lon(ni),lat(nj),field_A(data_ni,llm),lonvalue(ni*nj))
+  ALLOCATE(mask(ni,nj))
+  lon(:)=lon_glo(ibegin:iend,1)
+  lat(:)=lat_glo(1,jbegin:jend)
+
+  DO k=1,data_ni
+    n=k-1+(jbegin-1)*ni_glo+data_ibegin
+    i=MOD(n,ni_glo)+1
+    j=n/ni_glo+1
+    field_A(k,:)=field_A_glo(i,j,:)
+  ENDDO
+  
+  mask(:,:)=.TRUE.
+  mask(1:ni,6)=.TRUE.
   
 
   CALL xios_initialize(id,return_comm=comm)
@@ -88,10 +108,11 @@ END PROGRAM test_cs
 !  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
-  CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
-!  CALL xios_set_domain_attr("domain_A",zoom_ni=10,zoom_ibegin=5,zoom_nj=20,zoom_jbegin=10)
-  CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
-  CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
+  CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, iend=iend,jbegin=jbegin,jend=jend)
+!  CALL xios_set_domain_attr("domain_A",zoom_ni=10,zoom_ibegin=5,zoom_nj=nj_glo,zoom_jbegin=1)
+  CALL xios_set_domain_attr("domain_A",data_dim=1, data_ibegin=data_ibegin, data_ni=data_ni)
+  CALL xios_set_domain_attr("domain_A",lonvalue=lon,latvalue=lat)
+!  CALL xios_set_domain_attr("domain_A",mask=mask)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
   
   CALL xios_get_handle("field_definition",fieldgroup_hdl)
@@ -106,11 +127,11 @@ END PROGRAM test_cs
     dtime%second=3600
     CALL xios_set_timestep(dtime) 
     
-    ni=0 ; lonvalue(:)=0
-    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
+!    ni=0 ; lonvalue(:)=0
+!    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
     
-    print *,"ni",ni
-    print *,"lonvalue",lonvalue ;
+!    print *,"ni",ni
+!    print *,"lonvalue",lonvalue ;
 
     CALL xios_close_context_definition()
     
