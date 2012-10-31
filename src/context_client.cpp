@@ -66,10 +66,17 @@ namespace xios
     void CContextClient::waitEvent(list<int>& ranks)
     {
       context->server->setPendingEvent() ;
-      while(checkBuffers(ranks) || context->server->hasPendingEvent())
+      while(checkBuffers(ranks))
       {
-        context->server->eventLoop() ;
+        context->server->listen() ;
+        context->server->checkPendingRequest() ;
       }
+
+      while(context->server->hasPendingEvent())
+      {
+       context->server->eventLoop() ;
+      }
+      
     }
 
     list<CBufferOut*> CContextClient::getBuffers(list<int>& serverList, list<int>& sizeList)
