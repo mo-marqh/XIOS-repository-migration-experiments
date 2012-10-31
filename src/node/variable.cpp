@@ -94,10 +94,12 @@ namespace xios {
         {
            endid   = content.find_first_of ( " \r\n\t=", beginid );
            subid   = content.substr ( beginid, endid-beginid);
+           subid   = boost::to_lower_copy(boost::trim_copy(subid)) ;
 
            begindata = content.find_first_of ( "=", endid ) + 1;
            enddata   = content.find_first_of ( ";", begindata );
            subdata   = content.substr ( begindata, enddata-begindata);
+           subdata   = boost::to_lower_copy(boost::trim_copy(subdata)) ;
 
            group_ptr->createChild(subid)->content = subdata ;
         }
