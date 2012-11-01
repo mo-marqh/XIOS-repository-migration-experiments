@@ -6,6 +6,7 @@
 #include "object_factory.hpp"
 #include "xmlioserver_spl.hpp"
 #include "type.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace xios {
 
