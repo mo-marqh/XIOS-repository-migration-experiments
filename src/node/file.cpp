@@ -256,6 +256,8 @@ namespace xios {
               oss << "_"  ;
               int width=0 ; int n=commSize-1 ;
               while(n != 0) { n=n/10 ; width++ ;}
+              if (!min_digits.isEmpty()) 
+                if (width<min_digits) width=min_digits ;
               oss.width(width) ;
               oss.fill('0') ;
               oss<<right<< commRank;
@@ -286,6 +288,7 @@ namespace xios {
             CField* field = *it;
             this->data_out->writeFieldGrid(field);
          }
+         this->data_out->writeTimeDimension();
          
          for (it = this->enabledFields.begin() ;it != end; it++)
          {

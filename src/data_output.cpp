@@ -62,6 +62,11 @@ namespace xios
          this->writeDomain_(domain);
       }
 
+      void CDataOutput::writeTimeDimension(void)
+      {
+         this->writeTimeDimension_();
+      }
+
       //----------------------------------------------------------------
 
       void CDataOutput::writeField(CField* field)
@@ -86,8 +91,6 @@ namespace xios
       {
          CGrid* grid = CGrid::get(field->grid_ref.getValue());
          CDomain* domain = CDomain::get(grid->domain_ref.getValue());
-            
-//         if (domain->isEmpty()) return;
          this->writeFieldData_(field);
       }
       

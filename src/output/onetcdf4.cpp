@@ -274,7 +274,7 @@ namespace xios
       {
          int grpid = this->getCurrentGroup();
          int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
-         CheckError(nc_put_att(grpid, varid, name.c_str(), NC_CHAR, value.size()+1, value.c_str()));
+         CheckError(nc_put_att(grpid, varid, name.c_str(), NC_CHAR, value.size(), value.c_str()));
          //CheckError(nc_put_att_string(grpid, varid, name.c_str(), 1, &str));
       }
       
@@ -288,7 +288,15 @@ namespace xios
          int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
          CheckError(nc_put_att_double(grpid, varid, name.c_str(), NC_DOUBLE,1, &value));
       }
-      
+
+       template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const CArray<double,1>& value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_double(grpid, varid, name.c_str(), NC_DOUBLE,value.numElements(), value.dataFirst()));
+      }     
       //---------------------------------------------------------------
       
       template <>
@@ -299,6 +307,15 @@ namespace xios
          int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
          CheckError(nc_put_att_float(grpid, varid, name.c_str(), NC_FLOAT, 1, &value));
       }
+
+       template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const CArray<float,1>& value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_float(grpid, varid, name.c_str(), NC_FLOAT,value.numElements(), value.dataFirst()));
+      }     
       
       //---------------------------------------------------------------
       
@@ -311,6 +328,14 @@ namespace xios
          CheckError(nc_put_att_int(grpid, varid, name.c_str(), NC_INT,1, &value));
       }
 
+       template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const CArray<int,1>& value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_int(grpid, varid, name.c_str(), NC_INT,value.numElements(), value.dataFirst()));
+      }     
       //---------------------------------------------------------------
 
       void CONetCDF4::getWriteDataInfos(const StdString & name, StdSize record, StdSize & array_size,

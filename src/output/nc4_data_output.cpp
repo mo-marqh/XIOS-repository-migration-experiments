@@ -21,8 +21,8 @@ namespace xios
       {
          StdString timeid = StdString("time_counter");
          SuperClass::type = MULTI_FILE;
-         if (!exist)
-            SuperClassWriter::addDimension(timeid);
+//         if (!exist)
+//            SuperClassWriter::addDimension(timeid);
       }
 
       CNc4DataOutput::CNc4DataOutput
@@ -37,8 +37,8 @@ namespace xios
 
          SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
          
-         if (!exist)
-            SuperClassWriter::addDimension(timeid);
+ //        if (!exist)
+//            SuperClassWriter::addDimension(timeid);
       }
 
 
@@ -70,15 +70,18 @@ namespace xios
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
-         StdString lonid     = StdString("lon").append(appendDomid);
-         StdString latid     = StdString("lat").append(appendDomid);
+         StdString dimXid     = StdString("x").append(appendDomid);
+         StdString dimYid     = StdString("y").append(appendDomid);
+         
+         string lonid,latid ;
+/*
          StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon").append(appendDomid).append("_local")
                              : lonid;
          StdString latid_loc = (server->intraCommSize > 1)
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
-
+*/
          bool isCurvilinear = domain->isCurvilinear ;
 
          switch (SuperClass::type)
@@ -89,24 +92,26 @@ namespace xios
                
                if (server->intraCommSize > 1)
                {
-                 SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
-                 SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
+//                 SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
+//                 SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
                }
 
                if (isCurvilinear)
                {
-                 dim0.push_back(latid_loc); dim0.push_back(lonid_loc);
+                 dim0.push_back(dimYid); dim0.push_back(dimXid);
                  lonid = StdString("nav_lon").append(appendDomid);
                  latid = StdString("nav_lat").append(appendDomid);
                }
                else
                {
-                 dim0.push_back(latid_loc);
-                 dim1.push_back(lonid_loc);
+                 lonid = StdString("lon").append(appendDomid);
+                 latid = StdString("lat").append(appendDomid);
+                 dim0.push_back(dimYid);
+                 dim1.push_back(dimXid);
                }
 
-               SuperClassWriter::addDimension(lonid_loc, domain->zoom_ni_srv);
-               SuperClassWriter::addDimension(latid_loc, domain->zoom_nj_srv);
+               SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
+               SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
                if (server->intraCommSize > 1)
                {
                   this->writeLocalAttributes(domain->zoom_ibegin_srv,
@@ -114,6 +119,13 @@ namespace xios
                                              domain->zoom_jbegin_srv,
                                              domain->zoom_nj_srv,
                                              appendDomid);
+                  
+                  if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
+                                             domain->zoom_ni_srv,
+                                             domain->zoom_jbegin_srv,
+                                             domain->zoom_nj_srv,
+                                             domain->ni_glo,domain->nj_glo,
+                                             server->intraCommRank,server->intraCommSize);
                }
                
                if (isCurvilinear)
@@ -132,8 +144,8 @@ namespace xios
                   (latid, "Y", "latitude", "Latitude", "degrees_north", domid);
 
                dim0.clear();
-               dim0.push_back(latid_loc);
-               dim0.push_back(lonid_loc);
+               dim0.push_back(dimYid);
+               dim0.push_back(dimXid);
 
 
 // supress mask               if (server->intraCommSize > 1)
@@ -171,13 +183,13 @@ namespace xios
             }
             case (ONE_FILE) :
             {
-               SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
-               SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
+               SuperClassWriter::addDimension(dimXid, domain->zoom_ni.getValue());
+               SuperClassWriter::addDimension(dimYid, domain->zoom_nj.getValue());
 
                
                if (isCurvilinear)
                {
-                  dim0.push_back(latid); dim0.push_back(lonid);
+                  dim0.push_back(dimYid); dim0.push_back(dimXid);
                   lonid = StdString("nav_lon").append(appendDomid);
                   latid = StdString("nav_lat").append(appendDomid);
                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
@@ -185,8 +197,10 @@ namespace xios
                }
                else
                {
-                  dim0.push_back(latid);
-                  dim1.push_back(lonid);
+                  dim0.push_back(dimYid);
+                  dim1.push_back(dimXid);
+                  lonid = StdString("lon").append(appendDomid);
+                  latid = StdString("lat").append(appendDomid);
                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
                }
@@ -302,8 +316,12 @@ namespace xios
                      << " not implemented yet !");
          }
          axis->addRelFile(this->filename);
-      }
-
+     }
+     
+     void CNc4DataOutput::writeTimeDimension_(void)
+     {
+       SuperClassWriter::addDimension(string("time_counter"));
+     }
       //--------------------------------------------------------------
 
       void CNc4DataOutput::writeField_(CField* field)
@@ -323,14 +341,16 @@ namespace xios
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
-         StdString lonid     = StdString("lon").append(appendDomid);
-         StdString latid     = StdString("lat").append(appendDomid);
+         StdString dimXid     = StdString("x").append(appendDomid);
+         StdString dimYid     = StdString("y").append(appendDomid);
+/*
          StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon").append(appendDomid).append("_local")
                              : lonid;
          StdString latid_loc = (server->intraCommSize > 1)
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
+*/
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue() : field->getBaseFieldReference()->getId();
 
@@ -369,22 +389,22 @@ namespace xios
          }
          else
          {
-            coodinates.push_back(latid);
-            coodinates.push_back(lonid);
+            coodinates.push_back(StdString("lat").append(appendDomid));
+            coodinates.push_back(StdString("lon").append(appendDomid));
          }
 
          switch (SuperClass::type)
          {
             case (MULTI_FILE) :
             {
-               dims.push_back(latid_loc);
-               dims.push_back(lonid_loc);
+               dims.push_back(dimYid);
+               dims.push_back(dimXid);
                break ;
             }
             case (ONE_FILE) :
             {
-               dims.push_back(latid);
-               dims.push_back(lonid);
+               dims.push_back(dimYid);
+               dims.push_back(dimXid);
                break;
             }
             default :
@@ -673,6 +693,35 @@ namespace xios
          SuperClassWriter::addAttribute(StdString("nj"    ).append(domid), nj);
       }
 
+     void CNc4DataOutput::writeLocalAttributes_IOIPSL
+         (int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size)
+      {
+         CArray<int,1> array(2) ;
+
+         SuperClassWriter::addAttribute("DOMAIN_number_total",size ) ;
+         SuperClassWriter::addAttribute("DOMAIN_number", rank) ;
+         array=1,2 ;
+         SuperClassWriter::addAttribute("DOMAIN_dimensions_ids",array) ;
+         array=ni_glo,nj_glo ;
+         SuperClassWriter::addAttribute("DOMAIN_size_global", array) ;
+         array=ni,nj ;
+         SuperClassWriter::addAttribute("DOMAIN_size_local", array) ;
+         array=ibegin,jbegin ;
+         SuperClassWriter::addAttribute("DOMAIN_position_first", array) ;
+         array=ibegin+ni-1,jbegin+nj-1 ;
+         SuperClassWriter::addAttribute("DOMAIN_position_last",array) ;
+         array=0,0 ;
+         SuperClassWriter::addAttribute("DOMAIN_halo_size_start", array) ;
+         SuperClassWriter::addAttribute("DOMAIN_halo_size_end", array);
+         SuperClassWriter::addAttribute("DOMAIN_type",string("box")) ;
+/*
+         SuperClassWriter::addAttribute("DOMAIN_DIM_N001",string("x")) ;
+         SuperClassWriter::addAttribute("DOMAIN_DIM_N002",string("y")) ;
+         SuperClassWriter::addAttribute("DOMAIN_DIM_N003",string("axis_A")) ;
+         SuperClassWriter::addAttribute("DOMAIN_DIM_N004",string("time_counter")) ;
+*/
+
+      }
       //---------------------------------------------------------------
 
       void CNc4DataOutput:: writeFileAttributes(const StdString & name,

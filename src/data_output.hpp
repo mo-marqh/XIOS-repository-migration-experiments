@@ -24,6 +24,7 @@ namespace xios
             void closeFile     (void);
             void writeField    (CField* field);
             void writeFieldGrid(CField* field);
+            void writeTimeDimension(void);
             void writeFieldData(CField* field);
 
             virtual void definition_start(void) = 0;
@@ -45,6 +46,7 @@ namespace xios
             virtual void writeField_      (CField*    field)  = 0;
             virtual void writeFieldData_  (CField*    field)  = 0;
             virtual void writeDomain_     (CDomain*   domain) = 0;
+            virtual void writeTimeDimension_ (void) = 0;
             virtual void writeAxis_       (CAxis*     axis)   = 0;
             virtual void writeTimeAxis_   (CField*    field,
                                            const shared_ptr<CCalendar> cal)    = 0;

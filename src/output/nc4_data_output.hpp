@@ -41,6 +41,7 @@ namespace xios
             /// Ecriture ///
             virtual void writeDomain_    (CDomain* domain);
             virtual void writeAxis_      (CAxis* axis);
+            virtual void writeTimeDimension_(void);
             virtual void writeField_     (CField* field);
             virtual void writeFieldData_ (CField* field);
             virtual void writeFile_      (CFile* file);
@@ -52,7 +53,7 @@ namespace xios
          protected :
          
             void writeLocalAttributes(int ibegin, int ni, int jbegin, int nj, StdString domid);
-
+            void writeLocalAttributes_IOIPSL(int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size) ;
             void writeTimeAxisAttributes(const StdString & axis_name,
                                          const StdString & calendar,
                                          const StdString & units,
