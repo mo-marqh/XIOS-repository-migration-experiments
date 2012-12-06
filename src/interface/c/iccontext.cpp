@@ -39,13 +39,17 @@ extern "C"
             xios::CContext::getRoot()->getChildList();
 
       for (std::size_t i = 0; i < def_vector.size(); i++)
-	   {
+      {
           if (def_vector[i]->getId().compare(id) == 0)
-          *_ret = def_vector[i];
-           CTimer::get("XIOS").suspend() ;
-          return;
+          {
+            *_ret = def_vector[i];
+             CTimer::get("XIOS").suspend() ;
+            return;
+          }
       }
        CTimer::get("XIOS").suspend() ;
+       ERROR("void cxios_context_handle_create (XContextPtr * _ret, const char * _id, int _id_len)",
+             << "Context "<<id<<"  unknown");
       // Lever une exeception ici
    }
    
