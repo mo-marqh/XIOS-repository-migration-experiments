@@ -19,7 +19,7 @@ namespace xios
         public :
 
            using CArray<T_numtype,N_rank>::operator = ;
-           using Array<T_numtype,N_rank>::operator = ;
+//           using Array<T_numtype,N_rank>::operator = ;
            
             /// Constructeurs ///
             explicit CAttributeArray(const StdString & id);
