@@ -153,9 +153,10 @@ export PATH=$PWD/tools/FCM/bin:$PATH
 
 if [[ "$compil_full" == "true" ]]
    then
-   fcm build -f -j $job
+   fcm build --clean --ignore-lock 
+   fcm build -f --ignore-lock -j $job
 else
-  fcm build -j $job
+  fcm build --ignore-lock -j $job
 fi
 
 

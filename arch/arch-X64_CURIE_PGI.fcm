@@ -2,22 +2,22 @@
 ###################        Projet xios - xmlioserver       #####################
 ################################################################################
 
-%CCOMPILER      mpicc
-%FCOMPILER      mpif90
-%LINKER         mpif90  
+%CCOMPILER      mpicxx -noswitcherror
+%FCOMPILER      mpif90 -noswitcherror
+%LINKER         mpif90 -noswitcherror  
 
-%BASE_CFLAGS    -ansi -w
-%PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
-%DEV_CFLAGS     -g -O2 
+%BASE_CFLAGS    -D__NONE__
+%PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
+%DEV_CFLAGS     -g -O2
 %DEBUG_CFLAGS   -g 
 
-%BASE_FFLAGS    -D__NONE__ 
+%BASE_FFLAGS    -D__NONE__
 %PROD_FFLAGS    -O3
-%DEV_FFLAGS     -g -O2
+%DEV_FFLAGS     -g -O2 
 %DEBUG_FFLAGS   -g 
 
 %BASE_INC       -D__NONE__
-%BASE_LD        -lstdc++
+%BASE_LD        -pgcpplibs
 
 %CPP            cpp
 %FPP            cpp -P
