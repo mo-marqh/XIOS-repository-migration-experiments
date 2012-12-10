@@ -161,7 +161,7 @@ class CArray : public Array<T_numtype,N_rank>, public virtual CBaseType
     virtual bool isEmpty(void) const { if (this->numElements()==0) return true; else return false; }
     virtual size_t size(void) const { return (this->dimensions()+1)*sizeof(int)+sizeof(size_t) + this->numElements()*sizeof(T_numtype) ;}
  
-    virtual CArray* clone(void) const { return new CArray(*this); }
+    virtual CBaseType* clone(void) const { return new CArray(*this); }
        
     virtual bool toBuffer(CBufferOut& buffer) const
     {

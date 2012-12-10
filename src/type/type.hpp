@@ -35,7 +35,7 @@ namespace xios
     CType& operator = (const CType_ref<T>& val) ;
     operator T&() ;
     
-    virtual CType* clone(void) const   { return _clone(); }
+    inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
     virtual string toString(void) const { return _toString(); }
     virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer) ; }
@@ -94,7 +94,7 @@ namespace xios
     const CType_ref& operator = (const CType_ref& val) const;
     operator T&() const;
 
-    virtual CType_ref* clone(void) const   { return _clone(); }
+    inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
     virtual void fromString(const string& str) const  { _fromString(str); }
     virtual string toString(void) const { return _toString(); }

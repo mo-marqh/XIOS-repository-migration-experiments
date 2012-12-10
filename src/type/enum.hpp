@@ -41,7 +41,7 @@ namespace xios
     __INLINE__ CEnum& operator = (const CEnum_ref<T>& val) ;
     __INLINE__ operator T_enum&() ;
         
-    virtual CEnum* clone(void) const   { return _clone(); }
+    inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
     virtual string toString(void) const { return _toString(); }
     virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer) ; }
@@ -101,7 +101,7 @@ namespace xios
     __INLINE__ operator T_enum&() const;
     bool operator == (const CEnum_ref &other) {return this->get()==other.get() ;}
 
-    virtual CEnum_ref* clone(void) const   { return _clone(); }
+    inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
     virtual void fromString(const string& str) const  { _fromString(str); }
     virtual string toString(void) const { return _toString(); }
