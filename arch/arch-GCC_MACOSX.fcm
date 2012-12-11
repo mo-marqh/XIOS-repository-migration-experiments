@@ -19,7 +19,7 @@
 %BASE_INC       -D__NONE__
 %BASE_LD        -lstdc++
 
-%CPP            cpp
-%FPP            cpp -P
+%CPP            /opt/local/bin/cpp-mp-4.5
+%FPP            /opt/local/bin/cpp-mp-4.5 -P
 %MAKE           gmake
 

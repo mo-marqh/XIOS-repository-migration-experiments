@@ -6,7 +6,7 @@
 %FCOMPILER      ifort
 %LINKER         ifort
 
-%BASE_CFLAGS    -ansi  -diag-disable 1125 -diag-disable 279 -DMPI_NO_CPPBIND
+%BASE_CFLAGS    -ansi  -diag-disable 1125 -diag-disable 279
 %PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -g -O2 -traceback
 %DEBUG_CFLAGS   -DBZ_DEBUG -g -traceback -fno-inline

@@ -1,6 +1,6 @@
 NETCDF_INCDIR="-I $NETCDF_INC_DIR"
-NETCDF_LIBDIR="-L $NETCDF_LIB_DIR"
-NETCDF_LIB="-lnetcdf"
+NETCDF_LIBDIR=""
+NETCDF_LIB="-lnetcdf -lpnetcdf"
 
 MPI_INCDIR=""
 MPI_LIBDIR=""
@@ -8,7 +8,7 @@ MPI_LIB=""
 
 HDF5_INCDIR=""
 HDF5_LIBDIR=""
-HDF5_LIB=""
+HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz"
 
 OASIS_INCDIR="-I$WORKDIR/NEMO_COUPLE/prism/X64/build/lib/psmile.MPI1"
 OASIS_LIBDIR="-L$WORKDIR/NEMO_COUPLE/prism/X64/lib"
