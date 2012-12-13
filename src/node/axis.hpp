@@ -7,6 +7,8 @@
 
 #include "declare_group.hpp"
 #include "attribute_array.hpp"
+#include "attribute_enum.hpp"
+#include "attribute_enum_impl.hpp"
 
 namespace xios {
    

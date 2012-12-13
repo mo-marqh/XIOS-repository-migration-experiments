@@ -300,6 +300,10 @@ namespace xios
                   SuperClassWriter::addAttribute
                      ("units", axis->unit.getValue(), &axisid);
 
+              if (!axis->positive.isEmpty())
+                if (axis->positive==CAxis::positive_attr::up) SuperClassWriter::addAttribute("positive", string("up"), &axisid);
+                else   SuperClassWriter::addAttribute("positive", string("down"), &axisid);
+
                SuperClassWriter::definition_end();
                
                CArray<double,1> axis_value(zoom_size) ;
