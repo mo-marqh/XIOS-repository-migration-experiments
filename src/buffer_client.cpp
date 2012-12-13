@@ -10,6 +10,8 @@
 namespace xios
 {
  
+  size_t maxRequestSize=0 ;
+  
   CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_)
   {
     bufferSizeByServer=CXios::bufferSize ;
@@ -39,8 +41,12 @@ namespace xios
   
   bool CClientBuffer::isBufferFree(int size)
   {
+    if (size>maxRequestSize) maxRequestSize=size ;
+    
     if (size>bufferSize) ERROR("CClientBuffer::hasSpace(int size)",
-                               <<"request size is too big for buffer, increase buffer client size");
+                               <<"request size is too big for buffer, increase buffer client size"<<endl
+                               <<"Current buffer_size : "<<CXios::bufferSize<<endl
+                               <<"buffer_size must be > "<<size*2<<endl)
  
     if (size<=remain()) return true ;
     else return false ;

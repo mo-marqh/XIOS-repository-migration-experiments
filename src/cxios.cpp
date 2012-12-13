@@ -6,6 +6,8 @@
 #include "xml_parser.hpp"
 #include <boost/functional/hash.hpp>
 #include "mpi.hpp"
+#include "memory.hpp"
+#include <new>
 
 namespace xios
 {
@@ -24,6 +26,7 @@ namespace xios
   
   void CXios::initialize()
   {
+    set_new_handler(noMemory);
     parseFile(rootFile);
     usingServer=getin<bool>("using_server",false) ;
     usingOasis=getin<bool>("using_oasis",false) ;

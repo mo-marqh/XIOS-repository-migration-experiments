@@ -7,6 +7,8 @@
 
 namespace xios
 {
+  extern size_t maxRequestSize ;
+  
   class CClientBuffer
   {
     
