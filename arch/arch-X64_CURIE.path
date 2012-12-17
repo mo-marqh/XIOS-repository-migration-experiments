@@ -13,3 +13,7 @@ HDF5_LIB=""
 OASIS_INCDIR="-I$WORKDIR/NEMO_COUPLE/prism/X64/build/lib/psmile.MPI1"
 OASIS_LIBDIR="-L$WORKDIR/NEMO_COUPLE/prism/X64/lib"
 OASIS_LIB="-lpsmile.MPI1 -lmpp_io"
+
+#only for MEMTRACK debuging : developper only
+ADDR2LINE_LIBDIR="-L${WORKDIR}/ADDR2LINE_LIB"
+ADDR2LINE_LIB="-laddr2line"

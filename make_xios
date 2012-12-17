@@ -3,6 +3,7 @@
 install_dir=$PWD
 compil_full="false"
 use_oasis="false"
+use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
@@ -25,6 +26,7 @@ while (($# > 0))
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq' : default netcdf4_par] : choice of netcdf library"
+	    echo "       [--memtrack] : tracking memory leak - developper only"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
             exit;;
@@ -38,6 +40,7 @@ while (($# > 0))
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
+         "--memtrack")   use_memtrack="true" ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -119,6 +122,12 @@ if [[ "$use_oasis" == "true" ]]
    XMLIO_FINCDIR="$OASIS_INCDIR $XMLIO_FINCDIR"
    XMLIO_LIB="$OASIS_LIBDIR $OASIS_LIB $XMLIO_LIB"
    XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OASIS"
+fi 
+
+if [[ "$use_memtrack" == "true" ]]
+   then
+   XMLIO_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XMLIO_LIB"
+   XMLIO_CPPKEY="$XMLIO_CPPKEY XIOS_MEMTRACK"
 fi 
 
 XMLIO_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
