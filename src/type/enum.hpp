@@ -136,13 +136,13 @@ namespace xios
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const CEnum<T>& type) ;
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const typename T::t_enum & type) ;  
   template <typename T> __INLINE__ CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type) ;
-  template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const CEnum<T>& type) ;
+//  template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const CEnum<T>& type) ;
   template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const typename T::t_enum & type) ;
 
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const CEnum<T>& type) ;
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const typename T::t_enum & type);
   template <typename T> __INLINE__ CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type);
-  template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const CEnum<T>& type);
+//  template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const CEnum<T>& type);
   template <typename T> __INLINE__ CMessage& operator<<(CMessage& msg, const typename T::t_enum & type);
 }
 

@@ -273,13 +273,14 @@ namespace xios
     return buffer ;
   }
   
- 
+/* 
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CEnum<T>& type)
   {
     msg.push(*type.clone()) ;
     return msg ;
   }
+*/
 
   template <typename T>
   CMessage& operator<<(CMessage& msg, const typename T::t_enum & type)

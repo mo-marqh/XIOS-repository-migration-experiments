@@ -208,13 +208,13 @@ class CArray : public Array<T_numtype,N_rank>, public virtual CBaseType
  
   template <typename T_numtype,int N_rank> inline CMessage& operator<<(CMessage& msg, const CArray<T_numtype, N_rank>& array)
   {
-    msg.push(*array.clone()) ;
+    msg.push(array) ;
     return msg ;
   }
 
   template <typename T_numtype,int N_rank> inline CMessage& operator<<(CMessage& msg, CArray<T_numtype, N_rank>& array)
   {
-    msg.push(*array.clone()) ;
+    msg.push(array) ;
     return msg ;
   }
 

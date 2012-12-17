@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
+#include "cxios.hpp"
 
 namespace xios
 {
@@ -205,6 +206,7 @@ namespace xios
        for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) stop|=itBuff->second->hasPendingRequest() ;
      }
      CTimer::get("Blocking time").suspend();
+     report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
      
      releaseBuffers() ;
    }

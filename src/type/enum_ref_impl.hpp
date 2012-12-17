@@ -297,14 +297,14 @@ namespace xios
   }
 
 
-
+/*
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CEnum_ref<T>& type)
   {
     msg.push(*type.clone()) ;
     return msg ;
   }
-
+*/
 
   template <typename T>
   CMessage& operator<<(CMessage& msg, typename T::t_enum & type)

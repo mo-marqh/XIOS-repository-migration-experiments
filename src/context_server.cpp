@@ -12,6 +12,7 @@
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
+#include "cxios.hpp"
 
 
 
@@ -182,6 +183,7 @@ namespace xios
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl ;
       context->finalize() ;
       finished=true ;
+      report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event) ;
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event) ;

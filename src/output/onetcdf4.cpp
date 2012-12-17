@@ -168,7 +168,7 @@ namespace xios
                 size = UNLIMITED_DIM;
             retvalue.push_back(size);
          }
-
+         delete [] dimid;
          return (retvalue);
       }
 

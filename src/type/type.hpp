@@ -151,12 +151,13 @@ namespace xios
   template <typename T>
   CBufferIn& operator>>(CBufferIn& buffer, T& type) ;
 
+/*
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CType<T>& type) ;
 
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CType_ref<T>& type) ;
-  
+*/  
   
   template <typename T>
   CMessage& operator<<(CMessage& msg, const T& type) ;

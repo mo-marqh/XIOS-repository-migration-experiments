@@ -8,6 +8,7 @@
 #include "mpi.hpp"
 #include "memory.hpp"
 #include <new>
+#include "memtrack.hpp"
 
 namespace xios
 {
@@ -52,7 +53,11 @@ namespace xios
 
   void CXios::clientFinalize(void)
   {
-     CClient::finalize() ;    
+     CClient::finalize() ; 
+#ifdef XIOS_MEMTRACK
+     MemTrack::TrackListMemoryUsage() ;
+     MemTrack::TrackDumpBlocks();  
+#endif
   }   
   
   

@@ -90,7 +90,7 @@ namespace xios
       return buffer ;
     }
 
-  CMessage& operator<<(CMessage& msg,CBaseType& type)
+  CMessage& operator<<(CMessage& msg,const CBaseType& type)
  {
     msg.push(type) ;
     return msg ;

@@ -17,8 +17,8 @@ namespace xios
   template CBufferIn& operator>> <decl_type> (CBufferIn& buffer, CType<decl_type>& type) ; \
   template CBufferIn& operator>> <decl_type> (CBufferIn& buffer, const CType_ref<decl_type>& type) ; \
   template CBufferIn& operator>> <decl_type> (CBufferIn& buffer, decl_type& type) ; \
-  template CMessage& operator<< <decl_type> (CMessage& msg, const CType<decl_type>& type) ;\
-  template CMessage& operator<< <decl_type> (CMessage& msg, const CType_ref<decl_type>& type) ; \
+/*  template CMessage& operator<< <decl_type> (CMessage& msg, const CType<decl_type>& type) ;*/ \
+/*  template CMessage& operator<< <decl_type> (CMessage& msg, const CType_ref<decl_type>& type) ;*/ \
   template CMessage& operator<< <decl_type> (CMessage& msg, const decl_type& type) ; \
   template CMessage& operator<< <decl_type> (CMessage& msg, decl_type& type) ;
   

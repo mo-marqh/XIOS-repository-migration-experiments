@@ -235,19 +235,19 @@ namespace xios
   }
 
 
-
+/*
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CType_ref<T>& type)
   {
-    msg.push(*type.clone()) ;
+    msg.push(type) ;
     return msg ;
   }
-
+*/
 
   template <typename T>
   CMessage& operator<<(CMessage& msg, T& type)
   {
-    msg.push(*CType_ref<T>(type).clone()) ;
+    msg.push(CType_ref<T>(type)) ;
     return msg ;
   }
   

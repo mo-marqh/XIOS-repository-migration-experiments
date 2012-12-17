@@ -8,5 +8,4 @@ namespace xios
   {
     ERROR("void noMemory(void)",<<"Out of memory") ;
   }
-
 }

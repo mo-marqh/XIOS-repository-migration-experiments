@@ -229,18 +229,18 @@ namespace xios
     return buffer ;
   }
   
-  
+/*  
   template <typename T>
   CMessage& operator<<(CMessage& msg, const CType<T>& type)
   {
     msg.push(*type.clone()) ;
     return msg ;
   }
-
+*/
   template <typename T>
   CMessage& operator<<(CMessage& msg, const T& type)
   {
-    msg.push(*CType<T>(type).clone()) ;
+    msg.push(CType<T>(type)) ;
     return msg ;
   }
 
