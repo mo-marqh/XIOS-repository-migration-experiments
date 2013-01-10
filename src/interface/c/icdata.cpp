@@ -20,9 +20,11 @@
 #include "client.hpp"
 #include "field.hpp"
 #include "context.hpp"
+#include "context_client.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
 #include "array_new.hpp"
+
 
 extern "C"
 {
@@ -111,7 +113,7 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
-
+      if (!context->hasServer) context->client->checkBuffers() ;
       CArray<double,(StdSize)1> data(data_k8,shape(data_Xsize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
       CField toto ;
@@ -128,6 +130,7 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
       
       CArray<double,2>data(data_k8,shape(data_Xsize,data_Ysize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
@@ -143,6 +146,7 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
 
       CArray<double,3>data(data_k8,shape(data_Xsize,data_Ysize,data_Zsize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
@@ -158,6 +162,8 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
+
       CArray<float,1> data_tmp(data_k4,shape(data_Xsize),neverDeleteData) ;
       CArray<double,1> data(data_Xsize) ;
       data=data_tmp ;
@@ -174,6 +180,8 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
+
       CArray<float,2> data_tmp(data_k4,shape(data_Xsize,data_Ysize),neverDeleteData) ;
       CArray<double,2> data(data_Xsize,data_Ysize) ;
       data=data_tmp ;
@@ -191,6 +199,7 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
 
       CArray<float,3> data_tmp(data_k4,shape(data_Xsize,data_Ysize,data_Zsize),neverDeleteData) ;
       CArray<double,3> data(data_Xsize,data_Ysize,data_Zsize) ;

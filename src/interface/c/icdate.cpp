@@ -16,6 +16,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "context.hpp"
+#include "context_client.hpp"
 
 extern "C"
 {
@@ -45,6 +46,7 @@ extern "C"
    {
       CTimer::get("XIOS").resume() ;
       xios::CContext* context = CContext::getCurrent() ;
+      if (!context->hasServer) context->client->checkBuffers() ;
       context->updateCalendar(step) ;
       context->sendUpdateCalendar(step) ;
       CTimer::get("XIOS").suspend() ;
