@@ -184,7 +184,7 @@ class CArray : public Array<T_numtype,N_rank>, public virtual CBaseType
       
     ret=buffer.get(numDim) ;
     ret&=buffer.get(vect.data(),N_rank) ;
-    resize(vect) ;
+    this->resize(vect) ;
     ret&=buffer.get(ne) ;
     ret&=buffer.get(this->dataFirst(),ne) ;
      return ret ;
