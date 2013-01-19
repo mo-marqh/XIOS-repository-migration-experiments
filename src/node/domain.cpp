@@ -960,8 +960,7 @@ namespace xios {
     CArray<double,1> lat ;
      
     buffer>>isCurvilinear>>indi>>indj>>lon>>lat ;
-    if (isCurvilinear) cout<<"Grid Curvilinear"<<endl ;
-    else cout<<"Grid Cartesian"<<endl ;
+
     int i,j,ind_srv ;
 
     for(int ind=0;ind<indi.numElements();ind++)
