@@ -6,7 +6,7 @@
 %FCOMPILER      mpif90
 %LINKER         mpif90  -nofor-main
 
-%BASE_CFLAGS    -ansi  -diag-disable 1125 -diag-disable 279
+%BASE_CFLAGS    -diag-disable 1125 -diag-disable 279
 %PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -g -traceback
 %DEBUG_CFLAGS   -DBZ_DEBUG -g -traceback -fno-inline
@@ -19,6 +19,6 @@
 %BASE_INC       -D__NONE__
 %BASE_LD        -lstdc++
 
-%CPP            cpp
+%CPP            mpicc -EP
 %FPP            cpp -P
 %MAKE           gmake

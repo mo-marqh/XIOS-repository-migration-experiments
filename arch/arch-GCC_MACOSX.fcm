@@ -6,7 +6,7 @@
 %FCOMPILER      mpif90
 %LINKER         mpif90
 
-%BASE_CFLAGS    -ansi -w
+%BASE_CFLAGS    -w
 %PROD_CFLAGS    -O3 -D BOOST_DISABLE_ASSERTS
 %DEV_CFLAGS     -g
 %DEBUG_CFLAGS   -g -O2
