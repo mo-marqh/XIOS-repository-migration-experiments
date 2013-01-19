@@ -63,8 +63,9 @@ namespace xios
                               const std::vector<StdSize> * start = NULL,
                               const std::vector<StdSize> * count = NULL);
 
-            void writeData(const CArray<int, 2>& data, const StdString & name);
-
+            void writeData(const CArray<int, 2>& data, const StdString & name);     
+            void writeTimeAxisData(const CArray<double,1>& data, const StdString & name,
+                                   bool collective, StdSize record, bool Isroot) ;
             /// Accesseur ///
             const CONetCDF4Path & getCurrentPath(void) const;
 
@@ -114,7 +115,7 @@ namespace xios
             CONetCDF4Path path;
             int ncidp;
             bool wmpi;
-
+            map<int,size_t> timeAxis ;
       }; // class CONetCDF4
 
       ///---------------------------------------------------------------

@@ -349,7 +349,7 @@ namespace xios
          std::vector<std::size_t>::const_iterator
             it  = sizes.begin(), end = sizes.end();
          int i = 0;
-      
+         cout<<"nc Size -->"<<sizes.size()<<endl ;
          if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
          {
             sstart.push_back(record);
@@ -378,9 +378,9 @@ namespace xios
          }
          
       }
-
-      //---------------------------------------------------------------
-
+      
+                     
+ 
       template <>
          void CONetCDF4::writeData_(int grpid, int varid,
                                     const std::vector<StdSize> & sstart,
@@ -424,6 +424,33 @@ namespace xios
          this->getWriteDataInfos(name, 0, array_size,  sstart, scount, NULL, NULL);
          this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
       }
+
+      void CONetCDF4::writeTimeAxisData(const CArray<double, 1>& data, const StdString & name,
+                                        bool collective, StdSize record, bool isRoot)
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = this->getVariable(name);
+         
+         map<int,size_t>::iterator it=timeAxis.find(varid) ;
+         if (it==timeAxis.end()) timeAxis[varid]=record ;
+         else 
+         {
+           if (it->second >= record) return ;
+           else it->second =record ;
+         }
+         
+         StdSize array_size = 1;
+         std::vector<StdSize> sstart, scount;
+         
+         if (this->wmpi && collective)
+         CheckError(nc_var_par_access(grpid, varid, NC_COLLECTIVE));
+         if (this->wmpi && !collective)
+         CheckError(nc_var_par_access(grpid, varid, NC_INDEPENDENT));
+         
+         this->getWriteDataInfos(name, record, array_size,  sstart, scount, NULL, NULL);
+         if (using_netcdf_internal)  if (!isRoot) { sstart[0]=sstart[0]+1 ; scount[0]=0 ;}
+         this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
+       }
 
       //---------------------------------------------------------------
       

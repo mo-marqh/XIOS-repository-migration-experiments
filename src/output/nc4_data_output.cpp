@@ -526,6 +526,7 @@ namespace xios
       {
          CContext* context = CContext::getCurrent() ;
 //          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
+         CContextServer* server=context->server ;
 
          CGrid* grid = field->grid ;
          CDomain* domain = grid->domain ;
@@ -542,10 +543,16 @@ namespace xios
              << "_" << field->getRelFile()->output_freq.getValue();
              
          CArray<double,1> time_data(1) ;
+         
          if (field->operation.getValue()=="instant") time_data(0) = Time(*field->last_Write_srv)
                                                                       -Time(context->calendar->getTimeOrigin());
          else time_data(0) = (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2
                                -Time(context->calendar->getTimeOrigin());
+         
+         
+         bool isRoot ;
+         if (server->intraCommRank==0) isRoot=true ;
+         else isRoot=false ;
            
          if (grid->hasAxis()) // 3D
          {
@@ -577,7 +584,7 @@ namespace xios
                    count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->zoom_size.getValue();
                  }
                  SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
-                 SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1 );
+                 SuperClassWriter::writeTimeAxisData(time_data, oss.str(), isCollective, field->getNStep()-1,isRoot );
                  break;
               }
             }
@@ -612,8 +619,8 @@ namespace xios
                  }
 
                  SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1,&start,&count);
-                 SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
-                 break;
+                 SuperClassWriter::writeTimeAxisData(time_data, oss.str(), isCollective, field->getNStep()-1,isRoot);
+                 break; 
               
               }
             }
