@@ -4,6 +4,12 @@
 #define MPI_INCLUDED
 #include <netcdf.h>
 
+#if defined(USING_NETCDF_INTERNAL)
+  const bool using_netcdf_internal=true ;
+#else
+  const bool using_netcdf_internal=false ;
+#endif
+
 #include "netcdf_version.hpp"
 
 #if NETCDF_VERSION >= 4110
