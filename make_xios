@@ -25,7 +25,7 @@ while (($# > 0))
 	    echo "       [--use_oasis] : to use Oasis coupler"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
-	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq' : default netcdf4_par] : choice of netcdf library"
+	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
 	    echo "       [--memtrack] : tracking memory leak - developper only"
 	    echo "Example : ./make_xios --prod --arch PW6_VARGAS"
 	    echo "Example : ./make_xios --avail"
@@ -106,14 +106,24 @@ elif [[ "$compil_mode" == "debug" ]]
       COMPIL_FFLAGS="%DEBUG_FFLAGS"
 fi
 
+rm -r $PWD/extern/netcdf4
+
 if [[ "$netcdf_lib" == "netcdf4_par" ]]
    then
-      XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR"
+     ln -s $PWD/.void_dir $PWD/extern/netcdf4
+     XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR"
 elif [[ "$netcdf_lib" == "netcdf4_seq" ]]
   then 
-    set nothing  
+    ln -s $PWD/.void_dir $PWD/extern/netcdf4
+elif [[ "$netcdf_lib" == "netcdf4_internal" ]]
+  then 
+    ln -s $PWD/extern/src_netcdf4 $PWD/extern/netcdf4
+    XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR USING_NETCDF_INTERNAL"
+    export NETCDF_INCDIR="-I${PWD}/extern/netcdf4"
+    export NETCDF_LIBDIR=""
+    export NETCDF_LIB=""
 else
-   echo "Bad choice for --netcdf_lib argument : choose between 'netcdf4_par' or 'netcdf4_seq'"
+   echo "Bad choice for --netcdf_lib argument : choose between 'netcdf4_par','netcdf4_seq' or 'netcdf4_internal'"
    exit
 fi
 
