@@ -21,6 +21,7 @@
    class name##_attr : public CAttributeArray<T_num, T_rank>      \
    {                                                              \
       public :                                                    \
+         using CAttributeArray<T_num, T_rank>::operator = ;       \
          name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
          virtual ~name##_attr(void) {}                            \
    } name;

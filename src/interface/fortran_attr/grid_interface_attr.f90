@@ -53,6 +53,25 @@ MODULE grid_interface_attr
     END SUBROUTINE cxios_get_grid_domain_ref
     
     
+    SUBROUTINE cxios_set_grid_mask(grid_hdl, mask, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_set_grid_mask
+    
+    SUBROUTINE cxios_get_grid_mask(grid_hdl, mask, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_get_grid_mask
+    
+    
     SUBROUTINE cxios_set_grid_name(grid_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl

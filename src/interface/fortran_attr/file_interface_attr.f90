@@ -36,6 +36,19 @@ MODULE file_interface_attr
     END SUBROUTINE cxios_get_file_enabled
     
     
+    SUBROUTINE cxios_set_file_min_digits(file_hdl, min_digits) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: min_digits
+    END SUBROUTINE cxios_set_file_min_digits
+    
+    SUBROUTINE cxios_get_file_min_digits(file_hdl, min_digits) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      INTEGER (KIND=C_INT)             :: min_digits
+    END SUBROUTINE cxios_get_file_min_digits
+    
+    
     SUBROUTINE cxios_set_file_name(file_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

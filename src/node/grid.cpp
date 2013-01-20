@@ -175,9 +175,10 @@ namespace xios {
       
       this->solveDomainRef() ;
       this->solveAxisRef() ;
+        
       if (context->hasClient)
       {
-         
+         checkMask() ;
          this->computeIndex() ;
 
          this->storeIndex.push_front(new CArray<int,1>() );
@@ -189,6 +190,37 @@ namespace xios {
       this->isChecked = true;
    }
 
+
+   void CGrid::checkMask(void)
+   {
+      using namespace std;
+
+      unsigned int niu = domain->ni, nju = domain->nj;
+      unsigned int nlu = 1 ;
+      if (hasAxis()) nlu=axis->size ;
+
+      if (!mask.isEmpty())
+      {
+         if ((mask.extent(0) != niu) ||
+             (mask.extent(1) != nju) ||
+             (mask.extent(2) != nlu))
+             ERROR("CGrid::checkAttributes(void)",
+                  <<"Le masque n'a pas la même taille que la grille locale") ;
+      }
+      else 
+      {
+        mask.resize(niu,nju,nlu) ;
+        mask=true  ;
+      }
+     
+      CArray<bool,2>& domainMask = domain->mask ;
+      for (int l=0; l < nlu ; l++)
+        for (int j=0; j < nju ; j++)
+          for(int i=0; i<niu ; i++) mask(i,j,l) = mask(i,j,l) && domainMask(i,j) ;
+        
+      
+   }
+   
    //---------------------------------------------------------------
 
    void CGrid::solveDomainRef(void)
@@ -247,10 +279,6 @@ namespace xios {
       CArray<int,1> data_j_index = domain->data_j_index ;
       
 
-      CArray<bool,2>& mask = domain->mask ;
-      CArray<int,2>& local_mask = domain->local_mask ;
-      
-
       int indexCount = 0;
 
       for(int l = 0; l < size ; l++)
@@ -267,7 +295,7 @@ namespace xios {
 
             if ((l >=lbegin && l<= lend) &&
                 (i >= 0 && i < ni) &&
-                (j >= 0 && j < nj) && mask(i,j))
+                (j >= 0 && j < nj) && mask(i,j,l))
                indexCount++ ;
          }
       }
@@ -297,7 +325,7 @@ namespace xios {
 
             if ((l >= lbegin && l <= lend) &&
                 (i >= 0 && i < ni) &&
-                (j >= 0 && j < nj) && mask(i,j))
+                (j >= 0 && j < nj) && mask(i,j,l))
             {
                (*storeIndex[0])(indexCount) = count ;
                (*out_l_index[0])(indexCount) = l ;

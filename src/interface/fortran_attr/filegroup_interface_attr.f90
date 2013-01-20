@@ -51,6 +51,19 @@ MODULE filegroup_interface_attr
     END SUBROUTINE cxios_get_filegroup_group_ref
     
     
+    SUBROUTINE cxios_set_filegroup_min_digits(filegroup_hdl, min_digits) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: min_digits
+    END SUBROUTINE cxios_set_filegroup_min_digits
+    
+    SUBROUTINE cxios_get_filegroup_min_digits(filegroup_hdl, min_digits) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      INTEGER (KIND=C_INT)             :: min_digits
+    END SUBROUTINE cxios_get_filegroup_min_digits
+    
+    
     SUBROUTINE cxios_set_filegroup_name(filegroup_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

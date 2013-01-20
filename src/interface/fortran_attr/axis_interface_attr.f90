@@ -38,6 +38,21 @@ MODULE axis_interface_attr
     END SUBROUTINE cxios_get_axis_name
     
     
+    SUBROUTINE cxios_set_axis_positive(axis_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_set_axis_positive
+    
+    SUBROUTINE cxios_get_axis_positive(axis_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_get_axis_positive
+    
+    
     SUBROUTINE cxios_set_axis_size(axis_hdl, size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl

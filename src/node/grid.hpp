@@ -151,7 +151,7 @@ namespace xios {
          map<int, CArray<int, 1>* > out_i_fromClient ;
          map<int, CArray<int, 1>* > out_j_fromClient ;
          map<int, CArray<int, 1>* > out_l_fromClient ;
-         
+         void checkMask(void) ;
    }; // class CGrid
 
    ///--------------------------------------------------------------

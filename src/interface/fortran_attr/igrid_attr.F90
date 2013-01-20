@@ -11,7 +11,7 @@ MODULE igrid_attr
 CONTAINS
   
   SUBROUTINE xios(set_grid_attr)  &
-    ( grid_id, axis_ref, description, domain_ref, name )
+    ( grid_id, axis_ref, description, domain_ref, mask, name )
     
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
@@ -19,37 +19,43 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       
       CALL xios(get_grid_handle)(grid_id,grid_hdl)
       CALL xios(set_grid_attr_hdl_)   &
-      ( grid_hdl, axis_ref, description, domain_ref, name )
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
   END SUBROUTINE xios(set_grid_attr)
   
   SUBROUTINE xios(set_grid_attr_hdl)  &
-    ( grid_hdl, axis_ref, description, domain_ref, name )
+    ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       
       CALL xios(set_grid_attr_hdl_)  &
-      ( grid_hdl, axis_ref, description, domain_ref, name )
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
   END SUBROUTINE xios(set_grid_attr_hdl)
   
   SUBROUTINE xios(set_grid_attr_hdl_)   &
-    ( grid_hdl, axis_ref_, description_, domain_ref_, name_ )
+    ( grid_hdl, axis_ref_, description_, domain_ref_, mask_, name_ )
     
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       
       IF (PRESENT(axis_ref_)) THEN
@@ -64,6 +70,12 @@ CONTAINS
         CALL cxios_set_grid_domain_ref(grid_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
       
+      IF (PRESENT(mask_)) THEN
+        ALLOCATE(mask__tmp(size(mask_,1),size(mask_,2),size(mask_,3)))
+        mask__tmp=mask_
+        CALL cxios_set_grid_mask(grid_hdl%daddr, mask__tmp,size(mask_,1),size(mask_,2),size(mask_,3))
+      ENDIF
+      
       IF (PRESENT(name_)) THEN
         CALL cxios_set_grid_name(grid_hdl%daddr, name_, len(name_))
       ENDIF
@@ -73,7 +85,7 @@ CONTAINS
   END SUBROUTINE xios(set_grid_attr_hdl_)
   
   SUBROUTINE xios(get_grid_attr)  &
-    ( grid_id, axis_ref, description, domain_ref, name )
+    ( grid_id, axis_ref, description, domain_ref, mask, name )
     
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
@@ -81,37 +93,43 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       
       CALL xios(get_grid_handle)(grid_id,grid_hdl)
       CALL xios(get_grid_attr_hdl_)   &
-      ( grid_hdl, axis_ref, description, domain_ref, name )
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
   END SUBROUTINE xios(get_grid_attr)
   
   SUBROUTINE xios(get_grid_attr_hdl)  &
-    ( grid_hdl, axis_ref, description, domain_ref, name )
+    ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       
       CALL xios(get_grid_attr_hdl_)  &
-      ( grid_hdl, axis_ref, description, domain_ref, name )
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
     
   END SUBROUTINE xios(get_grid_attr_hdl)
   
   SUBROUTINE xios(get_grid_attr_hdl_)   &
-    ( grid_hdl, axis_ref_, description_, domain_ref_, name_ )
+    ( grid_hdl, axis_ref_, description_, domain_ref_, mask_, name_ )
     
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       
       IF (PRESENT(axis_ref_)) THEN
@@ -124,6 +142,12 @@ CONTAINS
       
       IF (PRESENT(domain_ref_)) THEN
         CALL cxios_get_grid_domain_ref(grid_hdl%daddr, domain_ref_, len(domain_ref_))
+      ENDIF
+      
+      IF (PRESENT(mask_)) THEN
+        ALLOCATE(mask__tmp(size(mask_,1),size(mask_,2),size(mask_,3)))
+        CALL cxios_get_grid_mask(grid_hdl%daddr, mask__tmp,size(mask_,1),size(mask_,2),size(mask_,3))
+        mask_=mask__tmp
       ENDIF
       
       IF (PRESENT(name_)) THEN

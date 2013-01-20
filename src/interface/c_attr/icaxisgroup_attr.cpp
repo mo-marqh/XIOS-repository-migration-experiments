@@ -73,6 +73,25 @@ extern "C"
   }
   
   
+  void cxios_set_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, const char * positive, int positive_size)
+  {
+    std::string positive_str;
+    if(!cstr2string(positive, positive_size, positive_str)) return;
+     CTimer::get("XIOS").resume();
+    axisgroup_hdl->positive.fromString(positive_str);
+    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->positive);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, char * positive, int positive_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(axisgroup_hdl->positive.getStringValue(),positive , positive_size))
+      ERROR("void cxios_get_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, char * positive, int positive_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   void cxios_set_axisgroup_size(axisgroup_Ptr axisgroup_hdl, int size)
   {
      CTimer::get("XIOS").resume();

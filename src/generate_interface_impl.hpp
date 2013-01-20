@@ -602,14 +602,14 @@ macro(int)
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2, int extent3)"<<iendl ;\
     oss<<"{"<<iendl ;\
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
-    oss<<"  CArray<"<<typeName<<",2> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
+    oss<<"  CArray<"<<typeName<<",3> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".reference(tmp.copy());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2, int extent3)"<<iendl ;\
     oss<<"{"<<iendl; \
-    oss<<"  CArray<"<<typeName<<",2> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
+    oss<<"  CArray<"<<typeName<<",3> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
     oss<<"  tmp="<<className<<"_hdl->"<<name<<" ;"<<iendl ;\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\

@@ -11,14 +11,15 @@ MODULE iaxis_attr
 CONTAINS
   
   SUBROUTINE xios(set_axis_attr)  &
-    ( axis_id, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axis_id, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+    , zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axis))  :: axis_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axis_id
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
@@ -29,19 +30,20 @@ CONTAINS
       
       CALL xios(get_axis_handle)(axis_id,axis_hdl)
       CALL xios(set_axis_attr_hdl_)   &
-      ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+      , zoom_size )
     
   END SUBROUTINE xios(set_axis_attr)
   
   SUBROUTINE xios(set_axis_attr_hdl)  &
-    ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+    , zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axis)) , INTENT(IN) :: axis_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
       INTEGER  , OPTIONAL, INTENT(IN) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
@@ -51,19 +53,20 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size
       
       CALL xios(set_axis_attr_hdl_)  &
-      ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+      , zoom_size )
     
   END SUBROUTINE xios(set_axis_attr_hdl)
   
   SUBROUTINE xios(set_axis_attr_hdl_)   &
-    ( axis_hdl, long_name_, name_, size_, standard_name_, unit_, value_, zoom_begin_, zoom_end_  &
-    , zoom_size_ )
+    ( axis_hdl, long_name_, name_, positive_, size_, standard_name_, unit_, value_, zoom_begin_  &
+    , zoom_end_, zoom_size_ )
     
     IMPLICIT NONE
       TYPE(txios(axis)) , INTENT(IN) :: axis_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive_
       INTEGER  , OPTIONAL, INTENT(IN) :: size_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit_
@@ -78,6 +81,10 @@ CONTAINS
       
       IF (PRESENT(name_)) THEN
         CALL cxios_set_axis_name(axis_hdl%daddr, name_, len(name_))
+      ENDIF
+      
+      IF (PRESENT(positive_)) THEN
+        CALL cxios_set_axis_positive(axis_hdl%daddr, positive_, len(positive_))
       ENDIF
       
       IF (PRESENT(size_)) THEN
@@ -113,14 +120,15 @@ CONTAINS
   END SUBROUTINE xios(set_axis_attr_hdl_)
   
   SUBROUTINE xios(get_axis_attr)  &
-    ( axis_id, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axis_id, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+    , zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axis))  :: axis_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axis_id
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
@@ -131,19 +139,20 @@ CONTAINS
       
       CALL xios(get_axis_handle)(axis_id,axis_hdl)
       CALL xios(get_axis_attr_hdl_)   &
-      ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+      , zoom_size )
     
   END SUBROUTINE xios(get_axis_attr)
   
   SUBROUTINE xios(get_axis_attr_hdl)  &
-    ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+    , zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axis)) , INTENT(IN) :: axis_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
       INTEGER  , OPTIONAL, INTENT(OUT) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
@@ -153,19 +162,20 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size
       
       CALL xios(get_axis_attr_hdl_)  &
-      ( axis_hdl, long_name, name, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axis_hdl, long_name, name, positive, size, standard_name, unit, value, zoom_begin, zoom_end  &
+      , zoom_size )
     
   END SUBROUTINE xios(get_axis_attr_hdl)
   
   SUBROUTINE xios(get_axis_attr_hdl_)   &
-    ( axis_hdl, long_name_, name_, size_, standard_name_, unit_, value_, zoom_begin_, zoom_end_  &
-    , zoom_size_ )
+    ( axis_hdl, long_name_, name_, positive_, size_, standard_name_, unit_, value_, zoom_begin_  &
+    , zoom_end_, zoom_size_ )
     
     IMPLICIT NONE
       TYPE(txios(axis)) , INTENT(IN) :: axis_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive_
       INTEGER  , OPTIONAL, INTENT(OUT) :: size_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit_
@@ -180,6 +190,10 @@ CONTAINS
       
       IF (PRESENT(name_)) THEN
         CALL cxios_get_axis_name(axis_hdl%daddr, name_, len(name_))
+      ENDIF
+      
+      IF (PRESENT(positive_)) THEN
+        CALL cxios_get_axis_positive(axis_hdl%daddr, positive_, len(positive_))
       ENDIF
       
       IF (PRESENT(size_)) THEN

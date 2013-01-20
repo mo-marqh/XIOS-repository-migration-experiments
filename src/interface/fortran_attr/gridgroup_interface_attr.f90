@@ -68,6 +68,25 @@ MODULE gridgroup_interface_attr
     END SUBROUTINE cxios_get_gridgroup_group_ref
     
     
+    SUBROUTINE cxios_set_gridgroup_mask(gridgroup_hdl, mask, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_set_gridgroup_mask
+    
+    SUBROUTINE cxios_get_gridgroup_mask(gridgroup_hdl, mask, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_get_gridgroup_mask
+    
+    
     SUBROUTINE cxios_set_gridgroup_name(gridgroup_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl

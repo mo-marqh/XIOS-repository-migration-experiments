@@ -49,6 +49,20 @@ extern "C"
   }
   
   
+  void cxios_set_file_min_digits(file_Ptr file_hdl, int min_digits)
+  {
+     CTimer::get("XIOS").resume();
+    file_hdl->min_digits.setValue(min_digits);
+    file_hdl->sendAttributToServer(file_hdl->min_digits);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_file_min_digits(file_Ptr file_hdl, int* min_digits)
+  {
+    *min_digits = file_hdl->min_digits.getValue();
+  }
+  
+  
   void cxios_set_file_name(file_Ptr file_hdl, const char * name, int name_size)
   {
     std::string name_str;

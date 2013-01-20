@@ -53,6 +53,21 @@ MODULE axisgroup_interface_attr
     END SUBROUTINE cxios_get_axisgroup_name
     
     
+    SUBROUTINE cxios_set_axisgroup_positive(axisgroup_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_set_axisgroup_positive
+    
+    SUBROUTINE cxios_get_axisgroup_positive(axisgroup_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_get_axisgroup_positive
+    
+    
     SUBROUTINE cxios_set_axisgroup_size(axisgroup_hdl, size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
