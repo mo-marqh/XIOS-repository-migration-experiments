@@ -150,10 +150,12 @@ extern "C"
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
     axisgroup_hdl->value.reference(tmp.copy());
     axisgroup_hdl->sendAttributToServer(axisgroup_hdl->value);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_axisgroup_value(axisgroup_Ptr axisgroup_hdl, double* value, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
     tmp=axisgroup_hdl->value ;
      CTimer::get("XIOS").suspend();

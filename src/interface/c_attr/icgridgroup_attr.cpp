@@ -98,10 +98,12 @@ extern "C"
     CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
     gridgroup_hdl->mask.reference(tmp.copy());
     gridgroup_hdl->sendAttributToServer(gridgroup_hdl->mask);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_gridgroup_mask(gridgroup_Ptr gridgroup_hdl, bool* mask, int extent1, int extent2, int extent3)
   {
+    CTimer::get("XIOS").resume();
     CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
     tmp=gridgroup_hdl->mask ;
      CTimer::get("XIOS").suspend();

@@ -36,10 +36,12 @@ extern "C"
     CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
     domain_hdl->data_i_index.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->data_i_index);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domain_data_i_index(domain_Ptr domain_hdl, int* data_i_index, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
     tmp=domain_hdl->data_i_index ;
      CTimer::get("XIOS").suspend();
@@ -66,10 +68,12 @@ extern "C"
     CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
     domain_hdl->data_j_index.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->data_j_index);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domain_data_j_index(domain_Ptr domain_hdl, int* data_j_index, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
     tmp=domain_hdl->data_j_index ;
      CTimer::get("XIOS").suspend();
@@ -213,10 +217,12 @@ extern "C"
     CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
     domain_hdl->latvalue.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->latvalue);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domain_latvalue(domain_Ptr domain_hdl, double* latvalue, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
     tmp=domain_hdl->latvalue ;
      CTimer::get("XIOS").suspend();
@@ -248,10 +254,12 @@ extern "C"
     CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
     domain_hdl->lonvalue.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->lonvalue);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domain_lonvalue(domain_Ptr domain_hdl, double* lonvalue, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
     tmp=domain_hdl->lonvalue ;
      CTimer::get("XIOS").suspend();
@@ -264,10 +272,12 @@ extern "C"
     CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->mask.reference(tmp.copy());
     domain_hdl->sendAttributToServer(domain_hdl->mask);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_domain_mask(domain_Ptr domain_hdl, bool* mask, int extent1, int extent2)
   {
+    CTimer::get("XIOS").resume();
     CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
     tmp=domain_hdl->mask ;
      CTimer::get("XIOS").suspend();

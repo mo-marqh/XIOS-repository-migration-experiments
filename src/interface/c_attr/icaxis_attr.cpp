@@ -131,10 +131,12 @@ extern "C"
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
     axis_hdl->value.reference(tmp.copy());
     axis_hdl->sendAttributToServer(axis_hdl->value);
+     CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_axis_value(axis_Ptr axis_hdl, double* value, int extent1)
   {
+    CTimer::get("XIOS").resume();
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
     tmp=axis_hdl->value ;
      CTimer::get("XIOS").suspend();
