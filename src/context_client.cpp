@@ -195,8 +195,9 @@ namespace xios
      {
        CMessage msg ;
        event.push(getServerLeader(),1,msg) ;
+       sendEvent(event) ;
      }
-     sendEvent(event) ;
+     else sendEvent(event) ;
  
      CTimer::get("Blocking time").resume();
      while(stop)
