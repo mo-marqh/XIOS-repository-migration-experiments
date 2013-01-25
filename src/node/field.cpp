@@ -477,35 +477,68 @@ namespace xios{
             ERROR("CField::solveGridReference(void)",
                   << "Référence à la grille nommée \'"
                   << grid_ref.getValue() << "\' incorrecte");
-         if (!domain_ref.isEmpty())
-            DEBUG(<< "Définition conjointe de la grille "
-                  << "et du domaine, la grille prévaut..." );
-         if (!axis_ref.isEmpty())
-            DEBUG(<< "Définition conjointe de la grille "
-                  << "et de l'axe vertical, la grille prévaut...") ;
       }
-      else
+      
+      if (grid_ref.isEmpty() &&  domain_ref.isEmpty())
       {
-         if (!domain_ref.isEmpty())
-         {
-            if (!axis_ref.isEmpty())
-            {
-               this->grid = CGrid::createGrid(domain, axis) ;
-               this->grid_ref.setValue(this->grid->getId());
-            }
-            else
-            {
-               this->grid = CGrid::createGrid(domain) ;
-               this->grid_ref.setValue(this->grid->getId());
-            }
-         }
-         else
-         {
             ERROR("CField::solveGridReference(void)",
                   << "Le domaine horizontal pour le champ X n'est pas défini");
-         }
-      }
-      grid->solveReference() ;
+
+     }
+     
+     CType<string> goodDomain ;
+     CType<string> goodAxis ;
+     if (!grid_ref.isEmpty())
+     {
+       if (!grid->domain_ref.isEmpty()) goodDomain=grid->domain_ref ;
+       if (!grid->axis_ref.isEmpty()) goodAxis=grid->axis_ref ;
+     }
+     if (!domain_ref.isEmpty()) goodDomain=domain_ref ;
+     if (!axis_ref.isEmpty()) goodAxis=axis_ref ;
+     
+     
+     if (goodDomain.isEmpty()) 
+     {
+       ERROR("CField::solveGridReference(void)", << "Le domaine horizontal pour le champ X n'est pas défini");
+     }
+     else 
+     {
+       if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain) ;
+       else ERROR("CField::solveGridReference(void)",<< "Référence au domaine nommé \'"<<goodDomain.get() << "\' incorrecte") ;
+     }
+ 
+     if (!goodAxis.isEmpty())
+     {
+       if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis) ;
+       else  ERROR("CField::solveGridReference(void)", << "Référence à l'axe nommé \'"
+                  << goodAxis.get() <<"\' incorrecte") ;
+     } 
+    
+     bool nothingToDo=false ;
+     
+     if (!grid_ref.isEmpty())
+     {
+       if (!grid->domain_ref.isEmpty() && goodDomain.get() == grid->domain_ref.get())
+         if (goodAxis.isEmpty()) nothingToDo=true ;
+         else if (!grid->axis_ref.isEmpty()) 
+                 if (grid->axis_ref.get()==goodAxis.get()) nothingToDo=true ;
+     }
+     
+     if (!nothingToDo)
+     {
+       if (!goodAxis.isEmpty())
+       {
+         this->grid = CGrid::createGrid(domain, axis) ;
+         this->grid_ref.setValue(this->grid->getId());
+       }
+       else
+       {
+         this->grid = CGrid::createGrid(domain) ;
+         this->grid_ref.setValue(this->grid->getId());
+       }    
+     }
+
+     grid->solveReference() ;
    }
 
 
