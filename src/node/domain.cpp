@@ -154,8 +154,8 @@ namespace xios {
       {
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
-               << "Le domaine global est mal défini,"
-               << " vérifiez les valeurs de \'ni_glo\' et \'nj_glo\' !") 
+               << "The global domain is badly defined,"
+               << " check the \'ni_glo\' et \'nj_glo\' values !") 
       }
    }
 
@@ -176,14 +176,14 @@ namespace xios {
                !ni.isEmpty() && (iend.getValue() != ibegin.getValue() + ni.getValue() - 1))
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Le domaine est mal défini,"
-               << " iend est différent de (ibegin + ni - 1) !") ;
+               << "The domain si wrong defined,"
+               << " iend is different of (ibegin + ni - 1) !") ;
       }
       else
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Le domaine est mal défini,"
-               << " deux valeurs au moins parmis iend, ibegin, ni doivent être définies !") ;
+               << "The domain is wrong defined,"
+               << " 2 value from \'iend\', \'ibegin\', \'ni\'  must be defined !") ;
       }
 
 
@@ -191,8 +191,8 @@ namespace xios {
           ibegin.getValue() < 1 || iend.getValue() > ni_glo.getValue())
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
-               << "Domaine local mal défini,"
-               << " vérifiez les valeurs ni, ni_glo, ibegin, iend") ;
+               << "Local domain is wrong defined,"
+               << " Check the value : ni, ni_glo, ibegin, iend") ;
 
    }
 
@@ -213,21 +213,21 @@ namespace xios {
                (jend.getValue() != jbegin.getValue() + nj.getValue() - 1))
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Le domaine est mal défini,"
-               << " iend est différent de (jbegin + nj - 1) !") ;
+               << "The domain is wrong defined,"
+               << " iend is different of (jbegin + nj - 1) !") ;
       }
       else
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Le domaine est mal défini,"
-               << " deux valeurs au moins parmis jend, jbegin, nj doivent être définies !") ;
+               << "The domain is wrong defined,"
+               << " 2 values from  jend, jbegin, nj  must be defined !") ;
       }
 
       if (nj.getValue() < 0 || jbegin.getValue() > jend.getValue() ||
           jbegin.getValue() < 1 || jend.getValue() > nj_glo.getValue())
          ERROR("CDomain::checkAttributes(void)",
-               << "Domaine local mal défini,"
-               << " vérifiez les valeurs nj, nj_glo, jbegin, jend") ;
+               << "Domain is wrong defined,"
+               << " Check the values : nj, nj_glo, jbegin, jend") ;
    }
 
    //----------------------------------------------------------------
@@ -264,7 +264,7 @@ namespace xios {
          if ((mask.extent(0) != niu) ||
              (mask.extent(1) != nju))
             ERROR("CDomain::checkAttributes(void)",
-                  <<"Le masque n'a pas la même taille que le domaine local") ;
+                  <<"the mask has not the same size than the local domain") ;
                   
          for (int i = 0; i < ni.getValue(); i++)
          {
@@ -302,12 +302,12 @@ namespace xios {
          !(data_dim.getValue() == 1 || data_dim.getValue() == 2))
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Dimension des données non comptatible (doit être 1 ou 2) !") ;
+               << "Data dimension incompatible (must be 1 or 2) !") ;
       }
       else if (data_dim.isEmpty())
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Dimension des données non définie !") ;
+               << "Data dimension undefined !") ;
       }
 
       if (data_ibegin.isEmpty())
@@ -318,7 +318,7 @@ namespace xios {
       if (!data_ni.isEmpty() && (data_ni.getValue() <= 0))
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Dimension des données négative (data_ni).") ;
+               << "Data dimension is negative (data_ni).") ;
       }
       else if (data_ni.isEmpty())
       {
@@ -332,7 +332,7 @@ namespace xios {
          if (!data_nj.isEmpty() && (data_nj.getValue() <= 0) )
          {
             ERROR("CDomain::checkAttributes(void)",
-                  << "Dimension des données négative (data_nj).") ;
+                  << "Data dimension is negative (data_nj).") ;
          }
          else if (data_nj.isEmpty())
             data_nj.setValue(nj.getValue()) ;
@@ -351,7 +351,7 @@ namespace xios {
             (data_n_index.getValue() != ssize))
          {
             ERROR("CDomain::checkAttributes(void)",
-                  <<"Dimension data_i_index incompatible avec data_n_index.") ;
+                  <<"Dimension data_i_index incompatible with data_n_index.") ;
          }
          else if (data_n_index.isEmpty())
             data_n_index.setValue(ssize) ;
@@ -362,12 +362,12 @@ namespace xios {
                (data_j_index.numElements() != data_i_index.numElements()))
             {
                ERROR("CDomain::checkAttributes(void)",
-                     <<"Dimension data_j_index incompatible avec data_i_index.") ;
+                     <<"Dimension data_j_index incompatible with data_i_index.") ;
             }
             else if (data_j_index.isEmpty())
             {
                ERROR("CDomain::checkAttributes(void)",
-                     <<"La donnée data_j_index doit être renseignée !") ;
+                     <<"data_j_index must be defined !") ;
             }
          }
       }
@@ -375,7 +375,7 @@ namespace xios {
       {
          if (!data_n_index.isEmpty() ||
             ((data_dim.getValue() == 2) && (!data_j_index.isEmpty())))
-            ERROR("CDomain::checkAttributes(void)", << "data_i_index non défini") ;
+            ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
       }
 
       if (data_n_index.isEmpty())
@@ -551,8 +551,8 @@ namespace xios {
             if (zoom_ibegin.getValue() < 1  || zoom_jbegin.getValue() < 1 ||
                 zoom_iend > ni_glo.getValue() || zoom_jend > nj_glo.getValue())
                ERROR("CDomain::checkZoom(void)",
-                     << "Zoom mal défini,"
-                     << " vérifiez les valeurs zoom_ni, zoom_nj, zoom_ibegin, zoom_ibegin") ;
+                     << "Zoom is wrong defined,"
+                     << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_ibegin") ;
          }
       }
       else

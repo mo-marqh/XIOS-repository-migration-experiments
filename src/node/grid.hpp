@@ -161,9 +161,9 @@ namespace xios {
    {
       if (this->getDataSize() != field.numElements())
          ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
-                << "[ Taille des données attendue = " << this->getDataSize()       << ", "
-                << "Taille des données reçue = "      << field.numElements() << " ] "
-                << "Le tableau de données n'a pas la bonne taille !") ;
+                << "[ Awaiting size of the data = " << this->getDataSize()       << ", "
+                << "Received data size = "      << field.numElements() << " ] "
+                << "The array of data has not the good size !")
       this->storeField_arr(field.dataFirst(), stored) ;
    }
 

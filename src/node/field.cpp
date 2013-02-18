@@ -366,7 +366,7 @@ namespace xios{
       {
          ERROR("CField::solveOperation(void)",
                << "[ id = " << id << "]"
-               << "Impossible de définir une opération pour le champ !");
+               << "Impossible to define an operation for this field !");
       }
       
       CDuration freq_offset_ = NoneDu;
@@ -424,7 +424,7 @@ namespace xios{
          
          ERROR("CField::solveOperation(void)",
                << "[ operation = " << operation.getValue() << "]"
-               << "L'opération n'est pas définie dans le code !");
+               << "The operation is not defined !");
       }
    }
    
@@ -455,8 +455,8 @@ namespace xios{
             domain = CDomain::get(domain_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
-                  << "Référence au domaine nommé \'"
-                  << domain_ref.getValue() << "\' incorrecte") ;
+                  << "Reference to the domain \'"
+                  << domain_ref.getValue() << "\' is wrong") ;
       }
 
       if (!axis_ref.isEmpty())
@@ -465,8 +465,8 @@ namespace xios{
             axis = CAxis::get(axis_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
-                  << "Référence à l'axe nommé \'"
-                  << axis_ref.getValue() <<"\' incorrecte") ;
+                  << "Reference to the axis \'"
+                  << axis_ref.getValue() <<"\' is wrong") ;
       }
 
       if (!grid_ref.isEmpty())
@@ -475,14 +475,14 @@ namespace xios{
             this->grid = CGrid::get(grid_ref.getValue()) ;
          else
             ERROR("CField::solveGridReference(void)",
-                  << "Référence à la grille nommée \'"
-                  << grid_ref.getValue() << "\' incorrecte");
+                  << "Reference to the grid \'"
+                  << grid_ref.getValue() << "\' is wrong");
       }
       
       if (grid_ref.isEmpty() &&  domain_ref.isEmpty())
       {
             ERROR("CField::solveGridReference(void)",
-                  << "Le domaine horizontal pour le champ X n'est pas défini");
+                  << "The horizontal domain for this field is not defined");
 
      }
      
@@ -499,19 +499,19 @@ namespace xios{
      
      if (goodDomain.isEmpty()) 
      {
-       ERROR("CField::solveGridReference(void)", << "Le domaine horizontal pour le champ X n'est pas défini");
+       ERROR("CField::solveGridReference(void)", << "The horizontal domain for this field is not defined");
      }
      else 
      {
        if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain) ;
-       else ERROR("CField::solveGridReference(void)",<< "Référence au domaine nommé \'"<<goodDomain.get() << "\' incorrecte") ;
+       else ERROR("CField::solveGridReference(void)",<< "Reference to the domain \'"<<goodDomain.get() << "\' is wrong") ;
      }
  
      if (!goodAxis.isEmpty())
      {
        if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis) ;
-       else  ERROR("CField::solveGridReference(void)", << "Référence à l'axe nommé \'"
-                  << goodAxis.get() <<"\' incorrecte") ;
+       else  ERROR("CField::solveGridReference(void)", << "Reference to the axis \'"
+                  << goodAxis.get() <<"\' is wrong") ;
      } 
     
      bool nothingToDo=false ;

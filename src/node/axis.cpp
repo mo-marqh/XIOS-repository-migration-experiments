@@ -75,7 +75,7 @@ namespace xios {
       StdSize true_size = value.numElements();
       if (size != true_size)
          ERROR("CAxis::checkAttributes(void)",
-               << "Le tableau \'value\' a une taille différente de celle indiquée dans l'attribut \'size\'")
+               << "The array \'value\' has a different size that the one defined by the \'size\' attribut")
 
       this->isChecked = true;
    }

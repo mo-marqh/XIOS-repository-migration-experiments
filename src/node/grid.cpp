@@ -205,7 +205,7 @@ namespace xios {
              (mask.extent(1) != nju) ||
              (mask.extent(2) != nlu))
              ERROR("CGrid::checkAttributes(void)",
-                  <<"Le masque n'a pas la même taille que la grille locale") ;
+                  <<"The mask has not the same size than the local grid") ;
       }
       else 
       {
@@ -233,10 +233,10 @@ namespace xios {
             domain->checkAttributes() ;
          }
          else ERROR("CGrid::solveDomainRef(void)",
-                     << "Référence au domaine incorrecte") ;
+                     << "Wrong domain reference") ;
       }
       else ERROR("CGrid::solveDomainRef(void)",
-                  << "Domaine non défini") ;
+                  << "Domain reference is not defined") ;
    }
 
    //---------------------------------------------------------------
@@ -252,7 +252,7 @@ namespace xios {
             axis->checkAttributes() ;
          }
          else ERROR("CGrid::solveAxisRef(void)",
-                    << "Référence a l'axe incorrecte") ;
+                    << "Wrong axis reference") ;
       }
       else withAxis = false ;
    }
@@ -529,9 +529,9 @@ namespace xios {
    {
       if ((this->storeIndex.size()-1 ) != storedClient.size())
          ERROR("void CGrid::inputFieldServer(const std::deque< CArray<double, 1>* > storedClient, CArray<double, 1>&  storedServer) const",
-                << "[ Nombre de tableau attendu = " << (this->storeIndex.size()-1) << ", "
-                << "[ Nombre de tableau reçu = "    << storedClient.size() << "] "
-                << "Les données d'un client sont manquantes !") ;
+                << "[ Expected received field = " << (this->storeIndex.size()-1) << ", "
+                << "[ received fiedl = "    << storedClient.size() << "] "
+                << "Data from clients are missing!") ;
       storedServer.resize(storeIndex[0]->numElements());
          
       for (StdSize i = 0, n = 0; i < storedClient.size(); i++)

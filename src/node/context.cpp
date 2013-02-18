@@ -75,7 +75,7 @@ namespace xios {
       if (calendar_type.isEmpty() || start_date.isEmpty())
          ERROR(" CContext::solveCalendar(void)",
                << "[ context id = " << this->getId() << " ] "
-               << "Impossible de définir un calendrier (un attribut est manquant).");
+               << "Impossible to define a calendar (an attribute is missing).");
 
 #define DECLARE_CALENDAR(MType  , mtype)                              \
    if (calendar_type.getValue().compare(#mtype) == 0)                 \
@@ -94,7 +94,7 @@ namespace xios {
 
       ERROR("CContext::solveCalendar(void)",
             << "[ calendar_type = " << calendar_type.getValue() << " ] "
-            << "Le calendrier n'est pas définie dans le code !");
+            << "The calendar is not defined !");
    }
    
    //----------------------------------------------------------------
@@ -116,7 +116,7 @@ namespace xios {
       }
 
       if (node.getElementName().compare(CContext::GetName()))
-         DEBUG("Le noeud est mal nommé mais sera traité comme un contexte !");
+         DEBUG("Le noeud is wrong defined but will be considered as a context !");
 
       if (!(node.goToChildElement()))
       {
@@ -131,8 +131,8 @@ namespace xios {
             attributes = node.getAttributes();
 
             if (attributes.end() != attributes.find("id"))
-            { DEBUG(<< "Le noeud de définition possède un identifiant,"
-                    << " ce dernier ne sera pas pris en compte lors du traitement !"); }
+            { DEBUG(<< "Definition node has an id,"
+                    << "it will not be taking account !"); }
 
 #define DECLARE_NODE(Name_, name_)    \
    if (name.compare(C##Name_##Definition::GetDefName()) == 0) \
@@ -140,9 +140,9 @@ namespace xios {
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
-            DEBUG(<< "L'élément nommé \'"     << name
-                  << "\' dans le contexte \'" << CContext::getCurrent()->getId()
-                  << "\' ne représente pas une définition !");
+            DEBUG(<< "The element \'"     << name
+                  << "\' in the context \'" << CContext::getCurrent()->getId()
+                  << "\' is not a definition !");
 
          } while (node.goToNextElement());
 
