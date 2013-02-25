@@ -176,6 +176,7 @@ namespace xios
 
       void CDate::setYear  (int newyear)  { this->year  = newyear; }
       void CDate::setMonth (int newmonth) { this->month = newmonth; }
+      void CDate::setDay (int newday) { this->day = newday; }
 
       //----------------------------------------------------------------
 

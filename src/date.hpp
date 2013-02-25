@@ -49,6 +49,7 @@ namespace xios
             /// Mutateurs ///
             void setYear  (int newyear);
             void setMonth (int newmonth);
+            void setDay (int newday);
 
             void addMonth (int value);
 

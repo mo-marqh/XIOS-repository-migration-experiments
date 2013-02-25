@@ -69,18 +69,30 @@ namespace xios
          if (hour >= c.getDayLength()) { drr.day ++; hour -= c.getDayLength(); }
 
          // Ajustement des mois en fonction des jours.
-         int signVal = (drr.day != 0) ? drr.day/fabs(drr.day) : 0;
          CDate dtt(dt); 
-         if (signVal < 0) dtt.addMonth (signVal);
+         drr.day+=dtt.getDay()-1 ;
+         dtt.setDay(1) ;         
 
-         for(; c.getMonthLength(dtt) < fabs(drr.day); dtt.addMonth (signVal))
-         { drr.day -= signVal * c.getMonthLength(dtt); drr.month += signVal; }
+         if ( drr.day >= 0 )
+         {
+           for(; c.getMonthLength(dtt) <= drr.day; dtt.addMonth (1))
+           { drr.day -=  c.getMonthLength(dtt); drr.month += 1 ; }
 
-         day += dt.getDay() + drr.day;
+           day = drr.day+1 ;
+         }
+         else 
+         {
+           dtt.addMonth(-1) ;
+           for(; c.getMonthLength(dtt) < -drr.day; dtt.addMonth (-1))
+           { drr.day+=c.getMonthLength(dtt) ; drr.month-=1 ; }
+           day=c.getMonthLength(dtt)+drr.day+1 ;
+         }
+            
+/*
          if (day <  0) { drr.month --; day += c.getMonthLength(dtt); }
-         if (day >= c.getMonthLength(dtt)) { drr.month ++; day -= c.getMonthLength(dtt); } // << Problème ici
+         if (day > c.getMonthLength(dtt)) { drr.month ++; day -= c.getMonthLength(dtt); } // << Problème ici
          if (day == 0){ day = c.getMonthLength(dtt); drr.month --; }
-         
+*/         
          drr.resolve(dt.getRelCalendar());
 
          // Ajustement des années en fonction des mois.
