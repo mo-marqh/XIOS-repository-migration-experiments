@@ -11,7 +11,7 @@ namespace xios
       {
          CDuration dur(ddr);
          dur.year -= dr.year;  dur.month  -= dr.month ; dur.day    -= dr.day;
-         dur.hour -= dr.hour;  dur.minute -= dr.minute; dur.second -= dr.second;
+         dur.hour -= dr.hour;  dur.minute -= dr.minute; dur.second -= dr.second; dur.timestep -= dr.timestep;
          return (dur);
       }
 
@@ -19,7 +19,7 @@ namespace xios
       {
          CDuration dur(ddr);
          dur.year += dr.year;  dur.month  += dr.month ; dur.day    += dr.day;
-         dur.hour += dr.hour;  dur.minute += dr.minute; dur.second += dr.second;
+         dur.hour += dr.hour;  dur.minute += dr.minute; dur.second += dr.second; dur.timestep += dr.timestep;
          return (dur);
       }
 
@@ -27,7 +27,7 @@ namespace xios
       {
          CDuration dur(ddr);
          dur.year *= scal;  dur.month  *= scal; dur.day    *= scal;
-         dur.hour *= scal;  dur.minute *= scal; dur.second *= scal;
+         dur.hour *= scal;  dur.minute *= scal; dur.second *= scal; dur.timestep *= scal;
          return (dur);
       }
 
@@ -40,6 +40,7 @@ namespace xios
          dur.hour   = -dur.hour;
          dur.minute = -dur.minute;
          dur.second = -dur.second;
+         dur.second = -dur.timestep;
          return (dur);
       }
 
@@ -50,7 +51,10 @@ namespace xios
          CDuration drr (dr);
          int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
          const CCalendar & c = dt.getRelCalendar();
-
+         
+         drr.timestep=0 ;       
+         drr=drr+dr.timestep*dt.getRelCalendar().getTimeStep() ;
+         
          drr.resolve(dt.getRelCalendar());
 
          // Ajustement des minutes par rapport aux secondes.

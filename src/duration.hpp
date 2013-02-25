@@ -36,14 +36,14 @@ namespace xios
             static struct _duration FromString(const StdString & str);
 
             /// Propriétés publiques ///
-            double year, month, day, hour, minute, second;
+            double year, month, day, hour, minute, second, timestep;
 
       } CDuration;
 
       ///---------------------------------------------------------------
 
       const extern CDuration Year, Month , Week  , Day    ,
-                             Hour, Minute, Second, NoneDu ;
+                             Hour, Minute, Second, NoneDu, TimeStep ;
       ///---------------------------------------------------------------
 
 } // namespace xios

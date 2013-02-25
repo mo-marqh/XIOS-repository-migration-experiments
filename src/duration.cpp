@@ -5,21 +5,22 @@
 namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
-      const CDuration Year   = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                      Month  = {0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
-                      Week   = {0.0, 0.0, 7.0, 0.0, 0.0, 0.0},
-                      Day    = {0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
-                      Hour   = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
-                      Minute = {0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
-                      Second = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
-                      NoneDu = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      const CDuration Year   = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                      Month  = {0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                      Week   = {0.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0},
+                      Day    = {0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+                      Hour   = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+                      Minute = {0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+                      Second = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+                      NoneDu = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+                      TimeStep = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
 
       ///---------------------------------------------------------------
 
       CDuration & CDuration::operator=(const CDuration & duration)
       {
          year = duration.year;  month  = duration.month ; day    = duration.day;
-         hour = duration.hour;  minute = duration.minute; second = duration.second;
+         hour = duration.hour;  minute = duration.minute; second = duration.second; timestep=duration.timestep ;
          return (*this);
       }
 
@@ -33,6 +34,7 @@ namespace xios
          if(duration.hour   != 0.0) { testValue = false; sout << duration.hour   << "h " ; }
          if(duration.minute != 0.0) { testValue = false; sout << duration.minute << "mi "; }
          if(duration.second != 0.0 || testValue)       { sout << duration.second << "s " ; }
+         if(duration.timestep != 0.0 || testValue)       { sout << duration.timestep << "ts " ; }
 
          // << suppression de l'espace en fin de chaîne.
          out << (sout.str().substr(0, sout.str().size()-1));
@@ -76,6 +78,13 @@ namespace xios
                      }
                      break;
                   }
+                  case 't' :
+                  {
+                    in >> c;
+                    if (c=='s') duration.timestep = v; 
+                    break;
+                  }
+                  
                   default:
                      StdString valc; valc.append(1, c);
                      //DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
@@ -90,7 +99,7 @@ namespace xios
       bool CDuration::isNone(void) const
       {
          if ((year == 0) && (month  == 0) && (day    == 0) &&
-             (hour == 0) && (minute == 0) && (second == 0))
+             (hour == 0) && (minute == 0) && (second == 0) && (timestep == 0))
             return (true);
          return (false);
       }
@@ -130,7 +139,7 @@ namespace xios
 
       CDuration CDuration::FromString(const StdString & str)
       {
-         CDuration dr = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+         CDuration dr = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
          StdIStringStream iss(str); iss >> dr;
          return (dr);
       }
