@@ -87,7 +87,7 @@ namespace xios
          else 
          {
            dtt.addMonth(-1) ;
-           drr.month-=1 
+           drr.month-=1 ;
            for(; c.getMonthLength(dtt) < -drr.day; dtt.addMonth (-1))
            { drr.day+=c.getMonthLength(dtt) ; drr.month-=1 ; }
            day=c.getMonthLength(dtt)+drr.day+1 ;
