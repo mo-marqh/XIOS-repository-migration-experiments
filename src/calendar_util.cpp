@@ -40,7 +40,7 @@ namespace xios
          dur.hour   = -dur.hour;
          dur.minute = -dur.minute;
          dur.second = -dur.second;
-         dur.second = -dur.timestep;
+         dur.timestep = -dur.timestep;
          return (dur);
       }
 
