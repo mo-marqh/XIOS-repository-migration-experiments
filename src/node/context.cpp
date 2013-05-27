@@ -388,8 +388,12 @@ namespace xios {
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
+         {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
                enabledFiles.push_back(allFiles[i]);
+         }
+         else enabledFiles.push_back(allFiles[i]); // otherwise true by default
+               
 
       if (enabledFiles.size() == 0)
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
