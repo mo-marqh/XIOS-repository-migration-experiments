@@ -213,7 +213,70 @@ namespace xios
          return oss.str();
       }
       
-       StdString CDate::toString(void) const
+
+      string CDate::getStr(const string& str) const
+      {
+        ostringstream oss ;
+        int level;
+        
+        level=0 ;
+        for(string::const_iterator it=str.begin();it!=str.end();++it)
+        {
+          if (level==0)
+          {
+            if (*it=='%') level++ ;
+            else oss<<*it ;
+          }
+          else if (level==1)
+          {
+            switch (*it)
+            {
+              case 'y' :
+                oss.width (4);  oss.fill ('0') ; oss << year ;
+                level=0 ;
+                break ;
+              case 'm' : // month or minute
+                level++ ;
+                break ;
+              case 'd' :
+                oss.width (2);  oss.fill ('0') ; oss << day ;
+                level=0;
+                break ;
+              case 'h' :
+                oss.width (2);  oss.fill ('0') ; oss << hour ;
+                level=0;
+                break ;
+              case 's' :
+                oss.width (2);  oss.fill ('0') ; oss << second ;
+                level=0 ;
+                break;
+              default :
+                oss<<'%'<<*it ;
+                level=0 ;
+            }
+          }
+          else if (level==2)
+          {
+            switch (*it)
+            {
+              case 'o' : // month
+                oss.width (2);  oss.fill ('0') ; oss << month ;
+                level=0 ;
+                break ;
+              case 'i' : //minute
+                oss.width (2);  oss.fill ('0') ; oss << minute ;
+                level=0 ;
+                break ;
+              default :
+                oss<<"%m"<<*it ;
+                level=0 ;
+            }
+          }
+        }
+        return oss.str();
+      }
+      
+      StdString CDate::toString(void) const
       { 
          StdOStringStream oss;
          oss << (*this);

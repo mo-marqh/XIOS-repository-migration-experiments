@@ -56,6 +56,8 @@ namespace xios
             /// Autres ///
             StdString toString(void) const;
             StdString getStryyyymmdd(void) const;
+            string getStr(const string& str) const;
+
 
          public : /* static */
 

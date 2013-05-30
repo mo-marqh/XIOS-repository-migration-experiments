@@ -206,10 +206,9 @@ namespace xios {
       CDate& currentDate=context->calendar->getCurrentDate() ;
       if (! split_freq.isEmpty())
       {
-        if (*lastSplit+splitFreq < currentDate)
+        if (currentDate > *lastSplit+splitFreq)
         {
-          *lastSplit=currentDate-outputFreq ;
-        
+          *lastSplit=*lastSplit+splitFreq ;    
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
           for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
           createHeader() ;
@@ -230,7 +229,24 @@ namespace xios {
          StdOStringStream oss;
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
-         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStryyyymmdd();
+//         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStryyyymmdd();
+//         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStr("%y_%mo_%d")<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr("%y_%mo_%d");
+         if (!split_freq.isEmpty())
+         {
+           string splitFormat ;
+           if (split_freq_format.isEmpty())
+           {
+             if (splitFreq.second!=0) splitFormat="%y%mo%d%h%mi%s";
+             else if (splitFreq.minute!=0) splitFormat="%y%mo%d%h%mi";
+             else if (splitFreq.hour!=0) splitFormat="%y%mo%d%h";
+             else if (splitFreq.day!=0) splitFormat="%y%mo%d";
+             else if (splitFreq.month!=0) splitFormat="%y%mo";
+             else splitFormat="%y";
+           }
+           else splitFormat=split_freq_format ;
+           oss<<"_"<<lastSplit->getStr(splitFormat)<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr(splitFormat);
+         }
+           
          bool multifile=true ;
          if (!type.isEmpty())
          {
