@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_context_calendar_type(context_Ptr context_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !context_hdl->calendar_type.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_context_output_dir(context_Ptr context_hdl, const char * output_dir, int output_dir_size)
   {
@@ -52,6 +60,14 @@ extern "C"
       ERROR("void cxios_get_context_output_dir(context_Ptr context_hdl, char * output_dir, int output_dir_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_context_output_dir(context_Ptr context_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !context_hdl->output_dir.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_context_start_date(context_Ptr context_hdl, const char * start_date, int start_date_size)
@@ -72,6 +88,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_context_start_date(context_Ptr context_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !context_hdl->start_date.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_context_time_origin(context_Ptr context_hdl, const char * time_origin, int time_origin_size)
   {
@@ -91,6 +115,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_context_time_origin(context_Ptr context_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !context_hdl->time_origin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_context_timestep(context_Ptr context_hdl, const char * timestep, int timestep_size)
   {
@@ -109,6 +141,14 @@ extern "C"
       ERROR("void cxios_get_context_timestep(context_Ptr context_hdl, char * timestep, int timestep_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_context_timestep(context_Ptr context_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !context_hdl->timestep.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

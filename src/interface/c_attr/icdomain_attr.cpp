@@ -29,6 +29,14 @@ extern "C"
     *data_dim = domain_hdl->data_dim.getValue();
   }
   
+  bool cxios_is_defined_domain_data_dim(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_dim.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_data_i_index(domain_Ptr domain_hdl, int* data_i_index, int extent1)
   {
@@ -47,6 +55,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_data_i_index(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_i_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_data_ibegin(domain_Ptr domain_hdl, int data_ibegin)
   {
@@ -60,6 +76,14 @@ extern "C"
   {
     *data_ibegin = domain_hdl->data_ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domain_data_ibegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_data_j_index(domain_Ptr domain_hdl, int* data_j_index, int extent1)
@@ -79,6 +103,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_data_j_index(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_j_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_data_jbegin(domain_Ptr domain_hdl, int data_jbegin)
   {
@@ -92,6 +124,14 @@ extern "C"
   {
     *data_jbegin = domain_hdl->data_jbegin.getValue();
   }
+  
+  bool cxios_is_defined_domain_data_jbegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_data_n_index(domain_Ptr domain_hdl, int data_n_index)
@@ -107,6 +147,14 @@ extern "C"
     *data_n_index = domain_hdl->data_n_index.getValue();
   }
   
+  bool cxios_is_defined_domain_data_n_index(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_n_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_data_ni(domain_Ptr domain_hdl, int data_ni)
   {
@@ -121,6 +169,14 @@ extern "C"
     *data_ni = domain_hdl->data_ni.getValue();
   }
   
+  bool cxios_is_defined_domain_data_ni(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_data_nj(domain_Ptr domain_hdl, int data_nj)
   {
@@ -134,6 +190,14 @@ extern "C"
   {
     *data_nj = domain_hdl->data_nj.getValue();
   }
+  
+  bool cxios_is_defined_domain_data_nj(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->data_nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_domain_group_ref(domain_Ptr domain_hdl, const char * domain_group_ref, int domain_group_ref_size)
@@ -154,6 +218,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_domain_group_ref(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->domain_group_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_ibegin(domain_Ptr domain_hdl, int ibegin)
   {
@@ -167,6 +239,14 @@ extern "C"
   {
     *ibegin = domain_hdl->ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domain_ibegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_iend(domain_Ptr domain_hdl, int iend)
@@ -182,6 +262,14 @@ extern "C"
     *iend = domain_hdl->iend.getValue();
   }
   
+  bool cxios_is_defined_domain_iend(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->iend.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_jbegin(domain_Ptr domain_hdl, int jbegin)
   {
@@ -196,6 +284,14 @@ extern "C"
     *jbegin = domain_hdl->jbegin.getValue();
   }
   
+  bool cxios_is_defined_domain_jbegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_jend(domain_Ptr domain_hdl, int jend)
   {
@@ -209,6 +305,14 @@ extern "C"
   {
     *jend = domain_hdl->jend.getValue();
   }
+  
+  bool cxios_is_defined_domain_jend(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->jend.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_latvalue(domain_Ptr domain_hdl, double* latvalue, int extent1)
@@ -227,6 +331,14 @@ extern "C"
     tmp=domain_hdl->latvalue ;
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_domain_latvalue(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->latvalue.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_long_name(domain_Ptr domain_hdl, const char * long_name, int long_name_size)
@@ -247,6 +359,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_long_name(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->long_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_lonvalue(domain_Ptr domain_hdl, double* lonvalue, int extent1)
   {
@@ -265,6 +385,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_lonvalue(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->lonvalue.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_mask(domain_Ptr domain_hdl, bool* mask, int extent1, int extent2)
   {
@@ -282,6 +410,14 @@ extern "C"
     tmp=domain_hdl->mask ;
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_domain_mask(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->mask.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_name(domain_Ptr domain_hdl, const char * name, int name_size)
@@ -302,6 +438,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_name(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_ni(domain_Ptr domain_hdl, int ni)
   {
@@ -315,6 +459,14 @@ extern "C"
   {
     *ni = domain_hdl->ni.getValue();
   }
+  
+  bool cxios_is_defined_domain_ni(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_ni_glo(domain_Ptr domain_hdl, int ni_glo)
@@ -330,6 +482,14 @@ extern "C"
     *ni_glo = domain_hdl->ni_glo.getValue();
   }
   
+  bool cxios_is_defined_domain_ni_glo(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->ni_glo.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_nj(domain_Ptr domain_hdl, int nj)
   {
@@ -344,6 +504,14 @@ extern "C"
     *nj = domain_hdl->nj.getValue();
   }
   
+  bool cxios_is_defined_domain_nj(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_nj_glo(domain_Ptr domain_hdl, int nj_glo)
   {
@@ -357,6 +525,14 @@ extern "C"
   {
     *nj_glo = domain_hdl->nj_glo.getValue();
   }
+  
+  bool cxios_is_defined_domain_nj_glo(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->nj_glo.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_standard_name(domain_Ptr domain_hdl, const char * standard_name, int standard_name_size)
@@ -377,6 +553,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domain_standard_name(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->standard_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_zoom_ibegin(domain_Ptr domain_hdl, int zoom_ibegin)
   {
@@ -390,6 +574,14 @@ extern "C"
   {
     *zoom_ibegin = domain_hdl->zoom_ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domain_zoom_ibegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_zoom_ibegin_loc(domain_Ptr domain_hdl, int zoom_ibegin_loc)
@@ -405,6 +597,14 @@ extern "C"
     *zoom_ibegin_loc = domain_hdl->zoom_ibegin_loc.getValue();
   }
   
+  bool cxios_is_defined_domain_zoom_ibegin_loc(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_ibegin_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_zoom_jbegin(domain_Ptr domain_hdl, int zoom_jbegin)
   {
@@ -418,6 +618,14 @@ extern "C"
   {
     *zoom_jbegin = domain_hdl->zoom_jbegin.getValue();
   }
+  
+  bool cxios_is_defined_domain_zoom_jbegin(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_zoom_jbegin_loc(domain_Ptr domain_hdl, int zoom_jbegin_loc)
@@ -433,6 +641,14 @@ extern "C"
     *zoom_jbegin_loc = domain_hdl->zoom_jbegin_loc.getValue();
   }
   
+  bool cxios_is_defined_domain_zoom_jbegin_loc(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_jbegin_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_zoom_ni(domain_Ptr domain_hdl, int zoom_ni)
   {
@@ -446,6 +662,14 @@ extern "C"
   {
     *zoom_ni = domain_hdl->zoom_ni.getValue();
   }
+  
+  bool cxios_is_defined_domain_zoom_ni(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domain_zoom_ni_loc(domain_Ptr domain_hdl, int zoom_ni_loc)
@@ -461,6 +685,14 @@ extern "C"
     *zoom_ni_loc = domain_hdl->zoom_ni_loc.getValue();
   }
   
+  bool cxios_is_defined_domain_zoom_ni_loc(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_ni_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_zoom_nj(domain_Ptr domain_hdl, int zoom_nj)
   {
@@ -475,6 +707,14 @@ extern "C"
     *zoom_nj = domain_hdl->zoom_nj.getValue();
   }
   
+  bool cxios_is_defined_domain_zoom_nj(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domain_zoom_nj_loc(domain_Ptr domain_hdl, int zoom_nj_loc)
   {
@@ -488,6 +728,14 @@ extern "C"
   {
     *zoom_nj_loc = domain_hdl->zoom_nj_loc.getValue();
   }
+  
+  bool cxios_is_defined_domain_zoom_nj_loc(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domain_hdl->zoom_nj_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

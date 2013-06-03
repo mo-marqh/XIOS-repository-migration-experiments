@@ -1,5 +1,7 @@
 #include "attribute.hpp"
 #include "base_type.hpp"
+#include "generate_interface.hpp"
+
 
 namespace xios
 {
@@ -47,7 +49,32 @@ namespace xios
       { 
          return (this->getId()); 
       }
+   
+      void CAttribute::generateCInterfaceIsDefined(ostream& oss, const string& className)
+      {
+        CInterface::AttributeIsDefinedCInterface(oss, className, this->getName()) ;
+      }
       
+      void CAttribute::generateFortran2003InterfaceIsDefined(ostream& oss, const string& className)
+      {
+        CInterface::AttributeIsDefinedFortran2003Interface(oss, className, this->getName()) ;
+      }
+      
+      
+      void CAttribute::generateFortranInterfaceIsDefinedDeclaration_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceIsDefinedDeclaration(oss, className, this->getName()+"_") ;
+      }
+
+      void CAttribute::generateFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceIsDefinedDeclaration(oss, className, this->getName()) ;
+      }
+
+      void CAttribute::generateFortranInterfaceIsDefinedBody_(ostream& oss,const string& className)
+      {
+        CInterface::AttributeFortranInterfaceIsDefinedBody(oss, className, this->getName()) ;
+      }
 
       ///--------------------------------------------------------------
 
@@ -80,4 +107,5 @@ namespace xios
        return buffer ;
      }
 
+ 
 } // namespace xios

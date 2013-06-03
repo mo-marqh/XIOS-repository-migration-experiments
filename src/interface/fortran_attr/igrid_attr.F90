@@ -158,4 +158,93 @@ CONTAINS
     
   END SUBROUTINE xios(get_grid_attr_hdl_)
   
+  SUBROUTINE xios(is_defined_grid_attr)  &
+    ( grid_id, axis_ref, description, domain_ref, mask, name )
+    
+    IMPLICIT NONE
+      TYPE(txios(grid))  :: grid_hdl
+      CHARACTER(LEN=*), INTENT(IN) ::grid_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description
+      LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name
+      LOGICAL(KIND=C_BOOL) :: name_tmp
+      
+      CALL xios(get_grid_handle)(grid_id,grid_hdl)
+      CALL xios(is_defined_grid_attr_hdl_)   &
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
+    
+  END SUBROUTINE xios(is_defined_grid_attr)
+  
+  SUBROUTINE xios(is_defined_grid_attr_hdl)  &
+    ( grid_hdl, axis_ref, description, domain_ref, mask, name )
+    
+    IMPLICIT NONE
+      TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description
+      LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name
+      LOGICAL(KIND=C_BOOL) :: name_tmp
+      
+      CALL xios(is_defined_grid_attr_hdl_)  &
+      ( grid_hdl, axis_ref, description, domain_ref, mask, name )
+    
+  END SUBROUTINE xios(is_defined_grid_attr_hdl)
+  
+  SUBROUTINE xios(is_defined_grid_attr_hdl_)   &
+    ( grid_hdl, axis_ref_, description_, domain_ref_, mask_, name_ )
+    
+    IMPLICIT NONE
+      TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref_
+      LOGICAL(KIND=C_BOOL) :: axis_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description_
+      LOGICAL(KIND=C_BOOL) :: description__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref_
+      LOGICAL(KIND=C_BOOL) :: domain_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_
+      LOGICAL(KIND=C_BOOL) :: mask__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name_
+      LOGICAL(KIND=C_BOOL) :: name__tmp
+      
+      IF (PRESENT(axis_ref_)) THEN
+        axis_ref__tmp=cxios_is_defined_grid_axis_ref(grid_hdl%daddr)
+        axis_ref_=axis_ref__tmp
+      ENDIF
+      
+      IF (PRESENT(description_)) THEN
+        description__tmp=cxios_is_defined_grid_description(grid_hdl%daddr)
+        description_=description__tmp
+      ENDIF
+      
+      IF (PRESENT(domain_ref_)) THEN
+        domain_ref__tmp=cxios_is_defined_grid_domain_ref(grid_hdl%daddr)
+        domain_ref_=domain_ref__tmp
+      ENDIF
+      
+      IF (PRESENT(mask_)) THEN
+        mask__tmp=cxios_is_defined_grid_mask(grid_hdl%daddr)
+        mask_=mask__tmp
+      ENDIF
+      
+      IF (PRESENT(name_)) THEN
+        name__tmp=cxios_is_defined_grid_name(grid_hdl%daddr)
+        name_=name__tmp
+      ENDIF
+      
+      
+    
+  END SUBROUTINE xios(is_defined_grid_attr_hdl_)
+  
 END MODULE igrid_attr

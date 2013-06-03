@@ -29,6 +29,14 @@ extern "C"
     *data_dim = domaingroup_hdl->data_dim.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_dim.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_data_i_index(domaingroup_Ptr domaingroup_hdl, int* data_i_index, int extent1)
   {
@@ -47,6 +55,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_data_i_index(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_i_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl, int data_ibegin)
   {
@@ -60,6 +76,14 @@ extern "C"
   {
     *data_ibegin = domaingroup_hdl->data_ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_data_j_index(domaingroup_Ptr domaingroup_hdl, int* data_j_index, int extent1)
@@ -79,6 +103,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_data_j_index(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_j_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl, int data_jbegin)
   {
@@ -92,6 +124,14 @@ extern "C"
   {
     *data_jbegin = domaingroup_hdl->data_jbegin.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int data_n_index)
@@ -107,6 +147,14 @@ extern "C"
     *data_n_index = domaingroup_hdl->data_n_index.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_n_index.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl, int data_ni)
   {
@@ -121,6 +169,14 @@ extern "C"
     *data_ni = domaingroup_hdl->data_ni.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl, int data_nj)
   {
@@ -134,6 +190,14 @@ extern "C"
   {
     *data_nj = domaingroup_hdl->data_nj.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->data_nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl, const char * domain_group_ref, int domain_group_ref_size)
@@ -154,6 +218,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->domain_group_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, const char * group_ref, int group_ref_size)
   {
@@ -173,6 +245,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->group_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl, int ibegin)
   {
@@ -186,6 +266,14 @@ extern "C"
   {
     *ibegin = domaingroup_hdl->ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_iend(domaingroup_Ptr domaingroup_hdl, int iend)
@@ -201,6 +289,14 @@ extern "C"
     *iend = domaingroup_hdl->iend.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_iend(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->iend.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl, int jbegin)
   {
@@ -215,6 +311,14 @@ extern "C"
     *jbegin = domaingroup_hdl->jbegin.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_jend(domaingroup_Ptr domaingroup_hdl, int jend)
   {
@@ -228,6 +332,14 @@ extern "C"
   {
     *jend = domaingroup_hdl->jend.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_jend(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->jend.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl, double* latvalue, int extent1)
@@ -246,6 +358,14 @@ extern "C"
     tmp=domaingroup_hdl->latvalue ;
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->latvalue.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl, const char * long_name, int long_name_size)
@@ -266,6 +386,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->long_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl, double* lonvalue, int extent1)
   {
@@ -284,6 +412,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->lonvalue.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_mask(domaingroup_Ptr domaingroup_hdl, bool* mask, int extent1, int extent2)
   {
@@ -301,6 +437,14 @@ extern "C"
     tmp=domaingroup_hdl->mask ;
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_domaingroup_mask(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->mask.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_name(domaingroup_Ptr domaingroup_hdl, const char * name, int name_size)
@@ -321,6 +465,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_name(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_ni(domaingroup_Ptr domaingroup_hdl, int ni)
   {
@@ -334,6 +486,14 @@ extern "C"
   {
     *ni = domaingroup_hdl->ni.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_ni(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl, int ni_glo)
@@ -349,6 +509,14 @@ extern "C"
     *ni_glo = domaingroup_hdl->ni_glo.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->ni_glo.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_nj(domaingroup_Ptr domaingroup_hdl, int nj)
   {
@@ -363,6 +531,14 @@ extern "C"
     *nj = domaingroup_hdl->nj.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_nj(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl, int nj_glo)
   {
@@ -376,6 +552,14 @@ extern "C"
   {
     *nj_glo = domaingroup_hdl->nj_glo.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->nj_glo.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, const char * standard_name, int standard_name_size)
@@ -396,6 +580,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->standard_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl, int zoom_ibegin)
   {
@@ -409,6 +601,14 @@ extern "C"
   {
     *zoom_ibegin = domaingroup_hdl->zoom_ibegin.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_ibegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl, int zoom_ibegin_loc)
@@ -424,6 +624,14 @@ extern "C"
     *zoom_ibegin_loc = domaingroup_hdl->zoom_ibegin_loc.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_ibegin_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl, int zoom_jbegin)
   {
@@ -437,6 +645,14 @@ extern "C"
   {
     *zoom_jbegin = domaingroup_hdl->zoom_jbegin.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_jbegin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl, int zoom_jbegin_loc)
@@ -452,6 +668,14 @@ extern "C"
     *zoom_jbegin_loc = domaingroup_hdl->zoom_jbegin_loc.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_jbegin_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl, int zoom_ni)
   {
@@ -465,6 +689,14 @@ extern "C"
   {
     *zoom_ni = domaingroup_hdl->zoom_ni.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_ni.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl, int zoom_ni_loc)
@@ -480,6 +712,14 @@ extern "C"
     *zoom_ni_loc = domaingroup_hdl->zoom_ni_loc.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_ni_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl, int zoom_nj)
   {
@@ -494,6 +734,14 @@ extern "C"
     *zoom_nj = domaingroup_hdl->zoom_nj.getValue();
   }
   
+  bool cxios_is_defined_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_nj.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl, int zoom_nj_loc)
   {
@@ -507,6 +755,14 @@ extern "C"
   {
     *zoom_nj_loc = domaingroup_hdl->zoom_nj_loc.getValue();
   }
+  
+  bool cxios_is_defined_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !domaingroup_hdl->zoom_nj_loc.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

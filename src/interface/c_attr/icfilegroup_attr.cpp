@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_description(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->description.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_enabled(filegroup_Ptr filegroup_hdl, bool enabled)
   {
@@ -47,6 +55,14 @@ extern "C"
   {
     *enabled = filegroup_hdl->enabled.getValue();
   }
+  
+  bool cxios_is_defined_filegroup_enabled(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->enabled.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_filegroup_group_ref(filegroup_Ptr filegroup_hdl, const char * group_ref, int group_ref_size)
@@ -67,6 +83,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_group_ref(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->group_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_min_digits(filegroup_Ptr filegroup_hdl, int min_digits)
   {
@@ -80,6 +104,14 @@ extern "C"
   {
     *min_digits = filegroup_hdl->min_digits.getValue();
   }
+  
+  bool cxios_is_defined_filegroup_min_digits(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->min_digits.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_filegroup_name(filegroup_Ptr filegroup_hdl, const char * name, int name_size)
@@ -100,6 +132,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_name(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_name_suffix(filegroup_Ptr filegroup_hdl, const char * name_suffix, int name_suffix_size)
   {
@@ -118,6 +158,14 @@ extern "C"
       ERROR("void cxios_get_filegroup_name_suffix(filegroup_Ptr filegroup_hdl, char * name_suffix, int name_suffix_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_filegroup_name_suffix(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->name_suffix.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_filegroup_output_freq(filegroup_Ptr filegroup_hdl, const char * output_freq, int output_freq_size)
@@ -138,6 +186,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_output_freq(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->output_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_output_level(filegroup_Ptr filegroup_hdl, int output_level)
   {
@@ -151,6 +207,14 @@ extern "C"
   {
     *output_level = filegroup_hdl->output_level.getValue();
   }
+  
+  bool cxios_is_defined_filegroup_output_level(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->output_level.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_filegroup_par_access(filegroup_Ptr filegroup_hdl, const char * par_access, int par_access_size)
@@ -171,6 +235,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_par_access(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->par_access.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_split_freq(filegroup_Ptr filegroup_hdl, const char * split_freq, int split_freq_size)
   {
@@ -189,6 +261,41 @@ extern "C"
       ERROR("void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, char * split_freq, int split_freq_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_filegroup_split_freq(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->split_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_filegroup_split_freq_format(filegroup_Ptr filegroup_hdl, const char * split_freq_format, int split_freq_format_size)
+  {
+    std::string split_freq_format_str;
+    if(!cstr2string(split_freq_format, split_freq_format_size, split_freq_format_str)) return;
+     CTimer::get("XIOS").resume();
+    filegroup_hdl->split_freq_format.setValue(split_freq_format_str);
+    filegroup_hdl->sendAttributToServer(filegroup_hdl->split_freq_format);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_filegroup_split_freq_format(filegroup_Ptr filegroup_hdl, char * split_freq_format, int split_freq_format_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(filegroup_hdl->split_freq_format.getValue(),split_freq_format , split_freq_format_size))
+      ERROR("void cxios_get_filegroup_split_freq_format(filegroup_Ptr filegroup_hdl, char * split_freq_format, int split_freq_format_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_filegroup_split_freq_format(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->split_freq_format.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, const char * sync_freq, int sync_freq_size)
@@ -209,6 +316,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_filegroup_sync_freq(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->sync_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_filegroup_type(filegroup_Ptr filegroup_hdl, const char * type, int type_size)
   {
@@ -227,6 +342,14 @@ extern "C"
       ERROR("void cxios_get_filegroup_type(filegroup_Ptr filegroup_hdl, char * type, int type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_filegroup_type(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !filegroup_hdl->type.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

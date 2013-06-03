@@ -53,6 +53,9 @@ namespace xios
             virtual void generateFortranInterfaceGet_hdl_(ostream& oss, const string& className) ;
             virtual void generateFortranInterfaceGet_hdl(ostream& oss, const string& className) ;
             virtual void generateFortranInterfaceGet_id(ostream& oss, const string& className) ;
+            virtual void generateFortranInterfaceIsDefined_hdl_(ostream& oss, const string& className) ;
+            virtual void generateFortranInterfaceIsDefined_hdl(ostream& oss, const string& className) ;
+            virtual void generateFortranInterfaceIsDefined_id(ostream& oss, const string& className) ;
 
          protected :
 

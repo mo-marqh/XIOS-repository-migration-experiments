@@ -213,12 +213,14 @@ namespace xios
       void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)
       {
         CInterface::AttributeCInterface<T>(oss, className, this->getName()) ;
+//        CInterface::AttributeIsDefinedCInterface(oss, className, this->getName()) ;
       }
       
       template <typename T>
       void CAttributeTemplate<T>::generateFortran2003Interface(ostream& oss,const string& className)
       {
         CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName()) ;
+//        CInterface::AttributeIsDefinedFortran2003Interface(oss, className, this->getName()) ;
       }
       
       template <typename T>
@@ -245,6 +247,7 @@ namespace xios
         CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()+"_") ;
       }
  
+ 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetBody_(ostream& oss,const string& className)
       {
@@ -256,6 +259,7 @@ namespace xios
       {
         CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
       }
+
  
 /*      
       //---------------------------------------------------------------

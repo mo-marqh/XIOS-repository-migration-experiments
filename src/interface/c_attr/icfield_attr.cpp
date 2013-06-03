@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_axis_ref(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->axis_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_default_value(field_Ptr field_hdl, double default_value)
   {
@@ -47,6 +55,14 @@ extern "C"
   {
     *default_value = field_hdl->default_value.getValue();
   }
+  
+  bool cxios_is_defined_field_default_value(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->default_value.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_domain_ref(field_Ptr field_hdl, const char * domain_ref, int domain_ref_size)
@@ -67,6 +83,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_domain_ref(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->domain_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_enabled(field_Ptr field_hdl, bool enabled)
   {
@@ -80,6 +104,14 @@ extern "C"
   {
     *enabled = field_hdl->enabled.getValue();
   }
+  
+  bool cxios_is_defined_field_enabled(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->enabled.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_field_ref(field_Ptr field_hdl, const char * field_ref, int field_ref_size)
@@ -100,6 +132,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_field_ref(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->field_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_freq_offset(field_Ptr field_hdl, const char * freq_offset, int freq_offset_size)
   {
@@ -118,6 +158,14 @@ extern "C"
       ERROR("void cxios_get_field_freq_offset(field_Ptr field_hdl, char * freq_offset, int freq_offset_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_field_freq_offset(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->freq_offset.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_freq_op(field_Ptr field_hdl, const char * freq_op, int freq_op_size)
@@ -138,6 +186,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_freq_op(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->freq_op.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_grid_ref(field_Ptr field_hdl, const char * grid_ref, int grid_ref_size)
   {
@@ -157,6 +213,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_grid_ref(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->grid_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_level(field_Ptr field_hdl, int level)
   {
@@ -170,6 +234,14 @@ extern "C"
   {
     *level = field_hdl->level.getValue();
   }
+  
+  bool cxios_is_defined_field_level(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->level.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_long_name(field_Ptr field_hdl, const char * long_name, int long_name_size)
@@ -190,6 +262,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_long_name(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->long_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_name(field_Ptr field_hdl, const char * name, int name_size)
   {
@@ -208,6 +288,14 @@ extern "C"
       ERROR("void cxios_get_field_name(field_Ptr field_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_field_name(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_operation(field_Ptr field_hdl, const char * operation, int operation_size)
@@ -228,6 +316,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_operation(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->operation.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_prec(field_Ptr field_hdl, int prec)
   {
@@ -241,6 +337,14 @@ extern "C"
   {
     *prec = field_hdl->prec.getValue();
   }
+  
+  bool cxios_is_defined_field_prec(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->prec.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_field_standard_name(field_Ptr field_hdl, const char * standard_name, int standard_name_size)
@@ -261,6 +365,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_field_standard_name(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->standard_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_field_unit(field_Ptr field_hdl, const char * unit, int unit_size)
   {
@@ -279,6 +391,14 @@ extern "C"
       ERROR("void cxios_get_field_unit(field_Ptr field_hdl, char * unit, int unit_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_field_unit(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !field_hdl->unit.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

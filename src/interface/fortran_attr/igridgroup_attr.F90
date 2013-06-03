@@ -172,4 +172,104 @@ CONTAINS
     
   END SUBROUTINE xios(get_gridgroup_attr_hdl_)
   
+  SUBROUTINE xios(is_defined_gridgroup_attr)  &
+    ( gridgroup_id, axis_ref, description, domain_ref, group_ref, mask, name )
+    
+    IMPLICIT NONE
+      TYPE(txios(gridgroup))  :: gridgroup_hdl
+      CHARACTER(LEN=*), INTENT(IN) ::gridgroup_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description
+      LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
+      LOGICAL(KIND=C_BOOL) :: group_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name
+      LOGICAL(KIND=C_BOOL) :: name_tmp
+      
+      CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
+      CALL xios(is_defined_gridgroup_attr_hdl_)   &
+      ( gridgroup_hdl, axis_ref, description, domain_ref, group_ref, mask, name )
+    
+  END SUBROUTINE xios(is_defined_gridgroup_attr)
+  
+  SUBROUTINE xios(is_defined_gridgroup_attr_hdl)  &
+    ( gridgroup_hdl, axis_ref, description, domain_ref, group_ref, mask, name )
+    
+    IMPLICIT NONE
+      TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description
+      LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
+      LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
+      LOGICAL(KIND=C_BOOL) :: group_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask
+      LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name
+      LOGICAL(KIND=C_BOOL) :: name_tmp
+      
+      CALL xios(is_defined_gridgroup_attr_hdl_)  &
+      ( gridgroup_hdl, axis_ref, description, domain_ref, group_ref, mask, name )
+    
+  END SUBROUTINE xios(is_defined_gridgroup_attr_hdl)
+  
+  SUBROUTINE xios(is_defined_gridgroup_attr_hdl_)   &
+    ( gridgroup_hdl, axis_ref_, description_, domain_ref_, group_ref_, mask_, name_ )
+    
+    IMPLICIT NONE
+      TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref_
+      LOGICAL(KIND=C_BOOL) :: axis_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: description_
+      LOGICAL(KIND=C_BOOL) :: description__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref_
+      LOGICAL(KIND=C_BOOL) :: domain_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
+      LOGICAL(KIND=C_BOOL) :: group_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_
+      LOGICAL(KIND=C_BOOL) :: mask__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: name_
+      LOGICAL(KIND=C_BOOL) :: name__tmp
+      
+      IF (PRESENT(axis_ref_)) THEN
+        axis_ref__tmp=cxios_is_defined_gridgroup_axis_ref(gridgroup_hdl%daddr)
+        axis_ref_=axis_ref__tmp
+      ENDIF
+      
+      IF (PRESENT(description_)) THEN
+        description__tmp=cxios_is_defined_gridgroup_description(gridgroup_hdl%daddr)
+        description_=description__tmp
+      ENDIF
+      
+      IF (PRESENT(domain_ref_)) THEN
+        domain_ref__tmp=cxios_is_defined_gridgroup_domain_ref(gridgroup_hdl%daddr)
+        domain_ref_=domain_ref__tmp
+      ENDIF
+      
+      IF (PRESENT(group_ref_)) THEN
+        group_ref__tmp=cxios_is_defined_gridgroup_group_ref(gridgroup_hdl%daddr)
+        group_ref_=group_ref__tmp
+      ENDIF
+      
+      IF (PRESENT(mask_)) THEN
+        mask__tmp=cxios_is_defined_gridgroup_mask(gridgroup_hdl%daddr)
+        mask_=mask__tmp
+      ENDIF
+      
+      IF (PRESENT(name_)) THEN
+        name__tmp=cxios_is_defined_gridgroup_name(gridgroup_hdl%daddr)
+        name_=name__tmp
+      ENDIF
+      
+      
+    
+  END SUBROUTINE xios(is_defined_gridgroup_attr_hdl_)
+  
 END MODULE igridgroup_attr

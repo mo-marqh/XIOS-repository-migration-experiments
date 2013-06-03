@@ -12,14 +12,14 @@ PROGRAM test_client
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100 
+  INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100 
-  INTEGER,PARAMETER :: llm=3 
-  DOUBLE PRECISION  :: lval(llm)=(/1.0,2.0,3.0/)
+  INTEGER,PARAMETER :: llm=5 
+  DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
-  
+  LOGICAL :: ok
   
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
@@ -97,6 +97,8 @@ PROGRAM test_client
     print *,"ni",ni
     print *,"lonvalue",lonvalue ;
 
+    CALL xios_is_defined_field_attr("field_A",enabled=ok)
+    PRINT *,"field_A : attribute enabled is defined ? ",ok
     CALL xios_close_context_definition()
     
     PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")

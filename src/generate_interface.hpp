@@ -11,9 +11,11 @@ namespace xios
     
     template <class T>
     static void AttributeCInterface(ostream& oss,const string& className,const string& name) ;
-   
+    static void AttributeIsDefinedCInterface(ostream& oss, const string& className,const string& name);
+  
    template <class T>
    static void AttributeFortran2003Interface(ostream& oss,const string& className,const string& name) ;
+   static void AttributeIsDefinedFortran2003Interface(ostream& oss,const string& className,const string& name);
    
    template <class T>
    static void AttributeFortranInterfaceDeclaration(ostream& oss,const string& className,const string& name) ;
@@ -21,12 +23,16 @@ namespace xios
    template <class T>
    static void AttributeFortranInterfaceGetDeclaration(ostream& oss,const string& className,const string& name) ;
 
+   static void AttributeFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className,const string& name) ;
+
    template <class T>
    static void AttributeFortranInterfaceBody(ostream& oss,const string& className,const string& name) ;
   
    template <class T>
    static void AttributeFortranInterfaceGetBody(ostream& oss,const string& className,const string& name) ;
-  
+ 
+   static void AttributeFortranInterfaceIsDefinedBody(ostream& oss,const string& className,const string& name) ;
+ 
    template <class T>
    static string getStrFortranType(void) ;
 

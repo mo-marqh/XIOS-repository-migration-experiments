@@ -392,6 +392,12 @@ namespace xios
      SuperClassMap::generateFortranInterfaceGet_hdl(oss,className) ;
      oss<<iendl ;
      SuperClassMap::generateFortranInterfaceGet_hdl_(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceIsDefined_id(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceIsDefined_hdl(oss,className) ;
+     oss<<iendl ;
+     SuperClassMap::generateFortranInterfaceIsDefined_hdl_(oss,className) ;     
      oss<<iendl-- ;
      oss<<"END MODULE i"<<className<<"_attr"<<iendl ;
    }

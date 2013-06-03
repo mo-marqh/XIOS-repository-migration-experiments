@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_axis_long_name(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->long_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_name(axis_Ptr axis_hdl, const char * name, int name_size)
   {
@@ -52,6 +60,14 @@ extern "C"
       ERROR("void cxios_get_axis_name(axis_Ptr axis_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_axis_name(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_axis_positive(axis_Ptr axis_hdl, const char * positive, int positive_size)
@@ -72,6 +88,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_axis_positive(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->positive.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_size(axis_Ptr axis_hdl, int size)
   {
@@ -85,6 +109,14 @@ extern "C"
   {
     *size = axis_hdl->size.getValue();
   }
+  
+  bool cxios_is_defined_axis_size(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->size.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_axis_standard_name(axis_Ptr axis_hdl, const char * standard_name, int standard_name_size)
@@ -105,6 +137,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_axis_standard_name(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->standard_name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_unit(axis_Ptr axis_hdl, const char * unit, int unit_size)
   {
@@ -124,6 +164,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_axis_unit(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->unit.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_value(axis_Ptr axis_hdl, double* value, int extent1)
   {
@@ -142,6 +190,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_axis_value(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->value.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_zoom_begin(axis_Ptr axis_hdl, int zoom_begin)
   {
@@ -155,6 +211,14 @@ extern "C"
   {
     *zoom_begin = axis_hdl->zoom_begin.getValue();
   }
+  
+  bool cxios_is_defined_axis_zoom_begin(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->zoom_begin.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_axis_zoom_end(axis_Ptr axis_hdl, int zoom_end)
@@ -170,6 +234,14 @@ extern "C"
     *zoom_end = axis_hdl->zoom_end.getValue();
   }
   
+  bool cxios_is_defined_axis_zoom_end(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->zoom_end.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_axis_zoom_size(axis_Ptr axis_hdl, int zoom_size)
   {
@@ -183,6 +255,14 @@ extern "C"
   {
     *zoom_size = axis_hdl->zoom_size.getValue();
   }
+  
+  bool cxios_is_defined_axis_zoom_size(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !axis_hdl->zoom_size.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

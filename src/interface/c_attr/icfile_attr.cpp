@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_file_description(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->description.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_enabled(file_Ptr file_hdl, bool enabled)
   {
@@ -48,6 +56,14 @@ extern "C"
     *enabled = file_hdl->enabled.getValue();
   }
   
+  bool cxios_is_defined_file_enabled(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->enabled.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_min_digits(file_Ptr file_hdl, int min_digits)
   {
@@ -61,6 +77,14 @@ extern "C"
   {
     *min_digits = file_hdl->min_digits.getValue();
   }
+  
+  bool cxios_is_defined_file_min_digits(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->min_digits.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_file_name(file_Ptr file_hdl, const char * name, int name_size)
@@ -81,6 +105,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_file_name(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_name_suffix(file_Ptr file_hdl, const char * name_suffix, int name_suffix_size)
   {
@@ -99,6 +131,14 @@ extern "C"
       ERROR("void cxios_get_file_name_suffix(file_Ptr file_hdl, char * name_suffix, int name_suffix_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_file_name_suffix(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->name_suffix.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_file_output_freq(file_Ptr file_hdl, const char * output_freq, int output_freq_size)
@@ -119,6 +159,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_file_output_freq(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->output_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_output_level(file_Ptr file_hdl, int output_level)
   {
@@ -132,6 +180,14 @@ extern "C"
   {
     *output_level = file_hdl->output_level.getValue();
   }
+  
+  bool cxios_is_defined_file_output_level(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->output_level.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_file_par_access(file_Ptr file_hdl, const char * par_access, int par_access_size)
@@ -152,6 +208,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_file_par_access(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->par_access.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_split_freq(file_Ptr file_hdl, const char * split_freq, int split_freq_size)
   {
@@ -170,6 +234,41 @@ extern "C"
       ERROR("void cxios_get_file_split_freq(file_Ptr file_hdl, char * split_freq, int split_freq_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_file_split_freq(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->split_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_file_split_freq_format(file_Ptr file_hdl, const char * split_freq_format, int split_freq_format_size)
+  {
+    std::string split_freq_format_str;
+    if(!cstr2string(split_freq_format, split_freq_format_size, split_freq_format_str)) return;
+     CTimer::get("XIOS").resume();
+    file_hdl->split_freq_format.setValue(split_freq_format_str);
+    file_hdl->sendAttributToServer(file_hdl->split_freq_format);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_file_split_freq_format(file_Ptr file_hdl, char * split_freq_format, int split_freq_format_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(file_hdl->split_freq_format.getValue(),split_freq_format , split_freq_format_size))
+      ERROR("void cxios_get_file_split_freq_format(file_Ptr file_hdl, char * split_freq_format, int split_freq_format_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_file_split_freq_format(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->split_freq_format.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_file_sync_freq(file_Ptr file_hdl, const char * sync_freq, int sync_freq_size)
@@ -190,6 +289,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_file_sync_freq(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->sync_freq.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_file_type(file_Ptr file_hdl, const char * type, int type_size)
   {
@@ -208,6 +315,14 @@ extern "C"
       ERROR("void cxios_get_file_type(file_Ptr file_hdl, char * type, int type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_file_type(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !file_hdl->type.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   

@@ -34,6 +34,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->axis_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_gridgroup_description(gridgroup_Ptr gridgroup_hdl, const char * description, int description_size)
   {
@@ -52,6 +60,14 @@ extern "C"
       ERROR("void cxios_get_gridgroup_description(gridgroup_Ptr gridgroup_hdl, char * description, int description_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_gridgroup_description(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->description.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, const char * domain_ref, int domain_ref_size)
@@ -72,6 +88,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->domain_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_gridgroup_group_ref(gridgroup_Ptr gridgroup_hdl, const char * group_ref, int group_ref_size)
   {
@@ -91,6 +115,14 @@ extern "C"
      CTimer::get("XIOS").suspend();
   }
   
+  bool cxios_is_defined_gridgroup_group_ref(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->group_ref.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
   
   void cxios_set_gridgroup_mask(gridgroup_Ptr gridgroup_hdl, bool* mask, int extent1, int extent2, int extent3)
   {
@@ -108,6 +140,14 @@ extern "C"
     tmp=gridgroup_hdl->mask ;
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_gridgroup_mask(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->mask.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   void cxios_set_gridgroup_name(gridgroup_Ptr gridgroup_hdl, const char * name, int name_size)
@@ -127,6 +167,14 @@ extern "C"
       ERROR("void cxios_get_gridgroup_name(gridgroup_Ptr gridgroup_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
+  
+  bool cxios_is_defined_gridgroup_name(gridgroup_Ptr gridgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return !gridgroup_hdl->name.isEmpty();
+     CTimer::get("XIOS").suspend();
+  }
+  
   
   
   
