@@ -214,9 +214,9 @@ namespace xios
                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
                }
                this->writeAxisAttributes
-                  (latid, "X", "longitude", "Longitude", "degrees_east", domid);
+                  (lonid, "X", "longitude", "Longitude", "degrees_east", domid);
                this->writeAxisAttributes
-                  (lonid, "Y", "latitude", "Latitude", "degrees_north", domid);
+                  (latid, "Y", "latitude", "Latitude", "degrees_north", domid);
 
 
                SuperClassWriter::definition_end();
@@ -353,10 +353,23 @@ namespace xios
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
-
-         StdString dimXid     = StdString("x").append(appendDomid);
-         StdString dimYid     = StdString("y").append(appendDomid);
-/*
+ 
+         bool isCurvilinear = domain->isCurvilinear ; 
+         
+         StdString dimXid,dimYid ;
+        
+         if (isCurvilinear)
+         {
+           dimXid     = StdString("x").append(appendDomid);
+           dimYid     = StdString("y").append(appendDomid);
+         }
+         else
+         {
+           dimXid     = StdString("lon").append(appendDomid);
+           dimYid     = StdString("lat").append(appendDomid);
+         }
+         
+/* 
          StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon").append(appendDomid).append("_local")
                              : lonid;
@@ -369,7 +382,7 @@ namespace xios
 
 //         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
 //         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
-          bool isCurvilinear = domain->isCurvilinear ; 
+//          bool isCurvilinear = domain->isCurvilinear ; 
           
          nc_type type = (!field->prec.isEmpty() &&
                         ( field->prec.getValue() == 4))
