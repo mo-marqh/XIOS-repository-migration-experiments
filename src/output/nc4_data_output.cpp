@@ -69,9 +69,19 @@ namespace xios
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
-
-         StdString dimXid     = StdString("x").append(appendDomid);
-         StdString dimYid     = StdString("y").append(appendDomid);
+         
+         bool isCurvilinear = domain->isCurvilinear ;
+         StdString dimXid, dimYid ;
+         if (isCurvilinear)
+         {
+           dimXid     = StdString("x").append(appendDomid);
+           dimYid     = StdString("y").append(appendDomid);
+         }
+         else
+         {
+           dimXid     = StdString("lon").append(appendDomid);
+           dimYid     = StdString("lat").append(appendDomid);
+         }            
          
          string lonid,latid ;
 /*
@@ -82,7 +92,6 @@ namespace xios
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
 */
-         bool isCurvilinear = domain->isCurvilinear ;
 
          switch (SuperClass::type)
          {
