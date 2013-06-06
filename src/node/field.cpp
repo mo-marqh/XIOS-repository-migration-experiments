@@ -416,8 +416,7 @@ namespace xios{
         if (operation.get()=="once") isOnceOperation=true ;
         else isOnceOperation=false;
         isFirstOperation=true;
-      
-        cout<<"Operation : "<<operation<<" isOnce "<<isOnceOperation<<endl;          
+
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
    {                                               \
