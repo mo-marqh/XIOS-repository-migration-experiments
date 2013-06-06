@@ -349,7 +349,7 @@ namespace xios
          std::vector<std::size_t>::const_iterator
             it  = sizes.begin(), end = sizes.end();
          int i = 0;
-         cout<<"nc Size -->"<<sizes.size()<<endl ;
+
          if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
          {
             sstart.push_back(record);
