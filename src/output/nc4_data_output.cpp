@@ -458,10 +458,15 @@ namespace xios
                
          if (wtime)
          {
-            SuperClassWriter::addAttribute
-                  ("interval_operation", field->freq_op.getValue(), &fieldid);
-            SuperClassWriter::addAttribute
-                  ("interval_write", field->getRelFile()->output_freq.getValue(), &fieldid);
+            CDuration duration ;
+
+            duration.FromString(field->freq_op) ;
+            duration.solveTimeStep(*(context->calendar));
+            SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
+
+            duration.FromString(field->getRelFile()->output_freq) ;
+            duration.solveTimeStep(*(context->calendar));
+            SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
          }
          
          if (!field->default_value.isEmpty())
