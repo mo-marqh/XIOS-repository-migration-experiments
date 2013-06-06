@@ -129,6 +129,7 @@ fi
 
 if [[ "$use_oasis" == "true" ]]
    then
+   NETCDF_LIB="-lnetcdff -lnetcdf"
    XMLIO_FINCDIR="$OASIS_INCDIR $XMLIO_FINCDIR"
    XMLIO_LIB="$OASIS_LIBDIR $OASIS_LIB $XMLIO_LIB"
    XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OASIS"
