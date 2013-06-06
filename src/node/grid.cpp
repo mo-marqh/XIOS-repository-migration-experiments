@@ -205,7 +205,9 @@ namespace xios {
              (mask.extent(1) != nju) ||
              (mask.extent(2) != nlu))
              ERROR("CGrid::checkAttributes(void)",
-                  <<"The mask has not the same size than the local grid") ;
+                  <<"The mask has not the same size than the local grid"<<endl 
+                  <<"Local size is "<<niu<<"x"<<nju<<"x"<<nlu<<endl
+                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1)<<"x"<<mask.extent(2));
       }
       else 
       {

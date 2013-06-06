@@ -264,8 +264,9 @@ namespace xios {
          if ((mask.extent(0) != niu) ||
              (mask.extent(1) != nju))
             ERROR("CDomain::checkAttributes(void)",
-                  <<"the mask has not the same size than the local domain") ;
-                  
+                  <<"the mask has not the same size than the local domain"<<endl
+                   <<"Local size is "<<niu<<"x"<<nju<<endl
+                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));                 
          for (int i = 0; i < ni.getValue(); i++)
          {
             for (int j = 0; j < nj.getValue(); j++)
