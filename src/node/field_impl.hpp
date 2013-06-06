@@ -27,13 +27,20 @@ namespace xios {
       CContext* context=CContext::getCurrent();
       const CDate & currDate = context->getCalendar()->getCurrentDate();
       const CDate opeDate      = *last_operation + freq_operation;
-      const CDate writeDate    = *last_Write     + freq_write;       
+      const CDate writeDate    = *last_Write     + freq_write;
+      bool doOperation, doWrite; 
+         
 
    
       info(50) << "CField::updateData " << currDate <<  " : send data to " << this->getBaseFieldId() << std::endl;
       info(50) << "Next operation "  << opeDate<<std::endl;
-
-      if (opeDate <= currDate)
+      
+      doOperation = (opeDate <= currDate) ;
+      if (isOnceOperation)
+        if (isFirstOperation) doOperation=true ;
+        else doOperation=false ;
+      
+      if (doOperation)
       {
          if (this->data.numElements() != this->grid->storeIndex_client.numElements())
          {
@@ -48,7 +55,19 @@ namespace xios {
          info(50) << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl; 
       }
       
-      if (writeDate < (currDate + freq_operation))
+      
+      doWrite = (writeDate < (currDate + freq_operation)) ;
+      if (isOnceOperation)
+      { 
+        if(isFirstOperation) 
+        {
+          doWrite=true ;
+          isFirstOperation=false ;
+        }
+        else doWrite=false ;
+      }
+      
+      if (doWrite)
       {
          this->foperation->final();
          *last_Write = writeDate;

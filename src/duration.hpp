@@ -27,7 +27,7 @@ namespace xios
 
             /// Traitement ///
             struct _duration & resolve(const CCalendar & calendar);
-
+            struct _duration & solveTimeStep(const CCalendar & c) ;
             /// Autres ///
             StdString toString(void) const;
 

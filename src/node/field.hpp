@@ -148,6 +148,8 @@ namespace xios {
          
          CArray<double, 1> data;
          map<int, CArray<double,1>* > data_srv ;
+         bool isOnceOperation ;
+         bool isFirstOperation ;
 
    }; // class CField
 

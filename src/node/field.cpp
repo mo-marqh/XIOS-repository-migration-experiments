@@ -361,8 +361,10 @@ namespace xios{
        
       StdString id = this->getBaseFieldReference()->getId();
       CContext* context = CContext::getCurrent();
-
-      if (operation.isEmpty() || freq_op.isEmpty() || this->file->output_freq.isEmpty())
+      
+      if (freq_op.isEmpty()) freq_op=string("1ts") ;
+      
+      if (operation.isEmpty()  || this->file->output_freq.isEmpty())
       {
          ERROR("CField::solveOperation(void)",
                << "[ id = " << id << "]"
@@ -410,7 +412,12 @@ namespace xios{
                         
          const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
          *this->last_operation   = *this->last_operation - toffset;  
-          
+      
+        if (operation.get()=="once") isOnceOperation=true ;
+        else isOnceOperation=false;
+        isFirstOperation=true;
+      
+        cout<<"Operation : "<<operation<<" isOnce "<<isOnceOperation<<endl;          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
    {                                               \
@@ -426,6 +433,8 @@ namespace xios{
                << "[ operation = " << operation.getValue() << "]"
                << "The operation is not defined !");
       }
+      
+
    }
    
    //----------------------------------------------------------------

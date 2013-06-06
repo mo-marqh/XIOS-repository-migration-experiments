@@ -33,7 +33,7 @@ namespace xios
          if(duration.day    != 0.0) { testValue = false; sout << duration.day    << "d " ; }
          if(duration.hour   != 0.0) { testValue = false; sout << duration.hour   << "h " ; }
          if(duration.minute != 0.0) { testValue = false; sout << duration.minute << "mi "; }
-         if(duration.second != 0.0 || testValue)       { sout << duration.second << "s " ; }
+         if(duration.second != 0.0) { testValue = false; sout << duration.second << "s " ; }
          if(duration.timestep != 0.0 || testValue)       { sout << duration.timestep << "ts " ; }
 
          // << suppression de l'espace en fin de chaîne.
@@ -105,7 +105,20 @@ namespace xios
       }
 
       //-----------------------------------------------------------------
-
+      CDuration & CDuration::solveTimeStep(const CCalendar & c)
+      {
+        CDuration timeStep=c.getTimeStep() ;
+        second +=timeStep.second ; 
+        minute +=timeStep.minute ; 
+        hour +=timeStep.hour ; 
+        day +=timeStep.day ; 
+        month +=timeStep.month ; 
+        year +=timeStep.year ; 
+        timestep = 0 ;
+        return (*this);
+      }
+               
+        
       CDuration & CDuration::resolve(const CCalendar & c)
       {
          // Simplification de l'écriture des minutes.
