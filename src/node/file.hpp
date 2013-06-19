@@ -72,8 +72,8 @@ namespace xios {
          void close(void) ;
          
          /// Traitements ///
-         virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
-         void solveFieldRefInheritance(void);
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+         void solveFieldRefInheritance(bool apply);
          void solveEFGridRef(void);
          void solveEFOperation(void);
 

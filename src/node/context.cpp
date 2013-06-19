@@ -244,11 +244,11 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   void CContext::solveDescInheritance(const CAttributeMap * const UNUSED(parent))
+   void CContext::solveDescInheritance(bool apply, const CAttributeMap * const UNUSED(parent))
    {
 #define DECLARE_NODE(Name_, name_)    \
    if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
-     C##Name_##Definition::get(C##Name_##Definition::GetDefName())->solveDescInheritance();
+     C##Name_##Definition::get(C##Name_##Definition::GetDefName())->solveDescInheritance(apply);
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
@@ -267,7 +267,7 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   void CContext::solveFieldRefInheritance(void)
+   void CContext::solveFieldRefInheritance(bool apply)
    {
       if (!this->hasId()) return;
       vector<CField*> allField = CField::getAll() ;
@@ -278,7 +278,7 @@ namespace xios {
       for (; it != end; it++)
       {
          CField* field = *it;
-         field->solveRefInheritance();
+         field->solveRefInheritance(apply);
       }
    }
 
@@ -369,17 +369,17 @@ namespace xios {
       this->enabledFiles[i]->solveEFOperation();
    }
 
-   void CContext::solveAllInheritance(void)
+   void CContext::solveAllInheritance(bool apply)
    {
      // Résolution des héritages descendants (càd des héritages de groupes)
      // pour chacun des contextes.
-      solveDescInheritance();
+      solveDescInheritance(apply);
 
      // Résolution des héritages par référence au niveau des fichiers.
       const vector<CFile*> allFiles=CFile::getAll() ;
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
-         allFiles[i]->solveFieldRefInheritance();
+         allFiles[i]->solveFieldRefInheritance(apply);
    }
 
    void CContext::findEnabledFiles(void)

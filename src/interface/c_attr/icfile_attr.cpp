@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_file_description(file_Ptr file_hdl, char * description, int description_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->description.getValue(),description , description_size))
+    if(!string_copy(file_hdl->description.getInheritedValue(),description , description_size))
       ERROR("void cxios_get_file_description(file_Ptr file_hdl, char * description, int description_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_file_description(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->description.isEmpty();
+    return file_hdl->description.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -53,13 +53,13 @@ extern "C"
   
   void cxios_get_file_enabled(file_Ptr file_hdl, bool* enabled)
   {
-    *enabled = file_hdl->enabled.getValue();
+    *enabled = file_hdl->enabled.getInheritedValue();
   }
   
   bool cxios_is_defined_file_enabled(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->enabled.isEmpty();
+    return file_hdl->enabled.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -75,13 +75,13 @@ extern "C"
   
   void cxios_get_file_min_digits(file_Ptr file_hdl, int* min_digits)
   {
-    *min_digits = file_hdl->min_digits.getValue();
+    *min_digits = file_hdl->min_digits.getInheritedValue();
   }
   
   bool cxios_is_defined_file_min_digits(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->min_digits.isEmpty();
+    return file_hdl->min_digits.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -100,7 +100,7 @@ extern "C"
   void cxios_get_file_name(file_Ptr file_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->name.getValue(),name , name_size))
+    if(!string_copy(file_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_file_name(file_Ptr file_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -108,7 +108,7 @@ extern "C"
   bool cxios_is_defined_file_name(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->name.isEmpty();
+    return file_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -127,7 +127,7 @@ extern "C"
   void cxios_get_file_name_suffix(file_Ptr file_hdl, char * name_suffix, int name_suffix_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->name_suffix.getValue(),name_suffix , name_suffix_size))
+    if(!string_copy(file_hdl->name_suffix.getInheritedValue(),name_suffix , name_suffix_size))
       ERROR("void cxios_get_file_name_suffix(file_Ptr file_hdl, char * name_suffix, int name_suffix_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -135,7 +135,7 @@ extern "C"
   bool cxios_is_defined_file_name_suffix(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->name_suffix.isEmpty();
+    return file_hdl->name_suffix.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -154,7 +154,7 @@ extern "C"
   void cxios_get_file_output_freq(file_Ptr file_hdl, char * output_freq, int output_freq_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->output_freq.getValue(),output_freq , output_freq_size))
+    if(!string_copy(file_hdl->output_freq.getInheritedValue(),output_freq , output_freq_size))
       ERROR("void cxios_get_file_output_freq(file_Ptr file_hdl, char * output_freq, int output_freq_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -162,7 +162,7 @@ extern "C"
   bool cxios_is_defined_file_output_freq(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->output_freq.isEmpty();
+    return file_hdl->output_freq.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -178,13 +178,13 @@ extern "C"
   
   void cxios_get_file_output_level(file_Ptr file_hdl, int* output_level)
   {
-    *output_level = file_hdl->output_level.getValue();
+    *output_level = file_hdl->output_level.getInheritedValue();
   }
   
   bool cxios_is_defined_file_output_level(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->output_level.isEmpty();
+    return file_hdl->output_level.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -203,7 +203,7 @@ extern "C"
   void cxios_get_file_par_access(file_Ptr file_hdl, char * par_access, int par_access_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->par_access.getValue(),par_access , par_access_size))
+    if(!string_copy(file_hdl->par_access.getInheritedValue(),par_access , par_access_size))
       ERROR("void cxios_get_file_par_access(file_Ptr file_hdl, char * par_access, int par_access_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -211,7 +211,7 @@ extern "C"
   bool cxios_is_defined_file_par_access(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->par_access.isEmpty();
+    return file_hdl->par_access.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -230,7 +230,7 @@ extern "C"
   void cxios_get_file_split_freq(file_Ptr file_hdl, char * split_freq, int split_freq_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->split_freq.getValue(),split_freq , split_freq_size))
+    if(!string_copy(file_hdl->split_freq.getInheritedValue(),split_freq , split_freq_size))
       ERROR("void cxios_get_file_split_freq(file_Ptr file_hdl, char * split_freq, int split_freq_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -238,7 +238,7 @@ extern "C"
   bool cxios_is_defined_file_split_freq(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->split_freq.isEmpty();
+    return file_hdl->split_freq.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -257,7 +257,7 @@ extern "C"
   void cxios_get_file_split_freq_format(file_Ptr file_hdl, char * split_freq_format, int split_freq_format_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->split_freq_format.getValue(),split_freq_format , split_freq_format_size))
+    if(!string_copy(file_hdl->split_freq_format.getInheritedValue(),split_freq_format , split_freq_format_size))
       ERROR("void cxios_get_file_split_freq_format(file_Ptr file_hdl, char * split_freq_format, int split_freq_format_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -265,7 +265,7 @@ extern "C"
   bool cxios_is_defined_file_split_freq_format(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->split_freq_format.isEmpty();
+    return file_hdl->split_freq_format.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -284,7 +284,7 @@ extern "C"
   void cxios_get_file_sync_freq(file_Ptr file_hdl, char * sync_freq, int sync_freq_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->sync_freq.getValue(),sync_freq , sync_freq_size))
+    if(!string_copy(file_hdl->sync_freq.getInheritedValue(),sync_freq , sync_freq_size))
       ERROR("void cxios_get_file_sync_freq(file_Ptr file_hdl, char * sync_freq, int sync_freq_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -292,7 +292,7 @@ extern "C"
   bool cxios_is_defined_file_sync_freq(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->sync_freq.isEmpty();
+    return file_hdl->sync_freq.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -311,7 +311,7 @@ extern "C"
   void cxios_get_file_type(file_Ptr file_hdl, char * type, int type_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->type.getStringValue(),type , type_size))
+    if(!string_copy(file_hdl->type.getInheritedStringValue(),type , type_size))
       ERROR("void cxios_get_file_type(file_Ptr file_hdl, char * type, int type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -319,7 +319,7 @@ extern "C"
   bool cxios_is_defined_file_type(file_Ptr file_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !file_hdl->type.isEmpty();
+    return file_hdl->type.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

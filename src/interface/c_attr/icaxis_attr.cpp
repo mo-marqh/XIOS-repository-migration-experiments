@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_axis_long_name(axis_Ptr axis_hdl, char * long_name, int long_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axis_hdl->long_name.getValue(),long_name , long_name_size))
+    if(!string_copy(axis_hdl->long_name.getInheritedValue(),long_name , long_name_size))
       ERROR("void cxios_get_axis_long_name(axis_Ptr axis_hdl, char * long_name, int long_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_axis_long_name(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->long_name.isEmpty();
+    return axis_hdl->long_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -56,7 +56,7 @@ extern "C"
   void cxios_get_axis_name(axis_Ptr axis_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axis_hdl->name.getValue(),name , name_size))
+    if(!string_copy(axis_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_axis_name(axis_Ptr axis_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -64,7 +64,7 @@ extern "C"
   bool cxios_is_defined_axis_name(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->name.isEmpty();
+    return axis_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -83,7 +83,7 @@ extern "C"
   void cxios_get_axis_positive(axis_Ptr axis_hdl, char * positive, int positive_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axis_hdl->positive.getStringValue(),positive , positive_size))
+    if(!string_copy(axis_hdl->positive.getInheritedStringValue(),positive , positive_size))
       ERROR("void cxios_get_axis_positive(axis_Ptr axis_hdl, char * positive, int positive_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -91,7 +91,7 @@ extern "C"
   bool cxios_is_defined_axis_positive(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->positive.isEmpty();
+    return axis_hdl->positive.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -107,13 +107,13 @@ extern "C"
   
   void cxios_get_axis_size(axis_Ptr axis_hdl, int* size)
   {
-    *size = axis_hdl->size.getValue();
+    *size = axis_hdl->size.getInheritedValue();
   }
   
   bool cxios_is_defined_axis_size(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->size.isEmpty();
+    return axis_hdl->size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -132,7 +132,7 @@ extern "C"
   void cxios_get_axis_standard_name(axis_Ptr axis_hdl, char * standard_name, int standard_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axis_hdl->standard_name.getValue(),standard_name , standard_name_size))
+    if(!string_copy(axis_hdl->standard_name.getInheritedValue(),standard_name , standard_name_size))
       ERROR("void cxios_get_axis_standard_name(axis_Ptr axis_hdl, char * standard_name, int standard_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -140,7 +140,7 @@ extern "C"
   bool cxios_is_defined_axis_standard_name(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->standard_name.isEmpty();
+    return axis_hdl->standard_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -159,7 +159,7 @@ extern "C"
   void cxios_get_axis_unit(axis_Ptr axis_hdl, char * unit, int unit_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axis_hdl->unit.getValue(),unit , unit_size))
+    if(!string_copy(axis_hdl->unit.getInheritedValue(),unit , unit_size))
       ERROR("void cxios_get_axis_unit(axis_Ptr axis_hdl, char * unit, int unit_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -167,7 +167,7 @@ extern "C"
   bool cxios_is_defined_axis_unit(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->unit.isEmpty();
+    return axis_hdl->unit.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -186,14 +186,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
-    tmp=axis_hdl->value ;
+    tmp=axis_hdl->value.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_axis_value(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->value.isEmpty();
+    return axis_hdl->value.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -209,13 +209,13 @@ extern "C"
   
   void cxios_get_axis_zoom_begin(axis_Ptr axis_hdl, int* zoom_begin)
   {
-    *zoom_begin = axis_hdl->zoom_begin.getValue();
+    *zoom_begin = axis_hdl->zoom_begin.getInheritedValue();
   }
   
   bool cxios_is_defined_axis_zoom_begin(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->zoom_begin.isEmpty();
+    return axis_hdl->zoom_begin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -231,13 +231,13 @@ extern "C"
   
   void cxios_get_axis_zoom_end(axis_Ptr axis_hdl, int* zoom_end)
   {
-    *zoom_end = axis_hdl->zoom_end.getValue();
+    *zoom_end = axis_hdl->zoom_end.getInheritedValue();
   }
   
   bool cxios_is_defined_axis_zoom_end(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->zoom_end.isEmpty();
+    return axis_hdl->zoom_end.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -253,13 +253,13 @@ extern "C"
   
   void cxios_get_axis_zoom_size(axis_Ptr axis_hdl, int* zoom_size)
   {
-    *zoom_size = axis_hdl->zoom_size.getValue();
+    *zoom_size = axis_hdl->zoom_size.getInheritedValue();
   }
   
   bool cxios_is_defined_axis_zoom_size(axis_Ptr axis_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axis_hdl->zoom_size.isEmpty();
+    return axis_hdl->zoom_size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_axisgroup_group_ref(axisgroup_Ptr axisgroup_hdl, char * group_ref, int group_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->group_ref.getValue(),group_ref , group_ref_size))
+    if(!string_copy(axisgroup_hdl->group_ref.getInheritedValue(),group_ref , group_ref_size))
       ERROR("void cxios_get_axisgroup_group_ref(axisgroup_Ptr axisgroup_hdl, char * group_ref, int group_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_group_ref(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->group_ref.isEmpty();
+    return axisgroup_hdl->group_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -56,7 +56,7 @@ extern "C"
   void cxios_get_axisgroup_long_name(axisgroup_Ptr axisgroup_hdl, char * long_name, int long_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->long_name.getValue(),long_name , long_name_size))
+    if(!string_copy(axisgroup_hdl->long_name.getInheritedValue(),long_name , long_name_size))
       ERROR("void cxios_get_axisgroup_long_name(axisgroup_Ptr axisgroup_hdl, char * long_name, int long_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -64,7 +64,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_long_name(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->long_name.isEmpty();
+    return axisgroup_hdl->long_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -83,7 +83,7 @@ extern "C"
   void cxios_get_axisgroup_name(axisgroup_Ptr axisgroup_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->name.getValue(),name , name_size))
+    if(!string_copy(axisgroup_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_axisgroup_name(axisgroup_Ptr axisgroup_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -91,7 +91,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_name(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->name.isEmpty();
+    return axisgroup_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -110,7 +110,7 @@ extern "C"
   void cxios_get_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, char * positive, int positive_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->positive.getStringValue(),positive , positive_size))
+    if(!string_copy(axisgroup_hdl->positive.getInheritedStringValue(),positive , positive_size))
       ERROR("void cxios_get_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, char * positive, int positive_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -118,7 +118,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_positive(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->positive.isEmpty();
+    return axisgroup_hdl->positive.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -134,13 +134,13 @@ extern "C"
   
   void cxios_get_axisgroup_size(axisgroup_Ptr axisgroup_hdl, int* size)
   {
-    *size = axisgroup_hdl->size.getValue();
+    *size = axisgroup_hdl->size.getInheritedValue();
   }
   
   bool cxios_is_defined_axisgroup_size(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->size.isEmpty();
+    return axisgroup_hdl->size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -159,7 +159,7 @@ extern "C"
   void cxios_get_axisgroup_standard_name(axisgroup_Ptr axisgroup_hdl, char * standard_name, int standard_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->standard_name.getValue(),standard_name , standard_name_size))
+    if(!string_copy(axisgroup_hdl->standard_name.getInheritedValue(),standard_name , standard_name_size))
       ERROR("void cxios_get_axisgroup_standard_name(axisgroup_Ptr axisgroup_hdl, char * standard_name, int standard_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -167,7 +167,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_standard_name(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->standard_name.isEmpty();
+    return axisgroup_hdl->standard_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -186,7 +186,7 @@ extern "C"
   void cxios_get_axisgroup_unit(axisgroup_Ptr axisgroup_hdl, char * unit, int unit_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(axisgroup_hdl->unit.getValue(),unit , unit_size))
+    if(!string_copy(axisgroup_hdl->unit.getInheritedValue(),unit , unit_size))
       ERROR("void cxios_get_axisgroup_unit(axisgroup_Ptr axisgroup_hdl, char * unit, int unit_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -194,7 +194,7 @@ extern "C"
   bool cxios_is_defined_axisgroup_unit(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->unit.isEmpty();
+    return axisgroup_hdl->unit.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -213,14 +213,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
-    tmp=axisgroup_hdl->value ;
+    tmp=axisgroup_hdl->value.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_axisgroup_value(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->value.isEmpty();
+    return axisgroup_hdl->value.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -236,13 +236,13 @@ extern "C"
   
   void cxios_get_axisgroup_zoom_begin(axisgroup_Ptr axisgroup_hdl, int* zoom_begin)
   {
-    *zoom_begin = axisgroup_hdl->zoom_begin.getValue();
+    *zoom_begin = axisgroup_hdl->zoom_begin.getInheritedValue();
   }
   
   bool cxios_is_defined_axisgroup_zoom_begin(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->zoom_begin.isEmpty();
+    return axisgroup_hdl->zoom_begin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -258,13 +258,13 @@ extern "C"
   
   void cxios_get_axisgroup_zoom_end(axisgroup_Ptr axisgroup_hdl, int* zoom_end)
   {
-    *zoom_end = axisgroup_hdl->zoom_end.getValue();
+    *zoom_end = axisgroup_hdl->zoom_end.getInheritedValue();
   }
   
   bool cxios_is_defined_axisgroup_zoom_end(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->zoom_end.isEmpty();
+    return axisgroup_hdl->zoom_end.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -280,13 +280,13 @@ extern "C"
   
   void cxios_get_axisgroup_zoom_size(axisgroup_Ptr axisgroup_hdl, int* zoom_size)
   {
-    *zoom_size = axisgroup_hdl->zoom_size.getValue();
+    *zoom_size = axisgroup_hdl->zoom_size.getInheritedValue();
   }
   
   bool cxios_is_defined_axisgroup_zoom_size(axisgroup_Ptr axisgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !axisgroup_hdl->zoom_size.isEmpty();
+    return axisgroup_hdl->zoom_size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

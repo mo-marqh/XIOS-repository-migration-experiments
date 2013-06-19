@@ -101,7 +101,13 @@ extern "C"
      CXios::clientFinalize() ;
    }
 
- 
+   void cxios_solve_inheritance()
+   {
+     CTimer::get("XIOS").resume() ;
+     CContext* context = CContext::getCurrent() ;
+     context->solveAllInheritance(false) ;
+     CTimer::get("XIOS").suspend() ;
+   } 
    
    // ---------------------- Ecriture des données ------------------------------
    

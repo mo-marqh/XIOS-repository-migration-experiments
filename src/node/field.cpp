@@ -326,7 +326,7 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   void CField::solveRefInheritance(void)
+   void CField::solveRefInheritance(bool apply)
    {
       std::set<CField *> sset;
       CField* refer_sptr;
@@ -346,7 +346,7 @@ namespace xios{
             break;
          }
 
-         SuperClassAttribute::setAttributes(refer_ptr);
+         SuperClassAttribute::setAttributes(refer_ptr, apply);
          sset.insert(refer_ptr);
          baseRefObject = refer_sptr;
 //ym         refObject.push_back(refer_sptr);

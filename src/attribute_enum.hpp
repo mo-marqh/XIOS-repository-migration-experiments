@@ -39,6 +39,12 @@ namespace xios
             void set(const CAttribute& attr) ;
             void set(const CAttributeEnum& attr) ;
             
+            void setInheritedValue(const CAttributeEnum& attr );
+            void setInheritedValue(const CAttribute& attr );
+            T_enum getInheritedValue(void)  const;
+            string getInheritedStringValue(void) const;
+            bool hasInheritedValue(void) const;          
+          
             /// Destructeur ///
             virtual ~CAttributeEnum(void) { }
 
@@ -71,6 +77,7 @@ namespace xios
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;
+          CEnum<T> inheritedValue ;
       }; // class CAttributeEnum    
    
 } // namespace xios

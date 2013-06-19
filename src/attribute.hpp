@@ -65,7 +65,8 @@ namespace xios
             virtual void generateFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className)  ;
             virtual void generateFortranInterfaceIsDefinedBody_(ostream& oss,const string& className) ;
 
-
+            virtual void setInheritedValue(const CAttribute& ) = 0 ;
+            virtual bool hasInheritedValue(void) const = 0;
             
          protected :
 

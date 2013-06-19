@@ -49,7 +49,7 @@ namespace xios
          virtual bool hasChild(void) const;
 
          /// Traitements ///
-         virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
 
          /// Traitement statique ///
          static void ClearAllAttributes(void);

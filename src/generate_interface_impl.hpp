@@ -41,7 +41,7 @@ namespace xios
     oss<<"bool cxios_is_defined_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl )"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
-    oss<<"  return !"<<className<<"_hdl->"<<name<<".isEmpty();"<<iendl ;
+    oss<<"  return "<<className<<"_hdl->"<<name<<".hasInheritedValue();"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
     oss<<iendl ;
@@ -63,7 +63,7 @@ namespace xios
     oss<<iendl ;
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<")"<<iendl ;
     oss<<"{"<<iendl;
-    oss<<"  *"<<name<<" = "<<className<<"_hdl->"<<name<<".getValue();"<<iendl ;
+    oss<<"  *"<<name<<" = "<<className<<"_hdl->"<<name<<".getInheritedValue();"<<iendl ;
     oss<<"}"<<iendl ;
     oss<<iendl ;
   }
@@ -87,7 +87,7 @@ namespace xios
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
-    oss<<"  if(!string_copy("<<className<<"_hdl->"<<name<<".getValue(),"<<name<<" , "<<name<<"_size))"<<iendl ;
+    oss<<"  if(!string_copy("<<className<<"_hdl->"<<name<<".getInheritedValue(),"<<name<<" , "<<name<<"_size))"<<iendl ;
     oss<<"    ERROR(\"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "
        <<name<<"_size)\", <<\"Input string is to short\");"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
@@ -114,7 +114,7 @@ namespace xios
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
-    oss<<"  if(!string_copy("<<className<<"_hdl->"<<name<<".getStringValue(),"<<name<<" , "<<name<<"_size))"<<iendl ;
+    oss<<"  if(!string_copy("<<className<<"_hdl->"<<name<<".getInheritedStringValue(),"<<name<<" , "<<name<<"_size))"<<iendl ;
     oss<<"    ERROR(\"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "
        <<name<<"_size)\", <<\"Input string is to short\");"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
@@ -609,7 +609,7 @@ macro(int)
     oss<<"{"<<iendl; \
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",1> tmp("<<name<<",shape(extent1),neverDeleteData) ;"<<iendl ;\
-    oss<<"  tmp="<<className<<"_hdl->"<<name<<" ;"<<iendl ;\
+    oss<<"  tmp="<<className<<"_hdl->"<<name<<".getInheritedValue() ;"<<iendl ;\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl ;\
@@ -633,7 +633,7 @@ macro(int)
     oss<<"{"<<iendl; \
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",2> tmp("<<name<<",shape(extent1,extent2),neverDeleteData) ;"<<iendl ;\
-    oss<<"  tmp="<<className<<"_hdl->"<<name<<" ;"<<iendl ;\
+    oss<<"  tmp="<<className<<"_hdl->"<<name<<".getInheritedValue() ;"<<iendl ;\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl ;\
@@ -657,7 +657,7 @@ macro(int)
     oss<<"{"<<iendl; \
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",3> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
-    oss<<"  tmp="<<className<<"_hdl->"<<name<<" ;"<<iendl ;\
+    oss<<"  tmp="<<className<<"_hdl->"<<name<<".getInheritedValue() ;"<<iendl ;\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl ;\

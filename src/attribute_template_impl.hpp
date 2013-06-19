@@ -108,6 +108,31 @@ namespace xios
       CType<T>::set(attr) ;
     } 
 
+    template <class T>
+    void CAttributeTemplate<T>::setInheritedValue(const CAttribute& attr)
+    {
+      this->setInheritedValue(dynamic_cast<const CAttributeTemplate<T>& >(attr)) ;
+    } 
+
+    template <class T>
+    void CAttributeTemplate<T>::setInheritedValue(const CAttributeTemplate& attr)
+    {
+      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
+    } 
+
+    template <class T>
+    T CAttributeTemplate<T>::getInheritedValue(void) const
+    {
+      if (this->isEmpty()) return inheritedValue.get() ;
+      else return getValue() ;
+    } 
+    
+    template <class T>
+    bool CAttributeTemplate<T>::hasInheritedValue(void) const
+    {
+      return !this->isEmpty() || !inheritedValue.isEmpty() ;
+    } 
+    
       //---------------------------------------------------------------
 
       template <class T>

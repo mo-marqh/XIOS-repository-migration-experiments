@@ -86,8 +86,8 @@ namespace xios {
       public :
 
          /// Traitements ///
-         virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
-         void solveFieldRefInheritance(void);
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+         void solveFieldRefInheritance(bool apply);
          void solveCalendar(void);
 
          /// Autres méthodes statiques ///
@@ -111,7 +111,7 @@ namespace xios {
          void findAllEnabledFields(void);
          void solveAllGridRef(void);
          void solveAllOperation(void);
-         void solveAllInheritance(void) ;
+         void solveAllInheritance(bool apply=true) ;
          void findEnabledFiles(void);
          void closeAllFile(void) ;
          void updateCalendar(int step) ;

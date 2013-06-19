@@ -103,7 +103,7 @@ namespace xios {
          bool isActive(void) const;
 
          /// Traitements ///
-         void solveRefInheritance(void);
+         void solveRefInheritance(bool apply);
          void solveGridReference(void);
          void solveOperation(void);
 

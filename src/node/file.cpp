@@ -357,20 +357,20 @@ namespace xios {
 
    //----------------------------------------------------------------
    
-   void CFile::solveDescInheritance(const CAttributeMap * const parent)
+   void CFile::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
-      SuperClassAttribute::setAttributes(parent);
-      this->getVirtualFieldGroup()->solveDescInheritance(NULL);
+      SuperClassAttribute::setAttributes(parent,apply);
+      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
    }
 
    //----------------------------------------------------------------
 
-   void CFile::solveFieldRefInheritance(void)
+   void CFile::solveFieldRefInheritance(bool apply)
    {
       // Résolution des héritages par référence de chacun des champs contenus dans le fichier.
       std::vector<CField*> allF = this->getAllFields();
       for (unsigned int i = 0; i < allF.size(); i++)
-         allF[i]->solveRefInheritance();
+         allF[i]->solveRefInheritance(apply);
    }
 
    //----------------------------------------------------------------

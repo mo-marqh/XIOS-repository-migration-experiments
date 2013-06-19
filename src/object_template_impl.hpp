@@ -138,9 +138,9 @@ namespace xios
    //---------------------------------------------------------------
 
    template <class T>
-      void CObjectTemplate<T>::solveDescInheritance(const CAttributeMap * const parent)
+      void CObjectTemplate<T>::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    { 
-      SuperClassMap::setAttributes(parent); 
+      SuperClassMap::setAttributes(parent, apply); 
    }
 
    //---------------------------------------------------------------

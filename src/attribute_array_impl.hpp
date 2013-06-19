@@ -64,6 +64,33 @@ namespace xios
     {
       this->setValue(attr) ;
     } 
+    
+    
+    template <typename T_numtype, int N_rank>
+    void CAttributeArray<T_numtype,N_rank>::setInheritedValue(const CAttribute& attr)
+    {
+      this->setInheritedValue(dynamic_cast<const CAttributeArray<T_numtype,N_rank>& >(attr)) ;
+    } 
+
+    template <typename T_numtype, int N_rank>
+    void CAttributeArray<T_numtype,N_rank>::setInheritedValue(const CAttributeArray& attr)
+    {
+      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue=attr ;
+     } 
+
+    template <typename T_numtype, int N_rank>
+    CArray<T_numtype,N_rank> CAttributeArray<T_numtype,N_rank>::getInheritedValue(void) const
+    {
+      if (this->isEmpty()) return inheritedValue.copy() ;
+      else return getValue() ;
+    } 
+    
+    template <typename T_numtype, int N_rank>
+    bool CAttributeArray<T_numtype,N_rank>::hasInheritedValue(void) const
+    {
+      return !this->isEmpty() || !inheritedValue.isEmpty() ;
+    } 
+    
 
     template <typename T_numtype, int N_rank>
     StdString CAttributeArray<T_numtype,N_rank>::_toString(void) const

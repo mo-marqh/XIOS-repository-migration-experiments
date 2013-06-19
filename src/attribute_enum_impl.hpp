@@ -74,6 +74,40 @@ namespace xios
       CEnum<T>::set(attr) ;
     } 
 
+    
+    template <class T>
+    void CAttributeEnum<T>::setInheritedValue(const CAttribute& attr)
+    {
+      this->setInheritedValue(dynamic_cast<const CAttributeEnum<T>& >(attr)) ;
+    } 
+
+    template <class T>
+    void CAttributeEnum<T>::setInheritedValue(const CAttributeEnum& attr)
+    {
+      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
+    } 
+
+    template <class T>
+    typename T::t_enum CAttributeEnum<T>::getInheritedValue(void) const
+    {
+      if (this->isEmpty()) return inheritedValue.get() ;
+      else return getValue() ;
+    } 
+    
+    template <class T>
+    string CAttributeEnum<T>::getInheritedStringValue(void) const
+    {
+       return CEnum<T>::toString() ;
+       if (this->isEmpty()) return inheritedValue.toString() ;
+       else return CEnum<T>::toString() ; ;
+    }
+    
+    template <class T>
+    bool CAttributeEnum<T>::hasInheritedValue(void) const
+    {
+      return !this->isEmpty() || !inheritedValue.isEmpty() ;
+    } 
+    
       //---------------------------------------------------------------
 
       template <class T>

@@ -26,13 +26,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl, int* data_dim)
   {
-    *data_dim = domaingroup_hdl->data_dim.getValue();
+    *data_dim = domaingroup_hdl->data_dim.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_dim.isEmpty();
+    return domaingroup_hdl->data_dim.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -51,14 +51,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
-    tmp=domaingroup_hdl->data_i_index ;
+    tmp=domaingroup_hdl->data_i_index.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_domaingroup_data_i_index(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_i_index.isEmpty();
+    return domaingroup_hdl->data_i_index.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -74,13 +74,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl, int* data_ibegin)
   {
-    *data_ibegin = domaingroup_hdl->data_ibegin.getValue();
+    *data_ibegin = domaingroup_hdl->data_ibegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_ibegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_ibegin.isEmpty();
+    return domaingroup_hdl->data_ibegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -99,14 +99,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
-    tmp=domaingroup_hdl->data_j_index ;
+    tmp=domaingroup_hdl->data_j_index.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_domaingroup_data_j_index(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_j_index.isEmpty();
+    return domaingroup_hdl->data_j_index.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -122,13 +122,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl, int* data_jbegin)
   {
-    *data_jbegin = domaingroup_hdl->data_jbegin.getValue();
+    *data_jbegin = domaingroup_hdl->data_jbegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_jbegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_jbegin.isEmpty();
+    return domaingroup_hdl->data_jbegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -144,13 +144,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int* data_n_index)
   {
-    *data_n_index = domaingroup_hdl->data_n_index.getValue();
+    *data_n_index = domaingroup_hdl->data_n_index.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_n_index.isEmpty();
+    return domaingroup_hdl->data_n_index.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -166,13 +166,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl, int* data_ni)
   {
-    *data_ni = domaingroup_hdl->data_ni.getValue();
+    *data_ni = domaingroup_hdl->data_ni.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_ni.isEmpty();
+    return domaingroup_hdl->data_ni.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -188,13 +188,13 @@ extern "C"
   
   void cxios_get_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl, int* data_nj)
   {
-    *data_nj = domaingroup_hdl->data_nj.getValue();
+    *data_nj = domaingroup_hdl->data_nj.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_data_nj(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->data_nj.isEmpty();
+    return domaingroup_hdl->data_nj.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -213,7 +213,7 @@ extern "C"
   void cxios_get_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl, char * domain_group_ref, int domain_group_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(domaingroup_hdl->domain_group_ref.getValue(),domain_group_ref , domain_group_ref_size))
+    if(!string_copy(domaingroup_hdl->domain_group_ref.getInheritedValue(),domain_group_ref , domain_group_ref_size))
       ERROR("void cxios_get_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl, char * domain_group_ref, int domain_group_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -221,7 +221,7 @@ extern "C"
   bool cxios_is_defined_domaingroup_domain_group_ref(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->domain_group_ref.isEmpty();
+    return domaingroup_hdl->domain_group_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -240,7 +240,7 @@ extern "C"
   void cxios_get_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, char * group_ref, int group_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(domaingroup_hdl->group_ref.getValue(),group_ref , group_ref_size))
+    if(!string_copy(domaingroup_hdl->group_ref.getInheritedValue(),group_ref , group_ref_size))
       ERROR("void cxios_get_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, char * group_ref, int group_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -248,7 +248,7 @@ extern "C"
   bool cxios_is_defined_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->group_ref.isEmpty();
+    return domaingroup_hdl->group_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -264,13 +264,13 @@ extern "C"
   
   void cxios_get_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl, int* ibegin)
   {
-    *ibegin = domaingroup_hdl->ibegin.getValue();
+    *ibegin = domaingroup_hdl->ibegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->ibegin.isEmpty();
+    return domaingroup_hdl->ibegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -286,13 +286,13 @@ extern "C"
   
   void cxios_get_domaingroup_iend(domaingroup_Ptr domaingroup_hdl, int* iend)
   {
-    *iend = domaingroup_hdl->iend.getValue();
+    *iend = domaingroup_hdl->iend.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_iend(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->iend.isEmpty();
+    return domaingroup_hdl->iend.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -308,13 +308,13 @@ extern "C"
   
   void cxios_get_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl, int* jbegin)
   {
-    *jbegin = domaingroup_hdl->jbegin.getValue();
+    *jbegin = domaingroup_hdl->jbegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_jbegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->jbegin.isEmpty();
+    return domaingroup_hdl->jbegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -330,13 +330,13 @@ extern "C"
   
   void cxios_get_domaingroup_jend(domaingroup_Ptr domaingroup_hdl, int* jend)
   {
-    *jend = domaingroup_hdl->jend.getValue();
+    *jend = domaingroup_hdl->jend.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_jend(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->jend.isEmpty();
+    return domaingroup_hdl->jend.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -355,14 +355,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
-    tmp=domaingroup_hdl->latvalue ;
+    tmp=domaingroup_hdl->latvalue.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->latvalue.isEmpty();
+    return domaingroup_hdl->latvalue.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -381,7 +381,7 @@ extern "C"
   void cxios_get_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl, char * long_name, int long_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(domaingroup_hdl->long_name.getValue(),long_name , long_name_size))
+    if(!string_copy(domaingroup_hdl->long_name.getInheritedValue(),long_name , long_name_size))
       ERROR("void cxios_get_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl, char * long_name, int long_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -389,7 +389,7 @@ extern "C"
   bool cxios_is_defined_domaingroup_long_name(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->long_name.isEmpty();
+    return domaingroup_hdl->long_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -408,14 +408,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
-    tmp=domaingroup_hdl->lonvalue ;
+    tmp=domaingroup_hdl->lonvalue.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->lonvalue.isEmpty();
+    return domaingroup_hdl->lonvalue.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -434,14 +434,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
-    tmp=domaingroup_hdl->mask ;
+    tmp=domaingroup_hdl->mask.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_domaingroup_mask(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->mask.isEmpty();
+    return domaingroup_hdl->mask.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -460,7 +460,7 @@ extern "C"
   void cxios_get_domaingroup_name(domaingroup_Ptr domaingroup_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(domaingroup_hdl->name.getValue(),name , name_size))
+    if(!string_copy(domaingroup_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_domaingroup_name(domaingroup_Ptr domaingroup_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -468,7 +468,7 @@ extern "C"
   bool cxios_is_defined_domaingroup_name(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->name.isEmpty();
+    return domaingroup_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -484,13 +484,13 @@ extern "C"
   
   void cxios_get_domaingroup_ni(domaingroup_Ptr domaingroup_hdl, int* ni)
   {
-    *ni = domaingroup_hdl->ni.getValue();
+    *ni = domaingroup_hdl->ni.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_ni(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->ni.isEmpty();
+    return domaingroup_hdl->ni.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -506,13 +506,13 @@ extern "C"
   
   void cxios_get_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl, int* ni_glo)
   {
-    *ni_glo = domaingroup_hdl->ni_glo.getValue();
+    *ni_glo = domaingroup_hdl->ni_glo.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_ni_glo(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->ni_glo.isEmpty();
+    return domaingroup_hdl->ni_glo.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -528,13 +528,13 @@ extern "C"
   
   void cxios_get_domaingroup_nj(domaingroup_Ptr domaingroup_hdl, int* nj)
   {
-    *nj = domaingroup_hdl->nj.getValue();
+    *nj = domaingroup_hdl->nj.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_nj(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->nj.isEmpty();
+    return domaingroup_hdl->nj.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -550,13 +550,13 @@ extern "C"
   
   void cxios_get_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl, int* nj_glo)
   {
-    *nj_glo = domaingroup_hdl->nj_glo.getValue();
+    *nj_glo = domaingroup_hdl->nj_glo.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_nj_glo(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->nj_glo.isEmpty();
+    return domaingroup_hdl->nj_glo.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -575,7 +575,7 @@ extern "C"
   void cxios_get_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, char * standard_name, int standard_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(domaingroup_hdl->standard_name.getValue(),standard_name , standard_name_size))
+    if(!string_copy(domaingroup_hdl->standard_name.getInheritedValue(),standard_name , standard_name_size))
       ERROR("void cxios_get_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, char * standard_name, int standard_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -583,7 +583,7 @@ extern "C"
   bool cxios_is_defined_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->standard_name.isEmpty();
+    return domaingroup_hdl->standard_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -599,13 +599,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl, int* zoom_ibegin)
   {
-    *zoom_ibegin = domaingroup_hdl->zoom_ibegin.getValue();
+    *zoom_ibegin = domaingroup_hdl->zoom_ibegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_ibegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_ibegin.isEmpty();
+    return domaingroup_hdl->zoom_ibegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -621,13 +621,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_ibegin_loc)
   {
-    *zoom_ibegin_loc = domaingroup_hdl->zoom_ibegin_loc.getValue();
+    *zoom_ibegin_loc = domaingroup_hdl->zoom_ibegin_loc.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_ibegin_loc(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_ibegin_loc.isEmpty();
+    return domaingroup_hdl->zoom_ibegin_loc.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -643,13 +643,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl, int* zoom_jbegin)
   {
-    *zoom_jbegin = domaingroup_hdl->zoom_jbegin.getValue();
+    *zoom_jbegin = domaingroup_hdl->zoom_jbegin.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_jbegin(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_jbegin.isEmpty();
+    return domaingroup_hdl->zoom_jbegin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -665,13 +665,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_jbegin_loc)
   {
-    *zoom_jbegin_loc = domaingroup_hdl->zoom_jbegin_loc.getValue();
+    *zoom_jbegin_loc = domaingroup_hdl->zoom_jbegin_loc.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_jbegin_loc(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_jbegin_loc.isEmpty();
+    return domaingroup_hdl->zoom_jbegin_loc.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -687,13 +687,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl, int* zoom_ni)
   {
-    *zoom_ni = domaingroup_hdl->zoom_ni.getValue();
+    *zoom_ni = domaingroup_hdl->zoom_ni.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_ni(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_ni.isEmpty();
+    return domaingroup_hdl->zoom_ni.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -709,13 +709,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_ni_loc)
   {
-    *zoom_ni_loc = domaingroup_hdl->zoom_ni_loc.getValue();
+    *zoom_ni_loc = domaingroup_hdl->zoom_ni_loc.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_ni_loc(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_ni_loc.isEmpty();
+    return domaingroup_hdl->zoom_ni_loc.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -731,13 +731,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl, int* zoom_nj)
   {
-    *zoom_nj = domaingroup_hdl->zoom_nj.getValue();
+    *zoom_nj = domaingroup_hdl->zoom_nj.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_nj(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_nj.isEmpty();
+    return domaingroup_hdl->zoom_nj.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -753,13 +753,13 @@ extern "C"
   
   void cxios_get_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl, int* zoom_nj_loc)
   {
-    *zoom_nj_loc = domaingroup_hdl->zoom_nj_loc.getValue();
+    *zoom_nj_loc = domaingroup_hdl->zoom_nj_loc.getInheritedValue();
   }
   
   bool cxios_is_defined_domaingroup_zoom_nj_loc(domaingroup_Ptr domaingroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !domaingroup_hdl->zoom_nj_loc.isEmpty();
+    return domaingroup_hdl->zoom_nj_loc.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

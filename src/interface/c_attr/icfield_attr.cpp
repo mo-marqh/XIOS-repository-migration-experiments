@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_field_axis_ref(field_Ptr field_hdl, char * axis_ref, int axis_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->axis_ref.getValue(),axis_ref , axis_ref_size))
+    if(!string_copy(field_hdl->axis_ref.getInheritedValue(),axis_ref , axis_ref_size))
       ERROR("void cxios_get_field_axis_ref(field_Ptr field_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_field_axis_ref(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->axis_ref.isEmpty();
+    return field_hdl->axis_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -53,13 +53,13 @@ extern "C"
   
   void cxios_get_field_default_value(field_Ptr field_hdl, double* default_value)
   {
-    *default_value = field_hdl->default_value.getValue();
+    *default_value = field_hdl->default_value.getInheritedValue();
   }
   
   bool cxios_is_defined_field_default_value(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->default_value.isEmpty();
+    return field_hdl->default_value.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -78,7 +78,7 @@ extern "C"
   void cxios_get_field_domain_ref(field_Ptr field_hdl, char * domain_ref, int domain_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->domain_ref.getValue(),domain_ref , domain_ref_size))
+    if(!string_copy(field_hdl->domain_ref.getInheritedValue(),domain_ref , domain_ref_size))
       ERROR("void cxios_get_field_domain_ref(field_Ptr field_hdl, char * domain_ref, int domain_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -86,7 +86,7 @@ extern "C"
   bool cxios_is_defined_field_domain_ref(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->domain_ref.isEmpty();
+    return field_hdl->domain_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -102,13 +102,13 @@ extern "C"
   
   void cxios_get_field_enabled(field_Ptr field_hdl, bool* enabled)
   {
-    *enabled = field_hdl->enabled.getValue();
+    *enabled = field_hdl->enabled.getInheritedValue();
   }
   
   bool cxios_is_defined_field_enabled(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->enabled.isEmpty();
+    return field_hdl->enabled.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -127,7 +127,7 @@ extern "C"
   void cxios_get_field_field_ref(field_Ptr field_hdl, char * field_ref, int field_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->field_ref.getValue(),field_ref , field_ref_size))
+    if(!string_copy(field_hdl->field_ref.getInheritedValue(),field_ref , field_ref_size))
       ERROR("void cxios_get_field_field_ref(field_Ptr field_hdl, char * field_ref, int field_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -135,7 +135,7 @@ extern "C"
   bool cxios_is_defined_field_field_ref(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->field_ref.isEmpty();
+    return field_hdl->field_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -154,7 +154,7 @@ extern "C"
   void cxios_get_field_freq_offset(field_Ptr field_hdl, char * freq_offset, int freq_offset_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->freq_offset.getValue(),freq_offset , freq_offset_size))
+    if(!string_copy(field_hdl->freq_offset.getInheritedValue(),freq_offset , freq_offset_size))
       ERROR("void cxios_get_field_freq_offset(field_Ptr field_hdl, char * freq_offset, int freq_offset_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -162,7 +162,7 @@ extern "C"
   bool cxios_is_defined_field_freq_offset(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->freq_offset.isEmpty();
+    return field_hdl->freq_offset.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -181,7 +181,7 @@ extern "C"
   void cxios_get_field_freq_op(field_Ptr field_hdl, char * freq_op, int freq_op_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->freq_op.getValue(),freq_op , freq_op_size))
+    if(!string_copy(field_hdl->freq_op.getInheritedValue(),freq_op , freq_op_size))
       ERROR("void cxios_get_field_freq_op(field_Ptr field_hdl, char * freq_op, int freq_op_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -189,7 +189,7 @@ extern "C"
   bool cxios_is_defined_field_freq_op(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->freq_op.isEmpty();
+    return field_hdl->freq_op.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -208,7 +208,7 @@ extern "C"
   void cxios_get_field_grid_ref(field_Ptr field_hdl, char * grid_ref, int grid_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->grid_ref.getValue(),grid_ref , grid_ref_size))
+    if(!string_copy(field_hdl->grid_ref.getInheritedValue(),grid_ref , grid_ref_size))
       ERROR("void cxios_get_field_grid_ref(field_Ptr field_hdl, char * grid_ref, int grid_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -216,7 +216,7 @@ extern "C"
   bool cxios_is_defined_field_grid_ref(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->grid_ref.isEmpty();
+    return field_hdl->grid_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -232,13 +232,13 @@ extern "C"
   
   void cxios_get_field_level(field_Ptr field_hdl, int* level)
   {
-    *level = field_hdl->level.getValue();
+    *level = field_hdl->level.getInheritedValue();
   }
   
   bool cxios_is_defined_field_level(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->level.isEmpty();
+    return field_hdl->level.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -257,7 +257,7 @@ extern "C"
   void cxios_get_field_long_name(field_Ptr field_hdl, char * long_name, int long_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->long_name.getValue(),long_name , long_name_size))
+    if(!string_copy(field_hdl->long_name.getInheritedValue(),long_name , long_name_size))
       ERROR("void cxios_get_field_long_name(field_Ptr field_hdl, char * long_name, int long_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -265,7 +265,7 @@ extern "C"
   bool cxios_is_defined_field_long_name(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->long_name.isEmpty();
+    return field_hdl->long_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -284,7 +284,7 @@ extern "C"
   void cxios_get_field_name(field_Ptr field_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->name.getValue(),name , name_size))
+    if(!string_copy(field_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_field_name(field_Ptr field_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -292,7 +292,7 @@ extern "C"
   bool cxios_is_defined_field_name(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->name.isEmpty();
+    return field_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -311,7 +311,7 @@ extern "C"
   void cxios_get_field_operation(field_Ptr field_hdl, char * operation, int operation_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->operation.getValue(),operation , operation_size))
+    if(!string_copy(field_hdl->operation.getInheritedValue(),operation , operation_size))
       ERROR("void cxios_get_field_operation(field_Ptr field_hdl, char * operation, int operation_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -319,7 +319,7 @@ extern "C"
   bool cxios_is_defined_field_operation(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->operation.isEmpty();
+    return field_hdl->operation.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -335,13 +335,13 @@ extern "C"
   
   void cxios_get_field_prec(field_Ptr field_hdl, int* prec)
   {
-    *prec = field_hdl->prec.getValue();
+    *prec = field_hdl->prec.getInheritedValue();
   }
   
   bool cxios_is_defined_field_prec(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->prec.isEmpty();
+    return field_hdl->prec.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -360,7 +360,7 @@ extern "C"
   void cxios_get_field_standard_name(field_Ptr field_hdl, char * standard_name, int standard_name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->standard_name.getValue(),standard_name , standard_name_size))
+    if(!string_copy(field_hdl->standard_name.getInheritedValue(),standard_name , standard_name_size))
       ERROR("void cxios_get_field_standard_name(field_Ptr field_hdl, char * standard_name, int standard_name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -368,7 +368,7 @@ extern "C"
   bool cxios_is_defined_field_standard_name(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->standard_name.isEmpty();
+    return field_hdl->standard_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -387,7 +387,7 @@ extern "C"
   void cxios_get_field_unit(field_Ptr field_hdl, char * unit, int unit_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(field_hdl->unit.getValue(),unit , unit_size))
+    if(!string_copy(field_hdl->unit.getInheritedValue(),unit , unit_size))
       ERROR("void cxios_get_field_unit(field_Ptr field_hdl, char * unit, int unit_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -395,7 +395,7 @@ extern "C"
   bool cxios_is_defined_field_unit(field_Ptr field_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !field_hdl->unit.isEmpty();
+    return field_hdl->unit.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

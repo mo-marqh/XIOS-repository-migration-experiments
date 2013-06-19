@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_context_calendar_type(context_Ptr context_hdl, char * calendar_type, int calendar_type_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->calendar_type.getValue(),calendar_type , calendar_type_size))
+    if(!string_copy(context_hdl->calendar_type.getInheritedValue(),calendar_type , calendar_type_size))
       ERROR("void cxios_get_context_calendar_type(context_Ptr context_hdl, char * calendar_type, int calendar_type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_context_calendar_type(context_Ptr context_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !context_hdl->calendar_type.isEmpty();
+    return context_hdl->calendar_type.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -56,7 +56,7 @@ extern "C"
   void cxios_get_context_output_dir(context_Ptr context_hdl, char * output_dir, int output_dir_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->output_dir.getValue(),output_dir , output_dir_size))
+    if(!string_copy(context_hdl->output_dir.getInheritedValue(),output_dir , output_dir_size))
       ERROR("void cxios_get_context_output_dir(context_Ptr context_hdl, char * output_dir, int output_dir_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -64,7 +64,7 @@ extern "C"
   bool cxios_is_defined_context_output_dir(context_Ptr context_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !context_hdl->output_dir.isEmpty();
+    return context_hdl->output_dir.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -83,7 +83,7 @@ extern "C"
   void cxios_get_context_start_date(context_Ptr context_hdl, char * start_date, int start_date_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->start_date.getValue(),start_date , start_date_size))
+    if(!string_copy(context_hdl->start_date.getInheritedValue(),start_date , start_date_size))
       ERROR("void cxios_get_context_start_date(context_Ptr context_hdl, char * start_date, int start_date_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -91,7 +91,7 @@ extern "C"
   bool cxios_is_defined_context_start_date(context_Ptr context_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !context_hdl->start_date.isEmpty();
+    return context_hdl->start_date.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -110,7 +110,7 @@ extern "C"
   void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->time_origin.getValue(),time_origin , time_origin_size))
+    if(!string_copy(context_hdl->time_origin.getInheritedValue(),time_origin , time_origin_size))
       ERROR("void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -118,7 +118,7 @@ extern "C"
   bool cxios_is_defined_context_time_origin(context_Ptr context_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !context_hdl->time_origin.isEmpty();
+    return context_hdl->time_origin.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -137,7 +137,7 @@ extern "C"
   void cxios_get_context_timestep(context_Ptr context_hdl, char * timestep, int timestep_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->timestep.getValue(),timestep , timestep_size))
+    if(!string_copy(context_hdl->timestep.getInheritedValue(),timestep , timestep_size))
       ERROR("void cxios_get_context_timestep(context_Ptr context_hdl, char * timestep, int timestep_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -145,7 +145,7 @@ extern "C"
   bool cxios_is_defined_context_timestep(context_Ptr context_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !context_hdl->timestep.isEmpty();
+    return context_hdl->timestep.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

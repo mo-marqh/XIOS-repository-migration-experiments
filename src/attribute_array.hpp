@@ -36,6 +36,11 @@ namespace xios
             void set(const CAttribute& attr) ;
             void set(const CAttributeArray& attr) ;
             
+            void setInheritedValue(const CAttributeArray& attr );
+            void setInheritedValue(const CAttribute& attr );
+            CArray<T_numtype, N_rank> getInheritedValue(void) const ;
+            bool hasInheritedValue(void) const;            
+
             /// Destructeur ///
             virtual ~CAttributeArray(void) { }
 
@@ -61,6 +66,7 @@ namespace xios
             /// Constructeurs ///
 
          private :
+          CArray<T_numtype, N_rank> inheritedValue ;
           StdString _toString(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;

@@ -37,6 +37,9 @@ MODULE IDATA
       SUBROUTINE  cxios_finalize() BIND(C)
       END SUBROUTINE cxios_finalize
 
+      SUBROUTINE  cxios_solve_inheritance() BIND(C)
+      END SUBROUTINE cxios_solve_inheritance
+
  
       SUBROUTINE cxios_write_data_k81(fieldid, fieldid_size, data_k8, data_Xsize) BIND(C)
          USE ISO_C_BINDING
@@ -147,7 +150,11 @@ MODULE IDATA
       CALL cxios_context_finalize()
    END SUBROUTINE xios(context_finalize)
    
-
+   SUBROUTINE xios(solve_inheritance)()
+   IMPLICIT NONE
+      CALL cxios_solve_inheritance()
+   END SUBROUTINE xios(solve_inheritance)
+  
    
    SUBROUTINE xios(send_field_r8_1d)(fieldid, data1d_k8)
    IMPLICIT NONE

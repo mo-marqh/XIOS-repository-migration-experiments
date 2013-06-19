@@ -29,7 +29,7 @@ extern "C"
   void cxios_get_grid_axis_ref(grid_Ptr grid_hdl, char * axis_ref, int axis_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(grid_hdl->axis_ref.getValue(),axis_ref , axis_ref_size))
+    if(!string_copy(grid_hdl->axis_ref.getInheritedValue(),axis_ref , axis_ref_size))
       ERROR("void cxios_get_grid_axis_ref(grid_Ptr grid_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -37,7 +37,7 @@ extern "C"
   bool cxios_is_defined_grid_axis_ref(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !grid_hdl->axis_ref.isEmpty();
+    return grid_hdl->axis_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -56,7 +56,7 @@ extern "C"
   void cxios_get_grid_description(grid_Ptr grid_hdl, char * description, int description_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(grid_hdl->description.getValue(),description , description_size))
+    if(!string_copy(grid_hdl->description.getInheritedValue(),description , description_size))
       ERROR("void cxios_get_grid_description(grid_Ptr grid_hdl, char * description, int description_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -64,7 +64,7 @@ extern "C"
   bool cxios_is_defined_grid_description(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !grid_hdl->description.isEmpty();
+    return grid_hdl->description.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -83,7 +83,7 @@ extern "C"
   void cxios_get_grid_domain_ref(grid_Ptr grid_hdl, char * domain_ref, int domain_ref_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(grid_hdl->domain_ref.getValue(),domain_ref , domain_ref_size))
+    if(!string_copy(grid_hdl->domain_ref.getInheritedValue(),domain_ref , domain_ref_size))
       ERROR("void cxios_get_grid_domain_ref(grid_Ptr grid_hdl, char * domain_ref, int domain_ref_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -91,7 +91,7 @@ extern "C"
   bool cxios_is_defined_grid_domain_ref(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !grid_hdl->domain_ref.isEmpty();
+    return grid_hdl->domain_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -110,14 +110,14 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
-    tmp=grid_hdl->mask ;
+    tmp=grid_hdl->mask.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_grid_mask(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !grid_hdl->mask.isEmpty();
+    return grid_hdl->mask.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -136,7 +136,7 @@ extern "C"
   void cxios_get_grid_name(grid_Ptr grid_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(grid_hdl->name.getValue(),name , name_size))
+    if(!string_copy(grid_hdl->name.getInheritedValue(),name , name_size))
       ERROR("void cxios_get_grid_name(grid_Ptr grid_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
@@ -144,7 +144,7 @@ extern "C"
   bool cxios_is_defined_grid_name(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return !grid_hdl->name.isEmpty();
+    return grid_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

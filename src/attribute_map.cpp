@@ -106,7 +106,7 @@ namespace xios
       
       //---------------------------------------------------------------
       
-      void CAttributeMap::setAttributes(const CAttributeMap * const _parent)
+      void CAttributeMap::setAttributes(const CAttributeMap * const _parent, bool apply)
       {
          typedef std::pair<StdString, CAttribute*> StdStrAttPair;
          
@@ -116,11 +116,16 @@ namespace xios
             const StdStrAttPair & el = *it;
             if (this->hasAttribute(el.first))
             {
-               CAttribute * currAtt = CAttributeMap::operator[](el.first);
-               if (currAtt->isEmpty() && !el.second->isEmpty())
+               CAttribute * currentAtt = CAttributeMap::operator[](el.first);
+               CAttribute * parentAtt = el.second ;
+               if (apply)
                {
-                  this->setAttribute(el.first, el.second);
+                 if (currentAtt->isEmpty() && !el.second->isEmpty())
+                 {
+                    this->setAttribute(el.first, el.second);
+                 }
                }
+               else currentAtt->setInheritedValue(*parentAtt) ;
             }
          }
       }

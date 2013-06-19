@@ -47,6 +47,11 @@ namespace xios
             
             void set(const CAttribute& attr) ;
             void set(const CAttributeTemplate& attr) ;
+
+            void setInheritedValue(const CAttributeTemplate& attr );
+            void setInheritedValue(const CAttribute& attr );
+            T getInheritedValue(void) const ;
+            bool hasInheritedValue(void) const;
             
             /// Destructeur ///
             virtual ~CAttributeTemplate(void) { }
@@ -86,6 +91,8 @@ namespace xios
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;
+          
+          CType<T> inheritedValue ;
       }; // class CAttribute    
       
    

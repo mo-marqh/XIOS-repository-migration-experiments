@@ -58,7 +58,7 @@ namespace xios
          static StdString GetDefName(void);
 
          /// Traitements ///
-         virtual void solveDescInheritance(const CAttributeMap * const parent = 0);
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
          void solveRefInheritance(void);
 //         static bool has(const string & id); 
 //         static boost::shared_ptr<V> get(const string& id) ;

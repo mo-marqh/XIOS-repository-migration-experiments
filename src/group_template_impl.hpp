@@ -262,10 +262,10 @@ namespace xios
    //---------------------------------------------------------------
    
    template <class U, class V, class W>
-      void CGroupTemplate<U, V, W>::solveDescInheritance(const CAttributeMap * const parent)
+      void CGroupTemplate<U, V, W>::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
       if (parent != NULL)
-         SuperClassAttribute::setAttributes(parent);
+         SuperClassAttribute::setAttributes(parent, apply);
          
       typename std::vector<U*>::const_iterator 
          itc = this->childList.begin(), endc = this->childList.end();
@@ -275,14 +275,14 @@ namespace xios
       for (; itc != endc; itc++)
       { 
          U* child = *itc;
-         child->solveDescInheritance(this);
+         child->solveDescInheritance(apply,this);
       }
             
       for (; itg != endg; itg++)
       { 
          V* group = *itg;
          group->solveRefInheritance();
-         group->solveDescInheritance(this);
+         group->solveDescInheritance(apply,this);
       }
    }
 
