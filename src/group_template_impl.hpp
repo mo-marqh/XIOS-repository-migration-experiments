@@ -281,7 +281,7 @@ namespace xios
       for (; itg != endg; itg++)
       { 
          V* group = *itg;
-         group->solveRefInheritance();
+         if (apply) group->solveRefInheritance();
          group->solveDescInheritance(apply,this);
       }
    }
