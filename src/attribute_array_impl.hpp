@@ -75,8 +75,12 @@ namespace xios
     template <typename T_numtype, int N_rank>
     void CAttributeArray<T_numtype,N_rank>::setInheritedValue(const CAttributeArray& attr)
     {
-      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue=attr ;
-     } 
+      if (this->isEmpty() && attr.hasInheritedValue()) 
+      {
+        inheritedValue.resize(attr.shape()) ;
+        inheritedValue=attr ;
+      }
+    } 
 
     template <typename T_numtype, int N_rank>
     CArray<T_numtype,N_rank> CAttributeArray<T_numtype,N_rank>::getInheritedValue(void) const
