@@ -460,11 +460,11 @@ namespace xios
          {
             CDuration duration ;
 
-            duration.FromString(field->freq_op) ;
+            duration=CDuration::FromString(field->freq_op) ;
             duration.solveTimeStep(*(context->calendar));
             SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
 
-            duration.FromString(field->getRelFile()->output_freq) ;
+            duration=CDuration::FromString(field->getRelFile()->output_freq) ;
             duration.solveTimeStep(*(context->calendar));
             SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
          }

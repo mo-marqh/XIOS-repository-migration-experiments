@@ -44,7 +44,7 @@ namespace xios
       StdIStream & operator>>(StdIStream & in , CDuration & duration)
       {
          duration.year = duration.month  = duration.day    =
-         duration.hour = duration.minute = duration.second = 0.0;
+         duration.hour = duration.minute = duration.second = duration.timestep=0.0;
          double v = 1.0;
          char   c = '/';
          while (!in.eof())
@@ -108,14 +108,14 @@ namespace xios
       CDuration & CDuration::solveTimeStep(const CCalendar & c)
       {
         CDuration timeStep=c.getTimeStep() ;
-        second +=timeStep.second ; 
-        minute +=timeStep.minute ; 
-        hour +=timeStep.hour ; 
-        day +=timeStep.day ; 
-        month +=timeStep.month ; 
-        year +=timeStep.year ; 
+        second +=timestep*timeStep.second ; 
+        minute +=timestep*timeStep.minute ; 
+        hour +=timestep*timeStep.hour ; 
+        day +=timestep*timeStep.day ; 
+        month +=timestep*timeStep.month ; 
+        year +=timestep*timeStep.year ; 
         timestep = 0 ;
-        return (*this);
+
       }
                
         

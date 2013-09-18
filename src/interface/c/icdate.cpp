@@ -28,7 +28,7 @@ extern "C"
       try
       {
          CTimer::get("XIOS").resume() ;
-         CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second};
+         CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second, 0};
          xios::CContext* context = CContext::getCurrent() ;
          
             context->timestep.setValue(dur.toString());
