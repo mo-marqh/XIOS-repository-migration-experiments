@@ -16,6 +16,58 @@ extern "C"
 {
   typedef xios::CDomainGroup*  domaingroup_Ptr;
   
+  void cxios_set_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl, double* bounds_lat, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lat,shape(extent1,extent2),neverDeleteData) ;
+    domaingroup_hdl->bounds_lat.reference(tmp.copy());
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->bounds_lat);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl, double* bounds_lat, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lat,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domaingroup_hdl->bounds_lat.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->bounds_lat.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl, double* bounds_lon, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon,shape(extent1,extent2),neverDeleteData) ;
+    domaingroup_hdl->bounds_lon.reference(tmp.copy());
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->bounds_lon);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl, double* bounds_lon, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domaingroup_hdl->bounds_lon.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->bounds_lon.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domaingroup_data_dim(domaingroup_Ptr domaingroup_hdl, int data_dim)
   {
      CTimer::get("XIOS").resume();
@@ -562,6 +614,28 @@ extern "C"
   
   
   
+  void cxios_set_domaingroup_nvertex(domaingroup_Ptr domaingroup_hdl, int nvertex)
+  {
+     CTimer::get("XIOS").resume();
+    domaingroup_hdl->nvertex.setValue(nvertex);
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->nvertex);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_nvertex(domaingroup_Ptr domaingroup_hdl, int* nvertex)
+  {
+    *nvertex = domaingroup_hdl->nvertex.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_domaingroup_nvertex(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->nvertex.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domaingroup_standard_name(domaingroup_Ptr domaingroup_hdl, const char * standard_name, int standard_name_size)
   {
     std::string standard_name_str;
@@ -584,6 +658,33 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return domaingroup_hdl->standard_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domaingroup_type(domaingroup_Ptr domaingroup_hdl, const char * type, int type_size)
+  {
+    std::string type_str;
+    if(!cstr2string(type, type_size, type_str)) return;
+     CTimer::get("XIOS").resume();
+    domaingroup_hdl->type.fromString(type_str);
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->type);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_type(domaingroup_Ptr domaingroup_hdl, char * type, int type_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(domaingroup_hdl->type.getInheritedStringValue(),type , type_size))
+      ERROR("void cxios_get_domaingroup_type(domaingroup_Ptr domaingroup_hdl, char * type, int type_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domaingroup_type(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->type.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

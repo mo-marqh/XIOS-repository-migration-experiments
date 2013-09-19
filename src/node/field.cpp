@@ -401,8 +401,8 @@ namespace xios{
          *this->last_operation_srv   = *this->last_operation_srv - toffset; 
       }
       
-      if (context->hasClient)
-      {                  
+//      if (context->hasClient)
+//      {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
          this->last_Write     = boost::shared_ptr<CDate>
@@ -431,7 +431,7 @@ namespace xios{
          ERROR("CField::solveOperation(void)",
                << "[ operation = " << operation.getValue() << "]"
                << "The operation is not defined !");
-      }
+//      }
       
 
    }

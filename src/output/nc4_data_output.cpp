@@ -56,6 +56,12 @@ namespace xios
 
       void CNc4DataOutput::writeDomain_(CDomain* domain)
       {
+         if (domain->type == CDomain::type_attr::unstructured)
+         {
+           writeUnstructuredDomain(domain) ;
+           return ;
+         }
+         
          CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
          
@@ -69,21 +75,26 @@ namespace xios
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
-         
-         bool isCurvilinear = domain->isCurvilinear ;
+
+
          StdString dimXid, dimYid ;
-         if (isCurvilinear)
+         
+         switch (domain->type)
          {
-           dimXid     = StdString("x").append(appendDomid);
-           dimYid     = StdString("y").append(appendDomid);
-         }
-         else
-         {
-           dimXid     = StdString("lon").append(appendDomid);
-           dimYid     = StdString("lat").append(appendDomid);
+           case CDomain::type_attr::curvilinear :
+             dimXid     = StdString("x").append(appendDomid);
+             dimYid     = StdString("y").append(appendDomid);
+             break ;
+           case CDomain::type_attr::regular :
+             dimXid     = StdString("lon").append(appendDomid);
+             dimYid     = StdString("lat").append(appendDomid);
+             break;
+           case CDomain::type_attr::unstructured :
+             dimXid     = StdString("cell").append(appendDomid);
+             break;
          }            
          
-         string lonid,latid ;
+         string lonid,latid,bounds_lonid,bounds_latid ;
 /*
          StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon").append(appendDomid).append("_local")
@@ -105,55 +116,77 @@ namespace xios
 //                 SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
                }
 
-               if (isCurvilinear)
+               switch (domain->type)
                {
-                 dim0.push_back(dimYid); dim0.push_back(dimXid);
-                 lonid = StdString("nav_lon").append(appendDomid);
-                 latid = StdString("nav_lat").append(appendDomid);
+                 case CDomain::type_attr::curvilinear :
+                   dim0.push_back(dimYid); dim0.push_back(dimXid);
+                   lonid = StdString("nav_lon").append(appendDomid);
+                   latid = StdString("nav_lat").append(appendDomid);
+                   break ;
+                 case CDomain::type_attr::regular :
+                   lonid = StdString("lon").append(appendDomid);
+                   latid = StdString("lat").append(appendDomid);
+                   dim0.push_back(dimYid);
+                   dim1.push_back(dimXid);
+                   break;
+                 case CDomain::type_attr::unstructured :
+                   lonid = StdString("lon").append(appendDomid);
+                   latid = StdString("lat").append(appendDomid);
+                   bounds_lonid=string("bounds_lon").append(appendDomid);
+                   bounds_latid=string("bounds_lat").append(appendDomid);
+                   dim0.push_back(dimXid);
+                   break;
+               }
+                
+               if (domain->type == CDomain::type_attr::unstructured)
+               {
+                 SuperClassWriter::addDimension(dimXid, domain->nj_glo);
                }
                else
                {
-                 lonid = StdString("lon").append(appendDomid);
-                 latid = StdString("lat").append(appendDomid);
-                 dim0.push_back(dimYid);
-                 dim1.push_back(dimXid);
-               }
-
-               SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
-               SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
-               if (server->intraCommSize > 1)
-               {
-                  this->writeLocalAttributes(domain->zoom_ibegin_srv,
-                                             domain->zoom_ni_srv,
-                                             domain->zoom_jbegin_srv,
-                                             domain->zoom_nj_srv,
-                                             appendDomid);
-                  
-                  if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
-                                             domain->zoom_ni_srv,
-                                             domain->zoom_jbegin_srv,
-                                             domain->zoom_nj_srv,
-                                             domain->ni_glo,domain->nj_glo,
-                                             server->intraCommRank,server->intraCommSize);
+                 SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
+                 SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
                }
                
-               if (isCurvilinear)
+               if (server->intraCommSize > 1)
                {
-                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                  if (domain->type != CDomain::type_attr::unstructured)
+                  {
+                    this->writeLocalAttributes(domain->zoom_ibegin_srv,
+                                               domain->zoom_ni_srv,
+                                               domain->zoom_jbegin_srv,
+                                               domain->zoom_nj_srv,
+                                               appendDomid);
+                  
+                    if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
+                                               domain->zoom_ni_srv,
+                                               domain->zoom_jbegin_srv,
+                                               domain->zoom_nj_srv,
+                                               domain->ni_glo,domain->nj_glo,
+                                               server->intraCommRank,server->intraCommSize);
+                 }
                }
-               else
+               
+               switch (domain->type)
                {
-                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                 case CDomain::type_attr::curvilinear :
+                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   break ;
+                  case CDomain::type_attr::regular :
+                    SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+                    SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                    break ;
+                  case CDomain::type_attr::unstructured :
+                    SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+                    SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                }
-               this->writeAxisAttributes
-                  (lonid, "X", "longitude", "Longitude", "degrees_east", domid);
-               this->writeAxisAttributes
-                  (latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+               
+               this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+               this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);
 
                dim0.clear();
-               dim0.push_back(dimYid);
+               if (domain->type != CDomain::type_attr::unstructured) dim0.push_back(dimYid);
                dim0.push_back(dimXid);
 
 
@@ -172,19 +205,19 @@ namespace xios
                //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
                SuperClassWriter::definition_end();
-               if (isCurvilinear)
+
+               switch (domain->type)
                {
- 
-                 SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
-                 SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
-// supress mask               if (server->intraCommSize > 1) SuperClassWriter::writeData(mask, maskid);
-               }
-               else
-               {
-                  CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
-                  SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
-                  CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
-                  SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
+                 case CDomain::type_attr::curvilinear :
+                   SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
+                   SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
+                   break; 
+                 case CDomain::type_attr::regular :
+                   CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
+                   SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
+                   CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
+                   SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
+                   break;
                }
                SuperClassWriter::definition_start();
 
@@ -196,22 +229,24 @@ namespace xios
                SuperClassWriter::addDimension(dimYid, domain->zoom_nj.getValue());
 
                
-               if (isCurvilinear)
+               switch (domain->type)
                {
-                  dim0.push_back(dimYid); dim0.push_back(dimXid);
-                  lonid = StdString("nav_lon").append(appendDomid);
-                  latid = StdString("nav_lat").append(appendDomid);
-                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
-               }
-               else
-               {
-                  dim0.push_back(dimYid);
-                  dim1.push_back(dimXid);
-                  lonid = StdString("lon").append(appendDomid);
-                  latid = StdString("lat").append(appendDomid);
-                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                 case CDomain::type_attr::curvilinear :
+                   dim0.push_back(dimYid); dim0.push_back(dimXid);
+                   lonid = StdString("nav_lon").append(appendDomid);
+                   latid = StdString("nav_lat").append(appendDomid);
+                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   break;
+
+                 case CDomain::type_attr::regular :
+                   dim0.push_back(dimYid);
+                   dim1.push_back(dimXid);
+                   lonid = StdString("lon").append(appendDomid);
+                   latid = StdString("lat").append(appendDomid);
+                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                   break;
                }
                this->writeAxisAttributes
                   (lonid, "X", "longitude", "Longitude", "degrees_east", domid);
@@ -220,45 +255,50 @@ namespace xios
 
 
                SuperClassWriter::definition_end();
-               if (isCurvilinear)
+               switch (domain->type)
                {
-                 std::vector<StdSize> start(2) ; 
-                 std::vector<StdSize> count(2) ;
-                 if (domain->isEmpty())
+                 case CDomain::type_attr::curvilinear :
                  {
-                   start[0]=0 ; start [1]=0 ; 
-                   count[0]=0 ; count[1]=0 ; 
-                 }
-                 else
-                 {
-                   start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
-                   count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
-                 }
+                   std::vector<StdSize> start(2) ; 
+                   std::vector<StdSize> count(2) ;
+                   if (domain->isEmpty())
+                   {
+                     start[0]=0 ; start [1]=0 ; 
+                     count[0]=0 ; count[1]=0 ; 
+                   }
+                   else
+                   {
+                     start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                     count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ; 
+                   }
                  
-                 SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
-                 SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
-               }
-               else
-               {
-                 std::vector<StdSize> start(1) ; 
-                 std::vector<StdSize> count(1) ;
-                 if (domain->isEmpty())
-                 {
-                   start[0]=0 ;  
-                   count[0]=0 ;  
                    SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
-                   SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);                 }
-                 else
+                   SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
+                   break;
+                 }
+                 case CDomain::type_attr::regular :
                  {
-                   start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
-                   count[0]=domain->zoom_nj_srv ; 
-                   CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
-                   SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
+                   std::vector<StdSize> start(1) ; 
+                   std::vector<StdSize> count(1) ;
+                   if (domain->isEmpty())
+                   {
+                     start[0]=0 ;  
+                     count[0]=0 ;  
+                     SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
+                     SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);                 }
+                   else
+                   {
+                     start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; 
+                     count[0]=domain->zoom_nj_srv ; 
+                     CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
+                     SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
-                   start[0]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; 
-                   count[0]=domain->zoom_ni_srv ; 
-                   CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
-                   SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
+                     start[0]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; 
+                     count[0]=domain->zoom_ni_srv ; 
+                     CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
+                     SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
+                   }
+                   break;
                  }
                }
                SuperClassWriter::definition_start();
@@ -272,6 +312,142 @@ namespace xios
          domain->addRelFile(this->filename);
       }
 
+      void CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)
+      {
+         CContext* context = CContext::getCurrent() ;
+         CContextServer* server=context->server ;
+         
+         if (domain->IsWritten(this->filename)) return;
+         domain->checkAttributes();
+         
+         if (domain->isEmpty()) 
+           if (SuperClass::type==MULTI_FILE) return ;
+
+         std::vector<StdString> dim0, dim1;
+         StdString domid     = (!domain->name.isEmpty())
+                             ? domain->name.getValue() : domain->getId();
+         StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+
+
+         StdString dimXid = StdString("cell").append(appendDomid);
+         StdString dimVertId = StdString("nvertex").append(appendDomid);
+        
+         string lonid,latid,bounds_lonid,bounds_latid ;
+
+         switch (SuperClass::type)
+         {
+            case (MULTI_FILE) :
+            {
+               lonid = StdString("lon").append(appendDomid);
+               latid = StdString("lat").append(appendDomid);
+               dim0.push_back(dimXid);
+
+               SuperClassWriter::addDimension(dimXid, domain->zoom_nj_srv);
+               SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+               SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+               
+               bounds_lonid = StdString("bounds_lon").append(appendDomid);
+               bounds_latid = StdString("bounds_lat").append(appendDomid);
+              
+               
+               this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+               if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
+               this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+               if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_latid, &latid);
+               if (domain->hasBounds) SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+               dim0.clear();
+               if (domain->hasBounds)
+               { 
+                 dim0.push_back(dimXid);
+                 dim0.push_back(dimVertId);
+                 SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
+                 SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+               }
+               
+               dim0.clear();
+               dim0.push_back(dimXid);
+
+               SuperClassWriter::definition_end();
+
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
+               
+               if (domain->hasBounds)
+               { 
+                 SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0);
+                 SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0);
+               }
+               SuperClassWriter::definition_start();
+               break ;
+            }
+
+            case (ONE_FILE) :
+            {
+               lonid = StdString("lon").append(appendDomid);
+               latid = StdString("lat").append(appendDomid);
+               bounds_lonid = StdString("bounds_lon").append(appendDomid);
+               bounds_latid = StdString("bounds_lat").append(appendDomid);
+               dim0.push_back(dimXid);
+               SuperClassWriter::addDimension(dimXid, domain->nj_glo);
+               SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
+               SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+               this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+               if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
+               this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);                                           
+               if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_latid, &latid);
+               if (domain->hasBounds) SuperClassWriter::addDimension(dimVertId, domain->nvertex);
+               dim0.clear();
+               
+               if (domain->hasBounds) 
+               {
+                 dim0.push_back(dimXid);
+                 dim0.push_back(dimVertId);
+                 SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
+                 SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+               }
+               
+               SuperClassWriter::definition_end();
+               
+               std::vector<StdSize> start(1), startBounds(2) ; 
+               std::vector<StdSize> count(1), countBounds(2) ;
+               if (domain->isEmpty())
+               {
+                 start[0]=0 ;  
+                 count[0]=0 ;  
+                 startBounds[0]=0 ;  
+                 countBounds[0]=domain->nvertex ;
+                 startBounds[1]=0 ;  
+                 countBounds[1]=0 ;  
+               }
+               else
+               {
+                 start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin ; 
+                 count[0]=domain->zoom_nj_srv ; 
+                 startBounds[0]=0 ;  
+                 countBounds[0]=domain->nvertex ;
+                 startBounds[1]=domain->zoom_jbegin_srv-domain->zoom_jbegin ; 
+                 countBounds[1]=domain->zoom_nj_srv ;   
+               }
+               SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
+               SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
+               if (domain->hasBounds) 
+               {
+                 SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0,&start,&count);
+                 SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0,&startBounds,&countBounds);
+               }
+ 
+               
+               SuperClassWriter::definition_start();
+
+               break;
+            }           
+            default :
+               ERROR("CNc4DataOutput::writeDomain(domain)",
+                     << "[ type = " << SuperClass::type << "]"
+                     << " not implemented yet !");
+         }
+         domain->addRelFile(this->filename);
+      }
       //--------------------------------------------------------------
 
       void CNc4DataOutput::writeAxis_(CAxis* axis)
@@ -333,7 +509,7 @@ namespace xios
      
      void CNc4DataOutput::writeTimeDimension_(void)
      {
-       SuperClassWriter::addDimension(string("time_counter"));
+       SuperClassWriter::addDimension("time_counter");
      }
       //--------------------------------------------------------------
 
@@ -354,20 +530,25 @@ namespace xios
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
  
-         bool isCurvilinear = domain->isCurvilinear ; 
+//         bool isCurvilinear = domain->isCurvilinear ; 
+//         bool isCurvilinear = (domain->type == CDomain::type_attr::curvilinear) ;
          
          StdString dimXid,dimYid ;
         
-         if (isCurvilinear)
+         switch (domain->type)
          {
-           dimXid     = StdString("x").append(appendDomid);
-           dimYid     = StdString("y").append(appendDomid);
-         }
-         else
-         {
-           dimXid     = StdString("lon").append(appendDomid);
-           dimYid     = StdString("lat").append(appendDomid);
-         }
+           case CDomain::type_attr::curvilinear :
+             dimXid     = StdString("x").append(appendDomid);
+             dimYid     = StdString("y").append(appendDomid);
+             break ;
+           case CDomain::type_attr::regular :
+             dimXid     = StdString("lon").append(appendDomid);
+             dimYid     = StdString("lat").append(appendDomid);
+             break ;
+           case CDomain::type_attr::unstructured :
+             dimXid     = StdString("cell").append(appendDomid);
+             break ;
+        }
          
 /* 
          StdString lonid_loc = (server->intraCommSize > 1)
@@ -387,16 +568,17 @@ namespace xios
          nc_type type = (!field->prec.isEmpty() &&
                         ( field->prec.getValue() == 4))
                         ? NC_FLOAT : NC_DOUBLE;
-         bool wtime   = !(!field->operation.isEmpty() &&
-                         ( field->operation.getValue().compare("once") == 0));
+         bool wtime   = !(!field->operation.isEmpty() && field->foperation->timeType() == func::CFunctor::once);
                          
          if (wtime)
          {
-            StdOStringStream oss;
-            oss << "time_" << field->operation.getValue()
-                << "_" << field->getRelFile()->output_freq.getValue();
-
-            coodinates.push_back(oss.str());
+            
+            //StdOStringStream oss;
+           // oss << "time_" << field->operation.getValue()
+           //     << "_" << field->getRelFile()->output_freq.getValue();
+          //oss 
+            if (field->foperation->timeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
+            else if (field->foperation->timeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
             dims.push_back(timeid);
          }
 
@@ -408,36 +590,21 @@ namespace xios
             coodinates.push_back(axisid);
          }
 
-         if (isCurvilinear)
+         switch (domain->type)
          {
-            coodinates.push_back(StdString("nav_lat").append(appendDomid));
-            coodinates.push_back(StdString("nav_lon").append(appendDomid));
-         }
-         else
-         {
-            coodinates.push_back(StdString("lat").append(appendDomid));
+           case CDomain::type_attr::curvilinear :
+             coodinates.push_back(StdString("nav_lon").append(appendDomid));
+             coodinates.push_back(StdString("nav_lat").append(appendDomid));
+             break;
+           case CDomain::type_attr::regular :             
+           case CDomain::type_attr::unstructured :   
             coodinates.push_back(StdString("lon").append(appendDomid));
+            coodinates.push_back(StdString("lat").append(appendDomid));
+             break;
          }
 
-         switch (SuperClass::type)
-         {
-            case (MULTI_FILE) :
-            {
-               dims.push_back(dimYid);
-               dims.push_back(dimXid);
-               break ;
-            }
-            case (ONE_FILE) :
-            {
-               dims.push_back(dimYid);
-               dims.push_back(dimXid);
-               break;
-            }
-            default :
-               ERROR("CNc4DataOutput::writeDomain(domain)",
-                     << "[ type = " << SuperClass::type << "]"
-                     << " not implemented yet !");
-         }
+         if ( domain->type == CDomain::type_attr::curvilinear || type == CDomain::type_attr::regular)dims.push_back(dimYid);
+         dims.push_back(dimXid);
           
          SuperClassWriter::addVariable(fieldid, type, dims);
          
@@ -566,20 +733,23 @@ namespace xios
                              : field->getBaseFieldReference()->getId();
                              
          StdOStringStream oss;
-         oss << "time_" << field->operation.getValue()
-             << "_" << field->getRelFile()->output_freq.getValue();
+         string timeAxisId ;
+         if (field->foperation->timeType() == func::CFunctor::instant)  timeAxisId="time_instant" ;
+         else if (field->foperation->timeType() == func::CFunctor::centered)  timeAxisId="time_centered" ;
+
              
          CArray<double,1> time_data(1) ;
-        
-        bool wtime   = !(!field->operation.isEmpty() &&
-                         ( field->operation.getValue().compare("once") == 0));
+         CArray<double,1> time_counter(1) ;
+                
+        bool wtime   = !(!field->operation.isEmpty() && (field->foperation->timeType() == func::CFunctor::once));
                                  
         if (wtime)
         {
-          if (field->operation.getValue()=="instant") time_data(0) = Time(*field->last_Write_srv)
-                                                                      -Time(context->calendar->getTimeOrigin());
-          else time_data(0) = (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2
-                                -Time(context->calendar->getTimeOrigin());
+          time_counter(0)= (Time(*field->last_Write_srv)+Time(*field->lastlast_Write_srv))/2 -Time(context->calendar->getTimeOrigin());
+          if (field->foperation->timeType() == func::CFunctor::instant) 
+            time_data(0) = Time(*field->last_Write_srv)-Time(context->calendar->getTimeOrigin());
+          else if (field->foperation->timeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
+          
          }
          
          
@@ -598,7 +768,11 @@ namespace xios
               case (MULTI_FILE) :
               {
                  SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1);
-                 if (wtime) SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
+                 if (wtime) 
+                 {
+                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
+                   SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
+                 }
                  break ;
               }
               case (ONE_FILE) :
@@ -617,7 +791,11 @@ namespace xios
                    count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->zoom_size.getValue();
                  }
                  SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
-                 if (wtime) SuperClassWriter::writeTimeAxisData(time_data, oss.str(), isCollective, field->getNStep()-1,isRoot );
+                 if (wtime) 
+                 {
+                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
+                   SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
+                 }
                  break;
               }
             }
@@ -633,7 +811,11 @@ namespace xios
               case (MULTI_FILE) :
               {
                 SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1);
-                if (wtime) SuperClassWriter::writeData(time_data, oss.str(), isCollective, field->getNStep()-1);
+                if (wtime) 
+                {
+                  SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
+                  SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
+                }
                 break;
               }
               case (ONE_FILE) :
@@ -652,7 +834,11 @@ namespace xios
                  }
 
                  SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1,&start,&count);
-                 if (wtime) SuperClassWriter::writeTimeAxisData(time_data, oss.str(), isCollective, field->getNStep()-1,isRoot);
+                 if (wtime) 
+                 {
+                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot);
+                   SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot);
+                 }                   
                  break; 
               
               }
@@ -668,19 +854,25 @@ namespace xios
       {
          StdOStringStream oss;
          
-         if (field->operation.getValue().compare("once") == 0) return ;
-                         
-         oss << "time_" << field->operation.getValue()
-             << "_" << field->getRelFile()->output_freq.getValue();
-
+//         if (field->operation.getValue().compare("once") == 0) return ;
+         if (field->foperation->timeType() == func::CFunctor::once) return ;
+                                
+//         oss << "time_" << field->operation.getValue()
+//             << "_" << field->getRelFile()->output_freq.getValue();
+         
+         string  axisid ;   
+         if (field->foperation->timeType() == func::CFunctor::centered) axisid="time_centered" ;
+         else if (field->foperation->timeType() == func::CFunctor::instant) axisid="time_instant" ;
+         
          std::vector<StdString> dims;
-         StdString axisid = oss.str();
+//         StdString axisid = oss.str();
          StdString timeid = StdString("time_counter");
 
          dims.push_back(timeid);
          if (!SuperClassWriter::varExist(axisid))
          {
             SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
+            
             CDate timeOrigin=cal->getTimeOrigin() ;
 //            StdOStringStream oss2;
 //            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
@@ -692,6 +884,24 @@ namespace xios
                 StdString("seconds since ").append(strTimeOrigin),
                 strTimeOrigin);
          }
+
+         dims.clear() ;
+         axisid = "time_counter" ;
+         timeid = "time_counter" ;
+
+         dims.push_back(timeid);
+         if (!SuperClassWriter::varExist(axisid))
+         {
+            SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
+            SuperClassWriter::addAttribute("axis", string("T"), &axisid);
+            CDate timeOrigin=cal->getTimeOrigin() ;
+            StdString strTimeOrigin=timeOrigin.toString() ;
+            this->writeTimeAxisAttributes
+               (axisid, cal->getType(),
+                StdString("seconds since ").append(strTimeOrigin),
+                strTimeOrigin);
+         }         
+         
 
       }
 

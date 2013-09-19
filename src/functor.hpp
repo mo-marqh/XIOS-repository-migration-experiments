@@ -15,13 +15,14 @@ namespace xios
       {
          /// Définition de type ///
          typedef CObject SuperClass;
-
          public :
+         enum ETimeType { once, instant, centered } ;
 
             /// Accesseurs ///
             CArray<double,1> getDataOutput(void) const;
             /// Opérateur ///
             CArray<double,1> operator ()(const CArray<double,1>& dinput);
+            virtual ETimeType timeType(void) = 0 ;
 
             /// Destructeur ///
             virtual ~CFunctor(void);
@@ -43,7 +44,6 @@ namespace xios
             CFunctor(const StdString & id, CArray<double,1>& doutput);
             CFunctor(const CFunctor & functor);         // Not implemented.
             CFunctor(const CFunctor * const functor);   // Not implemented.
-
          protected :
             /// Propriétés privées ///
             CArray<double,1>& doutput;

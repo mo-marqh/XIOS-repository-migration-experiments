@@ -11,6 +11,7 @@
 #include "buffer_in.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
+#include "attribute_enum.hpp"
 
 namespace xios {
    
@@ -68,31 +69,15 @@ namespace xios {
          void checkCompression(void);
          
          void checkZoom(void);
+         void checkBounds(void);
 
-         void completeMask(void);
 
       public :
       
          /// Autres ///
-//         virtual void fromBinary(StdIStream & is);
 
-         /// Accesseurs ///
-         CArray<int, 2> getLocalMask(void) const;
-         
          const std::set<StdString> & getRelFiles(void) const;
 
-         const std::vector<int> & getIBeginSub(void) const;
-         const std::vector<int> & getIEndSub(void) const;
-         const std::vector<int> & getJBeginSub(void) const;
-         const std::vector<int> & getJEndSub(void) const;
-
-         const std::vector<int> & getIBeginZoomSub(void) const;
-         const std::vector<int> & getJBeginZoomSub(void) const;
-         const std::vector<int> & getNiZoomSub(void) const;
-         const std::vector<int> & getNjZoomSub(void) const;
-         
-         const std::vector<CArray<double,1>* > & getLonValueSub(void) const;
-         const std::vector<CArray<double,1>* > & getLatValueSub(void) const;
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
@@ -113,6 +98,7 @@ namespace xios {
          int zoom_nj_srv,zoom_jbegin_srv,zoom_jend_srv ;
 
          CArray<double, 1> lonvalue_srv, latvalue_srv ;
+         CArray<double, 2> bounds_lon_srv, bounds_lat_srv ;
          
          
         vector<int> connectedServer,nbSenders ;
@@ -123,7 +109,6 @@ namespace xios {
       
          /// Mutateur ///
          void addRelFile(const StdString & filename);
-         void completeLonLatServer(void);
          void completeLonLatClient(void);
          void sendServerAttribut(void) ;
          void sendLonLat(void) ;
@@ -145,16 +130,12 @@ namespace xios {
 
          CArray<int, 2> local_mask;
          bool isCurvilinear ;
+         bool hasBounds ;
        private :
 
          /// Proriétés protégées ///
          bool isChecked;
          std::set<StdString> relFiles;
-
-         std::vector<int> ibegin_sub, iend_sub, jbegin_sub, jend_sub;
-         std::vector<int> ibegin_zoom_sub, jbegin_zoom_sub, ni_zoom_sub, nj_zoom_sub;
-         std::vector<CArray<double,1>* > lonvalue_sub, latvalue_sub;
-         
 
    }; // class CDomain
 

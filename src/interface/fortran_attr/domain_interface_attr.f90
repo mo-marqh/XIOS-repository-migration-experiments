@@ -8,6 +8,52 @@ MODULE domain_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
+    SUBROUTINE cxios_set_domain_bounds_lat(domain_hdl, bounds_lat, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domain_bounds_lat
+    
+    SUBROUTINE cxios_get_domain_bounds_lat(domain_hdl, bounds_lat, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domain_bounds_lat
+    
+    FUNCTION cxios_is_defined_domain_bounds_lat(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_bounds_lat
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_bounds_lat
+    
+    
+    SUBROUTINE cxios_set_domain_bounds_lon(domain_hdl, bounds_lon, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domain_bounds_lon
+    
+    SUBROUTINE cxios_get_domain_bounds_lon(domain_hdl, bounds_lon, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domain_bounds_lon
+    
+    FUNCTION cxios_is_defined_domain_bounds_lon(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_bounds_lon
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_bounds_lon
+    
+    
     SUBROUTINE cxios_set_domain_data_dim(domain_hdl, data_dim) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
@@ -444,6 +490,25 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_nj_glo
     
     
+    SUBROUTINE cxios_set_domain_nvertex(domain_hdl, nvertex) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: nvertex
+    END SUBROUTINE cxios_set_domain_nvertex
+    
+    SUBROUTINE cxios_get_domain_nvertex(domain_hdl, nvertex) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)             :: nvertex
+    END SUBROUTINE cxios_get_domain_nvertex
+    
+    FUNCTION cxios_is_defined_domain_nvertex(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_nvertex
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_nvertex
+    
+    
     SUBROUTINE cxios_set_domain_standard_name(domain_hdl, standard_name, standard_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
@@ -463,6 +528,27 @@ MODULE domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_standard_name
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
     END FUNCTION cxios_is_defined_domain_standard_name
+    
+    
+    SUBROUTINE cxios_set_domain_type(domain_hdl, type, type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: type
+      INTEGER  (kind = C_INT)     , VALUE        :: type_size
+    END SUBROUTINE cxios_set_domain_type
+    
+    SUBROUTINE cxios_get_domain_type(domain_hdl, type, type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: type
+      INTEGER  (kind = C_INT)     , VALUE        :: type_size
+    END SUBROUTINE cxios_get_domain_type
+    
+    FUNCTION cxios_is_defined_domain_type(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_type
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_type
     
     
     SUBROUTINE cxios_set_domain_zoom_ibegin(domain_hdl, zoom_ibegin) BIND(C)

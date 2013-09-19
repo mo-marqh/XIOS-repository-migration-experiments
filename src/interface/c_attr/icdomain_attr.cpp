@@ -16,6 +16,58 @@ extern "C"
 {
   typedef xios::CDomain*  domain_Ptr;
   
+  void cxios_set_domain_bounds_lat(domain_Ptr domain_hdl, double* bounds_lat, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lat,shape(extent1,extent2),neverDeleteData) ;
+    domain_hdl->bounds_lat.reference(tmp.copy());
+    domain_hdl->sendAttributToServer(domain_hdl->bounds_lat);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_bounds_lat(domain_Ptr domain_hdl, double* bounds_lat, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lat,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domain_hdl->bounds_lat.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domain_bounds_lat(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->bounds_lat.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domain_bounds_lon(domain_Ptr domain_hdl, double* bounds_lon, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon,shape(extent1,extent2),neverDeleteData) ;
+    domain_hdl->bounds_lon.reference(tmp.copy());
+    domain_hdl->sendAttributToServer(domain_hdl->bounds_lon);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_bounds_lon(domain_Ptr domain_hdl, double* bounds_lon, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domain_hdl->bounds_lon.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domain_bounds_lon(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->bounds_lon.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domain_data_dim(domain_Ptr domain_hdl, int data_dim)
   {
      CTimer::get("XIOS").resume();
@@ -535,6 +587,28 @@ extern "C"
   
   
   
+  void cxios_set_domain_nvertex(domain_Ptr domain_hdl, int nvertex)
+  {
+     CTimer::get("XIOS").resume();
+    domain_hdl->nvertex.setValue(nvertex);
+    domain_hdl->sendAttributToServer(domain_hdl->nvertex);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_nvertex(domain_Ptr domain_hdl, int* nvertex)
+  {
+    *nvertex = domain_hdl->nvertex.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_domain_nvertex(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->nvertex.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domain_standard_name(domain_Ptr domain_hdl, const char * standard_name, int standard_name_size)
   {
     std::string standard_name_str;
@@ -557,6 +631,33 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return domain_hdl->standard_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domain_type(domain_Ptr domain_hdl, const char * type, int type_size)
+  {
+    std::string type_str;
+    if(!cstr2string(type, type_size, type_str)) return;
+     CTimer::get("XIOS").resume();
+    domain_hdl->type.fromString(type_str);
+    domain_hdl->sendAttributToServer(domain_hdl->type);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_type(domain_Ptr domain_hdl, char * type, int type_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(domain_hdl->type.getInheritedStringValue(),type , type_size))
+      ERROR("void cxios_get_domain_type(domain_Ptr domain_hdl, char * type, int type_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domain_type(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->type.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

@@ -27,6 +27,7 @@ namespace xios
             /// Traitement ///
             virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
             virtual void final(void) ;
+            virtual ETimeType timeType(void) { return centered ; }
             
             /// Destructeur ///
             virtual ~CAccumulate(void);

@@ -26,6 +26,7 @@ namespace xios
 
             /// Traitement ///
             virtual void apply(const CArray<double,1>& dinput, CArray<double,1>& doutput);
+            virtual ETimeType timeType(void) { return instant ; }
 
             /// Destructeur ///
             virtual ~CInstant(void);

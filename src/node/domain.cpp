@@ -21,31 +21,22 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false),  relFiles()
-      , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
-      , ibegin_zoom_sub(), jbegin_zoom_sub(), ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub()
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles()
-      , ibegin_sub(), iend_sub(), jbegin_sub(), jend_sub()
-      , ibegin_zoom_sub(), jbegin_zoom_sub(),ni_zoom_sub(), nj_zoom_sub()
-      , lonvalue_sub(), latvalue_sub()
-   { /* Ne rien faire de plus */ }
+         { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
    { 
-     vector<CArray<double,1>* >::iterator it;
-     for(it=lonvalue_sub.begin();it<lonvalue_sub.end();it++) delete *it;
-     for(it=latvalue_sub.begin();it<latvalue_sub.end();it++) delete *it;
    }
 
    ///---------------------------------------------------------------
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
    {
-      return (this->relFiles);
+      return (this->relFiles); 
    }
 
    //----------------------------------------------------------------
@@ -79,67 +70,6 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-/*
-   void CDomain::fromBinary(StdIStream & is)
-   {
-      SuperClass::fromBinary(is);
-      
-      if ( !this->ibegin.isEmpty()   &&
-           !this->jbegin.isEmpty()   &&
-           !this->iend.isEmpty()     &&
-           !this->jend.isEmpty()     &&
-           !this->latvalue.isEmpty() &&
-           !this->lonvalue.isEmpty())
-      {
-      
-         this->ibegin_sub.push_back(this->ibegin.getValue());
-         this->jbegin_sub.push_back(this->jbegin.getValue());
-         this->iend_sub.push_back(this->iend.getValue());
-         this->jend_sub.push_back(this->jend.getValue()); 
-         
-         this->ibegin_zoom_sub.push_back(this->zoom_ibegin_loc.getValue());
-         this->jbegin_zoom_sub.push_back(this->zoom_jbegin_loc.getValue());
-         this->ni_zoom_sub.push_back(this->zoom_ni_loc.getValue());
-         this->nj_zoom_sub.push_back(this->zoom_nj_loc.getValue());
-      
-         this->latvalue_sub.push_back(this->latvalue.getValue());
-         this->lonvalue_sub.push_back(this->lonvalue.getValue());
-      }
-      
-#define CLEAR_ATT(name_)\
-      SuperClassAttribute::operator[](#name_)->reset()
-
-         CLEAR_ATT(mask);
-         CLEAR_ATT(data_n_index);
-         CLEAR_ATT(data_i_index);
-         CLEAR_ATT(data_j_index);
-         
-         CLEAR_ATT(data_ni);
-         CLEAR_ATT(data_nj);
-         CLEAR_ATT(data_ibegin);
-         CLEAR_ATT(data_jbegin);
-         
-         CLEAR_ATT(ni);
-         CLEAR_ATT(nj);
-         
-#undef CLEAR_ATT
-
-      if ( !this->ibegin.isEmpty()   &&
-           !this->jbegin.isEmpty()   &&
-           !this->iend.isEmpty()     &&
-           !this->jend.isEmpty()     &&
-           !this->latvalue.isEmpty() &&
-           !this->lonvalue.isEmpty())
-      {
-
-         this->ibegin.setValue(*std::min_element(this->ibegin_sub.begin(),this->ibegin_sub.end()));
-         this->jbegin.setValue(*std::min_element(this->jbegin_sub.begin(),this->jbegin_sub.end()));
-         this->iend.setValue(*std::max_element(this->iend_sub.begin(),this->iend_sub.end()));
-         this->jend.setValue(*std::max_element(this->jend_sub.begin(),this->jend_sub.end()));
-      }
-   }
-*/
-   //----------------------------------------------------------------
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
    StdString CDomain::GetDefName(void){ return (CDomain::GetName()); }
@@ -149,7 +79,25 @@ namespace xios {
 
    void CDomain::checkGlobalDomain(void)
    {
-      if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
+      if (!type.isEmpty() && type==type_attr::unstructured)
+      {
+         if (ni_glo.isEmpty() || ni_glo <= 0 )
+         {
+            ERROR("CDomain::checkAttributes(void)",
+               << "[ Id = " << this->getId() << " ] "
+               << "The global domain is badly defined,"
+               << " check the \'ni_glo\'  value !") 
+         }
+         nj_glo=ni_glo ;
+         ni_glo=1 ;
+         if (!ni.isEmpty()) nj=ni ;
+         if (!ibegin.isEmpty()) jbegin=ibegin ;
+         if (!iend.isEmpty()) jend=iend ;
+         ni=1 ;
+         ibegin=1 ;
+         iend=1 ;
+      }
+      else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
           (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
       {
          ERROR("CDomain::checkAttributes(void)",
@@ -172,12 +120,12 @@ namespace xios {
       else if (!ibegin.isEmpty() && !iend.isEmpty() && ni.isEmpty())
          ni.setValue(iend.getValue() - ibegin.getValue() + 1) ;
 
-      else if (!ibegin.isEmpty() && !iend.isEmpty() &&
-               !ni.isEmpty() && (iend.getValue() != ibegin.getValue() + ni.getValue() - 1))
+      else if (!ibegin.isEmpty() && !iend.isEmpty() && !ni.isEmpty() )
       {
-         ERROR("CDomain::checkAttributes(void)",
-               << "The domain si wrong defined,"
-               << " iend is different of (ibegin + ni - 1) !") ;
+         if (iend.getValue() != ibegin.getValue() + ni.getValue() - 1)
+           ERROR("CDomain::checkAttributes(void)",
+                 << "The domain si wrong defined,"
+                 << " iend is different of (ibegin + ni - 1) !") ;
       }
       else
       {
@@ -189,11 +137,14 @@ namespace xios {
 
       if (ni.getValue() < 0 || ibegin.getValue() > iend.getValue() ||
           ibegin.getValue() < 1 || iend.getValue() > ni_glo.getValue())
+          {
+                  cout<<ni_glo<<"  "<<ni<<"  "<<ibegin<<"  "<<iend<<endl;
+
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
                << "Local domain is wrong defined,"
                << " Check the value : ni, ni_glo, ibegin, iend") ;
-
+        }
    }
 
    //----------------------------------------------------------------
@@ -209,12 +160,12 @@ namespace xios {
       else if (!jbegin.isEmpty() && !jend.isEmpty() && nj.isEmpty())
          nj.setValue(jend.getValue() - jbegin.getValue() + 1) ;
 
-      else if (!jbegin.isEmpty() && !jend.isEmpty() && !nj.isEmpty() &&
-               (jend.getValue() != jbegin.getValue() + nj.getValue() - 1))
+      else if (!jbegin.isEmpty() && !jend.isEmpty() && !nj.isEmpty() )
       {
-         ERROR("CDomain::checkAttributes(void)",
-               << "The domain is wrong defined,"
-               << " iend is different of (jbegin + nj - 1) !") ;
+          if  (jend.getValue() != jbegin.getValue() + nj.getValue() - 1)
+             ERROR("CDomain::checkAttributes(void)",
+                 << "The domain is wrong defined,"
+                 << " iend is different of (jbegin + nj - 1) !") ;
       }
       else
       {
@@ -228,6 +179,9 @@ namespace xios {
          ERROR("CDomain::checkAttributes(void)",
                << "Domain is wrong defined,"
                << " Check the values : nj, nj_glo, jbegin, jend") ;
+               
+     ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
+     jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
    }
 
    //----------------------------------------------------------------
@@ -415,16 +369,31 @@ namespace xios {
       int i,j,k ;
       CArray<double,1> lonvalue_temp(ni*nj) ;
       CArray<double,1> latvalue_temp(ni*nj) ;
+      CArray<double,2> bounds_lon_temp(nvertex,ni*nj) ;
+      CArray<double,2> bounds_lat_temp(nvertex,ni*nj) ;
       
-      if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj ) isCurvilinear=true ;
-      else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj ) isCurvilinear=false ;
-      else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
-                                                            <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
-                                                            <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
-      if (isCurvilinear)
+      if (type.isEmpty())
+      {
+        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj ) 
+        {
+          type.setValue(type_attr::curvilinear) ;
+          isCurvilinear=true ;
+        }
+        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj ) 
+        {
+          type.setValue(type_attr::regular) ;
+          isCurvilinear=false ;
+        }
+        else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
+                                                              <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
+                                                              <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
+      }
+      if (type==type_attr::curvilinear || type==type_attr::unstructured)
       {
         lonvalue_temp=lonvalue ;
         latvalue_temp=latvalue ;
+        if (hasBounds) bounds_lon_temp=bounds_lon ;
+        if (hasBounds) bounds_lat_temp=bounds_lat ;
       }
       else
       {
@@ -434,15 +403,17 @@ namespace xios {
             k=j*ni+i ;
             lonvalue_temp(k)=lonvalue(i) ;
             latvalue_temp(k)=latvalue(j) ;
+            if (hasBounds)
+            {
+              for(int n=0;n<nvertex;n++) 
+              {
+                bounds_lon_temp(n,k)=bounds_lon(n,i) ;
+                bounds_lat_temp(n,k)=bounds_lat(n,j) ;
+              }
+            }
           }
       }
          
-        
-      const int zoom_ibegin_client  = zoom_ibegin_loc.getValue(),
-                zoom_jbegin_client  = zoom_jbegin_loc.getValue(),
-                zoom_ni_client      = zoom_ni_loc.getValue(),
-                zoom_nj_client      = zoom_nj_loc.getValue();
-                
       StdSize dm = zoom_ni_client * zoom_nj_client;
 
       lonvalue.resize(dm);
@@ -452,83 +423,24 @@ namespace xios {
       {
         for (int j = 0; j < zoom_nj_client; j++)
         {
-          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni.getValue() ); 
-          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni.getValue() );
+//          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni ); 
+//          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni );
+          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni ); 
+          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client - jbegin)*ni );
+          if (hasBounds)
+          {
+            for(int n=0;n<nvertex;n++) 
+            {
+//              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client -1) + (j + zoom_jbegin_client -1)*ni ); 
+//              bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client -1)+(j + zoom_jbegin_client -1)*ni );
+              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni ); 
+              bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client -jbegin)*ni );
+            }
+          }
         }
       }
-   }
+    }
  
-   //----------------------------------------------------------------
-      
-   void CDomain::completeLonLatServer(void)
-   {
-      CArray<double,1> lonvalue_temp ;
-      CArray<double,1> latvalue_temp ;
-      
-      const int ibegin_serv     = ibegin.getValue(),
-                jbegin_serv     = jbegin.getValue(),
-                zoom_ni_serv    = zoom_ni_loc.getValue(),
-                zoom_nj_serv    = zoom_nj_loc.getValue(),
-                ibegin_zoom_srv = zoom_ibegin_loc.getValue(),
-                jbegin_zoom_srv = zoom_jbegin_loc.getValue();
-                      
-                       
-      if (this->data_dim.getValue() == 2)
-      {
-         StdSize dm = zoom_ni_serv * zoom_nj_serv;      
-         
-         lonvalue_temp.resize(dm);
-         latvalue_temp.resize(dm);
-         
-         for (StdSize k = 0; k < lonvalue_sub.size(); k++)
-         {
-            CArray<double,1> lonvalue_loc(*(lonvalue_sub[k])) ;
-            CArray<double,1> latvalue_loc (*(latvalue_sub[k]));
-            
-            const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
-                      zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k],
-                      ibegin_cl = ibegin_sub[k] ,
-                      jbegin_cl = jbegin_sub[k] ,
-                      ni_cl = iend_sub[k] - ibegin_sub[k] + 1;
-                      
-            for (int i = 0; i < zoom_ni_cl; i++)
-            {
-               for (int j = 0; j < zoom_nj_cl; j++)
-               {
-                  int ii = i + (ibegin_cl-1) - (ibegin_serv - 1) + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1);
-                  int jj = j + (jbegin_cl-1) - (jbegin_serv - 1) + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1);
-                  lonvalue_temp(ii + jj * zoom_ni_serv) = lonvalue_loc(i + j * zoom_ni_cl);
-                  latvalue_temp(ii + jj * zoom_ni_serv) = latvalue_loc(i + j * zoom_ni_cl);
-               }
-            }
-         }
-         
-         lonvalue.reference(lonvalue_temp.copy()) ;
-         latvalue.reference(latvalue_temp.copy()) ;
-      }
-      else
-      {
-         lonvalue_temp.resize(zoom_ni_serv);
-         latvalue_temp.resize(zoom_nj_serv);
-         
-         for (StdSize k = 0; k < lonvalue_sub.size(); k++)
-         {
-            CArray<double,1> lonvalue_loc(*(lonvalue_sub[k]));
-            CArray<double,1> latvalue_loc(*(latvalue_sub[k]));
-            
-            const int zoom_ibegin_cl = ibegin_zoom_sub[k], zoom_ni_cl = ni_zoom_sub[k],
-                      zoom_jbegin_cl = jbegin_zoom_sub[k], zoom_nj_cl = nj_zoom_sub[k];
-                      
-            for (int i = 0; i < zoom_ni_cl; i++)
-              lonvalue_temp(i /*- (ibegin_serv - 1)*/ + (zoom_ibegin_cl - 1) - (ibegin_zoom_srv - 1)) = lonvalue_loc(i);
-               
-            for (int j = 0; j < zoom_nj_cl; j++)
-              latvalue_temp(j /*- (jbegin_serv - 1)*/ + (zoom_jbegin_cl - 1) - (jbegin_zoom_srv - 1)) = latvalue_loc(j);
-         }       
-         lonvalue.reference(lonvalue_temp.copy()) ;
-         latvalue.reference(latvalue_temp.copy()) ;
-      }
-   }
 
    //----------------------------------------------------------------
 
@@ -546,11 +458,10 @@ namespace xios {
          }
          else
          {
-            int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
-            int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
+            int zoom_iend = zoom_ibegin + zoom_ni - 1;
+            int zoom_jend = zoom_jbegin + zoom_nj - 1;
                 
-            if (zoom_ibegin.getValue() < 1  || zoom_jbegin.getValue() < 1 ||
-                zoom_iend > ni_glo.getValue() || zoom_jend > nj_glo.getValue())
+            if (zoom_ibegin < 1  || zoom_jbegin < 1 || zoom_iend > ni_glo || zoom_jend > nj_glo)
                ERROR("CDomain::checkZoom(void)",
                      << "Zoom is wrong defined,"
                      << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_ibegin") ;
@@ -558,58 +469,82 @@ namespace xios {
       }
       else
       {
-         this->zoom_ni.setValue(this->ni_glo.getValue()); 
-         this->zoom_nj.setValue(this->nj_glo.getValue());
-         this->zoom_ibegin.setValue(1);
-         this->zoom_jbegin.setValue(1);
+         zoom_ni = ni_glo; 
+         zoom_nj = nj_glo;
+         zoom_ibegin = 1;
+         zoom_jbegin = 1;
       }
-      // Résolution des données locales de zoom.
+      
+      // compute client zoom indices
+
+      int zoom_iend=zoom_ibegin+zoom_ni-1 ;
+      zoom_ibegin_client = ibegin_client > zoom_ibegin ? ibegin_client : zoom_ibegin ;
+      zoom_iend_client = iend_client < zoom_iend ? iend_client : zoom_iend ;
+      zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
+      if (zoom_ni_client<0) zoom_ni_client=0 ;
+
+    
+      int zoom_jend=zoom_jbegin+zoom_nj-1 ;
+      zoom_jbegin_client = jbegin_client > zoom_jbegin ? jbegin_client : zoom_jbegin ;
+      zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
+      zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
+      if (zoom_nj_client<0) zoom_nj_client=0 ;
+      
+      cout << zoom_ibegin<<"  "<<zoom_ni <<"  "<< zoom_jbegin<<"  "<<zoom_nj<<endl ;
+      cout << zoom_ibegin_client<<"  "<<zoom_ni_client <<"  "<< zoom_jbegin_client<<"  "<<zoom_nj_client<<endl ;
+      cout << ibegin_client<<"  "<<iend_client <<"  "<< jbegin_client<<"  "<<jend_client<<endl ;
+/*    
       {
-         int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
-         int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
+         int zoom_iend = zoom_ibegin + zoom_ni - 1;
+         int zoom_jend = zoom_jbegin + zoom_nj - 1;
          
-         if ((zoom_ibegin.getValue() > iend.getValue()) || 
-             (zoom_iend < ibegin.getValue()))
+         if ( zoom_ibegin > iend || zoom_iend < ibegin )
          {
-            zoom_ni_loc.setValue(0);
-            zoom_ibegin_loc.setValue(zoom_ibegin.getValue());
+            zoom_ni_loc = 0 ;
+            zoom_ibegin_loc = zoom_ibegin ;
          }
          else
          {
-            int zoom_ibegin_loc_ = (zoom_ibegin.getValue() > ibegin.getValue()) 
-                                 ? zoom_ibegin.getValue()
-                                 : ibegin.getValue();
-            int zoom_iend_loc_  = (zoom_iend < iend.getValue()) 
-                                 ? zoom_iend
-                                 : iend.getValue();
+            int zoom_ibegin_loc_ = (zoom_ibegin > ibegin) ? zoom_ibegin : ibegin ;
+            int zoom_iend_loc_  = (zoom_iend < iend) ? zoom_iend : iend ;
             int zoom_ni_loc_ = zoom_iend_loc_ - zoom_ibegin_loc_ + 1;
             
-            zoom_ni_loc.setValue(zoom_ni_loc_);
-            zoom_ibegin_loc.setValue(zoom_ibegin_loc_-ibegin.getValue()+1);
+            zoom_ni_loc = zoom_ni_loc_;
+            zoom_ibegin_loc = zoom_ibegin_loc_-ibegin.getValue()+1;
          }
          
-         if ((zoom_jbegin.getValue() > jend.getValue()) || 
-             (zoom_jend < jbegin.getValue()))
+         if ( zoom_jbegin > jend || zoom_jend < jbegin )
          {
-            zoom_nj_loc.setValue(0);
-            zoom_jbegin_loc.setValue(zoom_jbegin.getValue());
+            zoom_nj_loc = 0 ;
+            zoom_jbegin_loc = zoom_jbegin ;
          }
          else
          {
-            int zoom_jbegin_loc_ = (zoom_jbegin.getValue() > jbegin.getValue()) 
-                                 ? zoom_jbegin.getValue()
-                                 : jbegin.getValue();
-            int zoom_jend_loc_  = (zoom_jend < jend.getValue()) 
-                                 ? zoom_jend
-                                 : jend.getValue();
+            int zoom_jbegin_loc_ = ( zoom_jbegin > jbegin ) ? zoom_jbegin : jbegin ;
+            int zoom_jend_loc_  = (zoom_jend < jend) ? zoom_jend : jend ;
             int zoom_nj_loc_ = zoom_jend_loc_ - zoom_jbegin_loc_ + 1;
             
-            zoom_nj_loc.setValue(zoom_nj_loc_);
-            zoom_jbegin_loc.setValue(zoom_jbegin_loc_-jbegin.getValue()+1);
+            zoom_nj_loc = zoom_nj_loc_;
+            zoom_jbegin_loc = zoom_jbegin_loc_-jbegin.getValue()+1;
          }
       }
+*/
    }
-
+   
+   void CDomain::checkBounds(void)
+   {
+     if (!nvertex.isEmpty() && !bounds_lon.isEmpty() && !bounds_lat.isEmpty())
+     {
+       hasBounds=true ;
+       
+     }
+     else 
+     {
+       hasBounds=false;
+       nvertex=0 ;
+     }
+   }
+            
    //----------------------------------------------------------------
 
    void CDomain::checkAttributes(void)
@@ -622,33 +557,14 @@ namespace xios {
       this->checkLocalJDomain();
       
       this->checkZoom();
+      this->checkBounds();
       
       if (context->hasClient)
       { // Côté client uniquement
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
-         
-         this->ibegin_sub.push_back(this->ibegin.getValue());
-         this->jbegin_sub.push_back(this->jbegin.getValue());
-         this->iend_sub.push_back(this->iend.getValue());
-         this->jend_sub.push_back(this->jend.getValue()); 
-
-         this->ibegin_zoom_sub.push_back(this->zoom_ibegin_loc.getValue());
-         this->jbegin_zoom_sub.push_back(this->zoom_jbegin_loc.getValue());
-         this->ni_zoom_sub.push_back(this->zoom_ni_loc.getValue());
-         this->nj_zoom_sub.push_back(this->zoom_nj_loc.getValue());
-      
-         this->latvalue_sub.push_back(new CArray<double,1>(latvalue.copy()));
-         this->lonvalue_sub.push_back(new CArray<double,1>(lonvalue.copy()));  
-
-
-//         if (!this->isEmpty())
-//         {
-            this->completeLonLatClient();
-//         }
-         this->completeMask();
-
+         this->completeLonLatClient();
       }
       else
       { // Côté serveur uniquement
@@ -721,7 +637,8 @@ namespace xios {
     CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize ;
-    
+
+/*    
     // compute client zoom indices
     int zoom_iend=zoom_ibegin.getValue()+zoom_ni.getValue()-1 ;
     zoom_ibegin_client = ibegin_client > zoom_ibegin.getValue() ? ibegin_client : zoom_ibegin.getValue() ;
@@ -734,8 +651,11 @@ namespace xios {
     zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
     zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
     if (zoom_nj_client<0) zoom_nj_client=0 ;
- 
+*/ 
     // find how much client are connected to a server
+    int zoom_iend=zoom_ibegin+zoom_ni-1 ;
+    int zoom_jend=zoom_jbegin+zoom_nj-1 ;
+    
     jend_srv=0 ;
     for(int ns=0;ns<nbServer;ns++)
     {
@@ -746,7 +666,7 @@ namespace xios {
       
       ib = ibegin_client>ibegin_srv ? ibegin_client : ibegin_srv ;
       ie=  iend_client< iend_srv? iend_client : iend_srv ;
-      in=ie-ib+1 ;
+      in=ie-ib+1 ; 
       if (in<0) in=0 ;
       
       jb= jbegin_client>jbegin_srv ? jbegin_client : jbegin_srv ;
@@ -836,17 +756,21 @@ namespace xios {
     int jb,je,jn ;
   
     list<shared_ptr<CMessage> > list_msg ;    
-    list<CArray<double,1>* > list_indi,list_indj,list_lon,list_lat ;
+    list< CArray<int,1>* > list_indi,list_indj ;
+    list< CArray<double,1>* >list_lon,list_lat ;
+    list< CArray<double,2>* >list_boundslon,list_boundslat ;
 
     for(int ns=0;ns<connectedServer.size();ns++)
     {
       ib=ib_srv[ns] ; ie=ie_srv[ns] ; in=in_srv[ns] ;
       jb=jb_srv[ns] ; je=je_srv[ns] ; jn=jn_srv[ns] ;
       
-      CArray<double,1> indi(in*jn) ;
-      CArray<double,1> indj(in*jn) ;
+      CArray<int,1> indi(in*jn) ;
+      CArray<int,1> indj(in*jn) ;
       CArray<double,1> lon(in*jn) ;
       CArray<double,1> lat(in*jn) ;
+      CArray<double,2> boundslon(nvertex,in*jn) ;
+      CArray<double,2> boundslat(nvertex,in*jn) ;
 
           
       int ind_client,ind_loc ;
@@ -858,29 +782,43 @@ namespace xios {
           ind_loc=(i-ib)+(j-jb)*in ;
           lon(ind_loc)=lonvalue(ind_client) ;
           lat(ind_loc)=latvalue(ind_client) ;
+          if (hasBounds)
+          {
+            for(int n=0;n<nvertex;n++)
+            {
+              boundslon(n,ind_loc)=bounds_lon(n,ind_client);
+              boundslat(n,ind_loc)=bounds_lat(n,ind_client);
+            }
+          }
           indi(ind_loc)=i ;
           indj(ind_loc)=j ;
         }
       
-      list_indi.push_back(new CArray<double,1>(indi.copy())) ;
-      list_indj.push_back(new CArray<double,1>(indj.copy())) ;
+      list_indi.push_back(new CArray<int,1>(indi.copy())) ;
+      list_indj.push_back(new CArray<int,1>(indj.copy())) ;
       list_lon.push_back(new CArray<double,1>(lon.copy())) ;
       list_lat.push_back(new CArray<double,1>(lat.copy())) ;
+      if (hasBounds) list_boundslon.push_back(new CArray<double,2>(boundslon.copy())) ;
+      if (hasBounds) list_boundslat.push_back(new CArray<double,2>(boundslat.copy())) ;
 
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
 
-      *list_msg.back()<<this->getId()<<isCurvilinear ;
+      *list_msg.back()<<this->getId()<<(int)type ; // enum ne fonctionne pour les message => ToFix
+      *list_msg.back()<<isCurvilinear ;
       *list_msg.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back()<<*list_lat.back() ;
+      if (hasBounds) *list_msg.back()<<*list_boundslon.back()<<*list_boundslat.back();
       event.push(connectedServer[ns],nbSenders[ns],*list_msg.back()) ;
     }
 
     client->sendEvent(event) ;
     
-    list<CArray<double,1>* >::iterator it;
-    for(it=list_indi.begin();it!=list_indi.end();it++) delete *it;
-    for(it=list_indj.begin();it!=list_indj.end();it++) delete *it;
-    for(it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
-    for(it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
+    
+    for(list<CArray<int,1>* >::iterator it=list_indi.begin();it!=list_indi.end();it++) delete *it;
+    for(list<CArray<int,1>* >::iterator it=list_indj.begin();it!=list_indj.end();it++) delete *it;
+    for(list<CArray<double,1>* >::iterator it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
+    for(list<CArray<double,1>* >::iterator it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
+    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslon.begin();it!=list_boundslon.end();it++)   delete *it;
+    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;
     
   }
   
@@ -939,6 +877,8 @@ namespace xios {
     
     lonvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
     latvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
+    if (hasBounds) bounds_lon_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
+    if (hasBounds) bounds_lat_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
   }
     
   void CDomain::recvLonLat(CEventServer& event)
@@ -955,12 +895,17 @@ namespace xios {
   
   void CDomain::recvLonLat(CBufferIn& buffer)
   {
-    CArray<double,1> indi ;
-    CArray<double,1> indj ;
+    CArray<int,1> indi ;
+    CArray<int,1> indj ;
     CArray<double,1> lon ;
     CArray<double,1> lat ;
-     
-    buffer>>isCurvilinear>>indi>>indj>>lon>>lat ;
+    CArray<double,2> boundslon ;
+    CArray<double,2> boundslat ;
+
+    int type_int ;
+    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon>>lat ;
+    if (hasBounds) buffer>>boundslon>>boundslat ;
+    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
 
     int i,j,ind_srv ;
 
@@ -970,88 +915,19 @@ namespace xios {
       ind_srv=(i-zoom_ibegin_srv)+(j-zoom_jbegin_srv)*zoom_ni_srv ;
       lonvalue_srv(ind_srv)=lon(ind) ;
       latvalue_srv(ind_srv)=lat(ind) ;
+      if (hasBounds) 
+      {
+        for(int n=0;n<nvertex;n++) 
+        {
+          bounds_lon_srv(n,ind_srv)=boundslon(n,ind) ;
+          bounds_lat_srv(n,ind_srv)=boundslat(n,ind) ;
+        }
+      }
     }
   }
    //----------------------------------------------------------------
    
-   void CDomain::completeMask(void)
-   {
-      this->local_mask.resize(zoom_ni_loc,zoom_nj_loc);
-   }
-
-   //----------------------------------------------------------------
-
-   CArray<int,2> CDomain::getLocalMask(void) const
-   {
-      return (this->local_mask);
-   }
    
-   //----------------------------------------------------------------
-   
-   const std::vector<int> & CDomain::getIBeginSub(void) const
-   {
-      return (this->ibegin_sub);
-   }
-   
-   //----------------------------------------------------------------
-   
-   const std::vector<int> & CDomain::getIBeginZoomSub(void) const
-   {
-      return (this->ibegin_zoom_sub);
-   }
-
-   const std::vector<int> & CDomain::getNiZoomSub(void) const
-   {
-      return (this->ni_zoom_sub);
-   }
-               
-   //----------------------------------------------------------------
-                     
-   const std::vector<int> & CDomain::getIEndSub(void) const
-   {
-      return (this->iend_sub);
-   }
-   
-   //----------------------------------------------------------------
-   
-   const std::vector<int> & CDomain::getJBeginSub(void) const
-   {
-      return (this->jbegin_sub);
-   }
-   
-   //----------------------------------------------------------------
-      
-   const std::vector<int> & CDomain::getJBeginZoomSub(void) const
-   {
-      return (this->jbegin_zoom_sub);
-   }
-
-   const std::vector<int> & CDomain::getNjZoomSub(void) const
-   {
-      return (this->nj_zoom_sub);
-   }
-                  
-   
-   //----------------------------------------------------------------
-   
-   const std::vector<int> & CDomain::getJEndSub(void) const
-   {
-      return (this->jend_sub);
-   }
-   
-   //----------------------------------------------------------------
-   
-   const std::vector<CArray<double, 1>* > & CDomain::getLonValueSub(void) const
-   {
-      return (this->lonvalue_sub);
-   }
-   
-   //----------------------------------------------------------------
-   
-   const std::vector<CArray<double,1>*> & CDomain::getLatValueSub(void) const
-   {
-      return (this->latvalue_sub);
-   }   
    
    ///---------------------------------------------------------------
 
