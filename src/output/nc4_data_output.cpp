@@ -414,25 +414,25 @@ namespace xios
                {
                  start[0]=0 ;  
                  count[0]=0 ;  
-                 startBounds[0]=0 ;  
-                 countBounds[0]=domain->nvertex ;
                  startBounds[1]=0 ;  
-                 countBounds[1]=0 ;  
+                 countBounds[1]=domain->nvertex ;
+                 startBounds[0]=0 ;  
+                 countBounds[0]=0 ;  
                }
                else
                {
                  start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin ; 
                  count[0]=domain->zoom_nj_srv ; 
-                 startBounds[0]=0 ;  
-                 countBounds[0]=domain->nvertex ;
-                 startBounds[1]=domain->zoom_jbegin_srv-domain->zoom_jbegin ; 
-                 countBounds[1]=domain->zoom_nj_srv ;   
+                 startBounds[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin ; 
+                 startBounds[1]=0 ;  
+                 countBounds[0]=domain->zoom_nj_srv ;   
+                 countBounds[1]=domain->nvertex ;
                }
                SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
                SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
                if (domain->hasBounds) 
                {
-                 SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0,&start,&count);
+                 SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0,&startBounds,&countBounds);
                  SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0,&startBounds,&countBounds);
                }
  
