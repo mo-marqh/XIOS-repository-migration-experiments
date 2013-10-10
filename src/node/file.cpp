@@ -189,7 +189,7 @@ namespace xios {
      CDate& currentDate=context->calendar->getCurrentDate() ;
      if (! sync_freq.isEmpty())
      {
-       if (*lastSync+syncFreq < currentDate)
+       if (*lastSync+syncFreq <= currentDate)
        {
          *lastSync=currentDate ;
          data_out->syncFile() ;
