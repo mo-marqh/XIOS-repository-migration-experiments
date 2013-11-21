@@ -1,4 +1,4 @@
-PROGRAM test_client
+PROGRAM test_unstruct
 
   USE xios
   USE mod_wait
@@ -149,7 +149,7 @@ PROGRAM test_client
   
 !  CALL MPI_FINALIZE(ierr)
   
-END PROGRAM test_client
+END PROGRAM test_unstruct
 
 
   
