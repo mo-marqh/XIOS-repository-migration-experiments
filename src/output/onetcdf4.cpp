@@ -245,6 +245,8 @@ namespace xios
          std::vector<int> dimids;
          std::vector<StdSize> dimsizes ;
          StdSize size ;
+         StdSize totalSize ;
+         StdSize maxSize=1024*1024*256 ; // == 2GB/8 if output double
          
          int grpid = this->getCurrentGroup();
          
@@ -261,6 +263,16 @@ namespace xios
          }
          
          CheckError(nc_def_var (grpid, name.c_str(), type, dimids.size(), &(dimids[0]), &varid));
+
+// set chunksize : size of one record
+// but must not be > 2GB (netcdf or HDF5 problem)
+         totalSize=1 ;
+         for(vector<StdSize>::reverse_iterator it=dimsizes.rbegin(); it!=dimsizes.rend();++it)
+         {
+           totalSize*= *it ;
+           if (totalSize>=maxSize) *it=1 ;
+         }
+
          CheckError(nc_def_var_chunking (grpid, varid, NC_CHUNKED, &(dimsizes[0])));
          CheckError(nc_def_var_fill(grpid, varid, true, NULL));
          return (varid);
