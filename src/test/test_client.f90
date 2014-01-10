@@ -27,12 +27,18 @@ PROGRAM test_client
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,l,ts,n
 
+!!! MPI Initialization
+
   CALL MPI_INIT(ierr)
-  CALL MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-  CALL MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
   
   CALL init_wait
-  
+ 
+!!! XIOS Initialization (get the local communicator)
+
+  CALL xios_initialize(id,return_comm=comm)
+
+  CALL MPI_COMM_RANK(comm,rank,ierr)
+  CALL MPI_COMM_SIZE(comm,size,ierr)  
   
   DO j=1,nj_glo
     DO i=1,ni_glo
@@ -60,9 +66,6 @@ PROGRAM test_client
   lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
   
-
-  CALL xios_initialize(id,return_comm=comm)
-
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
