@@ -603,7 +603,7 @@ namespace xios
              break;
          }
 
-         if ( domain->type == CDomain::type_attr::curvilinear || type == CDomain::type_attr::regular)dims.push_back(dimYid);
+         if ( domain->type == CDomain::type_attr::curvilinear || domain->type == CDomain::type_attr::regular)dims.push_back(dimYid);
          dims.push_back(dimXid);
           
          SuperClassWriter::addVariable(fieldid, type, dims);
