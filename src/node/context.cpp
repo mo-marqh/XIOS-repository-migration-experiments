@@ -174,46 +174,7 @@ namespace xios {
       CContext::setCurrent(currentContextId);  
    }
    
-   //----------------------------------------------------------------
-/*
-   void CContext::toBinary(StdOStream & os) const
-   {
-      SuperClass::toBinary(os);
 
-#define DECLARE_NODE(Name_, name_)                                         \
-   {                                                                       \
-      ENodeType renum = C##Name_##Definition::GetType();                   \
-      bool val = C##Name_##Definition::has(C##Name_##Definition::GetDefName()); \
-      os.write (reinterpret_cast<const char*>(&renum), sizeof(ENodeType)); \
-      os.write (reinterpret_cast<const char*>(&val), sizeof(bool));        \
-      if (val) C##Name_##Definition::get(C##Name_##Definition::GetDefName())->toBinary(os);   \
-   }   
-#define DECLARE_NODE_PAR(Name_, name_)
-#include "node_type.conf"
-   }
-*/
-   //----------------------------------------------------------------
-/*
-   void CContext::fromBinary(StdIStream & is)
-   {
-      SuperClass::fromBinary(is);
-#define DECLARE_NODE(Name_, name_)                                         \
-   {                                                                       \
-      bool val = false;                                                    \
-      ENodeType renum = Unknown;                                           \
-      is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));        \
-      is.read (reinterpret_cast<char*>(&val), sizeof(bool));               \
-      if (renum != C##Name_##Definition::GetType())                        \
-         ERROR("CContext::fromBinary(StdIStream & is)",                    \
-               << "[ renum = " << renum << "] Bad type !");                \
-      if (val) C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> fromBinary(is); \
-   }   
-#define DECLARE_NODE_PAR(Name_, name_)
-#include "node_type.conf"
-      
-   }
- */
-   
    //----------------------------------------------------------------
 
    StdString CContext::toString(void) const
@@ -336,6 +297,10 @@ namespace xios {
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
 
+        
+      this->processEnabledFiles() ;
+
+/*        
       //Recherche des champs à sortir (enable à true + niveau de sortie correct)
       // pour chaque fichier précédemment listé.
       this->findAllEnabledFields();
@@ -346,6 +311,9 @@ namespace xios {
       // Traitement des opérations.
       this->solveAllOperation();
 
+      // Traitement des expressions.
+      this->solveAllExpression();
+*/
       // Nettoyage de l'arborescence
       CleanTree();
       if (hasClient) sendCreateFileHeader() ;
@@ -356,6 +324,13 @@ namespace xios {
      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
      (void)this->enabledFiles[i]->getEnabledFields();
    }
+   
+    void CContext::processEnabledFiles(void)
+   {
+     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
+     this->enabledFiles[i]->processEnabledFile();
+   }
+  
 
    void CContext::solveAllGridRef(void)
    {
@@ -369,6 +344,12 @@ namespace xios {
       this->enabledFiles[i]->solveEFOperation();
    }
 
+   void CContext::solveAllExpression(void)
+   {
+      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
+      this->enabledFiles[i]->solveEFExpression();
+   }
+   
    void CContext::solveAllInheritance(bool apply)
    {
      // Résolution des héritages descendants (càd des héritages de groupes)

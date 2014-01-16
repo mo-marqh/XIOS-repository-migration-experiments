@@ -10,6 +10,7 @@
 #include "xmlioserver_spl.hpp"
 #include "type.hpp"
 #include "context_client.hpp"
+#include <set>
 
 namespace xios{
    
@@ -22,7 +23,9 @@ namespace xios{
       , freq_operation(), freq_write()
       , nstep(0)
       , last_Write(), last_operation()
-      , foperation()
+      , foperation(), hasInstantData(false), hasExpression(false)
+      , active(false) , hasOutputFile(false), slotUpdateDate(NULL)
+      , processed(false)
       { /* Ne rien faire de plus */ }
 
    CField::CField(const StdString & id)
@@ -32,7 +35,9 @@ namespace xios{
       , freq_operation(), freq_write()
       , nstep(0)
       , last_Write(), last_operation()
-      , foperation()
+      , foperation(), hasExpression(false)
+      , active(false), hasOutputFile(false), slotUpdateDate(NULL)
+      , processed(false)
    { /* Ne rien faire de plus */ }
 
    CField::~CField(void)
@@ -40,6 +45,9 @@ namespace xios{
 //      this->grid.reset() ;
 //      this->file.reset() ;
       this->foperation.reset() ;
+      if (hasExpression) delete expression ;
+      if (slotUpdateDate!=NULL) delete slotUpdateDate ;
+        
    }
 
    //----------------------------------------------------------------
@@ -198,7 +206,8 @@ namespace xios{
 
    void CField::setRelFile(CFile* _file)
    { 
-      this->file = _file; 
+      this->file = _file;
+      hasOutputFile=true ; 
    }
 
    //----------------------------------------------------------------
@@ -326,13 +335,29 @@ namespace xios{
 
    //----------------------------------------------------------------
 
+   void CField::processEnabledField(void)
+   {
+      if (!processed)
+      {
+        processed=true ;
+        solveRefInheritance(true) ;
+        solveOperation() ;
+        solveGridReference() ;
+      
+        if (hasDirectFieldReference()) baseRefObject->processEnabledField() ;
+        buildExpression(); 
+        active=true;
+      }
+    }
+    
    void CField::solveRefInheritance(bool apply)
    {
       std::set<CField *> sset;
       CField* refer_sptr;
       CField * refer_ptr = this;
       
-      this->baseRefObject = CField::get(this);
+      if (this->hasDirectFieldReference())  baseRefObject = getDirectFieldReference();
+      else  baseRefObject = CField::get(this);
       
       while (refer_ptr->hasDirectFieldReference())
       {
@@ -348,9 +373,11 @@ namespace xios{
 
          SuperClassAttribute::setAttributes(refer_ptr, apply);
          sset.insert(refer_ptr);
-         baseRefObject = refer_sptr;
+//ym         baseRefObject = refer_sptr;
 //ym         refObject.push_back(refer_sptr);
       }
+      
+      if (hasDirectFieldReference()) baseRefObject->addReference(this) ;
    }
 
    //----------------------------------------------------------------
@@ -358,13 +385,19 @@ namespace xios{
    void  CField::solveOperation(void)
    {
       using namespace func;
-       
-      StdString id = this->getBaseFieldReference()->getId();
+      
+      if (!hasOutputFile) return ;
+      
+      StdString id ;
+      if (hasId()) id=getId();
+      else if (!name.isEmpty()) id=name ;
+      else if (hasDirectFieldReference()) id=baseRefObject->getId() ;
+      
       CContext* context = CContext::getCurrent();
       
       if (freq_op.isEmpty()) freq_op=string("1ts") ;
       
-      if (operation.isEmpty()  || this->file->output_freq.isEmpty())
+      if (operation.isEmpty() )
       {
          ERROR("CField::solveOperation(void)",
                << "[ id = " << id << "]"
@@ -547,6 +580,7 @@ namespace xios{
      }
 
      grid->solveReference() ;
+
    }
 
 
@@ -597,4 +631,93 @@ namespace xios{
    }
    ///-------------------------------------------------------------------
 
+   void CField::parse(xml::CXMLNode & node)
+   {
+      SuperClass::parse(node);
+      node.getContent(this->content) ;
+    }
+    
+  CArray<double,1>* CField::getInstantData(void)
+  {
+    if (!hasInstantData) 
+    {
+      instantData.resize(grid->storeIndex_client.numElements()) ;
+      hasInstantData=true ;
+    }
+    return &instantData ;
+  }
+  
+  void CField::addReference(CField* field)
+  {
+    refObject.push_back(field) ;
+  }
+  
+  void CField::addDependency(CField* field, int slotId)
+  {
+    fieldDependency.push_back(pair<CField*,int>(field,slotId)) ;
+  }
+  
+  void CField::buildExpression(void)
+  {
+    if (content.size() > 0) 
+    {
+      CSimpleNodeExpr* simpleExpr=parseExpr(content+'\0') ;
+      expression=CFieldNode::newNode(simpleExpr) ;
+      delete simpleExpr ;
+      set<string> fieldIds ;
+      expression->getFieldIds(fieldIds) ;
+      for (set<string>::iterator it=fieldIds.begin() ; it!=fieldIds.end();++it) if (*it!="this") CField::get(*it)->processEnabledField() ;
+      
+      expression->reduce(this) ;
+
+      slots.resize(fieldIds.size()) ;
+      resetSlots() ;
+      int slotId=0 ;
+      set<CField*> fields ;
+      expression->getFields(fields) ;
+      for (set<CField*>::iterator it=fields.begin() ; it!=fields.end();++it,++slotId) (*it)->addDependency(this,slotId) ;
+      hasExpression=true; 
+    }
+  }
+  
+  void CField::resetSlots(void)
+  {
+    for(vector<bool>::iterator it=slots.begin();it!=slots.end();++it) *it=false ;
+  }
+  
+  bool CField::slotsFull(void)
+  {
+    bool ret=true ;
+    for(vector<bool>::iterator it=slots.begin();it!=slots.end();++it) ret &= *it;
+    return ret ;
+  }
+
+  
+  void CField::setSlot(int slotId)
+  {
+    CContext* context = CContext::getCurrent() ;
+    const CDate & currDate = context->getCalendar()->getCurrentDate();
+    if (slotUpdateDate==NULL || currDate!=*slotUpdateDate) 
+    {
+      resetSlots() ;
+      if (slotUpdateDate==NULL) slotUpdateDate=new CDate(currDate) ;
+      else *slotUpdateDate=currDate ;
+    }
+    slots[slotId]=true ;
+    if (slotsFull())
+    {
+      CArray<double,1> expr(expression->compute()) ;
+      
+      if (hasInstantData) 
+      {
+        instantData=expr ;
+        for(list< pair<CField *,int> >::iterator it=fieldDependency.begin(); it!=fieldDependency.end(); ++it)  
+          if (it->first!=this) it->first->setSlot(it->second) ;
+      }
+      
+      if (hasOutputFile) updateDataFromExpression(expr) ;
+      
+    }
+  }
+  
 } // namespace xios

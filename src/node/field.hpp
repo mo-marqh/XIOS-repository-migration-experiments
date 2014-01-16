@@ -12,6 +12,7 @@
 #include "calendar_util.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
+#include "expr_node.hpp"
 //#include "context.hpp"
 
 
@@ -64,6 +65,7 @@ namespace xios {
          /// Accesseurs ///
          CField* getDirectFieldReference(void) const;
          CField* getBaseFieldReference(void)   const;
+         void addReference(CField* field) ;
          const std::vector<CField*> & getAllReference(void) const;
 
          CGrid* getRelGrid(void) const ;
@@ -91,6 +93,7 @@ namespace xios {
          void resetNStep() ;
 
          template <int N> bool updateData(const CArray<double, N>&   data);
+         bool updateDataFromExpression(const CArray<double, 1>&   data);
          
          bool updateDataServer
                (const CDate & currDate,
@@ -101,8 +104,11 @@ namespace xios {
          /// Test ///
          bool hasDirectFieldReference(void) const;
          bool isActive(void) const;
+         bool active ;
+         bool hasOutputFile ;
 
          /// Traitements ///
+         void processEnabledField(void) ;
          void solveRefInheritance(bool apply);
          void solveGridReference(void);
          void solveOperation(void);
@@ -126,7 +132,8 @@ namespace xios {
         void writeField(void) ;
         void outputField(CArray<double,3>& fieldOut) ;
         void outputField(CArray<double,2>& fieldOut) ;
-        
+        void parse(xml::CXMLNode & node) ;
+        CArray<double,1>* getInstantData(void)  ;
       public :
 
          /// Propriétés privées ///
@@ -147,9 +154,24 @@ namespace xios {
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
          
          CArray<double, 1> data;
+         CArray<double, 1> instantData;
+         bool hasInstantData ;
          map<int, CArray<double,1>* > data_srv ;
          bool isOnceOperation ;
          bool isFirstOperation ;
+         string content ;
+         
+         list< pair<CField *,int> > fieldDependency ;
+         void buildExpression(void) ;
+         void addDependency(CField* field, int slotId) ;
+         void resetSlots(void) ;
+         vector<bool> slots ;
+         CDate* slotUpdateDate ;
+         CFieldNode * expression ;
+         bool hasExpression ;
+         bool slotsFull(void) ;
+         void setSlot(int slotId);
+         bool processed ;
 
    }; // class CField
 

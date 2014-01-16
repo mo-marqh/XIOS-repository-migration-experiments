@@ -101,10 +101,10 @@ namespace xios {
 //         field_tmp->refObject.push_back(sptfield) ;
          newEnabledFields.push_back(*it) ;
          // Le champ est finalement actif, on y ajoute sa propre reference.
-         (*it)->refObject.push_back(*it);
+//         (*it)->refObject.push_back(*it);
          // Le champ est finalement actif, on y ajoute la référence au champ de base.
          (*it)->setRelFile(CFile::get(this));
-         (*it)->baseRefObject->refObject.push_back(*it);
+//         (*it)->baseRefObject->refObject.push_back(*it);
          // A faire, ajouter les references intermediaires...
       }
       enabledFields=newEnabledFields ;
@@ -365,6 +365,23 @@ namespace xios {
 
    //----------------------------------------------------------------
 
+   void CFile::processEnabledFile(void)
+   {
+     if (output_freq.isEmpty()) ERROR("void CFile::processEnabledFile(void)",
+                                       <<"File attribute <<output_freq>> is undefined"); 
+     solveFieldRefInheritance(true) ;
+     getEnabledFields() ;
+     processEnabledFields() ;
+   }
+   
+   void CFile::processEnabledFields(void)
+   {
+      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
+      {
+        this->enabledFields[i]->processEnabledField() ;
+      }
+    }
+    
    void CFile::solveFieldRefInheritance(bool apply)
    {
       // Résolution des héritages par référence de chacun des champs contenus dans le fichier.
@@ -388,42 +405,13 @@ namespace xios {
       for (unsigned int i = 0; i < this->enabledFields.size(); i++)
          this->enabledFields[i]->solveOperation();
    }
-   
-   //---------------------------------------------------------------
-/*
-   void CFile::toBinary  (StdOStream & os) const
+ 
+   void CFile::solveEFExpression(void)
    {
-      ENodeType genum = CFileGroup::GetType();
-      bool hasVFG = (this->getVirtualFieldGroup() != NULL);
-      SuperClass::toBinary(os);
-      
-      os.write (reinterpret_cast<const char*>(&genum) , sizeof(ENodeType));
-      os.write (reinterpret_cast<const char*>(&hasVFG) , sizeof(bool));
-      
-      if (hasVFG)this->getVirtualFieldGroup()->toBinary(os);
-         
-   }
-   
-   //----------------------------------------------------------------
-   
-   void CFile::fromBinary(StdIStream & is)
-   {
-      ENodeType renum = Unknown;
-      bool hasVFG = false;
-      SuperClass::fromBinary(is);
-      
-      is.read (reinterpret_cast<char*>(&renum), sizeof(ENodeType));
-      is.read (reinterpret_cast<char*>(&hasVFG), sizeof(bool));
-      
-      if (renum != CFileGroup::GetType())
-         ERROR("CFile::fromBinary(StdIStream & is)",
-               << "[ renum = " << renum << "] Bad type !");
-      
-//      this->setVirtualFieldGroup(this->getId());
-      if (hasVFG)this->getVirtualFieldGroup()->fromBinary(is);
-      
-   }
-*/
+      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
+         this->enabledFields[i]->buildExpression();
+   }   
+ 
 
    CField* CFile::addField(const string& id)
    {

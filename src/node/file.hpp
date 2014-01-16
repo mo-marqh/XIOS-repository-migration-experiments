@@ -67,7 +67,8 @@ namespace xios {
          /// Mutateurs ///
          void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
          void setVirtualFieldGroup(void);
-
+         void processEnabledFile(void) ;
+         void processEnabledFields(void) ;
          void createHeader(void);
          void close(void) ;
          
@@ -76,6 +77,7 @@ namespace xios {
          void solveFieldRefInheritance(bool apply);
          void solveEFGridRef(void);
          void solveEFOperation(void);
+         void solveEFExpression(void);
 
          /// Destructeur ///
          virtual ~CFile(void);

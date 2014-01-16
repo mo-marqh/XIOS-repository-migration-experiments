@@ -4,8 +4,8 @@
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
 #include "declare_group.hpp"
-
-#include "data_output.hpp"
+#include "group_template.hpp"
+#include "array_new.hpp"
 
 namespace xios
 {

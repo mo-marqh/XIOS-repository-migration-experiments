@@ -109,8 +109,10 @@ namespace xios {
          void finalize(void) ;
          void closeDefinition(void) ;
          void findAllEnabledFields(void);
+         void processEnabledFiles(void) ;
          void solveAllGridRef(void);
          void solveAllOperation(void);
+         void solveAllExpression(void);
          void solveAllInheritance(bool apply=true) ;
          void findEnabledFiles(void);
          void closeAllFile(void) ;
