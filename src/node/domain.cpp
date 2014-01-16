@@ -69,7 +69,6 @@ namespace xios {
       this->relFiles.insert(filename);
    }
 
-   //----------------------------------------------------------------
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
    StdString CDomain::GetDefName(void){ return (CDomain::GetName()); }
@@ -876,9 +875,16 @@ namespace xios {
     }
     
     lonvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
+    lonvalue_srv = 0. ;
     latvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
-    if (hasBounds) bounds_lon_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
-    if (hasBounds) bounds_lat_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
+    latvalue_srv = 0. ;
+    if (hasBounds) 
+    {
+      bounds_lon_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
+      bounds_lon_srv = 0. ;
+      bounds_lat_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
+      bounds_lat_srv = 0. ;
+    }
   }
     
   void CDomain::recvLonLat(CEventServer& event)
