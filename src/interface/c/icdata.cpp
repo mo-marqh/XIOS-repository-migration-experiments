@@ -74,6 +74,17 @@ extern "C"
      CTimer::get("XIOS").suspend() ;
    }
  
+   void cxios_context_is_initialized(const char * context_id , int len_context_id, bool* initialized)
+   {
+     std::string str; 
+     
+     if (!cstr2string(context_id, len_context_id, str)) return;
+     CTimer::get("XIOS").resume() ;
+     CContext* context = CContext::get(str,str) ;
+     *initialized=context->isInitialized() ;
+     CTimer::get("XIOS").suspend() ;
+   }  
+   
     void cxios_context_close_definition()
    {
      CTimer::get("XIOS").resume() ;

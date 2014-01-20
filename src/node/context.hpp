@@ -102,6 +102,7 @@ namespace xios {
          void clientLoop(void) ;
          void initServer(MPI_Comm intraComm, MPI_Comm interComm) ;
          void initClient(MPI_Comm intraComm, MPI_Comm interComm) ;
+         bool isInitialized(void) ;
          CContextServer* server ;
          CContextClient* client ;
          bool hasClient ;

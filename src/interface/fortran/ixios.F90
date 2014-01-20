@@ -11,7 +11,7 @@ USE icontext_attr, ONLY : xios(set_context_attr), xios(set_context_attr_hdl), &
                           xios(is_defined_context_attr), xios(is_defined_context_attr_hdl)
                                                
 USE idata, ONLY : xios(initialize),xios(init_server), xios(finalize), xios(context_initialize),  &
-                  xios(close_context_definition),xios(solve_inheritance),       &
+                  xios(context_is_initialized), xios(close_context_definition),xios(solve_inheritance),       &
                   xios(context_finalize), xios(send_field_r8_1d), xios(send_field_r8_2d), &
                   xios(send_field_r8_3d), xios(send_field_r4_1d), xios(send_field_r4_2d), &
                   xios(send_field_r4_3d)
@@ -154,7 +154,8 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
           
  PUBLIC :: xios(set_current_context)  
  PUBLIC :: xios(set_timestep),xios(update_calendar)
- PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),xios(solve_inheritance), &
-           xios(close_context_definition), xios(context_finalize), xios(send_field),xios(field_is_active)
+ PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),xios(context_is_initialized), &
+           xios(solve_inheritance), xios(close_context_definition), xios(context_finalize), xios(send_field),          &
+           xios(field_is_active)
 
 END MODULE XIOS

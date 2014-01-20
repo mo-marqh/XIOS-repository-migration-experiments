@@ -259,6 +259,11 @@ namespace xios {
      client = new CContextClient(this,intraComm, interComm) ;
    } 
 
+   bool CContext::isInitialized(void)
+   {
+     return hasClient ;
+   }
+    
    void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm)
    {
      hasServer=true ;

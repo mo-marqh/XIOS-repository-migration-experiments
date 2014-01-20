@@ -24,6 +24,14 @@ MODULE IDATA
          INTEGER  (kind = C_INT)                    :: f_comm
       END SUBROUTINE cxios_context_initialize
 
+      SUBROUTINE cxios_context_is_initialized(context_id,len_context_id,initialized) BIND(C)
+         USE ISO_C_BINDING
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: context_id
+         INTEGER  (kind = C_INT)     , VALUE        :: len_context_id
+         LOGICAL  (kind = C_BOOL)                   :: initialized
+      END SUBROUTINE cxios_context_is_initialized
+      
+      
        SUBROUTINE  cxios_context_close_definition() BIND(C)
          USE ISO_C_BINDING
       END SUBROUTINE cxios_context_close_definition
@@ -129,7 +137,19 @@ MODULE IDATA
       CALL cxios_context_initialize(context_id,LEN(context_id),comm)
  
     END SUBROUTINE  xios(context_initialize)
-    
+
+
+   LOGICAL FUNCTION  xios(context_is_initialized)(context_id)
+   USE ISO_C_BINDING
+   IMPLICIT NONE
+   CHARACTER(LEN=*),INTENT(IN)  :: context_id
+   LOGICAL(KIND=C_BOOL) :: is_init
+         
+      CALL cxios_context_is_initialized(context_id, LEN(context_id), is_init)
+      xios(context_is_initialized) = is_init
+ 
+    END FUNCTION xios(context_is_initialized)   
+
     
    SUBROUTINE  xios(finalize)
    IMPLICIT NONE
