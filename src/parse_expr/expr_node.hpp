@@ -192,10 +192,14 @@ namespace xios
     public:
     CFieldNode(void) : CNodeExpr() {}
     static CFieldNode* newNode(CSimpleNodeExpr* simpleNode) ;
-    virtual void reduce(CField* thisField = NULL) =0 ; 
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField) =0 ; 
     virtual CArray<double,1> compute(void)=0 ;
     virtual void getFieldIds(set<string>& fieldIds)=0 ;
+    virtual void getInstantFieldIds(set<string>& fieldIds)=0 ;
+    virtual void getAverageFieldIds(set<string>& fieldIds)=0 ;
     virtual void getFields(set<CField*>& fields)=0 ;
+    virtual void getInstantFields(set<CField*>& fields)=0 ;
+    virtual void getAverageFields(set<CField*>& fields)=0 ;
       
     virtual ~CFieldNode() {}
   } ;
@@ -211,11 +215,15 @@ namespace xios
   {
     public:
     CInstantFieldNode(CSimpleNodeExpr* simpleNode) : CFieldNode(), fieldId(simpleNode->id) {}
-    virtual void reduce(CField* thisField = NULL) ;
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField) ; 
     virtual CArray<double,1> compute(void) { return CArray<double,1>(*array);}
     virtual ~CInstantFieldNode() { }
     virtual void getFieldIds(set<string>& fieldIds) { fieldIds.insert(fieldId) ;}
+    virtual void getInstantFieldIds(set<string>& fieldIds) { fieldIds.insert(fieldId) ;}
+    virtual void getAverageFieldIds(set<string>& fieldIds) { }
     virtual void getFields(set<CField*>& fields) { fields.insert(field) ;}
+    virtual void getInstantFields(set<CField*>& fields) { fields.insert(field) ;}
+    virtual void getAverageFields(set<CField*>& fields) { }
        
     string fieldId;
     CField* field ;
@@ -237,10 +245,14 @@ namespace xios
     
     CAverageFieldNode(CSimpleNodeExpr* simpleNode) : CFieldNode(), fieldId(simpleNode->id) {}
     
-    virtual void reduce(CField* thisField = NULL) ;
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField) ; 
     virtual CArray<double,1> compute(void) { return CArray<double,1>(*array); }
     virtual void getFieldIds(set<string>& fieldIds) { fieldIds.insert(fieldId) ;}
+    virtual void getInstantFieldIds(set<string>& fieldIds) { }
+    virtual void getAverageFieldIds(set<string>& fieldIds) { fieldIds.insert(fieldId) ;}
     virtual void getFields(set<CField*>& fields) { fields.insert(field) ;}
+    virtual void getInstantFields(set<CField*>& fields) { } 
+    virtual void getAverageFields(set<CField*>& fields) { fields.insert(field) ;}
     virtual ~CAverageFieldNode() {}
     string fieldId;
     CField* field ;
@@ -263,16 +275,19 @@ namespace xios
       child=newNode(simpleNode->children[0]) ;
     }
     
-    virtual void reduce(CField* thisField = NULL)
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField) 
     {
-      child->reduce(thisField) ;
+      child->reduce(thisField, associatedInstantField, associatedAverageField) ;
       op=operatorExpr.getOpField(opId) ;
       reduced=true ;
     }
     
     virtual void getFieldIds(set<string>& fieldIds) {child-> getFieldIds(fieldIds);}
-    virtual void getFields(set<CField*>& fields) {child-> getFields(fields);}
-    
+    virtual void getInstantFieldIds(set<string>& fieldIds) {child->  getInstantFieldIds(fieldIds) ;}
+    virtual void getAverageFieldIds(set<string>& fieldIds) {child->  getAverageFieldIds(fieldIds) ;}
+    virtual void getFields(set<CField*>& fields) { child-> getFields(fields) ;}
+    virtual void getInstantFields(set<CField*>& fields) {child-> getInstantFields(fields) ; } 
+    virtual void getAverageFields(set<CField*>& fields) {child-> getAverageFields(fields) ; }    
     virtual CArray<double,1> compute(void)
     {
       return op(child->compute()) ;
@@ -302,16 +317,20 @@ namespace xios
       child2=newNode(simpleNode->children[1]) ;
     }
     
-    virtual void reduce(CField* thisField = NULL)
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField)
     {
-      child1->reduce(thisField) ;
-      child2->reduce(thisField) ;
+      child1->reduce(thisField, associatedInstantField, associatedAverageField) ;
+      child2->reduce(thisField, associatedInstantField, associatedAverageField) ;
       op=operatorExpr.getOpFieldField(opId) ;
       reduced=true ;
     }
 
     virtual void getFieldIds(set<string>& fieldIds) {child1-> getFieldIds(fieldIds); child2-> getFieldIds(fieldIds);}
+    virtual void getInstantFieldIds(set<string>& fieldIds) {child1-> getInstantFieldIds(fieldIds); child2-> getInstantFieldIds(fieldIds);}
+    virtual void getAverageFieldIds(set<string>& fieldIds) {child1-> getAverageFieldIds(fieldIds); child2-> getAverageFieldIds(fieldIds);}
     virtual void getFields(set<CField*>& fields) {child1-> getFields(fields); child2-> getFields(fields);}
+    virtual void getInstantFields(set<CField*>& fields) {child1-> getInstantFields(fields); child2-> getInstantFields(fields);}
+    virtual void getAverageFields(set<CField*>& fields) {child1-> getAverageFields(fields); child2-> getAverageFields(fields);}
 
     virtual CArray<double,1> compute(void)
     {
@@ -343,16 +362,20 @@ namespace xios
       child2=newNode(simpleNode->children[1]) ;
     }
     
-    virtual void reduce(CField* thisField = NULL)
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField)
     {
       child1->reduce() ;
-      child2->reduce(thisField) ;
+      child2->reduce(thisField, associatedInstantField, associatedAverageField) ;
       op=operatorExpr.getOpScalarField(opId) ;
       reduced=true ;
     }
    
     virtual void getFieldIds(set<string>& fieldIds) {child2-> getFieldIds(fieldIds);}
+    virtual void getInstantFieldIds(set<string>& fieldIds) {child2-> getInstantFieldIds(fieldIds);}
+    virtual void getAverageFieldIds(set<string>& fieldIds) {child2-> getAverageFieldIds(fieldIds);}
     virtual void getFields(set<CField*>& fields) {child2-> getFields(fields);}
+    virtual void getInstantFields(set<CField*>& fields) {child2-> getInstantFields(fields);}
+    virtual void getAverageFields(set<CField*>& fields) {child2-> getAverageFields(fields);}
 
     virtual CArray<double,1> compute(void)
     {
@@ -384,9 +407,9 @@ namespace xios
       child2=CScalarNode::newNode(simpleNode->children[1]) ;
     }
     
-    virtual void reduce(CField* thisField = NULL)
+    virtual void reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField)
     {
-      child1->reduce(thisField) ;
+      child1->reduce(thisField, associatedInstantField, associatedAverageField) ;
       child2->reduce() ;
       op=operatorExpr.getOpFieldScalar(opId) ;
       reduced=true ;
@@ -398,7 +421,11 @@ namespace xios
     }
     
     virtual void getFieldIds(set<string>& fieldIds) {child1-> getFieldIds(fieldIds);}
+    virtual void getInstantFieldIds(set<string>& fieldIds) {child1-> getInstantFieldIds(fieldIds);}
+    virtual void getAverageFieldIds(set<string>& fieldIds) {child1-> getAverageFieldIds(fieldIds);}
     virtual void getFields(set<CField*>& fields) {child1-> getFields(fields);}
+    virtual void getInstantFields(set<CField*>& fields) {child1-> getInstantFields(fields);}
+    virtual void getAverageFields(set<CField*>& fields) {child1-> getAverageFields(fields);}
 
     ~COperatorFieldScalarNode() {delete child1, delete child2; }
          

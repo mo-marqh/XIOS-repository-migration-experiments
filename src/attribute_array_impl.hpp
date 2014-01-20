@@ -41,6 +41,13 @@ namespace xios
       ///--------------------------------------------------------------
 
       template <typename T_numtype, int N_rank>
+      void CAttributeArray<T_numtype, N_rank>::reset(void)
+      {
+        CArray<T_numtype, N_rank>::reset() ;
+        inheritedValue.reset() ;
+      }
+      
+      template <typename T_numtype, int N_rank>
       CArray<T_numtype,N_rank> CAttributeArray<T_numtype, N_rank>::getValue(void) const
       {
         return this->copy() ;

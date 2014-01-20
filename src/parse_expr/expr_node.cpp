@@ -33,7 +33,7 @@ namespace xios
     }
   };
 
-  void CInstantFieldNode::reduce(CField* thisField)
+  void CInstantFieldNode::reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField)
   {
     if (!reduced)
     {
@@ -43,28 +43,23 @@ namespace xios
         array=thisField->getInstantData() ;
         reduced=true ;
       }
-      else if (CField::has(fieldId)) 
+      else
       {
-        field =CField::get(fieldId) ;
+        field=associatedInstantField[fieldId] ;
         array=field->getInstantData() ;
         reduced=true ;
       }
-      else ERROR("void CInstantFieldNode::reduce(void)",<<" Field "<<fieldId<<" does not exist")
-      }
+    }
   }   
 
-  void CAverageFieldNode::reduce(CField* thisField)
+  void CAverageFieldNode::reduce(CField* thisField, map<string,CField*>& associatedInstantField, map<string,CField*>& associatedAverageField)
   {
     if (!reduced)
     {
-      if (CField::has(fieldId)) 
-      {
-        field=thisField ;
-        array=CField::get(fieldId)->getInstantData() ;
-        reduced=true ;
-      }
-      else ERROR("void CAverageFieldNode::reduce(void)",<<" Field "<<fieldId<<" does not exist")
-      }
+      field=associatedAverageField[fieldId] ;
+      array=field->getInstantData() ;
+      reduced=true ;
+    }
   }
   
 }

@@ -41,6 +41,7 @@ namespace xios
 //            bool isEmpty(void) const;
 //            template <typename T> inline bool isType(void) const;
             virtual void set(const CAttribute& ) =0 ;
+            virtual void reset(void ) =0 ;
             /// Destructeur ///
             virtual ~CAttribute(void);
 

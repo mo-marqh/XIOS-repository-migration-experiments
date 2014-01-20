@@ -35,7 +35,7 @@ namespace xios
             void setValue(const CArray<T_numtype, N_rank>& value);
             void set(const CAttribute& attr) ;
             void set(const CAttributeArray& attr) ;
-            
+            void reset(void) ;            
             void setInheritedValue(const CAttributeArray& attr );
             void setInheritedValue(const CAttribute& attr );
             CArray<T_numtype, N_rank> getInheritedValue(void) const ;

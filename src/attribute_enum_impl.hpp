@@ -43,7 +43,13 @@ namespace xios
       }
 
       ///--------------------------------------------------------------
-
+      template <class T>
+      void CAttributeEnum<T>::reset(void)
+      {
+         CEnum<T>::reset() ;
+         inheritedValue.reset() ;
+      }
+      
       template <class T>
       typename T::t_enum CAttributeEnum<T>::getValue(void) const
       {

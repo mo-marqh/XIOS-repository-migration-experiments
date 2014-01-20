@@ -24,7 +24,7 @@ namespace xios{
       , nstep(0)
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
-      , active(false) , hasOutputFile(false), slotUpdateDate(NULL)
+      , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false)
       { /* Ne rien faire de plus */ }
 
@@ -36,7 +36,7 @@ namespace xios{
       , nstep(0)
       , last_Write(), last_operation()
       , foperation(), hasExpression(false)
-      , active(false), hasOutputFile(false), slotUpdateDate(NULL)
+      , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false)
    { /* Ne rien faire de plus */ }
 
@@ -386,7 +386,7 @@ namespace xios{
    {
       using namespace func;
       
-      if (!hasOutputFile) return ;
+      if (!hasOutputFile && !hasFieldOut) return ;
       
       StdString id ;
       if (hasId()) id=getId();
@@ -417,10 +417,11 @@ namespace xios{
 //      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
       if (context->hasServer)
       {
-         this->freq_operation_srv =
-             CDuration::FromString(this->file->output_freq.getValue());
-         this->freq_write_srv     =
-             CDuration::FromString(this->file->output_freq.getValue());
+         if (hasOutputFile) 
+         {
+           this->freq_operation_srv =CDuration::FromString(this->file->output_freq.getValue());
+           this->freq_write_srv = CDuration::FromString(this->file->output_freq.getValue());
+         }
          this->lastlast_Write_srv     = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
          this->last_Write_srv     = boost::shared_ptr<CDate>
@@ -430,14 +431,21 @@ namespace xios{
 //         this->foperation_srv     =
 //             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
              
-         const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep(); 
-         *this->last_operation_srv   = *this->last_operation_srv - toffset; 
+         if (hasOutputFile) 
+         {
+           const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep(); 
+           *this->last_operation_srv   = *this->last_operation_srv - toffset;
+         }
       }
       
 //      if (context->hasClient)
 //      {                  
          this->freq_operation = CDuration::FromString(freq_op.getValue());
-         this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
+         if (hasOutputFile) this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
+         if (hasFieldOut) 
+         {
+           this->freq_write = CDuration::FromString(this->fieldOut->freq_op.getValue());
+         }
          this->last_Write     = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<CDate>
@@ -664,13 +672,53 @@ namespace xios{
       CSimpleNodeExpr* simpleExpr=parseExpr(content+'\0') ;
       expression=CFieldNode::newNode(simpleExpr) ;
       delete simpleExpr ;
-      set<string> fieldIds ;
-      expression->getFieldIds(fieldIds) ;
-      for (set<string>::iterator it=fieldIds.begin() ; it!=fieldIds.end();++it) if (*it!="this") CField::get(*it)->processEnabledField() ;
+      set<string> instantFieldIds ;
+      map<string,CField*> associatedInstantFieldIds ;
+      expression->getInstantFieldIds(instantFieldIds) ;
+      for (set<string>::iterator it=instantFieldIds.begin() ; it!=instantFieldIds.end();++it) 
+      {
+        if (*it!="this") 
+        {
+          if (CField::has(*it)) 
+          {
+            CField* field=CField::get(*it) ;
+            field->processEnabledField() ;
+            associatedInstantFieldIds[*it]=field ;
+          }
+          else  ERROR("void CField::buildExpression(void)",<<" Field "<<*it<<" does not exist") ;
+        }
+      }
       
-      expression->reduce(this) ;
+      set<string> averageFieldIds ;
+      map<string,CField*> associatedAverageFieldIds ;
 
-      slots.resize(fieldIds.size()) ;
+      expression->getAverageFieldIds(averageFieldIds) ;
+      for (set<string>::iterator it=averageFieldIds.begin() ; it!=averageFieldIds.end();++it) 
+      {      
+        if (CField::has(*it)) 
+        {
+           CFieldGroup* root=CFieldGroup::get("field_definition") ;
+           CField* averageField=root->createChild() ;
+           CField* instantField=root->createChild() ;
+           averageField->field_ref=*it ;
+           averageField->hasFieldOut=true ;
+           averageField->fieldOut=instantField ;
+           instantField->freq_op=freq_op ;
+           averageField-> processEnabledField() ;
+           cout<<" outputfreq of averageField "<<  freq_op <<"  "<<instantField->freq_op<<"  "<< averageField->freq_write << endl ;
+           instantField->SuperClassAttribute::setAttributes(averageField, true);
+           instantField->field_ref.reset() ;
+           instantField->operation.reset() ;
+
+           instantField-> processEnabledField() ;
+           associatedAverageFieldIds[*it]=instantField  ;
+        }
+        else ERROR("void CField::buildExpression(void)",<<" Field "<<*it<<" does not exist") ;
+      }
+
+      expression->reduce(this,associatedInstantFieldIds,associatedAverageFieldIds) ;
+
+      slots.resize(instantFieldIds.size()+averageFieldIds.size()) ;
       resetSlots() ;
       int slotId=0 ;
       set<CField*> fields ;

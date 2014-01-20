@@ -94,6 +94,7 @@ namespace xios {
 
          template <int N> bool updateData(const CArray<double, N>&   data);
          bool updateDataFromExpression(const CArray<double, 1>&   data);
+         void setDataFromExpression(const CArray<double, 1>& _data) ;         
          
          bool updateDataServer
                (const CDate & currDate,
@@ -106,6 +107,7 @@ namespace xios {
          bool isActive(void) const;
          bool active ;
          bool hasOutputFile ;
+         bool hasFieldOut ;
 
          /// Traitements ///
          void processEnabledField(void) ;
@@ -142,6 +144,7 @@ namespace xios {
          CField* baseRefObject;
          CGrid*  grid ;
          CFile*  file;
+         CField* fieldOut ;
 
          CDuration freq_operation, freq_write;
          CDuration freq_operation_srv, freq_write_srv;

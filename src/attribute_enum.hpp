@@ -38,6 +38,7 @@ namespace xios
             
             void set(const CAttribute& attr) ;
             void set(const CAttributeEnum& attr) ;
+            void reset(void);
             
             void setInheritedValue(const CAttributeEnum& attr );
             void setInheritedValue(const CAttribute& attr );

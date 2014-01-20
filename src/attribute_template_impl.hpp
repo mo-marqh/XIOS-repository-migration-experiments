@@ -59,6 +59,13 @@ namespace xios
       }
 */
       ///--------------------------------------------------------------
+      template <class T>
+      void CAttributeTemplate<T>::reset(void)
+      {
+        CType<T>::reset() ;
+        inheritedValue.reset() ;
+      }
+
 
       template <class T>
          T CAttributeTemplate<T>::getValue(void) const

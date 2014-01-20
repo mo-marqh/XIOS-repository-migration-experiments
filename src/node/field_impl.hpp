@@ -27,11 +27,29 @@ namespace xios {
       std::vector<CField*>::const_iterator  it = refField.begin(), end = refField.end();
      
       for (; it != end; it++) (*it)->setData(_data) ;
-      if (hasOutputFile) updateData(_data) ;
+      if (hasOutputFile || hasFieldOut) updateData(_data) ;
     }
      
   }
 
+  void CField::setDataFromExpression(const CArray<double, 1>& _data)
+  {
+    if (hasInstantData) 
+    {
+      instantData=_data; 
+      for(list< pair<CField *,int> >::iterator it=fieldDependency.begin(); it!=fieldDependency.end(); ++it)  it->first->setSlot(it->second) ;
+    }
+    
+    if (!hasExpression)
+    {
+      const std::vector<CField*>& refField=getAllReference();
+      std::vector<CField*>::const_iterator  it = refField.begin(), end = refField.end();
+     
+      for (; it != end; it++) (*it)->setData(_data) ;
+      if (hasOutputFile || hasFieldOut) updateData(_data) ;
+    }
+     
+  }
 
    template <int N>
    bool CField::updateData(const CArray<double, N>& _data)
@@ -81,10 +99,18 @@ namespace xios {
       {
          this->foperation->final();
          *last_Write = writeDate;
-         info(50) << "(*last_Write = currDate) : " << *last_Write << " = " << currDate << std::endl;
-         CTimer::get("XIOS Send Data").resume() ;
-         sendUpdateData() ;
-         CTimer::get("XIOS Send Data").suspend() ;
+         if (hasOutputFile)
+         {
+           info(50) << "(*last_Write = currDate) : " << *last_Write << " = " << currDate << std::endl;
+           CTimer::get("XIOS Send Data").resume() ;
+           sendUpdateData() ;
+           CTimer::get("XIOS Send Data").suspend() ;
+         }
+         
+         if (hasFieldOut)
+         {
+           fieldOut->setDataFromExpression(data) ;
+         }
          return (true);        
       }
 
