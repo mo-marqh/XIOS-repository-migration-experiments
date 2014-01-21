@@ -12,10 +12,10 @@ namespace xios
 {
   namespace xml
   {
-    template void CXMLParser::ParseInclude<CContext>(StdIStream & stream, CContext& object) ;
+    template void CXMLParser::ParseInclude<CContext>(StdIStream & stream, const string& fluxId, CContext& object) ;
  
  #   define macro(T) \
-    template void CXMLParser::ParseInclude< CGroupTemplate<C##T, C##T##Group, C##T##Attributes> >(StdIStream & stream, CGroupTemplate<C##T, C##T##Group, C##T##Attributes>& object) ;
+    template void CXMLParser::ParseInclude< CGroupTemplate<C##T, C##T##Group, C##T##Attributes> >(StdIStream & stream, const string& fluxId, CGroupTemplate<C##T, C##T##Group, C##T##Attributes>& object) ;
     
     macro( Context ) 
     macro( Axis ) 

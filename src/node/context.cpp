@@ -109,10 +109,13 @@ namespace xios {
       if (attributes.end() != attributes.find("src"))
       {
          StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
+         if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
+            ERROR("void CContext::parse(xml::CXMLNode & node)",
+                  <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
          if (!ifs.good())
             ERROR("CContext::parse(xml::CXMLNode & node)",
                   << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
-         xml::CXMLParser::ParseInclude(ifs, *this);
+         xml::CXMLParser::ParseInclude(ifs, attributes["src"], *this);
       }
 
       if (node.getElementName().compare(CContext::GetName()))

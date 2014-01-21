@@ -15,27 +15,29 @@ namespace xios
       void CXMLParser::ParseFile(const StdString & filename)
       {
          StdIFStream ifs ( filename.c_str() , StdIFStream::in );
-         CXMLParser::ParseStream(ifs);
+         if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
+           ERROR("void CXMLParser::ParseFile(const StdString & filename)",
+                  <<endl<< "Can not open <"<<filename<<"> file" );
+
+         CXMLParser::ParseStream(ifs, filename);
       }
 
       void CXMLParser::ParseString(const StdString & xmlContent)
       {
          StdIStringStream iss ( xmlContent /*, StdIStringStream::in*/ );
-         CXMLParser::ParseStream(iss);
+         CXMLParser::ParseStream(iss,"string");
       }
 
-      void CXMLParser::ParseStream(StdIStream & stream)
+      void CXMLParser::ParseStream(StdIStream & stream, const string& fluxId)
       {
          if (!stream.good())
             ERROR("CXMLParser::ParseStream(const StdIStream & stream)",
                   << "Bad xml stream !");
          StdOStringStream oss;
-         while(!stream.eof() && !stream.fail ())
-            oss.put(stream.get());
+         while(!stream.eof() && !stream.fail ()) oss.put(stream.get());
+         const StdString xmlcontent( oss.str(), 0, oss.str().size()-1 );
          try
          {
-            //const StdString xmlcontent( oss.str(), 0, oss.str().size()-2); //<POURQUOI ?
-            const StdString xmlcontent( oss.str(), 0, oss.str().size()-1 );
             rapidxml::xml_document<char> doc;
             doc.parse<0>(const_cast<char*>(xmlcontent.c_str()));
 
@@ -57,7 +59,7 @@ namespace xios
 
                   if (attributes.end() == attributes.find("id"))
                   {  
-                     DEBUG("Le context ne sera pas traité car il n'est pas identifié !");
+                     DEBUG("The context will not be processed because it is not identified (missing id)");
                      continue; 
                   }
 
@@ -67,8 +69,7 @@ namespace xios
 
                   if(hasctxt)
                   {  
-                     DEBUG("Le context ne sera pas traité car "
-                           << "il existe déjà un autre context possédant le même nom !");
+                     DEBUG("The context will not be processed because it exist an other context with the same id" );
                      continue; 
                   }
 
@@ -83,8 +84,24 @@ namespace xios
          }
          catch (rapidxml::parse_error & exc)
          {
-            ERROR("CXMLParser::ParseStream(StdIStream & stream)",
-                  << "RapidXML error : " << exc.what() << " !");
+            const char* ptr = exc.where<char>() ;
+            const char* begin = xmlcontent.c_str() ;
+            const char* content=oss.str().c_str() ;
+            size_t pos=ptr-begin ;
+            int lineNumber = 1 ;
+            int columnNumber = 0 ;
+            const char* line;
+            const char* endLine;
+            
+            for(const char* i=content;i<content+pos; ++i, ++columnNumber) if (*i=='\n') { lineNumber++ ; line=i ; columnNumber=0 ;}
+            for(endLine=content+pos; *endLine!='\n' && *endLine!='\0' ; ++endLine) ;
+            string strLine(line,endLine-line) ;
+                  
+            ERROR("CXMLParser::ParseStream(StdIStream & stream)", << endl
+                  << "Error is occuring when parsing XML flux from <"<<fluxId<<"> at character "<< pos<<" line "<<lineNumber<<" column "<< columnNumber<< endl
+                  << strLine<<endl
+                  << string(columnNumber-1,'x')<<'^'<<endl
+                  <<" Error : " << exc.what() )
          }
       }
 

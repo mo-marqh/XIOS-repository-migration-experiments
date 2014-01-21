@@ -489,10 +489,14 @@ namespace xios
          if (attributes.end() != attributes.find("src"))
          {
             StdIFStream ifs ( attributes["src"].c_str() , StdIFStream::in );
+            if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
+               ERROR("void CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
+                     <<endl<< "Can not open <"<<attributes["src"].c_str()<<"> file" );
+            
             if (!ifs.good())
                ERROR("CGroupTemplate<U, V, W>::parse(xml::CXMLNode & node, bool withAttr)",
                      << "[ filename = " << attributes["src"] << " ] Bad xml stream !");
-            xml::CXMLParser::ParseInclude(ifs, *this);
+            xml::CXMLParser::ParseInclude(ifs, attributes["src"].c_str(), *this);
          }
       }
 

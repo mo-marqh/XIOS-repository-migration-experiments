@@ -18,9 +18,9 @@ namespace xios
 
             static void ParseFile(const StdString & filename);
             static void ParseString(const StdString & xmlContent);
-            static void ParseStream(StdIStream & stream);
+            static void ParseStream(StdIStream & stream, const string& fluxId);
             template <class T>
-               static void ParseInclude(StdIStream & stream, T & object);
+               static void ParseInclude(StdIStream & stream, const string& fluxId, T & object);
 
       }; //class CXMLParser
 /*
