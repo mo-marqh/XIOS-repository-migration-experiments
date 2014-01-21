@@ -565,9 +565,15 @@ namespace xios
 //         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
 //          bool isCurvilinear = domain->isCurvilinear ; 
           
-         nc_type type = (!field->prec.isEmpty() &&
-                        ( field->prec.getValue() == 4))
-                        ? NC_FLOAT : NC_DOUBLE;
+         nc_type type ;
+         if (field->prec.isEmpty()) type =  NC_FLOAT ;
+         else
+         {
+           if (field->prec==2) type = NC_SHORT ;
+           else if (field->prec==4)  type =  NC_FLOAT ;
+           else if (field->prec==8)   type =  NC_DOUBLE ; 
+         }
+                     
          bool wtime   = !(!field->operation.isEmpty() && field->foperation->timeType() == func::CFunctor::once);
                          
          if (wtime)
@@ -627,6 +633,14 @@ namespace xios
          if (!field->valid_max.isEmpty())
             SuperClassWriter::addAttribute
                ("valid_max", field->valid_max.getValue(), &fieldid);
+
+          if (!field->scale_factor.isEmpty())
+            SuperClassWriter::addAttribute
+               ("scale_factor", field->scale_factor.getValue(), &fieldid);
+
+           if (!field->add_offset.isEmpty())
+            SuperClassWriter::addAttribute
+               ("add_offset", field->add_offset.getValue(), &fieldid);
                                             
          SuperClassWriter::addAttribute
                ("online_operation", field->operation.getValue(), &fieldid);
@@ -764,13 +778,26 @@ namespace xios
          bool isRoot ;
          if (server->intraCommRank==0) isRoot=true ;
          else isRoot=false ;
-           
+          
+         if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
+         {
+           double scaleFactor=1. ;
+           double addOffset=0. ;
+           if (!field->scale_factor.isEmpty()) scaleFactor=field->scale_factor ;
+           if (!field->add_offset.isEmpty()) addOffset=field->add_offset ;
+           field->scaleFactorAddOffset(scaleFactor,addOffset) ;
+         }
+            
          if (grid->hasAxis()) // 3D
          {
             CAxis* axis = grid->axis ;
             CArray<double,3> field_data3D(domain->zoom_ni_srv,domain->zoom_nj_srv,axis->zoom_size) ;
             if (!field->default_value.isEmpty()) field_data3D = field->default_value ;
+
             field->outputField(field_data3D);
+
+            if (field->prec==2) field_data3D=round(field_data3D) ;
+
             switch (SuperClass::type)
            {
               case (MULTI_FILE) :
@@ -814,6 +841,7 @@ namespace xios
             CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
             if (!field->default_value.isEmpty()) field_data2D = field->default_value ;
             field->outputField(field_data2D);
+            if (field->prec==2) field_data2D=round(field_data2D) ;
             switch (SuperClass::type)
             {
               case (MULTI_FILE) :

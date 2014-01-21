@@ -6,11 +6,12 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "message.hpp"
+#include <cmath>
 
 using namespace blitz ;
+BZ_DECLARE_FUNCTION(round)
 namespace xios
 {
-
     
 template <typename T_numtype,int N_rank>
 class CArray : public Array<T_numtype,N_rank>, public virtual CBaseType

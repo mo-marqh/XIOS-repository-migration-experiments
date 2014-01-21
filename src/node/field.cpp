@@ -620,6 +620,12 @@ namespace xios{
       }
    }
    
+   void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
+   {
+     map<int, CArray<double,1>* >::iterator it;
+     for(it=data_srv.begin();it!=data_srv.end();it++) *it->second = (*it->second -addOffset) * 1./scaleFactor  ;
+   }
+   
    void CField::outputField(CArray<double,3>& fieldOut)
    {
       map<int, CArray<double,1>* >::iterator it;

@@ -8,6 +8,25 @@ MODULE fieldgroup_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
+    SUBROUTINE cxios_set_fieldgroup_add_offset(fieldgroup_hdl, add_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: add_offset
+    END SUBROUTINE cxios_set_fieldgroup_add_offset
+    
+    SUBROUTINE cxios_get_fieldgroup_add_offset(fieldgroup_hdl, add_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)             :: add_offset
+    END SUBROUTINE cxios_get_fieldgroup_add_offset
+    
+    FUNCTION cxios_is_defined_fieldgroup_add_offset(fieldgroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_add_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_add_offset
+    
+    
     SUBROUTINE cxios_set_fieldgroup_axis_ref(fieldgroup_hdl, axis_ref, axis_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
@@ -292,6 +311,25 @@ MODULE fieldgroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_prec
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
     END FUNCTION cxios_is_defined_fieldgroup_prec
+    
+    
+    SUBROUTINE cxios_set_fieldgroup_scale_factor(fieldgroup_hdl, scale_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: scale_factor
+    END SUBROUTINE cxios_set_fieldgroup_scale_factor
+    
+    SUBROUTINE cxios_get_fieldgroup_scale_factor(fieldgroup_hdl, scale_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      REAL (KIND=C_DOUBLE)             :: scale_factor
+    END SUBROUTINE cxios_get_fieldgroup_scale_factor
+    
+    FUNCTION cxios_is_defined_fieldgroup_scale_factor(fieldgroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_scale_factor
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_scale_factor
     
     
     SUBROUTINE cxios_set_fieldgroup_standard_name(fieldgroup_hdl, standard_name, standard_name_size) BIND(C)

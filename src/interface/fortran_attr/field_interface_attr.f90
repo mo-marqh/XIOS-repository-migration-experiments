@@ -8,6 +8,25 @@ MODULE field_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
+    SUBROUTINE cxios_set_field_add_offset(field_hdl, add_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: add_offset
+    END SUBROUTINE cxios_set_field_add_offset
+    
+    SUBROUTINE cxios_get_field_add_offset(field_hdl, add_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)             :: add_offset
+    END SUBROUTINE cxios_get_field_add_offset
+    
+    FUNCTION cxios_is_defined_field_add_offset(field_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_add_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_add_offset
+    
+    
     SUBROUTINE cxios_set_field_axis_ref(field_hdl, axis_ref, axis_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
@@ -271,6 +290,25 @@ MODULE field_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_prec
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
     END FUNCTION cxios_is_defined_field_prec
+    
+    
+    SUBROUTINE cxios_set_field_scale_factor(field_hdl, scale_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: scale_factor
+    END SUBROUTINE cxios_set_field_scale_factor
+    
+    SUBROUTINE cxios_get_field_scale_factor(field_hdl, scale_factor) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)             :: scale_factor
+    END SUBROUTINE cxios_get_field_scale_factor
+    
+    FUNCTION cxios_is_defined_field_scale_factor(field_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_scale_factor
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_scale_factor
     
     
     SUBROUTINE cxios_set_field_standard_name(field_hdl, standard_name, standard_name_size) BIND(C)

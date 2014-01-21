@@ -134,6 +134,7 @@ namespace xios {
         void writeField(void) ;
         void outputField(CArray<double,3>& fieldOut) ;
         void outputField(CArray<double,2>& fieldOut) ;
+        void scaleFactorAddOffset(double scaleFactor, double addOffset) ;
         void parse(xml::CXMLNode & node) ;
         CArray<double,1>* getInstantData(void)  ;
       public :

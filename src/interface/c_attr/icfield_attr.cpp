@@ -16,6 +16,28 @@ extern "C"
 {
   typedef xios::CField*  field_Ptr;
   
+  void cxios_set_field_add_offset(field_Ptr field_hdl, double add_offset)
+  {
+     CTimer::get("XIOS").resume();
+    field_hdl->add_offset.setValue(add_offset);
+    field_hdl->sendAttributToServer(field_hdl->add_offset);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_field_add_offset(field_Ptr field_hdl, double* add_offset)
+  {
+    *add_offset = field_hdl->add_offset.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_field_add_offset(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return field_hdl->add_offset.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_field_axis_ref(field_Ptr field_hdl, const char * axis_ref, int axis_ref_size)
   {
     std::string axis_ref_str;
@@ -342,6 +364,28 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return field_hdl->prec.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_field_scale_factor(field_Ptr field_hdl, double scale_factor)
+  {
+     CTimer::get("XIOS").resume();
+    field_hdl->scale_factor.setValue(scale_factor);
+    field_hdl->sendAttributToServer(field_hdl->scale_factor);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_field_scale_factor(field_Ptr field_hdl, double* scale_factor)
+  {
+    *scale_factor = field_hdl->scale_factor.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_field_scale_factor(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return field_hdl->scale_factor.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
