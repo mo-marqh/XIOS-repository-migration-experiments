@@ -315,6 +315,44 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_unit
     
     
+    SUBROUTINE cxios_set_field_valid_max(field_hdl, valid_max) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: valid_max
+    END SUBROUTINE cxios_set_field_valid_max
+    
+    SUBROUTINE cxios_get_field_valid_max(field_hdl, valid_max) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)             :: valid_max
+    END SUBROUTINE cxios_get_field_valid_max
+    
+    FUNCTION cxios_is_defined_field_valid_max(field_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_valid_max
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_valid_max
+    
+    
+    SUBROUTINE cxios_set_field_valid_min(field_hdl, valid_min) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: valid_min
+    END SUBROUTINE cxios_set_field_valid_min
+    
+    SUBROUTINE cxios_get_field_valid_min(field_hdl, valid_min) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      REAL (KIND=C_DOUBLE)             :: valid_min
+    END SUBROUTINE cxios_get_field_valid_min
+    
+    FUNCTION cxios_is_defined_field_valid_min(field_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_valid_min
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_valid_min
+    
+    
     END INTERFACE
   
 END MODULE field_interface_attr

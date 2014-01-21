@@ -619,7 +619,15 @@ namespace xios
          if (!field->unit.isEmpty())
             SuperClassWriter::addAttribute
                ("units", field->unit.getValue(), &fieldid);
-               
+
+          if (!field->valid_min.isEmpty())
+            SuperClassWriter::addAttribute
+               ("valid_min", field->valid_min.getValue(), &fieldid);
+
+         if (!field->valid_max.isEmpty())
+            SuperClassWriter::addAttribute
+               ("valid_max", field->valid_max.getValue(), &fieldid);
+                                            
          SuperClassWriter::addAttribute
                ("online_operation", field->operation.getValue(), &fieldid);
                

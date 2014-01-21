@@ -401,5 +401,49 @@ extern "C"
   
   
   
+  void cxios_set_field_valid_max(field_Ptr field_hdl, double valid_max)
+  {
+     CTimer::get("XIOS").resume();
+    field_hdl->valid_max.setValue(valid_max);
+    field_hdl->sendAttributToServer(field_hdl->valid_max);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_field_valid_max(field_Ptr field_hdl, double* valid_max)
+  {
+    *valid_max = field_hdl->valid_max.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_field_valid_max(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return field_hdl->valid_max.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_field_valid_min(field_Ptr field_hdl, double valid_min)
+  {
+     CTimer::get("XIOS").resume();
+    field_hdl->valid_min.setValue(valid_min);
+    field_hdl->sendAttributToServer(field_hdl->valid_min);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_field_valid_min(field_Ptr field_hdl, double* valid_min)
+  {
+    *valid_min = field_hdl->valid_min.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_field_valid_min(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return field_hdl->valid_min.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   
 }
