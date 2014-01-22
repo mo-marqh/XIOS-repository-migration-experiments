@@ -796,7 +796,7 @@ namespace xios
 
             field->outputField(field_data3D);
 
-            if (field->prec==2) field_data3D=round(field_data3D) ;
+            if (!field->prec.isEmpty() && field->prec==2) field_data3D=round(field_data3D) ;
 
             switch (SuperClass::type)
            {
@@ -841,7 +841,7 @@ namespace xios
             CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
             if (!field->default_value.isEmpty()) field_data2D = field->default_value ;
             field->outputField(field_data2D);
-            if (field->prec==2) field_data2D=round(field_data2D) ;
+            if (!field->prec.isEmpty() && field->prec==2) field_data2D=round(field_data2D) ;
             switch (SuperClass::type)
             {
               case (MULTI_FILE) :
