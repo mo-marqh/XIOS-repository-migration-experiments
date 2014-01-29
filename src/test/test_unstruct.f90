@@ -4,14 +4,16 @@ PROGRAM test_unstruct
   USE mod_wait
   IMPLICIT NONE
   INCLUDE "mpif.h"
-  INTEGER :: rank
-  INTEGER :: size
+  INTEGER :: mpi_rank
+  INTEGER :: mpi_size
   INTEGER :: ierr
   
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
+  INTEGER, PARAMETER :: nlon=60 
+  INTEGER, PARAMETER :: nlat=30
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100 
   INTEGER,PARAMETER :: llm=5 
@@ -21,133 +23,202 @@ PROGRAM test_unstruct
   TYPE(xios_file) :: file_hdl
   LOGICAL :: ok
   
-  DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
-  DOUBLE PRECISION,DIMENSION(4,ni_glo,nj_glo) :: bounds_lon_glo,bounds_lat_glo
-  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:) ;
-  DOUBLE PRECISION,ALLOCATABLE :: bounds_lon(:,:,:),bounds_lat(:,:,:) ;
+  DOUBLE PRECISION,ALLOCATABLE :: lon_glo(:),lat_glo(:)
+  DOUBLE PRECISION,ALLOCATABLE :: bounds_lon_glo(:,:),bounds_lat_glo(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: field_A_glo(:,:)
+  INTEGER,ALLOCATABLE :: i_index_glo(:)
+  INTEGER,ALLOCATABLE :: i_index(:)
+  LOGICAL,ALLOCATABLE :: mask_glo(:),mask(:)
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:),lat(:),field_A(:,:), lonvalue(:) ;
+  DOUBLE PRECISION,ALLOCATABLE :: bounds_lon(:,:),bounds_lat(:,:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,l,ts,n
-
+  INTEGER :: ncell_glo,ncell,ind
+  REAL :: ilon,ilat
+  DOUBLE PRECISION, PARAMETER :: Pi=3.14159265359
+  INTEGER :: list_ind(nlon,nlat)
+  INTEGER :: rank,j1,j2,np,ncell_x
+  INTEGER :: data_n_index
+  INTEGER,ALLOCATABLE :: data_i_index(:)
+  DOUBLE PRECISION,ALLOCATABLE :: field_A_compressed(:,:)
+  
   CALL xios_initialize(id,return_comm=comm)
-! CALL MPI_INIT(ierr)
-  CALL MPI_COMM_RANK(comm,rank,ierr)
-  CALL MPI_COMM_SIZE(comm,size,ierr)
+  CALL MPI_COMM_RANK(comm,mpi_rank,ierr)
+  CALL MPI_COMM_SIZE(comm,mpi_size,ierr)
   
   CALL init_wait
   
+  ncell_glo=0
+  DO j=1,nlat
+    n =  NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+    IF (n<8) n=8
+    ncell_glo=ncell_glo+n
+  ENDDO
   
-  DO j=1,nj_glo
-    DO i=1,ni_glo
-      lon_glo(i,j)=(i-1)+(j-1)*ni_glo
-      lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
-      bounds_lat_glo(1,i,j)=lat_glo(i,j)-0.5
-      bounds_lat_glo(2,i,j)=lat_glo(i,j)-0.5
-      bounds_lat_glo(3,i,j)=lat_glo(i,j)+0.5
-      bounds_lat_glo(4,i,j)=lat_glo(i,j)+0.5
-      bounds_lon_glo(1,i,j)=lon_glo(i,j)-0.5
-      bounds_lon_glo(2,i,j)=lon_glo(i,j)-0.5
-      bounds_lon_glo(3,i,j)=lon_glo(i,j)+0.5
-      bounds_lon_glo(4,i,j)=lon_glo(i,j)+0.5
-      DO l=1,llm
-        field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
-      ENDDO
+  ALLOCATE(lon_glo(ncell_glo))
+  ALLOCATE(lat_glo(ncell_glo))
+  ALLOCATE(bounds_lon_glo(4,ncell_glo))
+  ALLOCATE(bounds_lat_glo(4,ncell_glo))
+  ALLOCATE(i_index_glo(ncell_glo))
+  ALLOCATE(field_A_glo(ncell_glo,llm))
+  ALLOCATE(mask_glo(ncell_glo))
+   
+  ind=0
+  DO j=1,nlat
+    n = NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+    if (j==1) PRINT*,"--- ",n
+    if (j==nlat) PRINT*,"--- ",n
+    IF (n<8) n=8
+    
+    DO i=1,n
+      ind=ind+1
+      list_ind(i,j)=ind
+      ilon=i-0.5
+      ilat=j-0.5
+      
+      lat_glo(ind)= 90-(ilat*180./nlat)
+      lon_glo(ind)= (ilon*360./n)
+      
+ 
+      bounds_lat_glo(1,ind)= 90-((ilat-0.5)*180./nlat)
+      bounds_lon_glo(1,ind)=((ilon-0.5)*360./n)
+      
+      bounds_lat_glo(2,ind)= 90-((ilat-0.5)*180./nlat)
+      bounds_lon_glo(2,ind)=((ilon+0.5)*360./n) 
+          
+      bounds_lat_glo(3,ind)= 90-((ilat+0.5)*180./nlat)
+      bounds_lon_glo(3,ind)=((ilon+0.5)*360./n)     
+
+      bounds_lat_glo(4,ind)= 90-((ilat+0.5)*180./nlat)
+      bounds_lon_glo(4,ind)=((ilon-0.5)*360./n)
+      
     ENDDO
   ENDDO
-  ni=ni_glo ; ibegin=1
 
-  jbegin=1
-  DO n=0,size-1
-    nj=nj_glo/size
-    IF (n<MOD(nj_glo,size)) nj=nj+1
-    IF (n==rank) exit 
-    jbegin=jbegin+nj
+!  mpi_size=32
+  rank=(mpi_size-1)/2
+  ncell_x=sqrt(ncell_glo*1./mpi_size)
+  
+  j1=nlat/2
+  DO WHILE(rank>=0)
+    j2=MAX(j1-ncell_x+1,1)
+    j=(j1+j2)/2
+    n=NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+    np = MIN(n/ncell_x,rank+1) ;
+    if (j2==1) np=rank+1 
+    
+    PRINT *,"domain ",j2,j1,rank,np ;
+    DO j=j2,j1  
+      n=NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+      IF (n<8) n=8
+      DO i=1,n
+        ind=list_ind(i,j)
+        IF ( (i-1) < MOD(n,np)*(n/np+1)) THEN 
+          i_index_glo(ind) = rank - (i-1)/(n/np+1)
+        ELSE 
+          i_index_glo(ind) = rank-(MOD(n,np)+ (i-1-MOD(n,np)*(n/np+1))/(n/np))
+        ENDIF
+      ENDDO
+    ENDDO
+    rank=rank-np
+    j1=j2-1
+  ENDDO
+        
+  rank=(mpi_size-1)/2+1
+  ncell_x=sqrt(ncell_glo*1./mpi_size)
+  
+  j1=nlat/2+1
+  DO WHILE(rank<=mpi_size-1)
+    j2=MIN(j1+ncell_x-1,nlat)
+    j=(j1+j2)/2
+    n=NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+    np = MIN(n/ncell_x,mpi_size-rank) ;
+    if (j2==nlat) np=mpi_size-rank 
+    
+    PRINT *,"domain ",j2,j1,rank,np ;
+    DO j=j1,j2  
+      n=NINT(COS(Pi/2-(j-0.5)*PI/nlat)*nlon)
+      IF (n<8) n=8
+      DO i=1,n
+        ind=list_ind(i,j)
+        IF ( (i-1) < MOD(n,np)*(n/np+1)) THEN 
+          i_index_glo(ind) = rank + (i-1)/(n/np+1)
+        ELSE 
+          i_index_glo(ind) = rank+(MOD(n,np)+ (i-1-MOD(n,np)*(n/np+1))/(n/np))
+        ENDIF
+      ENDDO
+    ENDDO
+    rank=rank+np
+    j1=j2+1
+  ENDDO
+    
+  ncell=0
+  DO ind=1,ncell_glo
+    IF (i_index_glo(ind)==mpi_rank) ncell=ncell+1
+  ENDDO
+  ALLOCATE(i_index(ncell))
+  ALLOCATE(lon(ncell))
+  ALLOCATE(lat(ncell))
+  ALLOCATE(bounds_lon(4,ncell))
+  ALLOCATE(bounds_lat(4,ncell))
+  ALLOCATE(field_A(ncell,llm))
+  ALLOCATE(mask(ncell))
+  ncell=0
+  data_n_index=0
+  DO ind=1,ncell_glo
+    IF (i_index_glo(ind)==mpi_rank) THEN
+      ncell=ncell+1
+      i_index(ncell)=ind-1
+      lon(ncell)=lon_glo(ind)
+      lat(ncell)=lat_glo(ind)
+      bounds_lon(:,ncell)=bounds_lon_glo(:,ind)
+      bounds_lat(:,ncell)=bounds_lat_glo(:,ind)
+      field_A(ncell,:)=i_index_glo(ind)
+      IF (MOD(ind,8)>=0 .AND. MOD(ind,8)<2) THEN
+        mask(ncell)=.FALSE.
+      ELSE
+        mask(ncell)=.TRUE.
+        data_n_index=data_n_index+1
+      ENDIF
+    ENDIF
   ENDDO
   
-  iend=ibegin+ni-1 ; jend=jbegin+nj-1
-
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(ni,nj,llm),lonvalue(ni*nj))
-  ALLOCATE(bounds_lon(4,ni,nj),bounds_lat(4,ni,nj))
-  lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
-  lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
-  bounds_lon(:,:,:)=bounds_lon_glo(:,ibegin:iend,jbegin:jend)
-  bounds_lat(:,:,:)=bounds_lat_glo(:,ibegin:iend,jbegin:jend)
-  field_A(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
- 
-
+  ALLOCATE(field_A_compressed(data_n_index,llm))
+  ALLOCATE(data_i_index(data_n_index))
+  
+  data_n_index=0
+  DO ind=1,ncell
+    IF (mask(ind)) THEN
+      data_n_index=data_n_index+1
+      data_i_index(data_n_index)=ind
+      field_A_compressed(data_n_index,:)=field_A(ind,:)
+    ENDIF
+  ENDDO
+      
+  
+  
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
   
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-!  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
-!  CALL xios_set_domain_attr("domain_A",ni_glo=1, nj_glo=nj_glo*nj_glo, ibegin=1, ni=1,jbegin=(jbegin-1)*ni_glo+1,nj=nj*ni_glo)
-  CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo*nj_glo, ibegin=(jbegin-1)*ni_glo+1, ni=nj*ni_glo)
-  !CALL xios_set_domain_attr("domain_A",zoom_ni=3,zoom_ibegin=3,zoom_nj=3,zoom_jbegin=6)
-  CALL xios_set_domain_attr("domain_A",data_dim=1,type='unstructured')
-  CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
-  CALL xios_set_domain_attr("domain_A", bounds_lon=RESHAPE(bounds_lon,(/4,ni*nj/)) )
-  CALL xios_set_domain_attr("domain_A",bounds_lat=RESHAPE(bounds_lat,(/4,ni*nj/)) )
-  CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
-  
-  CALL xios_get_handle("field_definition",fieldgroup_hdl)
-  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
-  
-  CALL xios_get_handle("output",file_hdl)
-  CALL xios_add_child(file_hdl,field_hdl,"field_C")
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
+  CALL xios_set_domain_attr("domain_A",ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=RESHAPE(i_index,(/ncell,1/) ))
+  CALL xios_set_domain_attr("domain_A",data_dim=1, data_ni=data_n_index, data_n_index=data_n_index, data_i_index=data_i_index, type='unstructured')
+  CALL xios_set_domain_attr("domain_A",lonvalue=lon,latvalue=lat)
+  CALL xios_set_domain_attr("domain_A", nvertex=4, bounds_lon=bounds_lon, bounds_lat=bounds_lat )
     
  
-    dtime%second=3600
-    CALL xios_set_timestep(dtime) 
+  dtime%second=3600
+  CALL xios_set_timestep(dtime) 
+  CALL xios_close_context_definition()
     
-!    ni=0 ; lonvalue(:)=0
-!    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
-    
-!    print *,"ni",ni
-!    print *,"lonvalue",lonvalue ;
-
-    CALL xios_is_defined_field_attr("field_A",enabled=ok)
-    PRINT *,"field_A : attribute enabled is defined ? ",ok
-    IF (ok) THEN
-      CALL xios_get_field_attr("field_A",enabled=ok)
-      PRINT *,"field_A : attribute enabled = ",ok
-    ENDIF
-    CALL xios_is_defined_field_attr("field_C",enabled=ok)
-    PRINT *,"field_C : attribute enabled is defined ? ",ok
-    IF (ok) THEN
-      CALL xios_get_field_attr("field_C",enabled=ok)
-      PRINT *,"field_C : attribute enabled = ",ok
-    ENDIF
-      
-    CALL xios_solve_inheritance()
-    CALL xios_is_defined_field_attr("field_C",enabled=ok)
-    PRINT *,"field_C : attribute enabled is defined ? ",ok
-    IF (ok) THEN
-      CALL xios_get_field_attr("field_C",enabled=ok)
-      PRINT *,"field_C : attribute enabled = ",ok
-    ENDIF
-    CALL xios_close_context_definition()
-    
-    PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-    DO ts=1,24*10
-      field_A=field_A+100000
-      CALL xios_update_calendar(ts)
-      CALL xios_send_field("field_A",RESHAPE(field_A,(/ni*nj,llm/)))
-      if (ts==12) CALL xios_send_field("field_once",RESHAPE(field_A,(/ni*nj,llm/)))
-!      field_A=field_A+100000
-!     CALL wait_us(5000) ;
+   DO ts=1,24*10
+     CALL xios_update_calendar(ts)
+     CALL xios_send_field("field_A",field_A_compressed)
     ENDDO
   
     CALL xios_context_finalize()
     CALL xios_finalize()
-  
-!  CALL MPI_FINALIZE(ierr)
   
 END PROGRAM test_unstruct
 

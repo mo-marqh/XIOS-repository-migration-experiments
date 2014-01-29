@@ -1,0 +1,49 @@
+ <?xml version="1.0"?>
+<simulation> 
+
+ <context id="test" calendar_type="Gregorian" start_date="2012-02-20 01:02:30">
+ 
+   <field_definition level="1" enabled=".TRUE." prec="4" default_value="-1">
+     <field id="field_A"  operation="instant" domain_ref="domain_A"  axis_ref="axis_A"/>
+   </field_definition>
+    
+    
+   <file_definition type="one_file" output_freq="1d" output_level="10" enabled=".TRUE.">
+     <file id="output" name="output"> 
+       <field field_ref="field_A" />
+     </file>
+   </file_definition>
+    
+    
+   <axis_definition>
+     <axis id="axis_A" size="1" zoom_begin="1" zoom_size="1"/>
+   </axis_definition>
+    
+   <domain_definition>
+     <domain id="domain_A"/>
+   </domain_definition>    
+  
+   <grid_definition />    
+  
+  </context>
+  
+
+  <context id="xios">
+      <variable_definition>
+
+        <variable_group id="buffer">
+            buffer_size = 1000000000
+            buffer_server_factor_size = 2 
+            info_level = 50
+         </variable_group>
+         
+         <variable_group id="coupling">
+            <variable id="using_server" type="boolean">false</variable>
+            <variable id="using_oasis" type="boolean">false</variable>
+            <variable id="oasis_codes_id" type="string">oceanx</variable>
+         </variable_group>
+
+      </variable_definition>
+  </context>
+
+</simulation>
