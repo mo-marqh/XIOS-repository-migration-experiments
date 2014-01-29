@@ -279,6 +279,32 @@ extern "C"
   
   
   
+  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(i_index,shape(extent1,extent2),neverDeleteData) ;
+    domain_hdl->i_index.reference(tmp.copy());
+    domain_hdl->sendAttributToServer(domain_hdl->i_index);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(i_index,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domain_hdl->i_index.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domain_i_index(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->i_index.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domain_ibegin(domain_Ptr domain_hdl, int ibegin)
   {
      CTimer::get("XIOS").resume();
@@ -318,6 +344,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return domain_hdl->iend.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(j_index,shape(extent1,extent2),neverDeleteData) ;
+    domain_hdl->j_index.reference(tmp.copy());
+    domain_hdl->sendAttributToServer(domain_hdl->j_index);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(j_index,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domain_hdl->j_index.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domain_j_index(domain_Ptr domain_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domain_hdl->j_index.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

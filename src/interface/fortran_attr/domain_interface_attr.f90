@@ -231,6 +231,29 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_domain_group_ref
     
     
+    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domain_i_index
+    
+    SUBROUTINE cxios_get_domain_i_index(domain_hdl, i_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domain_i_index
+    
+    FUNCTION cxios_is_defined_domain_i_index(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_i_index
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_i_index
+    
+    
     SUBROUTINE cxios_set_domain_ibegin(domain_hdl, ibegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
@@ -267,6 +290,29 @@ MODULE domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_iend
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
     END FUNCTION cxios_is_defined_domain_iend
+    
+    
+    SUBROUTINE cxios_set_domain_j_index(domain_hdl, j_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domain_j_index
+    
+    SUBROUTINE cxios_get_domain_j_index(domain_hdl, j_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domain_j_index
+    
+    FUNCTION cxios_is_defined_domain_j_index(domain_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_j_index
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_j_index
     
     
     SUBROUTINE cxios_set_domain_jbegin(domain_hdl, jbegin) BIND(C)

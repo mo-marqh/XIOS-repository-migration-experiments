@@ -59,7 +59,7 @@ namespace xios {
 
       private :
 
-         void checkGlobalDomain(void);
+         void checkDomain(void);
 
          void checkLocalIDomain(void);
          void checkLocalJDomain(void);
@@ -101,9 +101,16 @@ namespace xios {
          CArray<double, 2> bounds_lon_srv, bounds_lat_srv ;
          
          
-        vector<int> connectedServer,nbSenders ;
-        vector<int> ib_srv, ie_srv, in_srv ;
-        vector<int> jb_srv, je_srv, jn_srv ;
+        vector<int> connectedServer ; // list of connected server 
+        vector<int> nbSenders ; // for each communication with a server, number of communicating client
+        vector<int> nbDataSrv ; // size of data to send to each server 
+        vector< vector<int> > i_indSrv ; // for each server, i global index to send
+        vector< vector<int> > j_indSrv ; // for each server, j global index to send
+       
+        CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
+               
+//        vector<int> ib_srv, ie_srv, in_srv ;
+//        vector<int> jb_srv, je_srv, jn_srv ;
          
       public :
       

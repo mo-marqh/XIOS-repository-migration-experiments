@@ -252,6 +252,29 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_group_ref
     
     
+    SUBROUTINE cxios_set_domaingroup_i_index(domaingroup_hdl, i_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_i_index
+    
+    SUBROUTINE cxios_get_domaingroup_i_index(domaingroup_hdl, i_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_i_index
+    
+    FUNCTION cxios_is_defined_domaingroup_i_index(domaingroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_i_index
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_i_index
+    
+    
     SUBROUTINE cxios_set_domaingroup_ibegin(domaingroup_hdl, ibegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
@@ -288,6 +311,29 @@ MODULE domaingroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_iend
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
     END FUNCTION cxios_is_defined_domaingroup_iend
+    
+    
+    SUBROUTINE cxios_set_domaingroup_j_index(domaingroup_hdl, j_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_j_index
+    
+    SUBROUTINE cxios_get_domaingroup_j_index(domaingroup_hdl, j_index, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_j_index
+    
+    FUNCTION cxios_is_defined_domaingroup_j_index(domaingroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_j_index
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_j_index
     
     
     SUBROUTINE cxios_set_domaingroup_jbegin(domaingroup_hdl, jbegin) BIND(C)

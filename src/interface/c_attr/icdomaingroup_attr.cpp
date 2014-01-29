@@ -306,6 +306,32 @@ extern "C"
   
   
   
+  void cxios_set_domaingroup_i_index(domaingroup_Ptr domaingroup_hdl, int* i_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(i_index,shape(extent1,extent2),neverDeleteData) ;
+    domaingroup_hdl->i_index.reference(tmp.copy());
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->i_index);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_i_index(domaingroup_Ptr domaingroup_hdl, int* i_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(i_index,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domaingroup_hdl->i_index.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domaingroup_i_index(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->i_index.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_domaingroup_ibegin(domaingroup_Ptr domaingroup_hdl, int ibegin)
   {
      CTimer::get("XIOS").resume();
@@ -345,6 +371,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return domaingroup_hdl->iend.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_domaingroup_j_index(domaingroup_Ptr domaingroup_hdl, int* j_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(j_index,shape(extent1,extent2),neverDeleteData) ;
+    domaingroup_hdl->j_index.reference(tmp.copy());
+    domaingroup_hdl->sendAttributToServer(domaingroup_hdl->j_index);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_domaingroup_j_index(domaingroup_Ptr domaingroup_hdl, int* j_index, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,2> tmp(j_index,shape(extent1,extent2),neverDeleteData) ;
+    tmp=domaingroup_hdl->j_index.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_domaingroup_j_index(domaingroup_Ptr domaingroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return domaingroup_hdl->j_index.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

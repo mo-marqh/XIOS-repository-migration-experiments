@@ -424,18 +424,14 @@ namespace xios {
     for(int ns=0;ns<domain->connectedServer.size();ns++)
     {
        rank=domain->connectedServer[ns] ;
-       int ib=domain->ib_srv[ns] ;
-       int ie=domain->ie_srv[ns] ;
-       int jb=domain->jb_srv[ns] ;
-       int je=domain->je_srv[ns] ;
        
        int i,j ;
        int nb=0 ;
        for(int k=0;k<storeIndex_client.numElements();k++)
        {
-         i=out_i_client(k) ;
-         j=out_j_client(k) ;
-         if (i>=ib-1 && i<=ie-1 && j>=jb-1 && j<=je-1) nb++ ; 
+         i=out_i_client(k)- domain->ibegin +1;
+         j=out_j_client(k)- domain->jbegin +1;
+         if (domain->mapConnectedServer(i,j)==ns)  nb++ ;
        }
        
        CArray<int,1> storeIndex(nb) ;
@@ -447,13 +443,13 @@ namespace xios {
        nb=0 ;
        for(int k=0;k<storeIndex_client.numElements();k++)
        {
-         i=out_i_client(k) ;
-         j=out_j_client(k) ;
-         if (i>=ib-1 && i<=ie-1 && j>=jb-1 && j<=je-1) 
+         i=out_i_client(k)- domain->ibegin +1 ;
+         j=out_j_client(k)- domain->jbegin +1 ;
+         if (domain->mapConnectedServer(i,j)==ns)
          {
             storeIndex(nb)=k ;
-            out_i(nb)=out_i_client(k) ;
-            out_j(nb)=out_j_client(k) ;
+            out_i(nb)=domain->i_index(i,j) + domain->ibegin-1;
+            out_j(nb)=domain->j_index(i,j) + domain->jbegin-1; 
             out_l(nb)=out_l_client(k) ;
             nb++ ;
          }
