@@ -35,7 +35,7 @@ namespace xios{
       , freq_operation(), freq_write()
       , nstep(0)
       , last_Write(), last_operation()
-      , foperation(), hasExpression(false)
+      , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false)
    { /* Ne rien faire de plus */ }
