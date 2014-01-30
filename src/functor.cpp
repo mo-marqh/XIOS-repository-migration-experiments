@@ -8,8 +8,14 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CFunctor::CFunctor(const StdString & id, CArray<double, 1>& doutput)
-         : SuperClass(id), doutput(doutput), nbcall(0)
+         : SuperClass(id), doutput(doutput), nbcall(0),hasMissingValue(false)
       { /* Ne rien faire de plus */  }
+ 
+      CFunctor::CFunctor(const StdString & id, CArray<double, 1>& doutput, double missingValue)
+         : SuperClass(id), doutput(doutput), nbcall(0),hasMissingValue(true),missingValue(missingValue)
+      { 
+        /* Ne rien faire de plus */
+      }
 
       CFunctor::~CFunctor(void)
       { /* Ne rien faire de plus */ }
@@ -51,7 +57,7 @@ namespace xios
 
       void CFunctor::final(void) 
       {
-         this->nbcall = 0;
+        this->nbcall = 0;
       } 
 
       //---------------------------------------------------------------

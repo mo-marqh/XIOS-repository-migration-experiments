@@ -42,13 +42,17 @@ namespace xios
             /// Constructeurs ///
             CFunctor(void);                             // Not implemented.
             CFunctor(const StdString & id, CArray<double,1>& doutput);
-            CFunctor(const CFunctor & functor);         // Not implemented.
+            CFunctor(const StdString & id, CArray<double,1>& doutput, double missingValue);
+           CFunctor(const CFunctor & functor);         // Not implemented.
             CFunctor(const CFunctor * const functor);   // Not implemented.
          protected :
             /// Propriétés privées ///
             CArray<double,1>& doutput;
             /// Propriétés protégées ///   
             int nbcall;            
+            bool hasMissingValue ;
+            double missingValue ;
+            CArray<int,1> nbcalls ;
       }; // class CFunctor
    } // namespace func
 } // namespace xios
