@@ -11,6 +11,10 @@ namespace xios
          : SuperClass(StdString("once"), doutput)
       { /* Ne rien faire de plus */ }
 
+      COnce::COnce(CArray<double,1>& doutput, double missingValue)
+         : SuperClass(StdString("once"), doutput, missingValue)
+      { /* Ne rien faire de plus */ }
+
       COnce::~COnce(void)
       { /* Ne rien faire de plus */ }
 

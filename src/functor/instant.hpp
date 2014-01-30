@@ -21,7 +21,8 @@ namespace xios
             //CInstant(void);                             // Not implemented.
             //CInstant(const CFunData & data);
             CInstant(CArray<double,1>& doutput);
-            //CInstant(const CInstant & instant);         // Not implemented.
+            CInstant(CArray<double,1>& doutput, double missingValue);
+           //CInstant(const CInstant & instant);         // Not implemented.
             //CInstant(const CInstant * const instant);   // Not implemented.
 
             /// Traitement ///

@@ -12,6 +12,10 @@ namespace xios
          : SuperClass(StdString("minimum"), doutput)
       { /* Ne rien faire de plus */ }
 
+      CMinimum::CMinimum(CArray<double,1>& doutput, double missingValue)
+         : SuperClass(StdString("minimum"), doutput, missingValue)
+      { /* Ne rien faire de plus */ }
+
       CMinimum::~CMinimum(void)
       { /* Ne rien faire de plus */ }
 
@@ -25,7 +29,19 @@ namespace xios
         double * it   = _doutput.dataFirst();
         
         if (this->nbcall == 1)  for (; it1 != end1; it1++, it++) *it = *it1;
-        else for (; it1 != end1; it1++, it++) *it = std::min(*it1, *it);
+        else 
+        {
+          if (hasMissingValue) 
+          { 
+            for (; it1 != end1; it1++, it++) 
+              if (*it1!=missingValue)
+              {
+                if (*it != missingValue) *it = std::min(*it1, *it);
+                else *it=*it1 ;
+              }
+          }
+          else for (; it1 != end1; it1++, it++) *it = std::min(*it1, *it);
+        }
 
       }
 

@@ -21,6 +21,7 @@ namespace xios
             //CMaximum(void);                             // Not implemented.
             //CMaximum(const CFunData & data);
             CMaximum(CArray<double,1>& doutput);
+            CMaximum(CArray<double,1>& doutput, double missingValue);
             //CMaximum(const CMaximum & Maximum);         // Not implemented.
             //CMaximum(const CMaximum * const Maximum);   // Not implemented.
 

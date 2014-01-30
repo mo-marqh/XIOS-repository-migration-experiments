@@ -21,6 +21,7 @@ namespace xios
             //CAccumulate(void);                             // Not implemented.
             //CAccumulate(const CFunData & data);
             CAccumulate(CArray<double,1>& doutput);
+            CAccumulate(CArray<double,1>& doutput, double missingValue);
             //CAccumulate(const CAccumulate & accumulate);         // Not implemented.
             //CAccumulate(const CAccumulate * const accumulate);   // Not implemented.
 

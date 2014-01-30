@@ -13,6 +13,10 @@ namespace xios
          : SuperClass(StdString("maximum"), doutput)
       { /* Ne rien faire de plus */ }
 
+      CMaximum::CMaximum(CArray<double,1>& doutput, double missingValue)
+         : SuperClass(StdString("maximum"), doutput, missingValue)
+      { /* Ne rien faire de plus */ }
+
       CMaximum::~CMaximum(void)
       { /* Ne rien faire de plus */ }
 
@@ -25,7 +29,19 @@ namespace xios
        	             * end1 = _dinput.dataFirst() + _dinput.numElements();
               double * it   = _doutput.dataFirst();
          if (this->nbcall == 1) for (; it1 != end1; it1++, it++) *it = *it1;
-         else for (; it1 != end1; it1++, it++) *it = std::max(*it1, *it);
+         else 
+         {
+           if (hasMissingValue) 
+           { 
+             for (; it1 != end1; it1++, it++) 
+               if (*it1 != missingValue)
+               {
+                 if ( *it != missingValue) *it = std::max(*it1, *it);
+                 else *it=*it1 ;  
+               }
+           }
+           else for (; it1 != end1; it1++, it++) *it = std::max(*it1, *it);
+         }
 
 
       }

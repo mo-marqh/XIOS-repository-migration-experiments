@@ -457,13 +457,21 @@ namespace xios{
         if (operation.get()=="once") isOnceOperation=true ;
         else isOnceOperation=false;
         isFirstOperation=true;
-
+        
+          
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
    {                                               \
-      boost::shared_ptr<func::CFunctor>            \
-            foperation_(new C##MType(this->data)); \
-      this->foperation = foperation_;              \
+      if (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value==true) \
+      { \
+        boost::shared_ptr<func::CFunctor> foperation_(new C##MType(this->data,default_value)); \
+        this->foperation = foperation_; \ 
+      } \
+      else \
+      { \
+        boost::shared_ptr<func::CFunctor> foperation_(new C##MType(this->data)); \
+        this->foperation = foperation_;  \
+      } \
       return;                                      \
    }
    

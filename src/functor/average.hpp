@@ -21,6 +21,7 @@ namespace xios
             //CAverage(void);                             // Not implemented.
             //CAverage(const CFunData & data);
             CAverage(CArray<double,1>& doutput);
+            CAverage(CArray<double,1>& doutput, double missingValue);
             //CAverage(const CAverage & average);         // Not implemented.
             //CAverage(const CAverage * const average);   // Not implemented.
 

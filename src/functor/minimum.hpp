@@ -21,6 +21,7 @@ namespace xios
             //CMinimum(void);                             // Not implemented.
             //CMinimum(const CFunData & data);
             CMinimum(CArray<double,1>& doutput);
+            CMinimum(CArray<double,1>& doutput, double missingValue);
             //CMinimum(const CMinimum & Minimum);         // Not implemented.
             //CMinimum(const CMinimum * const Minimum);   // Not implemented.
 

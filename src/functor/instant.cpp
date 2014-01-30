@@ -10,6 +10,10 @@ namespace xios
       CInstant::CInstant(CArray<double,1>& doutput)
          : SuperClass(StdString("instant"), doutput)
       { /* Ne rien faire de plus */ }
+ 
+      CInstant::CInstant(CArray<double,1>& doutput, double missingValue)
+         : SuperClass(StdString("instant"), doutput, missingValue)
+      { /* Ne rien faire de plus */ }
 
       CInstant::~CInstant(void)
       { /* Ne rien faire de plus */ }

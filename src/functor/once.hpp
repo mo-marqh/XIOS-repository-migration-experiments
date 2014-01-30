@@ -20,6 +20,7 @@ namespace xios
             /// Constructeurs ///
             //COnce(void);                       // Not implemented.
             COnce(CArray<double,1>& doutput);
+            COnce(CArray<double,1>& doutput, double missingValue);
             //COnce(const COnce & once);         // Not implemented.
             //COnce(const COnce * const once);   // Not implemented.
 
