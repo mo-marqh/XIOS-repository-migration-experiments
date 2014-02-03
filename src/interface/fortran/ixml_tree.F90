@@ -7,6 +7,7 @@ MODULE IXML_TREE
    USE IFIELD
    USE IGRID
    USE IDOMAIN
+   USE IVARIABLE
      
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
      
@@ -58,6 +59,24 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_fieldtofile
 
+      SUBROUTINE cxios_xml_tree_add_variabletofile(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_variabletofile
+
+
+      SUBROUTINE cxios_xml_tree_add_variabletofield(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_variabletofield
+
+
       SUBROUTINE cxios_xml_tree_add_fieldgroup(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
@@ -105,6 +124,22 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_fieldgrouptofile    
+
+      SUBROUTINE cxios_xml_tree_add_variablegrouptofile(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_variablegrouptofile    
+
+      SUBROUTINE cxios_xml_tree_add_variablegrouptofield(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_variablegrouptofield    
 
       SUBROUTINE cxios_xml_tree_show(filename, filename_size) BIND(C)
          USE ISO_C_BINDING
@@ -209,6 +244,32 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_fieldtofile)
 
+   SUBROUTINE xios(add_variabletofile)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(file))            , INTENT(IN) :: parent_hdl
+      TYPE(txios(variable))           , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_variabletofile(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_variabletofile(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_variabletofile)
+
+   SUBROUTINE xios(add_variabletofield)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(field))            , INTENT(IN) :: parent_hdl
+      TYPE(txios(variable))           , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_variabletofield(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_variabletofield(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_variabletofield)
+
 
    SUBROUTINE xios(add_axisgroup)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axisgroup))      , INTENT(IN) :: parent_hdl
@@ -287,5 +348,31 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_fieldgrouptofile)
-      
+
+   SUBROUTINE xios(add_variablegrouptofile)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(file))            , INTENT(IN) :: parent_hdl
+      TYPE(txios(variablegroup))     , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_variablegrouptofile(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_variablegrouptofile(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_variablegrouptofile)
+
+   SUBROUTINE xios(add_variablegrouptofield)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(field))            , INTENT(IN) :: parent_hdl
+      TYPE(txios(variablegroup))     , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_variablegrouptofield(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_variablegrouptofield(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_variablegrouptofield)  
+         
 END MODULE IXML_TREE

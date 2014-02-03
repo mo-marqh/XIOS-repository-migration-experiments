@@ -20,6 +20,7 @@ namespace xios
 
             /// Ecriture ///
             void writeFile     (CFile*  file);
+            void writeAttribute(CVariable*  var);
             void syncFile     (void);
             void closeFile     (void);
             void writeField    (CField* field);
@@ -41,6 +42,7 @@ namespace xios
             void writeGrid(CDomain* domain);
 
             virtual void writeFile_       (CFile*     file)   = 0;
+            virtual void writeAttribute_(CVariable*  var) = 0 ;
             virtual void closeFile_       (void)                                            = 0;
             virtual void syncFile_       (void)                                            = 0;
             virtual void writeField_      (CField*    field)  = 0;

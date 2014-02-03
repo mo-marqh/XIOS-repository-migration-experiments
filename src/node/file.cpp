@@ -23,12 +23,18 @@ namespace xios {
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-   { setVirtualFieldGroup() ;}
+   { 
+     setVirtualFieldGroup() ;
+     setVirtualVariableGroup() ;
+   }
 
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-   { setVirtualFieldGroup() ;}
+    { 
+      setVirtualFieldGroup() ;
+      setVirtualVariableGroup() ;
+    }
 
    CFile::~CFile(void)
    { /* Ne rien faire de plus */ }
@@ -51,9 +57,19 @@ namespace xios {
       return (this->vFieldGroup);
    }
 
+   CVariableGroup* CFile::getVirtualVariableGroup(void) const
+   {
+      return (this->vVariableGroup);
+   }
+
    std::vector<CField*> CFile::getAllFields(void) const
    {
       return (this->vFieldGroup->getAllChildren());
+   }
+ 
+   std::vector<CVariable*> CFile::getAllVariables(void) const
+   {
+      return (this->vVariableGroup->getAllChildren());
    }
 
    //----------------------------------------------------------------
@@ -119,11 +135,21 @@ namespace xios {
       this->vFieldGroup = newVFieldGroup; 
    }
 
+   void CFile::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
+   { 
+      this->vVariableGroup = newVVariableGroup; 
+   }
+
    //----------------------------------------------------------------
 
    void CFile::setVirtualFieldGroup(void)
    {
       this->setVirtualFieldGroup(CFieldGroup::create());
+   }
+
+   void CFile::setVirtualVariableGroup(void)
+   {
+      this->setVirtualVariableGroup(CVariableGroup::create());
    }
 
    //----------------------------------------------------------------
@@ -312,6 +338,9 @@ namespace xios {
             this->data_out->writeField(field);
          }
          
+         vector<CVariable*> listVars = getAllVariables() ;
+         for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) this-> data_out-> writeAttribute(*it) ;
+         
          this->data_out->definition_end();
       }
    }
@@ -332,12 +361,17 @@ namespace xios {
    void CFile::parse(xml::CXMLNode & node)
    {
       SuperClass::parse(node);
-      if (node.goToChildElement() & this->hasId())
-      { // Si la définition du fichier intégre des champs et si le fichier est identifié.
-         node.goToParentElement();
-//         this->setVirtualFieldGroup(this->getId());
-         this->getVirtualFieldGroup()->parse(node, false);
+      
+      if (node.goToChildElement())
+      {
+        do
+        {
+           if (node.getElementName()=="field" || node.getElementName()=="field_group") this->getVirtualFieldGroup()->parseChild(node);
+           else if (node.getElementName()=="variable" || node.getElementName()=="variable_group") this->getVirtualVariableGroup()->parseChild(node);
+        } while (node.goToNextElement()) ;
+        node.goToParentElement();
       }
+
    }
    //----------------------------------------------------------------
 
@@ -360,7 +394,8 @@ namespace xios {
    void CFile::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
       SuperClassAttribute::setAttributes(parent,apply);
-      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
+      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL); 
+      this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
    }
 
    //----------------------------------------------------------------
@@ -421,6 +456,16 @@ namespace xios {
    CFieldGroup* CFile::addFieldGroup(const string& id)
    {
      return vFieldGroup->createChildGroup(id) ;
+   }
+ 
+   CVariable* CFile::addVariable(const string& id)
+   {
+     return vVariableGroup->createChild(id) ;
+   }
+
+   CVariableGroup* CFile::addVariableGroup(const string& id)
+   {
+     return vVariableGroup->createChildGroup(id) ;
    }
    
   
@@ -502,6 +547,96 @@ namespace xios {
    }
    
 
+
+
+
+
+
+
+
+
+
+   void CFile::sendAddVariable(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+    
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+   
+   void CFile::sendAddVariableGroup(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+   
+   void CFile::recvAddVariable(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddVariable(*buffer) ;
+   }
+   
+   
+   void CFile::recvAddVariable(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addVariable(id) ;
+   }
+
+   void CFile::recvAddVariableGroup(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddVariableGroup(*buffer) ;
+   }
+   
+   
+   void CFile::recvAddVariableGroup(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addVariableGroup(id) ;
+   }
+
+
+
+
+
    bool CFile::dispatchEvent(CEventServer& event)
    {
       if (SuperClass::dispatchEvent(event)) return true ;
@@ -518,7 +653,16 @@ namespace xios {
              recvAddFieldGroup(event) ;
              return true ;
              break ;       
+ 
+            case EVENT_ID_ADD_VARIABLE :
+             recvAddVariable(event) ;
+             return true ;
+             break ;
          
+           case EVENT_ID_ADD_VARIABLE_GROUP :
+             recvAddVariableGroup(event) ;
+             return true ;
+             break ;               
            default :
               ERROR("bool CFile::dispatchEvent(CEventServer& event)", <<"Unknown Event") ;
            return false ;

@@ -52,9 +52,7 @@ namespace xios
             template <class T>
                void setDefaultValue(const StdString & varname, const T * value = NULL);
          
-            template <class T>
-               void addAttribute
-                  (const StdString & name, const T & value, const StdString * varname = NULL);
+            template <class T>  void addAttribute (const StdString & name, const T & value, const StdString * varname = NULL);
 
             /// Ecriture des données ///
             template <class T, int ndim>

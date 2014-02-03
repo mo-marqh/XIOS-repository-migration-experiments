@@ -67,6 +67,25 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_default_value
     
     
+    SUBROUTINE cxios_set_field_detect_missing_value(field_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: detect_missing_value
+    END SUBROUTINE cxios_set_field_detect_missing_value
+    
+    SUBROUTINE cxios_get_field_detect_missing_value(field_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: detect_missing_value
+    END SUBROUTINE cxios_get_field_detect_missing_value
+    
+    FUNCTION cxios_is_defined_field_detect_missing_value(field_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_detect_missing_value
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_detect_missing_value
+    
+    
     SUBROUTINE cxios_set_field_domain_ref(field_hdl, domain_ref, domain_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

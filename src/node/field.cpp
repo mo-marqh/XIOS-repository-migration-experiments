@@ -26,7 +26,7 @@ namespace xios{
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false)
-      { /* Ne rien faire de plus */ }
+      { setVirtualVariableGroup() ; }
 
    CField::CField(const StdString & id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
@@ -38,7 +38,7 @@ namespace xios{
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false)
-   { /* Ne rien faire de plus */ }
+   { setVirtualVariableGroup() ; }
 
    CField::~CField(void)
    {
@@ -50,6 +50,36 @@ namespace xios{
         
    }
 
+
+  //----------------------------------------------------------------
+
+   void CField::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
+   { 
+      this->vVariableGroup = newVVariableGroup; 
+   }
+ 
+   void CField::setVirtualVariableGroup(void)
+   {
+      this->setVirtualVariableGroup(CVariableGroup::create());
+   }
+  
+   CVariableGroup* CField::getVirtualVariableGroup(void) const
+   {
+      return (this->vVariableGroup);
+   }
+
+ 
+   std::vector<CVariable*> CField::getAllVariables(void) const
+   {
+      return (this->vVariableGroup->getAllChildren());
+   }
+   
+   void CField::solveDescInheritance(bool apply, const CAttributeMap * const parent)
+   {
+      SuperClassAttribute::setAttributes(parent,apply);
+      this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
+   }
+   //----------------------------------------------------------------
    //----------------------------------------------------------------
 
    bool CField::updateDataServer
@@ -92,6 +122,16 @@ namespace xios{
           recvUpdateData(event) ;
           return true ;
           break ;
+
+            case EVENT_ID_ADD_VARIABLE :
+             recvAddVariable(event) ;
+             return true ;
+             break ;
+         
+           case EVENT_ID_ADD_VARIABLE_GROUP :
+             recvAddVariableGroup(event) ;
+             return true ;
+             break ; 
  
         default :
           ERROR("bool CField::dispatchEvent(CEventServer& event)",<<"Unknown Event") ;
@@ -657,6 +697,15 @@ namespace xios{
    {
       SuperClass::parse(node);
       node.getContent(this->content) ;
+      if (node.goToChildElement())
+      {
+        do
+        {
+          if (node.getElementName()=="variable" || node.getElementName()=="variable_group") this->getVirtualVariableGroup()->parseChild(node);
+        } while (node.goToNextElement()) ;
+        node.goToParentElement();
+      }
+
     }
     
   CArray<double,1>* CField::getInstantData(void)
@@ -781,5 +830,99 @@ namespace xios{
       
     }
   }
+
+
+
+   CVariable* CField::addVariable(const string& id)
+   {
+     return vVariableGroup->createChild(id) ;
+   }
+
+   CVariableGroup* CField::addVariableGroup(const string& id)
+   {
+     return vVariableGroup->createChildGroup(id) ;
+   }
+
+
+   void CField::sendAddVariable(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+    
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+ 
+   
+   void CField::sendAddVariableGroup(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;   
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+      
+   }
+   
+   void CField::recvAddVariable(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddVariable(*buffer) ;
+   }
+   
+   
+   void CField::recvAddVariable(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addVariable(id) ;
+   }
+
+   void CField::recvAddVariableGroup(CEventServer& event)
+   {
+      
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddVariableGroup(*buffer) ;
+   }
+   
+   
+   void CField::recvAddVariableGroup(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addVariableGroup(id) ;
+   }
+
+
+
   
 } // namespace xios

@@ -41,7 +41,7 @@ namespace xios {
       public :
          enum EEventId
          {
-           EVENT_ID_ADD_FIELD=0,EVENT_ID_ADD_FIELD_GROUP
+           EVENT_ID_ADD_FIELD=0,EVENT_ID_ADD_FIELD_GROUP, EVENT_ID_ADD_VARIABLE,EVENT_ID_ADD_VARIABLE_GROUP
          } ;
          
          typedef CFileAttributes RelAttributes;
@@ -56,7 +56,9 @@ namespace xios {
          /// Accesseurs ///
          boost::shared_ptr<CDataOutput> getDataOutput(void) const;
          CFieldGroup* getVirtualFieldGroup(void) const;
+         CVariableGroup* getVirtualVariableGroup(void) const;
          std::vector<CField*> getAllFields(void) const;
+         std::vector<CVariable*> getAllVariables(void) const;
 
          std::vector<CField* > getEnabledFields(int default_outputlevel = 5,
                                                 int default_level = 1,
@@ -67,6 +69,8 @@ namespace xios {
          /// Mutateurs ///
          void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
          void setVirtualFieldGroup(void);
+         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
+         void setVirtualVariableGroup(void);
          void processEnabledFile(void) ;
          void processEnabledFields(void) ;
          void createHeader(void);
@@ -98,13 +102,23 @@ namespace xios {
          bool allDomainEmpty ;
          CField* addField(const string& id="") ;
          CFieldGroup* addFieldGroup(const string& id="") ;
+         CVariable* addVariable(const string& id="") ;
+         CVariableGroup* addVariableGroup(const string& id="") ;
          void sendAddField(const string& id="") ;
          void sendAddFieldGroup(const string& id="") ;
          static void recvAddField(CEventServer& event) ;
          void recvAddField(CBufferIn& buffer) ;
          static void recvAddFieldGroup(CEventServer& event) ;
          void recvAddFieldGroup(CBufferIn& buffer) ;
+         
+         void sendAddVariable(const string& id="") ;
+         void sendAddVariableGroup(const string& id="") ;
+         static void recvAddVariable(CEventServer& event) ;
+         void recvAddVariable(CBufferIn& buffer) ;
+         static void recvAddVariableGroup(CEventServer& event) ;
+         void recvAddVariableGroup(CBufferIn& buffer) ;
          static bool dispatchEvent(CEventServer& event) ;
+         
          bool isSyncTime(void) ;
          bool checkSplit(void) ;
          bool checkSync(void) ;
@@ -122,6 +136,7 @@ namespace xios {
 
          /// Propriétés privées ///
          CFieldGroup* vFieldGroup;
+         CVariableGroup* vVariableGroup ;
          boost::shared_ptr<CDataOutput> data_out;
          std::vector<CField*> enabledFields;
 

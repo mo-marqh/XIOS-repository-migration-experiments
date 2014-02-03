@@ -644,6 +644,13 @@ namespace xios
                                             
          SuperClassWriter::addAttribute
                ("online_operation", field->operation.getValue(), &fieldid);
+
+        // write child variables as attributes
+        
+        
+         vector<CVariable*> listVars = field->getAllVariables() ;
+         for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
+
                
          if (wtime)
          {
@@ -709,6 +716,36 @@ namespace xios
          if (file->nbDomain==1) singleDomain=true ;
          else singleDomain=false ;
       }
+ 
+      void CNc4DataOutput::writeAttribute_ (CVariable* var, const string& fieldId)
+      {
+        string name ;
+        if (!var->name.isEmpty()) name=var->name ;
+        else if (var->hasId()) name=var->getId() ;
+        else return ;
+        
+        if (var->getVarType()==CVariable::t_int) addAttribute(name,var->getData<int>(),&fieldId) ; 
+        else if (var->getVarType()==CVariable::t_short_int) addAttribute(name,var->getData<short int>(),&fieldId) ; 
+        else if (var->getVarType()==CVariable::t_long_int) addAttribute(name,var->getData<long int>(),&fieldId) ; 
+        else if (var->getVarType()==CVariable::t_float) addAttribute(name,var->getData<float>(),&fieldId) ; 
+        else if (var->getVarType()==CVariable::t_double) addAttribute(name,var->getData<double>(),&fieldId) ; 
+        else addAttribute(name,var->getData<string>(),&fieldId) ; 
+     }
+ 
+     void CNc4DataOutput::writeAttribute_ (CVariable* var)
+     {
+        string name ;
+        if (!var->name.isEmpty()) name=var->name ;
+        else if (var->hasId()) name=var->getId() ;
+        else return ;
+        
+        if (var->getVarType()==CVariable::t_int) addAttribute(name,var->getData<int>()) ; 
+        else if (var->getVarType()==CVariable::t_short_int) addAttribute(name,var->getData<short int>()) ; 
+        else if (var->getVarType()==CVariable::t_long_int) addAttribute(name,var->getData<long int>()) ; 
+        else if (var->getVarType()==CVariable::t_float) addAttribute(name,var->getData<float>()) ; 
+        else if (var->getVarType()==CVariable::t_double) addAttribute(name,var->getData<double>()) ; 
+        else addAttribute(name,var->getData<string>()) ; 
+     }     
  
       void CNc4DataOutput::syncFile_ (void)
       {

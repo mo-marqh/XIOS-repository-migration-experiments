@@ -67,6 +67,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_default_value
     
     
+    SUBROUTINE cxios_set_fieldgroup_detect_missing_value(fieldgroup_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: detect_missing_value
+    END SUBROUTINE cxios_set_fieldgroup_detect_missing_value
+    
+    SUBROUTINE cxios_get_fieldgroup_detect_missing_value(fieldgroup_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: detect_missing_value
+    END SUBROUTINE cxios_get_fieldgroup_detect_missing_value
+    
+    FUNCTION cxios_is_defined_fieldgroup_detect_missing_value(fieldgroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_detect_missing_value
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_detect_missing_value
+    
+    
     SUBROUTINE cxios_set_fieldgroup_domain_ref(fieldgroup_hdl, domain_ref, domain_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

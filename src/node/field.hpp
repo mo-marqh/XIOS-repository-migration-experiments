@@ -53,7 +53,7 @@ namespace xios {
 
          enum EEventId
          {
-           EVENT_ID_UPDATE_DATA
+           EVENT_ID_UPDATE_DATA, EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
          } ;
          
          /// Constructeurs ///
@@ -137,10 +137,27 @@ namespace xios {
         void scaleFactorAddOffset(double scaleFactor, double addOffset) ;
         void parse(xml::CXMLNode & node) ;
         CArray<double,1>* getInstantData(void)  ;
+        
+        void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
+        void setVirtualVariableGroup(void);
+        CVariableGroup* getVirtualVariableGroup(void) const;
+        vector<CVariable*> getAllVariables(void) const;
+        virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+ 
+        CVariable* addVariable(const string& id="") ;
+        CVariableGroup* addVariableGroup(const string& id="") ;
+        void sendAddVariable(const string& id="") ;
+        void sendAddVariableGroup(const string& id="") ;
+        static void recvAddVariable(CEventServer& event) ;
+        void recvAddVariable(CBufferIn& buffer) ;
+        static void recvAddVariableGroup(CEventServer& event) ;
+        void recvAddVariableGroup(CBufferIn& buffer) ;
+       
       public :
 
          /// Propriétés privées ///
-         
+         CVariableGroup* vVariableGroup ;
+                 
          std::vector<CField*> refObject;
          CField* baseRefObject;
          CGrid*  grid ;

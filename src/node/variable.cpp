@@ -60,7 +60,29 @@ namespace xios {
           << this->content /*<< std::endl*/;
       oss << "</" << CVariable::GetName() << " >";
       return (oss.str());
+   } 
+   
+   CVariable::EVarType CVariable::getVarType(void) const
+   {
+     EVarType ret ;
+     
+     if (type.isEmpty()) ret=t_undefined ;
+     else
+     {
+       string varType=boost::to_lower_copy(boost::trim_copy(type.getValue())) ;
+       if (varType=="int") ret=t_int ;
+       else if (varType=="short int" || varType=="short") ret=t_short_int ;
+       else if (varType=="long int" || varType=="long") ret=t_long_int ;
+       else if (varType=="float") ret=t_float ;
+       else if (varType=="double") ret=t_double ;
+       else if (varType=="long double") ret=t_long_double ;
+       else if (varType=="bool") ret=t_bool ;
+       else if (varType=="long double") ret=t_long_double ;
+       else if (varType=="string") ret=t_string ;
+     }
+     return ret ;
    }
+       
 /*
    void CVariable::toBinary(StdOStream & os) const
    {

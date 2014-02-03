@@ -17,6 +17,8 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CAxisGroup axisgroup ;
   CField field;
   CFieldGroup fieldgroup ;
+  CVariable variable;
+  CVariableGroup variablegroup ;
   CDomain domain ;
   CDomainGroup domaingroup ;
   CGrid grid ;
@@ -126,6 +128,32 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   fieldgroup.generateFortranInterface(file) ;
   file.close();
   
+
+
+  file.open((path+"variable_interface_attr.f90").c_str()); 
+  variable.generateFortran2003Interface(file) ;
+  file.close();
+  
+  file.open((path+"icvariable_attr.cpp").c_str()); 
+  variable.generateCInterface(file) ;
+  file.close();
+  
+  file.open((path+"ivariable_attr.F90").c_str()); 
+  variable.generateFortranInterface(file) ;
+  file.close();
+  
+  file.open((path+"variablegroup_interface_attr.f90").c_str()); 
+  variablegroup.generateFortran2003Interface(file) ;
+  file.close();
+  
+  file.open((path+"icvariablegroup_attr.cpp").c_str()); 
+  variablegroup.generateCInterface(file) ;
+  file.close();
+  
+  file.open((path+"ivariablegroup_attr.F90").c_str()); 
+  variablegroup.generateFortranInterface(file) ;
+  file.close();
+
 
 
   file.open((path+"file_interface_attr.f90").c_str()); 

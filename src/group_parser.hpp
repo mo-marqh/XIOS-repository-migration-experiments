@@ -79,7 +79,49 @@ namespace xios
          node.goToParentElement(); // Retour au parent
       }
    }
+ 
+  /// ////////////////////// Définitions ////////////////////// ///
+   template <class U, class V, class W>
+      void CGroupTemplate<U, V, W>::parseChild(xml::CXMLNode & node)
+   {
 
+
+      // PARSING POUR GESTION DES ENFANTS
+           V* group_ptr = (this->hasId()) 
+         ? V::get(this->getId())
+         : boost::polymorphic_downcast<V*>(this);
+
+          StdString name = node.getElementName();
+          attributes.clear();
+          attributes = node.getAttributes();
+
+          if (name.compare(V::GetName()) == 0)
+          {
+             if (attributes.end() == attributes.find("id"))
+                CGroupFactory::CreateGroup(group_ptr->getShared())->parse(node);
+                return ;
+             else
+                CGroupFactory::CreateGroup(group_ptr->getShared(), attributes["id"])->parse(node);
+             continue;
+          }
+
+          if (name.compare(U::GetName()) == 0)
+          {
+             if (attributes.end() == attributes.find("id"))
+                CGroupFactory::CreateChild(group_ptr->getShared())->parse(node);
+                return ;
+             else
+                CGroupFactory::CreateChild(group_ptr->getShared(), attributes["id"])->parse(node);
+             continue;
+          }
+
+          DEBUG(<< "Dans le contexte \'" << CContext::getCurrent()->getId()
+                << "\', un objet de type \'" << V::GetName()
+                << "\' ne peut contenir qu'un objet de type \'" << V::GetName()
+                << "\' ou de type \'" << U::GetName()
+                << "\' (reçu : " << name << ") !");
+
+   }
 } // namespace xios
 
 #endif // __XMLIO_GroupParser__

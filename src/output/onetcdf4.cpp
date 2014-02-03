@@ -348,7 +348,50 @@ namespace xios
          int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
          CheckError(nc_put_att_int(grpid, varid, name.c_str(), NC_INT,value.numElements(), value.dataFirst()));
       }     
-      //---------------------------------------------------------------
+      
+      
+ 
+      template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const short int & value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_short(grpid, varid, name.c_str(), NC_SHORT,1, &value));
+      }
+
+       template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const CArray<short int,1>& value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_short(grpid, varid, name.c_str(), NC_SHORT,value.numElements(), value.dataFirst()));
+      }     
+      
+      
+      
+      template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const long int & value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_long(grpid, varid, name.c_str(), NC_LONG,1, &value));
+      }
+
+       template <>
+         void CONetCDF4::addAttribute
+            (const StdString & name, const CArray<long int,1>& value, const StdString * varname )
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = (varname == NULL) ? NC_GLOBAL : this->getVariable(*varname);
+         CheckError(nc_put_att_long(grpid, varid, name.c_str(), NC_LONG, value.numElements(), value.dataFirst()));
+      } 
+      
+      
+      
+                //---------------------------------------------------------------
 
       void CONetCDF4::getWriteDataInfos(const StdString & name, StdSize record, StdSize & array_size,
                                         std::vector<StdSize> & sstart,

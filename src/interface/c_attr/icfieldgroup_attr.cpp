@@ -87,6 +87,28 @@ extern "C"
   
   
   
+  void cxios_set_fieldgroup_detect_missing_value(fieldgroup_Ptr fieldgroup_hdl, bool detect_missing_value)
+  {
+     CTimer::get("XIOS").resume();
+    fieldgroup_hdl->detect_missing_value.setValue(detect_missing_value);
+    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->detect_missing_value);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_fieldgroup_detect_missing_value(fieldgroup_Ptr fieldgroup_hdl, bool* detect_missing_value)
+  {
+    *detect_missing_value = fieldgroup_hdl->detect_missing_value.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_fieldgroup_detect_missing_value(fieldgroup_Ptr fieldgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return fieldgroup_hdl->detect_missing_value.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_fieldgroup_domain_ref(fieldgroup_Ptr fieldgroup_hdl, const char * domain_ref, int domain_ref_size)
   {
     std::string domain_ref_str;

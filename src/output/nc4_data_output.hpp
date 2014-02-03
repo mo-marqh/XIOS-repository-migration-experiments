@@ -43,6 +43,8 @@ namespace xios
             virtual void writeAxis_      (CAxis* axis);
             virtual void writeTimeDimension_(void);
             virtual void writeField_     (CField* field);
+            virtual void writeAttribute_ (CVariable* var);
+            virtual void writeAttribute_ (CVariable* var, const string& fieldId);
             virtual void writeFieldData_ (CField* field);
             virtual void writeFile_      (CFile* file);
             virtual void closeFile_      (void);

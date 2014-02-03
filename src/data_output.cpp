@@ -36,7 +36,12 @@ namespace xios
       {
          this->writeFile_(file);
       }
- 
+
+      void CDataOutput::writeAttribute(CVariable*  var)
+      {
+         this->writeAttribute_(var) ;
+      }
+
       void CDataOutput::syncFile(void)
       {
          this->syncFile_();

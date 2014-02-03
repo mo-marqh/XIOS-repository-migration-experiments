@@ -49,25 +49,25 @@ namespace xios
             virtual ~CVariable(void);
 
          public :
-         
+            enum EVarType
+            {  t_int, t_short_int, t_long_int, t_float, t_double, t_long_double, t_bool, t_string, t_undefined } ;
+              
+                     
             /// Autres ///
             virtual void parse(xml::CXMLNode & node);
             virtual StdString toString(void) const;
 
-//            virtual void toBinary  (StdOStream & os) const;
-//            virtual void fromBinary(StdIStream & is);
-
             /// Accesseur ///
             const StdString & getContent (void) const;
-
+            
             
             template <typename T> inline T getData(void) const;
-//            bool inline getData<bool>(void) const ;
-//            template <> getData<bool>(void) const ;
             
             template <typename T, StdSize N>
             inline void getData(CArray<T, N>& _data_array) const;
-
+            
+            EVarType getVarType(void) const ;
+            
          public :
          
             /// Accesseurs statiques ///

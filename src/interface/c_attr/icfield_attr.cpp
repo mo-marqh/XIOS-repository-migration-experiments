@@ -87,6 +87,28 @@ extern "C"
   
   
   
+  void cxios_set_field_detect_missing_value(field_Ptr field_hdl, bool detect_missing_value)
+  {
+     CTimer::get("XIOS").resume();
+    field_hdl->detect_missing_value.setValue(detect_missing_value);
+    field_hdl->sendAttributToServer(field_hdl->detect_missing_value);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_field_detect_missing_value(field_Ptr field_hdl, bool* detect_missing_value)
+  {
+    *detect_missing_value = field_hdl->detect_missing_value.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_field_detect_missing_value(field_Ptr field_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return field_hdl->detect_missing_value.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_field_domain_ref(field_Ptr field_hdl, const char * domain_ref, int domain_ref_size)
   {
     std::string domain_ref_str;
