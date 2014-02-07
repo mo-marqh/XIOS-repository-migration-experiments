@@ -505,7 +505,7 @@ namespace xios{
       if (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value==true) \
       { \
         boost::shared_ptr<func::CFunctor> foperation_(new C##MType(this->data,default_value)); \
-        this->foperation = foperation_; \ 
+        this->foperation = foperation_; \
       } \
       else \
       { \
