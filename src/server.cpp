@@ -117,6 +117,7 @@ namespace xios
           MPI_Comm_remote_size(newComm,&size);
           interComm.push_back(newComm) ;
         }
+	oasis_enddef() ;
       }
       
       int rank ;

@@ -10,9 +10,9 @@ HDF5_INCDIR="-I$HDF5_INC_DIR"
 HDF5_LIBDIR="-L$HDF5_LIB_DIR"
 HDF5_LIB="-lhdf5_hl -lhdf5 -lhdf5 -lz -lcurl"
 
-OASIS_INCDIR="-I$PWD/../../prism/X64/build/lib/psmile.MPI1"
-OASIS_LIBDIR="-L$PWD/../../prism/X64/lib"
-OASIS_LIB="-lpsmile.MPI1 -lmpp_io"
+OASIS_INCDIR="-I$PWD/../../oasis3-mct/BLD/build/lib/psmile.MPI1"
+OASIS_LIBDIR="-L$PWD/../../oasis3-mct/BLD/lib"
+OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
 
 #only for MEMTRACK debuging : developper only
 ADDR2LINE_LIBDIR="-L${WORKDIR}/ADDR2LINE_LIB"

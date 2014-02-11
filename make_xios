@@ -3,6 +3,7 @@
 install_dir=$PWD
 compil_full="false"
 use_oasis="false"
+oasis="oasis3_mct"
 use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
@@ -22,7 +23,7 @@ while (($# > 0))
 	    echo "       --arch arch : to choose target architecture"
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
-	    echo "       [--use_oasis] : to use Oasis coupler"
+	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
@@ -36,7 +37,7 @@ while (($# > 0))
          "--arch")  arch=$2     ; shift ; shift ;;
          "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
-         "--use_oasis")  use_oasis="true"  ; shift  ;;
+         "--use_oasis")  use_oasis="true" oasis=$2 ; shift ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
@@ -129,10 +130,22 @@ fi
 
 if [[ "$use_oasis" == "true" ]]
    then
-   NETCDF_LIB="-lnetcdff -lnetcdf"
-   XMLIO_FINCDIR="$OASIS_INCDIR $XMLIO_FINCDIR"
-   XMLIO_LIB="$OASIS_LIBDIR $OASIS_LIB $XMLIO_LIB"
-   XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OASIS"
+    if [[ "$oasis" == "oasis3_mct" ]]
+    then
+	XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OMCT"
+    elif [[ "$oasis" == "oasis3"  ]]
+    then
+	XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OASIS"
+	OASIS_INCDIR="-I$PWD/../../prism/X64/build/lib/psmile.MPI1"
+	OASIS_LIBDIR="-L$PWD/../../prism/X64/lib"
+	OASIS_LIB="-lpsmile.MPI1 -lmpp_io"
+    else
+	echo "Bad choice for --use_oasis argument : choose between 'oasis3','oasis3_mct'"
+	exit
+    fi
+    NETCDF_LIB="-lnetcdff -lnetcdf"
+    XMLIO_FINCDIR="$OASIS_INCDIR $XMLIO_FINCDIR"
+    XMLIO_LIB="$OASIS_LIBDIR $OASIS_LIB $XMLIO_LIB"
 fi 
 
 if [[ "$use_memtrack" == "true" ]]

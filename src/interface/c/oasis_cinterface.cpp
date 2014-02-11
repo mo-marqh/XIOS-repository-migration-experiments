@@ -15,6 +15,11 @@ namespace xios
     fxios_oasis_finalize() ;
   }
   
+  void oasis_enddef(void)
+  {
+    fxios_oasis_enddef() ;
+  }
+
   void oasis_get_localcomm(MPI_Comm& comm)
   {
     MPI_Fint f_comm ;
