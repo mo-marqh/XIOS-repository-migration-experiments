@@ -696,16 +696,17 @@ namespace xios{
    void CField::parse(xml::CXMLNode & node)
    {
       SuperClass::parse(node);
-      node.getContent(this->content) ;
-      if (node.goToChildElement())
+      if (! node.getContent(this->content)) 
       {
-        do
+        if (node.goToChildElement())
         {
-          if (node.getElementName()=="variable" || node.getElementName()=="variable_group") this->getVirtualVariableGroup()->parseChild(node);
-        } while (node.goToNextElement()) ;
-        node.goToParentElement();
+          do
+          {
+            if (node.getElementName()=="variable" || node.getElementName()=="variable_group") this->getVirtualVariableGroup()->parseChild(node);
+          } while (node.goToNextElement()) ;
+          node.goToParentElement();
+        }
       }
-
     }
     
   CArray<double,1>* CField::getInstantData(void)
