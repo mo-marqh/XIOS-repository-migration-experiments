@@ -41,7 +41,7 @@ namespace xios {
                << "[ variable id = " << id
                << " ] variable is not defined !");
       }
-      content = boost::to_lower_copy(boost::trim_copy(content)) ;
+      content = boost::trim_copy(content) ;
    }
 
    const StdString & CVariable::getContent (void) const
@@ -123,7 +123,7 @@ namespace xios {
            begindata = content.find_first_of ( "=", endid ) + 1;
            enddata   = content.find_first_of ( ";", begindata );
            subdata   = content.substr ( begindata, enddata-begindata);
-           subdata   = boost::to_lower_copy(boost::trim_copy(subdata)) ;
+           subdata   = boost::trim_copy(subdata) ;
            group_ptr->createChild(subid)->content = subdata ;
         }
       }
