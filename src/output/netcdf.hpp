@@ -22,6 +22,11 @@ extern "C"
 #  endif
 #endif
 
+#if !defined(USING_NETCDF_PAR)
+  #define NC_INDEPENDENT 0
+  #define NC_COLLECTIVE  1
+#endif
+
 namespace xios
 {
   inline int nc_create_par(const char *path, int cmode, MPI_Comm comm, MPI_Info info,int *ncidp)
