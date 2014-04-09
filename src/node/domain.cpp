@@ -491,7 +491,7 @@ namespace xios {
             if (zoom_ibegin < 1  || zoom_jbegin < 1 || zoom_iend > ni_glo || zoom_jend > nj_glo)
                ERROR("CDomain::checkZoom(void)",
                      << "Zoom is wrong defined,"
-                     << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_ibegin") ;
+                     << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_jbegin") ;
          }
       }
       else
