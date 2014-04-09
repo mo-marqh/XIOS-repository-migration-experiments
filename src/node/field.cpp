@@ -380,7 +380,7 @@ namespace xios{
       if (!processed)
       {
         processed=true ;
-        solveRefInheritance(true) ;
+        solveBaseReference() ;
         solveOperation() ;
         solveGridReference() ;
       
@@ -389,8 +389,32 @@ namespace xios{
         active=true;
       }
     }
-    
+
    void CField::solveRefInheritance(bool apply)
+   {
+      std::set<CField *> sset;
+      CField* refer_sptr;
+      CField * refer_ptr = this;
+     
+      while (refer_ptr->hasDirectFieldReference())
+      {
+         refer_sptr = refer_ptr->getDirectFieldReference();
+         refer_ptr  = refer_sptr;
+
+         if(sset.end() != sset.find(refer_ptr))
+         {
+            DEBUG (<< "Circular dependency stopped for field object on "
+                   << "\"" + refer_ptr->getId() + "\" !");
+            break;
+         }
+
+         SuperClassAttribute::setAttributes(refer_ptr, apply);
+         sset.insert(refer_ptr);
+      }
+      
+   }
+
+   void CField::solveBaseReference(void)
    {
       std::set<CField *> sset;
       CField* refer_sptr;
@@ -406,20 +430,17 @@ namespace xios{
 
          if(sset.end() != sset.find(refer_ptr))
          {
-            DEBUG (<< "Dépendance circulaire stoppée pour l'objet de type CField sur "
+            DEBUG (<< "Circular dependency stopped for field object on "
                    << "\"" + refer_ptr->getId() + "\" !");
             break;
          }
 
-         SuperClassAttribute::setAttributes(refer_ptr, apply);
          sset.insert(refer_ptr);
-//ym         baseRefObject = refer_sptr;
-//ym         refObject.push_back(refer_sptr);
       }
       
       if (hasDirectFieldReference()) baseRefObject->addReference(this) ;
    }
-
+   
    //----------------------------------------------------------------
 
    void  CField::solveOperation(void)

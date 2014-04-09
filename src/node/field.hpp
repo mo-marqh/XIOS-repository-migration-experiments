@@ -112,6 +112,7 @@ namespace xios {
          /// Traitements ///
          void processEnabledField(void) ;
          void solveRefInheritance(bool apply);
+         void solveBaseReference(void);
          void solveGridReference(void);
          void solveOperation(void);
 
