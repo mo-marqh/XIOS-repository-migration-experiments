@@ -380,6 +380,7 @@ namespace xios{
       if (!processed)
       {
         processed=true ;
+        solveRefInheritance(true) ;
         solveBaseReference() ;
         solveOperation() ;
         solveGridReference() ;
