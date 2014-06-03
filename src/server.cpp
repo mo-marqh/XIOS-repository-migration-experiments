@@ -103,7 +103,7 @@ namespace xios
         string codesId=CXios::getin<string>("oasis_codes_id") ;
          
         vector<string> splitted ;
-        boost::split( splitted, codesId, boost::is_space(), boost::token_compress_on ) ;
+        boost::split( splitted, codesId, boost::is_any_of(","), boost::token_compress_on ) ;
         vector<string>::iterator it ;
 
         MPI_Comm newComm ;
