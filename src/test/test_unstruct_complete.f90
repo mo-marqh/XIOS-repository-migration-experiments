@@ -1,4 +1,4 @@
-PROGRAM test_unstruct
+PROGRAM test_unstruct_complete
 
   USE xios
   USE mod_wait
@@ -219,7 +219,7 @@ PROGRAM test_unstruct
     CALL xios_context_finalize()
     CALL xios_finalize()
   
-END PROGRAM test_unstruct
+  END PROGRAM test_unstruct_complete
 
 
   
