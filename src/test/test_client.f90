@@ -71,13 +71,8 @@ PROGRAM test_client
   CALL xios_set_current_context(ctx_hdl)
   
   CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
-!  CALL xios_set_context_attr("test",start_date="01/01/2000 - 00:00:00")
-  CALL xios_set_context_attr("test",calendar_type="Gregorian") 
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
-  !CALL xios_set_domain_attr("domain_A",zoom_ni=3,zoom_ibegin=3,zoom_nj=3,zoom_jbegin=6)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
