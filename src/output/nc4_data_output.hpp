@@ -53,13 +53,14 @@ namespace xios
                                           const boost::shared_ptr<CCalendar> cal);
 
          protected :
-            void writeUnstructuredDomain (CDomain* domain);         
+            void writeUnstructuredDomain (CDomain* domain);
             void writeLocalAttributes(int ibegin, int ni, int jbegin, int nj, StdString domid);
             void writeLocalAttributes_IOIPSL(int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size) ;
             void writeTimeAxisAttributes(const StdString & axis_name,
                                          const StdString & calendar,
                                          const StdString & units,
                                          const StdString & time_origin,
+                                         const StdString & time_bounds   = StdString("bounds"),
                                          const StdString & standard_name = StdString("time"),
                                          const StdString & long_name     = StdString("Time axis"),
                                          const StdString & title         = StdString("Time"));
