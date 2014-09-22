@@ -5,6 +5,7 @@
 #include <boost/multi_array.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
+#include <cstring>
 #include <iostream>
 
 
@@ -31,23 +32,23 @@ extern "C"
 // /////////////////////////////// Définitions ////////////////////////////// //
 
    // ----------------------- Redéfinition de types ----------------------------
-   
+
    typedef enum { NETCDF4 = 0 } XFileType;
-   
+
    typedef xios::CContext * XContextPtr;
 
    // -------------------- Traitement des données ------------------------------
    void cxios_init_server(void)
    {
-     CXios::initServerSide();      
+     CXios::initServerSide();
    }
 
    void cxios_init_client(const char * client_id , int len_client_id, MPI_Fint* f_local_comm, MPI_Fint* f_return_comm )
    {
-      std::string str; 
+      std::string str;
       MPI_Comm local_comm ;
       MPI_Comm return_comm ;
-      
+
       if (!cstr2string(client_id, len_client_id, str)) return;
 
       int initialized ;
@@ -62,9 +63,9 @@ extern "C"
 
    void cxios_context_initialize(const char * context_id , int len_context_id, MPI_Fint* f_comm)
    {
-     std::string str; 
+     std::string str;
      MPI_Comm comm ;
-     
+
      if (!cstr2string(context_id, len_context_id, str)) return;
      CTimer::get("XIOS").resume() ;
      CTimer::get("XIOS init context").resume() ;
@@ -73,18 +74,18 @@ extern "C"
      CTimer::get("XIOS init context").suspend() ;
      CTimer::get("XIOS").suspend() ;
    }
- 
+
    void cxios_context_is_initialized(const char * context_id , int len_context_id, bool* initialized)
    {
-     std::string str; 
-     
+     std::string str;
+
      if (!cstr2string(context_id, len_context_id, str)) return;
      CTimer::get("XIOS").resume() ;
      CContext* context = CContext::get(str,str) ;
      *initialized=context->isInitialized() ;
      CTimer::get("XIOS").suspend() ;
-   }  
-   
+   }
+
     void cxios_context_close_definition()
    {
      CTimer::get("XIOS").resume() ;
@@ -93,7 +94,7 @@ extern "C"
      context->closeDefinition() ;
      CTimer::get("XIOS close definition").suspend() ;
      CTimer::get("XIOS").suspend() ;
-   }  
+   }
 
    void cxios_context_finalize()
    {
@@ -104,7 +105,7 @@ extern "C"
      CTimer::get("XIOS context finalize").suspend() ;
      CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_finalize()
    {
      CTimer::get("XIOS").resume() ;
@@ -118,15 +119,248 @@ extern "C"
      CContext* context = CContext::getCurrent() ;
      context->solveAllInheritance(false) ;
      CTimer::get("XIOS").suspend() ;
-   } 
-   
+   }
+
+   /*! \brief This group of functions retrieve variable information from the configuration file (.xml)
+    *
+    * These functions provide intermediate C interfaces to get variable information of the configuration file (e.x iodef.xml),
+    * from a Fortran one, for example the value of a variable with id = "using_server".
+    * Each function corresponds to each basic type.
+    * \param varId        [in] id of the variable that we'd like to get
+    * \param varIdSize    [in] size of the variable type (integer, float, double, string)
+    * \param dataInt      [in/out] the retrieved data
+    * \param isVarExisted [in/out] Verify whether variable with varId exists
+   */
+   void cxios_get_variable_data_k8(const char * varId, int varIdSize, double * data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS get variable data").resume();
+
+      CContext* context = CContext::getCurrent();
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        *data = CVariable::get(context->getId(),varIdStr)->getData<double>();
+      }
+
+      CTimer::get("XIOS get variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_get_variable_data_k4(const char * varId, int varIdSize, float * data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS get variable data").resume();
+
+      CContext* context = CContext::getCurrent();
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        *data = CVariable::get(context->getId(),varIdStr)->getData<float>();
+      }
+
+      CTimer::get("XIOS get variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_get_variable_data_int(const char * varId, int varIdSize, int * data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS get variable data").resume();
+
+      CContext* context = CContext::getCurrent();
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        *data = CVariable::get(context->getId(),varIdStr)->getData<int>();
+      }
+
+      CTimer::get("XIOS get variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_get_variable_data_logic(const char * varId, int varIdSize, bool * data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS get variable data").resume();
+
+      CContext* context = CContext::getCurrent();
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        *data = CVariable::get(context->getId(),varIdStr)->getData<bool>();
+      }
+
+      CTimer::get("XIOS get variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_get_variable_data_char(const char * varId, int varIdSize, char * data, int dataSizeIn, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS get variable data").resume();
+
+      CContext* context = CContext::getCurrent();
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        int dataSizeOut = CVariable::get(context->getId(),varIdStr)->getData<string>().length();
+        strncpy(data, CVariable::get(context->getId(),varIdStr)->getData<string>().c_str(), std::min(dataSizeIn, dataSizeOut));
+      }
+
+      CTimer::get("XIOS get variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   /*! \brief This group of functions write information into existing variable in the configuration file (.xml)
+    *
+    *  These functions provide intermediate C interfaces to get variable information of the configuration file (e.x iodef.xml),
+    * from a Fortran one, for example the value of a variable with id = "using_server".
+    * Each function corresponds to each basic type.
+    * \param varId        [in] id of the variable that we'd like to get
+    * \param varIdSize    [in] size of the variable type (integer, float, double, string)
+    * \param data         [in] the input data
+    * \param isVarExisted [in/out] Verify whether variable with varId exists
+   */
+   void cxios_set_variable_data_k8(const char * varId, int varIdSize, double data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS set variable data").resume();
+
+      CContext* context = CContext::getCurrent() ;
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        CVariable::get(context->getId(),varIdStr)->setData<double>(data);
+        CVariable::get(context->getId(),varIdStr)->sendValue();
+      }
+
+      CTimer::get("XIOS set variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_set_variable_data_k4(const char * varId, int varIdSize, float data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS set variable data").resume();
+
+      CContext* context = CContext::getCurrent() ;
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        CVariable::get(context->getId(),varIdStr)->setData<float>(data);
+        CVariable::get(context->getId(),varIdStr)->sendValue();
+      }
+
+      CTimer::get("XIOS set variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_set_variable_data_int(const char * varId, int varIdSize, int data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS set variable data").resume();
+
+      CContext* context = CContext::getCurrent() ;
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        CVariable::get(context->getId(),varIdStr)->setData<int>(data);
+        CVariable::get(context->getId(),varIdStr)->sendValue();
+      }
+
+
+      CTimer::get("XIOS set variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_set_variable_data_logic(const char * varId, int varIdSize, bool data, bool * isVarExisted)
+   {
+      std::string varIdStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS set variable data").resume();
+
+      CContext* context = CContext::getCurrent() ;
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        CVariable::get(context->getId(),varIdStr)->setData<bool>(data);
+        CVariable::get(context->getId(),varIdStr)->sendValue();
+      }
+
+      CTimer::get("XIOS set variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_set_variable_data_char(const char * varId, int varIdSize, const char * data, int dataSizeIn, bool * isVarExisted)
+   {
+      std::string varIdStr, dataStr;
+      if (!cstr2string(varId, varIdSize, varIdStr)) return;
+      if (!cstr2string(data, dataSizeIn, dataStr))
+      {
+        *isVarExisted = false;
+        return;
+      }
+
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS set variable data").resume();
+
+      CContext* context = CContext::getCurrent() ;
+      *isVarExisted = CVariable::has(context->getId(), varIdStr);
+
+      if (*isVarExisted)
+      {
+        CVariable::get(context->getId(),varIdStr)->setData<string>(dataStr);
+        CVariable::get(context->getId(),varIdStr)->sendValue();
+      }
+
+      CTimer::get("XIOS set variable data").suspend() ;
+      CTimer::get("XIOS").suspend() ;
+   }
+
+
    // ---------------------- Ecriture des données ------------------------------
-   
+
    void cxios_write_data_k81(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize)
    {
       std::string fieldid_str;
-      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
-      
+      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
@@ -138,27 +372,27 @@ extern "C"
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_write_data_k82(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize, int data_Ysize)
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
-      
+
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
       if (!context->hasServer) context->client->checkBuffers() ;
-      
+
       CArray<double,2>data(data_k8,shape(data_Xsize,data_Ysize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_write_data_k83(const char * fieldid, int fieldid_size, double * data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
    {
       std::string fieldid_str;
-      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
+      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
 
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
@@ -170,11 +404,11 @@ extern "C"
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_write_data_k41(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize)
    {
       std::string fieldid_str;
-     if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
+     if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
 
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
@@ -188,11 +422,11 @@ extern "C"
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_write_data_k42(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize, int data_Ysize)
    {
       std::string fieldid_str;
-      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
+      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
 
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
@@ -206,13 +440,13 @@ extern "C"
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_write_data_k43(const char * fieldid, int fieldid_size, float * data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
    {
       std::string fieldid_str;
- 
-      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return; 
- 
+
+      if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
+
       CTimer::get("XIOS").resume() ;
       CTimer::get("XIOS send field").resume() ;
       CContext* context = CContext::getCurrent() ;
@@ -221,11 +455,11 @@ extern "C"
       CArray<float,3> data_tmp(data_k4,shape(data_Xsize,data_Ysize,data_Zsize),neverDeleteData) ;
       CArray<double,3> data(data_Xsize,data_Ysize,data_Zsize) ;
       data=data_tmp ;
- 
+
       CField::get(fieldid_str)->setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
 
-    } 
+    }
 
 } // extern "C"

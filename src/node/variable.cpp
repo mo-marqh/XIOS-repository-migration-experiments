@@ -6,6 +6,8 @@
 #include "object_factory.hpp"
 #include "xmlioserver_spl.hpp"
 #include "type.hpp"
+#include "context.hpp"
+#include "context_client.hpp"
 #include <boost/algorithm/string.hpp>
 
 namespace xios {
@@ -49,6 +51,11 @@ namespace xios {
       return (this->content);
    }
 
+   void CVariable::setContent(const StdString& contentStr)
+   {
+     this->content = contentStr;
+   }
+
    StdString CVariable::toString(void) const
    {
       StdOStringStream oss;
@@ -60,12 +67,12 @@ namespace xios {
           << this->content /*<< std::endl*/;
       oss << "</" << CVariable::GetName() << " >";
       return (oss.str());
-   } 
-   
+   }
+
    CVariable::EVarType CVariable::getVarType(void) const
    {
      EVarType ret ;
-     
+
      if (type.isEmpty()) ret=t_undefined ;
      else
      {
@@ -82,7 +89,74 @@ namespace xios {
      }
      return ret ;
    }
-       
+
+   /*
+   *\brief Sending value of a variable with its id from client to server
+   *
+   */
+   void CVariable::sendValue()
+   {
+     CContext* context=CContext::getCurrent() ;
+     if (!context->hasServer)
+     {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<content ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+   }
+
+   /*
+   *\brief Receive value of a variable with its id from client to server
+   *
+   */
+   void CVariable::recvValue(CEventServer& event)
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvValue(*buffer);
+   }
+
+
+   /*
+   *\brief Receive value of a variable with its id from client to server
+   *
+   */
+   void CVariable::recvValue(CBufferIn& buffer)
+   {
+      string str ;
+      buffer>>str;
+      setContent(str);
+   }
+
+   bool CVariable::dispatchEvent(CEventServer& event)
+   {
+    if (SuperClass::dispatchEvent(event)) return true ;
+    else
+    {
+      switch(event.type)
+      {
+        case EVENT_ID_VARIABLE_VALUE :
+          recvValue(event) ;
+          return true ;
+          break ;
+
+        default :
+          ERROR("bool CVariable::dispatchEvent(CEventServer& event)",<<"Unknown Event") ;
+          return false ;
+      }
+    }
+   }
+
 /*
    void CVariable::toBinary(StdOStream & os) const
    {

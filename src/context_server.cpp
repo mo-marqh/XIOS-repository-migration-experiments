@@ -37,12 +37,12 @@ namespace xios
   {
     pendingEvent=true ;
   }
-  
+
   bool CContextServer::hasPendingEvent(void)
   {
     return pendingEvent ;
   }
-  
+
   bool CContextServer::eventLoop(void)
   {
     listen() ;
@@ -57,20 +57,20 @@ namespace xios
     int flag ;
     int count ;
     char * addr ;
-    MPI_Status status; 
+    MPI_Status status;
     map<int,CServerBuffer*>::iterator it;
-    
+
     for(rank=0;rank<commSize;rank++)
     {
       if (pendingRequest.find(rank)==pendingRequest.end())
       {
         traceOff() ;
-        MPI_Iprobe(rank,20,interComm,&flag,&status);     
+        MPI_Iprobe(rank,20,interComm,&flag,&status);
         traceOn() ;
         if (flag==true)
         {
           it=buffers.find(rank) ;
-          if (it==buffers.end()) 
+          if (it==buffers.end())
             it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer))).first ;
           MPI_Get_count(&status,MPI_CHAR,&count) ;
           if (it->second->isBufferFree(count))
@@ -83,7 +83,7 @@ namespace xios
       }
     }
   }
-  
+
   void CContextServer::checkPendingRequest(void)
   {
     map<int,MPI_Request>::iterator it;
@@ -93,7 +93,7 @@ namespace xios
     int flag ;
     int count ;
     MPI_Status status ;
-    
+
     for(it=pendingRequest.begin();it!=pendingRequest.end();it++)
     {
       rank=it->first ;
@@ -107,23 +107,23 @@ namespace xios
         processRequest(rank,bufferRequest[rank],count) ;
       }
     }
-    
-    for(itRecv=recvRequest.begin();itRecv!=recvRequest.end();itRecv++) 
+
+    for(itRecv=recvRequest.begin();itRecv!=recvRequest.end();itRecv++)
     {
       pendingRequest.erase(*itRecv) ;
       bufferRequest.erase(*itRecv) ;
     }
   }
-  
+
   void CContextServer::processRequest(int rank, char* buff,int count)
   {
-    
+
     CBufferIn buffer(buff,count) ;
     char* startBuffer,endBuffer ;
     int size, offset ;
     size_t timeLine ;
     map<size_t,CEventServer*>::iterator it ;
-       
+
     while(count>0)
     {
       char* startBuffer=(char*)buffer.ptr() ;
@@ -135,18 +135,18 @@ namespace xios
       it->second->push(rank,buffers[rank],startBuffer,size) ;
 
       buffer.advance(size) ;
-      count=buffer.remain() ;           
-    } 
-  
+      count=buffer.remain() ;
+    }
+
   }
-    
+
   void CContextServer::processEvents(void)
   {
     map<size_t,CEventServer*>::iterator it ;
     CEventServer* event ;
-    
+
     it=events.find(currentTimeLine) ;
-    if (it!=events.end()) 
+    if (it!=events.end())
     {
       event=it->second ;
       if (event->isFull())
@@ -161,12 +161,12 @@ namespace xios
        }
      }
    }
-       
+
   CContextServer::~CContextServer()
   {
     map<int,CServerBuffer*>::iterator it ;
-    for(it=buffers.begin();it!=buffers.end();++it) delete it->second ; 
-  } 
+    for(it=buffers.begin();it!=buffers.end();++it) delete it->second ;
+  }
 
 
   void CContextServer::dispatchEvent(CEventServer& event)
@@ -177,7 +177,7 @@ namespace xios
     int rank ;
     list<CEventServer::SSubEvent>::iterator it ;
     CContext::setCurrent(context->getId()) ;
-        
+
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl ;
@@ -197,6 +197,7 @@ namespace xios
     else if (event.classId==CFieldGroup::GetType()) CFieldGroup::dispatchEvent(event) ;
     else if (event.classId==CFile::GetType()) CFile::dispatchEvent(event) ;
     else if (event.classId==CFileGroup::GetType()) CFileGroup::dispatchEvent(event) ;
+    else if (event.classId==CVariable::GetType()) CVariable::dispatchEvent(event) ;
     else
     {
       ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl) ;
