@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<simulation> 
+<simulation>
 
   <context id="atmosphere" src="./context_atmosphere.xml"/>
 
@@ -9,13 +9,12 @@
       <variable_definition>
         <variable_group id="buffer">
             buffer_size = 80000000
-            buffer_server_factor_size = 2 
+            buffer_server_factor_size = 2
          </variable_group>
 
         <variable_group id="parameters" >
-          <variable id="using_server" type="boolean">false</variable>
           <variable id="info_level" type="int">100</variable>
-          <variable id="info_output_file" type="boolean">true</variable>
+          <variable id="print_file" type="boolean">true</variable>
         </variable_group>
       </variable_definition>
   </context>

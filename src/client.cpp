@@ -72,6 +72,17 @@ namespace xios
             }
           }
 
+          // Verify whether we are on server mode or not
+          CXios::setNotUsingServer();
+          for (i=0; i < size; ++i)
+          {
+            if (hashServer == hashAll[i])
+            {
+              CXios::setUsingServer();
+              break;
+            }
+          }
+
           myColor=colors[hashClient] ;
 
           MPI_Comm_split(CXios::globalComm,myColor,rank,&intraComm) ;
@@ -115,10 +126,18 @@ namespace xios
         CTimer::get("XIOS").resume() ;
         CTimer::get("XIOS init").resume() ;
 
+          // Verify whether we are on server mode or not
+        CXios::setNotUsingServer();
+        int interCommSize = 0, intraCommSize = 0;
+        oasis_get_intercomm(interComm,CXios::xiosCodeId);
+        MPI_Comm_size(interComm, &interCommSize);
+        MPI_Comm_size(intraComm, &intraCommSize);
+        if (interCommSize == intraCommSize) CXios::setUsingServer();
+
         if (CXios::usingServer)
         {
           MPI_Status status ;
-            MPI_Comm_rank(intraComm,&rank) ;
+          MPI_Comm_rank(intraComm,&rank) ;
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
           if (rank==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
@@ -223,7 +242,7 @@ namespace xios
      {
        std::filebuf* fb = m_infoStream.rdbuf();
        StdStringStream fileNameClient;
-       fileNameClient << fileName <<"_client_" << getRank() << ".txt";
+       fileNameClient << fileName <<"_client_" << getRank() << ".out";
        fb->open(fileNameClient.str().c_str(), std::ios::out);
        if (!fb->is_open())
        ERROR("void CClient::openInfoStream(const StdString& fileName)",

@@ -20,7 +20,7 @@ namespace xios
   bool CXios::isServer ;
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
-  bool CXios::usingServer ;
+  bool CXios::usingServer = false;
   size_t CXios::bufferSize ;
   double CXios::bufferServerFactorSize=2 ;
   size_t CXios::defaultBufferSize=1024*1024*100 ; // 100Mo
@@ -32,10 +32,9 @@ namespace xios
   {
     set_new_handler(noMemory);
     parseFile(rootFile);
-    usingServer=getin<bool>("using_server",false) ;
     usingOasis=getin<bool>("using_oasis",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
-    printInfo2File=getin<bool>("info_output_file",false);
+    printInfo2File=getin<bool>("print_file",false);
     bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
     bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
     globalComm=MPI_COMM_WORLD ;
@@ -48,10 +47,11 @@ namespace xios
     initialize() ;
 
     isClient=true;
-    if (usingServer) isServer=false;
-    else isServer=true ;
 
     CClient::initialize(codeId,localComm,returnComm) ;
+
+    if (usingServer) isServer=false;
+    else isServer=true ;
 
     if (printInfo2File)
       CClient::openInfoStream(infoFile);
@@ -75,11 +75,11 @@ namespace xios
   {
     initialize();
 
-    if (!usingServer) ERROR("void CXios::initServerSide(void)",<<"using_server is set to <false> and server initialization is called") ;
+//    if (!usingServer) ERROR("void CXios::initServerSide(void)",<<"using_server is set to <false> and server initialization is called") ;
     isClient=true;
     isServer=false ;
 
-    //! Initialize all aspect MPI
+    // Initialize all aspects MPI
     CServer::initialize();
 
     if (printInfo2File)
@@ -87,10 +87,10 @@ namespace xios
     else
       CServer::openInfoStream();
 
-    //! Enter the loop to listen message from Client
+    // Enter the loop to listen message from Client
     CServer::eventLoop();
 
-    //! Finalize
+    // Finalize
     CServer::finalize();
     CServer::closeInfoStream();
   }
@@ -98,5 +98,15 @@ namespace xios
   void CXios::parseFile(const string& filename)
   {
     xml::CXMLParser::ParseFile(filename);
+  }
+
+  void CXios::setUsingServer()
+  {
+    usingServer = true;
+  }
+
+  void CXios::setNotUsingServer()
+  {
+    usingServer = false;
   }
 }

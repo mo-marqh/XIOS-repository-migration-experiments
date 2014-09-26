@@ -28,9 +28,6 @@ namespace xios
      template <typename T>
      static T getin(const string& id) ;
 
-//     static void openFileInfo(const StdString& fileName);
-//     static void closeFileInfo();
-
      static bool isClient ;
      static bool isServer ;
 
@@ -44,8 +41,12 @@ namespace xios
      static double bufferServerFactorSize ;
      static double defaultBufferServerFactorSize ;
 
-     private:
-//     static StdOFStream infoFileStream_;
+     public:
+      //! Setting xios to use server mode
+      static void setUsingServer();
+
+      //! Setting xios NOT to use server mode
+      static void setNotUsingServer();
 
   } ;
 

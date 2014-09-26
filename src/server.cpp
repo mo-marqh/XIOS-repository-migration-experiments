@@ -404,7 +404,7 @@ namespace xios
      {
        std::filebuf* fb = m_infoStream.rdbuf();
        StdStringStream fileNameServer;
-       fileNameServer << fileName <<"_server_"<<getRank() << ".txt";
+       fileNameServer << fileName <<"_server_"<<getRank() << ".out";
        fb->open(fileNameServer.str().c_str(), std::ios::out);
        if (!fb->is_open())
        ERROR("void CServer::openInfoStream(const StdString& fileName)",
