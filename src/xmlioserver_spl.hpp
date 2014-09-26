@@ -38,6 +38,7 @@
 /// Définition de types (issus de la bibliothèque standard)///
 typedef std::ostringstream StdOStringStream;
 typedef std::istringstream StdIStringStream;
+typedef std::stringstream  StdStringStream;
 typedef std::ofstream      StdOFStream;
 typedef std::ifstream      StdIFStream;
 typedef std::ostream       StdOStream;

@@ -5,11 +5,11 @@
 #include "mpi.hpp"
 
 namespace xios
-{                      
+{
     class CClient
     {
        public:
-       
+
        static void initialize(const string& codeId,MPI_Comm& localComm,MPI_Comm& returnComm) ;
        static void finalize(void) ;
        static void registerContext(const string& id,MPI_Comm contextComm) ;
@@ -18,6 +18,21 @@ namespace xios
        static MPI_Comm interComm ;
        static int serverLeader;
        static bool is_MPI_Initialized ;
+
+       public:
+        static int getRank();
+
+        static void openInfoStream(const StdString& fileName);
+
+        static void openInfoStream();
+
+        static void closeInfoStream();
+
+       protected:
+       static int rank;
+       static StdOFStream m_infoStream;
+
+
     } ;
 }
 

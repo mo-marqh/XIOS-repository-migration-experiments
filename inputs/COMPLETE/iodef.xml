@@ -14,7 +14,8 @@
 
         <variable_group id="parameters" >
           <variable id="using_server" type="boolean">false</variable>
-          <variable id="info_level" type="int">1</variable>
+          <variable id="info_level" type="int">100</variable>
+          <variable id="info_output_file" type="boolean">true</variable>
         </variable_group>
       </variable_definition>
   </context>

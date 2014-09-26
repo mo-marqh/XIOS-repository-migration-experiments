@@ -10,7 +10,7 @@ namespace xios
     class CServer
     {
        public:
-       
+
        static void initialize(void) ;
        static void finalize(void) ;
        static void eventLoop(void) ;
@@ -21,7 +21,7 @@ namespace xios
        static void listenRootContext(void) ;
        static void listenRootFinalize(void) ;
        static void registerContext(void* buff,int count, int leaderRank=0) ;
-       
+
        static MPI_Comm intraComm ;
        static list<MPI_Comm> interComm ;
 
@@ -30,12 +30,29 @@ namespace xios
          int nbRecv ;
          int leaderRank ;
        } ;
-       
-      static bool isRoot ;
-      static int rank ;
-      static map<string,CContext*> contextList ;
-      static bool finished ;
-      static bool is_MPI_Initialized ;
+
+       static bool isRoot ;
+
+       static map<string,CContext*> contextList ;
+       static bool finished ;
+       static bool is_MPI_Initialized ;
+
+       public:
+         //! Get rank of the current process
+         static int getRank();
+
+        //! Print Information into a file
+        static void openInfoStream(const StdString& fileName);
+
+        //! Print information to standard output
+        static void openInfoStream();
+
+        //! Close Info stream (closing file)
+        static void closeInfoStream();
+
+       private:
+        static StdOFStream m_infoStream;
+        static int rank ;
     } ;
 }
 
