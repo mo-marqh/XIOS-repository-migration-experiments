@@ -13,6 +13,9 @@
 #include "tracer.hpp"
 #include "timer.hpp"
 #include "cxios.hpp"
+#include "event_scheduler.hpp"
+#include "server.hpp"
+#include <boost/functional/hash.hpp>
 
 
 
@@ -31,7 +34,12 @@ namespace xios
     if (flag) MPI_Comm_remote_size(interComm,&commSize);
     else  MPI_Comm_size(interComm,&commSize) ;
     currentTimeLine=0 ;
+    scheduled=false ;
     finished=false ;
+    
+    boost::hash<string> hashString ;
+    hashId=hashString(context->getId()) ;
+
   }
   void CContextServer::setPendingEvent(void)
   {
@@ -149,8 +157,16 @@ namespace xios
     if (it!=events.end())
     {
       event=it->second ;
+      
       if (event->isFull())
       {
+        if (!scheduled && !CXios::isServer)
+        {
+          CServer::eventScheduler->registerEvent(currentTimeLine,hashId) ;  
+          scheduled=true ;
+        }
+        else if (CXios::isServer || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) ) 
+        {
          CTimer::get("Process events").resume() ;
          dispatchEvent(*event) ;
          CTimer::get("Process events").suspend() ;
@@ -158,9 +174,11 @@ namespace xios
          delete event ;
          events.erase(it) ;
          currentTimeLine++ ;
-       }
-     }
-   }
+         scheduled = false ;
+        }
+      }
+    }
+  }
 
   CContextServer::~CContextServer()
   {

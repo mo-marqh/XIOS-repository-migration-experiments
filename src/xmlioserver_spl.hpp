@@ -19,6 +19,7 @@
 #include <list>
 #include <map>
 #include <deque>
+#include <queue>
 #include <valarray>
 // Flux.
 #include <iostream>

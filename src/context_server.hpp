@@ -40,6 +40,8 @@ namespace xios
     
     bool finished ;
     bool pendingEvent ;
+    bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
+    size_t hashId ;
     ~CContextServer() ;    
   } ;
 

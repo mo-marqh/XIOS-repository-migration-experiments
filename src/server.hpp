@@ -4,6 +4,7 @@
 #include "xmlioserver_spl.hpp"
 #include "context.hpp"
 #include "mpi.hpp"
+#include "event_scheduler.hpp"
 
 namespace xios
 {
@@ -24,6 +25,7 @@ namespace xios
 
        static MPI_Comm intraComm ;
        static list<MPI_Comm> interComm ;
+       static CEventScheduler* eventScheduler ;
 
        struct contextMessage
        {

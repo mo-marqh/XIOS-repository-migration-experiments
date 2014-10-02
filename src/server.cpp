@@ -11,6 +11,7 @@
 #include "mpi.hpp"
 #include "tracer.hpp"
 #include "timer.hpp"
+#include "event_scheduler.hpp"
 
 namespace xios
 {
@@ -22,6 +23,7 @@ namespace xios
     map<string,CContext*> CServer::contextList ;
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
+    CEventScheduler* CServer::eventScheduler ;
 
     void CServer::initialize(void)
     {
@@ -85,6 +87,11 @@ namespace xios
            if (it->first!=hashServer)
            {
              clientLeader=it->second ;
+             int intraCommSize, intraCommRank ;
+             MPI_Comm_size(intraComm,&intraCommSize) ;
+             MPI_Comm_rank(intraComm,&intraCommRank) ;
+             cout<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                 <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
              MPI_Intercomm_create(intraComm,0,CXios::globalComm,clientLeader,0,&newComm) ;
              interComm.push_back(newComm) ;
@@ -121,20 +128,23 @@ namespace xios
           MPI_Comm_remote_size(newComm,&size);
           interComm.push_back(newComm) ;
         }
-	oasis_enddef() ;
+	      oasis_enddef() ;
       }
 
 //      int rank;
       MPI_Comm_rank(intraComm,&rank) ;
       if (rank==0) isRoot=true;
       else isRoot=false;
-//      eventLoop() ;
-//      finalize() ;
+      
+      eventScheduler = new CEventScheduler(intraComm) ;
     }
 
     void CServer::finalize(void)
     {
       CTimer::get("XIOS").suspend() ;
+      
+      delete eventScheduler ;
+      
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
@@ -165,6 +175,7 @@ namespace xios
 
          contextEventLoop() ;
          if (finished && contextList.empty()) stop=true ;
+         if (! CXios::isServer) eventScheduler->checkEvent() ;
        }
        CTimer::get("XIOS server").suspend() ;
      }
