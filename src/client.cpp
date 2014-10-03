@@ -91,6 +91,12 @@ namespace xios
           {
             int clientLeader=leaders[hashClient] ;
             serverLeader=leaders[hashServer] ;
+
+            int intraCommSize, intraCommRank ;
+            MPI_Comm_size(intraComm,&intraCommSize) ;
+            MPI_Comm_rank(intraComm,&intraCommRank) ;
+            info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
+                 <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
             MPI_Intercomm_create(intraComm,0,CXios::globalComm,serverLeader,0,&interComm) ;
           }
           else

@@ -170,7 +170,6 @@ namespace xios {
       if (ni.getValue() < 0 || ibegin.getValue() > iend.getValue() ||
           ibegin.getValue() < 1 || iend.getValue() > ni_glo.getValue())
           {
-                  cout<<ni_glo<<"  "<<ni<<"  "<<ibegin<<"  "<<iend<<endl;
 
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "

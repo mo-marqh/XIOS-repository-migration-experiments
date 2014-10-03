@@ -73,7 +73,11 @@
 #include "simple_node_expr.hpp"
 #include <string>
 #include <iostream>
+#include "exception.hpp"
+
 using namespace std ;
+using namespace xios ;
+
 extern "C"
 {
   int yyparse(void);
@@ -100,7 +104,7 @@ extern "C"
 
 
 /* Line 189 of yacc.c  */
-#line 104 "yacc_parser.cpp"
+#line 108 "yacc_parser.cpp"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -150,7 +154,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 32 "yacc_parser.yacc"
+#line 36 "yacc_parser.yacc"
 
     std::string* str ;                /* symbol table index */
     CSimpleNodeExpr* node ;
@@ -158,7 +162,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 162 "yacc_parser.cpp"
+#line 166 "yacc_parser.cpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -170,7 +174,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 174 "yacc_parser.cpp"
+#line 178 "yacc_parser.cpp"
 
 #ifdef short
 # undef short
@@ -467,10 +471,10 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    54,    54,    55,    59,    60,    61,    62,    63,    64,
-      65,    66,    67,    68,    72,    73,    74,    75,    76,    77,
-      78,    79,    80,    81,    82,    83,    84,    85,    86,    87,
-      88,    89,    90
+       0,    58,    58,    59,    63,    64,    65,    66,    67,    68,
+      69,    70,    71,    72,    76,    77,    78,    79,    80,    81,
+      82,    83,    84,    85,    86,    87,    88,    89,    90,    91,
+      92,    93,    94
 };
 #endif
 
@@ -1419,224 +1423,224 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 54 "yacc_parser.yacc"
-    { cout<<"The end: \n"; ;}
+#line 58 "yacc_parser.yacc"
+    {  ;}
     break;
 
   case 3:
 
 /* Line 1455 of yacc.c  */
-#line 55 "yacc_parser.yacc"
-    { cout<<"Parsed  END..."<<endl ; parsed=(yyvsp[(1) - (2)].node) ;;}
+#line 59 "yacc_parser.yacc"
+    {  parsed=(yyvsp[(1) - (2)].node) ;;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 59 "yacc_parser.yacc"
+#line 63 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::scalarDouble,(yyvsp[(1) - (1)].str)); delete (yyvsp[(1) - (1)].str) ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 60 "yacc_parser.yacc"
+#line 64 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::scalarVariable,(yyvsp[(1) - (1)].str)) ; delete (yyvsp[(1) - (1)].str);}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 61 "yacc_parser.yacc"
+#line 65 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"add") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 62 "yacc_parser.yacc"
+#line 66 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"minus") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 63 "yacc_parser.yacc"
+#line 67 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"mult") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 64 "yacc_parser.yacc"
+#line 68 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"div") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 65 "yacc_parser.yacc"
+#line 69 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalar,"neg") ;  (yyval.node)->addChild((yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 66 "yacc_parser.yacc"
+#line 70 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"pow") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 67 "yacc_parser.yacc"
+#line 71 "yacc_parser.yacc"
     { (yyval.node)=(yyvsp[(2) - (3)].node) ; ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 68 "yacc_parser.yacc"
+#line 72 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalar,(yyvsp[(1) - (4)].str)) ; (yyval.node)->addChild((yyvsp[(3) - (4)].node)) ; delete (yyvsp[(1) - (4)].str) ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 72 "yacc_parser.yacc"
+#line 76 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::fieldInstant,(yyvsp[(1) - (1)].str)); delete (yyvsp[(1) - (1)].str);}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 73 "yacc_parser.yacc"
+#line 77 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::fieldAverage,(yyvsp[(1) - (1)].str)); delete (yyvsp[(1) - (1)].str);}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 74 "yacc_parser.yacc"
+#line 78 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"add") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 75 "yacc_parser.yacc"
+#line 79 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"minus") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 76 "yacc_parser.yacc"
+#line 80 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"mult") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 77 "yacc_parser.yacc"
+#line 81 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"div") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 78 "yacc_parser.yacc"
+#line 82 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opField,"neg") ; (yyval.node)->addChild((yyvsp[(2) - (2)].node));;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 79 "yacc_parser.yacc"
+#line 83 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"pow") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 80 "yacc_parser.yacc"
+#line 84 "yacc_parser.yacc"
     { (yyval.node)=(yyvsp[(2) - (3)].node) ;;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 81 "yacc_parser.yacc"
+#line 85 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"add") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 82 "yacc_parser.yacc"
+#line 86 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"add") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 83 "yacc_parser.yacc"
+#line 87 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"minus") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 84 "yacc_parser.yacc"
+#line 88 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"minus") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 85 "yacc_parser.yacc"
+#line 89 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"mult") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 86 "yacc_parser.yacc"
+#line 90 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"mult") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 87 "yacc_parser.yacc"
+#line 91 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"div") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 88 "yacc_parser.yacc"
+#line 92 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"div") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 89 "yacc_parser.yacc"
+#line 93 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"pow") ; (yyval.node)->addChild((yyvsp[(1) - (3)].node)) ; (yyval.node)->addChild((yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 90 "yacc_parser.yacc"
+#line 94 "yacc_parser.yacc"
     { (yyval.node)=new CSimpleNodeExpr(CSimpleNodeExpr::opField,(yyvsp[(1) - (4)].str)) ;  (yyval.node)->addChild((yyvsp[(3) - (4)].node)) ; delete (yyvsp[(1) - (4)].str);}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1640 "yacc_parser.cpp"
+#line 1644 "yacc_parser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1848,14 +1852,14 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 92 "yacc_parser.yacc"
+#line 96 "yacc_parser.yacc"
 
 
 extern "C"
 {
   int yyerror(const char *s) 
   {
-    cout<<"Parsing error :"<<s<<endl ; 
+    ERROR("int yyerror(const char *s)", <<"Parsing error :"<<s<<endl) ; 
   }
 }
 
@@ -1863,7 +1867,6 @@ namespace xios
 {
   CSimpleNodeExpr* parseExpr(const string& strExpr)
   {
-    cout<<strExpr<<endl ;
     globalInputText=strExpr ;
     globalReadOffset=0 ;
     yyparse();

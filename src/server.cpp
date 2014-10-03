@@ -90,8 +90,8 @@ namespace xios
              int intraCommSize, intraCommRank ;
              MPI_Comm_size(intraComm,&intraCommSize) ;
              MPI_Comm_rank(intraComm,&intraCommRank) ;
-             cout<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
-                 <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+             info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                     <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
              MPI_Intercomm_create(intraComm,0,CXios::globalComm,clientLeader,0,&newComm) ;
              interComm.push_back(newComm) ;

@@ -62,7 +62,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 32 "yacc_parser.yacc"
+#line 36 "yacc_parser.yacc"
 
     std::string* str ;                /* symbol table index */
     CSimpleNodeExpr* node ;

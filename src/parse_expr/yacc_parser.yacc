@@ -2,7 +2,11 @@
 #include "simple_node_expr.hpp"
 #include <string>
 #include <iostream>
+#include "exception.hpp"
+
 using namespace std ;
+using namespace xios ;
+
 extern "C"
 {
   int yyparse(void);
@@ -51,8 +55,8 @@ extern "C"
 
 
 Line:
-     END                           { cout<<"The end: \n"; }
-   | Field_expr END { cout<<"Parsed  END..."<<endl ; parsed=$1 ;}
+     END                           {  }
+   | Field_expr END {  parsed=$1 ;}
    ;
 
 Expression:
@@ -95,7 +99,7 @@ extern "C"
 {
   int yyerror(const char *s) 
   {
-    cout<<"Parsing error :"<<s<<endl ; 
+    ERROR("int yyerror(const char *s)", <<"Parsing error :"<<s<<endl) ; 
   }
 }
 
@@ -103,7 +107,6 @@ namespace xios
 {
   CSimpleNodeExpr* parseExpr(const string& strExpr)
   {
-    cout<<strExpr<<endl ;
     globalInputText=strExpr ;
     globalReadOffset=0 ;
     yyparse();

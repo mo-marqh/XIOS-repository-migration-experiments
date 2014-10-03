@@ -791,7 +791,6 @@ namespace xios{
            averageField->fieldOut=instantField ;
            instantField->freq_op=freq_op ;
            averageField-> processEnabledField() ;
-           cout<<" outputfreq of averageField "<<  freq_op <<"  "<<instantField->freq_op<<"  "<< averageField->freq_write << endl ;
            instantField->SuperClassAttribute::setAttributes(averageField, true);
            instantField->field_ref.reset() ;
            instantField->operation.reset() ;
