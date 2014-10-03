@@ -59,8 +59,17 @@ namespace xios
       {
          std::streamsize s ; 
          char c ;
-         
-         s = out.width (4);  c = out.fill ('0') ; out << date.year << '-';
+
+
+         int width=4 ;
+         double maxSize=10000 ;
+         while(date.year>=maxSize)
+         {
+           maxSize*=10 ;
+           width++ ;
+         }
+         s = out.width (width);  c = out.fill ('0') ; out << date.year << '-';
+
          s = out.width (2);  c = out.fill ('0') ; out << date.month << '-';
          s = out.width (2);  c = out.fill ('0') ; out << date.day << ' ';
          s = out.width (2);  c = out.fill ('0') ; out << date.hour << ':';
