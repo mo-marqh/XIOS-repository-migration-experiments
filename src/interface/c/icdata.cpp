@@ -367,8 +367,6 @@ extern "C"
       if (!context->hasServer) context->client->checkBuffers() ;
       CArray<double,(StdSize)1> data(data_k8,shape(data_Xsize),neverDeleteData) ;
       CField::get(fieldid_str)->setData(data) ;
-      CField toto ;
-      toto.setData(data) ;
       CTimer::get("XIOS send field").suspend() ;
       CTimer::get("XIOS").suspend() ;
    }
