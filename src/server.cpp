@@ -424,19 +424,21 @@ namespace xios
          ++numDigit;
        }
 
-       fileNameServer << fileName <<"_server_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
+       fileNameServer << fileName <<"_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
        fb->open(fileNameServer.str().c_str(), std::ios::out);
        if (!fb->is_open())
        ERROR("void CServer::openInfoStream(const StdString& fileName)",
             <<endl<< "Can not open <"<<fileNameServer<<"> file to write" );
 
        info.write2File(fb);
+       report.write2File(fb);
      }
 
      //! Open stream for standard output
      void CServer::openInfoStream()
      {
        info.write2StdOut();
+       report.write2StdOut();
      }
 
      //! Close opening stream

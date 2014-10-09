@@ -12,8 +12,8 @@ namespace xios
 
      static string rootFile ;
      static string xiosCodeId ;
-     static string infoFile;
-     static string errorFile;
+     static string clientFile;
+     static string serverFile;
 
      static void initialize(void) ;
 
@@ -43,11 +43,14 @@ namespace xios
      static double defaultBufferServerFactorSize ;
 
      public:
-      //! Setting xios to use server mode
-      static void setUsingServer();
+     //! Setting xios to use server mode
+     static void setUsingServer();
 
-      //! Setting xios NOT to use server mode
-      static void setNotUsingServer();
+     //! Setting xios NOT to use server mode
+     static void setNotUsingServer();
+
+      //! A silly variable to detect whether one process is in client or server side. Should be removed on refactoring code
+     static bool isServerSide;
 
   } ;
 

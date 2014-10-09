@@ -257,19 +257,21 @@ namespace xios
          ++numDigit;
        }
 
-       fileNameClient << fileName <<"_client_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
+       fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
        fb->open(fileNameClient.str().c_str(), std::ios::out);
        if (!fb->is_open())
        ERROR("void CClient::openInfoStream(const StdString& fileName)",
             <<endl<< "Can not open <"<<fileNameClient<<"> file to write" );
 
        info.write2File(fb);
+       report.write2File(fb);
      }
 
      //! Write out to standard output
      void CClient::openInfoStream()
      {
        info.write2StdOut();
+       report.write2StdOut();
      }
 
      //! Close file if it opens

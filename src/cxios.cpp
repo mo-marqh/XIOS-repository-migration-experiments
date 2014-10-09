@@ -14,8 +14,8 @@ namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;
-  string CXios::infoFile="./info_output";
-  string CXios::errorFile="./error_output";
+  string CXios::clientFile="./xios_client";
+  string CXios::serverFile="./xios_server";
 
   bool CXios::isClient ;
   bool CXios::isServer ;
@@ -27,6 +27,7 @@ namespace xios
   size_t CXios::defaultBufferSize=1024*1024*100 ; // 100Mo
   double CXios::defaultBufferServerFactorSize=2 ;
   bool CXios::printInfo2File;
+  bool CXios::isServerSide;
 
 
   void CXios::initialize()
@@ -51,11 +52,11 @@ namespace xios
 
     CClient::initialize(codeId,localComm,returnComm) ;
 
-    if (usingServer) isServer=false;
-    else isServer=true ;
+    if (usingServer) isServerSide = isServer=false;
+    else isServerSide = isServer=true;
 
     if (printInfo2File)
-      CClient::openInfoStream(infoFile);
+      CClient::openInfoStream(clientFile);
     else
       CClient::openInfoStream();
   }
@@ -75,14 +76,17 @@ namespace xios
   void CXios::initServerSide(void)
   {
     initialize();
+
     isClient=true;
     isServer=false ;
+
+    isServerSide = true;
 
     // Initialize all aspects MPI
     CServer::initialize();
 
     if (printInfo2File)
-      CServer::openInfoStream(infoFile);
+      CServer::openInfoStream(serverFile);
     else
       CServer::openInfoStream();
 

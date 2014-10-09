@@ -33,11 +33,25 @@ namespace xios
       }
 #else
      {
+      int numDigit = 0;
+      int size = 0;
+      MPI_Comm_size(CXios::globalComm, &size);
+      while (size)
+      {
+        size /= 10;
+        ++numDigit;
+      }
+
       StdOFStream fileStream;
       StdStringStream fileNameErr;
       std::streambuf* psbuf;
-      if (CXios::isClient) fileNameErr<< CXios::errorFile <<"_client_" << CClient::getRank() << ".err";
-      else fileNameErr<< CXios::errorFile <<"_server_" << CServer::getRank() << ".err";
+      if (CXios::isServerSide)
+        fileNameErr << CXios::serverFile << "_" << std::setfill('0')
+                    << std::setw(numDigit) << CServer::getRank() << ".err";
+      else
+        fileNameErr << CXios::clientFile << "_" << std::setfill('0')
+                    << std::setw(numDigit) << CClient::getRank() << ".err";
+
 
       fileStream.open(fileNameErr.str().c_str(), std::ofstream::out);
       psbuf = fileStream.rdbuf();
