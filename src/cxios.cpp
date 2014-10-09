@@ -15,6 +15,7 @@ namespace xios
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;
   string CXios::infoFile="./info_output";
+  string CXios::errorFile="./error_output";
 
   bool CXios::isClient ;
   bool CXios::isServer ;
@@ -74,8 +75,6 @@ namespace xios
   void CXios::initServerSide(void)
   {
     initialize();
-
-//    if (!usingServer) ERROR("void CXios::initServerSide(void)",<<"using_server is set to <false> and server initialization is called") ;
     isClient=true;
     isServer=false ;
 

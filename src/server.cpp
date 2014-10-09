@@ -415,7 +415,16 @@ namespace xios
      {
        std::filebuf* fb = m_infoStream.rdbuf();
        StdStringStream fileNameServer;
-       fileNameServer << fileName <<"_server_"<<getRank() << ".out";
+       int numDigit = 0;
+       int size = 0;
+       MPI_Comm_size(CXios::globalComm, &size);
+       while (size)
+       {
+         size /= 10;
+         ++numDigit;
+       }
+
+       fileNameServer << fileName <<"_server_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
        fb->open(fileNameServer.str().c_str(), std::ios::out);
        if (!fb->is_open())
        ERROR("void CServer::openInfoStream(const StdString& fileName)",

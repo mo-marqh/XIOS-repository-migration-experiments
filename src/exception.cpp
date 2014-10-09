@@ -2,6 +2,9 @@
 
 /// boost headers ///
 #include <boost/cast.hpp>
+#include "client.hpp"
+#include "server.hpp"
+#include "cxios.hpp"
 
 namespace xios
 {
@@ -22,13 +25,28 @@ namespace xios
    { (*this) << exception.str(); }
 
    CException::~CException(void)
-   { 
+   {
       if (desc_rethrow)
 #ifdef __XIOS_NOABORT
-        throw (*this); 
+      {
+        throw (*this);
+      }
 #else
+     {
+      StdOFStream fileStream;
+      StdStringStream fileNameErr;
+      std::streambuf* psbuf;
+      if (CXios::isClient) fileNameErr<< CXios::errorFile <<"_client_" << CClient::getRank() << ".err";
+      else fileNameErr<< CXios::errorFile <<"_server_" << CServer::getRank() << ".err";
+
+      fileStream.open(fileNameErr.str().c_str(), std::ofstream::out);
+      psbuf = fileStream.rdbuf();
+      std::cerr.rdbuf(psbuf);
       std::cerr << this->getMessage() << std::endl;
+      fileStream.close();
       abort();
+      }
+
 #endif
    }
 

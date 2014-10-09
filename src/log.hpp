@@ -17,7 +17,6 @@ namespace xios
     {
       if (l<=level)
       {
-//        rdbuf(cout.rdbuf()) ;
         rdbuf(strBuf_);
         *this<<"-> "<<name<<" : " ;
       }

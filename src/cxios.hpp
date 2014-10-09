@@ -13,6 +13,7 @@ namespace xios
      static string rootFile ;
      static string xiosCodeId ;
      static string infoFile;
+     static string errorFile;
 
      static void initialize(void) ;
 
