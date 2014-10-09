@@ -2,6 +2,7 @@
 #define __ONETCDF4_IMPL_HPP__
 
 #include "onetcdf4.hpp"
+#include "netCdfInterface.hpp"
 
 namespace xios
 {
@@ -17,9 +18,9 @@ namespace xios
     std::vector<StdSize> sstart, scount;
 
     if (this->wmpi && collective)
-    CheckError(nc_var_par_access(grpid, varid, NC_COLLECTIVE));
+    CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
     if (this->wmpi && !collective)
-    CheckError(nc_var_par_access(grpid, varid, NC_INDEPENDENT));
+    CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
 
     this->getWriteDataInfos
     (name, record, array_size,  sstart, scount, start, count);
@@ -30,26 +31,26 @@ namespace xios
       << ", intern array size = " << array_size
       << " ] Invalid input data !" );
     }
-         
+
     this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
   }
-      
+
 //----------------------------------------------------------------
-           
+
   template <class T>
   void CONetCDF4::setDefaultValue(const StdString & varname, const T * value)
   {
     int grpid = this->getCurrentGroup();
     int varid = this->getVariable(varname);
-         
+
     if (value != NULL)
     {
-      CheckError(nc_def_var_fill(grpid, varid, 0, (void*)value));
+      CNetCdfInterface::defVarFill(grpid, varid, 0, (void*)value);
       this->addAttribute(StdString("missing_value"), *value, &varname);
     }
-    else CheckError(nc_def_var_fill(grpid, varid, 1, NULL));         
+    else CNetCdfInterface::defVarFill(grpid, varid, 1, NULL);
   }
-     
+
   ///---------------------------------------------------------------
 
 }
