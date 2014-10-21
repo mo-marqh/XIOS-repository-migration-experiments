@@ -48,7 +48,7 @@
    */
    int CNetCdfInterface::createPar(const StdString& fileName, int cMode, MPI_Comm comm, MPI_Info info, int& ncId)
    {
-     int status = ::nc_create_par((fileName.c_str()), cMode, comm, info, &ncId);
+     int status = xios::nc_create_par((fileName.c_str()), cMode, comm, info, &ncId);
      if (NC_NOERR != status)
      {
        StdString errormsg(nc_strerror(status));
@@ -101,7 +101,7 @@
    */
    int CNetCdfInterface::openPar(const StdString& fileName, int oMode, MPI_Comm comm, MPI_Info info, int& ncId)
    {
-     int status = ::nc_open_par((fileName.c_str()), oMode, comm, info, &ncId);
+     int status = xios::nc_open_par((fileName.c_str()), oMode, comm, info, &ncId);
      if (NC_NOERR != status)
      {
        StdString errormsg(nc_strerror(status));

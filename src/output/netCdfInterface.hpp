@@ -11,6 +11,7 @@
 
 #include "xmlioserver_spl.hpp"
 #include "mpi.hpp"
+#include "exception.hpp"
 #include "netcdf.hpp"
 
 namespace xios
