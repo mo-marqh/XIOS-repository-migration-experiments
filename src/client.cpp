@@ -131,19 +131,12 @@ namespace xios
         else MPI_Comm_dup(localComm,&intraComm) ;
         CTimer::get("XIOS").resume() ;
         CTimer::get("XIOS init").resume() ;
-
-          // Verify whether we are on server mode or not
-        CXios::setNotUsingServer();
-        int interCommSize = 0, intraCommSize = 0;
-        oasis_get_intercomm(interComm,CXios::xiosCodeId);
-        MPI_Comm_size(interComm, &interCommSize);
-        MPI_Comm_size(intraComm, &intraCommSize);
-        if (interCommSize == intraCommSize) CXios::setUsingServer();
-
-        if (CXios::usingServer)
+  
+        if (CXios::usingServer) 
         {
           MPI_Status status ;
           MPI_Comm_rank(intraComm,&rank) ;
+
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
           if (rank==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;

@@ -35,6 +35,7 @@ namespace xios
     set_new_handler(noMemory);
     parseFile(rootFile);
     usingOasis=getin<bool>("using_oasis",false) ;
+    usingServer=getin<bool>("using_server",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
     printInfo2File=getin<bool>("print_file",false);
     bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
