@@ -10,15 +10,15 @@
 namespace xios
 {
   class CContext ;
-  
+
   class CContextClient
   {
-  
+
     public:
     CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm) ;
 //    void registerEvent(CEventClient& event) ;
 
-//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;  
+//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;
     void sendEvent(CEventClient& event) ;
 
     list<CBufferOut*> getBuffers(list<int>& serverlist, list<int>& sizeList) ;
@@ -40,9 +40,15 @@ namespace xios
     void finalize(void) ;
     void waitEvent(list<int>& ranks) ;
 
+    void setBufferSize(const std::map<int, StdSize>& mapSize);
+    void sendBufferSizeEvent();
+
     CContext* context ;
+
+    private:
+    std::map<int, StdSize> mapBufferSize_;
 //    bool locked ;
-    
+
   } ;
 
 

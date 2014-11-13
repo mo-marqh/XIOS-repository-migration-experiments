@@ -46,7 +46,6 @@ namespace xios
 
   void CXios::initClientSide(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
   {
-
     initialize() ;
 
     isClient=true;
@@ -73,11 +72,26 @@ namespace xios
 #endif
   }
 
+  void CXios::initServer()
+  {
+    set_new_handler(noMemory);
+    std::set<StdString> parseList;
+    parseList.insert("xios");
+    xml::CXMLParser::ParseFile(rootFile, parseList);
+//    parseFile(rootFile);
+    usingOasis=getin<bool>("using_oasis",false) ;
+    info.setLevel(getin<int>("info_level",0)) ;
+    printInfo2File=getin<bool>("print_file",false);
+    bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
+    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
+    globalComm=MPI_COMM_WORLD ;
+
+  }
 
   void CXios::initServerSide(void)
   {
-    initialize();
-
+//    initialize();
+    initServer();
     isClient=true;
     isServer=false ;
 

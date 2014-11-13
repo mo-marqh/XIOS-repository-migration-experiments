@@ -17,13 +17,13 @@
 #include "mpi.hpp"
 
 namespace xios {
-   
+
    /// ////////////////////// Définitions ////////////////////// ///
 
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-   { 
+   {
      setVirtualFieldGroup() ;
      setVirtualVariableGroup() ;
    }
@@ -31,7 +31,7 @@ namespace xios {
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-    { 
+    {
       setVirtualFieldGroup() ;
       setVirtualVariableGroup() ;
     }
@@ -40,41 +40,70 @@ namespace xios {
    { /* Ne rien faire de plus */ }
 
    ///---------------------------------------------------------------
-
+  //! Get name of file
    StdString CFile::GetName(void)   { return (StdString("file")); }
    StdString CFile::GetDefName(void){ return (CFile::GetName()); }
    ENodeType CFile::GetType(void)   { return (eFile); }
 
    //----------------------------------------------------------------
-
+   /*!
+   \brief Get data that will be written out.
+   Each enabled file in xml represents a physical netcdf file.
+   This function allows to access to data to be written out into netcdf file
+   \return data written out.
+   */
    boost::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
    {
       return (data_out);
    }
 
+   /*!
+   \brief Get virtual field group
+      In each file, there always exists a field group which is the ancestor of all
+   fields in the file. This is considered be virtual because it is created automatically during
+   file initialization and it normally doesn't appear on xml file
+   \return Pointer to field group
+   */
    CFieldGroup* CFile::getVirtualFieldGroup(void) const
    {
       return (this->vFieldGroup);
    }
 
+   /*!
+   \brief Get virtual variable group
+      In each file, there always exists a variable group which is the ancestor of all
+   variable in the file. This is considered be virtual because it is created automatically during
+   file initialization and it normally doesn't appear on xml file
+   \return Pointer to variable group
+   */
    CVariableGroup* CFile::getVirtualVariableGroup(void) const
    {
       return (this->vVariableGroup);
    }
 
+   //! Get all fields of a file
    std::vector<CField*> CFile::getAllFields(void) const
    {
       return (this->vFieldGroup->getAllChildren());
    }
- 
+
+   //! Get all variables of a file
    std::vector<CVariable*> CFile::getAllVariables(void) const
    {
       return (this->vVariableGroup->getAllChildren());
    }
 
    //----------------------------------------------------------------
-
-   std::vector<CField*> CFile::getEnabledFields(int default_outputlevel, 
+   /*!
+   \brief Get all enabled fields of file
+      A field is considered to be enabled if it fullfil these conditions: it is enabled, inside a enabled file
+   and its own level is not larger than file output level.
+   \param [in] default_outputlevel default value output level of file
+   \param [in] default_level default value level of field
+   \param [in] default_enabled flag determine by default if field is enabled
+   \return Vector of pointers of enabled fields
+   */
+   std::vector<CField*> CFile::getEnabledFields(int default_outputlevel,
                                                 int default_level,
                                                 bool default_enabled)
    {
@@ -87,7 +116,7 @@ namespace xios {
       this->enabledFields = this->getAllFields();
 
       std::vector<CField*> newEnabledFields;
-      
+
       for ( it = this->enabledFields.begin() ; it != this->enabledFields.end(); it++ )
       {
          if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est défini ...
@@ -111,7 +140,7 @@ namespace xios {
             if (default_level > _outputlevel) continue ;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
- 
+
 //         CField* field_tmp=(*it).get() ;
 //         shared_ptr<CField> sptfield=*it ;
 //         field_tmp->refObject.push_back(sptfield) ;
@@ -129,24 +158,26 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
+   //! Change virtual field group to a new one
    void CFile::setVirtualFieldGroup(CFieldGroup* newVFieldGroup)
-   { 
-      this->vFieldGroup = newVFieldGroup; 
+   {
+      this->vFieldGroup = newVFieldGroup;
    }
 
+   //! Change virtual variable group to new one
    void CFile::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
-   { 
-      this->vVariableGroup = newVVariableGroup; 
+   {
+      this->vVariableGroup = newVVariableGroup;
    }
 
    //----------------------------------------------------------------
-
+   //! Create virtual field group, which is done normally on initializing file
    void CFile::setVirtualFieldGroup(void)
    {
       this->setVirtualFieldGroup(CFieldGroup::create());
    }
 
+   //! Create virtual variable group, which is done normally on initializing file
    void CFile::setVirtualVariableGroup(void)
    {
       this->setVirtualVariableGroup(CVariableGroup::create());
@@ -167,13 +198,14 @@ namespace xios {
       }
       return false ;
     }
-    
+
+   //! Initialize a file in order to write into it
    void CFile::initFile(void)
    {
       CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
       CContextServer* server=context->server ;
-            
+
       if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
       if (! split_freq.isEmpty()) splitFreq = CDuration::FromString(split_freq.getValue());
       if (! output_freq.isEmpty()) outputFreq = CDuration::FromString(output_freq.getValue());
@@ -193,22 +225,29 @@ namespace xios {
       }
       nbDomain=setDomain.size() ;
 
-      // create sub communicator for file  
+      // create sub communicator for file
       int color=allDomainEmpty?0:1 ;
       MPI_Comm_split(server->intraComm,color,server->intraCommRank,&fileComm) ;
       if (allDomainEmpty) MPI_Comm_free(&fileComm) ;
       //
-      
+
     }
-    
+
+    //! Verify state of a file
     void CFile::checkFile(void)
     {
       if (!isOpen) createHeader() ;
       checkSync() ;
       checkSplit() ;
     }
-      
-     
+
+
+    /*!
+    \brief Verify if synchronisation should be done
+        If syn option is enabled, syn frequence and current time will be used to
+    calculate the moment to syn file(s)
+    \return True if it is the moment to synchronize file, otherwise false
+    */
    bool CFile::checkSync(void)
    {
      CContext* context = CContext::getCurrent() ;
@@ -224,8 +263,13 @@ namespace xios {
       }
       return false ;
     }
-    
-    
+
+    /*!
+    \brief Verify if splitting should be done
+        If split option is enabled, split frequence and current time will be used to
+    calculate the moment to split file
+    \return True if it is the moment to split file, otherwise false
+    */
     bool CFile::checkSplit(void)
     {
       CContext* context = CContext::getCurrent() ;
@@ -234,7 +278,7 @@ namespace xios {
       {
         if (currentDate > *lastSplit+splitFreq)
         {
-          *lastSplit=*lastSplit+splitFreq ;    
+          *lastSplit=*lastSplit+splitFreq ;
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
           for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
           createHeader() ;
@@ -243,12 +287,16 @@ namespace xios {
       }
       return false ;
     }
-    
+
+   /*!
+   \brief Create header of netcdf file
+   There are some information to fill in header of each netcdf.
+   */
    void CFile::createHeader(void)
    {
       CContext* context = CContext::getCurrent() ;
       CContextServer* server=context->server ;
-     
+
       if (!allDomainEmpty)
       {
          StdString filename = (!name.isEmpty()) ?   name.getValue() : getId();
@@ -272,14 +320,14 @@ namespace xios {
            else splitFormat=split_freq_format ;
            oss<<"_"<<lastSplit->getStr(splitFormat)<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr(splitFormat);
          }
-           
+
          bool multifile=true ;
          if (!type.isEmpty())
          {
            if (type==type_attr::one_file) multifile=false ;
            else if (type==type_attr::multiple_file) multifile=true ;
 
-         } 
+         }
 #ifndef USING_NETCDF_PAR
          if (!multifile)
          {
@@ -287,18 +335,18 @@ namespace xios {
             multifile=true ;
           }
 #endif
-         if (multifile) 
+         if (multifile)
          {
             int commSize, commRank ;
             MPI_Comm_size(fileComm,&commSize) ;
             MPI_Comm_rank(fileComm,&commRank) ;
-            
-            if (server->intraCommSize > 1) 
+
+            if (server->intraCommSize > 1)
             {
               oss << "_"  ;
               int width=0 ; int n=commSize-1 ;
               while(n != 0) { n=n/10 ; width++ ;}
-              if (!min_digits.isEmpty()) 
+              if (!min_digits.isEmpty())
                 if (width<min_digits) width=min_digits ;
               oss.width(width) ;
               oss.fill('0') ;
@@ -313,7 +361,7 @@ namespace xios {
          {
            if (par_access.getValue()=="independent") isCollective=false ;
            else if (par_access.getValue()=="collective") isCollective=true ;
-           else 
+           else
            {
              ERROR("void Context::createDataOutput(void)",
                         "incorrect file <par_access> attribut : must be <collective> or <indepedent>, "
@@ -331,26 +379,27 @@ namespace xios {
             this->data_out->writeFieldGrid(field);
          }
          this->data_out->writeTimeDimension();
-         
+
          for (it = this->enabledFields.begin() ;it != end; it++)
          {
             CField* field = *it;
             this->data_out->writeField(field);
          }
-         
+
          vector<CVariable*> listVars = getAllVariables() ;
          for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) this-> data_out-> writeAttribute(*it) ;
-         
+
          this->data_out->definition_end();
       }
    }
 
+   //! Close file
    void CFile::close(void)
    {
      delete lastSync ;
      delete lastSplit ;
      if (!allDomainEmpty)
-       if (isOpen) 
+       if (isOpen)
        {
          this->data_out->closeFile();
        }
@@ -358,10 +407,14 @@ namespace xios {
    }
    //----------------------------------------------------------------
 
+   /*!
+   \brief Parse xml file and write information into file object
+   \param [in] node xmld node corresponding in xml file
+   */
    void CFile::parse(xml::CXMLNode & node)
    {
       SuperClass::parse(node);
-      
+
       if (node.goToChildElement())
       {
         do
@@ -375,6 +428,10 @@ namespace xios {
    }
    //----------------------------------------------------------------
 
+   /*!
+   \brief Represent a file in form of string with all its info
+   \return String
+   */
    StdString CFile::toString(void) const
    {
       StdOStringStream oss;
@@ -390,33 +447,71 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-   
+
+   /*!
+   \brief Find all inheritace among objects in a file.
+   \param [in] apply (true) write attributes of parent into ones of child if they are empty
+                     (false) write attributes of parent into a new container of child
+   \param [in] parent
+   */
    void CFile::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
       SuperClassAttribute::setAttributes(parent,apply);
-      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL); 
+      this->getVirtualFieldGroup()->solveDescInheritance(apply, NULL);
       this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
    }
 
    //----------------------------------------------------------------
 
-   void CFile::processEnabledFile(void)
+//   void CFile::processEnabledFile(void)
+//   {
+//     if (output_freq.isEmpty()) ERROR("void CFile::processEnabledFile(void)",
+//                                       <<"File attribute <<output_freq>> is undefined");
+//     solveFieldRefInheritance(true) ;
+//     getEnabledFields() ;
+//     processEnabledFields() ;
+//   }
+
+//   void CFile::processEnabledFields(void)
+//   {
+//      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
+//      {
+//        this->enabledFields[i]->processEnabledField() ;
+//      }
+//   }
+
+   /*!
+   \brief Resolve all reference of active fields.
+      In order to know exactly which data each active field has, a search for all its
+   reference to find its parents or/and its base reference object must be done. Moreover
+   during this search, there are some information that can only be sent to server AFTER
+   all information of active fields are created on server side, e.g: checking mask or index
+   \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
+   */
+   void CFile::solveAllRefOfEnabledFields(bool sendToServer)
    {
-     if (output_freq.isEmpty()) ERROR("void CFile::processEnabledFile(void)",
-                                       <<"File attribute <<output_freq>> is undefined"); 
-     solveFieldRefInheritance(true) ;
-     getEnabledFields() ;
-     processEnabledFields() ;
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
+     }
    }
-   
-   void CFile::processEnabledFields(void)
+
+   /*!
+   \brief Contruct all expression related to active fields.
+      Each field can do some expressions which appear on the xml file, and itself can be
+   a result of an expression among some other fields. This function builds all possible expression
+   relating to active fields.
+   */
+   void CFile::buildAllExpressionOfEnabledFields()
    {
-      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
-      {
-        this->enabledFields[i]->processEnabledField() ;
-      }
-    }
-    
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->buildAllExpressionEnabledField();
+     }
+   }
+
    void CFile::solveFieldRefInheritance(bool apply)
    {
       // Résolution des héritages par référence de chacun des champs contenus dans le fichier.
@@ -440,44 +535,78 @@ namespace xios {
       for (unsigned int i = 0; i < this->enabledFields.size(); i++)
          this->enabledFields[i]->solveOperation();
    }
- 
+
    void CFile::solveEFExpression(void)
    {
       for (unsigned int i = 0; i < this->enabledFields.size(); i++)
          this->enabledFields[i]->buildExpression();
-   }   
- 
+   }
 
+   /*!
+   \brief Add a field into file.
+      A field is added into file and it will be written out if the file is enabled and
+   level of this field is smaller than level_output. A new field won't be created if one
+   with id has already existed
+   \param [in] id String identity of new field
+   \return Pointer to added (or already existed) field
+   */
    CField* CFile::addField(const string& id)
    {
      return vFieldGroup->createChild(id) ;
    }
 
+   /*!
+   \brief Add a field group into file.
+      A field group is added into file and it will play a role as parents for fields.
+   A new field group won't be created if one with id has already existed
+   \param [in] id String identity of new field group
+   \return Pointer to added (or already existed) field group
+   */
    CFieldGroup* CFile::addFieldGroup(const string& id)
    {
      return vFieldGroup->createChildGroup(id) ;
    }
- 
+
+   /*!
+   \brief Add a variable into file.
+      A variable is added into file and if one with id has already existed, pointer to
+   it will be returned.
+      Variable as long as attributes are information container of file.
+   However, whereas attributes are "fixed" information, variables provides a more flexible way to user
+   to fill in (extra) information for a file.
+   \param [in] id String identity of new variable
+   \return Pointer to added (or already existed) variable
+   */
    CVariable* CFile::addVariable(const string& id)
    {
      return vVariableGroup->createChild(id) ;
    }
 
+   /*!
+   \brief Add a variable group into file.
+      A variable group is added into file and it will play a role as parents for variables.
+   A new variable group won't be created if one with id has already existed
+   \param [in] id String identity of new variable group
+   \return Pointer to added (or already existed) variable group
+   */
    CVariableGroup* CFile::addVariableGroup(const string& id)
    {
      return vVariableGroup->createChildGroup(id) ;
    }
-   
-  
+
+   /*!
+   \brief Send a message to create a field on server side
+   \param[in] id String identity of field that will be created on server
+   */
    void CFile::sendAddField(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
-    
+
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -488,9 +617,13 @@ namespace xios {
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
-   
+
+   /*!
+   \brief Send a message to create a field group on server side
+   \param[in] id String identity of field group that will be created on server
+   */
    void CFile::sendAddFieldGroup(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
@@ -498,7 +631,7 @@ namespace xios {
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -509,19 +642,26 @@ namespace xios {
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a field on server side
+   \param[in] event Received event
+   */
    void CFile::recvAddField(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddField(*buffer) ;
    }
-   
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a field on server side
+   \param[in] buffer Buffer containing message
+   */
    void CFile::recvAddField(CBufferIn& buffer)
    {
       string id ;
@@ -529,42 +669,72 @@ namespace xios {
       addField(id) ;
    }
 
+   /*!
+   \brief Receive a message annoucing the creation of a field group on server side
+   \param[in] event Received event
+   */
    void CFile::recvAddFieldGroup(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddFieldGroup(*buffer) ;
    }
-   
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a field group on server side
+   \param[in] buffer Buffer containing message
+   */
    void CFile::recvAddFieldGroup(CBufferIn& buffer)
    {
       string id ;
       buffer>>id ;
       addFieldGroup(id) ;
    }
-   
 
+   /*!
+   \brief Send messages to duplicate all variables on server side
+      Because each variable has also its attributes. So first thing to do is replicate
+   all these attributes on server side. Because variable can have a value, the second thing
+   is to duplicate this value on server, too.
+   */
+   void CFile::sendAddAllVariables()
+   {
+     if (!getAllVariables().empty())
+     {
+       // Firstly, it's necessary to add virtual variable group
+       sendAddVariableGroup(getVirtualVariableGroup()->getId());
 
+       // Okie, now we can add to this variable group
+       std::vector<CVariable*> allVar = getAllVariables();
+       std::vector<CVariable*>::const_iterator it = allVar.begin();
+       std::vector<CVariable*>::const_iterator itE = allVar.end();
 
+       for (; it != itE; ++it)
+       {
+         std::cout << "Variable Files " << (*it)->getId() << std::endl;
+         this->sendAddVariable((*it)->getId());
+         (*it)->sendAllAttributesToServer();
+         (*it)->sendValue();
+       }
+     }
+   }
 
-
-
-
-
-
-
+   /*!
+   \brief Send a message to create a variable on server side
+      A variable always belongs to a variable group
+   \param[in] id String identity of variable that will be created on server
+   */
    void CFile::sendAddVariable(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
-    
+
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -575,9 +745,13 @@ namespace xios {
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
-   
+
+   /*!
+   \brief Send a message to create a variable group on server side
+   \param[in] id String identity of variable group that will be created on server
+   */
    void CFile::sendAddVariableGroup(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
@@ -585,7 +759,7 @@ namespace xios {
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -596,19 +770,26 @@ namespace xios {
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a variable on server side
+   \param[in] event Received event
+   */
    void CFile::recvAddVariable(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddVariable(*buffer) ;
    }
-   
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a variable on server side
+   \param[in] buffer Buffer containing message
+   */
    void CFile::recvAddVariable(CBufferIn& buffer)
    {
       string id ;
@@ -616,16 +797,23 @@ namespace xios {
       addVariable(id) ;
    }
 
+   /*!
+   \brief Receive a message annoucing the creation of a variable group on server side
+   \param[in] event Received event
+   */
    void CFile::recvAddVariableGroup(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddVariableGroup(*buffer) ;
    }
-   
-   
+
+   /*!
+   \brief Receive a message annoucing the creation of a variable group on server side
+   \param[in] buffer Buffer containing message
+   */
    void CFile::recvAddVariableGroup(CBufferIn& buffer)
    {
       string id ;
@@ -633,10 +821,35 @@ namespace xios {
       addVariableGroup(id) ;
    }
 
+   /*!
+     \brief Sending all active (enabled) fields from client to server.
+   Each field is identified uniquely by its string identity. Not only should we
+   send the id to server but also we need to send ids of reference domain and reference axis.
+   With these two id, it's easier to make reference to grid where all data should be written.
+   Remark: This function must be called AFTER all active (enabled) files have been created on the server side
+   */
+   void CFile::sendEnabledFields()
+   {
+     int size = this->enabledFields.size();
+     CField* fieldPtr(0);
+     for (int i = 0; i < size; ++i)
+     {
+       fieldPtr = this->enabledFields[i];
+       if (fieldPtr->name.isEmpty()) fieldPtr->name.setValue(fieldPtr->getBaseFieldReference()->getId());
+       std::cout << "Enabled Fields " << i << " " << CField::get(fieldPtr)->getId() << std::endl;
+       this->sendAddField(fieldPtr->getId());
+       fieldPtr->sendAllAttributesToServer();
+       fieldPtr->sendAddAllVariables();
+     }
+   }
 
-
-
-
+   /*!
+   \brief Dispatch event received from client
+      Whenever a message is received in buffer of server, it will be processed depending on
+   its event type. A new event type should be added in the switch list to make sure
+   it processed on server side.
+   \param [in] event: Received message
+   */
    bool CFile::dispatchEvent(CEventServer& event)
    {
       if (SuperClass::dispatchEvent(event)) return true ;
@@ -648,31 +861,31 @@ namespace xios {
              recvAddField(event) ;
              return true ;
              break ;
-         
+
            case EVENT_ID_ADD_FIELD_GROUP :
              recvAddFieldGroup(event) ;
              return true ;
-             break ;       
- 
+             break ;
+
             case EVENT_ID_ADD_VARIABLE :
              recvAddVariable(event) ;
              return true ;
              break ;
-         
+
            case EVENT_ID_ADD_VARIABLE_GROUP :
              recvAddVariableGroup(event) ;
              return true ;
-             break ;               
+             break ;
            default :
               ERROR("bool CFile::dispatchEvent(CEventServer& event)", <<"Unknown Event") ;
            return false ;
         }
       }
    }
-   
-   
-   
-   
+
+
+
+
    ///---------------------------------------------------------------
 
 } // namespace xios

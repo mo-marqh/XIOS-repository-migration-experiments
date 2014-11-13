@@ -16,19 +16,19 @@ namespace xios
 {
 
 
-    CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_)
+    CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_) : mapBufferSize_()
     {
       context=parent ;
       intraComm=intraComm_ ;
       interComm=interComm_ ;
       MPI_Comm_rank(intraComm,&clientRank) ;
       MPI_Comm_size(intraComm,&clientSize) ;
-      
+
       int flag ;
       MPI_Comm_test_inter(interComm,&flag) ;
       if (flag) MPI_Comm_remote_size(interComm,&serverSize);
       else  MPI_Comm_size(interComm,&serverSize) ;
-     
+
       timeLine=0 ;
 
     }
@@ -38,9 +38,9 @@ namespace xios
     {
       list<int>::iterator itServer ;
       list<int> ranks ;
-      list<int> sizes ;  
+      list<int> sizes ;
       list<int>::iterator itSize ;
-      
+
       ranks=event.getRanks() ;
       if (! event.isEmpty())
       {
@@ -50,8 +50,8 @@ namespace xios
         msg<<*(sizes.begin())<<timeLine ;
         for(list<int>::iterator it=sizes.begin();it!=sizes.end();it++) *it+=msg.size() ;
         list<CBufferOut*> buffList=getBuffers(ranks,sizes) ;
-      
-        list<CBufferOut*>::iterator it ;      
+
+        list<CBufferOut*>::iterator it ;
         for(it=buffList.begin(),itSize=sizes.begin();it!=buffList.end();++it,++itSize)
         {
           **it<<*itSize<<timeLine ;
@@ -63,7 +63,32 @@ namespace xios
       if (context->hasServer) waitEvent(ranks) ;
       timeLine++ ;
     }
-      
+
+    void CContextClient::sendBufferSizeEvent()
+    {
+      std::map<int, CClientBuffer*>::iterator it, itE;
+      std::map<int, StdSize>::const_iterator itMap = mapBufferSize_.begin(), iteMap = mapBufferSize_.end();
+
+      if (itMap == iteMap)
+         ERROR("CBufferOut*  CContextClient::sendBufferSizeEvent() ;",
+              <<"No information about server buffer, that should not happen...");
+
+      for (; itMap != iteMap; ++iteMap)
+      {
+        if (buffers.end() == buffers.find(itMap->first))
+          newBuffer(itMap->first);
+      }
+
+      CBufferOut* bufOut(NULL);
+      itE = buffers.end();
+      for (it = buffers.begin(); it != itE; ++it)
+      {
+        bufOut = (it->second)->getBuffer(sizeof(StdSize));
+        bufOut->put(mapBufferSize_[it->first]);  // Stupid C++
+        (it->second)->checkBuffer();
+      }
+    }
+
     void CContextClient::waitEvent(list<int>& ranks)
     {
       context->server->setPendingEvent() ;
@@ -77,26 +102,26 @@ namespace xios
       {
        context->server->eventLoop() ;
       }
-      
+
     }
 
     list<CBufferOut*> CContextClient::getBuffers(list<int>& serverList, list<int>& sizeList)
     {
       list<int>::iterator itServer,itSize ;
-      list<CClientBuffer*> bufferList ; 
-      map<int,CClientBuffer*>::iterator it ; 
-      list<CClientBuffer*>::iterator itBuffer ; 
+      list<CClientBuffer*> bufferList ;
+      map<int,CClientBuffer*>::iterator it ;
+      list<CClientBuffer*>::iterator itBuffer ;
       list<CBufferOut*>  retBuffer ;
       bool free ;
 
-      for(itServer=serverList.begin();itServer!=serverList.end();itServer++) 
+      for(itServer=serverList.begin();itServer!=serverList.end();itServer++)
       {
         it=buffers.find(*itServer) ;
-        if (it==buffers.end()) 
+        if (it==buffers.end())
         {
           newBuffer(*itServer) ;
           it=buffers.find(*itServer) ;
-        }         
+        }
         bufferList.push_back(it->second) ;
       }
       free=false ;
@@ -117,14 +142,15 @@ namespace xios
       {
         retBuffer.push_back((*itBuffer)->getBuffer(*itSize)) ;
       }
-      return retBuffer ;             
-   
+      return retBuffer ;
+
    }
-     
+
    void CContextClient::newBuffer(int rank)
    {
-      buffers[rank]=new CClientBuffer(interComm,rank) ;
-   } 
+//     buffers[rank]=new CClientBuffer(interComm,rank);
+      buffers[rank]=new CClientBuffer(interComm,rank, mapBufferSize_[rank]) ;
+   }
 
    bool CContextClient::checkBuffers(void)
    {
@@ -132,13 +158,13 @@ namespace xios
       bool pending=false ;
       for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) pending|=itBuff->second->checkBuffer() ;
       return pending ;
-   } 
+   }
 
    void CContextClient::releaseBuffers(void)
    {
       map<int,CClientBuffer*>::iterator itBuff ;
       for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) delete itBuff->second ;
-   } 
+   }
 
    bool CContextClient::checkBuffers(list<int>& ranks)
    {
@@ -146,13 +172,19 @@ namespace xios
       bool pending=false ;
       for(it=ranks.begin();it!=ranks.end();it++) pending|=buffers[*it]->checkBuffer() ;
       return pending ;
-   } 
+   }
+
+   void CContextClient::setBufferSize(const std::map<int, StdSize>& mapSize)
+   {
+     mapBufferSize_ = mapSize;
+     sendBufferSizeEvent();
+   }
 
    int CContextClient::getServerLeader(void)
    {
      int clientByServer=clientSize/serverSize ;
      int remain=clientSize%serverSize ;
-     
+
      if (clientRank<(clientByServer+1)*remain)
      {
        return clientRank/(clientByServer+1) ;
@@ -163,13 +195,13 @@ namespace xios
        int nbServer=serverSize-remain ;
        return remain+rank/clientByServer ;
      }
-   }      
+   }
 
    bool CContextClient::isServerLeader(void)
    {
      int clientByServer=clientSize/serverSize ;
      int remain=clientSize%serverSize ;
-     
+
      if (clientRank<(clientByServer+1)*remain)
      {
        if (clientRank%(clientByServer+1)==0) return true ;
@@ -181,16 +213,16 @@ namespace xios
        int nbServer=serverSize-remain ;
        if  (rank%clientByServer==0) return true ;
        else return false ;
-     } 
+     }
    }
-     
+
    void CContextClient::finalize(void)
    {
-      
+
      map<int,CClientBuffer*>::iterator itBuff ;
      bool stop=true ;
 
-     CEventClient event(CContext::GetType(),CContext::EVENT_ID_CONTEXT_FINALIZE) ;   
+     CEventClient event(CContext::GetType(),CContext::EVENT_ID_CONTEXT_FINALIZE) ;
      if (isServerLeader())
      {
        CMessage msg ;
@@ -198,7 +230,7 @@ namespace xios
        sendEvent(event) ;
      }
      else sendEvent(event) ;
- 
+
      CTimer::get("Blocking time").resume();
      while(stop)
      {
@@ -208,7 +240,7 @@ namespace xios
      }
      CTimer::get("Blocking time").suspend();
      report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
-     
+
      releaseBuffers() ;
    }
-}      
+}

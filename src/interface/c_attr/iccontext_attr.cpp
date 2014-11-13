@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(calendar_type, calendar_type_size, calendar_type_str)) return;
      CTimer::get("XIOS").resume();
     context_hdl->calendar_type.setValue(calendar_type_str);
-    context_hdl->sendAttributToServer(context_hdl->calendar_type);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(output_dir, output_dir_size, output_dir_str)) return;
      CTimer::get("XIOS").resume();
     context_hdl->output_dir.setValue(output_dir_str);
-    context_hdl->sendAttributToServer(context_hdl->output_dir);
      CTimer::get("XIOS").suspend();
   }
   
@@ -76,7 +74,6 @@ extern "C"
     if(!cstr2string(start_date, start_date_size, start_date_str)) return;
      CTimer::get("XIOS").resume();
     context_hdl->start_date.setValue(start_date_str);
-    context_hdl->sendAttributToServer(context_hdl->start_date);
      CTimer::get("XIOS").suspend();
   }
   
@@ -103,7 +100,6 @@ extern "C"
     if(!cstr2string(time_origin, time_origin_size, time_origin_str)) return;
      CTimer::get("XIOS").resume();
     context_hdl->time_origin.setValue(time_origin_str);
-    context_hdl->sendAttributToServer(context_hdl->time_origin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -130,7 +126,6 @@ extern "C"
     if(!cstr2string(timestep, timestep_size, timestep_str)) return;
      CTimer::get("XIOS").resume();
     context_hdl->timestep.setValue(timestep_str);
-    context_hdl->sendAttributToServer(context_hdl->timestep);
      CTimer::get("XIOS").suspend();
   }
   

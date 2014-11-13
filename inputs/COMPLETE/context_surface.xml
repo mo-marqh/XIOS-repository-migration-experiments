@@ -6,7 +6,7 @@
     <field id="field_A_srf"  name="field_A_srf" long_name="Champ en degC" operation="average" unit="degC" />
     <field id="field_A_srf_K" name="field_A_srf_K" field_ref="field_A_srf" long_name="Champ en degK" unit="degK"> field_A_srf + 273.15 </field>
     <field id="field_A_srf_max" name="field_A_srf_max" field_ref="field_A_srf" long_name="maximum field_A_srf" operation="maximum" />
-    <field id="field_D_srf" name="field_D_srf" long_name="Somme champ A et C" > field_A_srf + field_C_srf </field>
+    <field id="field_D_srf" name="field_D_srf" long_name="Somme champ A et C" > field_A_srf + field_A_srf_K </field>
     
   </field_definition>
     
@@ -30,9 +30,10 @@
       <field field_ref="field_A_srf" >
 	<variable id="my_attribute1" type="string" >surf_att</variable>
 	<variable id="my_attribute2" type="integer" >10</variable>
-	<variable id="my_attribute3" type="float" >6.8</variable>
+	<variable id="my_attribute3" type="float" >7.8</variable>
 	<variable id="my_attribute4" type="double" >100.201</variable>
       </field>
+      <field field_ref="field_D_srf" />
       <field field_ref="field_A_srf_K" />
       <field field_ref="field_A_srf" name="field_A_srf_min" operation="minimum" />
       <field field_ref="field_A_srf" name="field_A_srf_max" operation="maximum" />

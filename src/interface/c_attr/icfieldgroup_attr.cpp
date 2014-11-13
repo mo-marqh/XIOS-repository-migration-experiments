@@ -20,7 +20,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->add_offset.setValue(add_offset);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->add_offset);
      CTimer::get("XIOS").suspend();
   }
   
@@ -44,7 +43,6 @@ extern "C"
     if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->axis_ref.setValue(axis_ref_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->axis_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -69,7 +67,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->default_value.setValue(default_value);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->default_value);
      CTimer::get("XIOS").suspend();
   }
   
@@ -91,7 +88,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->detect_missing_value.setValue(detect_missing_value);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->detect_missing_value);
      CTimer::get("XIOS").suspend();
   }
   
@@ -115,7 +111,6 @@ extern "C"
     if(!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->domain_ref.setValue(domain_ref_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->domain_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -140,7 +135,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->enabled.setValue(enabled);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->enabled);
      CTimer::get("XIOS").suspend();
   }
   
@@ -164,7 +158,6 @@ extern "C"
     if(!cstr2string(field_ref, field_ref_size, field_ref_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->field_ref.setValue(field_ref_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->field_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -191,7 +184,6 @@ extern "C"
     if(!cstr2string(freq_offset, freq_offset_size, freq_offset_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->freq_offset.setValue(freq_offset_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->freq_offset);
      CTimer::get("XIOS").suspend();
   }
   
@@ -218,7 +210,6 @@ extern "C"
     if(!cstr2string(freq_op, freq_op_size, freq_op_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->freq_op.setValue(freq_op_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->freq_op);
      CTimer::get("XIOS").suspend();
   }
   
@@ -245,7 +236,6 @@ extern "C"
     if(!cstr2string(grid_ref, grid_ref_size, grid_ref_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->grid_ref.setValue(grid_ref_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->grid_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -272,7 +262,6 @@ extern "C"
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->group_ref.setValue(group_ref_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -297,7 +286,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->level.setValue(level);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->level);
      CTimer::get("XIOS").suspend();
   }
   
@@ -321,7 +309,6 @@ extern "C"
     if(!cstr2string(long_name, long_name_size, long_name_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->long_name.setValue(long_name_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->long_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -348,7 +335,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->name.setValue(name_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -375,7 +361,6 @@ extern "C"
     if(!cstr2string(operation, operation_size, operation_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->operation.setValue(operation_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->operation);
      CTimer::get("XIOS").suspend();
   }
   
@@ -400,7 +385,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->prec.setValue(prec);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->prec);
      CTimer::get("XIOS").suspend();
   }
   
@@ -422,7 +406,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->scale_factor.setValue(scale_factor);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->scale_factor);
      CTimer::get("XIOS").suspend();
   }
   
@@ -446,7 +429,6 @@ extern "C"
     if(!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->standard_name.setValue(standard_name_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->standard_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -473,7 +455,6 @@ extern "C"
     if(!cstr2string(unit, unit_size, unit_str)) return;
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->unit.setValue(unit_str);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->unit);
      CTimer::get("XIOS").suspend();
   }
   
@@ -498,7 +479,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->valid_max.setValue(valid_max);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->valid_max);
      CTimer::get("XIOS").suspend();
   }
   
@@ -520,7 +500,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     fieldgroup_hdl->valid_min.setValue(valid_min);
-    fieldgroup_hdl->sendAttributToServer(fieldgroup_hdl->valid_min);
      CTimer::get("XIOS").suspend();
   }
   

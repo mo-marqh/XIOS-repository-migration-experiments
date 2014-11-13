@@ -30,10 +30,8 @@ extern "C"
          CTimer::get("XIOS").resume() ;
          CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second, 0};
          xios::CContext* context = CContext::getCurrent() ;
-         
-            context->timestep.setValue(dur.toString());
-            context->sendAttributToServer("timestep") ;
-          CTimer::get("XIOS").suspend() ;
+         context->timestep.setValue(dur.toString());
+         CTimer::get("XIOS").suspend() ;
       }
       catch (xios::CException & exc)
       {
@@ -41,7 +39,7 @@ extern "C"
          exit (EXIT_FAILURE);
       }
    }
-   
+
    void cxios_update_calendar(int step)
    {
       CTimer::get("XIOS").resume() ;
@@ -50,7 +48,6 @@ extern "C"
       context->updateCalendar(step) ;
       context->sendUpdateCalendar(step) ;
       CTimer::get("XIOS").suspend() ;
-      
    }
 
 } // extern "C"

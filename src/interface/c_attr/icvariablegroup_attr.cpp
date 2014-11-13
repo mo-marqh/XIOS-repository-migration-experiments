@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
      CTimer::get("XIOS").resume();
     variablegroup_hdl->group_ref.setValue(group_ref_str);
-    variablegroup_hdl->sendAttributToServer(variablegroup_hdl->group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     variablegroup_hdl->name.setValue(name_str);
-    variablegroup_hdl->sendAttributToServer(variablegroup_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -76,7 +74,6 @@ extern "C"
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
     variablegroup_hdl->type.setValue(type_str);
-    variablegroup_hdl->sendAttributToServer(variablegroup_hdl->type);
      CTimer::get("XIOS").suspend();
   }
   

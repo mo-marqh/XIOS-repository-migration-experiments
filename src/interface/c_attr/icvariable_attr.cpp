@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     variable_hdl->name.setValue(name_str);
-    variable_hdl->sendAttributToServer(variable_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
     variable_hdl->type.setValue(type_str);
-    variable_hdl->sendAttributToServer(variable_hdl->type);
      CTimer::get("XIOS").suspend();
   }
   

@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
      CTimer::get("XIOS").resume();
     grid_hdl->axis_ref.setValue(axis_ref_str);
-    grid_hdl->sendAttributToServer(grid_hdl->axis_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(description, description_size, description_str)) return;
      CTimer::get("XIOS").resume();
     grid_hdl->description.setValue(description_str);
-    grid_hdl->sendAttributToServer(grid_hdl->description);
      CTimer::get("XIOS").suspend();
   }
   
@@ -76,7 +74,6 @@ extern "C"
     if(!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
      CTimer::get("XIOS").resume();
     grid_hdl->domain_ref.setValue(domain_ref_str);
-    grid_hdl->sendAttributToServer(grid_hdl->domain_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -102,7 +99,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
     grid_hdl->mask.reference(tmp.copy());
-    grid_hdl->sendAttributToServer(grid_hdl->mask);
      CTimer::get("XIOS").suspend();
   }
   
@@ -129,7 +125,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     grid_hdl->name.setValue(name_str);
-    grid_hdl->sendAttributToServer(grid_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   

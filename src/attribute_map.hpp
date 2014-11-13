@@ -32,6 +32,8 @@ namespace xios
 
             void clearAllAttributes(void);
 
+            void clearAttribute(const StdString& key);
+
             /// Destructeur ///
             virtual ~CAttributeMap(void);
 
@@ -42,7 +44,7 @@ namespace xios
             /// Autre ///
             virtual StdString toString(void) const;
             virtual void fromString(const StdString & str);
-            
+
 //            virtual void toBinary  (StdOStream & os) const;
 //            virtual void fromBinary(StdIStream & is);
             virtual void generateCInterface(ostream& oss, const string& className) ;

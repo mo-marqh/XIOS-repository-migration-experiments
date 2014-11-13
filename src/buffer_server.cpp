@@ -1,14 +1,14 @@
 #include "xmlioserver_spl.hpp"
 #include "exception.hpp"
 #include "buffer_server.hpp"
-#include "cxios.hpp"
+
 
 namespace xios
 {
 
-  CServerBuffer::CServerBuffer(void)
+  CServerBuffer::CServerBuffer(StdSize buffSize)
   {
-    bufferSizeByClient=CXios::bufferSize*CXios::bufferServerFactorSize ;
+    bufferSizeByClient= buffSize * CXios::bufferServerFactorSize; //::bufferSize*CXios::bufferServerFactorSize ;
     size=bufferSizeByClient ;
     first=0 ;
     current=1 ;
@@ -20,14 +20,14 @@ namespace xios
   {
     delete [] buffer ;
   }
-  
+
 
   bool CServerBuffer::isBufferFree(size_t count)
   {
     bool ret ;
-    
+
     if (count==0) return true ;
-    
+
     if (current>first)
     {
       if (current+count<size)
@@ -71,14 +71,14 @@ namespace xios
 
     return ret ;
   }
-  
+
 
   void* CServerBuffer::getBuffer(size_t count)
   {
     char* ret ;
-    
+
     if (count==0) return buffer+current ;
-    
+
     if (current>first)
     {
       if (current+count<size)
@@ -130,12 +130,12 @@ namespace xios
 
     return ret ;
   }
-  
+
   void CServerBuffer::freeBuffer(size_t count)
   {
     if (count==0) return ;
 
-    if (first==end-1) 
+    if (first==end-1)
     {
       first=0 ;
       count-- ;
@@ -144,7 +144,7 @@ namespace xios
 
     if (first<=current)
     {
-      if (first+count <current) 
+      if (first+count <current)
       {
         first+=count ;
       }
@@ -153,7 +153,7 @@ namespace xios
           ERROR("void CServerBuffer::freeBuffer(size_t count)",
                  <<"cannot free required size in buffer") ;
       }
-    
+
     }
     else
     {
@@ -167,6 +167,6 @@ namespace xios
                  <<"cannot free required size in buffer") ;
       }
     }
-  }      
-       
+  }
+
 }

@@ -17,8 +17,8 @@
 namespace xios {
    class CContextClient ;
    class CContextServer ;
-   
-   
+
+
    /// ////////////////////// Déclarations ////////////////////// ///
    class CContextGroup;
    class CContextAttributes;
@@ -32,7 +32,14 @@ namespace xios {
    END_DECLARE_ATTRIBUTE_MAP(CContext)
 
    ///--------------------------------------------------------------
-
+  /*!
+  \class CContext
+   This class corresponds to the concrete presentation of context in xml file and in play an essential role in XIOS
+   Each object of this class contains all root definition of elements: files, fiels, domains, axis, etc, ... from which
+   we can have access to each element.
+   In fact, every thing must a be inside a particuliar context. After the xml file (iodef.xml) is parsed,
+   object of the class is created and its contains all information of other elements in the xml file.
+  */
    class CContext
       : public CObjectTemplate<CContext>
       , public CContextAttributes
@@ -41,9 +48,10 @@ namespace xios {
          enum EEventId
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
-           EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE
+           EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
+           EVENT_ID_POST_PROCESS
          } ;
-         
+
          /// typedef ///
          typedef CObjectTemplate<CContext>   SuperClass;
          typedef CContextAttributes SuperClassAttribute;
@@ -69,87 +77,143 @@ namespace xios {
          //---------------------------------------------------------
 
       public :
-      
+
          /// Mutateurs ///
          void setCalendar(boost::shared_ptr<CCalendar> newCalendar);
-      
+
          /// Accesseurs ///
          boost::shared_ptr<CCalendar>      getCalendar(void) const;
 
-         /// Accesseurs statiques ///
-         static StdString GetName(void);
-         static StdString GetDefName(void);         
-         static ENodeType GetType(void);         
-
-         static CContextGroup* GetContextGroup(void);
-
       public :
-
-         /// Traitements ///
-         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
-         void solveFieldRefInheritance(bool apply);
-         void solveCalendar(void);
-
-         /// Autres méthodes statiques ///
-         static void ShowTree(StdOStream & out = std::clog);
-         static void CleanTree(void);
-
-         /// Test ///
-         virtual bool hasChild(void) const;
-
-         bool eventLoop(void) ;
-         bool serverLoop(void) ;
-         void clientLoop(void) ;
+         // Initialize server or client
          void initServer(MPI_Comm intraComm, MPI_Comm interComm) ;
          void initClient(MPI_Comm intraComm, MPI_Comm interComm) ;
          bool isInitialized(void) ;
-         CContextServer* server ;
-         CContextClient* client ;
-         bool hasClient ;
-         bool hasServer ;
+
+         // Put sever or client into loop state
+         bool eventLoop(void) ;
+         bool serverLoop(void) ;
+         void clientLoop(void) ;
+
+         // Process all information of calendar
+         void solveCalendar(void);
+
+         // Finalize a context
          void finalize(void) ;
          void closeDefinition(void) ;
+
+         // Some functions to process context
          void findAllEnabledFields(void);
          void processEnabledFiles(void) ;
-         void solveAllGridRef(void);
-         void solveAllOperation(void);
-         void solveAllExpression(void);
          void solveAllInheritance(bool apply=true) ;
          void findEnabledFiles(void);
          void closeAllFile(void) ;
          void updateCalendar(int step) ;
          void createFileHeader(void ) ;
-      // dispatch event
-         static bool dispatchEvent(CEventServer& event) ;
+         void solveAllRefOfEnabledFields(bool sendToServer);
+         void buildAllExpressionOfEnabledFields();
+         void postProcessing();
+
+         std::map<int, StdSize>& getDataSize();
+         void setClientServerBuffer();
+
+         // Send context close definition
          void sendCloseDefinition(void) ;
+         // There are something to send on closing context defintion
          void sendUpdateCalendar(int step) ;
          void sendCreateFileHeader(void) ;
+         void sendEnabledFiles();
+         void sendEnabledFields();
+         void sendRefDomainsAxis();
+         void sendRefGrid();
+         void sendPostProcessing();
+
+         // Client side: Receive and process messages
          static void recvUpdateCalendar(CEventServer& event) ;
          void recvUpdateCalendar(CBufferIn& buffer) ;
          static void recvCloseDefinition(CEventServer& event) ;
          static void recvCreateFileHeader(CEventServer& event) ;
          void recvCreateFileHeader(CBufferIn& buffer) ;
-         static CContext* getCurrent(void) ;
-         static CContextGroup* getRoot(void) ;
-         static void setCurrent(const string& id) ;
-         static CContext* create(const string& id = "") ;
-         
+         static void recvSolveInheritanceContext(CEventServer& event);
+         void recvSolveInheritanceContext(CBufferIn& buffer);
+         static void recvPostProcessing(CEventServer& event);
+         void recvPostProcessing(CBufferIn& buffer);
+
+         // dispatch event
+         static bool dispatchEvent(CEventServer& event) ;
+
+      public:
+        // Get current context
+        static CContext* getCurrent(void);
+
+        // Get context root
+        static CContextGroup* getRoot(void);
+
+        // Set current context
+        static void setCurrent(const string& id);
+
+        // Create new context
+        static CContext* create(const string& id = "");
+
+        /// Accesseurs statiques ///
+        static StdString GetName(void);
+        static StdString GetDefName(void);
+        static ENodeType GetType(void);
+
+        static CContextGroup* GetContextGroup(void);
+
+        // Some functions to visualize structure of current context
+        static void ShowTree(StdOStream & out = std::clog);
+        static void CleanTree(void);
+
       public :
-      
-         /// Autres ///
+         // Parse xml node and write all info into context
          virtual void parse(xml::CXMLNode & node);
 
+         // Visualize a context
          virtual StdString toString(void) const;
-//         virtual void toBinary  (StdOStream & os) const;
-//         virtual void fromBinary(StdIStream & is);
-         
+
+
+         // Solve all inheritance relation in current context
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+
+         // Verify if all root definition in a context have children
+         virtual bool hasChild(void) const;
+
       public :
-      
-         boost::shared_ptr<CCalendar>      calendar;
- 
+         // Calendar of context
+         boost::shared_ptr<CCalendar>   calendar;
+
+         // List of all enabled files (files on which fields are written)
          std::vector<CFile*> enabledFiles;
+
+         // Context root
          static shared_ptr<CContextGroup> root ;
 
+         // Determine context on client or not
+         bool hasClient ;
+
+         // Determine context on server or not
+         bool hasServer ;
+
+         // Concrete context server
+         CContextServer* server ;
+
+         // Concrete contex client
+         CContextClient* client ;
+
+      private:
+         bool isPostProcessed;
+         std::map<int, StdSize> dataSize_;
+
+
+      public: // Some function maybe removed in the near future
+        // virtual void toBinary  (StdOStream & os) const;
+        // virtual void fromBinary(StdIStream & is);
+        // void solveAllGridRef(void);
+        // void solveAllOperation(void);
+        // void solveAllExpression(void);
+        // void solveFieldRefInheritance(bool apply);
 
    }; // class CContext
 

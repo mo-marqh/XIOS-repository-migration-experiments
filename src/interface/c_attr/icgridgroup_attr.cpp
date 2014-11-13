@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
      CTimer::get("XIOS").resume();
     gridgroup_hdl->axis_ref.setValue(axis_ref_str);
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->axis_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(description, description_size, description_str)) return;
      CTimer::get("XIOS").resume();
     gridgroup_hdl->description.setValue(description_str);
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->description);
      CTimer::get("XIOS").suspend();
   }
   
@@ -76,7 +74,6 @@ extern "C"
     if(!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
      CTimer::get("XIOS").resume();
     gridgroup_hdl->domain_ref.setValue(domain_ref_str);
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->domain_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -103,7 +100,6 @@ extern "C"
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
      CTimer::get("XIOS").resume();
     gridgroup_hdl->group_ref.setValue(group_ref_str);
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -129,7 +125,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
     gridgroup_hdl->mask.reference(tmp.copy());
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->mask);
      CTimer::get("XIOS").suspend();
   }
   
@@ -156,7 +151,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     gridgroup_hdl->name.setValue(name_str);
-    gridgroup_hdl->sendAttributToServer(gridgroup_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   

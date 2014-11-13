@@ -17,7 +17,7 @@
 
 
 namespace xios {
-   
+
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CFieldGroup;
@@ -55,7 +55,7 @@ namespace xios {
          {
            EVENT_ID_UPDATE_DATA, EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
          } ;
-         
+
          /// Constructeurs ///
          CField(void);
          explicit CField(const StdString & id);
@@ -82,7 +82,7 @@ namespace xios {
          boost::shared_ptr<CDate> getLastOperationDate(void) const;
 
          boost::shared_ptr<func::CFunctor> getFieldOperation(void) const;
-         
+
          CArray<double, 1> getData(void) const;
 
          const StdString & getBaseFieldId(void) const;
@@ -94,12 +94,14 @@ namespace xios {
 
          template <int N> bool updateData(const CArray<double, N>&   data);
          bool updateDataFromExpression(const CArray<double, 1>&   data);
-         void setDataFromExpression(const CArray<double, 1>& _data) ;         
-         
+         void setDataFromExpression(const CArray<double, 1>& _data) ;
+
          bool updateDataServer
                (const CDate & currDate,
                 const std::deque< CArray<double, 1>* > storedClient);
- 
+
+         std::map<int, StdSize> getGridDataSize();
+
        public :
 
          /// Test ///
@@ -115,6 +117,11 @@ namespace xios {
          void solveBaseReference(void);
          void solveGridReference(void);
          void solveOperation(void);
+         void solveCheckMaskIndex(bool doSendingIndex);
+         void solveAllReferenceEnabledField(bool doSending2Sever);
+         void buildAllExpressionEnabledField();
+         void solveGridDomainAxisRef(bool checkAtt);
+         void removeRefInheritance();  // Remove all reference of current field (it refers to itself)
 
 //         virtual void fromBinary(StdIStream & is);
 
@@ -124,9 +131,9 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
-         
+
          static ENodeType GetType(void);
-         
+
         template <int N> void setData(const CArray<double, N>& _data) ;
         static bool dispatchEvent(CEventServer& event) ;
         void sendUpdateData(void) ;
@@ -138,13 +145,13 @@ namespace xios {
         void scaleFactorAddOffset(double scaleFactor, double addOffset) ;
         void parse(xml::CXMLNode & node) ;
         CArray<double,1>* getInstantData(void)  ;
-        
+
         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
         void setVirtualVariableGroup(void);
         CVariableGroup* getVirtualVariableGroup(void) const;
         vector<CVariable*> getAllVariables(void) const;
         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
- 
+
         CVariable* addVariable(const string& id="") ;
         CVariableGroup* addVariableGroup(const string& id="") ;
         void sendAddVariable(const string& id="") ;
@@ -153,12 +160,15 @@ namespace xios {
         void recvAddVariable(CBufferIn& buffer) ;
         static void recvAddVariableGroup(CEventServer& event) ;
         void recvAddVariableGroup(CBufferIn& buffer) ;
-       
+        void sendAddAllVariables();
+
+
+        const std::pair<StdString, StdString>& getDomainAxisIds();
       public :
 
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup ;
-                 
+
          std::vector<CField*> refObject;
          CField* baseRefObject;
          CGrid*  grid ;
@@ -171,10 +181,10 @@ namespace xios {
          StdSize nstep;
          boost::shared_ptr<CDate>    last_Write, last_operation;
          boost::shared_ptr<CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
-         
+
          boost::shared_ptr<func::CFunctor> foperation;
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
-         
+
          CArray<double, 1> data;
          CArray<double, 1> instantData;
          bool hasInstantData ;
@@ -182,7 +192,7 @@ namespace xios {
          bool isOnceOperation ;
          bool isFirstOperation ;
          string content ;
-         
+
          list< pair<CField *,int> > fieldDependency ;
          void buildExpression(void) ;
          void addDependency(CField* field, int slotId) ;
@@ -194,6 +204,9 @@ namespace xios {
          bool slotsFull(void) ;
          void setSlot(int slotId);
          bool processed ;
+         bool areAllReferenceSolved;
+         bool areAllExpressionBuilt;
+         std::pair<StdString,StdString> domAxisIds_;
 
    }; // class CField
 

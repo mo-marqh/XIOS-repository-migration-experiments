@@ -13,7 +13,7 @@
 #include <set>
 
 namespace xios{
-   
+
    /// ////////////////////// Définitions ////////////////////// ///
 
    CField::CField(void)
@@ -25,7 +25,7 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false)
+      , processed(false), domAxisIds_("",""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
       { setVirtualVariableGroup() ; }
 
    CField::CField(const StdString & id)
@@ -37,7 +37,7 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false)
+      , processed(false), domAxisIds_("",""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
    { setVirtualVariableGroup() ; }
 
    CField::~CField(void)
@@ -47,33 +47,33 @@ namespace xios{
       this->foperation.reset() ;
       if (hasExpression) delete expression ;
       if (slotUpdateDate!=NULL) delete slotUpdateDate ;
-        
+
    }
 
 
   //----------------------------------------------------------------
 
    void CField::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
-   { 
-      this->vVariableGroup = newVVariableGroup; 
+   {
+      this->vVariableGroup = newVVariableGroup;
    }
- 
+
    void CField::setVirtualVariableGroup(void)
    {
       this->setVirtualVariableGroup(CVariableGroup::create());
    }
-  
+
    CVariableGroup* CField::getVirtualVariableGroup(void) const
    {
       return (this->vVariableGroup);
    }
 
- 
+
    std::vector<CVariable*> CField::getAllVariables(void) const
    {
       return (this->vVariableGroup->getAllChildren());
    }
-   
+
    void CField::solveDescInheritance(bool apply, const CAttributeMap * const parent)
    {
       SuperClassAttribute::setAttributes(parent,apply);
@@ -87,16 +87,16 @@ namespace xios{
        const std::deque< CArray<double, 1>* > storedClient)
    {
       const CDate opeDate      = *last_operation + freq_operation;
-      const CDate writeDate    = *last_Write     + freq_write; 
-      
+      const CDate writeDate    = *last_Write     + freq_write;
+
       if (opeDate <= currDate)
       {
          if (this->data.numElements() != this->grid->storeIndex[0]->numElements())
          {
             this->data.resize(this->grid->storeIndex[0] ->numElements());
-         }  
+         }
          CArray<double,1> input(data.numElements()) ;
-         this->grid->inputFieldServer(storedClient, input);          
+         this->grid->inputFieldServer(storedClient, input);
          (*this->foperation)(input);
          *last_operation = currDate;
       }
@@ -105,14 +105,14 @@ namespace xios{
          this->foperation->final();
          this->incrementNStep();
          *last_Write = writeDate;
-         return (true);        
+         return (true);
       }
       return (false);
    }
-   
+
    bool CField::dispatchEvent(CEventServer& event)
   {
-     
+
     if (SuperClass::dispatchEvent(event)) return true ;
     else
     {
@@ -127,36 +127,36 @@ namespace xios{
              recvAddVariable(event) ;
              return true ;
              break ;
-         
+
            case EVENT_ID_ADD_VARIABLE_GROUP :
              recvAddVariableGroup(event) ;
              return true ;
-             break ; 
- 
+             break ;
+
         default :
           ERROR("bool CField::dispatchEvent(CEventServer& event)",<<"Unknown Event") ;
           return false ;
       }
     }
   }
-  
+
   void CField::sendUpdateData(void)
   {
     CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
-    
+
     CEventClient event(getType(),EVENT_ID_UPDATE_DATA) ;
-    
+
     map<int,CArray<int, 1>* >::iterator it ;
     list<shared_ptr<CMessage> > list_msg ;
     list< CArray<double,1>* > list_data ;
-    
+
     for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
     {
       int rank=(*it).first ;
       CArray<int,1>& index = *(it->second) ;
       CArray<double,1> data_tmp(index.numElements()) ;
-      
+
       for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
       list_data.push_back(new CArray<double,1>(data_tmp)) ;
@@ -164,15 +164,15 @@ namespace xios{
       event.push(rank,grid->nbSenders[rank],*list_msg.back()) ;
     }
     client->sendEvent(event) ;
-    
+
     for(list< CArray<double,1>* >::iterator it=list_data.begin();it!=list_data.end();it++) delete *it ;
   }
-  
+
   void CField::recvUpdateData(CEventServer& event)
   {
     vector<int> ranks ;
     vector<CBufferIn*> buffers ;
-      
+
     list<CEventServer::SSubEvent>::iterator it ;
     string fieldId ;
 
@@ -184,12 +184,12 @@ namespace xios{
       ranks.push_back(rank) ;
       buffers.push_back(buffer) ;
     }
-    get(fieldId)->recvUpdateData(ranks,buffers) ;   
+    get(fieldId)->recvUpdateData(ranks,buffers) ;
   }
-  
+
   void  CField::recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers)
   {
-    
+
     if (data_srv.empty())
     {
       for(map<int, CArray<int, 1>* >::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
@@ -204,10 +204,10 @@ namespace xios{
     CContext* context = CContext::getCurrent() ;
     const CDate & currDate = context->getCalendar()->getCurrentDate();
     const CDate opeDate      = *last_operation_srv + freq_operation_srv;
-    const CDate writeDate    = *last_Write_srv     + freq_write_srv; 
-    
+    const CDate writeDate    = *last_Write_srv     + freq_write_srv;
 
-    
+
+
     if (opeDate <= currDate)
     {
       for(int n=0;n<ranks.size();n++)
@@ -218,20 +218,20 @@ namespace xios{
       }
       *last_operation_srv = currDate;
     }
-     
+
     if (writeDate < (currDate + freq_operation_srv))
     {
       for(int n=0;n<ranks.size();n++)
       {
         this->foperation_srv[ranks[n]]->final();
       }
-      
+
       *last_Write_srv = writeDate;
       writeField() ;
       *lastlast_Write_srv=*last_Write_srv;
     }
   }
-  
+
   void CField::writeField(void)
   {
     if (! getRelFile()->allDomainEmpty )
@@ -245,9 +245,9 @@ namespace xios{
    //----------------------------------------------------------------
 
    void CField::setRelFile(CFile* _file)
-   { 
+   {
       this->file = _file;
-      hasOutputFile=true ; 
+      hasOutputFile=true ;
    }
 
    //----------------------------------------------------------------
@@ -259,27 +259,27 @@ namespace xios{
    //----------------------------------------------------------------
 
    CGrid* CField::getRelGrid(void) const
-   { 
-      return (this->grid); 
+   {
+      return (this->grid);
    }
 
    //----------------------------------------------------------------
 
    CFile* CField::getRelFile(void) const
-   { 
+   {
       return (this->file);
    }
-   
+
    StdSize CField::getNStep(void) const
    {
       return (this->nstep);
    }
-   
+
    void CField::incrementNStep(void)
    {
       this->nstep++;
    }
- 
+
    void CField::resetNStep(void)
    {
       this->nstep=0;
@@ -287,6 +287,9 @@ namespace xios{
 
    //----------------------------------------------------------------
 
+   /*!
+   \brief Get pointer to direct field to which the current field refers.
+   */
    CField* CField::getDirectFieldReference(void) const
    {
       if (this->field_ref.isEmpty())
@@ -303,39 +306,39 @@ namespace xios{
    //----------------------------------------------------------------
 
    CField* CField::getBaseFieldReference(void) const
-   { 
-      return (baseRefObject); 
+   {
+      return (baseRefObject);
    }
 
    //----------------------------------------------------------------
 
-   const std::vector<CField*>& CField::getAllReference(void) const 
-   { 
+   const std::vector<CField*>& CField::getAllReference(void) const
+   {
       return (refObject);
    }
 
    //----------------------------------------------------------------
 
    const StdString & CField::getBaseFieldId(void) const
-   { 
+   {
       return (this->getBaseFieldReference()->getId());
    }
-   
+
    //----------------------------------------------------------------
-   
+
    const CDuration & CField::getFreqOperation(void) const
    {
       return (this->freq_operation);
    }
-   
+
    //----------------------------------------------------------------
    const CDuration & CField::getFreqWrite(void) const
    {
       return (this->freq_write);
    }
-   
+
    //----------------------------------------------------------------
-         
+
    boost::shared_ptr<func::CFunctor> CField::getFieldOperation(void) const
    {
       return (this->foperation);
@@ -344,16 +347,16 @@ namespace xios{
    //----------------------------------------------------------------
 
    bool CField::hasDirectFieldReference(void) const
-   { 
-     return (!this->field_ref.isEmpty()); 
+   {
+     return (!this->field_ref.isEmpty());
    }
-   
+
    bool CField::isActive(void) const
-   { 
-      return (!this->refObject.empty()); 
+   {
+      return (!this->refObject.empty());
    }
    //----------------------------------------------------------------
-   
+
    CArray<double, 1> CField::getData(void) const
    {
       return(this->data);
@@ -375,28 +378,74 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   void CField::processEnabledField(void)
-   {
-      if (!processed)
-      {
-        processed=true ;
-        solveRefInheritance(true) ;
-        solveBaseReference() ;
-        solveOperation() ;
-        solveGridReference() ;
-      
-        if (hasDirectFieldReference()) baseRefObject->processEnabledField() ;
-        buildExpression(); 
-        active=true;
-      }
-    }
+//   void CField::processEnabledField(void)
+//   {
+//      if (!processed)
+//      {
+//        processed=true ;
+//        solveRefInheritance(true) ;
+//        solveBaseReference() ;
+//        solveOperation() ;
+//        solveGridReference() ;
+//
+//        if (hasDirectFieldReference()) baseRefObject->processEnabledField() ;
+//        buildExpression();
+//        active=true;
+//      }
+//    }
 
+   void CField::solveAllReferenceEnabledField(bool doSending2Sever)
+   {
+     CContext* context = CContext::getCurrent();
+     if (!areAllReferenceSolved)
+     {
+        areAllReferenceSolved = true;
+        if (!context->hasServer)
+        {
+          solveRefInheritance(true);
+          solveBaseReference();
+        }
+
+        solveOperation();
+        solveGridReference();
+     }
+     solveGridDomainAxisRef(doSending2Sever);
+     solveCheckMaskIndex(doSending2Sever);
+   }
+
+   std::map<int, StdSize> CField::getGridDataSize()
+   {
+     return grid->getConnectedServerDataSize();
+   }
+
+   void CField::buildAllExpressionEnabledField()
+   {
+     if (!areAllReferenceSolved) solveAllReferenceEnabledField(true);
+     if (!areAllExpressionBuilt)
+     {
+       areAllExpressionBuilt = true;
+//       solveCheckMaskIndex(true);
+//       solveCheckMaskIndex();
+       if (hasDirectFieldReference()) baseRefObject->buildAllExpressionEnabledField();
+       buildExpression();
+       active=true;
+     }
+   }
+
+   /*!
+   \brief Searching for all reference of a field
+   If a field refers to (an)other field(s), we will search for all its referenced parents.
+   Moreover, if any father, direct or indirect (e.g: two levels up), has non-empty attributes,
+   all its attributes will be added to the current field
+   \param [in] apply Flag to specify whether current field uses attributes of its father
+               in case the attribute is empty (true) or its attributes are replaced by ones of its father (false)
+   */
    void CField::solveRefInheritance(bool apply)
    {
       std::set<CField *> sset;
       CField* refer_sptr;
       CField * refer_ptr = this;
-     
+
       while (refer_ptr->hasDirectFieldReference())
       {
          refer_sptr = refer_ptr->getDirectFieldReference();
@@ -412,7 +461,18 @@ namespace xios{
          SuperClassAttribute::setAttributes(refer_ptr, apply);
          sset.insert(refer_ptr);
       }
-      
+   }
+
+
+   /*!
+   \brief Only on SERVER side. Remove all field_ref from current field
+   On creating a new field on server side, redundant "field_ref" is still kept in the attribute list
+   of the current field. This function removes this from current field
+   */
+   void CField::removeRefInheritance()
+   {
+     if (this->field_ref.isEmpty()) return;
+     this->clearAttribute("field_ref");
    }
 
    void CField::solveBaseReference(void)
@@ -420,10 +480,10 @@ namespace xios{
       std::set<CField *> sset;
       CField* refer_sptr;
       CField * refer_ptr = this;
-      
+
       if (this->hasDirectFieldReference())  baseRefObject = getDirectFieldReference();
       else  baseRefObject = CField::get(this);
-      
+
       while (refer_ptr->hasDirectFieldReference())
       {
          refer_sptr = refer_ptr->getDirectFieldReference();
@@ -438,34 +498,34 @@ namespace xios{
 
          sset.insert(refer_ptr);
       }
-      
+
       if (hasDirectFieldReference()) baseRefObject->addReference(this) ;
    }
-   
+
    //----------------------------------------------------------------
 
    void  CField::solveOperation(void)
    {
       using namespace func;
-      
+
       if (!hasOutputFile && !hasFieldOut) return ;
-      
+
       StdString id ;
       if (hasId()) id=getId();
       else if (!name.isEmpty()) id=name ;
       else if (hasDirectFieldReference()) id=baseRefObject->getId() ;
-      
+
       CContext* context = CContext::getCurrent();
-      
+
       if (freq_op.isEmpty()) freq_op=string("1ts") ;
-      
+
       if (operation.isEmpty() )
       {
          ERROR("CField::solveOperation(void)",
                << "[ id = " << id << "]"
                << "Impossible to define an operation for this field !");
       }
-      
+
       CDuration freq_offset_ = NoneDu;
       if (!freq_offset.isEmpty())
       {
@@ -474,12 +534,12 @@ namespace xios{
       else
       {
          freq_offset.setValue(NoneDu.toString());
-      }  
+      }
 
 //      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
       if (context->hasServer)
       {
-         if (hasOutputFile) 
+         if (hasOutputFile)
          {
            this->freq_operation_srv =CDuration::FromString(this->file->output_freq.getValue());
            this->freq_write_srv = CDuration::FromString(this->file->output_freq.getValue());
@@ -492,19 +552,19 @@ namespace xios{
                         (new CDate(context->getCalendar()->getInitDate()));
 //         this->foperation_srv     =
 //             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
-             
-         if (hasOutputFile) 
+
+         if (hasOutputFile)
          {
-           const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep(); 
+           const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep();
            *this->last_operation_srv   = *this->last_operation_srv - toffset;
          }
       }
-      
+
 //      if (context->hasClient)
-//      {                  
+//      {
          this->freq_operation = CDuration::FromString(freq_op.getValue());
          if (hasOutputFile) this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
-         if (hasFieldOut) 
+         if (hasFieldOut)
          {
            this->freq_write = CDuration::FromString(this->fieldOut->freq_op.getValue());
          }
@@ -512,15 +572,15 @@ namespace xios{
                         (new CDate(context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
-                        
-         const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep(); 
-         *this->last_operation   = *this->last_operation - toffset;  
-      
+
+         const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep();
+         *this->last_operation   = *this->last_operation - toffset;
+
         if (operation.get()=="once") isOnceOperation=true ;
         else isOnceOperation=false;
         isFirstOperation=true;
-        
-          
+
+
 #define DECLARE_FUNCTOR(MType, mtype)              \
    if  (operation.getValue().compare(#mtype) == 0) \
    {                                               \
@@ -536,17 +596,17 @@ namespace xios{
       } \
       return;                                      \
    }
-   
+
 #include "functor_type.conf"
-         
+
          ERROR("CField::solveOperation(void)",
                << "[ operation = " << operation.getValue() << "]"
                << "The operation is not defined !");
 //      }
-      
+
 
    }
-   
+
    //----------------------------------------------------------------
 /*
    void CField::fromBinary(StdIStream & is)
@@ -597,14 +657,14 @@ namespace xios{
                   << "Reference to the grid \'"
                   << grid_ref.getValue() << "\' is wrong");
       }
-      
+
       if (grid_ref.isEmpty() &&  domain_ref.isEmpty())
       {
             ERROR("CField::solveGridReference(void)",
                   << "The horizontal domain for this field is not defined");
 
      }
-     
+
      CType<string> goodDomain ;
      CType<string> goodAxis ;
      if (!grid_ref.isEmpty())
@@ -614,35 +674,35 @@ namespace xios{
      }
      if (!domain_ref.isEmpty()) goodDomain=domain_ref ;
      if (!axis_ref.isEmpty()) goodAxis=axis_ref ;
-     
-     
-     if (goodDomain.isEmpty()) 
+
+
+     if (goodDomain.isEmpty())
      {
        ERROR("CField::solveGridReference(void)", << "The horizontal domain for this field is not defined");
      }
-     else 
+     else
      {
        if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain) ;
        else ERROR("CField::solveGridReference(void)",<< "Reference to the domain \'"<<goodDomain.get() << "\' is wrong") ;
      }
- 
+
      if (!goodAxis.isEmpty())
      {
        if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis) ;
        else  ERROR("CField::solveGridReference(void)", << "Reference to the axis \'"
                   << goodAxis.get() <<"\' is wrong") ;
-     } 
-    
+     }
+
      bool nothingToDo=false ;
-     
+
      if (!grid_ref.isEmpty())
      {
        if (!grid->domain_ref.isEmpty() && goodDomain.get() == grid->domain_ref.get())
          if (goodAxis.isEmpty()) nothingToDo=true ;
-         else if (!grid->axis_ref.isEmpty()) 
+         else if (!grid->axis_ref.isEmpty())
                  if (grid->axis_ref.get()==goodAxis.get()) nothingToDo=true ;
      }
-     
+
      if (!nothingToDo)
      {
        if (!goodAxis.isEmpty())
@@ -654,13 +714,23 @@ namespace xios{
        {
          this->grid = CGrid::createGrid(domain) ;
          this->grid_ref.setValue(this->grid->getId());
-       }    
+       }
      }
 
-     grid->solveReference() ;
-
+//     grid->solveReference() ;
+//     grid->solveDomainAxisRef();
+//     grid->checkMaskIndex();
    }
 
+   void CField::solveGridDomainAxisRef(bool checkAtt)
+   {
+     grid->solveDomainAxisRef(checkAtt);
+   }
+
+   void CField::solveCheckMaskIndex(bool doSendingIndex)
+   {
+     grid->checkMaskIndex(doSendingIndex);
+   }
 
    ///-------------------------------------------------------------------
 
@@ -679,31 +749,31 @@ namespace xios{
       CFieldGroup* owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
 
       std::vector<CField*> allChildren  = group->getAllChildren();
-      std::vector<CField*>::iterator 
+      std::vector<CField*>::iterator
          it = allChildren.begin(), end = allChildren.end();
-      
+
       for (; it != end; it++)
       {
          CField* child = *it;
          if (child->hasId()) owner->createChild()->field_ref.setValue(child->getId()) ;
-            
+
       }
    }
-   
+
    void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
    {
      map<int, CArray<double,1>* >::iterator it;
      for(it=data_srv.begin();it!=data_srv.end();it++) *it->second = (*it->second -addOffset) * 1./scaleFactor  ;
    }
-   
+
    void CField::outputField(CArray<double,3>& fieldOut)
    {
       map<int, CArray<double,1>* >::iterator it;
       for(it=data_srv.begin();it!=data_srv.end();it++)
          grid->outputField(it->first,*it->second, fieldOut) ;
-      
+
    }
-   
+
    void CField::outputField(CArray<double,2>& fieldOut)
    {
       map<int, CArray<double,1>* >::iterator it;
@@ -718,7 +788,7 @@ namespace xios{
    void CField::parse(xml::CXMLNode & node)
    {
       SuperClass::parse(node);
-      if (! node.getContent(this->content)) 
+      if (! node.getContent(this->content))
       {
         if (node.goToChildElement())
         {
@@ -730,30 +800,30 @@ namespace xios{
         }
       }
     }
-    
+
   CArray<double,1>* CField::getInstantData(void)
   {
-    if (!hasInstantData) 
+    if (!hasInstantData)
     {
       instantData.resize(grid->storeIndex_client.numElements()) ;
       hasInstantData=true ;
     }
     return &instantData ;
   }
-  
+
   void CField::addReference(CField* field)
   {
     refObject.push_back(field) ;
   }
-  
+
   void CField::addDependency(CField* field, int slotId)
   {
     fieldDependency.push_back(pair<CField*,int>(field,slotId)) ;
   }
-  
+
   void CField::buildExpression(void)
   {
-    if (content.size() > 0) 
+    if (content.size() > 0)
     {
       CSimpleNodeExpr* simpleExpr=parseExpr(content+'\0') ;
       expression=CFieldNode::newNode(simpleExpr) ;
@@ -761,27 +831,28 @@ namespace xios{
       set<string> instantFieldIds ;
       map<string,CField*> associatedInstantFieldIds ;
       expression->getInstantFieldIds(instantFieldIds) ;
-      for (set<string>::iterator it=instantFieldIds.begin() ; it!=instantFieldIds.end();++it) 
+      for (set<string>::iterator it=instantFieldIds.begin() ; it!=instantFieldIds.end();++it)
       {
-        if (*it!="this") 
+        if (*it!="this")
         {
-          if (CField::has(*it)) 
+          if (CField::has(*it))
           {
             CField* field=CField::get(*it) ;
-            field->processEnabledField() ;
+//            field->processEnabledField() ;
+            field->buildAllExpressionEnabledField();
             associatedInstantFieldIds[*it]=field ;
           }
           else  ERROR("void CField::buildExpression(void)",<<" Field "<<*it<<" does not exist") ;
         }
       }
-      
+
       set<string> averageFieldIds ;
       map<string,CField*> associatedAverageFieldIds ;
 
       expression->getAverageFieldIds(averageFieldIds) ;
-      for (set<string>::iterator it=averageFieldIds.begin() ; it!=averageFieldIds.end();++it) 
-      {      
-        if (CField::has(*it)) 
+      for (set<string>::iterator it=averageFieldIds.begin() ; it!=averageFieldIds.end();++it)
+      {
+        if (CField::has(*it))
         {
            CFieldGroup* root=CFieldGroup::get("field_definition") ;
            CField* averageField=root->createChild() ;
@@ -790,12 +861,14 @@ namespace xios{
            averageField->hasFieldOut=true ;
            averageField->fieldOut=instantField ;
            instantField->freq_op=freq_op ;
-           averageField-> processEnabledField() ;
+//           averageField-> processEnabledField() ;
+           averageField->buildAllExpressionEnabledField();
            instantField->SuperClassAttribute::setAttributes(averageField, true);
            instantField->field_ref.reset() ;
            instantField->operation.reset() ;
 
-           instantField-> processEnabledField() ;
+//           instantField-> processEnabledField() ;
+           instantField->buildAllExpressionEnabledField();
            associatedAverageFieldIds[*it]=instantField  ;
         }
         else ERROR("void CField::buildExpression(void)",<<" Field "<<*it<<" does not exist") ;
@@ -809,15 +882,15 @@ namespace xios{
       set<CField*> fields ;
       expression->getFields(fields) ;
       for (set<CField*>::iterator it=fields.begin() ; it!=fields.end();++it,++slotId) (*it)->addDependency(this,slotId) ;
-      hasExpression=true; 
+      hasExpression=true;
     }
   }
-  
+
   void CField::resetSlots(void)
   {
     for(vector<bool>::iterator it=slots.begin();it!=slots.end();++it) *it=false ;
   }
-  
+
   bool CField::slotsFull(void)
   {
     bool ret=true ;
@@ -825,12 +898,12 @@ namespace xios{
     return ret ;
   }
 
-  
+
   void CField::setSlot(int slotId)
   {
     CContext* context = CContext::getCurrent() ;
     const CDate & currDate = context->getCalendar()->getCurrentDate();
-    if (slotUpdateDate==NULL || currDate!=*slotUpdateDate) 
+    if (slotUpdateDate==NULL || currDate!=*slotUpdateDate)
     {
       resetSlots() ;
       if (slotUpdateDate==NULL) slotUpdateDate=new CDate(currDate) ;
@@ -840,20 +913,35 @@ namespace xios{
     if (slotsFull())
     {
       CArray<double,1> expr(expression->compute()) ;
-      
-      if (hasInstantData) 
+
+      if (hasInstantData)
       {
         instantData=expr ;
-        for(list< pair<CField *,int> >::iterator it=fieldDependency.begin(); it!=fieldDependency.end(); ++it)  
+        for(list< pair<CField *,int> >::iterator it=fieldDependency.begin(); it!=fieldDependency.end(); ++it)
           if (it->first!=this) it->first->setSlot(it->second) ;
       }
-      
+
       if (hasOutputFile) updateDataFromExpression(expr) ;
-      
+
     }
   }
 
+   /*!
+     This function retrieves Id of corresponding domain_ref and axis_ref (if any)
+   of a field. In some cases, only domain exists but axis doesn't
+   \return pair of Domain and Axis id
+   */
+   const std::pair<StdString,StdString>& CField::getDomainAxisIds()
+   {
+     CGrid* cgPtr = getRelGrid();
+     if (NULL != cgPtr)
+     {
+       if (NULL != cgPtr->getRelDomain()) domAxisIds_.first = cgPtr->getRelDomain()->getId();
+       if (NULL != cgPtr->getRelAxis()) domAxisIds_.second = cgPtr->getRelAxis()->getId();
+     }
 
+     return (domAxisIds_);
+   }
 
    CVariable* CField::addVariable(const string& id)
    {
@@ -866,15 +954,37 @@ namespace xios{
    }
 
 
+   void CField::sendAddAllVariables()
+   {
+     if (!getAllVariables().empty())
+     {
+       // Firstly, it's necessary to add virtual variable group
+       sendAddVariableGroup(getVirtualVariableGroup()->getId());
+
+       // Okie, now we can add to this variable group
+       std::vector<CVariable*> allVar = getAllVariables();
+       std::vector<CVariable*>::const_iterator it = allVar.begin();
+       std::vector<CVariable*>::const_iterator itE = allVar.end();
+
+       for (; it != itE; ++it)
+       {
+         std::cout << "Variable Fields " << (*it)->getId() << std::endl;
+         this->sendAddVariable((*it)->getId());
+         (*it)->sendAllAttributesToServer();
+         (*it)->sendValue();
+       }
+     }
+   }
+
    void CField::sendAddVariable(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
-    
+
     if (! context->hasServer )
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -885,10 +995,10 @@ namespace xios{
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
- 
-   
+
+
    void CField::sendAddVariableGroup(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
@@ -896,7 +1006,7 @@ namespace xios{
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;   
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -907,19 +1017,19 @@ namespace xios{
        }
        else client->sendEvent(event) ;
     }
-      
+
    }
-   
+
    void CField::recvAddVariable(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddVariable(*buffer) ;
    }
-   
-   
+
+
    void CField::recvAddVariable(CBufferIn& buffer)
    {
       string id ;
@@ -929,14 +1039,14 @@ namespace xios{
 
    void CField::recvAddVariableGroup(CEventServer& event)
    {
-      
+
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;
       get(id)->recvAddVariableGroup(*buffer) ;
    }
-   
-   
+
+
    void CField::recvAddVariableGroup(CBufferIn& buffer)
    {
       string id ;
@@ -946,5 +1056,5 @@ namespace xios{
 
 
 
-  
+
 } // namespace xios

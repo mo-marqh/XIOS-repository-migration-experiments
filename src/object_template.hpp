@@ -25,7 +25,7 @@ namespace xios
          typedef CAttributeMap SuperClassMap;
          typedef CObject SuperClass;
          typedef T DerivedType;
-         
+
          enum EEventId
          {
            EVENT_ID_SEND_ATTRIBUTE=100
@@ -41,7 +41,7 @@ namespace xios
 //         virtual void fromBinary(StdIStream & is);
          virtual string getName(void) const ;
          virtual void parse(xml::CXMLNode & node);
-         
+
          /// Accesseurs ///
          ENodeType getType(void) const;
 
@@ -55,6 +55,7 @@ namespace xios
          static void ClearAllAttributes(void);
          void sendAttributToServer(const string& id);
          void sendAttributToServer(CAttribute& attr) ;
+         void sendAllAttributesToServer();
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 
@@ -64,7 +65,7 @@ namespace xios
 
          /// Destructeur ///
          virtual ~CObjectTemplate(void);
-         
+
          static bool has(const string& id) ;
          static bool has(const string& contextId, const string& id) ;
          static T* get(const string& id) ;
@@ -73,15 +74,15 @@ namespace xios
          T* get(void) ;
          shared_ptr<T> getShared(void) ;
          static shared_ptr<T> getShared(const T* ptr) ;
-         
+
          static T* create(const string& id=string("")) ;
          static const vector<T*> getAll() ;
          static const vector<T*> getAll(const string& contextId) ;
-        
+
          void generateCInterface(ostream& oss) ;
          void generateFortran2003Interface(ostream& oss) ;
          void generateFortranInterface(ostream& oss) ;
-         
+
       protected :
 
          /// Constructeurs ///
@@ -96,10 +97,10 @@ namespace xios
          /// Propriétés statiques ///
          static xios_map<StdString,
                 xios_map<StdString,
-                boost::shared_ptr<DerivedType> > > AllMapObj; 
+                boost::shared_ptr<DerivedType> > > AllMapObj;
          static xios_map<StdString,
                 std::vector<boost::shared_ptr<DerivedType> > > AllVectObj;
-                
+
          static xios_map< StdString, long int > GenId ;
 
    }; // class CObjectTemplate

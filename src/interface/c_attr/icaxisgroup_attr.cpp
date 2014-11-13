@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->group_ref.setValue(group_ref_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -49,7 +48,6 @@ extern "C"
     if(!cstr2string(long_name, long_name_size, long_name_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->long_name.setValue(long_name_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->long_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -76,7 +74,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->name.setValue(name_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -103,7 +100,6 @@ extern "C"
     if(!cstr2string(positive, positive_size, positive_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->positive.fromString(positive_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->positive);
      CTimer::get("XIOS").suspend();
   }
   
@@ -128,7 +124,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     axisgroup_hdl->size.setValue(size);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->size);
      CTimer::get("XIOS").suspend();
   }
   
@@ -152,7 +147,6 @@ extern "C"
     if(!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->standard_name.setValue(standard_name_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->standard_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -179,7 +173,6 @@ extern "C"
     if(!cstr2string(unit, unit_size, unit_str)) return;
      CTimer::get("XIOS").resume();
     axisgroup_hdl->unit.setValue(unit_str);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->unit);
      CTimer::get("XIOS").suspend();
   }
   
@@ -205,7 +198,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(value,shape(extent1),neverDeleteData) ;
     axisgroup_hdl->value.reference(tmp.copy());
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->value);
      CTimer::get("XIOS").suspend();
   }
   
@@ -230,7 +222,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     axisgroup_hdl->zoom_begin.setValue(zoom_begin);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->zoom_begin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -252,7 +243,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     axisgroup_hdl->zoom_end.setValue(zoom_end);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->zoom_end);
      CTimer::get("XIOS").suspend();
   }
   
@@ -274,7 +264,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     axisgroup_hdl->zoom_size.setValue(zoom_size);
-    axisgroup_hdl->sendAttributToServer(axisgroup_hdl->zoom_size);
      CTimer::get("XIOS").suspend();
   }
   

@@ -52,6 +52,8 @@ namespace xios
       //! A silly variable to detect whether one process is in client or server side. Should be removed on refactoring code
      static bool isServerSide;
 
+     static  void initServer();
+
   } ;
 
 }

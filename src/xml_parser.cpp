@@ -12,23 +12,24 @@ namespace xios
    {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      void CXMLParser::ParseFile(const StdString & filename)
+      void CXMLParser::ParseFile(const StdString & filename, const std::set<StdString>& parseContextList)
       {
          StdIFStream ifs ( filename.c_str() , StdIFStream::in );
          if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
            ERROR("void CXMLParser::ParseFile(const StdString & filename)",
                   <<endl<< "Can not open <"<<filename<<"> file" );
 
-         CXMLParser::ParseStream(ifs, filename);
+         CXMLParser::ParseStream(ifs, filename, parseContextList);
       }
 
       void CXMLParser::ParseString(const StdString & xmlContent)
       {
          StdIStringStream iss ( xmlContent /*, StdIStringStream::in*/ );
-         CXMLParser::ParseStream(iss,"string");
+         std::set<StdString> contxtList;
+         CXMLParser::ParseStream(iss,"string", contxtList);
       }
 
-      void CXMLParser::ParseStream(StdIStream & stream, const string& fluxId)
+      void CXMLParser::ParseStream(StdIStream & stream, const string& fluxId, const std::set<StdString>& parseContextList)
       {
          if (!stream.good())
             ERROR("CXMLParser::ParseStream(const StdIStream & stream)",
@@ -49,18 +50,21 @@ namespace xios
                      << "Root element should be named simulation (actual = \'"
                      << node.getElementName() << "\')!");
 
+            std::set<StdString>::iterator it;
+            std::set<StdString>::const_iterator itE = parseContextList.end();
+            bool isParseAll = (parseContextList.empty());
             if (node.goToChildElement())
             {
                do
                {
                   CContextGroup* group_context = CContext::getRoot() ;
- 
+
                   attributes = node.getAttributes();
 
                   if (attributes.end() == attributes.find("id"))
-                  {  
+                  {
                      DEBUG("The context will not be processed because it is not identified (missing id)");
-                     continue; 
+                     continue;
                   }
 
                   CContext::setCurrent(attributes["id"]) ;
@@ -68,17 +72,31 @@ namespace xios
                   bool hasctxt = CContext::has(attributes["id"]);
 
                   if(hasctxt)
-                  {  
+                  {
                      DEBUG("The context will not be processed because it exist an other context with the same id" );
-                     continue; 
+                     continue;
                   }
 
-                  CContext* context = CContext::create(attributes["id"]);
+                  if (isParseAll)
+                  {
+                    CContext* context = CContext::create(attributes["id"]);
 //                  if (!hasctxt)  group_context->addChild(context);
-                  context->parse(node);
+                    context->parse(node);
 
-                  attributes.clear();
+                    attributes.clear();
+                  }
+                  else
+                  {
+                    it = parseContextList.find(attributes["id"]);
+                    if (itE != it)
+                    {
+                      CContext* context = CContext::create(*it);
+  //                  if (!hasctxt)  group_context->addChild(context);
+                      context->parse(node);
 
+                      attributes.clear();
+                    }
+                  }
                } while (node.goToNextElement());
             }
          }
@@ -92,11 +110,11 @@ namespace xios
             int columnNumber = 0 ;
             const char* line;
             const char* endLine;
-            
+
             for(const char* i=content;i<content+pos; ++i, ++columnNumber) if (*i=='\n') { lineNumber++ ; line=i ; columnNumber=0 ;}
             for(endLine=content+pos; *endLine!='\n' && *endLine!='\0' ; ++endLine) ;
             string strLine(line,endLine-line) ;
-                  
+
             ERROR("CXMLParser::ParseStream(StdIStream & stream)", << endl
                   << "Error is occuring when parsing XML flux from <"<<fluxId<<"> at character "<< pos<<" line "<<lineNumber<<" column "<< columnNumber<< endl
                   << strLine<<endl

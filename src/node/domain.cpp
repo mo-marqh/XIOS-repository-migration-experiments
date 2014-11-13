@@ -15,43 +15,43 @@
 #include "array_new.hpp"
 
 namespace xios {
-   
+
    /// ////////////////////// Définitions ////////////////////// ///
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
-      , isChecked(false),  relFiles()
+      , isChecked(false), relFiles(), isClientChecked(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
-      , isChecked(false), relFiles()
+      , isChecked(false), relFiles(), isClientChecked(false)
          { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
-   { 
+   {
    }
 
    ///---------------------------------------------------------------
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
    {
-      return (this->relFiles); 
+      return (this->relFiles);
    }
 
    //----------------------------------------------------------------
-   
+
    bool CDomain::hasZoom(void) const
    {
-      return ((this->zoom_ni.getValue() != this->ni_glo.getValue()) && 
+      return ((this->zoom_ni.getValue() != this->ni_glo.getValue()) &&
               (this->zoom_nj.getValue() != this->nj_glo.getValue()));
    }
-   
+
    //----------------------------------------------------------------
-   
+
    bool CDomain::isEmpty(void) const
    {
-      return ((this->zoom_ni_srv == 0) || 
+      return ((this->zoom_ni_srv == 0) ||
               (this->zoom_nj_srv == 0));
    }
 
@@ -85,7 +85,7 @@ namespace xios {
             ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
                << "The global domain is badly defined,"
-               << " check the \'ni_glo\'  value !") 
+               << " check the \'ni_glo\'  value !")
          }
          nj_glo=ni_glo ;
          ni_glo=1 ;
@@ -110,7 +110,7 @@ namespace xios {
          ni=1 ;
          ibegin=1 ;
          iend=1 ;
-         
+
       }
       else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
           (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
@@ -118,25 +118,25 @@ namespace xios {
          ERROR("CDomain::checkAttributes(void)",
                << "[ Id = " << this->getId() << " ] "
                << "The global domain is badly defined,"
-               << " check the \'ni_glo\' et \'nj_glo\' values !") 
+               << " check the \'ni_glo\' et \'nj_glo\' values !")
       }
       checkLocalIDomain() ;
       checkLocalJDomain() ;
-      
+
      if (i_index.isEmpty())
      {
        i_index.resize(ni,nj) ;
        for(int j=0;j<nj;j++)
-         for(int i=0;i<ni;i++) i_index(i,j)=i ;   
+         for(int i=0;i<ni;i++) i_index(i,j)=i ;
      }
-     
+
      if (j_index.isEmpty())
      {
         j_index.resize(ni,nj) ;
         for(int j=0;j<nj;j++)
-         for(int i=0;i<ni;i++) j_index(i,j)=j ;   
+         for(int i=0;i<ni;i++) j_index(i,j)=j ;
      }
- 
+
    }
 
    //----------------------------------------------------------------
@@ -210,7 +210,7 @@ namespace xios {
          ERROR("CDomain::checkAttributes(void)",
                << "Domain is wrong defined,"
                << " Check the values : nj, nj_glo, jbegin, jend") ;
-               
+
      ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
      jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
    }
@@ -220,28 +220,28 @@ namespace xios {
    void CDomain::checkMask(void)
    {
       using namespace std;
-      
+
       int ibegin_mask = 0,
           jbegin_mask = 0,
           iend_mask = iend.getValue() - ibegin.getValue(),
           jend_mask = jend.getValue() - jbegin.getValue();
-      
+
       if (!zoom_ibegin.isEmpty())
       {
          int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
          int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
-         
+
          ibegin_mask = max (ibegin.getValue(), zoom_ibegin.getValue());
          jbegin_mask = max (jbegin.getValue(), zoom_jbegin.getValue());
          iend_mask   = min (iend.getValue(), zoom_iend);
          jend_mask   = min (jend.getValue(), zoom_jend);
-                 
+
          ibegin_mask -= ibegin.getValue();
          jbegin_mask -= jbegin.getValue();
          iend_mask   -= ibegin.getValue();
          jend_mask   -= jbegin.getValue();
       }
-      
+
 
       if (!mask.isEmpty())
       {
@@ -250,7 +250,7 @@ namespace xios {
             ERROR("CDomain::checkAttributes(void)",
                   <<"the mask has not the same size than the local domain"<<endl
                    <<"Local size is "<<ni<<"x"<<nj<<endl
-                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));                 
+                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));
          for (int i = 0; i < ni; i++)
          {
             for (int j = 0; j < nj; j++)
@@ -282,7 +282,7 @@ namespace xios {
    //----------------------------------------------------------------
 
    void CDomain::checkDomainData(void)
-   {     
+   {
       if (!data_dim.isEmpty() &&
          !(data_dim.getValue() == 1 || data_dim.getValue() == 2))
       {
@@ -377,9 +377,9 @@ namespace xios {
             const int dni = data_ni.getValue() * data_nj.getValue();
             data_i_index.resize(dni) ;
             data_j_index.resize(dni) ;
-            
+
             data_n_index.setValue(dni);
-            
+
             for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
             {
                for(int i = 0; i < data_ni.getValue(); i++, count++)
@@ -393,7 +393,7 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-   
+
    void CDomain::completeLonLatClient(void)
    {
       int i,j,k ;
@@ -401,15 +401,15 @@ namespace xios {
       CArray<double,1> latvalue_temp(ni*nj) ;
       CArray<double,2> bounds_lon_temp(nvertex,ni*nj) ;
       CArray<double,2> bounds_lat_temp(nvertex,ni*nj) ;
-      
+
       if (type.isEmpty())
       {
-        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj ) 
+        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj )
         {
           type.setValue(type_attr::curvilinear) ;
           isCurvilinear=true ;
         }
-        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj ) 
+        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj )
         {
           type.setValue(type_attr::regular) ;
           isCurvilinear=false ;
@@ -428,14 +428,14 @@ namespace xios {
       else
       {
         for(j=0;j<nj;j++)
-          for(i=0;i<ni;i++) 
+          for(i=0;i<ni;i++)
           {
             k=j*ni+i ;
             lonvalue_temp(k)=lonvalue(i) ;
             latvalue_temp(k)=latvalue(j) ;
             if (hasBounds)
             {
-              for(int n=0;n<nvertex;n++) 
+              for(int n=0;n<nvertex;n++)
               {
                 bounds_lon_temp(n,k)=bounds_lon(n,i) ;
                 bounds_lat_temp(n,k)=bounds_lat(n,j) ;
@@ -443,30 +443,30 @@ namespace xios {
             }
           }
       }
-         
+
       StdSize dm = zoom_ni_client * zoom_nj_client;
 
       lonvalue.resize(dm);
       latvalue.resize(dm);
-         
+
       for (int i = 0; i < zoom_ni_client; i++)
       {
         for (int j = 0; j < zoom_nj_client; j++)
         {
-          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni ); 
+          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
           latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client - jbegin)*ni );
           if (hasBounds)
           {
-            for(int n=0;n<nvertex;n++) 
+            for(int n=0;n<nvertex;n++)
             {
-              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni ); 
+              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
               bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client -jbegin)*ni );
             }
           }
         }
       }
     }
- 
+
 
    //----------------------------------------------------------------
 
@@ -486,7 +486,7 @@ namespace xios {
          {
             int zoom_iend = zoom_ibegin + zoom_ni - 1;
             int zoom_jend = zoom_jbegin + zoom_nj - 1;
-                
+
             if (zoom_ibegin < 1  || zoom_jbegin < 1 || zoom_iend > ni_glo || zoom_jend > nj_glo)
                ERROR("CDomain::checkZoom(void)",
                      << "Zoom is wrong defined,"
@@ -495,12 +495,12 @@ namespace xios {
       }
       else
       {
-         zoom_ni = ni_glo; 
+         zoom_ni = ni_glo;
          zoom_nj = nj_glo;
          zoom_ibegin = 1;
          zoom_jbegin = 1;
       }
-      
+
       // compute client zoom indices
 
       int zoom_iend=zoom_ibegin+zoom_ni-1 ;
@@ -509,7 +509,7 @@ namespace xios {
       zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
       if (zoom_ni_client<0) zoom_ni_client=0 ;
 
-    
+
       int zoom_jend=zoom_jbegin+zoom_nj-1 ;
       zoom_jbegin_client = jbegin_client > zoom_jbegin ? jbegin_client : zoom_jbegin ;
       zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
@@ -517,22 +517,65 @@ namespace xios {
       if (zoom_nj_client<0) zoom_nj_client=0 ;
 
    }
-   
+
    void CDomain::checkBounds(void)
    {
      if (!nvertex.isEmpty() && !bounds_lon.isEmpty() && !bounds_lat.isEmpty())
      {
        hasBounds=true ;
-       
+
      }
-     else 
+     else
      {
        hasBounds=false;
        nvertex=0 ;
      }
    }
-            
+
    //----------------------------------------------------------------
+   // Divide function checkAttributes into 2 seperate ones
+   // This function only checks all attributes of current domain
+   void CDomain::checkAttributesOnClient()
+   {
+     if (this->isClientChecked) return;
+     CContext* context=CContext::getCurrent();
+
+      this->checkDomain();
+      this->checkZoom();
+      this->checkBounds();
+
+      if (context->hasClient)
+      { // Côté client uniquement
+         this->checkMask();
+         this->checkDomainData();
+         this->checkCompression();
+         this->completeLonLatClient();
+         this->computeConnectedServer() ;
+      }
+      else
+      { // Côté serveur uniquement
+//         if (!this->isEmpty())
+// ne sert plus //   this->completeLonLatServer();
+      }
+
+      this->isClientChecked = true;
+   }
+
+   // Send all checked attributes to server
+   void CDomain::sendCheckedAttributes()
+   {
+     if (!this->isClientChecked) checkAttributesOnClient();
+     CContext* context=CContext::getCurrent() ;
+
+     if (this->isChecked) return;
+     if (context->hasClient)
+     {
+       sendServerAttribut() ;
+       sendLonLat() ;
+     }
+
+     this->isChecked = true;
+   }
 
    void CDomain::checkAttributes(void)
    {
@@ -542,7 +585,7 @@ namespace xios {
       this->checkDomain();
       this->checkZoom();
       this->checkBounds();
-      
+
       if (context->hasClient)
       { // Côté client uniquement
          this->checkMask();
@@ -555,32 +598,32 @@ namespace xios {
 //         if (!this->isEmpty())
 // ne sert plus //   this->completeLonLatServer();
       }
-    
+
       if (context->hasClient)
       {
         computeConnectedServer() ;
         sendServerAttribut() ;
         sendLonLat() ;
       }
-      
+
       this->isChecked = true;
    }
-   
+
   void CDomain::sendServerAttribut(void)
   {
     int ni_srv=ni_glo.getValue() ;
     int ibegin_srv=1 ;
     int iend_srv=ni_glo.getValue() ;
-     
+
     int nj_srv ;
     int jbegin_srv ;
     int jend_srv ;
-    
+
     CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize ;
     int serverRank=client->getServerLeader() ;
-    
+
     jend_srv=0 ;
     for(int i=0;i<=serverRank;i++)
     {
@@ -589,8 +632,8 @@ namespace xios {
       if (i<nj_glo.getValue()%nbServer) nj_srv++ ;
       jend_srv=jbegin_srv+nj_srv-1 ;
     }
-    
-     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;   
+
+     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;
      if (client->isServerLeader())
      {
        CMessage msg ;
@@ -605,10 +648,10 @@ namespace xios {
   void CDomain::computeConnectedServer(void)
   {
     int i,j,i_ind,j_ind ;
-    
+
     ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
     jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
-     
+
     CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize ;
@@ -616,27 +659,27 @@ namespace xios {
     // find how much client are connected to a server
     int zoom_iend=zoom_ibegin+zoom_ni-1 ;
     int zoom_jend=zoom_jbegin+zoom_nj-1 ;
-    
+
     int blockSize=nj_glo/nbServer ;
     int ns=nj_glo%nbServer ;
     int pos=ns*(blockSize+1) ;
     int serverNum ;
-    
+
     mapConnectedServer.resize(ni,nj) ;
     vector<int> nbData(nbServer,0) ;
     vector<int> indServer(nbServer,-1) ;
     vector<bool> IsConnected(nbServer,false) ;
-    
+
     for(j=0;j<nj;j++)
       for(i=0;i<ni;i++)
       {
         i_ind=ibegin+i_index(i,j)-1 ;
         j_ind=jbegin+j_index(i,j)-1 ;
-        
+
         if (j_ind<pos) serverNum=j_ind/(blockSize+1) ;
         else serverNum=ns+(j_ind-pos)/blockSize ;
         IsConnected[serverNum]=true ;
-                
+
         if (i_ind >= zoom_ibegin-1 && i_ind <= zoom_iend-1 && j_ind >= zoom_jbegin-1 && j_ind <= zoom_jend-1)
         {
           mapConnectedServer(i,j)=serverNum ;
@@ -646,7 +689,7 @@ namespace xios {
       }
 
 
-    for(serverNum=0 ; serverNum<nbServer ; serverNum++) 
+    for(serverNum=0 ; serverNum<nbServer ; serverNum++)
       if (IsConnected[serverNum])
       {
         ns=connectedServer.size() ;
@@ -654,12 +697,12 @@ namespace xios {
         connectedServer.push_back(serverNum) ;
         nbDataSrv.push_back(nbData[serverNum]) ;
       }
-     
+
      i_indSrv.resize(connectedServer.size()) ;
      j_indSrv.resize(connectedServer.size()) ;
 
      for(j=0;j<nj;j++)
-      for(i=0;i<ni;i++) 
+      for(i=0;i<ni;i++)
       {
         if (mapConnectedServer(i,j)>=0)
         {
@@ -669,30 +712,30 @@ namespace xios {
           j_indSrv[ns].push_back(j+jbegin-1) ;
         }
       }
-          
+
     int nbConnectedServer=connectedServer.size() ;
 
     int* recvCount=new int[client->clientSize] ;
     int* displ=new int[client->clientSize] ;
     int* sendBuff=new int[nbConnectedServer] ;
     valarray<int> nbClient(0,client->serverSize) ;
-    
+
     for(int n=0;n<nbConnectedServer;n++) sendBuff[n]=connectedServer[n] ;
-    
+
     // get connected server for everybody
     MPI_Allgather(&nbConnectedServer,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm) ;
-    
+
     displ[0]=0 ;
     for(int n=1;n<client->clientSize;n++) displ[n]=displ[n-1]+recvCount[n-1] ;
     int recvSize=displ[client->clientSize-1]+recvCount[client->clientSize-1] ;
     int* recvBuff=new int[recvSize] ;
- 
-    
+
+
     MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,client->intraComm) ;
     for(int n=0;n<recvSize;n++) nbClient[recvBuff[n]]++ ;
-    
+
     for(int n=0;n<nbConnectedServer;n++) nbSenders.push_back(nbClient[connectedServer[n]]) ;
-   
+
     delete [] recvCount ;
     delete [] displ ;
     delete [] sendBuff ;
@@ -707,8 +750,8 @@ namespace xios {
     CContextClient* client=context->client ;
     // send lon lat for each connected server
     CEventClient event(getType(),EVENT_ID_LON_LAT) ;
-    
-    list<shared_ptr<CMessage> > list_msg ;    
+
+    list<shared_ptr<CMessage> > list_msg ;
     list< CArray<int,1>* > list_indi,list_indj ;
     list< CArray<double,1>* >list_lon,list_lat ;
     list< CArray<double,2>* >list_boundslon,list_boundslat ;
@@ -722,13 +765,13 @@ namespace xios {
       CArray<double,1> lat(nbData) ;
       CArray<double,2> boundslon(nvertex,nbData) ;
       CArray<double,2> boundslat(nvertex,nbData) ;
-      
-      for(n=0;n<nbData;n++) 
+
+      for(n=0;n<nbData;n++)
       {
         i=i_indSrv[ns][n] ;
         j=j_indSrv[ns][n] ;
         ind=(i-(zoom_ibegin_client-1))+(j-(zoom_jbegin_client-1))*zoom_ni_client ;
-        
+
         lon(n)=lonvalue(ind) ;
         lat(n)=latvalue(ind) ;
         if (hasBounds)
@@ -742,7 +785,7 @@ namespace xios {
         indi(n)=ibegin+i_index(i-ibegin+1,j-jbegin+1)-1  ;
         indj(n)=jbegin+j_index(i-ibegin+1,j-jbegin+1)-1  ;
       }
-    
+
       list_indi.push_back(new CArray<int,1>(indi.copy())) ;
       list_indj.push_back(new CArray<int,1>(indj.copy())) ;
       list_lon.push_back(new CArray<double,1>(lon.copy())) ;
@@ -760,21 +803,21 @@ namespace xios {
     }
 
     client->sendEvent(event) ;
-    
-    
+
+
     for(list<CArray<int,1>* >::iterator it=list_indi.begin();it!=list_indi.end();it++) delete *it;
     for(list<CArray<int,1>* >::iterator it=list_indj.begin();it!=list_indj.end();it++) delete *it;
     for(list<CArray<double,1>* >::iterator it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
     for(list<CArray<double,1>* >::iterator it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
     if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslon.begin();it!=list_boundslon.end();it++)   delete *it;
-    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;    
-    
+    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;
+
   }
-  
-  
+
+
   bool CDomain::dispatchEvent(CEventServer& event)
    {
-      
+
       if (SuperClass::dispatchEvent(event)) return true ;
       else
       {
@@ -795,7 +838,7 @@ namespace xios {
          }
       }
    }
-   
+
   void CDomain::recvServerAttribut(CEventServer& event)
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
@@ -803,24 +846,24 @@ namespace xios {
     *buffer>>domainId ;
     get(domainId)->recvServerAttribut(*buffer) ;
   }
-  
+
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
     int zoom_iend=zoom_ibegin.getValue()+zoom_ni.getValue()-1 ;
     int zoom_jend=zoom_jbegin.getValue()+zoom_nj.getValue()-1 ;
 
      buffer>>ni_srv>>ibegin_srv>>iend_srv>>nj_srv>>jbegin_srv>>jend_srv;
-     
-    
+
+
     zoom_ibegin_srv = zoom_ibegin.getValue() > ibegin_srv ? zoom_ibegin.getValue() : ibegin_srv ;
     zoom_iend_srv = zoom_iend < iend_srv ? zoom_iend : iend_srv ;
     zoom_ni_srv=zoom_iend_srv-zoom_ibegin_srv+1 ;
-      
+
     zoom_jbegin_srv = zoom_jbegin.getValue() > jbegin_srv ? zoom_jbegin.getValue() : jbegin_srv ;
     zoom_jend_srv = zoom_jend < jend_srv ? zoom_jend : jend_srv ;
     zoom_nj_srv=zoom_jend_srv-zoom_jbegin_srv+1 ;
 
-    if (zoom_ni_srv<=0 || zoom_nj_srv<=0) 
+    if (zoom_ni_srv<=0 || zoom_nj_srv<=0)
     {
       zoom_ibegin_srv=1 ; zoom_iend_srv=0 ; zoom_ni_srv=0 ;
       zoom_jbegin_srv=1 ; zoom_jend_srv=0 ; zoom_nj_srv=0 ;
@@ -829,7 +872,7 @@ namespace xios {
     lonvalue_srv = 0. ;
     latvalue_srv.resize(zoom_ni_srv*zoom_nj_srv) ;
     latvalue_srv = 0. ;
-    if (hasBounds) 
+    if (hasBounds)
     {
       bounds_lon_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
       bounds_lon_srv = 0. ;
@@ -837,7 +880,7 @@ namespace xios {
       bounds_lat_srv = 0. ;
     }
   }
-    
+
   void CDomain::recvLonLat(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it ;
@@ -849,7 +892,7 @@ namespace xios {
       get(domainId)->recvLonLat(*buffer) ;
     }
   }
-  
+
   void CDomain::recvLonLat(CBufferIn& buffer)
   {
     CArray<int,1> indi ;
@@ -858,7 +901,7 @@ namespace xios {
     CArray<double,1> lat ;
     CArray<double,2> boundslon ;
     CArray<double,2> boundslat ;
-    
+
     int type_int ;
     buffer>>type_int>>isCurvilinear>>indi>>indj>>lon>>lat ;
     if (hasBounds) buffer>>boundslon>>boundslat ;
@@ -871,9 +914,9 @@ namespace xios {
       ind_srv=(i-(zoom_ibegin_srv-1))+(j-(zoom_jbegin_srv-1))*zoom_ni_srv ;
       lonvalue_srv(ind_srv)=lon(ind) ;
       latvalue_srv(ind_srv)=lat(ind) ;
-      if (hasBounds) 
+      if (hasBounds)
       {
-        for(int nv=0;nv<nvertex;nv++) 
+        for(int nv=0;nv<nvertex;nv++)
         {
           bounds_lon_srv(nv,ind_srv)=boundslon(nv,ind) ;
           bounds_lat_srv(nv,ind_srv)=boundslat(nv,ind) ;
@@ -882,9 +925,9 @@ namespace xios {
     }
   }
    //----------------------------------------------------------------
-   
-   
-   
+
+
+
    ///---------------------------------------------------------------
 
 } // namespace xios

@@ -22,7 +22,6 @@ extern "C"
     if(!cstr2string(description, description_size, description_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->description.setValue(description_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->description);
      CTimer::get("XIOS").suspend();
   }
   
@@ -47,7 +46,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     filegroup_hdl->enabled.setValue(enabled);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->enabled);
      CTimer::get("XIOS").suspend();
   }
   
@@ -71,7 +69,6 @@ extern "C"
     if(!cstr2string(group_ref, group_ref_size, group_ref_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->group_ref.setValue(group_ref_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -96,7 +93,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     filegroup_hdl->min_digits.setValue(min_digits);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->min_digits);
      CTimer::get("XIOS").suspend();
   }
   
@@ -120,7 +116,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->name.setValue(name_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -147,7 +142,6 @@ extern "C"
     if(!cstr2string(name_suffix, name_suffix_size, name_suffix_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->name_suffix.setValue(name_suffix_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->name_suffix);
      CTimer::get("XIOS").suspend();
   }
   
@@ -174,7 +168,6 @@ extern "C"
     if(!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->output_freq.setValue(output_freq_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->output_freq);
      CTimer::get("XIOS").suspend();
   }
   
@@ -199,7 +192,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     filegroup_hdl->output_level.setValue(output_level);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->output_level);
      CTimer::get("XIOS").suspend();
   }
   
@@ -223,7 +215,6 @@ extern "C"
     if(!cstr2string(par_access, par_access_size, par_access_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->par_access.setValue(par_access_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->par_access);
      CTimer::get("XIOS").suspend();
   }
   
@@ -250,7 +241,6 @@ extern "C"
     if(!cstr2string(split_freq, split_freq_size, split_freq_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->split_freq.setValue(split_freq_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->split_freq);
      CTimer::get("XIOS").suspend();
   }
   
@@ -277,7 +267,6 @@ extern "C"
     if(!cstr2string(split_freq_format, split_freq_format_size, split_freq_format_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->split_freq_format.setValue(split_freq_format_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->split_freq_format);
      CTimer::get("XIOS").suspend();
   }
   
@@ -304,7 +293,6 @@ extern "C"
     if(!cstr2string(sync_freq, sync_freq_size, sync_freq_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->sync_freq.setValue(sync_freq_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->sync_freq);
      CTimer::get("XIOS").suspend();
   }
   
@@ -331,7 +319,6 @@ extern "C"
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
     filegroup_hdl->type.fromString(type_str);
-    filegroup_hdl->sendAttributToServer(filegroup_hdl->type);
      CTimer::get("XIOS").suspend();
   }
   

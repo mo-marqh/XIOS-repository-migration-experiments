@@ -9,16 +9,16 @@
 
 namespace xios
 {
- 
+
   size_t maxRequestSize=0 ;
-  
-  CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_)
+
+  CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_, StdSize bfSize)
   {
-    bufferSizeByServer=CXios::bufferSize ;
+    bufferSizeByServer=bfSize; //CXios::bufferSize ;
     info(10)<<"bufferSizeByServer "<<bufferSizeByServer<<endl ;
     interComm=interComm_ ;
     serverRank=serverRank_ ;
-    bufferSize=bufferSizeByServer/2 ;
+    bufferSize=bufferSizeByServer/2; //2 ;
     buffer[0]=new char[bufferSize] ; // transform it with MPI_ALLOC_MEM later
     buffer[1]=new char[bufferSize] ;
     current=0 ;
@@ -26,33 +26,33 @@ namespace xios
     pending=false ;
     retBuffer=new CBufferOut(buffer[current],bufferSize) ;
   }
-  
+
   CClientBuffer::~CClientBuffer()
   {
    delete [] buffer[0] ;
    delete [] buffer[1] ;
    delete retBuffer ;
   }
-  
+
   int CClientBuffer::remain(void)
   {
     return bufferSize-count ;
   }
-  
+
   bool CClientBuffer::isBufferFree(int size)
   {
     if (size>maxRequestSize) maxRequestSize=size ;
-    
+
     if (size>bufferSize) ERROR("CClientBuffer::hasSpace(int size)",
                                <<"request size is too big for buffer, increase buffer client size"<<endl
                                <<"Current buffer_size : "<<CXios::bufferSize<<endl
                                <<"buffer_size must be > "<<size*2<<endl)
- 
+
     if (size<=remain()) return true ;
     else return false ;
   }
-    
-  
+
+
   CBufferOut*  CClientBuffer::getBuffer(int size)
   {
     if (size<=remain())
@@ -67,14 +67,14 @@ namespace xios
                <<"No ennough space in buffer, that may not happen...");
        return NULL ;
     }
- 
-  }  
-  
+
+  }
+
   bool CClientBuffer::checkBuffer(void)
   {
     MPI_Status status ;
     int flag ;
-    
+
     if (pending)
     {
       traceOff() ;
@@ -96,15 +96,15 @@ namespace xios
     }
     return pending ;
   }
-  
+
   bool CClientBuffer::hasPendingRequest(void)
   {
     if (pending) return true ;
     else if (count>0) return true ;
     else return false ;
   }
-    
-  
-  
-}    
-    
+
+
+
+}
+

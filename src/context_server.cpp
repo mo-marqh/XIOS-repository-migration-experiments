@@ -36,7 +36,7 @@ namespace xios
     currentTimeLine=0 ;
     scheduled=false ;
     finished=false ;
-    
+
     boost::hash<string> hashString ;
     hashId=hashString(context->getId()) ;
 
@@ -79,13 +79,20 @@ namespace xios
         {
           it=buffers.find(rank) ;
           if (it==buffers.end())
-            it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer))).first ;
-          MPI_Get_count(&status,MPI_CHAR,&count) ;
-          if (it->second->isBufferFree(count))
           {
-            addr=(char*)it->second->getBuffer(count) ;
-            MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]) ;
-            bufferRequest[rank]=addr ;
+            StdSize buffSize = 0;
+            MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
+            it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first ;
+          }
+          else
+          {
+            MPI_Get_count(&status,MPI_CHAR,&count) ;
+            if (it->second->isBufferFree(count))
+            {
+              addr=(char*)it->second->getBuffer(count) ;
+              MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]) ;
+              bufferRequest[rank]=addr ;
+            }
           }
         }
       }
@@ -157,15 +164,15 @@ namespace xios
     if (it!=events.end())
     {
       event=it->second ;
-      
+
       if (event->isFull())
       {
         if (!scheduled && !CXios::isServer)
         {
-          CServer::eventScheduler->registerEvent(currentTimeLine,hashId) ;  
+          CServer::eventScheduler->registerEvent(currentTimeLine,hashId) ;
           scheduled=true ;
         }
-        else if (CXios::isServer || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) ) 
+        else if (CXios::isServer || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) )
         {
          CTimer::get("Process events").resume() ;
          dispatchEvent(*event) ;

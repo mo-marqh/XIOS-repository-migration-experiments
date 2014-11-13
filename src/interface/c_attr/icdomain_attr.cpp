@@ -21,7 +21,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<double,2> tmp(bounds_lat,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->bounds_lat.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->bounds_lat);
      CTimer::get("XIOS").suspend();
   }
   
@@ -47,7 +46,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<double,2> tmp(bounds_lon,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->bounds_lon.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->bounds_lon);
      CTimer::get("XIOS").suspend();
   }
   
@@ -72,7 +70,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_dim.setValue(data_dim);
-    domain_hdl->sendAttributToServer(domain_hdl->data_dim);
      CTimer::get("XIOS").suspend();
   }
   
@@ -95,7 +92,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_i_index,shape(extent1),neverDeleteData) ;
     domain_hdl->data_i_index.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->data_i_index);
      CTimer::get("XIOS").suspend();
   }
   
@@ -120,7 +116,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_ibegin.setValue(data_ibegin);
-    domain_hdl->sendAttributToServer(domain_hdl->data_ibegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -143,7 +138,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(data_j_index,shape(extent1),neverDeleteData) ;
     domain_hdl->data_j_index.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->data_j_index);
      CTimer::get("XIOS").suspend();
   }
   
@@ -168,7 +162,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_jbegin.setValue(data_jbegin);
-    domain_hdl->sendAttributToServer(domain_hdl->data_jbegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -190,7 +183,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_n_index.setValue(data_n_index);
-    domain_hdl->sendAttributToServer(domain_hdl->data_n_index);
      CTimer::get("XIOS").suspend();
   }
   
@@ -212,7 +204,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_ni.setValue(data_ni);
-    domain_hdl->sendAttributToServer(domain_hdl->data_ni);
      CTimer::get("XIOS").suspend();
   }
   
@@ -234,7 +225,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->data_nj.setValue(data_nj);
-    domain_hdl->sendAttributToServer(domain_hdl->data_nj);
      CTimer::get("XIOS").suspend();
   }
   
@@ -258,7 +248,6 @@ extern "C"
     if(!cstr2string(domain_group_ref, domain_group_ref_size, domain_group_ref_str)) return;
      CTimer::get("XIOS").resume();
     domain_hdl->domain_group_ref.setValue(domain_group_ref_str);
-    domain_hdl->sendAttributToServer(domain_hdl->domain_group_ref);
      CTimer::get("XIOS").suspend();
   }
   
@@ -284,7 +273,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<int,2> tmp(i_index,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->i_index.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->i_index);
      CTimer::get("XIOS").suspend();
   }
   
@@ -309,7 +297,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->ibegin.setValue(ibegin);
-    domain_hdl->sendAttributToServer(domain_hdl->ibegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -331,7 +318,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->iend.setValue(iend);
-    domain_hdl->sendAttributToServer(domain_hdl->iend);
      CTimer::get("XIOS").suspend();
   }
   
@@ -354,7 +340,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<int,2> tmp(j_index,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->j_index.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->j_index);
      CTimer::get("XIOS").suspend();
   }
   
@@ -379,7 +364,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->jbegin.setValue(jbegin);
-    domain_hdl->sendAttributToServer(domain_hdl->jbegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -401,7 +385,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->jend.setValue(jend);
-    domain_hdl->sendAttributToServer(domain_hdl->jend);
      CTimer::get("XIOS").suspend();
   }
   
@@ -424,7 +407,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(latvalue,shape(extent1),neverDeleteData) ;
     domain_hdl->latvalue.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->latvalue);
      CTimer::get("XIOS").suspend();
   }
   
@@ -451,7 +433,6 @@ extern "C"
     if(!cstr2string(long_name, long_name_size, long_name_str)) return;
      CTimer::get("XIOS").resume();
     domain_hdl->long_name.setValue(long_name_str);
-    domain_hdl->sendAttributToServer(domain_hdl->long_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -477,7 +458,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<double,1> tmp(lonvalue,shape(extent1),neverDeleteData) ;
     domain_hdl->lonvalue.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->lonvalue);
      CTimer::get("XIOS").suspend();
   }
   
@@ -503,7 +483,6 @@ extern "C"
     CTimer::get("XIOS").resume();
     CArray<bool,2> tmp(mask,shape(extent1,extent2),neverDeleteData) ;
     domain_hdl->mask.reference(tmp.copy());
-    domain_hdl->sendAttributToServer(domain_hdl->mask);
      CTimer::get("XIOS").suspend();
   }
   
@@ -530,7 +509,6 @@ extern "C"
     if(!cstr2string(name, name_size, name_str)) return;
      CTimer::get("XIOS").resume();
     domain_hdl->name.setValue(name_str);
-    domain_hdl->sendAttributToServer(domain_hdl->name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -555,7 +533,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->ni.setValue(ni);
-    domain_hdl->sendAttributToServer(domain_hdl->ni);
      CTimer::get("XIOS").suspend();
   }
   
@@ -577,7 +554,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->ni_glo.setValue(ni_glo);
-    domain_hdl->sendAttributToServer(domain_hdl->ni_glo);
      CTimer::get("XIOS").suspend();
   }
   
@@ -599,7 +575,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->nj.setValue(nj);
-    domain_hdl->sendAttributToServer(domain_hdl->nj);
      CTimer::get("XIOS").suspend();
   }
   
@@ -621,7 +596,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->nj_glo.setValue(nj_glo);
-    domain_hdl->sendAttributToServer(domain_hdl->nj_glo);
      CTimer::get("XIOS").suspend();
   }
   
@@ -643,7 +617,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->nvertex.setValue(nvertex);
-    domain_hdl->sendAttributToServer(domain_hdl->nvertex);
      CTimer::get("XIOS").suspend();
   }
   
@@ -667,7 +640,6 @@ extern "C"
     if(!cstr2string(standard_name, standard_name_size, standard_name_str)) return;
      CTimer::get("XIOS").resume();
     domain_hdl->standard_name.setValue(standard_name_str);
-    domain_hdl->sendAttributToServer(domain_hdl->standard_name);
      CTimer::get("XIOS").suspend();
   }
   
@@ -694,7 +666,6 @@ extern "C"
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
     domain_hdl->type.fromString(type_str);
-    domain_hdl->sendAttributToServer(domain_hdl->type);
      CTimer::get("XIOS").suspend();
   }
   
@@ -719,7 +690,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_ibegin.setValue(zoom_ibegin);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_ibegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -741,7 +711,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_ibegin_loc.setValue(zoom_ibegin_loc);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_ibegin_loc);
      CTimer::get("XIOS").suspend();
   }
   
@@ -763,7 +732,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_jbegin.setValue(zoom_jbegin);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_jbegin);
      CTimer::get("XIOS").suspend();
   }
   
@@ -785,7 +753,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_jbegin_loc.setValue(zoom_jbegin_loc);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_jbegin_loc);
      CTimer::get("XIOS").suspend();
   }
   
@@ -807,7 +774,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_ni.setValue(zoom_ni);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_ni);
      CTimer::get("XIOS").suspend();
   }
   
@@ -829,7 +795,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_ni_loc.setValue(zoom_ni_loc);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_ni_loc);
      CTimer::get("XIOS").suspend();
   }
   
@@ -851,7 +816,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_nj.setValue(zoom_nj);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_nj);
      CTimer::get("XIOS").suspend();
   }
   
@@ -873,7 +837,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     domain_hdl->zoom_nj_loc.setValue(zoom_nj_loc);
-    domain_hdl->sendAttributToServer(domain_hdl->zoom_nj_loc);
      CTimer::get("XIOS").suspend();
   }
   

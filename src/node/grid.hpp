@@ -12,7 +12,7 @@
 #include "attribute_array.hpp"
 
 namespace xios {
-   
+
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CGridGroup;
@@ -45,7 +45,7 @@ namespace xios {
          {
            EVENT_ID_INDEX
          } ;
-         
+
          /// Constructeurs ///
          CGrid(void);
          explicit CGrid(const StdString & id);
@@ -53,7 +53,11 @@ namespace xios {
          CGrid(const CGrid * const grid); // Not implemented yet.
 
          /// Traitements ///
-         void solveReference(void);
+//         void solveReference(void);
+
+         void solveDomainAxisRef(bool areAttributesChecked);
+
+         void checkMaskIndex(bool doCalculateIndex);
 
  //        virtual void toBinary  (StdOStream & os) const;
 //         virtual void fromBinary(StdIStream & is);
@@ -73,7 +77,7 @@ namespace xios {
          const CDomain* getRelDomain(void) const;
 
          StdSize getDimension(void) const;
-         
+
 //         StdSize getLocalSize(void) const;
 //         StdSize getGlobalSize(void) const;
          StdSize  getDataSize(void) const;
@@ -83,14 +87,14 @@ namespace xios {
          /// Entrées-sorties de champs ///
          template <int n>
             void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
-            
+
          void inputFieldServer(const std::deque< CArray<double, 1>* > storedClient,
                                CArray<double, 1>&  storedServer) const;
 
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,3>& field)  ;
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,2>& field)  ;
-         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ; 
-   
+         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ;
+
          /// Destructeur ///
          virtual ~CGrid(void);
 
@@ -99,7 +103,7 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
-         
+
          static ENodeType GetType(void);
 
          /// Instanciateurs Statiques ///
@@ -114,20 +118,27 @@ namespace xios {
          /// Traitements protégés ///
          void computeIndexServer(void);
          void computeIndex(void);
-         void solveDomainRef(void);
-         void solveAxisRef(void);
+//         void solveDomainRef(void);  //TODO temporarily comment
+//         void solveAxisRef(void);   // TODO: temporarily comment
+
+         void solveDomainRef(bool checkAtt);
+         void solveAxisRef(bool checkAtt);
 
          static bool dispatchEvent(CEventServer& event) ;
          void outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut) ;
          static void recvIndex(CEventServer& event) ;
          void recvIndex(int rank, CBufferIn& buffer) ;
          void sendIndex(void) ;
-         
+
+         void computeDomConServer();
+         std::map<int, int> getDomConServerSide();
+         std::map<int, StdSize> getConnectedServerDataSize();
       public:
 
          /// Propriétés privées ///
          bool withAxis ;
          bool isChecked;
+         bool isDomainAxisChecked;
 
          CAxis*   axis ;
          CDomain* domain ;
@@ -136,22 +147,25 @@ namespace xios {
          std::deque< CArray<int, 1>* > out_i_index ;
          std::deque< CArray<int, 1>* > out_j_index ;
          std::deque< CArray<int, 1>* > out_l_index ;
-         
+
         CArray<int, 1>  storeIndex_client ;
         CArray<int, 1>  out_i_client ;
         CArray<int, 1>  out_j_client ;
         CArray<int, 1>  out_l_client ;
-         
+
          map<int, CArray<int, 1>* >  storeIndex_toSrv ;
          map<int,int> nbSenders ;
 //         std::deque<ARRAY(int, 1)> out_i_toSrv ;
 //         std::deque<ARRAY(int, 1)> out_j_toSrv ;
 //         std::deque<ARRAY(int, 1)> out_l_toSrv ;
-         
+
          map<int, CArray<int, 1>* > out_i_fromClient ;
          map<int, CArray<int, 1>* > out_j_fromClient ;
          map<int, CArray<int, 1>* > out_l_fromClient ;
          void checkMask(void) ;
+
+         std::map<int, int> domConnectedServerSide_;
+         bool isDomConServerComputed_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

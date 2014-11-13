@@ -54,7 +54,7 @@ namespace xios
          this->setId(object.getId());
       ERROR("CObjectTemplate<T> construtor 3", << "Not completly implemented yet !");
    }
-   
+
    template <class T>
       CObjectTemplate<T>::~CObjectTemplate(void)
    { /* Ne rien faire de plus */ }
@@ -64,12 +64,12 @@ namespace xios
    template <class T>
       std::vector<boost::shared_ptr<T> > &
          CObjectTemplate<T>::GetAllVectobject(const StdString & contextId)
-   { 
-      return (CObjectTemplate<T>::AllVectObj[contextId]); 
+   {
+      return (CObjectTemplate<T>::AllVectObj[contextId]);
    }
-   
+
    //---------------------------------------------------------------
-   
+
    template <class T>
       StdString CObjectTemplate<T>::toString(void) const
    {
@@ -83,24 +83,24 @@ namespace xios
 
    template <class T>
       void CObjectTemplate<T>::fromString(const StdString & str)
-   { 
+   {
       ERROR("CObjectTemplate<T>::fromString(str)",
-            << "[ str = " << str << "] Not implemented yet !"); 
+            << "[ str = " << str << "] Not implemented yet !");
    }
-   
+
    //---------------------------------------------------------------
 
-/*   
+/*
    template <class T>
       void CObjectTemplate<T>::toBinary(StdOStream & os) const
    {
-      SuperClassMap::toBinary(os);    
+      SuperClassMap::toBinary(os);
    }
-      
+
    template <class T>
       void CObjectTemplate<T>::fromBinary(StdIStream & is)
    {
-      SuperClassMap::fromBinary(is); 
+      SuperClassMap::fromBinary(is);
    }
 */
 
@@ -120,27 +120,27 @@ namespace xios
    {
       return (T::GetType());
    }
-  
+
    template <class T>
    string CObjectTemplate<T>::getName(void) const
    {
       return (T::GetName());
    }
-  
+
    //---------------------------------------------------------------
 
    template <class T>
       bool CObjectTemplate<T>::hasChild(void) const
-   { 
-      return (false); 
+   {
+      return (false);
    }
 
    //---------------------------------------------------------------
 
    template <class T>
       void CObjectTemplate<T>::solveDescInheritance(bool apply, const CAttributeMap * const parent)
-   { 
-      SuperClassMap::setAttributes(parent, apply); 
+   {
+      SuperClassMap::setAttributes(parent, apply);
    }
 
    //---------------------------------------------------------------
@@ -159,6 +159,18 @@ namespace xios
       }
    }
 
+   template<typename T>
+   void CObjectTemplate<T>::sendAllAttributesToServer()
+   {
+     CAttributeMap& attrMap = *this;
+     CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+     for (; it != itE; ++it)
+     {
+       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second));
+     }
+
+   }
+
    template <class T>
    void CObjectTemplate<T>::sendAttributToServer(const string& id)
    {
@@ -171,12 +183,12 @@ namespace xios
   void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
   {
     CContext* context=CContext::getCurrent() ;
-    
+
     if (!context->hasServer)
     {
        CContextClient* client=context->client ;
 
-       CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE) ;   
+       CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE) ;
        if (client->isServerLeader())
        {
          CMessage msg ;
@@ -188,13 +200,13 @@ namespace xios
        }
        else client->sendEvent(event) ;
     }
-      
+
   }
-   
+
   template <class T>
   void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)
   {
-      
+
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string id,attrId;
     *buffer>>id ;
@@ -219,14 +231,14 @@ namespace xios
            recvAttributFromClient(event) ;
            return true ;
            break ;
-       
+
          default :
          return false ;
 //           ERROR("void CObjectTemplate<T>::recvEvent(CEventServer& event)",
 //                 <<"Unknown Event") ;
       }
    }
-   
+
    template <typename T>
    bool CObjectTemplate<T>::has(const string & id)
    {
@@ -250,7 +262,7 @@ namespace xios
    {
      return CObjectFactory::GetObject<T>(ptr).get() ;
    }
-   
+
    template <typename T>
    shared_ptr<T> CObjectTemplate<T>::getShared(const T* ptr)
    {
@@ -262,13 +274,13 @@ namespace xios
    {
      return CObjectFactory::GetObject<T>((T*)this) ;
    }
-   
+
    template <typename T>
    const vector<T*> CObjectTemplate<T>::getAll()
    {
      const vector< shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>();
      vector<T*> vect ;
-    
+
      typename vector<shared_ptr<T> >::const_iterator it;
      for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get()) ;
      return vect ;
@@ -279,7 +291,7 @@ namespace xios
    {
      const vector< shared_ptr<T> >& shared_vect= CObjectFactory::GetObjectVector<T>(id);
      vector<T*> vect ;
-    
+
      typename vector<shared_ptr<T> >::const_iterator it;
      for(it=shared_vect.begin();it!=shared_vect.end();++it) vect.push_back(it->get()) ;
      return vect ;
@@ -302,14 +314,14 @@ namespace xios
   {
     return CObjectFactory::GetObject<T>((T*)this).get() ;
   }
-  
+
    template <typename T>
    void CObjectTemplate<T>::generateCInterface(ostream& oss)
    {
      string className=getName() ;
      int found=className.find_first_of("_") ;
      if (found!=string::npos) className.replace(found,1,0,'x') ;
-     
+
      oss<<"/* ************************************************************************** *"<<iendl ;
      oss<<" *               Interface auto generated - do not modify                   *"<<iendl ;
      oss<<" * ************************************************************************** */"<<iendl;
@@ -339,7 +351,7 @@ namespace xios
      string className=getName() ;
      int found=className.find_first_of("_") ;
      if (found!=string::npos) className.replace(found,1,0,'x') ;
-     
+
      oss<<"! * ************************************************************************** *"<<iendl ;
      oss<<"! *               Interface auto generated - do not modify                     *"<<iendl ;
      oss<<"! * ************************************************************************** *"<<iendl;
@@ -348,14 +360,14 @@ namespace xios
      oss<<"USE, INTRINSIC :: ISO_C_BINDING"<<iendl ;
      oss<<iendl ;
      oss<<"INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99"<<iendl++ ;
-     oss<<iendl ;   
+     oss<<iendl ;
      oss<<iendl ;
      SuperClassMap::generateFortran2003Interface(oss,className) ;
      oss<<"END INTERFACE"<<iendl-- ;
      oss<<iendl-- ;
      oss<<"END MODULE "<<className<<"_interface_attr"<<iendl ;
    }
-  
+
    template <typename T>
    void CObjectTemplate<T>::generateFortranInterface(ostream& oss)
    {
@@ -365,7 +377,7 @@ namespace xios
      string superClassName=getName();
      found=superClassName.find("_group") ;
      if (found!=string::npos) superClassName.erase(found,6) ;
-     
+
      oss<<"! * ************************************************************************** *"<<iendl ;
      oss<<"! *               Interface auto generated - do not modify                     *"<<iendl ;
      oss<<"! * ************************************************************************** *"<<iendl;
@@ -397,7 +409,7 @@ namespace xios
      oss<<iendl ;
      SuperClassMap::generateFortranInterfaceIsDefined_hdl(oss,className) ;
      oss<<iendl ;
-     SuperClassMap::generateFortranInterfaceIsDefined_hdl_(oss,className) ;     
+     SuperClassMap::generateFortranInterfaceIsDefined_hdl_(oss,className) ;
      oss<<iendl-- ;
      oss<<"END MODULE i"<<className<<"_attr"<<iendl ;
    }

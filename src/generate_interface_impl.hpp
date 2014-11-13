@@ -9,33 +9,33 @@
 #include "array_new.hpp"
 
 namespace xios
-{ 
+{
   template<> string CInterface::getStrFortranType<int>(void) {return string("INTEGER") ;}
   template<> string CInterface::getStrFortranType<bool>(void) {return string("LOGICAL") ;}
   template<> string CInterface::getStrFortranType<double>(void) {return string("REAL") ;}
   template<> string CInterface::getStrFortranType<float>(void) {return string("REAL") ;}
-  
+
   template<> string CInterface::getStrFortranKind<int>(void) {return string("") ;}
   template<> string CInterface::getStrFortranKind<bool>(void) {return string("") ;}
   template<> string CInterface::getStrFortranKind<double>(void) {return string("(KIND=8)") ;}
   template<> string CInterface::getStrFortranKind<float>(void) {return string("(KIND=4)") ;}
-  
+
   template<> string CInterface::getStrFortranKindC<int>(void) {return string("(KIND=C_INT)") ;}
   template<> string CInterface::getStrFortranKindC<bool>(void) {return string("(KIND=C_BOOL)") ;}
   template<> string CInterface::getStrFortranKindC<double>(void) {return string("(KIND=C_DOUBLE)") ;}
   template<> string CInterface::getStrFortranKindC<float>(void) {return string("(KIND=C_FLOAT)") ;}
-  
-  template<> bool CInterface::matchingTypeCFortran<int>(void) { return true ; } 
-  template<> bool CInterface::matchingTypeCFortran<bool>(void) { return false ;} 
+
+  template<> bool CInterface::matchingTypeCFortran<int>(void) { return true ; }
+  template<> bool CInterface::matchingTypeCFortran<bool>(void) { return false ;}
   template<> bool CInterface::matchingTypeCFortran<double>(void) { return true; }
   template<> bool CInterface::matchingTypeCFortran<float>(void) { return true; }
-  
+
 
 // /////////////////////////////////////////////////
 // //                 C Interface                 //
 // /////////////////////////////////////////////////
 
-  
+
   void CInterface::AttributeIsDefinedCInterface(ostream& oss, const string& className,const string& name)
   {
     oss<<"bool cxios_is_defined_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl )"<<iendl ;
@@ -46,20 +46,20 @@ namespace xios
     oss<<"}"<<iendl ;
     oss<<iendl ;
   }
-  
+
   template <class T>
   void CInterface::AttributeCInterface(ostream& oss, const string& className,const string& name)
   {
     string typeName=getStrType<T>() ;
- 
+
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<" "<<name<<")"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue("<<name<<");"<<iendl ;
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
-    
+
     oss<<iendl ;
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<")"<<iendl ;
     oss<<"{"<<iendl;
@@ -67,10 +67,10 @@ namespace xios
     oss<<"}"<<iendl ;
     oss<<iendl ;
   }
-    
-  
+
+
   template<>
-  void CInterface::AttributeCInterface<string>(ostream& oss, const string& className,const string& name)  
+  void CInterface::AttributeCInterface<string>(ostream& oss, const string& className,const string& name)
   {
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, const char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
@@ -78,12 +78,12 @@ namespace xios
     oss<<"  if(!cstr2string("<<name<<", "<<name<<"_size, "<<name<<"_str)) return;"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue("<<name<<"_str);"<<iendl ;
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
-    
+
     oss<<iendl ;
-    
+
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
@@ -93,11 +93,11 @@ namespace xios
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
     oss<<iendl ;
-   
+
   }
 
   template<>
-  void CInterface::AttributeCInterface<CEnumBase>(ostream& oss, const string& className,const string& name)  
+  void CInterface::AttributeCInterface<CEnumBase>(ostream& oss, const string& className,const string& name)
   {
     oss<<"void cxios_set_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, const char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
@@ -105,12 +105,12 @@ namespace xios
     oss<<"  if(!cstr2string("<<name<<", "<<name<<"_size, "<<name<<"_str)) return;"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
     oss<<"  "<<className<<"_hdl->"<<name<<".fromString("<<name<<"_str);"<<iendl ;
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
-    
+
     oss<<iendl ;
-    
+
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, char * "<<name<<", int "<<name<<"_size)"<<iendl ;
     oss<<"{"<<iendl ;
     oss<<"   CTimer::get(\"XIOS\").resume();"<<iendl ;
@@ -120,7 +120,7 @@ namespace xios
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;
     oss<<"}"<<iendl ;
     oss<<iendl ;
-  
+
   }
 //     if (!array_copy(domain_hdl->mask.getValue(), mask, extent1, extent2))
 //        ERROR("cxios_get_domain_mask(XDomainPtr domain_hdl, bool * mask, int extent1, int extent2)",<<"Output array size is not conform to array size attribut") ;
@@ -138,7 +138,7 @@ namespace xios
     oss<<"  ARRAY("<<typeName<<",1) array_tmp(new CArray<"<<typeName<<",1>(boost::extents[extent1]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1)"<<iendl ;\
@@ -161,7 +161,7 @@ namespace xios
     oss<<"  ARRAY("<<typeName<<",2) array_tmp(new CArray<"<<typeName<<",2>(boost::extents[extent1][extent2]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2)"<<iendl ;\
@@ -184,7 +184,7 @@ namespace xios
     oss<<"  ARRAY("<<typeName<<",3) array_tmp(new CArray<"<<typeName<<",3>(boost::extents[extent1][extent2][extent3]));"<<iendl ;\
     oss<<"  std::copy("<<name<<", &("<<name<<"[array_tmp->num_elements()]), array_tmp->data());"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".setValue(array_tmp);"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+//    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
     oss<<"void cxios_get_"<<className<<"_"<<name<<"("<<className<<"_Ptr "<<className<<"_hdl, "<< typeName<<"* "<<name<<", int extent1, int extent2, int extent3)"<<iendl ;\
@@ -201,7 +201,7 @@ macro(double)
 macro(int)
 */
 
-#undef macro  
+#undef macro
 
 // /////////////////////////////////////////////////
 // //          Fortran 2003 Interface             //
@@ -212,21 +212,21 @@ macro(int)
      oss<<"  USE ISO_C_BINDING"<<iendl ;
      oss<<"  LOGICAL(kind=C_BOOL) :: cxios_is_defined_"<<className<<"_"<<name<<iendl;
      oss<<"  INTEGER (kind = C_INTPTR_T), VALUE :: "<<className<<"_hdl"<<iendl ;
-     oss<<"END FUNCTION cxios_is_defined_"<<className<<"_"<<name<<iendl ;   
+     oss<<"END FUNCTION cxios_is_defined_"<<className<<"_"<<name<<iendl ;
    }
-   
+
    template <class T>
    void CInterface::AttributeFortran2003Interface(ostream& oss,const string& className,const string& name)
    {
      string fortranType=getStrFortranType<T>() ;
      string fortranKindC=getStrFortranKindC<T>() ;
-     
+
      oss<<"SUBROUTINE cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl, "<<name<<") BIND(C)"<<iendl ;
      oss<<"  USE ISO_C_BINDING"<<iendl ;
      oss<<"  INTEGER (kind = C_INTPTR_T), VALUE :: "<<className<<"_hdl"<<iendl ;
      oss<<"  "<<fortranType<<" "<<fortranKindC<<"      , VALUE :: "<<name<<iendl ;
      oss<<"END SUBROUTINE cxios_set_"<<className<<"_"<<name<<iendl ;
-     oss<<iendl ; 
+     oss<<iendl ;
      oss<<"SUBROUTINE cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl, "<<name<<") BIND(C)"<<iendl ;
      oss<<"  USE ISO_C_BINDING"<<iendl ;
      oss<<"  INTEGER (kind = C_INTPTR_T), VALUE :: "<<className<<"_hdl"<<iendl ;
@@ -234,19 +234,19 @@ macro(int)
      oss<<"END SUBROUTINE cxios_get_"<<className<<"_"<<name<<iendl ;
      oss<<iendl ;
    }
-   
-   
+
+
    template <>
    void CInterface::AttributeFortran2003Interface<string>(ostream& oss,const string& className,const string& name)
    {
-          
+
      oss<<"SUBROUTINE cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl, "<<name<<", "<<name<<"_size) BIND(C)"<<iendl ;
      oss<<"  USE ISO_C_BINDING"<<iendl ;
      oss<<"  INTEGER (kind = C_INTPTR_T), VALUE :: "<<className<<"_hdl"<<iendl ;
      oss<<"  CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: "<<name<<iendl ;
      oss<<"  INTEGER  (kind = C_INT)     , VALUE        :: "<<name<<"_size"<<iendl ;
      oss<<"END SUBROUTINE cxios_set_"<<className<<"_"<<name<<iendl ;
-     oss<<iendl ; 
+     oss<<iendl ;
      oss<<"SUBROUTINE cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl, "<<name<<", "<<name<<"_size) BIND(C)"<<iendl ;
      oss<<"  USE ISO_C_BINDING"<<iendl ;
      oss<<"  INTEGER (kind = C_INTPTR_T), VALUE :: "<<className<<"_hdl"<<iendl ;
@@ -326,13 +326,13 @@ macro(int)
      oss<<"  INTEGER (kind = C_INT), VALUE  :: extent3"<<iendl ; \
      oss<<"END SUBROUTINE cxios_get_"<<className<<"_"<<name<<iendl ; \
    }
-  
+
   macro(bool)
   macro(double)
   macro(int)
 
   #undef macro
-*/  
+*/
    template <class T>
    void CInterface::AttributeFortranInterfaceDeclaration(ostream& oss,const string& className,const string& name)
    {
@@ -346,19 +346,19 @@ macro(int)
      oss<<getStrFortranType<T>()<<" "<< getStrFortranKind<T>() <<" , OPTIONAL, INTENT(OUT) :: "<<name<<iendl ;
      if (!matchingTypeCFortran<T>()) oss<<getStrFortranType<T>()<<" "<<getStrFortranKindC<T>()<<" :: "<<name<<"_tmp"<<iendl ;
    }
-   
+
    void CInterface::AttributeFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className,const string& name)
    {
      oss<<"LOGICAL, OPTIONAL, INTENT(OUT) :: "<<name<<iendl ;
      oss<<"LOGICAL(KIND=C_BOOL) :: "<<name<<"_tmp"<<iendl ;
    }
-    
+
    template <>
    void CInterface::AttributeFortranInterfaceDeclaration<string>(ostream& oss,const string& className,const string& name)
    {
      oss<<"CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: "<<name<<iendl ;
    }
-   
+
    template <>
    void CInterface::AttributeFortranInterfaceGetDeclaration<string>(ostream& oss,const string& className,const string& name)
    {
@@ -406,22 +406,22 @@ macro(int)
    { \
      oss<<getStrFortranType<T>()<<" "<<getStrFortranKind<T>() <<" , OPTIONAL, INTENT(OUT) :: "<<name<<"(:,:,:)"<<iendl ; \
      if (!matchingTypeCFortran<T>()) oss<<getStrFortranType<T>()<<" "<<getStrFortranKindC<T>() <<" , ALLOCATABLE :: "<<name<<"_tmp(:,:,:)"<<iendl ; \
-   }     
-   
+   }
+
   macro(bool)
   macro(double)
   macro(int)
 
 #undef macro
 */
-   
+
    template <class T>
    void CInterface::AttributeFortranInterfaceBody(ostream& oss,const string& className,const string& name)
    {
      string name_tmp=name+"__tmp" ;
-     
+
      oss<<"IF (PRESENT("<<name<<"_)) THEN"<<iendl ;
-     if (!matchingTypeCFortran<T>()) 
+     if (!matchingTypeCFortran<T>())
      {
        oss<<"  "<<name_tmp<<"="<<name<<"_"<<iendl ;
        oss<<"  CALL cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name_tmp<<")"<<iendl ;
@@ -429,14 +429,14 @@ macro(int)
      else oss<<"  CALL cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_)"<<iendl ;
      oss<<"ENDIF"<<iendl ;
    }
-   
+
    template <class T>
    void CInterface::AttributeFortranInterfaceGetBody(ostream& oss,const string& className,const string& name)
    {
      string name_tmp=name+"__tmp" ;
-     
+
      oss<<"IF (PRESENT("<<name<<"_)) THEN"<<iendl ;
-     if (!matchingTypeCFortran<T>()) 
+     if (!matchingTypeCFortran<T>())
      {
        oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name_tmp<<")"<<iendl ;
        oss<<"  "<<name<<"_="<<name_tmp<<iendl ;
@@ -448,13 +448,13 @@ macro(int)
    void CInterface::AttributeFortranInterfaceIsDefinedBody(ostream& oss,const string& className,const string& name)
    {
      string name_tmp=name+"__tmp" ;
-     
+
      oss<<"IF (PRESENT("<<name<<"_)) THEN"<<iendl ;
      oss<<"  "<<name<<"__tmp=cxios_is_defined_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr)"<<iendl ;
      oss<<"  "<<name<<"_="<<name_tmp<<iendl ;
      oss<<"ENDIF"<<iendl ;
    }
-     
+
    template <>
    void CInterface::AttributeFortranInterfaceBody<string>(ostream& oss,const string& className,const string& name)
    {
@@ -520,7 +520,7 @@ macro(int)
      else oss<<"  CALL cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1),size("<<name<<"_,2),size("<<name<<"_,3))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
    }
-  
+
   macro(bool)
   macro(double)
   macro(int)
@@ -577,7 +577,7 @@ macro(int)
      else oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1),size("<<name<<"_,2),size("<<name<<"_,3))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
    }
-     
+
   macro(bool)
   macro(double)
   macro(int)
@@ -601,7 +601,7 @@ macro(int)
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",1> tmp("<<name<<",shape(extent1),neverDeleteData) ;"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".reference(tmp.copy());"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+/*    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;*/\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
@@ -625,7 +625,7 @@ macro(int)
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",2> tmp("<<name<<",shape(extent1,extent2),neverDeleteData) ;"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".reference(tmp.copy());"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+    /*oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;*/\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
@@ -649,7 +649,7 @@ macro(int)
     oss<<"  CTimer::get(\"XIOS\").resume();"<<iendl ; \
     oss<<"  CArray<"<<typeName<<",3> tmp("<<name<<",shape(extent1,extent2,extent3),neverDeleteData) ;"<<iendl ;\
     oss<<"  "<<className<<"_hdl->"<<name<<".reference(tmp.copy());"<<iendl ;\
-    oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;\
+    /*oss<<"  "<<className<<"_hdl->sendAttributToServer("<<className<<"_hdl->"<<name<<");"<<iendl ;*/\
     oss<<"   CTimer::get(\"XIOS\").suspend();"<<iendl ;\
     oss<<"}"<<iendl ;\
     oss<<iendl; \
@@ -667,14 +667,14 @@ macro(bool)
 macro(double)
 macro(int)
 
-#undef macro  
+#undef macro
 
 // /////////////////////////////////////////////////
 // //          Fortran 2003 Interface             //
 // /////////////////////////////////////////////////
 
 
-    
+
 #define macro(T)\
    template <>\
    void CInterface::AttributeFortran2003Interface<CArray<T,1> >(ostream& oss,const string& className,const string& name) \
@@ -747,13 +747,13 @@ macro(int)
      oss<<"END SUBROUTINE cxios_get_"<<className<<"_"<<name<<iendl ; \
      oss<<iendl ;\
    }
-  
+
   macro(bool)
   macro(double)
   macro(int)
-  
+
   #undef macro
-  
+
 
 #define macro(T)\
    template <> \
@@ -795,15 +795,15 @@ macro(int)
    { \
      oss<<getStrFortranType<T>()<<" "<<getStrFortranKind<T>() <<" , OPTIONAL, INTENT(OUT) :: "<<name<<"(:,:,:)"<<iendl ; \
      if (!matchingTypeCFortran<T>()) oss<<getStrFortranType<T>()<<" "<<getStrFortranKindC<T>() <<" , ALLOCATABLE :: "<<name<<"_tmp(:,:,:)"<<iendl ; \
-   }     
-   
+   }
+
   macro(bool)
   macro(double)
   macro(int)
 
 #undef macro
 
-   
+
 
 #define macro(T) \
    template <>  \
@@ -853,7 +853,7 @@ macro(int)
      else oss<<"  CALL cxios_set_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1),size("<<name<<"_,2),size("<<name<<"_,3))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
    }
-  
+
   macro(bool)
   macro(double)
   macro(int)
@@ -908,7 +908,7 @@ macro(int)
      else oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1),size("<<name<<"_,2),size("<<name<<"_,3))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
    }
-     
+
   macro(bool)
   macro(double)
   macro(int)

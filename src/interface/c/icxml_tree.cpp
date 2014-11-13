@@ -43,84 +43,76 @@ extern "C"
 
    typedef xios::CAxis      * XAxisPtr;
    typedef xios::CAxisGroup * XAxisGroupPtr;
- 
+
    typedef xios::CVariable      *  XVariablePtr;
    typedef xios::CVariableGroup *  XVariableGroupPtr;
-  
+
    // ----------------------- Ajout d'enfant à un parent -----------------------
-   
+
    void cxios_xml_tree_add_field
       (XFieldGroupPtr  parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChild(child_id_str) ;
-         parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChild() ;
-         parent_->sendCreateChild() ;
       }
       CTimer::get("XIOS").suspend() ;
   }
-   
+
    void cxios_xml_tree_add_grid
       (XGridGroupPtr   parent_, XGridPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChild(child_id_str) ;
-         parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChild() ;
-         parent_->sendCreateChild() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_file
       (XFileGroupPtr parent_, XFilePtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChild(child_id_str) ;
-         parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChild() ;
-         parent_->sendCreateChild() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_axis
       (XAxisGroupPtr parent_, XAxisPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChild(child_id_str) ;
-         parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChild() ;
-         parent_->sendCreateChild() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_domain
       (XDomainGroupPtr parent_, XDomainPtr * child_, const char * child_id, int child_id_size)
    {
@@ -129,31 +121,27 @@ extern "C"
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChild(child_id_str) ;
-         parent_->sendCreateChild(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChild() ;
-         parent_->sendCreateChild() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_fieldtofile
       (XFilePtr parent_, XFieldPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
       CTimer::get("XIOS").resume() ;
- 
+
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addField(child_id_str);
-         parent_->sendAddField(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addField();
-         parent_->sendAddField() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -163,54 +151,48 @@ extern "C"
    {
       std::string child_id_str;
       CTimer::get("XIOS").resume() ;
- 
+
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addVariable(child_id_str);
-         parent_->sendAddVariable(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addVariable();
-         parent_->sendAddVariable() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
     void cxios_xml_tree_add_variabletofield
       (XFieldPtr parent_, XVariablePtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
       CTimer::get("XIOS").resume() ;
- 
+
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addVariable(child_id_str);
-         parent_->sendAddVariable(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addVariable();
-         parent_->sendAddVariable() ;
       }
       CTimer::get("XIOS").suspend() ;
-   }  
+   }
    // ----------------------- Ajout de groupe à un parent ----------------------
 
    void cxios_xml_tree_add_fieldgroup
       (XFieldGroupPtr  parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
-     std::string child_id_str; 
+     std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChildGroup(child_id_str) ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChildGroup() ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -223,12 +205,10 @@ extern "C"
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChildGroup(child_id_str) ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChildGroup() ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -241,12 +221,10 @@ extern "C"
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChildGroup(child_id_str) ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChildGroup() ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -259,12 +237,10 @@ extern "C"
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChildGroup(child_id_str) ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChildGroup() ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -277,12 +253,10 @@ extern "C"
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->createChildGroup(child_id_str) ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->createChildGroup() ;
-         parent_->sendCreateChildGroup(child_id_str) ;
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -290,61 +264,55 @@ extern "C"
    void cxios_xml_tree_add_fieldgrouptofile
       (XFilePtr parent_, XFieldGroupPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addFieldGroup(child_id_str);
-         parent_->sendAddFieldGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addFieldGroup();
-         parent_->sendAddFieldGroup() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_variablegrouptofile
       (XFilePtr parent_, XVariableGroupPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addVariableGroup(child_id_str);
-         parent_->sendAddVariableGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addVariableGroup();
-         parent_->sendAddVariableGroup() ;
       }
       CTimer::get("XIOS").suspend() ;
    }
-   
+
    void cxios_xml_tree_add_variablegrouptofield
       (XFieldPtr parent_, XVariableGroupPtr * child_, const char * child_id, int child_id_size)
    {
-      std::string child_id_str; 
+      std::string child_id_str;
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
          *child_ = parent_->addVariableGroup(child_id_str);
-         parent_->sendAddVariableGroup(child_id_str) ;
       }
       else
       {
          *child_ = parent_->addVariableGroup();
-         parent_->sendAddVariableGroup() ;
       }
       CTimer::get("XIOS").suspend() ;
-   }   
-   
-   
+   }
+
+
    // ----------------------- Affichage de l'arborescence ----------------------
-   
-//   void cxios_xml_tree_show   (const char * filename, int filename_size) 
+
+//   void cxios_xml_tree_show   (const char * filename, int filename_size)
 //   {
 //      std::string filename_str;
 //      try
@@ -360,13 +328,13 @@ extern "C"
 //         exit (EXIT_FAILURE);
 //      }
 //  }
-     
-   
+
+
    // ----------------------- Parsing de document xml --------------------------
-   
+
 //   void cxios_xml_parse_file  (const char * filename  , int filename_size)//
 //   {
-//      std::string filename_str; 
+//      std::string filename_str;
 //      if (!cstr2string(filename, filename_size, filename_str)) return;
 //
 //      try
@@ -379,10 +347,10 @@ extern "C"
 //         exit (EXIT_FAILURE);
 //      }
 //   }
-   
+
 //   void cxios_xml_parse_string(const char * xmlcontent, int xmlcontent_size)
 //   {
-//      std::string xmlcontent_str; 
+//      std::string xmlcontent_str;
 //      if (!cstr2string(xmlcontent, xmlcontent_size, xmlcontent_str)) return;
 //
 //      try
@@ -395,7 +363,7 @@ extern "C"
 //         exit (EXIT_FAILURE);
 //      }
 //   }
-   
+
 
 
 } // extern "C"

@@ -14,7 +14,7 @@
 
 
 namespace xios {
-   
+
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CFileGroup;
@@ -30,6 +30,14 @@ namespace xios {
 
    ///--------------------------------------------------------------
 
+   /*!
+   \class CFile
+   This class corresponds to file component of the xml.
+   The class contains all the nessceary information to write data into a netcdf file: The most important thing
+   is the field(s) which will be written into file. Besides, there are some options to write
+   data into file, e.g: writting into only one file or multiple file; splitting a running into several files.
+   Moreover, there are some other attributes of netcdf file which are also stored in this class
+   */
    class CFile
       : public CObjectTemplate<CFile>
       , public CFileAttributes
@@ -37,13 +45,14 @@ namespace xios {
          /// typedef ///
          typedef CObjectTemplate<CFile>   SuperClass;
          typedef CFileAttributes SuperClassAttribute;
-      
+
       public :
          enum EEventId
          {
-           EVENT_ID_ADD_FIELD=0,EVENT_ID_ADD_FIELD_GROUP, EVENT_ID_ADD_VARIABLE,EVENT_ID_ADD_VARIABLE_GROUP
+           EVENT_ID_ADD_FIELD=0,EVENT_ID_ADD_FIELD_GROUP, EVENT_ID_ADD_VARIABLE,
+           EVENT_ID_ADD_VARIABLE_GROUP, EVENT_ID_CREATE_ENABLED_FIELDS
          } ;
-         
+
          typedef CFileAttributes RelAttributes;
          typedef CFileGroup      RelGroup;
 
@@ -53,6 +62,10 @@ namespace xios {
          CFile(const CFile & file);       // Not implemented yet.
          CFile(const CFile * const file); // Not implemented yet.
 
+         /// Destructeur ///
+         virtual ~CFile(void);
+
+      public:
          /// Accesseurs ///
          boost::shared_ptr<CDataOutput> getDataOutput(void) const;
          CFieldGroup* getVirtualFieldGroup(void) const;
@@ -65,65 +78,75 @@ namespace xios {
                                                 bool default_enabled = true);
 
       public :
-
-         /// Mutateurs ///
-         void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
-         void setVirtualFieldGroup(void);
-         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
-         void setVirtualVariableGroup(void);
-         void processEnabledFile(void) ;
-         void processEnabledFields(void) ;
-         void createHeader(void);
-         void close(void) ;
-         
-         /// Traitements ///
-         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
-         void solveFieldRefInheritance(bool apply);
-         void solveEFGridRef(void);
-         void solveEFOperation(void);
-         void solveEFExpression(void);
-
-         /// Destructeur ///
-         virtual ~CFile(void);
-
-         /// Autres ///
-         virtual void parse(xml::CXMLNode & node);
-         virtual StdString toString(void) const;
-         
-//         virtual void toBinary  (StdOStream & os) const;
-//         virtual void fromBinary(StdIStream & is);
-
-         /// Accesseurs statiques ///
-         static StdString GetName(void);
-         static StdString GetDefName(void);
-         
-         static ENodeType GetType(void);
-         
-         bool allDomainEmpty ;
-         CField* addField(const string& id="") ;
-         CFieldGroup* addFieldGroup(const string& id="") ;
-         CVariable* addVariable(const string& id="") ;
-         CVariableGroup* addVariableGroup(const string& id="") ;
-         void sendAddField(const string& id="") ;
-         void sendAddFieldGroup(const string& id="") ;
-         static void recvAddField(CEventServer& event) ;
-         void recvAddField(CBufferIn& buffer) ;
-         static void recvAddFieldGroup(CEventServer& event) ;
-         void recvAddFieldGroup(CBufferIn& buffer) ;
-         
-         void sendAddVariable(const string& id="") ;
-         void sendAddVariableGroup(const string& id="") ;
-         static void recvAddVariable(CEventServer& event) ;
-         void recvAddVariable(CBufferIn& buffer) ;
-         static void recvAddVariableGroup(CEventServer& event) ;
-         void recvAddVariableGroup(CBufferIn& buffer) ;
-         static bool dispatchEvent(CEventServer& event) ;
-         
+         // Some functions to verify state of file
          bool isSyncTime(void) ;
          bool checkSplit(void) ;
          bool checkSync(void) ;
          void checkFile(void) ;
          void initFile(void) ;
+
+         /// Mutateurs ///
+         // Set some root definitions in a file
+         void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
+         void setVirtualFieldGroup(void);
+         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
+         void setVirtualVariableGroup(void);
+
+         void createHeader(void);
+         void close(void) ;
+
+         // Some processing on file
+         void solveFieldRefInheritance(bool apply);
+         void solveEFGridRef(void);
+         void solveEFOperation(void);
+         void solveEFExpression(void);
+         void processEnabledFile(void) ;
+         void processEnabledFields(void) ;
+         void solveAllRefOfEnabledFields(bool sendToServer);
+         void buildAllExpressionOfEnabledFields();
+
+         // Add component into file
+         CField* addField(const string& id="") ;
+         CFieldGroup* addFieldGroup(const string& id="") ;
+         CVariable* addVariable(const string& id="") ;
+         CVariableGroup* addVariableGroup(const string& id="") ;
+
+         // Send info to serever
+         void sendEnabledFields();
+         void sendAddField(const string& id="") ;
+         void sendAddFieldGroup(const string& id="") ;
+         void sendAddAllVariables();
+         void sendAddVariable(const string& id="") ;
+         void sendAddVariableGroup(const string& id="") ;
+
+         // Receive info from client
+         static void recvAddField(CEventServer& event) ;
+         void recvAddField(CBufferIn& buffer) ;
+         static void recvAddFieldGroup(CEventServer& event) ;
+         void recvAddFieldGroup(CBufferIn& buffer) ;
+         static void recvAddVariable(CEventServer& event) ;
+         void recvAddVariable(CBufferIn& buffer) ;
+         static void recvAddVariableGroup(CEventServer& event) ;
+         void recvAddVariableGroup(CBufferIn& buffer) ;
+
+         // Dispatch event
+         static bool dispatchEvent(CEventServer& event) ;
+
+      public:
+         /// Accesseurs statiques ///
+         static StdString GetName(void);
+         static StdString GetDefName(void);
+
+         static ENodeType GetType(void);
+      public:
+         /// Traitements ///
+         virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+
+          /// Autres ///
+         virtual void parse(xml::CXMLNode & node);
+         virtual StdString toString(void) const;
+      public:
+
          CDate* lastSync ;
          CDate* lastSplit ;
          CDuration syncFreq ;
@@ -131,14 +154,19 @@ namespace xios {
          CDuration outputFreq ;
          int nbDomain ;
          bool isOpen ;
+         bool allDomainEmpty ;
          MPI_Comm fileComm ;
-      private :
 
+      private :
          /// Propriétés privées ///
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup ;
          boost::shared_ptr<CDataOutput> data_out;
          std::vector<CField*> enabledFields;
+
+      public:
+        //         virtual void toBinary  (StdOStream & os) const;
+        //         virtual void fromBinary(StdIStream & is);
 
    }; // class CFile
 

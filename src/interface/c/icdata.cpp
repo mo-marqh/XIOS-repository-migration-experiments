@@ -91,6 +91,7 @@ extern "C"
      CTimer::get("XIOS").resume() ;
      CTimer::get("XIOS close definition").resume() ;
      CContext* context = CContext::getCurrent() ;
+//     context->setClientServerBuffer();
      context->closeDefinition() ;
      CTimer::get("XIOS close definition").suspend() ;
      CTimer::get("XIOS").suspend() ;
@@ -256,7 +257,7 @@ extern "C"
       if (*isVarExisted)
       {
         CVariable::get(context->getId(),varIdStr)->setData<double>(data);
-        CVariable::get(context->getId(),varIdStr)->sendValue();
+        //CVariable::get(context->getId(),varIdStr)->sendValue();
       }
 
       CTimer::get("XIOS set variable data").suspend() ;
@@ -277,7 +278,7 @@ extern "C"
       if (*isVarExisted)
       {
         CVariable::get(context->getId(),varIdStr)->setData<float>(data);
-        CVariable::get(context->getId(),varIdStr)->sendValue();
+        //CVariable::get(context->getId(),varIdStr)->sendValue();
       }
 
       CTimer::get("XIOS set variable data").suspend() ;
@@ -298,7 +299,7 @@ extern "C"
       if (*isVarExisted)
       {
         CVariable::get(context->getId(),varIdStr)->setData<int>(data);
-        CVariable::get(context->getId(),varIdStr)->sendValue();
+        //CVariable::get(context->getId(),varIdStr)->sendValue();
       }
 
 
@@ -320,7 +321,7 @@ extern "C"
       if (*isVarExisted)
       {
         CVariable::get(context->getId(),varIdStr)->setData<bool>(data);
-        CVariable::get(context->getId(),varIdStr)->sendValue();
+        //CVariable::get(context->getId(),varIdStr)->sendValue();
       }
 
       CTimer::get("XIOS set variable data").suspend() ;
@@ -346,7 +347,7 @@ extern "C"
       if (*isVarExisted)
       {
         CVariable::get(context->getId(),varIdStr)->setData<string>(dataStr);
-        CVariable::get(context->getId(),varIdStr)->sendValue();
+        //CVariable::get(context->getId(),varIdStr)->sendValue();
       }
 
       CTimer::get("XIOS set variable data").suspend() ;
