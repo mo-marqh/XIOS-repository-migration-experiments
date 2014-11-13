@@ -131,8 +131,8 @@ namespace xios
         else MPI_Comm_dup(localComm,&intraComm) ;
         CTimer::get("XIOS").resume() ;
         CTimer::get("XIOS init").resume() ;
-  
-        if (CXios::usingServer) 
+
+        if (CXios::usingServer)
         {
           MPI_Status status ;
           MPI_Comm_rank(intraComm,&rank) ;
@@ -152,7 +152,9 @@ namespace xios
     void CClient::registerContext(const string& id,MPI_Comm contextComm)
     {
       CContext::setCurrent(id) ;
-      CContext* context=CContext::create(id) ;
+      CContext* context=CContext::create(id);
+      StdString idServer(id);
+      idServer += "_server";
 
       if (!CXios::isServer)
       {
@@ -168,7 +170,8 @@ namespace xios
 
 
         CMessage msg ;
-        msg<<id<<size<<globalRank ;
+        msg<<idServer<<size<<globalRank ;
+//        msg<<id<<size<<globalRank ;
 
         int messageSize=msg.size() ;
         void * buff = new char[messageSize] ;
@@ -191,8 +194,18 @@ namespace xios
       {
         MPI_Comm contextInterComm ;
         MPI_Comm_dup(contextComm,&contextInterComm) ;
-        context->initClient(contextComm,contextInterComm) ;
-        context->initServer(contextComm,contextInterComm) ;
+        CContext* contextServer = CContext::create(idServer);
+
+        // Firstly, initialize context on client side
+        context->initClient(contextComm,contextInterComm, contextServer);
+
+
+        // Secondly, initialize context on server side
+        contextServer->initServer(contextComm,contextInterComm);
+
+        // Finally, we should return current context to context client
+        CContext::setCurrent(id);
+//        context->initServer(contextComm,contextInterComm) ;
       }
     }
 
@@ -222,8 +235,8 @@ namespace xios
       report(0)<< " Performance report : time spent for waiting free buffer : "<< CTimer::get("Blocking time").getCumulatedTime()<<" s"<<endl ;
       report(0)<< " Performance report : Ratio : "<< CTimer::get("Blocking time").getCumulatedTime()/CTimer::get("XIOS").getCumulatedTime()*100.<<" %"<<endl ;
       report(0)<< " Performance report : This ratio must be close to zero. Otherwise it may be usefull to increase buffer size or numbers of server"<<endl ;
-      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
-      report(0)<< " Memory report : Minimum buffer size required : "<<maxRequestSize*2<<endl ;
+//      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
+      report(0)<< " Memory report : Minimum buffer size required : "<<maxRequestSize*2<< " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
    }
 

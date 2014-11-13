@@ -176,7 +176,7 @@ namespace xios {
        retVal = it->second;
        if (this->withAxis) retVal *= this->axis->size.getValue();
        retVal *= sizeof(double);
-       retVal *= 1.2; // Secure factor
+       retVal *= 1.2 * CXios::bufferServerFactorSize; // Secure factor
        ret.insert(make_pair(it->first, retVal));
      }
      return ret;

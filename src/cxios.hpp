@@ -41,6 +41,7 @@ namespace xios
      static size_t defaultBufferSize ;
      static double bufferServerFactorSize ;
      static double defaultBufferServerFactorSize ;
+     static bool isOptPerformance;
 
      public:
      //! Setting xios to use server mode
@@ -53,6 +54,9 @@ namespace xios
      static bool isServerSide;
 
      static  void initServer();
+
+     private:
+      static void parseXiosConfig();
 
   } ;
 

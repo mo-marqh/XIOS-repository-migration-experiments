@@ -18,6 +18,8 @@ namespace xios
          /// Accesseurs ///
          const StdString & getId(void) const;
 
+         virtual const StdString& getIdServer();
+
          /// Mutateurs ///
          void resetId(void);
          void setId(const StdString & id);

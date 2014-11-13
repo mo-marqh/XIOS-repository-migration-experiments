@@ -15,7 +15,7 @@ namespace xios
   {
 
     public:
-    CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm) ;
+    CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0) ;
 //    void registerEvent(CEventClient& event) ;
 
 //    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;
@@ -47,6 +47,7 @@ namespace xios
 
     private:
     std::map<int, StdSize> mapBufferSize_;
+    CContext* parentServer;
 //    bool locked ;
 
   } ;

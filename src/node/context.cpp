@@ -22,12 +22,12 @@ namespace xios {
 
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
-      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_()
+      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_(), idServer_()
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
-      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_()
+      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_(), idServer_()
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
@@ -279,10 +279,10 @@ namespace xios {
    ///---------------------------------------------------------------
 
    //! Initialize client side
-   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm)
+   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer)
    {
      hasClient=true ;
-     client = new CContextClient(this,intraComm, interComm) ;
+     client = new CContextClient(this,intraComm, interComm, cxtServer) ;
    }
 
    void CContext::setClientServerBuffer()
@@ -574,7 +574,7 @@ namespace xios {
      if (client->isServerLeader())
      {
        CMessage msg ;
-       msg<<this->getId() ;
+       msg<<this->getIdServer() ;
        event.push(client->getServerLeader(),1,msg) ;
        client->sendEvent(event) ;
      }
@@ -600,7 +600,7 @@ namespace xios {
        if (client->isServerLeader())
        {
          CMessage msg ;
-         msg<<this->getId()<<step ;
+         msg<<this->getIdServer()<<step ;
          event.push(client->getServerLeader(),1,msg) ;
          client->sendEvent(event) ;
        }
@@ -633,7 +633,7 @@ namespace xios {
      if (client->isServerLeader())
      {
        CMessage msg ;
-       msg<<this->getId() ;
+       msg<<this->getIdServer() ;
        event.push(client->getServerLeader(),1,msg) ;
        client->sendEvent(event) ;
      }
@@ -664,7 +664,7 @@ namespace xios {
        if (client->isServerLeader())
        {
          CMessage msg ;
-         msg<<this->getId();
+         msg<<this->getIdServer();
          event.push(client->getServerLeader(),1,msg) ;
          client->sendEvent(event) ;
        }
@@ -685,6 +685,17 @@ namespace xios {
    void CContext::recvPostProcessing(CBufferIn& buffer)
    {
       postProcessing();
+   }
+
+   const StdString& CContext::getIdServer()
+   {
+      if (hasClient)
+      {
+        idServer_ = this->getId();
+        idServer_ += "_server";
+        return idServer_;
+      }
+      if (hasServer) return (this->getId());
    }
 
    /*!
@@ -735,18 +746,28 @@ namespace xios {
          }
          else
          {
+           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
            if (domainIds.find(prDomAxisId.first) == domainIds.end())
            {
-             std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
              for (; it != itE; ++it)
              {
                if (0 < dataSize_.count(it->first)) dataSize_[it->first] += it->second;
                else dataSize_.insert(make_pair(it->first, it->second));
              }
+           } else
+           {
+             for (; it != itE; ++it)
+             {
+               if (0 < dataSize_.count(it->first))
+                if (CXios::isOptPerformance) dataSize_[it->first] += it->second;
+                else
+                {
+                  if (dataSize_[it->first] < it->second) dataSize_[it->first] = it->second;
+                }
+               else dataSize_.insert(make_pair(it->first, it->second));
+             }
            }
-
          }
-
        }
      }
 

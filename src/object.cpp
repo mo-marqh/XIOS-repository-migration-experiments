@@ -19,23 +19,28 @@ namespace xios
    CObject::~CObject(void)
    { /* Ne rien faire de plus */ }
 
-   const StdString & CObject::getId(void) const 
-   { 
+   const StdString & CObject::getId(void) const
+   {
       return (this->id);
    }
 
-   bool CObject::hasId(void) const  
-   { 
+   const StdString& CObject::getIdServer()
+   {
+      return (this->id);
+   }
+
+   bool CObject::hasId(void) const
+   {
       return (this->IdDefined);
    }
 
-   void CObject::resetId(void) 
-   { 
+   void CObject::resetId(void)
+   {
       this->IdDefined = false ;
    }
 
    void CObject::setId(const StdString & id)
-   { 
+   {
       this->id = id ;
       this->IdDefined = true ;
    }
@@ -48,12 +53,12 @@ namespace xios
    }
 
    bool CObject::operator!=(const CObject & other) const
-   { 
+   {
       return (!(*this == other));
    }
 */
    StdOStream & operator << (StdOStream & os, const CObject & object)
-   { 
+   {
       os << object.toString();
       return (os);
    }

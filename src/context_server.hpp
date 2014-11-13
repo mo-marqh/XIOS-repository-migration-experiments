@@ -8,11 +8,11 @@
 namespace xios
 {
   class CContext ;
-  
+
   class CContextServer
   {
     public:
-    
+
     CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     bool eventLoop(void) ;
     void listen(void) ;
@@ -22,27 +22,30 @@ namespace xios
     void dispatchEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
-    
+
     MPI_Comm intraComm ;
     int intraCommSize ;
     int intraCommRank ;
-    
+
     MPI_Comm interComm ;
     int commSize ;
-  
+
     map<int,CServerBuffer*> buffers ;
     map<int,MPI_Request> pendingRequest ;
     map<int,char*> bufferRequest ;
-    
+
     map<size_t,CEventServer*> events ;
     size_t currentTimeLine ;
     CContext* context ;
-    
+
     bool finished ;
     bool pendingEvent ;
     bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
     size_t hashId ;
-    ~CContextServer() ;    
+    ~CContextServer() ;
+
+    private:
+      std::map<int, StdSize> mapBufferSize_;
   } ;
 
 }

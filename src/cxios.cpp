@@ -28,21 +28,37 @@ namespace xios
   double CXios::defaultBufferServerFactorSize=2 ;
   bool CXios::printInfo2File;
   bool CXios::isServerSide;
-
+  bool CXios::isOptPerformance = true;
 
   void CXios::initialize()
   {
     set_new_handler(noMemory);
     parseFile(rootFile);
+    parseXiosConfig();
+  }
+
+  void CXios::parseXiosConfig()
+  {
     usingOasis=getin<bool>("using_oasis",false) ;
     usingServer=getin<bool>("using_server",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
+    report.setLevel(getin<int>("info_level",0));
     printInfo2File=getin<bool>("print_file",false);
     bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
-    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
+    StdString bufMemory("memory");
+    StdString bufPerformance("performance");
+    StdString bufOpt = getin<StdString>("optimal_buffer_size", bufPerformance);
+    std::transform(bufOpt.begin(), bufOpt.end(), bufOpt.begin(), ::tolower);
+    if (0 == bufOpt.compare(bufMemory)) isOptPerformance = false;
+    else if (0 != bufOpt.compare(bufPerformance))
+    {
+      ERROR("CXios::parseXiosConfig()", << "optimal_buffer_size must be memory or performance "<< endl );
+    }
+
+//    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
+    bufferServerFactorSize=getin<double>("buffer_factor_size",defaultBufferServerFactorSize) ;
     globalComm=MPI_COMM_WORLD ;
   }
-
 
   void CXios::initClientSide(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
   {
@@ -78,14 +94,7 @@ namespace xios
     std::set<StdString> parseList;
     parseList.insert("xios");
     xml::CXMLParser::ParseFile(rootFile, parseList);
-//    parseFile(rootFile);
-    usingOasis=getin<bool>("using_oasis",false) ;
-    info.setLevel(getin<int>("info_level",0)) ;
-    printInfo2File=getin<bool>("print_file",false);
-    bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
-    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
-    globalComm=MPI_COMM_WORLD ;
-
+    parseXiosConfig();
   }
 
   void CXios::initServerSide(void)

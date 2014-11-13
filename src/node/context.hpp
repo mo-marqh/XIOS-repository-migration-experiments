@@ -87,7 +87,7 @@ namespace xios {
       public :
          // Initialize server or client
          void initServer(MPI_Comm intraComm, MPI_Comm interComm) ;
-         void initClient(MPI_Comm intraComm, MPI_Comm interComm) ;
+         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer=0) ;
          bool isInitialized(void) ;
 
          // Put sever or client into loop state
@@ -127,6 +127,8 @@ namespace xios {
          void sendRefDomainsAxis();
          void sendRefGrid();
          void sendPostProcessing();
+
+         const StdString& getIdServer();
 
          // Client side: Receive and process messages
          static void recvUpdateCalendar(CEventServer& event) ;
@@ -205,6 +207,7 @@ namespace xios {
       private:
          bool isPostProcessed;
          std::map<int, StdSize> dataSize_;
+         StdString idServer_;
 
 
       public: // Some function maybe removed in the near future

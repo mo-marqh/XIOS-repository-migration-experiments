@@ -82,6 +82,7 @@ namespace xios
           {
             StdSize buffSize = 0;
             MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
+            mapBufferSize_.insert(std::make_pair(rank, buffSize));
             it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first ;
           }
           else
@@ -206,9 +207,18 @@ namespace xios
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl ;
+      std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
+                                             iteMap = mapBufferSize_.end(), itMap;
+      StdSize totalBuf = 0;
+      for (itMap = itbMap; itMap != iteMap; ++itMap)
+      {
+        report(10)<< " Memory report : Context <"<<context->getId()<<"> : server side : memory used for buffer of each connection to client" << endl
+                  << "  +) With client of rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+        totalBuf += itMap->second;
+      }
       context->finalize() ;
       finished=true ;
-      report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
+      report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl ;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event) ;
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event) ;

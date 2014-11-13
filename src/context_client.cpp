@@ -16,7 +16,8 @@ namespace xios
 {
 
 
-    CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_) : mapBufferSize_()
+    CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
+     : mapBufferSize_(), parentServer(cxtSer)
     {
       context=parent ;
       intraComm=intraComm_ ;
@@ -60,7 +61,13 @@ namespace xios
         checkBuffers(ranks) ;
       }
 
-      if (context->hasServer) waitEvent(ranks) ;
+//      if (context->hasServer)
+      if (0 != parentServer)
+      {
+        waitEvent(ranks);
+        CContext::setCurrent(context->getId());
+      }
+
       timeLine++ ;
     }
 
@@ -91,16 +98,28 @@ namespace xios
 
     void CContextClient::waitEvent(list<int>& ranks)
     {
-      context->server->setPendingEvent() ;
+//      context->server->setPendingEvent() ;
+//      while(checkBuffers(ranks))
+//      {
+//        context->server->listen() ;
+//        context->server->checkPendingRequest() ;
+//      }
+//
+//      while(context->server->hasPendingEvent())
+//      {
+//       context->server->eventLoop() ;
+//      }
+
+      parentServer->server->setPendingEvent() ;
       while(checkBuffers(ranks))
       {
-        context->server->listen() ;
-        context->server->checkPendingRequest() ;
+        parentServer->server->listen() ;
+        parentServer->server->checkPendingRequest() ;
       }
 
-      while(context->server->hasPendingEvent())
+      while(parentServer->server->hasPendingEvent())
       {
-       context->server->eventLoop() ;
+       parentServer->server->eventLoop() ;
       }
 
     }
@@ -239,7 +258,18 @@ namespace xios
        for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) stop|=itBuff->second->hasPendingRequest() ;
      }
      CTimer::get("Blocking time").suspend();
-     report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
+//     report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
+
+     std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
+                                            iteMap = mapBufferSize_.end(), itMap;
+     StdSize totalBuf = 0;
+     for (itMap = itbMap; itMap != iteMap; ++itMap)
+     {
+       report(10)<< " Memory report : Context <"<<context->getId()<<"> : client side : memory used for buffer of each connection to server" << endl
+                 << "  +)To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+       totalBuf += itMap->second;
+     }
+     report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<totalBuf<<" bytes"<<endl ;
 
      releaseBuffers() ;
    }

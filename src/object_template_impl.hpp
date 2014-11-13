@@ -192,7 +192,8 @@ namespace xios
        if (client->isServerLeader())
        {
          CMessage msg ;
-         msg<<this->getId() ;
+//         msg<<this->getId() ;
+         msg<<this->getIdServer();
          msg<<attr.getName() ;
          msg<<attr ;
          event.push(client->getServerLeader(),1,msg) ;
