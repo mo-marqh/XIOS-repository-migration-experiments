@@ -13,8 +13,8 @@ PROGRAM test_xios_interface
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100
+  INTEGER,PARAMETER :: ni_glo=10
+  INTEGER,PARAMETER :: nj_glo=10
   INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
@@ -218,19 +218,11 @@ PROGRAM test_xios_interface
   PRINT *,"lonvalue",lonvalue ;
 
 !!! Fin de la definition du contexte SRF
-
-  CALL xios_close_context_definition()
-
-
 !-------------------------------------------------------------------------------
 !
 ! Get/set variable in differenct contexts
 !
 !-------------------------------------------------------------------------------
-
- !! Be sure in the correct context
-  CALL xios_get_handle("surface",ctx_hdl)
-  CALL xios_set_current_context(ctx_hdl)
 
   !! Try getting some variable values
   var_id = "my_attribute1"
@@ -298,6 +290,9 @@ PROGRAM test_xios_interface
   if (ok) then
     print*, "New value of ", var_id, " is : ", var_val_bool
   end if
+!
+!!!! Fin de la definition du contexte SRF
+  CALL xios_close_context_definition()
 
 !####################################################################################
 !!! Boucle temporelle

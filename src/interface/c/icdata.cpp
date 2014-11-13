@@ -91,7 +91,6 @@ extern "C"
      CTimer::get("XIOS").resume() ;
      CTimer::get("XIOS close definition").resume() ;
      CContext* context = CContext::getCurrent() ;
-//     context->setClientServerBuffer();
      context->closeDefinition() ;
      CTimer::get("XIOS close definition").suspend() ;
      CTimer::get("XIOS").suspend() ;

@@ -336,12 +336,20 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
-     if (hasClient && !hasServer)
+     if (hasClient)
      {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
-
+//
        setClientServerBuffer();
+     }
+
+     if (hasClient && !hasServer)
+     {
+       // After xml is parsed, there are some more works with post processing
+//       postProcessing();
+
+//       setClientServerBuffer();
 
       // Send all attributes of current context to server
       this->sendAllAttributesToServer();
@@ -367,11 +375,14 @@ namespace xios {
     if (hasClient && !hasServer) sendPostProcessing();
 
     // There are some processings that should be done after all of above. For example: check mask or index
-    if (hasClient && !hasServer)
+//    if (hasClient && !hasServer)
+    if (hasClient)
     {
       this->solveAllRefOfEnabledFields(true);
       this->buildAllExpressionOfEnabledFields();
     }
+
+
 
 //      if (hasClient)
 //      {
@@ -481,9 +492,10 @@ namespace xios {
      // Résolution des héritages par référence au niveau des fichiers.
       const vector<CFile*> allFiles=CFile::getAll() ;
 
-     if (hasClient && !hasServer)
-      for (unsigned int i = 0; i < allFiles.size(); i++)
-         allFiles[i]->solveFieldRefInheritance(apply);
+     //if (hasClient && !hasServer)
+      if (hasClient)
+        for (unsigned int i = 0; i < allFiles.size(); i++)
+          allFiles[i]->solveFieldRefInheritance(apply);
    }
 
    void CContext::findEnabledFiles(void)
@@ -684,8 +696,6 @@ namespace xios {
    void CContext::postProcessing()
    {
      if (isPostProcessed) return;
-
-     this->solveCalendar();
 
      // Solve calendar for both side: client and server
       this->solveCalendar();

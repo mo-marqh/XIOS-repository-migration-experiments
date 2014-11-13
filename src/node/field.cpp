@@ -400,7 +400,7 @@ namespace xios{
      if (!areAllReferenceSolved)
      {
         areAllReferenceSolved = true;
-        if (!context->hasServer)
+        if (context->hasClient)
         {
           solveRefInheritance(true);
           solveBaseReference();
