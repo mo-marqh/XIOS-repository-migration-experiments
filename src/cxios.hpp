@@ -6,18 +6,13 @@
 
 namespace xios
 {
+  /*!
+  \class CXios
+  */
   class CXios
   {
-     public:
-
-     static string rootFile ;
-     static string xiosCodeId ;
-     static string clientFile;
-     static string serverFile;
-
+    public:
      static void initialize(void) ;
-
-
      static void initClientSide(const string & codeId, MPI_Comm& localComm, MPI_Comm& returnComm) ;
      static void initServerSide(void) ;
      static void clientFinalize(void) ;
@@ -29,21 +24,25 @@ namespace xios
      template <typename T>
      static T getin(const string& id) ;
 
-     static bool isClient ;
-     static bool isServer ;
+    public:
+     static string rootFile ; //!< Configuration filename
+     static string xiosCodeId ; //!< Identity for XIOS
+     static string clientFile; //!< Filename template for client
+     static string serverFile; //!< Filename template for server
 
-     static MPI_Comm globalComm ;
+     static bool isClient ; //!< Check if xios is client
+     static bool isServer ; //!< Check if xios is server
 
-     static bool printInfo2File;
-     static bool usingOasis ;
-     static bool usingServer ;
-     static size_t bufferSize ;
-     static size_t defaultBufferSize ;
-     static double bufferServerFactorSize ;
-     static double defaultBufferServerFactorSize ;
-     static bool isOptPerformance;
+     static MPI_Comm globalComm ; //!< Global communicator
 
-     public:
+     static bool printInfo2File; //!< Printing out information into file
+     static bool usingOasis ; //!< Using Oasis
+     static bool usingServer ; //!< Using server (server mode)
+     static double bufferServerFactorSize ; //!< Factor helps tune buffer size
+     static double defaultBufferServerFactorSize ; //!< Default factor value
+     static bool isOptPerformance; //!< Check if buffer size is for performance (as large as possible)
+
+    public:
      //! Setting xios to use server mode
      static void setUsingServer();
 
@@ -53,23 +52,14 @@ namespace xios
       //! A silly variable to detect whether one process is in client or server side. Should be removed on refactoring code
      static bool isServerSide;
 
+     //! Initialize server (if any)
      static  void initServer();
 
-     private:
+    private:
+      //! Parse only Xios part of configuration file
       static void parseXiosConfig();
-
   } ;
-
 }
 
 //#include "cxios_impl.hpp"
-
-
-
-
-
-
-
-
-
-#endif
+#endif // __XIOS_HPP__

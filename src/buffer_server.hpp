@@ -14,7 +14,7 @@ namespace xios
 
     public:
 
-    CServerBuffer(StdSize bufSize = CXios::bufferSize) ;
+    CServerBuffer(StdSize bufSize) ;
     ~CServerBuffer() ;
     char* buffer ;
 

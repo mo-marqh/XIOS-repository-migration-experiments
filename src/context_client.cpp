@@ -14,8 +14,12 @@
 
 namespace xios
 {
-
-
+    /*!
+    \param [in] parent Pointer to context on client side
+    \param [in] intraComm_ communicator of group client
+    \param [in] interComm_ communicator of group server
+    \cxtSer [in] cxtSer Pointer to context of server side. (It is only used on case of attached mode)
+    */
     CContextClient::CContextClient(CContext* parent,MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
      : mapBufferSize_(), parentServer(cxtSer)
     {
@@ -34,7 +38,10 @@ namespace xios
 
     }
 
-
+    /*!
+    In case of attached mode, the current context must be reset to context for client
+    \param [in] event Event sent to server
+    */
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int>::iterator itServer ;
@@ -71,6 +78,10 @@ namespace xios
       timeLine++ ;
     }
 
+    /*!
+    Special function to setup size of buffer not only on client side but also on server side
+    corresponding to the connection
+    */
     void CContextClient::sendBufferSizeEvent()
     {
       std::map<int, CClientBuffer*>::iterator it, itE;
@@ -80,7 +91,7 @@ namespace xios
          ERROR("CBufferOut*  CContextClient::sendBufferSizeEvent() ;",
               <<"No information about server buffer, that should not happen...");
 
-      for (; itMap != iteMap; ++iteMap)
+      for (; itMap != iteMap; ++itMap)
       {
         if (buffers.end() == buffers.find(itMap->first))
           newBuffer(itMap->first);
@@ -96,6 +107,11 @@ namespace xios
       }
     }
 
+    /*!
+    If client is also server (attached mode), after sending event, it should process right away
+    the incoming event.
+    \param [in] ranks list rank of server connected this client
+    */
     void CContextClient::waitEvent(list<int>& ranks)
     {
 //      context->server->setPendingEvent() ;
@@ -121,9 +137,14 @@ namespace xios
       {
        parentServer->server->eventLoop() ;
       }
-
     }
 
+    /*!
+    Setup buffer for each connection to server and verify their state to put content into them
+    \param [in] serverList list of rank of connected server
+    \param [in] sizeList size of message corresponding to each connection
+    \return List of buffer input which event can be placed
+    */
     list<CBufferOut*> CContextClient::getBuffers(list<int>& serverList, list<int>& sizeList)
     {
       list<int>::iterator itServer,itSize ;
@@ -165,12 +186,19 @@ namespace xios
 
    }
 
+   /*!
+   Make a new buffer for a certain connection to server with specific rank
+   \param [in] rank rank of connected server
+   */
    void CContextClient::newBuffer(int rank)
    {
-//     buffers[rank]=new CClientBuffer(interComm,rank);
       buffers[rank]=new CClientBuffer(interComm,rank, mapBufferSize_[rank]) ;
    }
 
+   /*!
+   Verify state of buffers. Buffer is under pending state if there is no message on it
+   \return state of buffers, pending(true), ready(false)
+   */
    bool CContextClient::checkBuffers(void)
    {
       map<int,CClientBuffer*>::iterator itBuff ;
@@ -179,12 +207,18 @@ namespace xios
       return pending ;
    }
 
+   //! Release all buffers
    void CContextClient::releaseBuffers(void)
    {
       map<int,CClientBuffer*>::iterator itBuff ;
       for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) delete itBuff->second ;
    }
 
+   /*!
+   Verify state of buffers corresponding to a connection
+   \param [in] ranks list rank of server to which client connects to
+   \return state of buffers, pending(true), ready(false)
+   */
    bool CContextClient::checkBuffers(list<int>& ranks)
    {
       list<int>::iterator it ;
@@ -193,12 +227,20 @@ namespace xios
       return pending ;
    }
 
+   /*!
+   Set buffer size for each connection
+   \param [in] mapSize mapping rank of connected server to size of allocated buffer
+   */
    void CContextClient::setBufferSize(const std::map<int, StdSize>& mapSize)
    {
      mapBufferSize_ = mapSize;
      sendBufferSizeEvent();
    }
 
+   /*!
+   Get leading server in the group of connected server
+   \return rank of leading server
+   */
    int CContextClient::getServerLeader(void)
    {
      int clientByServer=clientSize/serverSize ;
@@ -216,6 +258,10 @@ namespace xios
      }
    }
 
+   /*!
+   Check if client connects to leading server
+   \return connected(true), not connected (false)
+   */
    bool CContextClient::isServerLeader(void)
    {
      int clientByServer=clientSize/serverSize ;
@@ -235,9 +281,11 @@ namespace xios
      }
    }
 
+   /*!
+   Finalize context client and do some reports
+   */
    void CContextClient::finalize(void)
    {
-
      map<int,CClientBuffer*>::iterator itBuff ;
      bool stop=true ;
 
@@ -258,7 +306,6 @@ namespace xios
        for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) stop|=itBuff->second->hasPendingRequest() ;
      }
      CTimer::get("Blocking time").suspend();
-//     report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<buffers.size()*CXios::bufferSize<<" bytes"<<endl ;
 
      std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                                             iteMap = mapBufferSize_.end(), itMap;
@@ -266,7 +313,7 @@ namespace xios
      for (itMap = itbMap; itMap != iteMap; ++itMap)
      {
        report(10)<< " Memory report : Context <"<<context->getId()<<"> : client side : memory used for buffer of each connection to server" << endl
-                 << "  +)To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+                 << "  +) To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
        totalBuf += itMap->second;
      }
      report(0)<< " Memory report : Context <"<<context->getId()<<"> : client side : total memory used for buffer "<<totalBuf<<" bytes"<<endl ;

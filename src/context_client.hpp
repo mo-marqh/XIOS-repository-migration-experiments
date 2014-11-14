@@ -11,52 +11,72 @@ namespace xios
 {
   class CContext ;
 
+  /*!
+  \class CContextClient
+  A context can be both on client and on server side. In order to differenciate the role of
+  context on each side, e.x client sending events, server receiving and processing events, there is a need of
+  concrete "context" classes for both sides.
+  CContextClient processes and sends events from client to server where CContextServer receives these events
+  and processes them.
+  */
   class CContextClient
   {
-
     public:
+    // Contructor
     CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0) ;
-//    void registerEvent(CEventClient& event) ;
 
-//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;
+    // Send event to server
     void sendEvent(CEventClient& event) ;
+    void waitEvent(list<int>& ranks) ;
 
+    // Functions relates to set/get buffers
     list<CBufferOut*> getBuffers(list<int>& serverlist, list<int>& sizeList) ;
     void newBuffer(int rank) ;
-    size_t timeLine ;
-    int clientRank ;
-    int clientSize ;
-    int serverSize ;
-//    set<int> connectedServer ;
-    MPI_Comm interComm ;
-    MPI_Comm intraComm ;
-    map<int,CClientBuffer*> buffers ;
     bool checkBuffers(list<int>& ranks) ;
     bool checkBuffers(void);
     void releaseBuffers(void);
-    void closeContext(void) ;
+
     bool isServerLeader(void) ;
     int getServerLeader(void) ;
+
+    // Close and finalize context client
+    void closeContext(void) ;
     void finalize(void) ;
-    void waitEvent(list<int>& ranks) ;
 
     void setBufferSize(const std::map<int, StdSize>& mapSize);
     void sendBufferSizeEvent();
 
-    CContext* context ;
+    public:
+      CContext* context ; //!< Context for client
+
+      size_t timeLine ; //!< Timeline of each event
+
+      int clientRank ; //!< Rank of current client
+
+      int clientSize ; //!< Size of client group
+
+      int serverSize ; //!< Size of server group
+
+      MPI_Comm interComm ; //!< Communicator of server group
+
+      MPI_Comm intraComm ; //!< Communicator of client group
+
+      map<int,CClientBuffer*> buffers ; //!< Buffers for connection to servers
 
     private:
-    std::map<int, StdSize> mapBufferSize_;
-    CContext* parentServer;
+      //! Mapping of server and buffer size for each connection to server
+      std::map<int, StdSize> mapBufferSize_;
+
+      //! Context for server (Only used in attached mode)
+      CContext* parentServer;
+
+    public: // Some function should be removed in the future
+      //    void registerEvent(CEventClient& event) ;
+//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;
 //    bool locked ;
+//    set<int> connectedServer ;
 
   } ;
-
-
-
-
 }
 
-
-
-#endif
+#endif // __CONTEXT_CLIENT_HPP__

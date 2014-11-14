@@ -22,14 +22,13 @@ namespace xios
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
-  size_t CXios::bufferSize ;
-  double CXios::bufferServerFactorSize=2 ;
-  size_t CXios::defaultBufferSize=1024*1024*100 ; // 100Mo
-  double CXios::defaultBufferServerFactorSize=2 ;
+  double CXios::bufferServerFactorSize=1.0 ;
+  double CXios::defaultBufferServerFactorSize=1.0 ;
   bool CXios::printInfo2File;
   bool CXios::isServerSide;
   bool CXios::isOptPerformance = true;
 
+  //! Parse configuration file and create some objects from it
   void CXios::initialize()
   {
     set_new_handler(noMemory);
@@ -37,14 +36,18 @@ namespace xios
     parseXiosConfig();
   }
 
+  /*!
+  \brief Parse xios part of configuration file (.iodef.xml)
+   Both client and server need information returned from this function
+  */
   void CXios::parseXiosConfig()
   {
     usingOasis=getin<bool>("using_oasis",false) ;
     usingServer=getin<bool>("using_server",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
-    report.setLevel(getin<int>("info_level",0));
+    report.setLevel(getin<int>("info_level",50));
     printInfo2File=getin<bool>("print_file",false);
-    bufferSize=getin<size_t>("buffer_size",defaultBufferSize) ;
+
     StdString bufMemory("memory");
     StdString bufPerformance("performance");
     StdString bufOpt = getin<StdString>("optimal_buffer_size", bufPerformance);
@@ -55,11 +58,16 @@ namespace xios
       ERROR("CXios::parseXiosConfig()", << "optimal_buffer_size must be memory or performance "<< endl );
     }
 
-//    bufferServerFactorSize=getin<double>("buffer_server_factor_size",defaultBufferServerFactorSize) ;
     bufferServerFactorSize=getin<double>("buffer_factor_size",defaultBufferServerFactorSize) ;
     globalComm=MPI_COMM_WORLD ;
   }
 
+  /*!
+  Initialize client
+  \param [in] codeId identity of context
+  \param [in] localComm local communicator
+  \param [in/out] returnComm communicator corresponding to group of client with same codeId
+  */
   void CXios::initClientSide(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
   {
     initialize() ;
@@ -88,6 +96,7 @@ namespace xios
 #endif
   }
 
+  //! Init server by parsing only xios part of config file
   void CXios::initServer()
   {
     set_new_handler(noMemory);
@@ -97,9 +106,9 @@ namespace xios
     parseXiosConfig();
   }
 
+  //! Initialize server then put it into listening state
   void CXios::initServerSide(void)
   {
-//    initialize();
     initServer();
     isClient=true;
     isServer=false ;
@@ -122,16 +131,19 @@ namespace xios
     CServer::closeInfoStream();
   }
 
+  //! Parse configuration file
   void CXios::parseFile(const string& filename)
   {
     xml::CXMLParser::ParseFile(filename);
   }
 
+  //! Set using server
   void CXios::setUsingServer()
   {
     usingServer = true;
   }
 
+  //! Unset using server
   void CXios::setNotUsingServer()
   {
     usingServer = false;

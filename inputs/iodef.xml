@@ -9,7 +9,7 @@
    </field_definition>
     
     
-   <file_definition type="one_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
+   <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output"> 
         <field field_ref="field_A" />
      </file>
@@ -46,7 +46,7 @@
 
         <variable_group id="parameters" >
           <variable id="using_server" type="boolean">false</variable>
-          <variable id="info_level" type="int">10</variable>
+          <variable id="info_level" type="int">50</variable>
 	  <variable id="print_file" type="boolean">true</variable>
         </variable_group>
       </variable_definition>

@@ -15,7 +15,7 @@ namespace xios
 
     public:
 
-    CClientBuffer(MPI_Comm intercomm,int serverRank, StdSize bfSize = CXios::bufferSize) ;
+    CClientBuffer(MPI_Comm intercomm,int serverRank, StdSize bfSize = 0) ;
     ~CClientBuffer() ;
     bool isBufferFree(int size) ;
     CBufferOut*  getBuffer(int size) ;

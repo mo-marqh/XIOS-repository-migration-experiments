@@ -45,7 +45,6 @@ namespace xios
 
     if (size>bufferSize) ERROR("CClientBuffer::hasSpace(int size)",
                                <<"request size is too big for buffer, increase buffer client size"<<endl
-                               <<"Current buffer_size : "<<CXios::bufferSize<<endl
                                <<"buffer_size must be > "<<size*2<<endl)
 
     if (size<=remain()) return true ;
