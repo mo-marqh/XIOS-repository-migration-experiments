@@ -39,7 +39,6 @@
       <field field_ref="field_A_srf" name="field_A_srf_prec4" prec="8"/>
       <field field_ref="field_A_srf_max" name="field_A_srf_mean_max" long_name="Average of hourly maximum over 1d" operation="average" freq_op="1h" > @field_A_srf_max </field>
       <variable id="my_global_attribute" type="string" >file_1d</variable>
-      <variable id="my_global_attribute_bool" type="boolean" >false</variable>
     </file>
   </file_definition>
  
