@@ -177,8 +177,9 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
  PUBLIC :: xios(add_child)
 
  PUBLIC :: xios(is_valid_context),xios(is_valid_domain), xios(is_valid_domaingroup),xios(is_valid_field),        &
-          xios(is_valid_fieldgroup), xios(is_valid_file), xios(is_valid_filegroup), xios(is_valid_grid),         &
-          xios(is_valid_gridgroup), xios(is_valid_axis), xios(is_valid_axisgroup)
+           xios(is_valid_fieldgroup), xios(is_valid_file), xios(is_valid_filegroup), xios(is_valid_grid),         &
+           xios(is_valid_gridgroup), xios(is_valid_axis), xios(is_valid_axisgroup), xios(is_valid_variable),      &
+           xios(is_valid_variablegroup)
 
  PUBLIC :: xios(set_current_context)
  PUBLIC :: xios(set_timestep),xios(update_calendar)
