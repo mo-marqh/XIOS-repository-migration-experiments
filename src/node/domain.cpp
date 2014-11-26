@@ -749,9 +749,12 @@ namespace xios {
     CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     // send lon lat for each connected server
-    CEventClient event(getType(),EVENT_ID_LON_LAT) ;
 
-    list<shared_ptr<CMessage> > list_msg ;
+    CEventClient eventLon(getType(),EVENT_ID_LON) ;
+    CEventClient eventLat(getType(),EVENT_ID_LAT) ;
+
+    list<shared_ptr<CMessage> > list_msgLon ;
+    list<shared_ptr<CMessage> > list_msgLat ;
     list< CArray<int,1>* > list_indi,list_indj ;
     list< CArray<double,1>* >list_lon,list_lat ;
     list< CArray<double,2>* >list_boundslon,list_boundslat ;
@@ -793,16 +796,27 @@ namespace xios {
       if (hasBounds) list_boundslon.push_back(new CArray<double,2>(boundslon.copy())) ;
       if (hasBounds) list_boundslat.push_back(new CArray<double,2>(boundslat.copy())) ;
 
-      list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+      list_msgLon.push_back(shared_ptr<CMessage>(new CMessage)) ;
+      list_msgLat.push_back(shared_ptr<CMessage>(new CMessage)) ;
 
-      *list_msg.back()<<this->getId()<<(int)type ; // enum ne fonctionne pour les message => ToFix
-      *list_msg.back()<<isCurvilinear ;
-      *list_msg.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back()<<*list_lat.back() ;
-      if (hasBounds) *list_msg.back()<<*list_boundslon.back()<<*list_boundslat.back();
-      event.push(connectedServer[ns],nbSenders[ns],*list_msg.back()) ;
+      *list_msgLon.back()<<this->getId()<<(int)type ; // enum ne fonctionne pour les message => ToFix
+      *list_msgLat.back()<<this->getId()<<(int)type ;
+      *list_msgLon.back()<<isCurvilinear ;
+      *list_msgLat.back()<<isCurvilinear ;
+      *list_msgLon.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back() ;
+      *list_msgLat.back()<<*list_indi.back()<<*list_indj.back()<<*list_lat.back() ;
+
+      if (hasBounds)
+      {
+        *list_msgLon.back()<<*list_boundslon.back();
+        *list_msgLat.back()<<*list_boundslat.back();
+      }
+      eventLon.push(connectedServer[ns],nbSenders[ns],*list_msgLon.back()) ;
+      eventLat.push(connectedServer[ns],nbSenders[ns],*list_msgLat.back()) ;
     }
 
-    client->sendEvent(event) ;
+    client->sendEvent(eventLon) ;
+    client->sendEvent(eventLat) ;
 
 
     for(list<CArray<int,1>* >::iterator it=list_indi.begin();it!=list_indi.end();it++) delete *it;
@@ -827,8 +841,12 @@ namespace xios {
              recvServerAttribut(event) ;
              return true ;
              break ;
-           case EVENT_ID_LON_LAT :
-             recvLonLat(event) ;
+           case EVENT_ID_LON :
+             recvLon(event) ;
+             return true ;
+             break ;
+           case EVENT_ID_LAT :
+             recvLat(event) ;
              return true ;
              break ;
            default :
@@ -881,7 +899,7 @@ namespace xios {
     }
   }
 
-  void CDomain::recvLonLat(CEventServer& event)
+  void CDomain::recvLon(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it ;
     for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
@@ -889,22 +907,20 @@ namespace xios {
       CBufferIn* buffer=it->buffer;
       string domainId ;
       *buffer>>domainId ;
-      get(domainId)->recvLonLat(*buffer) ;
+      get(domainId)->recvLon(*buffer) ;
     }
   }
 
-  void CDomain::recvLonLat(CBufferIn& buffer)
+  void CDomain::recvLon(CBufferIn& buffer)
   {
     CArray<int,1> indi ;
     CArray<int,1> indj ;
     CArray<double,1> lon ;
-    CArray<double,1> lat ;
     CArray<double,2> boundslon ;
-    CArray<double,2> boundslat ;
 
     int type_int ;
-    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon>>lat ;
-    if (hasBounds) buffer>>boundslon>>boundslat ;
+    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon ;
+    if (hasBounds) buffer>>boundslon ;
     type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
 
     int i,j,ind_srv ;
@@ -913,17 +929,98 @@ namespace xios {
       i=indi(ind) ; j=indj(ind) ;
       ind_srv=(i-(zoom_ibegin_srv-1))+(j-(zoom_jbegin_srv-1))*zoom_ni_srv ;
       lonvalue_srv(ind_srv)=lon(ind) ;
-      latvalue_srv(ind_srv)=lat(ind) ;
       if (hasBounds)
       {
         for(int nv=0;nv<nvertex;nv++)
         {
           bounds_lon_srv(nv,ind_srv)=boundslon(nv,ind) ;
+        }
+      }
+    }
+  }
+
+  void CDomain::recvLat(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it ;
+    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    {
+      CBufferIn* buffer=it->buffer;
+      string domainId ;
+      *buffer>>domainId ;
+      get(domainId)->recvLat(*buffer) ;
+    }
+  }
+
+  void CDomain::recvLat(CBufferIn& buffer)
+  {
+    CArray<int,1> indi ;
+    CArray<int,1> indj ;
+    CArray<double,1> lat ;
+    CArray<double,2> boundslat ;
+
+    int type_int ;
+    buffer>>type_int>>isCurvilinear>>indi>>indj>>lat ;
+    if (hasBounds) buffer>>boundslat ;
+    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
+
+    int i,j,ind_srv ;
+    for(int ind=0;ind<indi.numElements();ind++)
+    {
+      i=indi(ind) ; j=indj(ind) ;
+      ind_srv=(i-(zoom_ibegin_srv-1))+(j-(zoom_jbegin_srv-1))*zoom_ni_srv ;
+      latvalue_srv(ind_srv)=lat(ind) ;
+      if (hasBounds)
+      {
+        for(int nv=0;nv<nvertex;nv++)
+        {
           bounds_lat_srv(nv,ind_srv)=boundslat(nv,ind) ;
         }
       }
     }
   }
+//  void CDomain::recvLonLat(CEventServer& event)
+//  {
+//    list<CEventServer::SSubEvent>::iterator it ;
+//    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+//    {
+//      CBufferIn* buffer=it->buffer;
+//      string domainId ;
+//      *buffer>>domainId ;
+//      get(domainId)->recvLonLat(*buffer) ;
+//    }
+//  }
+//
+//  void CDomain::recvLonLat(CBufferIn& buffer)
+//  {
+//    CArray<int,1> indi ;
+//    CArray<int,1> indj ;
+//    CArray<double,1> lon ;
+//    CArray<double,1> lat ;
+//    CArray<double,2> boundslon ;
+//    CArray<double,2> boundslat ;
+//
+//    int type_int ;
+//    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon>>lat ;
+//    if (hasBounds) buffer>>boundslon>>boundslat ;
+//    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
+//
+//    int i,j,ind_srv ;
+//    for(int ind=0;ind<indi.numElements();ind++)
+//    {
+//      i=indi(ind) ; j=indj(ind) ;
+//      ind_srv=(i-(zoom_ibegin_srv-1))+(j-(zoom_jbegin_srv-1))*zoom_ni_srv ;
+//      lonvalue_srv(ind_srv)=lon(ind) ;
+//      latvalue_srv(ind_srv)=lat(ind) ;
+//      if (hasBounds)
+//      {
+//        for(int nv=0;nv<nvertex;nv++)
+//        {
+//          bounds_lon_srv(nv,ind_srv)=boundslon(nv,ind) ;
+//          bounds_lat_srv(nv,ind_srv)=boundslat(nv,ind) ;
+//        }
+//      }
+//    }
+//  }
    //----------------------------------------------------------------
 
 

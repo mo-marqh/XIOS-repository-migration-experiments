@@ -968,7 +968,6 @@ namespace xios{
 
        for (; it != itE; ++it)
        {
-         std::cout << "Variable Fields " << (*it)->getId() << std::endl;
          this->sendAddVariable((*it)->getId());
          (*it)->sendAllAttributesToServer();
          (*it)->sendValue();

@@ -716,7 +716,6 @@ namespace xios {
 
        for (; it != itE; ++it)
        {
-         std::cout << "Variable Files " << (*it)->getId() << std::endl;
          this->sendAddVariable((*it)->getId());
          (*it)->sendAllAttributesToServer();
          (*it)->sendValue();
@@ -839,7 +838,6 @@ namespace xios {
      {
        fieldPtr = this->enabledFields[i];
        if (fieldPtr->name.isEmpty()) fieldPtr->name.setValue(fieldPtr->getBaseFieldReference()->getId());
-       std::cout << "Enabled Fields " << i << " " << CField::get(fieldPtr)->getId() << std::endl;
        this->sendAddField(fieldPtr->getId());
        fieldPtr->sendAllAttributesToServer();
        fieldPtr->sendAddAllVariables();

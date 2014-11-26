@@ -8,7 +8,7 @@ namespace xios
 
   CServerBuffer::CServerBuffer(StdSize buffSize)
   {
-    bufferSizeByClient= buffSize * CXios::bufferServerFactorSize; //::bufferSize*CXios::bufferServerFactorSize ;
+    bufferSizeByClient= buffSize * 2 * CXios::bufferServerFactorSize; //::bufferSize*CXios::bufferServerFactorSize ;
     size=bufferSizeByClient ;
     first=0 ;
     current=1 ;

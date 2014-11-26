@@ -18,7 +18,7 @@ namespace xios
     info(10)<<"bufferSizeByServer "<<bufferSizeByServer<<endl ;
     interComm=interComm_ ;
     serverRank=serverRank_ ;
-    bufferSize=bufferSizeByServer/2; //2 ;
+    bufferSize=bufferSizeByServer; //2 ;
     buffer[0]=new char[bufferSize] ; // transform it with MPI_ALLOC_MEM later
     buffer[1]=new char[bufferSize] ;
     current=0 ;

@@ -36,7 +36,7 @@ namespace xios {
    {
          enum EEventId
          {
-           EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_LON_LAT
+           EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_LAT, EVENT_ID_LON
          } ;
 
          /// typedef ///
@@ -125,9 +125,11 @@ namespace xios {
          void sendLonLat(void) ;
          void computeConnectedServer(void) ;
          static bool dispatchEvent(CEventServer& event) ;
-         static void recvLonLat(CEventServer& event) ;
+         static void recvLat(CEventServer& event) ;
+         static void recvLon(CEventServer& event) ;
          static void recvServerAttribut(CEventServer& event) ;
-         void recvLonLat(CBufferIn& buffer) ;
+         void recvLat(CBufferIn& buffer) ;
+         void recvLon(CBufferIn& buffer) ;
          void recvServerAttribut(CBufferIn& buffer) ;
 
          /// Destructeur ///

@@ -170,13 +170,15 @@ namespace xios {
      std::map<int, StdSize> ret;
      std::map<int, int>::const_iterator it = domConnectedServerSide_.begin(),
                                        itE = domConnectedServerSide_.end();
+     std::vector<int> nData = domain->nbDataSrv;
+     std::vector<int>::const_iterator itData = nData.begin();
      StdSize retVal = StdSize(0.0);
-     for (; it != itE; ++it)
+     for (; it != itE; ++it, ++itData)
      {
-       retVal = it->second;
+       retVal = (it->second < *itData) ? *itData : it->second;
        if (this->withAxis) retVal *= this->axis->size.getValue();
        retVal *= sizeof(double);
-       retVal *= 1.2 * CXios::bufferServerFactorSize; // Secure factor
+       retVal *= 2.5 * CXios::bufferServerFactorSize; // Secure factor, myterious number
        ret.insert(make_pair(it->first, retVal));
      }
      return ret;
