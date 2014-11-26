@@ -24,7 +24,8 @@ namespace xios
             CNc4DataOutput
                (const StdString & filename, bool exist);
             CNc4DataOutput
-               (const StdString & filename, bool exist, MPI_Comm comm_file, bool multifile, bool isCollective=true);
+               (const StdString & filename, bool exist, bool useClassicFormat,
+                MPI_Comm comm_file, bool multifile, bool isCollective=true);
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.

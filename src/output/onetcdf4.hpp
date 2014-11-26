@@ -25,14 +25,16 @@ namespace xios
             typedef std::vector<StdString> CONetCDF4Path;
 
             /// Constructeurs ///
-            CONetCDF4(const StdString & filename, bool exist, const MPI_Comm * comm = NULL, bool multifile=true);
+            CONetCDF4(const StdString & filename, bool exist, bool useClassicFormat = false,
+                      const MPI_Comm * comm = NULL, bool multifile = true);
 
             CONetCDF4(const CONetCDF4 & onetcdf4);       // Not implemented.
             CONetCDF4(const CONetCDF4 * const onetcdf4); // Not implemented.
 
 
             /// Initialisation ///
-            void initialize(const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile);
+            void initialize(const StdString & filename, bool exist, bool useClassicFormat,
+                            const MPI_Comm * comm, bool multifile);
             void close(void) ;
             void sync(void) ;
             void definition_start(void);
@@ -90,6 +92,8 @@ namespace xios
             StdString getUnlimitedDimensionName(void);
 
             bool varExist(const StdString & varname);
+
+            bool useClassicFormat; //!< If true, NetCDF4 will use the classic NetCDF3 format
 
       //----------------------------------------------------------------
       

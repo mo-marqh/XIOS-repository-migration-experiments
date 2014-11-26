@@ -523,6 +523,31 @@
      return status;
    }
 
+  /*!
+  Set or unset the fill mode for a NetCDF file specified by its file id.
+  \param [in] ncid File id
+  \param [in] fill Define whether the fill mode should be enabled or not
+  \return Status code
+  */
+  int CNetCdfInterface::setFill(int ncid, bool fill)
+  {
+    int old_fill_mode;
+    int status = nc_set_fill(ncid, fill ? NC_FILL : NC_NOFILL, &old_fill_mode);
+    if (NC_NOERR != status)
+    {
+      StdString errormsg(nc_strerror(status));
+      StdStringStream sstr;
+
+      sstr << "Error when calling function nc_set_fill(ncid, fill ? NC_FILL : NC_NOFILL, &old_fill_mode)" << std::endl;
+      sstr << errormsg << std::endl;
+      sstr << "Unable to set the fill mode to : " << (fill ? "NC_FILL" : "NC_NOFILL") << std::endl;
+      StdString e = sstr.str();
+      throw CNetCdfException(e);
+    }
+
+    return status;
+  }
+
    /*!
    This function makes a request to netcdf with a ncid, to set the fill parameters for a variable,
    given variable id and type of fill

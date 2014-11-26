@@ -321,6 +321,8 @@ namespace xios {
            oss<<"_"<<lastSplit->getStr(splitFormat)<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr(splitFormat);
          }
 
+         bool useClassicFormat = !format.isEmpty() && format == format_attr::netcdf4_classic;
+
          bool multifile=true ;
          if (!type.isEmpty())
          {
@@ -368,7 +370,8 @@ namespace xios {
                         <<"having : <"<<type.getValue()<<">") ;
            }
          }
-         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false, fileComm, multifile, isCollective));
+         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false, useClassicFormat,
+                                                             fileComm, multifile, isCollective));
          isOpen=true ;
 
          data_out->writeFile(CFile::get(this));

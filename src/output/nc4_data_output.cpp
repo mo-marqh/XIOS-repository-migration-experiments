@@ -28,9 +28,10 @@ namespace xios
       }
 
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist, MPI_Comm comm_file,bool multifile, bool isCollective)
+         (const StdString & filename, bool exist, bool useClassicFormat,
+          MPI_Comm comm_file,bool multifile, bool isCollective)
             : SuperClass()
-            , SuperClassWriter(filename, exist, &comm_file,multifile)
+            , SuperClassWriter(filename, exist, useClassicFormat, &comm_file, multifile)
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
@@ -731,10 +732,7 @@ namespace xios
                  SuperClassWriter::setDefaultValue(fieldid, &fdefault_value);
            }
            else
-           {
-              double * default_value = NULL;
-              SuperClassWriter::setDefaultValue(fieldid, default_value);
-           }
+              SuperClassWriter::setDefaultValue(fieldid, (double*)NULL);
 
            {  // Ecriture des coordonnées
 

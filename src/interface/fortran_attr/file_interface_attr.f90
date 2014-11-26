@@ -48,6 +48,27 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_enabled
     
     
+    SUBROUTINE cxios_set_file_format(file_hdl, format, format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: format
+      INTEGER  (kind = C_INT)     , VALUE        :: format_size
+    END SUBROUTINE cxios_set_file_format
+    
+    SUBROUTINE cxios_get_file_format(file_hdl, format, format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: format
+      INTEGER  (kind = C_INT)     , VALUE        :: format_size
+    END SUBROUTINE cxios_get_file_format
+    
+    FUNCTION cxios_is_defined_file_format(file_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_format
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_format
+    
+    
     SUBROUTINE cxios_set_file_min_digits(file_hdl, min_digits) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

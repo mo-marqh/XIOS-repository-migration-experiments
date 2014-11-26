@@ -63,6 +63,32 @@ extern "C"
   
   
   
+  void cxios_set_file_format(file_Ptr file_hdl, const char * format, int format_size)
+  {
+    std::string format_str;
+    if(!cstr2string(format, format_size, format_str)) return;
+     CTimer::get("XIOS").resume();
+    file_hdl->format.fromString(format_str);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_file_format(file_Ptr file_hdl, char * format, int format_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(file_hdl->format.getInheritedStringValue(),format , format_size))
+      ERROR("void cxios_get_file_format(file_Ptr file_hdl, char * format, int format_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_file_format(file_Ptr file_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return file_hdl->format.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_file_min_digits(file_Ptr file_hdl, int min_digits)
   {
      CTimer::get("XIOS").resume();

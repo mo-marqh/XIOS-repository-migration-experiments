@@ -45,10 +45,19 @@ namespace xios
 
     if (value != NULL)
     {
-      CNetCdfInterface::defVarFill(grpid, varid, 0, (void*)value);
+      // nc_def_var_fill will automatically set the _FillValue attribute when
+      // using the NetCDF 4 format but we need to do it manually otherwise
+      if (useClassicFormat)
+        this->addAttribute(StdString("_FillValue"), *value, &varname);
+      else
+        CNetCdfInterface::defVarFill(grpid, varid, 0, (void*)value);
       this->addAttribute(StdString("missing_value"), *value, &varname);
     }
-    else CNetCdfInterface::defVarFill(grpid, varid, 1, NULL);
+    else if (!useClassicFormat)
+    {
+      // The "no-fill mode" is set globally for the classic NetCDF format
+      CNetCdfInterface::defVarFill(grpid, varid, 1, NULL);
+    }
   }
 
   ///---------------------------------------------------------------

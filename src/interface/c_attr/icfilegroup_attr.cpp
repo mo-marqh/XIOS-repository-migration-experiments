@@ -63,6 +63,32 @@ extern "C"
   
   
   
+  void cxios_set_filegroup_format(filegroup_Ptr filegroup_hdl, const char * format, int format_size)
+  {
+    std::string format_str;
+    if(!cstr2string(format, format_size, format_str)) return;
+     CTimer::get("XIOS").resume();
+    filegroup_hdl->format.fromString(format_str);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_filegroup_format(filegroup_Ptr filegroup_hdl, char * format, int format_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(filegroup_hdl->format.getInheritedStringValue(),format , format_size))
+      ERROR("void cxios_get_filegroup_format(filegroup_Ptr filegroup_hdl, char * format, int format_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_filegroup_format(filegroup_Ptr filegroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return filegroup_hdl->format.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_filegroup_group_ref(filegroup_Ptr filegroup_hdl, const char * group_ref, int group_ref_size)
   {
     std::string group_ref_str;

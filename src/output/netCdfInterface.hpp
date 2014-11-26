@@ -84,6 +84,9 @@ namespace xios
     //! Define variable chunking size
     static int defVarChunking(int ncid, int varId, int storage, StdSize chunkSize[]);
 
+    //! Set or unset the fill mode
+    static int setFill(int ncid, bool fill);
+
     //! Define variable fill parameters
     static int defVarFill(int ncid, int varId, int noFill, void* fillValue);
 

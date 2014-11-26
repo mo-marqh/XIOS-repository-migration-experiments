@@ -10,11 +10,12 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4
-         (const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool exist, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
             : path()
+            , useClassicFormat(useClassicFormat)
       {
          this->wmpi = (comm != NULL) && !multifile;
-         this->initialize(filename, exist, comm,multifile);
+         this->initialize(filename, exist, useClassicFormat, comm,multifile);
       }
 
       //---------------------------------------------------------------
@@ -28,26 +29,37 @@ namespace xios
       ///--------------------------------------------------------------
 
       void CONetCDF4::initialize
-         (const StdString & filename, bool exist, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool exist, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
       {
+         this->useClassicFormat = useClassicFormat;
+
+         int mode = useClassicFormat ? 0 : NC_NETCDF4;
+         if (!multifile)
+            mode |= useClassicFormat ? NC_PNETCDF : NC_MPIIO;
+
          if (!exist)
          {
             if (comm != NULL)
             {
-               if (!multifile) (CNetCdfInterface::createPar(filename, NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, (this->ncidp)));
-               else (CNetCdfInterface::create(filename, NC_NETCDF4, this->ncidp));
+               if (!multifile) CNetCdfInterface::createPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
+               else CNetCdfInterface::create(filename, mode, this->ncidp);
             }
-            else (CNetCdfInterface::create(filename, NC_NETCDF4, this->ncidp));
+            else CNetCdfInterface::create(filename, mode, this->ncidp);
          }
          else
          {
             if (comm != NULL)
             {
-               if (!multifile) (CNetCdfInterface::openPar(filename, NC_NETCDF4|NC_MPIIO, *comm, MPI_INFO_NULL, this->ncidp));
-               else (CNetCdfInterface::open(filename, NC_NETCDF4, this->ncidp));
+               if (!multifile) CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
+               else CNetCdfInterface::open(filename, mode, this->ncidp);
             }
-            else  (CNetCdfInterface::open(filename, NC_NETCDF4, this->ncidp));
+            else CNetCdfInterface::open(filename, mode, this->ncidp);
          }
+
+         // If the classic NetCDF format is used, we enable the "no-fill mode" globally.
+         // This is done per variable for the NetCDF4 format.
+         if (useClassicFormat)
+            CNetCdfInterface::setFill(this->ncidp, false);    
       }
 
       void CONetCDF4::close()
@@ -263,19 +275,24 @@ namespace xios
             dimsizes.push_back(size) ;
          }
 
-         (CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &(dimids[0]), varid));
+         CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &(dimids[0]), varid);
 
-// set chunksize : size of one record
-// but must not be > 2GB (netcdf or HDF5 problem)
-         totalSize=1 ;
-         for(vector<StdSize>::reverse_iterator it=dimsizes.rbegin(); it!=dimsizes.rend();++it)
+         // The classic NetCDF format does not support chunking nor fill parameters
+         if (!useClassicFormat)
          {
-           totalSize*= *it ;
-           if (totalSize>=maxSize) *it=1 ;
+            // set chunksize : size of one record
+            // but must not be > 2GB (netcdf or HDF5 problem)
+            totalSize = 1;
+            for (vector<StdSize>::reverse_iterator it = dimsizes.rbegin(); it != dimsizes.rend(); ++it)
+            {
+              totalSize *= *it;
+              if (totalSize >= maxSize) *it = 1;
+            }
+
+            CNetCdfInterface::defVarChunking(grpid, varid, NC_CHUNKED, &dimsizes[0]);
+            CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
          }
 
-         (CNetCdfInterface::defVarChunking(grpid, varid, NC_CHUNKED, &(dimsizes[0])));
-         (CNetCdfInterface::defVarFill(grpid, varid, true, NULL));
          return (varid);
       }
 

@@ -48,6 +48,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_enabled
     
     
+    SUBROUTINE cxios_set_filegroup_format(filegroup_hdl, format, format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: format
+      INTEGER  (kind = C_INT)     , VALUE        :: format_size
+    END SUBROUTINE cxios_set_filegroup_format
+    
+    SUBROUTINE cxios_get_filegroup_format(filegroup_hdl, format, format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: format
+      INTEGER  (kind = C_INT)     , VALUE        :: format_size
+    END SUBROUTINE cxios_get_filegroup_format
+    
+    FUNCTION cxios_is_defined_filegroup_format(filegroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_format
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_format
+    
+    
     SUBROUTINE cxios_set_filegroup_group_ref(filegroup_hdl, group_ref, group_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
