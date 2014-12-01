@@ -23,8 +23,8 @@ extern "C"
 #endif
 
 #if !defined(USING_NETCDF_PAR)
-  #define NC_INDEPENDENT 0
-  #define NC_COLLECTIVE  1
+#define NC_INDEPENDENT 0
+#define NC_COLLECTIVE  1
 #endif
 
 namespace xios
@@ -39,9 +39,9 @@ namespace xios
     return -1 ;
 #endif
   }
-  
+
   inline int nc_open_par(const char *path, int mode, MPI_Comm comm, MPI_Info info,int *ncidp)
-  { 
+  {
 #if defined(USING_NETCDF_PAR)
     return ::nc_open_par(path, mode, comm, info, ncidp) ;
 #else
@@ -50,7 +50,7 @@ namespace xios
     return -1 ;
 #endif
   }
-  
+
   inline int nc_var_par_access(int ncid, int varid, int par_access)
   {
 #if defined(USING_NETCDF_PAR)

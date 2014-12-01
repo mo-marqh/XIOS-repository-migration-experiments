@@ -10,6 +10,11 @@
 #define __NETCDF_INTERFACE_HPP_
 
 #include "xmlioserver_spl.hpp"
+
+#if !defined(USING_NETCDF_PAR)
+#include "exception.hpp"
+#endif
+
 #include "mpi.hpp"
 #include "netcdf.hpp"
 
