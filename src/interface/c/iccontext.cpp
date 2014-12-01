@@ -70,16 +70,19 @@ extern "C"
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       
-      CTimer::get("XIOS").resume() ;
+      CTimer::get("XIOS").resume();
       std::vector<xios::CContext*> def_vector =
             xios::CContext::getRoot()->getChildList();
 
+      *_ret = false;
       for (std::size_t i = 0; i < def_vector.size(); i++)
-	   {
-          if (def_vector[i]->getId().compare(id) == 0)
+      {
+        if (def_vector[i]->getId().compare(id) == 0)
+        {
           *_ret = true;
+          break;
+        }
       }
-     *_ret = false;
-     CTimer::get("XIOS").suspend() ;
+      CTimer::get("XIOS").suspend();
    }
 } // extern "C"
