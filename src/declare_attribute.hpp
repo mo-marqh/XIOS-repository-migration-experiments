@@ -110,7 +110,7 @@
      public:                                                      \
      enum t_enum { arg1=0, arg2, arg3,arg4,arg5,arg6,arg7,arg8,arg9} ;                                \
      const char** getStr(void) const { static const char * enumStr[] = { #arg1, #arg2, #arg3,#arg4,#arg5,#arg6,#arg7,#arg8,#arg9 } ; return enumStr ; }   \
-     int getSize(void) const { return 8 ; }                       \
+     int getSize(void) const { return 9 ; }                       \
    } ;                                                            \
    DECLARE_CLASS_ENUM(name) 
 
