@@ -24,8 +24,7 @@ namespace xios
   bool CXios::usingServer = false;
   double CXios::bufferServerFactorSize=1.0 ;
   double CXios::defaultBufferServerFactorSize=1.0 ;
-  bool CXios::printInfo2File;
-  bool CXios::isServerSide;
+  bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
 
   //! Parse configuration file and create some objects from it
@@ -46,7 +45,7 @@ namespace xios
     usingServer=getin<bool>("using_server",false) ;
     info.setLevel(getin<int>("info_level",0)) ;
     report.setLevel(getin<int>("info_level",50));
-    printInfo2File=getin<bool>("print_file",false);
+    printLogs2Files=getin<bool>("print_file",false);
 
     StdString bufMemory("memory");
     StdString bufPerformance("performance");
@@ -76,13 +75,19 @@ namespace xios
 
     CClient::initialize(codeId,localComm,returnComm) ;
 
-    if (usingServer) isServerSide = isServer=false;
-    else isServerSide = isServer=true;
+    if (usingServer) isServer=false;
+    else isServer=true;
 
-    if (printInfo2File)
+    if (printLogs2Files)
+    {
       CClient::openInfoStream(clientFile);
+      CClient::openErrorStream(clientFile);
+    }
     else
+    {
       CClient::openInfoStream();
+      CClient::openErrorStream();
+    }
   }
 
   void CXios::clientFinalize(void)
@@ -113,15 +118,19 @@ namespace xios
     isClient=true;
     isServer=false ;
 
-    isServerSide = true;
-
     // Initialize all aspects MPI
     CServer::initialize();
 
-    if (printInfo2File)
+    if (printLogs2Files)
+    {
       CServer::openInfoStream(serverFile);
+      CServer::openErrorStream(serverFile);
+    }
     else
+    {
       CServer::openInfoStream();
+      CServer::openErrorStream();
+    }
 
     // Enter the loop to listen message from Client
     CServer::eventLoop();

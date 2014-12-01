@@ -20,6 +20,7 @@ namespace xios
     bool CClient::is_MPI_Initialized ;
     int CClient::rank = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
+    StdOFStream CClient::m_errorStream;
 
     void CClient::initialize(const string& codeId,MPI_Comm& localComm,MPI_Comm& returnComm)
     {
@@ -245,46 +246,84 @@ namespace xios
      return rank;
    }
 
-     /*!
-      * \brief Open file stream to write in
-      *   Opening a file stream with a specific file name suffix-client+rank
-      * \param [in] protype file name
-     */
-     void CClient::openInfoStream(const StdString& fileName)
-     {
-       std::filebuf* fb = m_infoStream.rdbuf();
-       StdStringStream fileNameClient;
-       int numDigit = 0;
-       int size = 0;
-       MPI_Comm_size(CXios::globalComm, &size);
-       while (size)
-       {
-         size /= 10;
-         ++numDigit;
-       }
+    /*!
+    * Open a file specified by a suffix and an extension and use it for the given file buffer.
+    * The file name will be suffix+rank+extension.
+    * 
+    * \param fileName[in] protype file name
+    * \param ext [in] extension of the file
+    * \param fb [in/out] the file buffer
+    */
+    void CClient::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)
+    {
+      StdStringStream fileNameClient;
+      int numDigit = 0;
+      int size = 0;
+      MPI_Comm_size(CXios::globalComm, &size);
+      while (size)
+      {
+        size /= 10;
+        ++numDigit;
+      }
 
-       fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ".out";
-       fb->open(fileNameClient.str().c_str(), std::ios::out);
-       if (!fb->is_open())
-       ERROR("void CClient::openInfoStream(const StdString& fileName)",
-            <<endl<< "Can not open <"<<fileNameClient<<"> file to write" );
+      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ext;
+      fb->open(fileNameClient.str().c_str(), std::ios::out);
+      if (!fb->is_open())
+        ERROR("void CClient::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",
+              << std::endl << "Can not open <" << fileNameClient << "> file to write the client log(s).");
+    }
 
-       info.write2File(fb);
-       report.write2File(fb);
-     }
+    /*!
+    * \brief Open a file stream to write the info logs
+    * Open a file stream with a specific file name suffix+rank
+    * to write the info logs.
+    * \param fileName [in] protype file name
+    */
+    void CClient::openInfoStream(const StdString& fileName)
+    {
+      std::filebuf* fb = m_infoStream.rdbuf();
+      openStream(fileName, ".out", fb);
 
-     //! Write out to standard output
-     void CClient::openInfoStream()
-     {
-       info.write2StdOut();
-       report.write2StdOut();
-     }
+      info.write2File(fb);
+      report.write2File(fb);
+    }
 
-     //! Close file if it opens
-     void CClient::closeInfoStream()
-     {
-       if (m_infoStream.is_open()) m_infoStream.close();
-     }
+    //! Write the info logs to standard output
+    void CClient::openInfoStream()
+    {
+      info.write2StdOut();
+      report.write2StdOut();
+    }
 
+    //! Close the info logs file if it opens
+    void CClient::closeInfoStream()
+    {
+      if (m_infoStream.is_open()) m_infoStream.close();
+    }
 
+    /*!
+    * \brief Open a file stream to write the error log
+    * Open a file stream with a specific file name suffix+rank
+    * to write the error log.
+    * \param fileName [in] protype file name
+    */
+    void CClient::openErrorStream(const StdString& fileName)
+    {
+      std::filebuf* fb = m_errorStream.rdbuf();
+      openStream(fileName, ".err", fb);
+
+      error.write2File(fb);
+    }
+
+    //! Write the error log to standard error output
+    void CClient::openErrorStream()
+    {
+      error.write2StdErr();
+    }
+
+    //! Close the error log file if it opens
+    void CClient::closeErrorStream()
+    {
+      if (m_errorStream.is_open()) m_errorStream.close();
+    }
 }

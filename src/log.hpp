@@ -12,7 +12,8 @@ namespace xios
   class CLog : public ostream
   {
     public :
-    CLog(const string& name_) : ostream(cout.rdbuf()),level(0),name(name_), strBuf_(cout.rdbuf()) {}
+    CLog(const string& name_, std::streambuf* sBuff = cout.rdbuf())
+      : ostream(sBuff), level(0), name(name_), strBuf_(sBuff) {}
     CLog& operator()(int l)
     {
       if (l<=level)
@@ -29,11 +30,15 @@ namespace xios
     bool isActive(int l) {if (l<=level) return true ; else return false ; }
 
   public:
-    //! Write info into a file with its streambuf
+    //! Write log into a file with its streambuf
     void write2File(std::streambuf* sBuff) { changeStreamBuff(sBuff); }
 
-    //! Write info into standard output
+    //! Write log into standard output
     void write2StdOut() { changeStreamBuff(cout.rdbuf()); }
+
+    //! Write log into standard error output
+    void write2StdErr() { changeStreamBuff(cerr.rdbuf()); }
+
   private:
     /*!
      * \brief Change current streambuf (by default std::cout) to new one
@@ -42,7 +47,6 @@ namespace xios
     */
     void changeStreamBuff(std::streambuf* sBuff) { strBuf_ = sBuff; rdbuf(sBuff); }
 
-    private :
     int level ;
     string name ;
     std::streambuf* strBuf_;
@@ -50,5 +54,6 @@ namespace xios
 
   extern CLog info;
   extern CLog report;
+  extern CLog error;
 }
 #endif
