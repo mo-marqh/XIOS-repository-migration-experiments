@@ -21,14 +21,14 @@ extern "C"
     std::string calendar_type_str;
     if(!cstr2string(calendar_type, calendar_type_size, calendar_type_str)) return;
      CTimer::get("XIOS").resume();
-    context_hdl->calendar_type.setValue(calendar_type_str);
+    context_hdl->calendar_type.fromString(calendar_type_str);
      CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_context_calendar_type(context_Ptr context_hdl, char * calendar_type, int calendar_type_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->calendar_type.getInheritedValue(),calendar_type , calendar_type_size))
+    if(!string_copy(context_hdl->calendar_type.getInheritedStringValue(),calendar_type , calendar_type_size))
       ERROR("void cxios_get_context_calendar_type(context_Ptr context_hdl, char * calendar_type, int calendar_type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }

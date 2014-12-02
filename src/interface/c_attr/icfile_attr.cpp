@@ -214,14 +214,14 @@ extern "C"
     std::string par_access_str;
     if(!cstr2string(par_access, par_access_size, par_access_str)) return;
      CTimer::get("XIOS").resume();
-    file_hdl->par_access.setValue(par_access_str);
+    file_hdl->par_access.fromString(par_access_str);
      CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_file_par_access(file_Ptr file_hdl, char * par_access, int par_access_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(file_hdl->par_access.getInheritedValue(),par_access , par_access_size))
+    if(!string_copy(file_hdl->par_access.getInheritedStringValue(),par_access , par_access_size))
       ERROR("void cxios_get_file_par_access(file_Ptr file_hdl, char * par_access, int par_access_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }

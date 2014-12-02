@@ -72,7 +72,7 @@ namespace xios {
    void CContext::setCalendar(boost::shared_ptr<CCalendar> newCalendar)
    {
       this->calendar = newCalendar;
-      calendar_type.setValue(this->calendar->getId());
+      calendar_type.fromString(this->calendar->getId());
       start_date.setValue(this->calendar->getInitDate().toString());
    }
 
@@ -86,24 +86,25 @@ namespace xios {
                << "[ context id = " << this->getId() << " ] "
                << "Impossible to define a calendar (an attribute is missing).");
 
-#define DECLARE_CALENDAR(MType  , mtype)                              \
-   if (calendar_type.getValue().compare(#mtype) == 0)                 \
-   {                                                                  \
-      if (time_origin.isEmpty())                                       \
-        this->calendar =  boost::shared_ptr<CCalendar>          \
-           (new C##MType##Calendar(start_date.getValue()));     \
-      else this->calendar =  boost::shared_ptr<CCalendar>       \
-           (new C##MType##Calendar(start_date.getValue(),time_origin.getValue()));     \
-      if (!this->timestep.isEmpty())                                  \
-       this->calendar->setTimeStep                                    \
-          (CDuration::FromString(this->timestep.getValue()));   \
-      return;                                                         \
+#define DECLARE_CALENDAR(MType, eType)                                              \
+   if (calendar_type.getValue() == eType)                                           \
+   {                                                                                \
+      if (time_origin.isEmpty())                                                    \
+        this->calendar = boost::shared_ptr<CCalendar>                               \
+            (new C##MType##Calendar(start_date.getValue()));                        \
+      else this->calendar = boost::shared_ptr<CCalendar>                            \
+            (new C##MType##Calendar(start_date.getValue(),time_origin.getValue())); \
+      if (!this->timestep.isEmpty())                                                \
+        this->calendar->setTimeStep                                                 \
+            (CDuration::FromString(this->timestep.getValue()));                     \
+      return;                                                                       \
    }
 #include "calendar_type.conf"
+#undef DECLARE_CALENDAR
 
       ERROR("CContext::solveCalendar(void)",
-            << "[ calendar_type = " << calendar_type.getValue() << " ] "
-            << "The calendar is not defined !");
+            << "[ calendar_type = " << calendar_type.getStringValue() << " ] "
+            << "The calendar is not properly handled!");
    }
 
    //----------------------------------------------------------------

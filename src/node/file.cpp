@@ -357,19 +357,10 @@ namespace xios {
          }
          oss << ".nc";
 
-         if (isOpen) data_out->closeFile() ;
-         bool isCollective=true ;
-         if (!par_access.isEmpty())
-         {
-           if (par_access.getValue()=="independent") isCollective=false ;
-           else if (par_access.getValue()=="collective") isCollective=true ;
-           else
-           {
-             ERROR("void Context::createDataOutput(void)",
-                        "incorrect file <par_access> attribut : must be <collective> or <indepedent>, "
-                        <<"having : <"<<type.getValue()<<">") ;
-           }
-         }
+         bool isCollective = par_access.isEmpty() ||  par_access == par_access_attr::collective;
+
+         if (isOpen) data_out->closeFile();
+
          data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false, useClassicFormat,
                                                              fileComm, multifile, isCollective));
          isOpen=true ;
