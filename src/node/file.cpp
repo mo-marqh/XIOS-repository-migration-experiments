@@ -321,6 +321,8 @@ namespace xios {
            oss<<"_"<<lastSplit->getStr(splitFormat)<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr(splitFormat);
          }
 
+        bool append = !this->append.isEmpty() && this->append.getValue();
+        
          bool useClassicFormat = !format.isEmpty() && format == format_attr::netcdf4_classic;
 
          bool multifile=true ;
@@ -361,29 +363,35 @@ namespace xios {
 
          if (isOpen) data_out->closeFile();
 
-         data_out=shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), false, useClassicFormat,
-                                                             fileComm, multifile, isCollective));
-         isOpen=true ;
+        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat,
+                                                              fileComm, multifile, isCollective));
+        isOpen = true;
 
-         data_out->writeFile(CFile::get(this));
-         std::vector<CField*>::iterator it, end = this->enabledFields.end();
-         for (it = this->enabledFields.begin() ;it != end; it++)
-         {
+        data_out->writeFile(CFile::get(this));
+
+        // Do not recreate the file structure if opening an existing file
+        if (!data_out->IsInAppendMode())
+        {
+          std::vector<CField*>::iterator it, end = this->enabledFields.end();
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
             CField* field = *it;
             this->data_out->writeFieldGrid(field);
-         }
-         this->data_out->writeTimeDimension();
+          }
+          this->data_out->writeTimeDimension();
 
-         for (it = this->enabledFields.begin() ;it != end; it++)
-         {
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
             CField* field = *it;
             this->data_out->writeField(field);
-         }
+          }
 
-         vector<CVariable*> listVars = getAllVariables() ;
-         for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) this-> data_out-> writeAttribute(*it) ;
+          vector<CVariable*> listVars = getAllVariables() ;
+          for (vector<CVariable*>::iterator it = listVars.begin(); it != listVars.end(); it++)
+            this->data_out->writeAttribute(*it);
 
-         this->data_out->definition_end();
+          this->data_out->definition_end();
+        }
       }
    }
 

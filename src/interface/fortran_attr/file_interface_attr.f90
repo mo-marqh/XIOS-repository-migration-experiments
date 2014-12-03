@@ -8,6 +8,25 @@ MODULE file_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
+    SUBROUTINE cxios_set_file_append(file_hdl, append) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: append
+    END SUBROUTINE cxios_set_file_append
+    
+    SUBROUTINE cxios_get_file_append(file_hdl, append) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      LOGICAL (KIND=C_BOOL)             :: append
+    END SUBROUTINE cxios_get_file_append
+    
+    FUNCTION cxios_is_defined_file_append(file_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_append
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_append
+    
+    
     SUBROUTINE cxios_set_file_description(file_hdl, description, description_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

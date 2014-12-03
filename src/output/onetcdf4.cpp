@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "onetcdf4.hpp"
 #include "group_template.hpp"
 #include "mpi.hpp"
@@ -10,12 +12,13 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4
-         (const StdString & filename, bool exist, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
             : path()
             , useClassicFormat(useClassicFormat)
+            , recordOffset(0)
       {
          this->wmpi = (comm != NULL) && !multifile;
-         this->initialize(filename, exist, useClassicFormat, comm,multifile);
+         this->initialize(filename, append, useClassicFormat, comm,multifile);
       }
 
       //---------------------------------------------------------------
@@ -29,7 +32,7 @@ namespace xios
       ///--------------------------------------------------------------
 
       void CONetCDF4::initialize
-         (const StdString & filename, bool exist, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
       {
          this->useClassicFormat = useClassicFormat;
 
@@ -37,7 +40,8 @@ namespace xios
          if (!multifile)
             mode |= useClassicFormat ? NC_PNETCDF : NC_MPIIO;
 
-         if (!exist)
+         // If the file does not exist, we always create it
+         if (!append || !std::ifstream(filename.c_str()))
          {
             if (comm != NULL)
             {
@@ -45,15 +49,28 @@ namespace xios
                else CNetCdfInterface::create(filename, mode, this->ncidp);
             }
             else CNetCdfInterface::create(filename, mode, this->ncidp);
+
+            this->appendMode = false;
+            this->recordOffset = 0;
          }
          else
          {
+            mode |= NC_WRITE;
             if (comm != NULL)
             {
                if (!multifile) CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
                else CNetCdfInterface::open(filename, mode, this->ncidp);
             }
             else CNetCdfInterface::open(filename, mode, this->ncidp);
+
+            this->appendMode = true;
+            // Find out how many temporal records have been written already to the file we are opening
+            int ncUnlimitedDimId;
+            CNetCdfInterface::inqUnLimDim(this->ncidp, ncUnlimitedDimId);
+            if (ncUnlimitedDimId != -1)
+               CNetCdfInterface::inqDimLen(this->ncidp, ncUnlimitedDimId, this->recordOffset);
+            else
+               this->recordOffset = 0;
          }
 
          // If the classic NetCDF format is used, we enable the "no-fill mode" globally.
@@ -423,7 +440,7 @@ namespace xios
 
          if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
          {
-            sstart.push_back(record);
+            sstart.push_back(record + recordOffset);
             scount.push_back(1); 
             if ((start == NULL) &&
                 (count == NULL)) i++;

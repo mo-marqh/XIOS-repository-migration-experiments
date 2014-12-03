@@ -25,7 +25,7 @@ namespace xios
             typedef std::vector<StdString> CONetCDF4Path;
 
             /// Constructeurs ///
-            CONetCDF4(const StdString & filename, bool exist, bool useClassicFormat = false,
+            CONetCDF4(const StdString & filename, bool append, bool useClassicFormat = false,
                       const MPI_Comm * comm = NULL, bool multifile = true);
 
             CONetCDF4(const CONetCDF4 & onetcdf4);       // Not implemented.
@@ -33,7 +33,7 @@ namespace xios
 
 
             /// Initialisation ///
-            void initialize(const StdString & filename, bool exist, bool useClassicFormat,
+            void initialize(const StdString & filename, bool append, bool useClassicFormat,
                             const MPI_Comm * comm, bool multifile);
             void close(void) ;
             void sync(void) ;
@@ -117,6 +117,9 @@ namespace xios
             CONetCDF4Path path;
             int ncidp;
             bool wmpi;
+            /*! Number of records already written when opening an existing file.
+             *  always 0 when creating a new file */
+            size_t recordOffset;
             map<int,size_t> timeAxis ;
       }; // class CONetCDF4
 

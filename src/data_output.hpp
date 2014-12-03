@@ -31,6 +31,9 @@ namespace xios
             virtual void definition_start(void) = 0;
             virtual void definition_end(void)   = 0;
 
+            //!< Test if the file was opened in append mode
+            virtual bool IsInAppendMode() const { return appendMode; };
+
             virtual ~CDataOutput(void);
 
          protected:
@@ -55,6 +58,7 @@ namespace xios
 
             /// Propriétés protégées ///
             EDataOutputType type;
+            bool appendMode; //!< If true, we are appending data to an existing file
 
       }; // class CDataOutput
 
