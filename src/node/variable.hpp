@@ -6,6 +6,8 @@
 #include "declare_group.hpp"
 #include "group_template.hpp"
 #include "array_new.hpp"
+#include "attribute_enum.hpp"
+#include "attribute_enum_impl.hpp"
 
 namespace xios
 {
@@ -54,10 +56,6 @@ namespace xios
             virtual ~CVariable(void);
 
          public :
-            enum EVarType
-            {  t_int, t_short_int, t_long_int, t_float, t_double, t_long_double, t_bool, t_string, t_undefined } ;
-
-
             /// Autres ///
             virtual void parse(xml::CXMLNode & node);
             virtual StdString toString(void) const;
@@ -73,8 +71,6 @@ namespace xios
 
             template <typename T, StdSize N>
             inline void getData(CArray<T, N>& _data_array) const;
-
-            EVarType getVarType(void) const ;
 
             static bool dispatchEvent(CEventServer& event) ;
 
@@ -138,9 +134,6 @@ namespace xios
 
       // Declare/Define CVarGroup and CVarDefinition
       DECLARE_GROUP_PARSE_REDEF(CVariable);
-
-
-
 } // namespace xios
 
 #endif // __XMLIO_CVariable__

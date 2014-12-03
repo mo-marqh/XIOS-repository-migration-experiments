@@ -114,6 +114,15 @@
    } ;                                                            \
    DECLARE_CLASS_ENUM(name) 
 
+  #define DECLARE_TYPE(name)                                      \
+   class Enum_##name                                              \
+   {                                                              \
+     public:                                                      \
+     enum t_enum { t_bool=0, t_int16, t_int, t_int32, t_int64, t_float, t_double, t_string }; \
+     const char** getStr(void) const { static const char * enumStr[] = { "bool", "int16", "int", "int32", "int64", "float", "double", "string" }; return enumStr; } \
+     int getSize(void) const { return 8; }                        \
+   };                                                             \
+   DECLARE_CLASS_ENUM(name)
 
 #define BEGIN_DECLARE_ATTRIBUTE_MAP(type)                  \
    class type##Attributes : public virtual CAttributeMap   \

@@ -47,14 +47,14 @@ extern "C"
     std::string type_str;
     if(!cstr2string(type, type_size, type_str)) return;
      CTimer::get("XIOS").resume();
-    variable_hdl->type.setValue(type_str);
+    variable_hdl->type.fromString(type_str);
      CTimer::get("XIOS").suspend();
   }
   
   void cxios_get_variable_type(variable_Ptr variable_hdl, char * type, int type_size)
   {
      CTimer::get("XIOS").resume();
-    if(!string_copy(variable_hdl->type.getInheritedValue(),type , type_size))
+    if(!string_copy(variable_hdl->type.getInheritedStringValue(),type , type_size))
       ERROR("void cxios_get_variable_type(variable_Ptr variable_hdl, char * type, int type_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }

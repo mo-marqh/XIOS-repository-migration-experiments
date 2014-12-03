@@ -14,7 +14,7 @@
     <file id="output_surface" name="output_surface_6h" output_freq="6h" > 
       <field field_ref="field_A_srf" >
 	<variable id="my_attribute1" type="string" >surf_att</variable>
-	<variable id="my_attribute2" type="integer" > 10 </variable>
+	<variable id="my_attribute2" type="int" > 10 </variable>
 	<variable id="my_attribute3" type="float" >6.8</variable>
 	<variable id="my_attribute5" type="double" >100.201</variable>
       </field>
@@ -29,7 +29,7 @@
     <file type="one_file" id="output_surface_1d" name="output_surface_1d" output_freq="1d" > 
       <field field_ref="field_A_srf" >
 	<variable id="my_attribute1" type="string" >surf_att</variable>
-	<variable id="my_attribute2" type="integer" >10</variable>
+	<variable id="my_attribute2" type="int" >10</variable>
 	<variable id="my_attribute3" type="float" >6.8</variable>
 	<variable id="my_attribute4" type="double" >100.201</variable>
       </field>

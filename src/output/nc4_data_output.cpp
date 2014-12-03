@@ -802,12 +802,19 @@ namespace xios
 
         try
         {
-          if (var->getVarType()==CVariable::t_int) addAttribute(name,var->getData<int>(),&fieldId) ;
-          else if (var->getVarType()==CVariable::t_short_int) addAttribute(name,var->getData<short int>(),&fieldId) ;
-          else if (var->getVarType()==CVariable::t_long_int) addAttribute(name,var->getData<long int>(),&fieldId) ;
-          else if (var->getVarType()==CVariable::t_float) addAttribute(name,var->getData<float>(),&fieldId) ;
-          else if (var->getVarType()==CVariable::t_double) addAttribute(name,var->getData<double>(),&fieldId) ;
-          else addAttribute(name,var->getData<string>(),&fieldId) ;
+          if (var->type.getValue() == CVariable::type_attr::t_int || var->type.getValue() == CVariable::type_attr::t_int32)
+            addAttribute(name, var->getData<int>(), &fieldId);
+          else if (var->type.getValue() == CVariable::type_attr::t_int16)
+            addAttribute(name, var->getData<short int>(), &fieldId);
+          else if (var->type.getValue() == CVariable::type_attr::t_float)
+            addAttribute(name, var->getData<float>(), &fieldId);
+          else if (var->type.getValue() == CVariable::type_attr::t_double)
+            addAttribute(name, var->getData<double>(), &fieldId);
+          else if (var->type.getValue() == CVariable::type_attr::t_string)
+            addAttribute(name, var->getData<string>(), &fieldId);
+          else
+            ERROR("CNc4DataOutput::writeAttribute_ (CVariable* var, const string& fieldId)",
+                  << "Unsupported variable of type " << var->type.getStringValue());
         }
        catch (CNetCdfException& e)
        {
@@ -829,12 +836,19 @@ namespace xios
         else return ;
         try
         {
-          if (var->getVarType()==CVariable::t_int) addAttribute(name,var->getData<int>()) ;
-          else if (var->getVarType()==CVariable::t_short_int) addAttribute(name,var->getData<short int>()) ;
-          else if (var->getVarType()==CVariable::t_long_int) addAttribute(name,var->getData<long int>()) ;
-          else if (var->getVarType()==CVariable::t_float) addAttribute(name,var->getData<float>()) ;
-          else if (var->getVarType()==CVariable::t_double) addAttribute(name,var->getData<double>()) ;
-          else addAttribute(name,var->getData<string>()) ;
+          if (var->type.getValue() == CVariable::type_attr::t_int || var->type.getValue() == CVariable::type_attr::t_int32)
+            addAttribute(name, var->getData<int>());
+          else if (var->type.getValue() == CVariable::type_attr::t_int16)
+            addAttribute(name, var->getData<short int>());
+          else if (var->type.getValue() == CVariable::type_attr::t_float)
+            addAttribute(name, var->getData<float>());
+          else if (var->type.getValue() == CVariable::type_attr::t_double)
+            addAttribute(name, var->getData<double>());
+          else if (var->type.getValue() == CVariable::type_attr::t_string)
+            addAttribute(name, var->getData<string>());
+          else
+            ERROR("CNc4DataOutput::writeAttribute_ (CVariable* var)",
+                  << "Unsupported variable of type " << var->type.getStringValue());
         }
        catch (CNetCdfException& e)
        {

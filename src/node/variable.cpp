@@ -69,27 +69,6 @@ namespace xios {
       return (oss.str());
    }
 
-   CVariable::EVarType CVariable::getVarType(void) const
-   {
-     EVarType ret ;
-
-     if (type.isEmpty()) ret=t_undefined ;
-     else
-     {
-       string varType=boost::to_lower_copy(boost::trim_copy(type.getValue())) ;
-       if (varType=="int") ret=t_int ;
-       else if (varType=="short int" || varType=="short") ret=t_short_int ;
-       else if (varType=="long int" || varType=="long") ret=t_long_int ;
-       else if (varType=="float") ret=t_float ;
-       else if (varType=="double") ret=t_double ;
-       else if (varType=="long double") ret=t_long_double ;
-       else if (varType=="bool") ret=t_bool ;
-       else if (varType=="long double") ret=t_long_double ;
-       else if (varType=="string") ret=t_string ;
-     }
-     return ret ;
-   }
-
    /*
    *\brief Sending value of a variable with its id from client to server
    *
@@ -125,7 +104,6 @@ namespace xios {
       *buffer>>id ;
       get(id)->recvValue(*buffer);
    }
-
 
    /*
    *\brief Receive value of a variable with its id from client to server
