@@ -156,7 +156,8 @@ INTERFACE xios(setVar)
 END INTERFACE xios(setVar)
 
  PUBLIC :: txios(domain), txios(domaingroup),txios(field), txios(fieldgroup),txios(file), txios(filegroup), &
-          txios(grid), txios(gridgroup), txios(axis), txios(axisgroup),txios(context), txios(date),txios(time)
+          txios(grid), txios(gridgroup), txios(axis), txios(axisgroup),txios(context), txios(date),         &
+          txios(time), txios(variable)
 
  PUBLIC :: xios(set_attr), xios(set_domain_attr), xios(set_domaingroup_attr), xios(set_fieldgroup_attr), &
           xios(set_field_attr), xios(set_file_attr), xios(set_filegroup_attr),          &
