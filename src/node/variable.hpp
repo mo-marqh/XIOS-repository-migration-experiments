@@ -93,16 +93,6 @@ namespace xios
 
       }; // class CVar
 
-      template<>
-      inline bool CVariable::getData(void) const
-      {
-         if (content.compare("true")==0 || content.compare(".true.")==0 || content.compare(".TRUE.")==0) return true ;
-         else if (content.compare("false")==0 || content.compare(".false.")==0 || content.compare(".FALSE.")==0) return false ;
-         else ERROR("CVariable::getdata()",
-               << "Cannot convert string <" << content << "> into type required" );
-         return false ;
-      }
-
       template <typename T>
       inline T CVariable::getData(void) const
       {
@@ -114,6 +104,20 @@ namespace xios
                << "Cannot convert string <" << content << "> into type required" );
          return retval ;
       }
+
+      template<>
+      inline bool CVariable::getData(void) const
+      {
+         if (content.compare("true")==0 || content.compare(".true.")==0 || content.compare(".TRUE.")==0) return true ;
+         else if (content.compare("false")==0 || content.compare(".false.")==0 || content.compare(".FALSE.")==0) return false ;
+         else ERROR("CVariable::getdata()",
+               << "Cannot convert string <" << content << "> into type required" );
+         return false ;
+      }
+
+      template<>
+      inline std::string CVariable::getData(void) const
+      { return content; }
 
       template<>
       inline void CVariable::setData(bool data)
