@@ -179,28 +179,7 @@ namespace xios
   {
     return 6 * sizeof(int);
   }
-  
-  /*template <>
-  void CType<CDate>::_fromString(const string& str)
-  {
-    allocate() ;
-    *ptrValue=str ;
-  }  
 
-  template <>
-  void CType_ref<CDate>::_fromString(const string& str)
-  {
-    checkEmpty() ;
-    *ptrValue=str ;
-  }  
-
-  template <>
-  void CType_ref<CDate>::_fromString(const string& str) const
-  {
-    checkEmpty() ;
-    *ptrValue=str ;
-  }*/ 
-  
   template <>
   bool CType<CDate>::_toBuffer(CBufferOut& buffer) const
   {
