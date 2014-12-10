@@ -30,7 +30,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   ostringstream oss ;
   ofstream file;
   
-  file.open((path+"axis_interface_attr.f90").c_str()); 
+  file.open((path+"axis_interface_attr.F90").c_str()); 
   axis.generateFortran2003Interface(file) ;
   file.close();
   
@@ -42,7 +42,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   axis.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"axisgroup_interface_attr.f90").c_str()); 
+  file.open((path+"axisgroup_interface_attr.F90").c_str()); 
   axisgroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -54,7 +54,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   axisgroup.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"domain_interface_attr.f90").c_str()); 
+  file.open((path+"domain_interface_attr.F90").c_str()); 
   domain.generateFortran2003Interface(file) ;
   file.close();
   
@@ -66,7 +66,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   domain.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"domaingroup_interface_attr.f90").c_str()); 
+  file.open((path+"domaingroup_interface_attr.F90").c_str()); 
   domaingroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -79,7 +79,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.close();
   
   
-  file.open((path+"grid_interface_attr.f90").c_str()); 
+  file.open((path+"grid_interface_attr.F90").c_str()); 
   grid.generateFortran2003Interface(file) ;
   file.close();
   
@@ -91,7 +91,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   grid.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"gridgroup_interface_attr.f90").c_str()); 
+  file.open((path+"gridgroup_interface_attr.F90").c_str()); 
   gridgroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -104,7 +104,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.close();
   
   
-  file.open((path+"field_interface_attr.f90").c_str()); 
+  file.open((path+"field_interface_attr.F90").c_str()); 
   field.generateFortran2003Interface(file) ;
   file.close();
   
@@ -116,7 +116,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   field.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"fieldgroup_interface_attr.f90").c_str()); 
+  file.open((path+"fieldgroup_interface_attr.F90").c_str()); 
   fieldgroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -130,7 +130,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   
 
 
-  file.open((path+"variable_interface_attr.f90").c_str()); 
+  file.open((path+"variable_interface_attr.F90").c_str()); 
   variable.generateFortran2003Interface(file) ;
   file.close();
   
@@ -142,7 +142,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   variable.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"variablegroup_interface_attr.f90").c_str()); 
+  file.open((path+"variablegroup_interface_attr.F90").c_str()); 
   variablegroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -156,7 +156,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
 
 
-  file.open((path+"file_interface_attr.f90").c_str()); 
+  file.open((path+"file_interface_attr.F90").c_str()); 
   afile.generateFortran2003Interface(file) ;
   file.close();
   
@@ -168,7 +168,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   afile.generateFortranInterface(file) ;
   file.close();
   
-  file.open((path+"filegroup_interface_attr.f90").c_str()); 
+  file.open((path+"filegroup_interface_attr.F90").c_str()); 
   filegroup.generateFortran2003Interface(file) ;
   file.close();
   
@@ -181,7 +181,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.close();
   
  
-  file.open((path+"context_interface_attr.f90").c_str()); 
+  file.open((path+"context_interface_attr.F90").c_str()); 
   context->generateFortran2003Interface(file) ;
   file.close();
   
