@@ -3,6 +3,7 @@
 #include "type_ref_impl.hpp"
 #include "type_specialisation.hpp"
 #include <string> ;
+#include "date.hpp"
 #include "xmlioserver_spl.hpp"
 
 namespace xios
@@ -22,10 +23,10 @@ namespace xios
   template CMessage& operator<< <decl_type> (CMessage& msg, const decl_type& type) ; \
   template CMessage& operator<< <decl_type> (CMessage& msg, decl_type& type) ;
   
-  macro(string) 
-  macro(int) 
+  macro(string)
+  macro(int)
   macro(double)
-  macro(bool)  
-  macro(StdSize) 
-
+  macro(bool)
+  macro(StdSize)
+  macro(CDate)
 }

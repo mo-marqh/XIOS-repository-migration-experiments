@@ -17,12 +17,12 @@ namespace xios
 
             /// Constructeur ///
             CD360Calendar(void);                                   // Not implemented yet.
-            CD360Calendar(const StdString & dateStr);
-            CD360Calendar(const StdString & dateStr,const StdString & timeOriginStr);
+            CD360Calendar(const CDate& startDate);
+            CD360Calendar(const CDate& startDate, const CDate& timeOrigin);
             CD360Calendar(int yr = 0, int mth = 1, int d   = 1,
                           int hr = 0, int min = 0, int sec = 0);
-            CD360Calendar(const CD360Calendar & calendar);       // Not implemented yet.
-            CD360Calendar(const CD360Calendar * calendar);       // Not implemented yet.
+            CD360Calendar(const CD360Calendar& calendar);       // Not implemented yet.
+            CD360Calendar(const CD360Calendar* calendar);       // Not implemented yet.
 
             /// Accesseurs ///
             virtual int getYearTotalLength(const CDate & date) const;

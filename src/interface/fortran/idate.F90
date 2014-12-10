@@ -5,8 +5,8 @@ MODULE IDATE
    ! enum XCalendarType
    INTEGER(kind = C_INT), PARAMETER :: D360 = 0 , ALLLEAP = 1 , NOLEAP = 2 , JULIAN = 3 , GREGORIAN = 4
 
-   TYPE txios(date)
-      INTEGER :: year, month, day, hour, minute, second
+   TYPE, BIND(C) :: txios(date)
+      INTEGER(kind = C_INT) :: year, month, day, hour, minute, second
    END TYPE txios(date)
 
    TYPE txios(time)

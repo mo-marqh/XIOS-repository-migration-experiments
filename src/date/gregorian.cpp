@@ -4,13 +4,23 @@ namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CGregorianCalendar::CGregorianCalendar(const StdString & dateStr)
-         : CCalendar("Gregorian")
-      { initializeDate(dateStr); }
+      CGregorianCalendar::CGregorianCalendar(const CDate& startDate)
+         : CCalendar("Gregorian", startDate)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
-      CGregorianCalendar::CGregorianCalendar(const StdString & dateStr,const StdString & timeOriginStr)
-         : CCalendar("Gregorian")
-      { initializeDate(dateStr, timeOriginStr); }
+      CGregorianCalendar::CGregorianCalendar(const CDate& startDate, const CDate& timeOrigin)
+         : CCalendar("Gregorian", startDate, timeOrigin)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
       CGregorianCalendar::CGregorianCalendar(int yr, int mth, int d,
                                              int hr, int min, int sec)

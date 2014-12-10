@@ -334,6 +334,7 @@ namespace xios
      oss<<"#include \"object_template.hpp\""<<iendl;
      oss<<"#include \"group_template.hpp\""<<iendl ;
      oss<<"#include \"icutil.hpp\""<<iendl ;
+     oss<<"#include \"icdate.hpp\""<<iendl ;
      oss<<"#include \"timer.hpp\""<<iendl ;
      oss<<"#include \"node_type.hpp\""<<iendl ;
      oss<<iendl ;
@@ -356,6 +357,7 @@ namespace xios
      oss<<"! * ************************************************************************** *"<<iendl ;
      oss<<"! *               Interface auto generated - do not modify                     *"<<iendl ;
      oss<<"! * ************************************************************************** *"<<iendl;
+     oss<<"#include \"../fortran/xios_fortran_prefix.hpp\""<<iendl ;
      oss<<iendl ;
      oss<<"MODULE "<<className<<"_interface_attr"<<iendl++ ;
      oss<<"USE, INTRINSIC :: ISO_C_BINDING"<<iendl ;

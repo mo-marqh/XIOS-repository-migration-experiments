@@ -73,7 +73,7 @@ namespace xios {
    {
       this->calendar = newCalendar;
       calendar_type.fromString(this->calendar->getId());
-      start_date.setValue(this->calendar->getInitDate().toString());
+      start_date.setValue(this->calendar->getInitDate());
    }
 
    //----------------------------------------------------------------
@@ -86,19 +86,27 @@ namespace xios {
                << "[ context id = " << this->getId() << " ] "
                << "Impossible to define a calendar (an attribute is missing).");
 
-#define DECLARE_CALENDAR(MType, eType)                                              \
-   if (calendar_type.getValue() == eType)                                           \
-   {                                                                                \
-      if (time_origin.isEmpty())                                                    \
-        this->calendar = boost::shared_ptr<CCalendar>                               \
-            (new C##MType##Calendar(start_date.getValue()));                        \
-      else this->calendar = boost::shared_ptr<CCalendar>                            \
-            (new C##MType##Calendar(start_date.getValue(),time_origin.getValue())); \
-      if (!this->timestep.isEmpty())                                                \
-        this->calendar->setTimeStep                                                 \
-            (CDuration::FromString(this->timestep.getValue()));                     \
-      return;                                                                       \
-   }
+#define DECLARE_CALENDAR(MType, eType)                                             \
+  if (calendar_type.getValue() == eType)                                           \
+  {                                                                                \
+    if (time_origin.isEmpty())                                                     \
+      this->calendar = boost::shared_ptr<CCalendar>                                \
+          (new C##MType##Calendar(start_date.getValue()));                         \
+    else this->calendar = boost::shared_ptr<CCalendar>                             \
+          (new C##MType##Calendar(start_date.getValue(), time_origin.getValue())); \
+                                                                                   \
+    if (!start_date.getValue().setRelCalendar(*this->calendar))                    \
+      ERROR("CContext::solveCalendar(void)",                                       \
+            "start_date: Bad format or date not conform to the calendar");         \
+    if (!time_origin.getValue().setRelCalendar(*this->calendar))                   \
+      ERROR("CContext::solveCalendar(void)",                                       \
+            "time_origin: Bad format or date not conform to the calendar");        \
+                                                                                   \
+    if (!this->timestep.isEmpty())                                                 \
+      this->calendar->setTimeStep                                                  \
+          (CDuration::FromString(this->timestep.getValue()));                      \
+    return;                                                                        \
+  }
 #include "calendar_type.conf"
 #undef DECLARE_CALENDAR
 

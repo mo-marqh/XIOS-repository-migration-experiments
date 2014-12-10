@@ -9,6 +9,7 @@
 #include "object_template.hpp"
 #include "group_template.hpp"
 #include "icutil.hpp"
+#include "icdate.hpp"
 #include "timer.hpp"
 #include "node_type.hpp"
 
@@ -68,21 +69,33 @@ extern "C"
   
   
   
-  void cxios_set_context_start_date(context_Ptr context_hdl, const char * start_date, int start_date_size)
+  void cxios_set_context_start_date(context_Ptr context_hdl, cxios_date start_date_c)
   {
-    std::string start_date_str;
-    if(!cstr2string(start_date, start_date_size, start_date_str)) return;
-     CTimer::get("XIOS").resume();
-    context_hdl->start_date.setValue(start_date_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    context_hdl->start_date.allocate();
+    CDate& start_date = context_hdl->start_date.get();
+    start_date.setDate(start_date_c.year,
+                           start_date_c.month,
+                           start_date_c.day,
+                           start_date_c.hour,
+                           start_date_c.minute,
+                           start_date_c.second);
+    if (start_date.hasRelCalendar())
+      start_date.checkDate();
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_context_start_date(context_Ptr context_hdl, char * start_date, int start_date_size)
+  void cxios_get_context_start_date(context_Ptr context_hdl, cxios_date* start_date_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->start_date.getInheritedValue(),start_date , start_date_size))
-      ERROR("void cxios_get_context_start_date(context_Ptr context_hdl, char * start_date, int start_date_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDate start_date = context_hdl->start_date.getInheritedValue();
+    start_date_c->year = start_date.getYear();
+    start_date_c->month = start_date.getMonth();
+    start_date_c->day = start_date.getDay();
+    start_date_c->hour = start_date.getHour();
+    start_date_c->minute = start_date.getMinute();
+    start_date_c->second = start_date.getSecond();
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_context_start_date(context_Ptr context_hdl )
@@ -94,21 +107,33 @@ extern "C"
   
   
   
-  void cxios_set_context_time_origin(context_Ptr context_hdl, const char * time_origin, int time_origin_size)
+  void cxios_set_context_time_origin(context_Ptr context_hdl, cxios_date time_origin_c)
   {
-    std::string time_origin_str;
-    if(!cstr2string(time_origin, time_origin_size, time_origin_str)) return;
-     CTimer::get("XIOS").resume();
-    context_hdl->time_origin.setValue(time_origin_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    context_hdl->time_origin.allocate();
+    CDate& time_origin = context_hdl->time_origin.get();
+    time_origin.setDate(time_origin_c.year,
+                           time_origin_c.month,
+                           time_origin_c.day,
+                           time_origin_c.hour,
+                           time_origin_c.minute,
+                           time_origin_c.second);
+    if (time_origin.hasRelCalendar())
+      time_origin.checkDate();
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)
+  void cxios_get_context_time_origin(context_Ptr context_hdl, cxios_date* time_origin_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->time_origin.getInheritedValue(),time_origin , time_origin_size))
-      ERROR("void cxios_get_context_time_origin(context_Ptr context_hdl, char * time_origin, int time_origin_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDate time_origin = context_hdl->time_origin.getInheritedValue();
+    time_origin_c->year = time_origin.getYear();
+    time_origin_c->month = time_origin.getMonth();
+    time_origin_c->day = time_origin.getDay();
+    time_origin_c->hour = time_origin.getHour();
+    time_origin_c->minute = time_origin.getMinute();
+    time_origin_c->second = time_origin.getSecond();
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_context_time_origin(context_Ptr context_hdl )

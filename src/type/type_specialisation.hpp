@@ -8,6 +8,7 @@
 #include "type.hpp"
 #include <string>
 #include <boost/algorithm/string.hpp>
+#include "date.hpp"
  
 namespace xios
 {
@@ -164,6 +165,152 @@ namespace xios
     
     return ret ;
   }     
+
+// template specializations for CDate
+
+  template <>
+  size_t CType<CDate>::_size() const
+  {
+    return 6 * sizeof(int);
+  }
+
+  template <>
+  size_t CType_ref<CDate>::_size() const
+  {
+    return 6 * sizeof(int);
+  }
+  
+  /*template <>
+  void CType<CDate>::_fromString(const string& str)
+  {
+    allocate() ;
+    *ptrValue=str ;
+  }  
+
+  template <>
+  void CType_ref<CDate>::_fromString(const string& str)
+  {
+    checkEmpty() ;
+    *ptrValue=str ;
+  }  
+
+  template <>
+  void CType_ref<CDate>::_fromString(const string& str) const
+  {
+    checkEmpty() ;
+    *ptrValue=str ;
+  }*/ 
+  
+  template <>
+  bool CType<CDate>::_toBuffer(CBufferOut& buffer) const
+  {
+    if (buffer.remain() < size()) return false;
+    else
+    {
+      bool ret = true;
+      if (ret) ret &= buffer.put(ptrValue->getYear());
+      if (ret) ret &= buffer.put(ptrValue->getMonth());
+      if (ret) ret &= buffer.put(ptrValue->getDay());
+      if (ret) ret &= buffer.put(ptrValue->getHour());
+      if (ret) ret &= buffer.put(ptrValue->getMinute());
+      if (ret) ret &= buffer.put(ptrValue->getSecond());
+      return ret;
+    }
+  }
+  
+  template <>
+  bool CType_ref<CDate>::_toBuffer(CBufferOut& buffer) const
+  {
+    if (buffer.remain() < size()) return false;
+    else
+    {
+      bool ret = true;
+      if (ret) ret &= buffer.put(ptrValue->getYear());
+      if (ret) ret &= buffer.put(ptrValue->getMonth());
+      if (ret) ret &= buffer.put(ptrValue->getDay());
+      if (ret) ret &= buffer.put(ptrValue->getHour());
+      if (ret) ret &= buffer.put(ptrValue->getMinute());
+      if (ret) ret &= buffer.put(ptrValue->getSecond());
+      return ret;
+    }
+  }
+
+  template <>
+  bool CType<CDate>::_fromBuffer(CBufferIn& buffer)
+  {
+    allocate();
+    bool ret = true;
+
+    int year, month, day, hour, min, sec;
+    if (ret) ret &= buffer.get(year);
+    if (ret) ret &= buffer.get(month);
+    if (ret) ret &= buffer.get(day);
+    if (ret) ret &= buffer.get(hour);
+    if (ret) ret &= buffer.get(min);
+    if (ret) ret &= buffer.get(sec);
+    if (ret)
+    {
+      ptrValue->setYear(year);
+      ptrValue->setMonth(month);
+      ptrValue->setDay(day);
+      ptrValue->setHour(hour);
+      ptrValue->setMinute(min);
+      ptrValue->setSecond(sec);
+    }
+
+    return ret;
+  }
+
+  template <>
+  bool CType_ref<CDate>::_fromBuffer(CBufferIn& buffer) const
+  {
+    bool ret = true;
+    
+    int year, month, day, hour, min, sec;
+    if (ret) ret &= buffer.get(year);
+    if (ret) ret &= buffer.get(month);
+    if (ret) ret &= buffer.get(day);
+    if (ret) ret &= buffer.get(hour);
+    if (ret) ret &= buffer.get(min);
+    if (ret) ret &= buffer.get(sec);
+    if (ret)
+    {
+      ptrValue->setYear(year);
+      ptrValue->setMonth(month);
+      ptrValue->setDay(day);
+      ptrValue->setHour(hour);
+      ptrValue->setMinute(min);
+      ptrValue->setSecond(sec);
+    }
+
+    return ret;
+  }
+
+  template <>
+  bool CType_ref<CDate>::_fromBuffer(CBufferIn& buffer)
+  {
+    bool ret = true;
+    
+    int year, month, day, hour, min, sec;
+    if (ret) ret &= buffer.get(year);
+    if (ret) ret &= buffer.get(month);
+    if (ret) ret &= buffer.get(day);
+    if (ret) ret &= buffer.get(hour);
+    if (ret) ret &= buffer.get(min);
+    if (ret) ret &= buffer.get(sec);
+    if (ret)
+    {
+      ptrValue->setYear(year);
+      ptrValue->setMonth(month);
+      ptrValue->setDay(day);
+      ptrValue->setHour(hour);
+      ptrValue->setMinute(min);
+      ptrValue->setSecond(sec);
+    }
+
+    return ret;
+  }
+
   // template specialisation for CArray
 /*
   template<>

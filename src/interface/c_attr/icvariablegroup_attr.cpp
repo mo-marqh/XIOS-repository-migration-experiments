@@ -9,6 +9,7 @@
 #include "object_template.hpp"
 #include "group_template.hpp"
 #include "icutil.hpp"
+#include "icdate.hpp"
 #include "timer.hpp"
 #include "node_type.hpp"
 

@@ -4,13 +4,23 @@ namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CD360Calendar::CD360Calendar(const StdString & dateStr)
-         : CCalendar("D360")
-      { initializeDate(dateStr); }
+      CD360Calendar::CD360Calendar(const CDate& startDate)
+         : CCalendar("D360", startDate)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
-      CD360Calendar::CD360Calendar(const StdString & dateStr,const StdString & timeOriginStr)
-         : CCalendar("D360", dateStr)
-      { initializeDate(dateStr, timeOriginStr); }
+      CD360Calendar::CD360Calendar(const CDate& startDate, const CDate& timeOrigin)
+         : CCalendar("D360", startDate, timeOrigin)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
       CD360Calendar::CD360Calendar(int yr, int mth, int d,
                                    int hr, int min, int sec)

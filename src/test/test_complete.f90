@@ -10,6 +10,7 @@ PROGRAM test_complete
   
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
+  TYPE(xios_date)      :: start_date, time_origin
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
@@ -82,9 +83,11 @@ PROGRAM test_complete
   CALL xios_get_handle("atmosphere",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
   
-  CALL xios_set_context_attr("atmosphere",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("atmosphere",start_date="2000-01-01 00:00:00")
-  CALL xios_set_context_attr("atmosphere",time_origin="1999-01-01 15:00:00")
+  CALL xios_set_context_attr("atmosphere",calendar_type="Gregorian")
+  start_date = xios_date(2000, 01, 01, 00, 00, 00)
+  CALL xios_set_context_attr("atmosphere",start_date=start_date)
+  time_origin = xios_date(1999, 01, 01, 15, 00, 00)
+  CALL xios_set_context_attr("atmosphere",time_origin=time_origin)
 
   CALL xios_set_axis_attr("axis_atm",size=llm ,value=lval) ;
 
@@ -170,9 +173,11 @@ PROGRAM test_complete
   CALL xios_get_handle("surface",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
   
-  CALL xios_set_context_attr("surface",calendar_type="Gregorian") 
-  CALL xios_set_context_attr("surface",start_date="2000-01-01 00:00:00")
-  CALL xios_set_context_attr("surface",time_origin="1999-01-01 15:00:00")
+  CALL xios_set_context_attr("surface",calendar_type="Gregorian")
+  start_date = xios_date(2000, 01, 01, 00, 00, 00)
+  CALL xios_set_context_attr("surface",start_date=start_date)
+  time_origin = xios_date(1999, 01, 01, 15, 00, 00)
+  CALL xios_set_context_attr("surface",time_origin=time_origin)
 
   CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_srf",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)

@@ -10,16 +10,22 @@ using namespace boost::gregorian ;
 namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
-      CDate::CDate(const CCalendar& calendar)
-         : relCalendar(calendar)
+      CDate::CDate(void)
+         : relCalendar(NULL)
          , year(0), month(1) , day(1)
          , hour(0), minute(0), second(0)
-      {   }
+      {}
+
+      CDate::CDate(const CCalendar& calendar)
+         : relCalendar(&calendar)
+         , year(0), month(1) , day(1)
+         , hour(0), minute(0), second(0)
+      {}
       
       CDate::CDate(const CCalendar& calendar,
                    int yr, int mth, int d,
                    int hr, int min, int sec)
-         : relCalendar(calendar)
+         : relCalendar(&calendar)
          , year(yr), month(mth) , day(d)
          , hour(hr), minute(min), second(sec)
       {
@@ -30,16 +36,17 @@ namespace xios
          }
       }
 
-      CDate::CDate(const CDate & date)
-            : relCalendar(date.getRelCalendar()),
+      CDate::CDate(const CDate& date)
+            : relCalendar(date.relCalendar),
               year(date.year), month(date.month)  , day(date.day),
               hour(date.hour), minute(date.minute), second(date.second)
       {
-         if(!this->checkDate())
-         {
-            DEBUG(<< "La date initialisée a été modifiée "
-                  << "car elle était incorrecte par rapport au calendrier souhaité.");
-         }
+        // Delay the verification until we get a calendar we can compare the date to
+        if (relCalendar && !checkDate())
+        {
+          DEBUG(<< "La date initialisée a été modifiée "
+                << "car elle était incorrecte par rapport au calendrier souhaité.");
+        }
       }
 
       CDate::~CDate(void)
@@ -49,7 +56,7 @@ namespace xios
 
       CDate & CDate::operator=(const CDate & date)
       {
-         // relCalendar = d.getRelCalendar(); << inutile si fonction bien utilisée
+         relCalendar = date.relCalendar;
          year = date.year; month  = date.month ; day    = date.day;
          hour = date.hour; minute = date.minute; second = date.second;
          return (*this);
@@ -102,10 +109,12 @@ namespace xios
                 in>>date.minute >> c;
                 if (c==sep)
                 {
-                  in>>date.second ;
-                  if(!date.checkDate())
-                    ERROR("StdIStream & operator >> (StdIStream & in, CDate & date)",<<"Bad date format or not conform to calendar" );
-                    return (in);
+                  in >> date.second;
+                  // Delay the verification until we get a calendar we can compare the date to
+                  if (date.relCalendar && !date.checkDate())
+                    ERROR("StdIStream & operator >> (StdIStream & in, CDate & date)",
+                          << "Bad date format or not conform to calendar");
+                  return (in);
                 }
               }
             }
@@ -117,19 +126,22 @@ namespace xios
 
       CDate::operator Time(void) const // Non vérifiée, pas optimisée ...
       {
+         // This will check that a calendar was correctly associated to the date
+         const CCalendar& c = getRelCalendar();
+
          // Todo : Tester si la date courante est supérieure à la date initiale.
-         Time retvalue = - relCalendar.getNbSecond(relCalendar.getInitDate())
-                         + relCalendar.getNbSecond(*this);
+         Time retvalue = - c.getNbSecond(c.getInitDate())
+                         + c.getNbSecond(*this);
 
-         if ((relCalendar.getId().compare("D360")    == 0) ||
-             (relCalendar.getId().compare("AllLeap") == 0) ||
-             (relCalendar.getId().compare("NoLeap")  == 0))
-         return (retvalue + (getYear() - relCalendar.getTimeOrigin().getYear())
-                                       * relCalendar.getYearTotalLength(*this));
+         if ((c.getId().compare("D360")    == 0) ||
+             (c.getId().compare("AllLeap") == 0) ||
+             (c.getId().compare("NoLeap")  == 0))
+         return (retvalue + (getYear() - c.getTimeOrigin().getYear())
+                                       * c.getYearTotalLength(*this));
 
-         for(CDate _d(relCalendar.getTimeOrigin());
+         for(CDate _d(c.getTimeOrigin());
             _d.getYear() < getYear(); _d.setYear(_d.getYear()+1))
-            retvalue += relCalendar.getYearTotalLength(_d);
+            retvalue += c.getYearTotalLength(_d);
          return (retvalue);
       }
 
@@ -139,30 +151,33 @@ namespace xios
       {
          bool retValue = true;
 
-         // Vérificatio de la valeur du mois.
+         // This will check that a calendar was correctly associated to the date
+         const CCalendar& c = getRelCalendar();
+
+         // Vérification de la valeur du mois.
          if (month  < 1) { retValue = false; month  = 1; }
-         if (month  > relCalendar.getYearLength())
-         { retValue = false; month = relCalendar.getYearLength(); }
+         if (month  > c.getYearLength())
+         { retValue = false; month = c.getYearLength(); }
 
          // Vérification de la valeur du jour.
-         if (day    < 1) { retValue = false; month  = 1; }
-         if (day    > (&relCalendar)->getMonthLength(*this))
-         { retValue = false; day = (&relCalendar)->getMonthLength(*this); }
+         if (day    < 1) { retValue = false; day  = 1; }
+         if (day    > c.getMonthLength(*this))
+         { retValue = false; day = c.getMonthLength(*this); }
 
          // Vérification de la valeur de l'heure.
          if (hour   < 0) { retValue = false; hour  = 0; }
-         if (hour   >= relCalendar.getDayLength())
-         { retValue = false; hour = relCalendar.getDayLength()-1; }
+         if (hour   >= c.getDayLength())
+         { retValue = false; hour = c.getDayLength() - 1; }
 
          // Vérification de la valeur des minutes.
          if (minute < 0) { retValue = false; minute = 0; }
-         if (minute >= relCalendar.getHourLength())
-         { retValue = false; minute = relCalendar.getHourLength()-1; }
+         if (minute >= c.getHourLength())
+         { retValue = false; minute = c.getHourLength() - 1; }
 
          // Vérification de la valeur des secondes.
-         if (second < 0) { retValue = false; month  = 0; }
-         if (second >= relCalendar.getMinuteLength())
-         { retValue = false; second = relCalendar.getMinuteLength()-1; }
+         if (second < 0) { retValue = false; second = 0; }
+         if (second >= c.getMinuteLength())
+         { retValue = false; second = c.getMinuteLength() - 1; }
 
          return retValue;
       }
@@ -178,14 +193,35 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      const CCalendar & CDate::getRelCalendar(void) const
-      { return (this->relCalendar); }
+      const CCalendar& CDate::getRelCalendar(void) const
+      {
+        if (!this->relCalendar)
+          ERROR("const CCalendar& CDate::getRelCalendar(void) const",
+                "Invalid state: The date is not associated with any calendar.");
+        return (*this->relCalendar);
+      }
+
+      bool CDate::hasRelCalendar(void) const
+      { return (this->relCalendar != NULL); }
 
       //----------------------------------------------------------------
 
-      void CDate::setYear  (int newyear)  { this->year  = newyear; }
-      void CDate::setMonth (int newmonth) { this->month = newmonth; }
-      void CDate::setDay (int newday) { this->day = newday; }
+      void CDate::setYear  (int newyear)   { this->year   = newyear; }
+      void CDate::setMonth (int newmonth)  { this->month  = newmonth; }
+      void CDate::setDay   (int newday)    { this->day    = newday; }
+      void CDate::setHour  (int newhour)   { this->hour   = newhour; }
+      void CDate::setMinute(int newminute) { this->minute = newminute; }
+      void CDate::setSecond(int newsecond) { this->second = newsecond; }
+
+      void CDate::setDate(int yr, int mth, int d, int hr, int min, int sec)
+      {
+        this->year   = yr;
+        this->month  = mth;
+        this->day    = d;
+        this->hour   = hr;
+        this->minute = min;
+        this->second = sec;
+      }
 
       //----------------------------------------------------------------
 
@@ -194,6 +230,14 @@ namespace xios
          this->month += value;
          if (this->month == 13) { year++; this->month = 1 ; }
          if (this->month == 0 ) { year--; this->month = 12; }
+      }
+
+      //----------------------------------------------------------------
+
+      bool CDate::setRelCalendar(const CCalendar& relCalendar)
+      {
+        this->relCalendar = &relCalendar;
+        return this->checkDate();
       }
 
       //----------------------------------------------------------------

@@ -13,14 +13,14 @@ namespace xios
          , currentDate(*this)
       {   }
 
-      CCalendar::CCalendar(const StdString & id)
+      CCalendar::CCalendar(const StdString& id)
                : CObject(id)
                , initDate(*this)
                , timeOrigin(*this)
                , currentDate(*this)
       { }
       
-      CCalendar::CCalendar(const StdString & id,
+      CCalendar::CCalendar(const StdString& id,
                            int yr, int mth, int d  ,
                            int hr, int min, int sec)
                : CObject(id)
@@ -31,41 +31,55 @@ namespace xios
         initializeDate(yr, mth, d, hr, min, sec) ;
       }
 
-      CCalendar::CCalendar(const StdString & id, const StdString & dateStr)
+      CCalendar::CCalendar(const StdString& id, const CDate& startDate)
                : CObject(id)
-               , initDate(CDate::FromString(dateStr, *this))
-               , timeOrigin(initDate)
-               , currentDate(initDate)
-      { 
-        initializeDate(dateStr) ;
+               , initDate(startDate)
+               , timeOrigin(startDate)
+               , currentDate(startDate)
+      {
+        // Initialize the dates only in the derivated classes
+        // since we want to use the overloaded virtual functions
       }
 
-      CCalendar::CCalendar(const StdString & id, const StdString & dateStr, const StdString & timeOriginStr)
+      CCalendar::CCalendar(const StdString& id, const CDate& startDate, const CDate& timeOrigin)
                : CObject(id)
-               , initDate(*this)
-               , timeOrigin(*this)
-               , currentDate(*this)
-      { 
-        initializeDate(dateStr, timeOriginStr) ;
+               , initDate(startDate)
+               , timeOrigin(timeOrigin)
+               , currentDate(startDate)
+      {
+        // Initialize the dates only in the derivated classes
+        // since we want to use the overloaded virtual functions
       }
 
+      void CCalendar::initializeDate()
+      {
+        if (!initDate.setRelCalendar(*this))
+          ERROR("CCalendar::initializeDate()",
+                "initDate: Bad format or date not conform to the calendar");
+        if (!timeOrigin.setRelCalendar(*this))
+          ERROR("CCalendar::initializeDate()",
+                "timeOrigin: Bad format or date not conform to the calendar");
+        if (!currentDate.setRelCalendar(*this))
+          ERROR("CCalendar::initializeDate()",
+                "currentDate: Bad format or date not conform to the calendar");
+      }
 
-      void CCalendar::initializeDate( int yr, int mth, int d  ,
-                                 int hr, int min, int sec)
-      { 
+      void CCalendar::initializeDate(int yr, int mth, int d,
+                                     int hr, int min, int sec)
+      {
         initDate=CDate(*this,yr, mth, d, hr, min, sec) ;
         timeOrigin=initDate;
         currentDate=initDate ;
       }
 
-      void CCalendar::initializeDate(const StdString & dateStr)
+      void CCalendar::initializeDate(const StdString& dateStr)
       { 
         initDate=CDate::FromString(dateStr, *this) ;
         timeOrigin=initDate ;
         currentDate=initDate ;
       }
 
-      void CCalendar::initializeDate(const StdString & dateStr, const StdString & timeOriginStr)
+      void CCalendar::initializeDate(const StdString& dateStr, const StdString& timeOriginStr)
       { 
         initDate=CDate::FromString(dateStr, *this) ;
         timeOrigin=CDate::FromString(timeOriginStr, *this) ;

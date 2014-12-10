@@ -17,12 +17,12 @@ namespace xios
 
             /// Constructeur ///
 //            CJulianCalendar(void);                                   // Not implemented yet.
-            CJulianCalendar(const StdString & dateStr);
-            CJulianCalendar(const StdString & dateStr,const StdString & timeOriginStr);
+            CJulianCalendar(const CDate& startDate);
+            CJulianCalendar(const CDate& startDate, const CDate& timeOrigin);
             CJulianCalendar(int yr = 0, int mth = 1, int d   = 1,
                             int hr = 0, int min = 0, int sec = 0);
-            CJulianCalendar(const CJulianCalendar & calendar);       // Not implemented yet.
-            CJulianCalendar(const CJulianCalendar * calendar);       // Not implemented yet.
+            CJulianCalendar(const CJulianCalendar& calendar);       // Not implemented yet.
+            CJulianCalendar(const CJulianCalendar* calendar);       // Not implemented yet.
 
             /// Accesseurs ///
             virtual int getYearTotalLength(const CDate & date) const;

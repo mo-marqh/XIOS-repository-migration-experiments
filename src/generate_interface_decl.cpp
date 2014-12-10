@@ -18,4 +18,5 @@ namespace xios
   macro(bool)
   macro(int)
   macro(double)
+  macro(CDate)
 }

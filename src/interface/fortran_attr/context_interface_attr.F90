@@ -1,6 +1,7 @@
 ! * ************************************************************************** *
 ! *               Interface auto generated - do not modify                     *
 ! * ************************************************************************** *
+#include "../fortran/xios_fortran_prefix.hpp"
 
 MODULE context_interface_attr
   USE, INTRINSIC :: ISO_C_BINDING
@@ -50,18 +51,18 @@ MODULE context_interface_attr
     END FUNCTION cxios_is_defined_context_output_dir
     
     
-    SUBROUTINE cxios_set_context_start_date(context_hdl, start_date, start_date_size) BIND(C)
+    SUBROUTINE cxios_set_context_start_date(context_hdl, start_date) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: start_date
-      INTEGER  (kind = C_INT)     , VALUE        :: start_date_size
+      TYPE(xios_date), VALUE :: start_date
     END SUBROUTINE cxios_set_context_start_date
     
-    SUBROUTINE cxios_get_context_start_date(context_hdl, start_date, start_date_size) BIND(C)
+    SUBROUTINE cxios_get_context_start_date(context_hdl, start_date) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: start_date
-      INTEGER  (kind = C_INT)     , VALUE        :: start_date_size
+      TYPE(txios(date)) :: start_date
     END SUBROUTINE cxios_get_context_start_date
     
     FUNCTION cxios_is_defined_context_start_date(context_hdl ) BIND(C)
@@ -71,18 +72,18 @@ MODULE context_interface_attr
     END FUNCTION cxios_is_defined_context_start_date
     
     
-    SUBROUTINE cxios_set_context_time_origin(context_hdl, time_origin, time_origin_size) BIND(C)
+    SUBROUTINE cxios_set_context_time_origin(context_hdl, time_origin) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_origin
-      INTEGER  (kind = C_INT)     , VALUE        :: time_origin_size
+      TYPE(xios_date), VALUE :: time_origin
     END SUBROUTINE cxios_set_context_time_origin
     
-    SUBROUTINE cxios_get_context_time_origin(context_hdl, time_origin, time_origin_size) BIND(C)
+    SUBROUTINE cxios_get_context_time_origin(context_hdl, time_origin) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_origin
-      INTEGER  (kind = C_INT)     , VALUE        :: time_origin_size
+      TYPE(txios(date)) :: time_origin
     END SUBROUTINE cxios_get_context_time_origin
     
     FUNCTION cxios_is_defined_context_time_origin(context_hdl ) BIND(C)

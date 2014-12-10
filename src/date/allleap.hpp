@@ -17,12 +17,12 @@ namespace xios
 
             /// Constructeur ///
 //            CAllLeapCalendar(void);                                   // Not implemented yet.
-            CAllLeapCalendar(const StdString & dateStr);
-            CAllLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr);
+            CAllLeapCalendar(const CDate& startDate);
+            CAllLeapCalendar(const CDate& startDate, const CDate& timeOriginStr);
             CAllLeapCalendar(int yr = 0, int mth = 1, int d   = 1,
-                            int hr = 0, int min = 0, int sec = 0);
-            CAllLeapCalendar(const CAllLeapCalendar & calendar);       // Not implemented yet.
-            CAllLeapCalendar(const CAllLeapCalendar * calendar);       // Not implemented yet.
+                             int hr = 0, int min = 0, int sec = 0);
+            CAllLeapCalendar(const CAllLeapCalendar& calendar);       // Not implemented yet.
+            CAllLeapCalendar(const CAllLeapCalendar* calendar);       // Not implemented yet.
 
             /// Accesseurs ///
             virtual int getYearTotalLength(const CDate & date) const;

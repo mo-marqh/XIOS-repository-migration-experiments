@@ -4,13 +4,23 @@ namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CJulianCalendar::CJulianCalendar(const StdString & dateStr)
-         : CCalendar("Julian")
-      { initializeDate(dateStr); }
+      CJulianCalendar::CJulianCalendar(const CDate& startDate)
+         : CCalendar("Julian", startDate)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
-      CJulianCalendar::CJulianCalendar(const StdString & dateStr,const StdString & timeOriginStr)
-         : CCalendar("Julian")
-      { initializeDate(dateStr, timeOriginStr); }
+      CJulianCalendar::CJulianCalendar(const CDate& startDate, const CDate& timeOrigin)
+         : CCalendar("Julian", startDate, timeOrigin)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
       CJulianCalendar::CJulianCalendar(int yr, int mth, int d,
                                        int hr, int min, int sec)

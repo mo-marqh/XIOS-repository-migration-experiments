@@ -17,12 +17,12 @@ namespace xios
 
             /// Constructeur ///
 //            CGregorianCalendar(void);                                   // Not implemented yet.
-            CGregorianCalendar(const StdString & dateStr);
-            CGregorianCalendar(const StdString & dateStr,const StdString & timeOriginStr);
+            CGregorianCalendar(const CDate& startDate);
+            CGregorianCalendar(const CDate& startDate, const CDate& timeOrigin);
             CGregorianCalendar(int yr = 0, int mth = 1, int d   = 1,
                                int hr = 0, int min = 0, int sec = 0);
-            CGregorianCalendar(const CGregorianCalendar & calendar);       // Not implemented yet.
-            CGregorianCalendar(const CGregorianCalendar * calendar);       // Not implemented yet.
+            CGregorianCalendar(const CGregorianCalendar& calendar);       // Not implemented yet.
+            CGregorianCalendar(const CGregorianCalendar* calendar);       // Not implemented yet.
 
             /// Accesseurs ///
             virtual int getYearTotalLength(const CDate & date) const;

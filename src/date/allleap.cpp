@@ -4,13 +4,23 @@ namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CAllLeapCalendar::CAllLeapCalendar(const StdString & dateStr)
-         : CCalendar("AllLeap")
-      { initializeDate(dateStr); }
+      CAllLeapCalendar::CAllLeapCalendar(const CDate& startDate)
+         : CCalendar("AllLeap", startDate)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
-      CAllLeapCalendar::CAllLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr)
-         : CCalendar("AllLeap")
-      { initializeDate(dateStr, timeOriginStr); }
+      CAllLeapCalendar::CAllLeapCalendar(const CDate& startDate, const CDate& timeOrigin)
+         : CCalendar("AllLeap", startDate, timeOrigin)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
       CAllLeapCalendar::CAllLeapCalendar(int yr, int mth, int d,
                                          int hr, int min, int sec)

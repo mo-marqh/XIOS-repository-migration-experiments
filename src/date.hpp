@@ -16,10 +16,13 @@ namespace xios
          public :
 
             /// Constructeurs ///
-            CDate(void);                      // Not implemented yet
+            //!< Create an empty date associated to no calendar
+            CDate(void);
+            //!< Create an empty date associated to the specified calendar
             CDate(const CCalendar & cal);
-            CDate(const CCalendar & cal,int yr, int mth, int d,
-                                        int hr = 0, int min = 0, int sec = 0);
+            //!< Create a date associated to the specified calendar
+            CDate(const CCalendar & cal, int yr, int mth, int d,
+                                         int hr = 0, int min = 0, int sec = 0);
             CDate(const CDate & odate);
             CDate(const CDate * const odate); // Not implemented yet
 
@@ -44,14 +47,25 @@ namespace xios
             int getMinute(void) const;
             int getSecond(void) const;
 
-            const CCalendar & getRelCalendar(void) const;
+            //!< Get the calendar associated to the date
+            const CCalendar& getRelCalendar(void) const;
+            bool hasRelCalendar(void) const;
 
             /// Mutateurs ///
             void setYear  (int newyear);
             void setMonth (int newmonth);
-            void setDay (int newday);
+            void setDay   (int newday);
+            void setHour  (int newhour);
+            void setMinute(int newminute);
+            void setSecond(int newsecond);
+
+            void setDate(int yr, int mth, int d,
+                         int hr = 0, int min = 0, int sec = 0);
 
             void addMonth (int value);
+
+            //!< Set the calendar associated to the date
+            bool setRelCalendar(const CCalendar& relCalendar);
 
             /// Autres ///
             StdString toString(void) const;
@@ -66,7 +80,7 @@ namespace xios
          private :
 
             /// Propriétés privées ///
-            const CCalendar & relCalendar; // Calendrier lié à la Date.
+            const CCalendar* relCalendar; //!< Calendar associated to the date
             int year, month, day, hour, minute, second; // Année, mois, ...
 
 

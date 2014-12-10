@@ -32,15 +32,15 @@ namespace xios
 
             /// Constructeurs ///
             CCalendar(void);
-            CCalendar(const StdString & id) ;
-            CCalendar(const StdString & id,
+            CCalendar(const StdString& id) ;
+            CCalendar(const StdString& id,
                       int yr, int mth, int d,
                       int hr = 0, int min = 0, int sec = 0);
-            CCalendar(const StdString & id, const StdString & dateStr);
-            CCalendar(const StdString & id, const StdString & dateStr, const StdString & timeOrigin);
+            CCalendar(const StdString& id, const CDate& startDate);
+            CCalendar(const StdString& id, const CDate& startDate, const CDate& timeOrigin);
 
-            CCalendar(const CCalendar & calendar);       // Not implemented yet.
-            CCalendar(const CCalendar * const calendar); // Not implemented yet.
+            CCalendar(const CCalendar& calendar);       // Not implemented yet.
+            CCalendar(const CCalendar* const calendar); // Not implemented yet.
 
          public :
 
@@ -83,6 +83,13 @@ namespace xios
             void initializeDate(int yr, int mth, int d, int hr = 0, int min = 0, int sec = 0) ;
             void initializeDate(const StdString & dateStr);
             void initializeDate(const StdString & dateStr, const StdString & timeOrigin);
+
+            //------------------------------------------------------------
+
+         protected:
+            
+            //!< Associate the dates to the calendar and check their validity
+            void initializeDate();
 
             //------------------------------------------------------------
 

@@ -5,13 +5,23 @@ namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
 
-      CNoLeapCalendar::CNoLeapCalendar(const StdString & dateStr)
-         : CCalendar("NoLeap", dateStr)
-      { initializeDate(dateStr); }
+      CNoLeapCalendar::CNoLeapCalendar(const CDate& startDate)
+         : CCalendar("NoLeap", startDate)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
-      CNoLeapCalendar::CNoLeapCalendar(const StdString & dateStr,const StdString & timeOriginStr)
-         : CCalendar("NoLeap", dateStr, timeOriginStr)
-      { initializeDate(dateStr, timeOriginStr); }
+      CNoLeapCalendar::CNoLeapCalendar(const CDate& startDate, const CDate& timeOrigin)
+         : CCalendar("NoLeap", startDate, timeOrigin)
+      {
+         // This will check that the dates are conform with the calendar.
+         // We cannot call this from the parent constructor because we
+         // want the methods of this class to be used
+         initializeDate();
+      }
 
       CNoLeapCalendar::CNoLeapCalendar(int yr, int mth, int d,
                                        int hr, int min, int sec)
