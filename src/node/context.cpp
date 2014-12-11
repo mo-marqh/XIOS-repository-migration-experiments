@@ -81,10 +81,18 @@ namespace xios {
    void CContext::solveCalendar(void)
    {
       if (this->calendar.get() != NULL) return;
-      if (calendar_type.isEmpty() || start_date.isEmpty())
+      if (calendar_type.isEmpty())
          ERROR(" CContext::solveCalendar(void)",
                << "[ context id = " << this->getId() << " ] "
-               << "Impossible to define a calendar (an attribute is missing).");
+               << "Impossible to define a calendar: the calendar type is missing.");
+      if (start_date.isEmpty())
+         ERROR(" CContext::solveCalendar(void)",
+               << "[ context id = " << this->getId() << " ] "
+               << "Impossible to define a calendar: the start date is missing.");
+      if (timestep.isEmpty())
+         ERROR(" CContext::solveCalendar(void)",
+               << "[ context id = " << this->getId() << " ] "
+               << "Impossible to define a calendar: the timestep is missing.");
 
 #define DECLARE_CALENDAR(MType, eType)                                             \
   if (calendar_type.getValue() == eType)                                           \
@@ -102,8 +110,7 @@ namespace xios {
       ERROR("CContext::solveCalendar(void)",                                       \
             "time_origin: Bad format or date not conform to the calendar");        \
                                                                                    \
-    if (!this->timestep.isEmpty())                                                 \
-      this->calendar->setTimeStep                                                  \
+    this->calendar->setTimeStep                                                    \
           (CDuration::FromString(this->timestep.getValue()));                      \
     return;                                                                        \
   }
