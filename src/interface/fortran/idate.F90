@@ -9,39 +9,21 @@ MODULE IDATE
       INTEGER(kind = C_INT) :: year, month, day, hour, minute, second
    END TYPE txios(date)
 
-   TYPE txios(time)
-      REAL(kind = 8) :: year=0, month=0, day=0, hour=0, minute=0, second=0
-   END TYPE txios(time)   
+   TYPE, BIND(C) :: txios(duration)
+      REAL(kind = C_DOUBLE) :: year=0, month=0, day=0, hour=0, minute=0, second=0, timestep=0
+   END TYPE txios(duration)
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
-   
-      SUBROUTINE cxios_set_timestep(ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second) BIND(C)
-         IMPORT C_DOUBLE
-         REAL (kind = C_DOUBLE), VALUE :: ts_year, ts_month , ts_day   , &
-                                          ts_hour, ts_minute, ts_second
-      END SUBROUTINE cxios_set_timestep
 
       SUBROUTINE cxios_update_calendar(step) BIND(C)
          IMPORT C_INT
          INTEGER (kind = C_INT), VALUE :: step
       END SUBROUTINE cxios_update_calendar
-      
+
    END INTERFACE
    
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
-
-   SUBROUTINE xios(set_timestep)(timestep)
-      IMPLICIT NONE
-      TYPE(txios(time)), INTENT(IN):: timestep
-
-      CALL cxios_set_timestep(timestep%year, timestep%month , timestep%day, &
-                             timestep%hour, timestep%minute, timestep%second)
-
-   END SUBROUTINE xios(set_timestep)
-
-
-   
    SUBROUTINE xios(update_calendar)(step)
      IMPLICIT NONE
      INTEGER, INTENT(IN):: step
@@ -51,8 +33,6 @@ MODULE IDATE
          STOP
       END IF
       CALL cxios_update_calendar(step)
-      
    END SUBROUTINE xios(update_calendar)
 
-   
 END MODULE IDATE

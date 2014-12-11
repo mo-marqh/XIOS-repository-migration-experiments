@@ -20,7 +20,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_dir
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: start_date
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: time_origin
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timestep
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: timestep
       
       CALL xios(get_context_handle)(context_id,context_hdl)
       CALL xios(set_context_attr_hdl_)   &
@@ -37,7 +37,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_dir
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: start_date
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: time_origin
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timestep
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: timestep
       
       CALL xios(set_context_attr_hdl_)  &
       ( context_hdl, calendar_type, output_dir, start_date, time_origin, timestep )
@@ -53,7 +53,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_dir_
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: start_date_
       TYPE(txios(date))  , OPTIONAL, INTENT(IN) :: time_origin_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: timestep_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: timestep_
       
       IF (PRESENT(calendar_type_)) THEN
         CALL cxios_set_context_calendar_type(context_hdl%daddr, calendar_type_, len(calendar_type_))
@@ -72,7 +72,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(timestep_)) THEN
-        CALL cxios_set_context_timestep(context_hdl%daddr, timestep_, len(timestep_))
+        CALL cxios_set_context_timestep(context_hdl%daddr, timestep_)
       ENDIF
       
       
@@ -89,7 +89,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_dir
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: start_date
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: time_origin
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timestep
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: timestep
       
       CALL xios(get_context_handle)(context_id,context_hdl)
       CALL xios(get_context_attr_hdl_)   &
@@ -106,7 +106,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_dir
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: start_date
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: time_origin
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timestep
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: timestep
       
       CALL xios(get_context_attr_hdl_)  &
       ( context_hdl, calendar_type, output_dir, start_date, time_origin, timestep )
@@ -122,7 +122,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_dir_
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: start_date_
       TYPE(txios(date))  , OPTIONAL, INTENT(OUT) :: time_origin_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: timestep_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: timestep_
       
       IF (PRESENT(calendar_type_)) THEN
         CALL cxios_get_context_calendar_type(context_hdl%daddr, calendar_type_, len(calendar_type_))
@@ -141,7 +141,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(timestep_)) THEN
-        CALL cxios_get_context_timestep(context_hdl%daddr, timestep_, len(timestep_))
+        CALL cxios_get_context_timestep(context_hdl%daddr, timestep_)
       ENDIF
       
       

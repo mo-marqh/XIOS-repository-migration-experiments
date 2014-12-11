@@ -110,8 +110,8 @@ namespace xios {
       ERROR("CContext::solveCalendar(void)",                                       \
             "time_origin: Bad format or date not conform to the calendar");        \
                                                                                    \
-    this->calendar->setTimeStep                                                    \
-          (CDuration::FromString(this->timestep.getValue()));                      \
+    this->calendar->setTimeStep(this->timestep.getValue());                        \
+                                                                                   \
     return;                                                                        \
   }
 #include "calendar_type.conf"

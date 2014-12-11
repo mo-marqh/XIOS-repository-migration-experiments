@@ -18,7 +18,7 @@ USE idata, ONLY : xios(initialize),xios(init_server), xios(finalize), xios(conte
                   xios(getVar_logic), xios(getVar_char), xios(setVar_k8), xios(setVar_k4), xios(setVar_int), &
                   xios(setVar_logic), xios(setVar_char)
 
-USE idate, ONLY : txios(date),txios(time), xios(set_timestep),xios(update_calendar)
+USE idate, ONLY : txios(date), txios(duration), xios(update_calendar)
 
 USE idomain, ONLY : txios(domain), txios(domaingroup), xios(get_domain_handle),  &
                     xios(get_domaingroup_handle),xios(is_valid_domain),     &
@@ -157,7 +157,7 @@ END INTERFACE xios(setVar)
 
  PUBLIC :: txios(domain), txios(domaingroup),txios(field), txios(fieldgroup),txios(file), txios(filegroup), &
           txios(grid), txios(gridgroup), txios(axis), txios(axisgroup),txios(context), txios(date),         &
-          txios(time), txios(variable)
+          txios(duration), txios(variable)
 
  PUBLIC :: xios(set_attr), xios(set_domain_attr), xios(set_domaingroup_attr), xios(set_fieldgroup_attr), &
           xios(set_field_attr), xios(set_file_attr), xios(set_filegroup_attr),          &
@@ -183,7 +183,7 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
            xios(is_valid_variablegroup)
 
  PUBLIC :: xios(set_current_context)
- PUBLIC :: xios(set_timestep),xios(update_calendar)
+ PUBLIC :: xios(update_calendar)
  PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),xios(context_is_initialized), &
            xios(solve_inheritance), xios(close_context_definition), xios(context_finalize), xios(send_field),          &
            xios(field_is_active)

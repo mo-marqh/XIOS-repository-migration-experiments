@@ -145,21 +145,33 @@ extern "C"
   
   
   
-  void cxios_set_context_timestep(context_Ptr context_hdl, const char * timestep, int timestep_size)
+  void cxios_set_context_timestep(context_Ptr context_hdl, cxios_duration timestep_c)
   {
-    std::string timestep_str;
-    if(!cstr2string(timestep, timestep_size, timestep_str)) return;
-     CTimer::get("XIOS").resume();
-    context_hdl->timestep.setValue(timestep_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    context_hdl->timestep.allocate();
+    CDuration& timestep = context_hdl->timestep.get();
+    timestep.year = timestep_c.year;
+    timestep.month = timestep_c.month;
+    timestep.day = timestep_c.day;
+    timestep.hour = timestep_c.hour;
+    timestep.minute = timestep_c.minute;
+    timestep.second = timestep_c.second;
+    timestep.timestep = timestep_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_context_timestep(context_Ptr context_hdl, char * timestep, int timestep_size)
+  void cxios_get_context_timestep(context_Ptr context_hdl, cxios_duration* timestep_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(context_hdl->timestep.getInheritedValue(),timestep , timestep_size))
-      ERROR("void cxios_get_context_timestep(context_Ptr context_hdl, char * timestep, int timestep_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration timestep = context_hdl->timestep.getInheritedValue();
+    timestep_c->year = timestep.year;
+    timestep_c->month = timestep.month;
+    timestep_c->day = timestep.day;
+    timestep_c->hour = timestep.hour;
+    timestep_c->minute = timestep.minute;
+    timestep_c->second = timestep.second;
+    timestep_c->timestep = timestep.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_context_timestep(context_Ptr context_hdl )

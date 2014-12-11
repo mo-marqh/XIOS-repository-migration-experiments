@@ -16,24 +16,28 @@ namespace xios
   template<> string CInterface::getStrFortranType<double>(void) {return string("REAL") ;}
   template<> string CInterface::getStrFortranType<float>(void) {return string("REAL") ;}
   template<> string CInterface::getStrFortranType<CDate>(void) {return string("TYPE(txios(date))") ;}
+  template<> string CInterface::getStrFortranType<CDuration>(void) {return string("TYPE(txios(duration))") ;}
 
   template<> string CInterface::getStrFortranKind<int>(void) {return string("") ;}
   template<> string CInterface::getStrFortranKind<bool>(void) {return string("") ;}
   template<> string CInterface::getStrFortranKind<double>(void) {return string("(KIND=8)") ;}
   template<> string CInterface::getStrFortranKind<float>(void) {return string("(KIND=4)") ;}
   template<> string CInterface::getStrFortranKind<CDate>(void) {return string("") ;}
+  template<> string CInterface::getStrFortranKind<CDuration>(void) {return string("") ;}
 
   template<> string CInterface::getStrFortranKindC<int>(void) {return string("(KIND=C_INT)") ;}
   template<> string CInterface::getStrFortranKindC<bool>(void) {return string("(KIND=C_BOOL)") ;}
   template<> string CInterface::getStrFortranKindC<double>(void) {return string("(KIND=C_DOUBLE)") ;}
   template<> string CInterface::getStrFortranKindC<float>(void) {return string("(KIND=C_FLOAT)") ;}
   template<> string CInterface::getStrFortranKindC<CDate>(void) {return string("") ;}
+  template<> string CInterface::getStrFortranKindC<CDuration>(void) {return string("") ;}
 
   template<> bool CInterface::matchingTypeCFortran<int>(void) { return true ; }
   template<> bool CInterface::matchingTypeCFortran<bool>(void) { return false ;}
   template<> bool CInterface::matchingTypeCFortran<double>(void) { return true; }
   template<> bool CInterface::matchingTypeCFortran<float>(void) { return true; }
   template<> bool CInterface::matchingTypeCFortran<CDate>(void) { return true; }
+  template<> bool CInterface::matchingTypeCFortran<CDuration>(void) { return true; }
 
 
 // /////////////////////////////////////////////////
@@ -161,6 +165,42 @@ namespace xios
     oss << "  " << name << "_c->hour = " << name << ".getHour();" << iendl;
     oss << "  " << name << "_c->minute = " << name << ".getMinute();" << iendl;
     oss << "  " << name << "_c->second = " << name << ".getSecond();" << iendl;
+    oss << "  CTimer::get(\"XIOS\").suspend();" << iendl;
+    oss << "}" << iendl;
+    oss << iendl;
+  }
+
+  template<>
+  void CInterface::AttributeCInterface<CDuration>(ostream& oss, const string& className,const string& name)
+  {
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, cxios_duration " << name << "_c)" << iendl;
+    oss << "{" << iendl;
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl;
+    oss << "  " << className << "_hdl->" << name << ".allocate();" << iendl;
+    oss << "  CDuration& " << name <<" = " << className << "_hdl->" << name << ".get();" << iendl;
+    oss << "  " << name << ".year = " << name << "_c.year;" << iendl;
+    oss << "  " << name << ".month = " << name << "_c.month;" << iendl;
+    oss << "  " << name << ".day = " << name << "_c.day;" << iendl;
+    oss << "  " << name << ".hour = " << name << "_c.hour;" << iendl;
+    oss << "  " << name << ".minute = " << name << "_c.minute;" << iendl;
+    oss << "  " << name << ".second = " << name << "_c.second;" << iendl;
+    oss << "  " << name << ".timestep = " << name << "_c.timestep;" << iendl;
+    oss << "  CTimer::get(\"XIOS\").suspend();" << iendl;
+    oss << "}" << iendl;
+
+    oss << iendl;
+
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, cxios_duration* " << name << "_c)" << iendl;
+    oss << "{" << iendl;
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl;
+    oss << "  CDuration " << name <<" = " << className << "_hdl->" << name << ".getInheritedValue();" << iendl;
+    oss << "  " << name << "_c->year = " << name << ".year;" << iendl;
+    oss << "  " << name << "_c->month = " << name << ".month;" << iendl;
+    oss << "  " << name << "_c->day = " << name << ".day;" << iendl;
+    oss << "  " << name << "_c->hour = " << name << ".hour;" << iendl;
+    oss << "  " << name << "_c->minute = " << name << ".minute;" << iendl;
+    oss << "  " << name << "_c->second = " << name << ".second;" << iendl;
+    oss << "  " << name << "_c->timestep = " << name << ".timestep;" << iendl;
     oss << "  CTimer::get(\"XIOS\").suspend();" << iendl;
     oss << "}" << iendl;
     oss << iendl;
@@ -304,7 +344,7 @@ macro(int)
     oss << "  USE ISO_C_BINDING" << iendl;
     oss << "  USE IDATE" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
-    oss << "  TYPE(xios_date), VALUE :: " << name << iendl;
+    oss << "  TYPE(txios(date)), VALUE :: " << name << iendl;
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << iendl;
     oss << iendl;
     oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
@@ -312,6 +352,25 @@ macro(int)
     oss << "  USE IDATE" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  TYPE(txios(date)) :: " << name << iendl;
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << iendl;
+    oss << iendl;
+  }
+
+  template <>
+  void CInterface::AttributeFortran2003Interface<CDuration>(ostream& oss, const string& className, const string& name)
+  {
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+    oss << "  USE ISO_C_BINDING" << iendl;
+    oss << "  USE IDATE" << iendl;
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
+    oss << "  TYPE(txios(duration)), VALUE :: " << name << iendl;
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << iendl;
+    oss << iendl;
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
+    oss << "  USE ISO_C_BINDING" << iendl;
+    oss << "  USE IDATE" << iendl;
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
+    oss << "  TYPE(txios(duration)) :: " << name << iendl;
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << iendl;
     oss << iendl;
   }

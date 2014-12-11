@@ -290,6 +290,105 @@ namespace xios
     return ret;
   }
 
+// template specializations for CDuration
+
+  template <>
+  size_t CType<CDuration>::_size() const
+  {
+    return 7 * sizeof(double);
+  }
+
+  template <>
+  size_t CType_ref<CDuration>::_size() const
+  {
+    return 7 * sizeof(double);
+  }
+
+  template <>
+  bool CType<CDuration>::_toBuffer(CBufferOut& buffer) const
+  {
+    if (buffer.remain() < size()) return false;
+    else
+    {
+      bool ret = true;
+      if (ret) ret &= buffer.put(ptrValue->year);
+      if (ret) ret &= buffer.put(ptrValue->month);
+      if (ret) ret &= buffer.put(ptrValue->day);
+      if (ret) ret &= buffer.put(ptrValue->hour);
+      if (ret) ret &= buffer.put(ptrValue->minute);
+      if (ret) ret &= buffer.put(ptrValue->second);
+      if (ret) ret &= buffer.put(ptrValue->timestep);
+      return ret;
+    }
+  }
+  
+  template <>
+  bool CType_ref<CDuration>::_toBuffer(CBufferOut& buffer) const
+  {
+    if (buffer.remain() < size()) return false;
+    else
+    {
+      bool ret = true;
+      if (ret) ret &= buffer.put(ptrValue->year);
+      if (ret) ret &= buffer.put(ptrValue->month);
+      if (ret) ret &= buffer.put(ptrValue->day);
+      if (ret) ret &= buffer.put(ptrValue->hour);
+      if (ret) ret &= buffer.put(ptrValue->minute);
+      if (ret) ret &= buffer.put(ptrValue->second);
+      if (ret) ret &= buffer.put(ptrValue->timestep);
+      return ret;
+    }
+  }
+
+  template <>
+  bool CType<CDuration>::_fromBuffer(CBufferIn& buffer)
+  {
+    allocate();
+    bool ret = true;
+
+    if (ret) ret &= buffer.get(ptrValue->year);
+    if (ret) ret &= buffer.get(ptrValue->month);
+    if (ret) ret &= buffer.get(ptrValue->day);
+    if (ret) ret &= buffer.get(ptrValue->hour);
+    if (ret) ret &= buffer.get(ptrValue->minute);
+    if (ret) ret &= buffer.get(ptrValue->second);
+    if (ret) ret &= buffer.get(ptrValue->timestep);
+
+    return ret;
+  }
+
+  template <>
+  bool CType_ref<CDuration>::_fromBuffer(CBufferIn& buffer) const
+  {
+    bool ret = true;
+    
+    if (ret) ret &= buffer.get(ptrValue->year);
+    if (ret) ret &= buffer.get(ptrValue->month);
+    if (ret) ret &= buffer.get(ptrValue->day);
+    if (ret) ret &= buffer.get(ptrValue->hour);
+    if (ret) ret &= buffer.get(ptrValue->minute);
+    if (ret) ret &= buffer.get(ptrValue->second);
+    if (ret) ret &= buffer.get(ptrValue->timestep);
+
+    return ret;
+  }
+
+  template <>
+  bool CType_ref<CDuration>::_fromBuffer(CBufferIn& buffer)
+  {
+    bool ret = true;
+    
+    if (ret) ret &= buffer.get(ptrValue->year);
+    if (ret) ret &= buffer.get(ptrValue->month);
+    if (ret) ret &= buffer.get(ptrValue->day);
+    if (ret) ret &= buffer.get(ptrValue->hour);
+    if (ret) ret &= buffer.get(ptrValue->minute);
+    if (ret) ret &= buffer.get(ptrValue->second);
+    if (ret) ret &= buffer.get(ptrValue->timestep);
+
+    return ret;
+  }
+
   // template specialisation for CArray
 /*
   template<>

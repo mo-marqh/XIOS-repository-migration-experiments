@@ -22,24 +22,6 @@ extern "C"
 {
 // /////////////////////////////// Définitions ////////////////////////////// //
 
-   void cxios_set_timestep(double ts_year, double ts_month,  double ts_day,
-                          double ts_hour, double ts_minute, double ts_second)
-   {
-      try
-      {
-         CTimer::get("XIOS").resume() ;
-         CDuration dur = {ts_year, ts_month, ts_day, ts_hour, ts_minute, ts_second, 0};
-         xios::CContext* context = CContext::getCurrent() ;
-         context->timestep.setValue(dur.toString());
-         CTimer::get("XIOS").suspend() ;
-      }
-      catch (xios::CException & exc)
-      {
-         std::cerr << exc.getMessage() << std::endl;
-         exit (EXIT_FAILURE);
-      }
-   }
-
    void cxios_update_calendar(int step)
    {
       CTimer::get("XIOS").resume() ;

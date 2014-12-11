@@ -55,7 +55,7 @@ MODULE context_interface_attr
       USE ISO_C_BINDING
       USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(xios_date), VALUE :: start_date
+      TYPE(txios(date)), VALUE :: start_date
     END SUBROUTINE cxios_set_context_start_date
     
     SUBROUTINE cxios_get_context_start_date(context_hdl, start_date) BIND(C)
@@ -76,7 +76,7 @@ MODULE context_interface_attr
       USE ISO_C_BINDING
       USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(xios_date), VALUE :: time_origin
+      TYPE(txios(date)), VALUE :: time_origin
     END SUBROUTINE cxios_set_context_time_origin
     
     SUBROUTINE cxios_get_context_time_origin(context_hdl, time_origin) BIND(C)
@@ -93,18 +93,18 @@ MODULE context_interface_attr
     END FUNCTION cxios_is_defined_context_time_origin
     
     
-    SUBROUTINE cxios_set_context_timestep(context_hdl, timestep, timestep_size) BIND(C)
+    SUBROUTINE cxios_set_context_timestep(context_hdl, timestep) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timestep
-      INTEGER  (kind = C_INT)     , VALUE        :: timestep_size
+      TYPE(txios(duration)), VALUE :: timestep
     END SUBROUTINE cxios_set_context_timestep
     
-    SUBROUTINE cxios_get_context_timestep(context_hdl, timestep, timestep_size) BIND(C)
+    SUBROUTINE cxios_get_context_timestep(context_hdl, timestep) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timestep
-      INTEGER  (kind = C_INT)     , VALUE        :: timestep_size
+      TYPE(txios(duration)) :: timestep
     END SUBROUTINE cxios_get_context_timestep
     
     FUNCTION cxios_is_defined_context_timestep(context_hdl ) BIND(C)

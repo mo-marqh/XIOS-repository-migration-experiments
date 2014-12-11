@@ -29,4 +29,5 @@ namespace xios
   macro(bool)
   macro(StdSize)
   macro(CDate)
+  macro(CDuration)
 }

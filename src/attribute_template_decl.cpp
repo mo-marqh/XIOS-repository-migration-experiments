@@ -10,4 +10,5 @@ namespace xios
   template class CAttributeTemplate<bool> ;
   template class CAttributeTemplate<string> ;
   template class CAttributeTemplate<CDate> ;
+  template class CAttributeTemplate<CDuration> ;
 }

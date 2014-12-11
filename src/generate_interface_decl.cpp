@@ -19,4 +19,5 @@ namespace xios
   macro(int)
   macro(double)
   macro(CDate)
+  macro(CDuration)
 }

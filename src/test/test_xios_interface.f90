@@ -12,7 +12,7 @@ PROGRAM test_xios_interface
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
   TYPE(xios_date)      :: start_date, time_origin
-  TYPE(xios_time)      :: dtime
+  TYPE(xios_duration)  :: dtime
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=10
   INTEGER,PARAMETER :: nj_glo=10
@@ -130,7 +130,7 @@ PROGRAM test_xios_interface
 !!! Definition du timestep
 
   dtime%second=3600
-  CALL xios_set_timestep(dtime)
+  CALL xios_set_context_attr("atmosphere", timestep=dtime)
 
 !!! Recupration des valeurs des longitudes et de taille des domaines locaux (pour test de fonctionnalité)
 
@@ -212,7 +212,7 @@ PROGRAM test_xios_interface
 !!! Definition du timestep
 
   dtime%second=1800
-  CALL xios_set_timestep(dtime)
+  CALL xios_set_context_attr("surface", timestep=dtime)
 
 !!! Recupration des valeurs des longitudes et de taille des domaines locaux (pour test de fonctionnalité)
 

@@ -10,7 +10,7 @@ PROGRAM test_client
   
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
-  TYPE(xios_time)      :: dtime
+  TYPE(xios_duration) :: dtime
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100 
@@ -87,7 +87,7 @@ PROGRAM test_client
     
  
     dtime%second=3600
-    CALL xios_set_timestep(dtime) 
+    CALL xios_set_context_attr("test", timestep=dtime)
     
     ni=0 ; lonvalue(:)=0
     CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)

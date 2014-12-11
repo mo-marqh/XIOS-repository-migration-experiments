@@ -10,7 +10,7 @@ PROGRAM test_unstruct_complete
   
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
-  TYPE(xios_time)      :: dtime
+  TYPE(xios_duration) :: dtime
   TYPE(xios_context) :: ctx_hdl
   INTEGER, PARAMETER :: nlon=60 
   INTEGER, PARAMETER :: nlat=30
@@ -208,7 +208,7 @@ PROGRAM test_unstruct_complete
     
  
   dtime%second=3600
-  CALL xios_set_timestep(dtime) 
+  CALL xios_set_context_attr("surface", timestep=dtime)
   CALL xios_close_context_definition()
     
    DO ts=1,24*10
