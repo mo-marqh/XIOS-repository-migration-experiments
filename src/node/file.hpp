@@ -149,9 +149,6 @@ namespace xios {
 
          CDate* lastSync ;
          CDate* lastSplit ;
-         CDuration syncFreq ;
-         CDuration splitFreq ;
-         CDuration outputFreq ;
          int nbDomain ;
          bool isOpen ;
          bool allDomainEmpty ;

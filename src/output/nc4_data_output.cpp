@@ -711,13 +711,11 @@ namespace xios
 
            if (wtime)
            {
-              CDuration duration ;
-
-              duration=CDuration::FromString(field->freq_op) ;
+              CDuration duration = field->freq_op.getValue();
               duration.solveTimeStep(*(context->calendar));
               SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
 
-              duration=CDuration::FromString(field->getRelFile()->output_freq) ;
+              duration = field->getRelFile()->output_freq.getValue();
               duration.solveTimeStep(*(context->calendar));
               SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
            }

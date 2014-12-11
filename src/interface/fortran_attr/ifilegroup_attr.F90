@@ -27,12 +27,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
@@ -58,12 +58,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       
       CALL xios(set_filegroup_attr_hdl_)  &
@@ -89,12 +89,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(IN) :: output_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: par_access_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: sync_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
       
       IF (PRESENT(append_)) THEN
@@ -132,7 +132,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(output_freq_)) THEN
-        CALL cxios_set_filegroup_output_freq(filegroup_hdl%daddr, output_freq_, len(output_freq_))
+        CALL cxios_set_filegroup_output_freq(filegroup_hdl%daddr, output_freq_)
       ENDIF
       
       IF (PRESENT(output_level_)) THEN
@@ -144,7 +144,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(split_freq_)) THEN
-        CALL cxios_set_filegroup_split_freq(filegroup_hdl%daddr, split_freq_, len(split_freq_))
+        CALL cxios_set_filegroup_split_freq(filegroup_hdl%daddr, split_freq_)
       ENDIF
       
       IF (PRESENT(split_freq_format_)) THEN
@@ -152,7 +152,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(sync_freq_)) THEN
-        CALL cxios_set_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_, len(sync_freq_))
+        CALL cxios_set_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_)
       ENDIF
       
       IF (PRESENT(type_)) THEN
@@ -180,12 +180,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
@@ -211,12 +211,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       
       CALL xios(get_filegroup_attr_hdl_)  &
@@ -242,12 +242,12 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq_
       INTEGER  , OPTIONAL, INTENT(OUT) :: output_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: par_access_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: sync_freq_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
       
       IF (PRESENT(append_)) THEN
@@ -285,7 +285,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(output_freq_)) THEN
-        CALL cxios_get_filegroup_output_freq(filegroup_hdl%daddr, output_freq_, len(output_freq_))
+        CALL cxios_get_filegroup_output_freq(filegroup_hdl%daddr, output_freq_)
       ENDIF
       
       IF (PRESENT(output_level_)) THEN
@@ -297,7 +297,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(split_freq_)) THEN
-        CALL cxios_get_filegroup_split_freq(filegroup_hdl%daddr, split_freq_, len(split_freq_))
+        CALL cxios_get_filegroup_split_freq(filegroup_hdl%daddr, split_freq_)
       ENDIF
       
       IF (PRESENT(split_freq_format_)) THEN
@@ -305,7 +305,7 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(sync_freq_)) THEN
-        CALL cxios_get_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_, len(sync_freq_))
+        CALL cxios_get_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_)
       ENDIF
       
       IF (PRESENT(type_)) THEN

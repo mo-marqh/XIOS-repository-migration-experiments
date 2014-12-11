@@ -150,18 +150,18 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_name_suffix
     
     
-    SUBROUTINE cxios_set_file_output_freq(file_hdl, output_freq, output_freq_size) BIND(C)
+    SUBROUTINE cxios_set_file_output_freq(file_hdl, output_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: output_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: output_freq_size
+      TYPE(txios(duration)), VALUE :: output_freq
     END SUBROUTINE cxios_set_file_output_freq
     
-    SUBROUTINE cxios_get_file_output_freq(file_hdl, output_freq, output_freq_size) BIND(C)
+    SUBROUTINE cxios_get_file_output_freq(file_hdl, output_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: output_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: output_freq_size
+      TYPE(txios(duration)) :: output_freq
     END SUBROUTINE cxios_get_file_output_freq
     
     FUNCTION cxios_is_defined_file_output_freq(file_hdl ) BIND(C)
@@ -211,18 +211,18 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_par_access
     
     
-    SUBROUTINE cxios_set_file_split_freq(file_hdl, split_freq, split_freq_size) BIND(C)
+    SUBROUTINE cxios_set_file_split_freq(file_hdl, split_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: split_freq_size
+      TYPE(txios(duration)), VALUE :: split_freq
     END SUBROUTINE cxios_set_file_split_freq
     
-    SUBROUTINE cxios_get_file_split_freq(file_hdl, split_freq, split_freq_size) BIND(C)
+    SUBROUTINE cxios_get_file_split_freq(file_hdl, split_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: split_freq_size
+      TYPE(txios(duration)) :: split_freq
     END SUBROUTINE cxios_get_file_split_freq
     
     FUNCTION cxios_is_defined_file_split_freq(file_hdl ) BIND(C)
@@ -253,18 +253,18 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_split_freq_format
     
     
-    SUBROUTINE cxios_set_file_sync_freq(file_hdl, sync_freq, sync_freq_size) BIND(C)
+    SUBROUTINE cxios_set_file_sync_freq(file_hdl, sync_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: sync_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: sync_freq_size
+      TYPE(txios(duration)), VALUE :: sync_freq
     END SUBROUTINE cxios_set_file_sync_freq
     
-    SUBROUTINE cxios_get_file_sync_freq(file_hdl, sync_freq, sync_freq_size) BIND(C)
+    SUBROUTINE cxios_get_file_sync_freq(file_hdl, sync_freq) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: sync_freq
-      INTEGER  (kind = C_INT)     , VALUE        :: sync_freq_size
+      TYPE(txios(duration)) :: sync_freq
     END SUBROUTINE cxios_get_file_sync_freq
     
     FUNCTION cxios_is_defined_file_sync_freq(file_hdl ) BIND(C)

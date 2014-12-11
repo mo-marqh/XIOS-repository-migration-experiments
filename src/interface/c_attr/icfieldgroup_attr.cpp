@@ -179,21 +179,33 @@ extern "C"
   
   
   
-  void cxios_set_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl, const char * freq_offset, int freq_offset_size)
+  void cxios_set_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl, cxios_duration freq_offset_c)
   {
-    std::string freq_offset_str;
-    if(!cstr2string(freq_offset, freq_offset_size, freq_offset_str)) return;
-     CTimer::get("XIOS").resume();
-    fieldgroup_hdl->freq_offset.setValue(freq_offset_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->freq_offset.allocate();
+    CDuration& freq_offset = fieldgroup_hdl->freq_offset.get();
+    freq_offset.year = freq_offset_c.year;
+    freq_offset.month = freq_offset_c.month;
+    freq_offset.day = freq_offset_c.day;
+    freq_offset.hour = freq_offset_c.hour;
+    freq_offset.minute = freq_offset_c.minute;
+    freq_offset.second = freq_offset_c.second;
+    freq_offset.timestep = freq_offset_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl, char * freq_offset, int freq_offset_size)
+  void cxios_get_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl, cxios_duration* freq_offset_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(fieldgroup_hdl->freq_offset.getInheritedValue(),freq_offset , freq_offset_size))
-      ERROR("void cxios_get_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl, char * freq_offset, int freq_offset_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration freq_offset = fieldgroup_hdl->freq_offset.getInheritedValue();
+    freq_offset_c->year = freq_offset.year;
+    freq_offset_c->month = freq_offset.month;
+    freq_offset_c->day = freq_offset.day;
+    freq_offset_c->hour = freq_offset.hour;
+    freq_offset_c->minute = freq_offset.minute;
+    freq_offset_c->second = freq_offset.second;
+    freq_offset_c->timestep = freq_offset.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_fieldgroup_freq_offset(fieldgroup_Ptr fieldgroup_hdl )
@@ -205,21 +217,33 @@ extern "C"
   
   
   
-  void cxios_set_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl, const char * freq_op, int freq_op_size)
+  void cxios_set_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl, cxios_duration freq_op_c)
   {
-    std::string freq_op_str;
-    if(!cstr2string(freq_op, freq_op_size, freq_op_str)) return;
-     CTimer::get("XIOS").resume();
-    fieldgroup_hdl->freq_op.setValue(freq_op_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->freq_op.allocate();
+    CDuration& freq_op = fieldgroup_hdl->freq_op.get();
+    freq_op.year = freq_op_c.year;
+    freq_op.month = freq_op_c.month;
+    freq_op.day = freq_op_c.day;
+    freq_op.hour = freq_op_c.hour;
+    freq_op.minute = freq_op_c.minute;
+    freq_op.second = freq_op_c.second;
+    freq_op.timestep = freq_op_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl, char * freq_op, int freq_op_size)
+  void cxios_get_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl, cxios_duration* freq_op_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(fieldgroup_hdl->freq_op.getInheritedValue(),freq_op , freq_op_size))
-      ERROR("void cxios_get_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl, char * freq_op, int freq_op_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration freq_op = fieldgroup_hdl->freq_op.getInheritedValue();
+    freq_op_c->year = freq_op.year;
+    freq_op_c->month = freq_op.month;
+    freq_op_c->day = freq_op.day;
+    freq_op_c->hour = freq_op.hour;
+    freq_op_c->minute = freq_op.minute;
+    freq_op_c->second = freq_op.second;
+    freq_op_c->timestep = freq_op.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_fieldgroup_freq_op(fieldgroup_Ptr fieldgroup_hdl )

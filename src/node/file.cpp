@@ -188,9 +188,9 @@ namespace xios {
    {
      CContext* context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
-     if (! sync_freq.isEmpty())
+     if (!sync_freq.isEmpty())
      {
-       if (*lastSync+syncFreq < currentDate)
+       if (*lastSync + sync_freq.getValue() < currentDate)
        {
          *lastSync=currentDate ;
          return true ;
@@ -206,9 +206,6 @@ namespace xios {
       CDate& currentDate=context->calendar->getCurrentDate() ;
       CContextServer* server=context->server ;
 
-      if (! sync_freq.isEmpty()) syncFreq = CDuration::FromString(sync_freq.getValue());
-      if (! split_freq.isEmpty()) splitFreq = CDuration::FromString(split_freq.getValue());
-      if (! output_freq.isEmpty()) outputFreq = CDuration::FromString(output_freq.getValue());
       lastSync=new CDate(currentDate) ;
       lastSplit=new CDate(currentDate) ;
       isOpen=false ;
@@ -252,9 +249,9 @@ namespace xios {
    {
      CContext* context = CContext::getCurrent() ;
      CDate& currentDate=context->calendar->getCurrentDate() ;
-     if (! sync_freq.isEmpty())
+     if (!sync_freq.isEmpty())
      {
-       if (*lastSync+syncFreq <= currentDate)
+       if (*lastSync + sync_freq.getValue() <= currentDate)
        {
          *lastSync=currentDate ;
          data_out->syncFile() ;
@@ -274,11 +271,11 @@ namespace xios {
     {
       CContext* context = CContext::getCurrent() ;
       CDate& currentDate=context->calendar->getCurrentDate() ;
-      if (! split_freq.isEmpty())
+      if (!split_freq.isEmpty())
       {
-        if (currentDate > *lastSplit+splitFreq)
+        if (currentDate > *lastSplit + split_freq.getValue())
         {
-          *lastSplit=*lastSplit+splitFreq ;
+          *lastSplit = *lastSplit + split_freq.getValue();
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
           for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
           createHeader() ;
@@ -303,22 +300,22 @@ namespace xios {
          StdOStringStream oss;
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
-//         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStryyyymmdd()<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStryyyymmdd();
-//         if (!split_freq.isEmpty()) oss<<"_"<<lastSplit->getStr("%y_%mo_%d")<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr("%y_%mo_%d");
+
          if (!split_freq.isEmpty())
          {
            string splitFormat ;
            if (split_freq_format.isEmpty())
            {
-             if (splitFreq.second!=0) splitFormat="%y%mo%d%h%mi%s";
-             else if (splitFreq.minute!=0) splitFormat="%y%mo%d%h%mi";
-             else if (splitFreq.hour!=0) splitFormat="%y%mo%d%h";
-             else if (splitFreq.day!=0) splitFormat="%y%mo%d";
-             else if (splitFreq.month!=0) splitFormat="%y%mo";
-             else splitFormat="%y";
+             if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
+             else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
+             else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
+             else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
+             else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+             else splitFormat = "%y";
            }
            else splitFormat=split_freq_format ;
-           oss<<"_"<<lastSplit->getStr(splitFormat)<<"-"<< (*lastSplit+(splitFreq-1*Second)).getStr(splitFormat);
+           oss << "_" << lastSplit->getStr(splitFormat)
+               << "-" << (*lastSplit + (split_freq.getValue() - 1 * Second)).getStr(splitFormat);
          }
 
         bool append = !this->append.isEmpty() && this->append.getValue();

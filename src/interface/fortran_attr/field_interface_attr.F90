@@ -148,18 +148,18 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_field_ref
     
     
-    SUBROUTINE cxios_set_field_freq_offset(field_hdl, freq_offset, freq_offset_size) BIND(C)
+    SUBROUTINE cxios_set_field_freq_offset(field_hdl, freq_offset) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: freq_offset
-      INTEGER  (kind = C_INT)     , VALUE        :: freq_offset_size
+      TYPE(txios(duration)), VALUE :: freq_offset
     END SUBROUTINE cxios_set_field_freq_offset
     
-    SUBROUTINE cxios_get_field_freq_offset(field_hdl, freq_offset, freq_offset_size) BIND(C)
+    SUBROUTINE cxios_get_field_freq_offset(field_hdl, freq_offset) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: freq_offset
-      INTEGER  (kind = C_INT)     , VALUE        :: freq_offset_size
+      TYPE(txios(duration)) :: freq_offset
     END SUBROUTINE cxios_get_field_freq_offset
     
     FUNCTION cxios_is_defined_field_freq_offset(field_hdl ) BIND(C)
@@ -169,18 +169,18 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_freq_offset
     
     
-    SUBROUTINE cxios_set_field_freq_op(field_hdl, freq_op, freq_op_size) BIND(C)
+    SUBROUTINE cxios_set_field_freq_op(field_hdl, freq_op) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: freq_op
-      INTEGER  (kind = C_INT)     , VALUE        :: freq_op_size
+      TYPE(txios(duration)), VALUE :: freq_op
     END SUBROUTINE cxios_set_field_freq_op
     
-    SUBROUTINE cxios_get_field_freq_op(field_hdl, freq_op, freq_op_size) BIND(C)
+    SUBROUTINE cxios_get_field_freq_op(field_hdl, freq_op) BIND(C)
       USE ISO_C_BINDING
+      USE IDATE
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: freq_op
-      INTEGER  (kind = C_INT)     , VALUE        :: freq_op_size
+      TYPE(txios(duration)) :: freq_op
     END SUBROUTINE cxios_get_field_freq_op
     
     FUNCTION cxios_is_defined_field_freq_op(field_hdl ) BIND(C)

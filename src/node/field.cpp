@@ -517,7 +517,7 @@ namespace xios{
 
       CContext* context = CContext::getCurrent();
 
-      if (freq_op.isEmpty()) freq_op=string("1ts") ;
+      if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
 
       if (operation.isEmpty() )
       {
@@ -526,25 +526,18 @@ namespace xios{
                << "Impossible to define an operation for this field !");
       }
 
-      CDuration freq_offset_ = NoneDu;
-      if (!freq_offset.isEmpty())
-      {
-         freq_offset_ = CDuration::FromString(freq_offset.getValue());
-      }
-      else
-      {
-         freq_offset.setValue(NoneDu.toString());
-      }
+      if (freq_offset.isEmpty())
+        freq_offset.setValue(NoneDu);
 
 //      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
       if (context->hasServer)
       {
          if (hasOutputFile)
          {
-           this->freq_operation_srv =CDuration::FromString(this->file->output_freq.getValue());
-           this->freq_write_srv = CDuration::FromString(this->file->output_freq.getValue());
+           this->freq_operation_srv = this->file->output_freq.getValue();
+           this->freq_write_srv = this->file->output_freq.getValue();
          }
-         this->lastlast_Write_srv     = boost::shared_ptr<CDate>
+         this->lastlast_Write_srv = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
          this->last_Write_srv     = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
@@ -555,25 +548,25 @@ namespace xios{
 
          if (hasOutputFile)
          {
-           const CDuration toffset = this->freq_operation_srv - freq_offset_ - context->getCalendar()->getTimeStep();
+           const CDuration toffset = this->freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
            *this->last_operation_srv   = *this->last_operation_srv - toffset;
          }
       }
 
 //      if (context->hasClient)
 //      {
-         this->freq_operation = CDuration::FromString(freq_op.getValue());
-         if (hasOutputFile) this->freq_write     = CDuration::FromString(this->file->output_freq.getValue());
+         this->freq_operation = freq_op.getValue();
+         if (hasOutputFile) this->freq_write = this->file->output_freq.getValue();
          if (hasFieldOut)
          {
-           this->freq_write = CDuration::FromString(this->fieldOut->freq_op.getValue());
+           this->freq_write = this->fieldOut->freq_op.getValue();
          }
          this->last_Write     = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
          this->last_operation = boost::shared_ptr<CDate>
                         (new CDate(context->getCalendar()->getInitDate()));
 
-         const CDuration toffset = this->freq_operation - freq_offset_ - context->getCalendar()->getTimeStep();
+         const CDuration toffset = this->freq_operation - freq_offset.getValue() - context->getCalendar()->getTimeStep();
          *this->last_operation   = *this->last_operation - toffset;
 
         if (operation.get()=="once") isOnceOperation=true ;

@@ -27,8 +27,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_offset
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_op
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: level
@@ -66,8 +66,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_offset
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_op
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: level
@@ -104,8 +104,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: enabled_
       LOGICAL (KIND=C_BOOL) :: enabled__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_offset_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: freq_op_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(IN) :: level_
@@ -150,11 +150,11 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(freq_offset_)) THEN
-        CALL cxios_set_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_, len(freq_offset_))
+        CALL cxios_set_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_)
       ENDIF
       
       IF (PRESENT(freq_op_)) THEN
-        CALL cxios_set_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_, len(freq_op_))
+        CALL cxios_set_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
       ENDIF
       
       IF (PRESENT(grid_ref_)) THEN
@@ -226,8 +226,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_offset
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_op
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: level
@@ -265,8 +265,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled
       LOGICAL (KIND=C_BOOL) :: enabled_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_offset
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_op
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: level
@@ -303,8 +303,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: enabled_
       LOGICAL (KIND=C_BOOL) :: enabled__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_offset_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: freq_op_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset_
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(OUT) :: level_
@@ -349,11 +349,11 @@ CONTAINS
       ENDIF
       
       IF (PRESENT(freq_offset_)) THEN
-        CALL cxios_get_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_, len(freq_offset_))
+        CALL cxios_get_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_)
       ENDIF
       
       IF (PRESENT(freq_op_)) THEN
-        CALL cxios_get_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_, len(freq_op_))
+        CALL cxios_get_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
       ENDIF
       
       IF (PRESENT(grid_ref_)) THEN

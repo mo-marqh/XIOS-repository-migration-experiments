@@ -6,6 +6,7 @@ MODULE IFILE
    USE FILEGROUP_INTERFACE
 !   USE IFILE_ATTR
 !   USE IFILEGROUP_ATTR
+   USE IDATE
    
    TYPE txios(file)
       INTEGER(kind = C_INTPTR_T) :: daddr

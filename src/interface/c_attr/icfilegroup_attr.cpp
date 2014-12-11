@@ -210,21 +210,33 @@ extern "C"
   
   
   
-  void cxios_set_filegroup_output_freq(filegroup_Ptr filegroup_hdl, const char * output_freq, int output_freq_size)
+  void cxios_set_filegroup_output_freq(filegroup_Ptr filegroup_hdl, cxios_duration output_freq_c)
   {
-    std::string output_freq_str;
-    if(!cstr2string(output_freq, output_freq_size, output_freq_str)) return;
-     CTimer::get("XIOS").resume();
-    filegroup_hdl->output_freq.setValue(output_freq_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->output_freq.allocate();
+    CDuration& output_freq = filegroup_hdl->output_freq.get();
+    output_freq.year = output_freq_c.year;
+    output_freq.month = output_freq_c.month;
+    output_freq.day = output_freq_c.day;
+    output_freq.hour = output_freq_c.hour;
+    output_freq.minute = output_freq_c.minute;
+    output_freq.second = output_freq_c.second;
+    output_freq.timestep = output_freq_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_filegroup_output_freq(filegroup_Ptr filegroup_hdl, char * output_freq, int output_freq_size)
+  void cxios_get_filegroup_output_freq(filegroup_Ptr filegroup_hdl, cxios_duration* output_freq_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(filegroup_hdl->output_freq.getInheritedValue(),output_freq , output_freq_size))
-      ERROR("void cxios_get_filegroup_output_freq(filegroup_Ptr filegroup_hdl, char * output_freq, int output_freq_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration output_freq = filegroup_hdl->output_freq.getInheritedValue();
+    output_freq_c->year = output_freq.year;
+    output_freq_c->month = output_freq.month;
+    output_freq_c->day = output_freq.day;
+    output_freq_c->hour = output_freq.hour;
+    output_freq_c->minute = output_freq.minute;
+    output_freq_c->second = output_freq.second;
+    output_freq_c->timestep = output_freq.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_filegroup_output_freq(filegroup_Ptr filegroup_hdl )
@@ -283,21 +295,33 @@ extern "C"
   
   
   
-  void cxios_set_filegroup_split_freq(filegroup_Ptr filegroup_hdl, const char * split_freq, int split_freq_size)
+  void cxios_set_filegroup_split_freq(filegroup_Ptr filegroup_hdl, cxios_duration split_freq_c)
   {
-    std::string split_freq_str;
-    if(!cstr2string(split_freq, split_freq_size, split_freq_str)) return;
-     CTimer::get("XIOS").resume();
-    filegroup_hdl->split_freq.setValue(split_freq_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->split_freq.allocate();
+    CDuration& split_freq = filegroup_hdl->split_freq.get();
+    split_freq.year = split_freq_c.year;
+    split_freq.month = split_freq_c.month;
+    split_freq.day = split_freq_c.day;
+    split_freq.hour = split_freq_c.hour;
+    split_freq.minute = split_freq_c.minute;
+    split_freq.second = split_freq_c.second;
+    split_freq.timestep = split_freq_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, char * split_freq, int split_freq_size)
+  void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, cxios_duration* split_freq_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(filegroup_hdl->split_freq.getInheritedValue(),split_freq , split_freq_size))
-      ERROR("void cxios_get_filegroup_split_freq(filegroup_Ptr filegroup_hdl, char * split_freq, int split_freq_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration split_freq = filegroup_hdl->split_freq.getInheritedValue();
+    split_freq_c->year = split_freq.year;
+    split_freq_c->month = split_freq.month;
+    split_freq_c->day = split_freq.day;
+    split_freq_c->hour = split_freq.hour;
+    split_freq_c->minute = split_freq.minute;
+    split_freq_c->second = split_freq.second;
+    split_freq_c->timestep = split_freq.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_filegroup_split_freq(filegroup_Ptr filegroup_hdl )
@@ -335,21 +359,33 @@ extern "C"
   
   
   
-  void cxios_set_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, const char * sync_freq, int sync_freq_size)
+  void cxios_set_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, cxios_duration sync_freq_c)
   {
-    std::string sync_freq_str;
-    if(!cstr2string(sync_freq, sync_freq_size, sync_freq_str)) return;
-     CTimer::get("XIOS").resume();
-    filegroup_hdl->sync_freq.setValue(sync_freq_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->sync_freq.allocate();
+    CDuration& sync_freq = filegroup_hdl->sync_freq.get();
+    sync_freq.year = sync_freq_c.year;
+    sync_freq.month = sync_freq_c.month;
+    sync_freq.day = sync_freq_c.day;
+    sync_freq.hour = sync_freq_c.hour;
+    sync_freq.minute = sync_freq_c.minute;
+    sync_freq.second = sync_freq_c.second;
+    sync_freq.timestep = sync_freq_c.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, char * sync_freq, int sync_freq_size)
+  void cxios_get_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, cxios_duration* sync_freq_c)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(filegroup_hdl->sync_freq.getInheritedValue(),sync_freq , sync_freq_size))
-      ERROR("void cxios_get_filegroup_sync_freq(filegroup_Ptr filegroup_hdl, char * sync_freq, int sync_freq_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    CDuration sync_freq = filegroup_hdl->sync_freq.getInheritedValue();
+    sync_freq_c->year = sync_freq.year;
+    sync_freq_c->month = sync_freq.month;
+    sync_freq_c->day = sync_freq.day;
+    sync_freq_c->hour = sync_freq.hour;
+    sync_freq_c->minute = sync_freq.minute;
+    sync_freq_c->second = sync_freq.second;
+    sync_freq_c->timestep = sync_freq.timestep;
+    CTimer::get("XIOS").suspend();
   }
   
   bool cxios_is_defined_filegroup_sync_freq(filegroup_Ptr filegroup_hdl )
