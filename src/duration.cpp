@@ -41,57 +41,52 @@ namespace xios
          return (out);
       }
 
-      StdIStream & operator>>(StdIStream & in , CDuration & duration)
+      StdIStream& operator>>(StdIStream& in , CDuration& duration)
       {
-         duration.year = duration.month  = duration.day    =
-         duration.hour = duration.minute = duration.second = duration.timestep=0.0;
-         double v = 1.0;
-         char   c = '/';
-         while (!in.eof())
-         {
-               if (!(in >> v >> c)) 
-               {
-                 //DEBUG("----> Pb StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
-                 //if (in.eof())  DEBUG("----> Fin de fichier StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
-               }
-               if (in.eof())  
-               {
-                 //DEBUG("----> Fin de fichier StdIStream & operator>>(StdIStream & in , CDuration & duration)") ;
-                 break ;
-               }
-               switch (c)
-               {
-                  case 'y': duration.year   = v; break;
-                  case 'd': duration.day    = v; break;
-                  case 'h': duration.hour   = v; break;
-                  case 's': duration.second = v; break;
-                  case 'm':
-                  {
-                     in >> c;
-                     if     (c == 'i') duration.minute = v;
-                     else if(c == 'o') duration.month  = v;
-                     else
-                     {
-                        StdString valc("m"); valc.append(1, c);
-                        //DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
-                        break;
-                     }
-                     break;
-                  }
-                  case 't' :
-                  {
-                    in >> c;
-                    if (c=='s') duration.timestep = v; 
-                    break;
-                  }
-                  
-                  default:
-                     StdString valc; valc.append(1, c);
-                     //DEBUG("La chaine \"" << valc << "\" ne permet pas de définir une unité de durée.");
-                     break;
-               }
+        duration = NoneDu;
+        double v = 1.0;
+        char   c = '/';
+        bool   invalidUnit = false;
+
+        do
+        {
+          in >> v >> c;
+          if (in.fail())
+            ERROR("StdIStream& operator>>(StdIStream& in , CDuration& duration)",
+                  << "Bad duration format: impossible to read a pair (value, unit).");
+
+          switch (c)
+          {
+            case 'y': duration.year   = v; break;
+            case 'd': duration.day    = v; break;
+            case 'h': duration.hour   = v; break;
+            case 's': duration.second = v; break;
+            case 'm':
+            {
+              in >> c;
+              if      (c == 'i') duration.minute = v;
+              else if (c == 'o') duration.month  = v;
+              else invalidUnit = true;
+              break;
             }
-            return (in);
+            case 't':
+            {
+              in >> c;
+              if (c == 's') duration.timestep = v;
+              else invalidUnit = true;
+              break;
+            }
+            default:
+              invalidUnit = true; 
+              break;
+          }
+
+          if (invalidUnit)
+            ERROR("StdIStream& operator>>(StdIStream& in , CDuration& duration)",
+                  << "Bad duration format: invalid unit, unexpected '" << c << "' character.");
+        } while (in.peek() != EOF); // check whether there is a next character to read 
+
+        return in;
       }
 
       //-----------------------------------------------------------------
