@@ -34,7 +34,8 @@ namespace xios
             friend StdOStream & operator<<(StdOStream & out, const CDate & date);
             friend StdIStream & operator>>(StdIStream & in, CDate & date); // Non testée.
 
-            operator Time(void) const;  // Retourne le nombre de secondes écoulées depuis la date d'origine définie dans le calendrier.
+            //!< Return the number of seconds since the time origin fixed when creating the calendar
+            operator Time(void) const;
 
             /// Traitements ///
             bool checkDate(void); // Vérifie la validité de la date.

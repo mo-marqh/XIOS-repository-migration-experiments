@@ -130,7 +130,7 @@ namespace xios
          const CCalendar& c = getRelCalendar();
 
          // Todo : Tester si la date courante est supérieure à la date initiale.
-         Time retvalue = - c.getNbSecond(c.getInitDate())
+         Time retvalue = - c.getNbSecond(c.getTimeOrigin())
                          + c.getNbSecond(*this);
 
          if ((c.getId().compare("D360")    == 0) ||
