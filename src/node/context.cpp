@@ -352,8 +352,10 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
+
      if (hasClient)
      {
+       std::cout << "Current context " << *this << std::endl;
        // After xml is parsed, there are some more works with post processing
        postProcessing();
 //
@@ -377,11 +379,13 @@ namespace xios {
       // Then, send all enabled fields
        sendEnabledFields();
 
+      // At last, we have all info of domain and axis, then send them
+       sendRefDomainsAxis();
+
       // After that, send all grid (if any)
        sendRefGrid();
 
-      // At last, we have all info of domain and axis, then send them
-       sendRefDomainsAxis();
+
     }
 
     // Now tell server that it can process all messages from client
@@ -507,11 +511,20 @@ namespace xios {
 
      // Résolution des héritages par référence au niveau des fichiers.
       const vector<CFile*> allFiles=CFile::getAll() ;
+      const vector<CGrid*> allGrids= CGrid::getAll();
 
      //if (hasClient && !hasServer)
       if (hasClient)
+      {
         for (unsigned int i = 0; i < allFiles.size(); i++)
           allFiles[i]->solveFieldRefInheritance(apply);
+      }
+
+      unsigned int vecSize = allGrids.size();
+      unsigned int i = 0;
+      for (i = 0; i < vecSize; ++i)
+        allGrids[i]->solveDomainAxisRefInheritance(apply);
+
    }
 
    void CContext::findEnabledFiles(void)
@@ -701,6 +714,7 @@ namespace xios {
    void CContext::recvPostProcessing(CBufferIn& buffer)
    {
       postProcessing();
+      std::cout << "server context " << *this << std::endl;
    }
 
    const StdString& CContext::getIdServer()
@@ -847,6 +861,8 @@ namespace xios {
      {
        gridPtr->sendCreateChild(*it);
        CGrid::get(*it)->sendAllAttributesToServer();
+       CGrid::get(*it)->sendAllDomains();
+       CGrid::get(*it)->sendAllAxis();
      }
    }
 
@@ -880,8 +896,11 @@ namespace xios {
      itE = axisIds.end();
      for (itAxis = axisIds.begin(); itAxis != itE; ++itAxis)
      {
-       axisPtr->sendCreateChild(*itAxis);
-       CAxis::get(*itAxis)->sendAllAttributesToServer();
+       if (!itAxis->empty())
+       {
+         axisPtr->sendCreateChild(*itAxis);
+         CAxis::get(*itAxis)->sendAllAttributesToServer();
+       }
      }
 
      // Create all reference domains on server side
@@ -890,8 +909,10 @@ namespace xios {
      itE = domainIds.end();
      for (itDom = domainIds.begin(); itDom != itE; ++itDom)
      {
-       domPtr->sendCreateChild(*itDom);
-       CDomain::get(*itDom)->sendAllAttributesToServer();
+       if (!itDom->empty()) {
+          domPtr->sendCreateChild(*itDom);
+          CDomain::get(*itDom)->sendAllAttributesToServer();
+       }
      }
    }
 

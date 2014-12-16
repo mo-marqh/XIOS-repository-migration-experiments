@@ -20,13 +20,21 @@ namespace xios {
       : CObjectTemplate<CGrid>(), CGridAttributes()
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
-   { /* Ne rien faire de plus */ }
+      , vDomainGroup_(), vAxisGroup_(), axisOrder_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+   {
+     setVirtualDomainGroup();
+     setVirtualAxisGroup();
+   }
 
    CGrid::CGrid(const StdString & id)
       : CObjectTemplate<CGrid>(id), CGridAttributes()
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
-   { /* Ne rien faire de plus */ }
+      , vDomainGroup_(), vAxisGroup_(), axisOrder_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+   {
+     setVirtualDomainGroup();
+     setVirtualAxisGroup();
+   }
 
    CGrid::~CGrid(void)
    {
@@ -316,16 +324,26 @@ namespace xios {
 
    void CGrid::solveDomainRef(bool sendAtt)
    {
-      if (!domain_ref.isEmpty())
+//      if (!domain_ref.isEmpty())
+//      {
+//         if (CDomain::has(domain_ref.getValue()))
+//         {
+//            this->domain = CDomain::get(domain_ref.getValue()) ;
+//            if (sendAtt) domain->sendCheckedAttributes();
+//            else domain->checkAttributesOnClient() ;
+//         }
+//         else ERROR("CGrid::solveDomainRef(void)",
+//                     << "Wrong domain reference") ;
+//      }
+//      else ERROR("CGrid::solveDomainRef(void)",
+//                  << "Domain reference is not defined") ;
+      setDomainList();
+      this->domain = CDomain::get(domList_.at(0));
+      if (0 != this->domain)
       {
-         if (CDomain::has(domain_ref.getValue()))
-         {
-            this->domain = CDomain::get(domain_ref.getValue()) ;
-            if (sendAtt) domain->sendCheckedAttributes();
-            else domain->checkAttributesOnClient() ;
-         }
-         else ERROR("CGrid::solveDomainRef(void)",
-                     << "Wrong domain reference") ;
+//        this->domain = this->getDomain();
+        if (sendAtt) domain->sendCheckedAttributes();
+        else domain->checkAttributesOnClient() ;
       }
       else ERROR("CGrid::solveDomainRef(void)",
                   << "Domain reference is not defined") ;
@@ -335,17 +353,42 @@ namespace xios {
 
    void CGrid::solveAxisRef(bool checkAtt)
    {
-      if (!axis_ref.isEmpty())
+//      if (!axis_ref.isEmpty())
+//      {
+//         this->withAxis = true ;
+//         if (CAxis::get(axis_ref.getValue()))
+//         {
+//            this->axis = CAxis::get(axis_ref.getValue()) ;
+//            axis->checkAttributes() ;
+//         }
+//         else ERROR("CGrid::solveAxisRef(void)",
+//                    << "Wrong axis reference") ;
+//      }
+//      else withAxis = false ;
+//      getAllAxis();
+      setAxisList();
+      if (!axisList_.empty())
       {
-         this->withAxis = true ;
-         if (CAxis::get(axis_ref.getValue()))
-         {
-            this->axis = CAxis::get(axis_ref.getValue()) ;
-            axis->checkAttributes() ;
-         }
-         else ERROR("CGrid::solveAxisRef(void)",
-                    << "Wrong axis reference") ;
+        int sizeList = axisList_.size();
+        for (int i = 0; i < sizeList; ++i)
+        {
+          CAxis::get(axisList_.at(i))->checkAttributes();
+          this->axis = CAxis::get(axisList_.at(i));
+        }
+        withAxis = true;
+
       }
+//      if (!axis_ref.isEmpty())
+//      {
+//         this->withAxis = true ;
+//         if (CAxis::get(axis_ref.getValue()))
+//         {
+//            this->axis = CAxis::get(axis_ref.getValue()) ;
+//            axis->checkAttributes() ;
+//         }
+//         else ERROR("CGrid::solveAxisRef(void)",
+//                    << "Wrong axis reference") ;
+//      }
       else withAxis = false ;
    }
 
@@ -444,7 +487,10 @@ namespace xios {
    {
       StdString new_id = StdString("__") + domain->getId() + StdString("__") ;
       CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
-      grid->domain_ref.setValue(domain->getId());
+
+      std::vector<CDomain*> vecDom(1,domain);
+      grid->setDomainList(vecDom);
+//      grid->domain_ref.setValue(domain->getId());
       return (grid);
    }
 
@@ -453,9 +499,37 @@ namespace xios {
       StdString new_id = StdString("__") + domain->getId() +
                          StdString("_") + axis->getId() + StdString("__") ;
       CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
-      grid->domain_ref.setValue(domain->getId());
-      grid->axis_ref.setValue(axis->getId());
+
+      std::vector<CDomain*> vecDom(1,domain);
+      std::vector<CAxis*> vecAxis(1,axis);
+      grid->setDomainList(vecDom);
+      grid->setAxisList(vecAxis);
+//      grid->domain_ref.setValue(domain->getId());
+//      grid->axis_ref.setValue(axis->getId());
       return (grid);
+   }
+
+   CGrid* CGrid::createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis)
+   {
+      StdString new_id = StdString("__");
+      if (!domains.empty()) for (int i = 0; i < domains.size(); ++i) new_id += domains[i]->getId() + StdString("_");
+      if (!axis.empty()) for (int i = 0; i < axis.size(); ++i) new_id += axis[i]->getId() + StdString("_") ;
+      new_id += StdString("_");
+
+      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
+      grid->setDomainList(domains);
+      grid->setAxisList(axis);
+      return (grid);
+   }
+
+   CDomainGroup* CGrid::getVirtualDomainGroup() const
+   {
+     return (this->vDomainGroup_);
+   }
+
+   CAxisGroup* CGrid::getVirtualAxisGroup() const
+   {
+     return (this->vAxisGroup_);
    }
 
    //----------------------------------------------------------------
@@ -678,6 +752,13 @@ namespace xios {
     out_l_fromClient.insert(pair< int,CArray<int,1>* >(rank,new CArray<int,1>(out_l) )) ;
   }
 
+   /*!
+   \brief Dispatch event received from client
+      Whenever a message is received in buffer of server, it will be processed depending on
+   its event type. A new event type should be added in the switch list to make sure
+   it processed on server side.
+   \param [in] event: Received message
+   */
   bool CGrid::dispatchEvent(CEventServer& event)
   {
 
@@ -691,6 +772,15 @@ namespace xios {
           return true ;
           break ;
 
+         case EVENT_ID_ADD_DOMAIN :
+           recvAddDomain(event) ;
+           return true ;
+           break ;
+
+         case EVENT_ID_ADD_AXIS :
+           recvAddAxis(event) ;
+           return true ;
+           break ;
         default :
           ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
                 <<"Unknown Event") ;
@@ -722,5 +812,301 @@ namespace xios {
      for(int k=0;k<nb;k++) fieldOut(k)=fieldIn(index(k)) ;
     }
    ///---------------------------------------------------------------
+
+   CDomain* CGrid::addDomain(const std::string& id)
+   {
+     return vDomainGroup_->createChild(id) ;
+   }
+
+   CAxis* CGrid::addAxis(const std::string& id)
+   {
+     return vAxisGroup_->createChild(id) ;
+   }
+
+   //! Change virtual field group to a new one
+   void CGrid::setVirtualDomainGroup(CDomainGroup* newVDomainGroup)
+   {
+      this->vDomainGroup_ = newVDomainGroup;
+   }
+
+   //! Change virtual variable group to new one
+   void CGrid::setVirtualAxisGroup(CAxisGroup* newVAxisGroup)
+   {
+      this->vAxisGroup_ = newVAxisGroup;
+   }
+
+   //----------------------------------------------------------------
+   //! Create virtual field group, which is done normally on initializing file
+   void CGrid::setVirtualDomainGroup(void)
+   {
+      this->setVirtualDomainGroup(CDomainGroup::create());
+   }
+
+   //! Create virtual variable group, which is done normally on initializing file
+   void CGrid::setVirtualAxisGroup(void)
+   {
+      this->setVirtualAxisGroup(CAxisGroup::create());
+   }
+
+   /*!
+   \brief Send a message to create a domain on server side
+   \param[in] id String identity of domain that will be created on server
+   */
+   void CGrid::sendAddDomain(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_DOMAIN) ;
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+   }
+
+   /*!
+   \brief Send a message to create an axis on server side
+   \param[in] id String identity of axis that will be created on server
+   */
+   void CGrid::sendAddAxis(const string& id)
+   {
+    CContext* context=CContext::getCurrent() ;
+
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client ;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_AXIS) ;
+       if (client->isServerLeader())
+       {
+         CMessage msg ;
+         msg<<this->getId() ;
+         msg<<id ;
+         event.push(client->getServerLeader(),1,msg) ;
+         client->sendEvent(event) ;
+       }
+       else client->sendEvent(event) ;
+    }
+   }
+
+   /*!
+   \brief Receive a message annoucing the creation of a domain on server side
+   \param[in] event Received event
+   */
+   void CGrid::recvAddDomain(CEventServer& event)
+   {
+
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddDomain(*buffer) ;
+   }
+
+   /*!
+   \brief Receive a message annoucing the creation of a domain on server side
+   \param[in] buffer Buffer containing message
+   */
+   void CGrid::recvAddDomain(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addDomain(id) ;
+   }
+
+   /*!
+   \brief Receive a message annoucing the creation of an axis on server side
+   \param[in] event Received event
+   */
+   void CGrid::recvAddAxis(CEventServer& event)
+   {
+
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id ;
+      get(id)->recvAddAxis(*buffer) ;
+   }
+
+   /*!
+   \brief Receive a message annoucing the creation of an axis on server side
+   \param[in] buffer Buffer containing message
+   */
+   void CGrid::recvAddAxis(CBufferIn& buffer)
+   {
+      string id ;
+      buffer>>id ;
+      addAxis(id) ;
+   }
+
+  void CGrid::solveDomainAxisRefInheritance(bool apply)
+  {
+    CContext* context = CContext::getCurrent();
+    unsigned int vecSize, i;
+    std::vector<StdString>::iterator it, itE;
+    setDomainList();
+    it = domList_.begin(); itE = domList_.end();
+    for (; it != itE; ++it)
+    {
+      CDomain* pDom = CDomain::get(*it);
+      if (context->hasClient)
+      {
+        pDom->solveRefInheritance(apply);
+        pDom->solveBaseReference();
+        if ((!pDom->domain_ref.isEmpty()) && (pDom->name.isEmpty()))
+          pDom->name.setValue(pDom->getBaseDomainReference()->getId());
+
+      }
+    }
+
+    setAxisList();
+    it = axisList_.begin(); itE = axisList_.end();
+    for (; it != itE; ++it)
+    {
+      CAxis* pAxis = CAxis::get(*it);
+      if (context->hasClient)
+      {
+        pAxis->solveRefInheritance(apply);
+        pAxis->solveBaseReference();
+        if ((!pAxis->axis_ref.isEmpty()) && (pAxis->name.isEmpty()))
+          pAxis->name.setValue(pAxis->getBaseAxisReference()->getId());
+      }
+    }
+  }
+
+  std::vector<CDomain*> CGrid::getDomains()
+  {
+    std::vector<CDomain*> domList;
+    if (!domList_.empty())
+    {
+      for (int i = 0; i < domList_.size(); ++i) domList.push_back(CDomain::get(domList_[i]));
+    }
+    return domList;
+  }
+
+  std::vector<CAxis*> CGrid::getAxis()
+  {
+    std::vector<CAxis*> aList;
+    if (!axisList_.empty())
+      for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
+
+    return aList;
+  }
+
+  void CGrid::setDomainList(const std::vector<CDomain*> domains)
+  {
+    if (isDomListSet) return;
+    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
+    if (!domains.empty() && domList.empty()) domList = domains;
+    if (!domList.empty())
+    {
+      int sizeDom = domList.size();
+      domList_.resize(sizeDom);
+      for (int i = 0 ; i < sizeDom; ++i)
+      {
+        domList_[i] = domList[i]->getId();
+      }
+      isDomListSet = true;
+    }
+
+  }
+
+  void CGrid::setAxisList(const std::vector<CAxis*> axis)
+  {
+    if (isAxisListSet) return;
+    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
+    if (!axis.empty() && aList.empty()) aList = axis;
+    if (!aList.empty())
+    {
+      int sizeAxis = aList.size();
+      axisList_.resize(sizeAxis);
+      for (int i = 0; i < sizeAxis; ++i)
+      {
+        axisList_[i] = aList[i]->getId();
+      }
+      isAxisListSet = true;
+    }
+  }
+
+  std::vector<StdString> CGrid::getDomainList()
+  {
+    setDomainList();
+    return domList_;
+  }
+
+  std::vector<StdString> CGrid::getAxisList()
+  {
+    setAxisList();
+    return axisList_;
+  }
+
+  void CGrid::sendAllDomains()
+  {
+    std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
+    int dSize = domList.size();
+    for (int i = 0; i < dSize; ++i)
+    {
+      sendAddDomain(domList[i]->getId());
+      domList[i]->sendAllAttributesToServer();
+    }
+  }
+
+  void CGrid::sendAllAxis()
+  {
+    std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
+    int aSize = aList.size();
+
+    for (int i = 0; i < aSize; ++i)
+    {
+      sendAddAxis(aList[i]->getId());
+      aList[i]->sendAllAttributesToServer();
+    }
+  }
+
+  void CGrid::parse(xml::CXMLNode & node)
+  {
+    SuperClass::parse(node);
+
+    if (node.goToChildElement())
+    {
+      int domainIdx = -1;
+      int posAxis = 0;
+      StdString domainName("domain");
+      StdString axisName("axis");
+      do
+      {
+        if (node.getElementName() == domainName) {
+          axisOrder_.push_back(domainIdx);
+          this->getVirtualDomainGroup()->parseChild(node);
+        }
+        if (node.getElementName() == axisName) {
+          axisOrder_.push_back(posAxis);
+          ++posAxis;
+          this->getVirtualAxisGroup()->parseChild(node);
+        }
+      } while (node.goToNextElement()) ;
+      node.goToParentElement();
+    }
+
+    if (!axisOrder_.empty())
+    {
+      int sizeOrd = axisOrder_.size();
+      axisDomOrder.resize(sizeOrd);
+      for (int i = 0; i < sizeOrd; ++i)
+      {
+        axisDomOrder(i) = axisOrder_[i];
+      }
+    }
+
+    setDomainList();
+    setAxisList();
+   }
 
 } // namespace xios

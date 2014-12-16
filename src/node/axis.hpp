@@ -6,12 +6,13 @@
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
+#include "declare_ref_func.hpp"
 #include "attribute_array.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
 
 namespace xios {
-   
+
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CAxisGroup;
@@ -64,13 +65,15 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
-         
+
          static ENodeType GetType(void);
 
       private :
 
          bool isChecked;
          std::set<StdString> relFiles;
+
+         DECLARE_REF_FUNC(Axis,axis)
 
 
    }; // class CAxis

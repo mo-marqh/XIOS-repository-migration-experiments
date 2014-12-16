@@ -287,45 +287,6 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   /*!
-   \brief Get pointer to direct field to which the current field refers.
-   */
-   CField* CField::getDirectFieldReference(void) const
-   {
-      if (this->field_ref.isEmpty())
-         return (this->getBaseFieldReference());
-
-      if (! CField::has(this->field_ref.getValue()))
-         ERROR("CField::getDirectFieldReference(void)",
-               << "[ ref_name = " << this->field_ref.getValue() << "]"
-               << " invalid field name !");
-
-      return (CField::get(this->field_ref.getValue()));
-   }
-
-   //----------------------------------------------------------------
-
-   CField* CField::getBaseFieldReference(void) const
-   {
-      return (baseRefObject);
-   }
-
-   //----------------------------------------------------------------
-
-   const std::vector<CField*>& CField::getAllReference(void) const
-   {
-      return (refObject);
-   }
-
-   //----------------------------------------------------------------
-
-   const StdString & CField::getBaseFieldId(void) const
-   {
-      return (this->getBaseFieldReference()->getId());
-   }
-
-   //----------------------------------------------------------------
-
    const CDuration & CField::getFreqOperation(void) const
    {
       return (this->freq_operation);
@@ -344,12 +305,6 @@ namespace xios{
       return (this->foperation);
    }
 
-   //----------------------------------------------------------------
-
-   bool CField::hasDirectFieldReference(void) const
-   {
-     return (!this->field_ref.isEmpty());
-   }
 
    bool CField::isActive(void) const
    {
@@ -430,76 +385,6 @@ namespace xios{
        buildExpression();
        active=true;
      }
-   }
-
-   /*!
-   \brief Searching for all reference of a field
-   If a field refers to (an)other field(s), we will search for all its referenced parents.
-   Moreover, if any father, direct or indirect (e.g: two levels up), has non-empty attributes,
-   all its attributes will be added to the current field
-   \param [in] apply Flag to specify whether current field uses attributes of its father
-               in case the attribute is empty (true) or its attributes are replaced by ones of its father (false)
-   */
-   void CField::solveRefInheritance(bool apply)
-   {
-      std::set<CField *> sset;
-      CField* refer_sptr;
-      CField * refer_ptr = this;
-
-      while (refer_ptr->hasDirectFieldReference())
-      {
-         refer_sptr = refer_ptr->getDirectFieldReference();
-         refer_ptr  = refer_sptr;
-
-         if(sset.end() != sset.find(refer_ptr))
-         {
-            DEBUG (<< "Circular dependency stopped for field object on "
-                   << "\"" + refer_ptr->getId() + "\" !");
-            break;
-         }
-
-         SuperClassAttribute::setAttributes(refer_ptr, apply);
-         sset.insert(refer_ptr);
-      }
-   }
-
-
-   /*!
-   \brief Only on SERVER side. Remove all field_ref from current field
-   On creating a new field on server side, redundant "field_ref" is still kept in the attribute list
-   of the current field. This function removes this from current field
-   */
-   void CField::removeRefInheritance()
-   {
-     if (this->field_ref.isEmpty()) return;
-     this->clearAttribute("field_ref");
-   }
-
-   void CField::solveBaseReference(void)
-   {
-      std::set<CField *> sset;
-      CField* refer_sptr;
-      CField * refer_ptr = this;
-
-      if (this->hasDirectFieldReference())  baseRefObject = getDirectFieldReference();
-      else  baseRefObject = CField::get(this);
-
-      while (refer_ptr->hasDirectFieldReference())
-      {
-         refer_sptr = refer_ptr->getDirectFieldReference();
-         refer_ptr  = refer_sptr;
-
-         if(sset.end() != sset.find(refer_ptr))
-         {
-            DEBUG (<< "Circular dependency stopped for field object on "
-                   << "\"" + refer_ptr->getId() + "\" !");
-            break;
-         }
-
-         sset.insert(refer_ptr);
-      }
-
-      if (hasDirectFieldReference()) baseRefObject->addReference(this) ;
    }
 
    //----------------------------------------------------------------
@@ -651,64 +536,96 @@ namespace xios{
                   << grid_ref.getValue() << "\' is wrong");
       }
 
-      if (grid_ref.isEmpty() &&  domain_ref.isEmpty())
+      if (grid_ref.isEmpty() &&  domain_ref.isEmpty() && axis_ref.isEmpty())
       {
             ERROR("CField::solveGridReference(void)",
-                  << "The horizontal domain for this field is not defined");
+                  << "At least one dimension must be defined for this field.");
+      }
 
-     }
+//     if (!grid_ref.isEmpty())
+//     {
+//       domain = grid->domain;
+//       axis = grid->axis;
+//     }
 
-     CType<string> goodDomain ;
-     CType<string> goodAxis ;
-     if (!grid_ref.isEmpty())
+//     CType<string> goodDomain ;
+//     CType<string> goodAxis ;
+//     if (!grid_ref.isEmpty())
+//     {
+//       if (!grid->domain_ref.isEmpty()) goodDomain=grid->domain_ref ;
+//       if (!grid->axis_ref.isEmpty()) goodAxis=grid->axis_ref ;
+//     }
+//     if (!domain_ref.isEmpty()) goodDomain=domain_ref ;
+//     if (!axis_ref.isEmpty()) goodAxis=axis_ref ;
+
+//     CArray<std::string,1> domListTmp = grid->domainList.getValue();
+//     CArray<std::string,1> axisListTmp = grid->axisList.getValue();
+
+     std::vector<std::string> domList, axisList;
+     if (0 != grid)
      {
-       if (!grid->domain_ref.isEmpty()) goodDomain=grid->domain_ref ;
-       if (!grid->axis_ref.isEmpty()) goodAxis=grid->axis_ref ;
+       domList = grid->getDomainList();
+       axisList = grid->getAxisList();
      }
-     if (!domain_ref.isEmpty()) goodDomain=domain_ref ;
-     if (!axis_ref.isEmpty()) goodAxis=axis_ref ;
 
-
-     if (goodDomain.isEmpty())
+     if (domList.empty() && axisList.empty())
      {
-       ERROR("CField::solveGridReference(void)", << "The horizontal domain for this field is not defined");
-     }
-     else
-     {
-       if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain) ;
-       else ERROR("CField::solveGridReference(void)",<< "Reference to the domain \'"<<goodDomain.get() << "\' is wrong") ;
-     }
-
-     if (!goodAxis.isEmpty())
-     {
-       if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis) ;
-       else  ERROR("CField::solveGridReference(void)", << "Reference to the axis \'"
-                  << goodAxis.get() <<"\' is wrong") ;
+       std::vector<CDomain*> vecDom;
+       if (0 != domain) vecDom.push_back(domain);
+       std::vector<CAxis*> vecAxis;
+       if (0 != axis) vecAxis.push_back(axis);
+       this->grid = CGrid::createGrid(vecDom, vecAxis);
      }
 
-     bool nothingToDo=false ;
+//     std::string goodDomain = domListTmp[0];
+//     std::string goodAxis = axisListTmp[0];
 
-     if (!grid_ref.isEmpty())
-     {
-       if (!grid->domain_ref.isEmpty() && goodDomain.get() == grid->domain_ref.get())
-         if (goodAxis.isEmpty()) nothingToDo=true ;
-         else if (!grid->axis_ref.isEmpty())
-                 if (grid->axis_ref.get()==goodAxis.get()) nothingToDo=true ;
-     }
+//     if (goodDomain.isEmpty())
+//     if (goodDomain.empty())
+//     {
+//       ERROR("CField::solveGridReference(void)", << "The horizontal domain for this field is not defined");
+//     }
+//     else
+//     {
+//       if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain) ;
+//       else ERROR("CField::solveGridReference(void)",<< "Reference to the domain \'"
+//                  <<goodDomain << "\' is wrong") ;
+////                  <<goodDomain.get() << "\' is wrong") ;
+//     }
+//
+////     if (!goodAxis.isEmpty())
+//     if (!goodAxis.empty())
+//     {
+//       if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis) ;
+//       else  ERROR("CField::solveGridReference(void)", << "Reference to the axis \'"
+//                  << goodAxis <<"\' is wrong") ;
+//                  << goodAxis.get() <<"\' is wrong") ;
+//     }
 
-     if (!nothingToDo)
-     {
-       if (!goodAxis.isEmpty())
-       {
-         this->grid = CGrid::createGrid(domain, axis) ;
-         this->grid_ref.setValue(this->grid->getId());
-       }
-       else
-       {
-         this->grid = CGrid::createGrid(domain) ;
-         this->grid_ref.setValue(this->grid->getId());
-       }
-     }
+//     bool nothingToDo=false ;
+//
+//     if (!grid_ref.isEmpty())
+//     {
+//       if (!grid->domain_ref.isEmpty() && goodDomain.get() == grid->domain_ref.get())
+//         if (goodAxis.isEmpty()) nothingToDo=true ;
+//         else if (!grid->axis_ref.isEmpty())
+//                 if (grid->axis_ref.get()==goodAxis.get()) nothingToDo=true ;
+//     }
+//
+//     nothingToDo = true;
+//     if (!nothingToDo)
+//     {
+//       if (!goodAxis.isEmpty())
+//       {
+//         this->grid = CGrid::createGrid(domain, axis) ;
+//         this->grid_ref.setValue(this->grid->getId());
+//       }
+//       else
+//       {
+//         this->grid = CGrid::createGrid(domain) ;
+//         this->grid_ref.setValue(this->grid->getId());
+//       }
+//     }
 
 //     grid->solveReference() ;
 //     grid->solveDomainAxisRef();
@@ -802,11 +719,6 @@ namespace xios{
       hasInstantData=true ;
     }
     return &instantData ;
-  }
-
-  void CField::addReference(CField* field)
-  {
-    refObject.push_back(field) ;
   }
 
   void CField::addDependency(CField* field, int slotId)
@@ -1046,7 +958,129 @@ namespace xios{
       addVariableGroup(id) ;
    }
 
+   DEFINE_REF_FUNC(Field,field)
 
-
+//  void CField::addReference(CField* field)
+//  {
+//    refObject.push_back(field) ;
+//  }
+//
+//   //----------------------------------------------------------------
+//
+//   bool CField::hasDirectFieldReference(void) const
+//   {
+//     return (!this->field_ref.isEmpty());
+//   }
+//
+//   //----------------------------------------------------------------
+//
+//   const StdString & CField::getBaseFieldId(void) const
+//   {
+//      return (this->getBaseFieldReference()->getId());
+//   }
+//
+//
+//   //----------------------------------------------------------------
+//
+//   /*!
+//   \brief Get pointer to direct field to which the current field refers.
+//   */
+//   CField* CField::getDirectFieldReference(void) const
+//   {
+//      if (this->field_ref.isEmpty())
+//         return (this->getBaseFieldReference());
+//
+//      if (! CField::has(this->field_ref.getValue()))
+//         ERROR("CField::getDirectFieldReference(void)",
+//               << "[ ref_name = " << this->field_ref.getValue() << "]"
+//               << " invalid field name !");
+//
+//      return (CField::get(this->field_ref.getValue()));
+//   }
+//
+//   //----------------------------------------------------------------
+//
+//   CField* CField::getBaseFieldReference(void) const
+//   {
+//      return (baseRefObject);
+//   }
+//
+//   //----------------------------------------------------------------
+//
+//   const std::vector<CField*>& CField::getAllReference(void) const
+//   {
+//      return (refObject);
+//   }
+//
+//
+//   /*!
+//   \brief Searching for all reference of a field
+//   If a field refers to (an)other field(s), we will search for all its referenced parents.
+//   Moreover, if any father, direct or indirect (e.g: two levels up), has non-empty attributes,
+//   all its attributes will be added to the current field
+//   \param [in] apply Flag to specify whether current field uses attributes of its father
+//               in case the attribute is empty (true) or its attributes are replaced by ones of its father (false)
+//   */
+//   void CField::solveRefInheritance(bool apply)
+//   {
+//      std::set<CField *> sset;
+//      CField* refer_sptr;
+//      CField * refer_ptr = this;
+//
+//      while (refer_ptr->hasDirectFieldReference())
+//      {
+//         refer_sptr = refer_ptr->getDirectFieldReference();
+//         refer_ptr  = refer_sptr;
+//
+//         if(sset.end() != sset.find(refer_ptr))
+//         {
+//            DEBUG (<< "Circular dependency stopped for field object on "
+//                   << "\"" + refer_ptr->getId() + "\" !");
+//            break;
+//         }
+//
+//         SuperClassAttribute::setAttributes(refer_ptr, apply);
+//         sset.insert(refer_ptr);
+//      }
+//   }
+//
+//   /*!
+//   \brief Only on SERVER side. Remove all field_ref from current field
+//   On creating a new field on server side, redundant "field_ref" is still kept in the attribute list
+//   of the current field. This function removes this from current field
+//   */
+//   void CField::removeRefInheritance()
+//   {
+//     if (this->field_ref.isEmpty()) return;
+//     this->clearAttribute("field_ref");
+//   }
+//
+//   void CField::solveBaseReference(void)
+//   {
+//      std::set<CField *> sset;
+//      CField* refer_sptr;
+//      CField * refer_ptr = this;
+//
+//      if (this->hasDirectFieldReference())  baseRefObject = getDirectFieldReference();
+//      else  baseRefObject = CField::get(this);
+//
+//      while (refer_ptr->hasDirectFieldReference())
+//      {
+//         refer_sptr = refer_ptr->getDirectFieldReference();
+//         refer_ptr  = refer_sptr;
+//
+//         if(sset.end() != sset.find(refer_ptr))
+//         {
+//            DEBUG (<< "Circular dependency stopped for field object on "
+//                   << "\"" + refer_ptr->getId() + "\" !");
+//            break;
+//         }
+//
+//         sset.insert(refer_ptr);
+//      }
+//
+//      if (hasDirectFieldReference()) baseRefObject->addReference(this) ;
+//   }
+//
 
 } // namespace xios

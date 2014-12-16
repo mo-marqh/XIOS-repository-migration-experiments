@@ -6,6 +6,7 @@
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
+#include "declare_ref_func.hpp"
 #include "event_client.hpp"
 #include "event_server.hpp"
 #include "buffer_in.hpp"
@@ -150,6 +151,8 @@ namespace xios {
          bool isChecked;
          std::set<StdString> relFiles;
          bool isClientChecked; // Verify whether all attributes of domain on the client side is good
+
+         DECLARE_REF_FUNC(Domain,domain)
 
    }; // class CDomain
 

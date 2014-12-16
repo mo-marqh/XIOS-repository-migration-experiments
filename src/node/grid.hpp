@@ -17,6 +17,8 @@ namespace xios {
 
    class CGridGroup;
    class CGridAttributes;
+   class CDomainGroup;
+   class CAxisGroup;
    class CGrid;
 
    ///--------------------------------------------------------------
@@ -43,7 +45,7 @@ namespace xios {
 
          enum EEventId
          {
-           EVENT_ID_INDEX
+           EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS
          } ;
 
          /// Constructeurs ///
@@ -95,6 +97,8 @@ namespace xios {
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,2>& field)  ;
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ;
 
+         virtual void parse(xml::CXMLNode & node);
+
          /// Destructeur ///
          virtual ~CGrid(void);
 
@@ -109,6 +113,7 @@ namespace xios {
          /// Instanciateurs Statiques ///
          static CGrid* createGrid(CDomain* domain);
          static CGrid* createGrid(CDomain* domain, CAxis* axis);
+         static CGrid* createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis);
 
       public :
 
@@ -123,6 +128,17 @@ namespace xios {
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
+         void solveDomainAxisRefInheritance(bool apply = true);
+
+         void sendAddDomain(const std::string& id="");
+         void sendAddAxis(const std::string& id="");
+         void sendAllDomains();
+         void sendAllAxis();
+
+         static void recvAddDomain(CEventServer& event) ;
+         void recvAddDomain(CBufferIn& buffer) ;
+         static void recvAddAxis(CEventServer& event) ;
+         void recvAddAxis(CBufferIn& buffer) ;
 
          static bool dispatchEvent(CEventServer& event) ;
          void outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut) ;
@@ -133,6 +149,11 @@ namespace xios {
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
          std::map<int, StdSize> getConnectedServerDataSize();
+         std::vector<StdString> getDomainList();
+         std::vector<StdString> getAxisList();
+         std::vector<CDomain*> getDomains();
+         std::vector<CAxis*> getAxis();
+
       public:
 
          /// Propriétés privées ///
@@ -166,6 +187,30 @@ namespace xios {
 
          std::map<int, int> domConnectedServerSide_;
          bool isDomConServerComputed_;
+
+      private:
+        void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
+        void setVirtualDomainGroup();
+        void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
+        void setVirtualAxisGroup();
+//        void setAxisList();
+        void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());
+//        void setDomainList();
+        void setDomainList(const std::vector<CDomain*> domains = std::vector<CDomain*>());
+
+        CDomain* addDomain(const std::string& id);
+        CAxis* addAxis(const std::string& id);
+
+        CAxisGroup* getVirtualAxisGroup() const;
+        CDomainGroup* getVirtualDomainGroup() const;
+      private:
+        CDomainGroup* vDomainGroup_;
+        CAxisGroup* vAxisGroup_;
+        std::vector<std::string> axisList_, domList_;
+        bool isAxisListSet, isDomListSet;
+
+        // List order of axis in a grid, if there is a domain, it will take value -1
+        std::vector<int> axisOrder_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

@@ -488,7 +488,7 @@ namespace xios
 
          std::vector<StdString> dims;
          StdString axisid = (!axis->name.isEmpty())
-                           ? axis->name.getValue() : axis->getId();
+                             ? axis->name.getValue() : axis->getId();
          try
          {
            SuperClassWriter::addDimension(axisid, zoom_size);
@@ -503,6 +503,10 @@ namespace xios
                  SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
 
                  SuperClassWriter::addAttribute("axis", StdString("Z"), &axisid);
+
+                 if (!axis->name.isEmpty())
+                    SuperClassWriter::addAttribute
+                       ("name", axis->name.getValue(), &axisid);
 
                  if (!axis->standard_name.isEmpty())
                     SuperClassWriter::addAttribute
@@ -643,12 +647,19 @@ namespace xios
             dims.push_back(timeid);
          }
 
-         if (!grid->axis_ref.isEmpty())
+         std::vector<StdString> axisList = grid->getAxisList();
+         if (!axisList.empty())
          {
-            CAxis* axis = grid->axis ;
-            StdString axisid = (!axis->name.isEmpty()) ? axis->name.getValue() : axis->getId();
-            dims.push_back(axisid);
-            coodinates.push_back(axisid);
+           std::vector<StdString>::const_iterator itAxis = axisList.begin(), iteAxis = axisList.end();
+           for (; itAxis != iteAxis; ++itAxis)
+           {
+             CAxis* axis = CAxis::get(*itAxis);
+             StdString axisid = (!axis->name.isEmpty())
+                                ? axis->name.getValue() : axis->getId();
+
+             dims.push_back(axisid);
+             coodinates.push_back(axisid);
+           }
          }
 
          switch (domain->type)

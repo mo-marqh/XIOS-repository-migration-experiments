@@ -13,7 +13,7 @@
 #include "array_new.hpp"
 #include "attribute_array.hpp"
 #include "expr_node.hpp"
-//#include "context.hpp"
+#include "declare_ref_func.hpp"
 
 
 namespace xios {
@@ -63,10 +63,6 @@ namespace xios {
          CField(const CField * const field); // Not implemented yet.
 
          /// Accesseurs ///
-         CField* getDirectFieldReference(void) const;
-         CField* getBaseFieldReference(void)   const;
-         void addReference(CField* field) ;
-         const std::vector<CField*> & getAllReference(void) const;
 
          CGrid* getRelGrid(void) const ;
          CFile* getRelFile(void) const ;
@@ -85,7 +81,7 @@ namespace xios {
 
          CArray<double, 1> getData(void) const;
 
-         const StdString & getBaseFieldId(void) const;
+
 
          /// Mutateur ///
          void setRelFile(CFile* _file);
@@ -103,9 +99,6 @@ namespace xios {
          std::map<int, StdSize> getGridDataSize();
 
        public :
-
-         /// Test ///
-         bool hasDirectFieldReference(void) const;
          bool isActive(void) const;
          bool active ;
          bool hasOutputFile ;
@@ -113,15 +106,14 @@ namespace xios {
 
          /// Traitements ///
          void processEnabledField(void) ;
-         void solveRefInheritance(bool apply);
-         void solveBaseReference(void);
+
          void solveGridReference(void);
          void solveOperation(void);
          void solveCheckMaskIndex(bool doSendingIndex);
          void solveAllReferenceEnabledField(bool doSending2Sever);
          void buildAllExpressionEnabledField();
          void solveGridDomainAxisRef(bool checkAtt);
-         void removeRefInheritance();  // Remove all reference of current field (it refers to itself)
+
 
 //         virtual void fromBinary(StdIStream & is);
 
@@ -165,12 +157,9 @@ namespace xios {
 
         const std::pair<StdString, StdString>& getDomainAxisIds();
       public :
-
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup ;
 
-         std::vector<CField*> refObject;
-         CField* baseRefObject;
          CGrid*  grid ;
          CFile*  file;
          CField* fieldOut ;
@@ -207,6 +196,21 @@ namespace xios {
          bool areAllReferenceSolved;
          bool areAllExpressionBuilt;
          std::pair<StdString,StdString> domAxisIds_;
+         DECLARE_REF_FUNC(Field,field)
+//       public:
+//         bool hasDirectFieldReference(void) const;
+//         CField* getDirectFieldReference(void) const;
+//         CField* getBaseFieldReference(void) const;
+//         void addReference(CField* field);
+//         const std::vector<CField*> & getAllReference(void) const;
+//void solveRefInheritance(bool apply);
+//void solveBaseReference(void);
+//         void removeRefInheritance();
+//         const StdString & getBaseFieldId(void) const;
+//
+//         std::vector<CField*> refObject;
+//         CField* baseRefObject;
+
 
    }; // class CField
 
