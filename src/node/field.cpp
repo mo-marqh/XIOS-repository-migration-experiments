@@ -507,7 +507,7 @@ namespace xios{
       CAxis* axis;
       std::vector<CDomain*> vecDom;
       std::vector<CAxis*> vecAxis;
-     std::vector<std::string> domList, axisList;
+      std::vector<std::string> domList, axisList;
 
       if (!domain_ref.isEmpty())
       {
