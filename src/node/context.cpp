@@ -355,7 +355,7 @@ namespace xios {
 
      if (hasClient)
      {
-       std::cout << "Current context " << *this << std::endl;
+//       std::cout << "Current context " << *this << std::endl;
        // After xml is parsed, there are some more works with post processing
        postProcessing();
 //
@@ -714,7 +714,7 @@ namespace xios {
    void CContext::recvPostProcessing(CBufferIn& buffer)
    {
       postProcessing();
-      std::cout << "server context " << *this << std::endl;
+//      std::cout << "server context " << *this << std::endl;
    }
 
    const StdString& CContext::getIdServer()

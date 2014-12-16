@@ -17,27 +17,26 @@ extern "C"
 {
   typedef xios::CGridGroup*  gridgroup_Ptr;
   
-  void cxios_set_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, const char * axis_ref, int axis_ref_size)
+  void cxios_set_gridgroup_axisDomOrder(gridgroup_Ptr gridgroup_hdl, int* axisDomOrder, int extent1)
   {
-    std::string axis_ref_str;
-    if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
-     CTimer::get("XIOS").resume();
-    gridgroup_hdl->axis_ref.setValue(axis_ref_str);
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(axisDomOrder,shape(extent1),neverDeleteData) ;
+    gridgroup_hdl->axisDomOrder.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, char * axis_ref, int axis_ref_size)
+  void cxios_get_gridgroup_axisDomOrder(gridgroup_Ptr gridgroup_hdl, int* axisDomOrder, int extent1)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(gridgroup_hdl->axis_ref.getInheritedValue(),axis_ref , axis_ref_size))
-      ERROR("void cxios_get_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(axisDomOrder,shape(extent1),neverDeleteData) ;
+    tmp=gridgroup_hdl->axisDomOrder.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
-  bool cxios_is_defined_gridgroup_axis_ref(gridgroup_Ptr gridgroup_hdl )
+  bool cxios_is_defined_gridgroup_axisDomOrder(gridgroup_Ptr gridgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return gridgroup_hdl->axis_ref.hasInheritedValue();
+    return gridgroup_hdl->axisDomOrder.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   
@@ -64,32 +63,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return gridgroup_hdl->description.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-  }
-  
-  
-  
-  void cxios_set_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, const char * domain_ref, int domain_ref_size)
-  {
-    std::string domain_ref_str;
-    if(!cstr2string(domain_ref, domain_ref_size, domain_ref_str)) return;
-     CTimer::get("XIOS").resume();
-    gridgroup_hdl->domain_ref.setValue(domain_ref_str);
-     CTimer::get("XIOS").suspend();
-  }
-  
-  void cxios_get_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, char * domain_ref, int domain_ref_size)
-  {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(gridgroup_hdl->domain_ref.getInheritedValue(),domain_ref , domain_ref_size))
-      ERROR("void cxios_get_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl, char * domain_ref, int domain_ref_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
-  }
-  
-  bool cxios_is_defined_gridgroup_domain_ref(gridgroup_Ptr gridgroup_hdl )
-  {
-     CTimer::get("XIOS").resume();
-    return gridgroup_hdl->domain_ref.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

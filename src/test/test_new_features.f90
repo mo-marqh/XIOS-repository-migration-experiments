@@ -12,8 +12,8 @@ PROGRAM test_client
   INTEGER :: comm
   TYPE(xios_time)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=5
-  INTEGER,PARAMETER :: nj_glo=5
+  INTEGER,PARAMETER :: ni_glo=100
+  INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
   DOUBLE PRECISION  :: lval2(llm)=1
@@ -79,7 +79,7 @@ PROGRAM test_client
 
   CALL xios_set_context_attr("test",calendar_type="Gregorian")
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
-  CALL xios_set_axis_attr("axis_B",size=llm ,value=lval2) ;
+!  CALL xios_set_axis_attr("axis_B",size=llm ,value=lval2) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))

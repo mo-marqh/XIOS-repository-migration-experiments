@@ -505,11 +505,17 @@ namespace xios{
    {
       CDomain* domain;
       CAxis* axis;
+      std::vector<CDomain*> vecDom;
+      std::vector<CAxis*> vecAxis;
+     std::vector<std::string> domList, axisList;
 
       if (!domain_ref.isEmpty())
       {
          if (CDomain::has(domain_ref.getValue()))
-            domain = CDomain::get(domain_ref.getValue()) ;
+         {
+           domain = CDomain::get(domain_ref.getValue()) ;
+           vecDom.push_back(domain);
+         }
          else
             ERROR("CField::solveGridReference(void)",
                   << "Reference to the domain \'"
@@ -519,7 +525,10 @@ namespace xios{
       if (!axis_ref.isEmpty())
       {
          if (CAxis::has(axis_ref.getValue()))
-            axis = CAxis::get(axis_ref.getValue()) ;
+         {
+           axis = CAxis::get(axis_ref.getValue()) ;
+           vecAxis.push_back(axis);
+         }
          else
             ERROR("CField::solveGridReference(void)",
                   << "Reference to the axis \'"
@@ -529,7 +538,11 @@ namespace xios{
       if (!grid_ref.isEmpty())
       {
          if (CGrid::has(grid_ref.getValue()))
-            this->grid = CGrid::get(grid_ref.getValue()) ;
+         {
+           this->grid = CGrid::get(grid_ref.getValue()) ;
+           domList = grid->getDomainList();
+           axisList = grid->getAxisList();
+         }
          else
             ERROR("CField::solveGridReference(void)",
                   << "Reference to the grid \'"
@@ -561,19 +574,8 @@ namespace xios{
 //     CArray<std::string,1> domListTmp = grid->domainList.getValue();
 //     CArray<std::string,1> axisListTmp = grid->axisList.getValue();
 
-     std::vector<std::string> domList, axisList;
-     if (0 != grid)
-     {
-       domList = grid->getDomainList();
-       axisList = grid->getAxisList();
-     }
-
      if (domList.empty() && axisList.empty())
      {
-       std::vector<CDomain*> vecDom;
-       if (0 != domain) vecDom.push_back(domain);
-       std::vector<CAxis*> vecAxis;
-       if (0 != axis) vecAxis.push_back(axis);
        this->grid = CGrid::createGrid(vecDom, vecAxis);
      }
 
