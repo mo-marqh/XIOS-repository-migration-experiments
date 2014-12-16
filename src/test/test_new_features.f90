@@ -1,4 +1,4 @@
-PROGRAM test_client
+PROGRAM test_new_features
 
   USE xios
   USE mod_wait
@@ -119,7 +119,7 @@ PROGRAM test_client
 
   CALL MPI_FINALIZE(ierr)
 
-END PROGRAM test_client
+END PROGRAM test_new_features
 
 
 
