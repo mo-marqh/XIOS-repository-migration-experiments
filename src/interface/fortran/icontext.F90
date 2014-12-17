@@ -3,31 +3,41 @@
 MODULE ICONTEXT
    USE, INTRINSIC :: ISO_C_BINDING
    USE CONTEXT_INTERFACE
-!   USE icontext_attr
    USE IDATE
+   USE IDURATION
+!   USE icontext_attr
 
-    
+
    TYPE txios(context)
       INTEGER(kind = C_INTPTR_T) :: daddr
    END TYPE txios(context)
-      
-   
+
+
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
-   
+
    SUBROUTINE xios(get_context_handle)(idt,ret)
       IMPLICIT NONE
-      CHARACTER(len = *)  , INTENT(IN)  :: idt      
+      CHARACTER(len = *)  , INTENT(IN)  :: idt
       TYPE(txios(context)), INTENT(OUT):: ret
 
-      CALL cxios_context_handle_create(ret%daddr, idt, len(idt))            
+      CALL cxios_context_handle_create(ret%daddr, idt, len(idt))
    END SUBROUTINE xios(get_context_handle)
-   
+
+   SUBROUTINE xios(get_current_context)(context)
+      IMPLICIT NONE
+
+      TYPE(txios(context)), INTENT(IN) :: context
+
+      CALL cxios_context_get_current(context%daddr)
+
+   END SUBROUTINE xios(get_current_context)
+
    SUBROUTINE xios(set_current_context)(context, withswap)
       IMPLICIT NONE
 
       TYPE(txios(context))          , INTENT(IN) :: context
       LOGICAL             , OPTIONAL, INTENT(IN) :: withswap
-      LOGICAL (kind = 1)                       :: wswap
+      LOGICAL (kind = 1)                         :: wswap
 
       IF (PRESENT(withswap)) THEN
          wswap = withswap
@@ -37,7 +47,7 @@ MODULE ICONTEXT
       CALL cxios_context_set_current(context%daddr, wswap)
 
    END SUBROUTINE xios(set_current_context)
- 
+
    LOGICAL FUNCTION xios(is_valid_context)(idt)
       IMPLICIT NONE
       CHARACTER(len  = *)    , INTENT(IN) :: idt
@@ -48,5 +58,5 @@ MODULE ICONTEXT
 
    END FUNCTION  xios(is_valid_context)
 
-   
+
 END MODULE ICONTEXT

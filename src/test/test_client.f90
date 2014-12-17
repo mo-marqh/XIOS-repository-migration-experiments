@@ -11,6 +11,7 @@ PROGRAM test_client
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
   TYPE(xios_duration) :: dtime
+  TYPE(xios_date) :: date
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100 
@@ -86,28 +87,41 @@ PROGRAM test_client
   CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
     
  
-    dtime%second=3600
-    CALL xios_set_context_attr("test", timestep=dtime)
-    
-    ni=0 ; lonvalue(:)=0
-    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
-    
-    print *,"ni",ni
-    print *,"lonvalue",lonvalue ;
+  dtime%second = 3600
+  CALL xios_set_context_attr("test", timestep=dtime)
 
-    CALL xios_is_defined_field_attr("field_A",enabled=ok)
-    PRINT *,"field_A : attribute enabled is defined ? ",ok
-    CALL xios_close_context_definition()
-    
-    PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-    DO ts=1,24*10
-      CALL xios_update_calendar(ts)
-      CALL xios_send_field("field_A",field_A)
-      CALL wait_us(5000) ;
-    ENDDO
+  ! Create the calendar before closing the context definition
+  ! so that calendar operations can be used
+  CALL xios_set_calendar()
+  CALL xios_get_context_attr("test", time_origin=date)
+  PRINT *, "time_origin = ", date
+  dtime%timestep = 1
+  dtime = 0.5 * dtime
+  PRINT *, "duration = ", dtime
+  date = date + 3 * (dtime + dtime)
+  PRINT *, "date = time_origin + 3 * (duration + duration) = ", date
+  PRINT *, "xios_date_convert_to_seconds(date) = ", xios_date_convert_to_seconds(date)
+  PRINT *, "xios_date_convert_to_seconds(date - 2.5h) = ", xios_date_convert_to_seconds(date - 2.5 * xios_hour)
   
-    CALL xios_context_finalize()
-    CALL xios_finalize()
+  ni=0 ; lonvalue(:)=0
+  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
+  
+  print *,"ni",ni
+  print *,"lonvalue",lonvalue ;
+
+  CALL xios_is_defined_field_attr("field_A",enabled=ok)
+  PRINT *,"field_A : attribute enabled is defined ? ",ok
+  CALL xios_close_context_definition()
+  
+  PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
+  DO ts=1,24*10
+    CALL xios_update_calendar(ts)
+    CALL xios_send_field("field_A",field_A)
+    CALL wait_us(5000) ;
+  ENDDO
+
+  CALL xios_context_finalize()
+  CALL xios_finalize()
   
   CALL MPI_FINALIZE(ierr)
   

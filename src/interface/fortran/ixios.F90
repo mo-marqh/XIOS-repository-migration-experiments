@@ -2,6 +2,7 @@
 
 MODULE XIOS
 
+USE icalendar, ONLY : xios(set_calendar), xios(set_timestep), xios(update_calendar)
 
 USE icontext, ONLY : txios(context), xios(get_context_handle), xios(set_current_context),    &
                      xios(is_valid_context)
@@ -18,7 +19,12 @@ USE idata, ONLY : xios(initialize),xios(init_server), xios(finalize), xios(conte
                   xios(getVar_logic), xios(getVar_char), xios(setVar_k8), xios(setVar_k4), xios(setVar_int), &
                   xios(setVar_logic), xios(setVar_char)
 
-USE idate, ONLY : txios(date), txios(duration), xios(update_calendar)
+USE idate, ONLY : txios(date), &
+                  xios(date_convert_to_seconds), &
+                  xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
+                  xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge), &
+                  OPERATOR(+), OPERATOR(-), &
+                  OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=)
 
 USE idomain, ONLY : txios(domain), txios(domaingroup), xios(get_domain_handle),  &
                     xios(get_domaingroup_handle),xios(is_valid_domain),     &
@@ -31,6 +37,12 @@ USE idomain_attr, ONLY :  xios(set_domain_attr), xios(set_domain_attr_hdl),  &
 USE idomaingroup_attr, ONLY : xios(set_domaingroup_attr), xios(set_domaingroup_attr_hdl),  &
                               xios(get_domaingroup_attr), xios(get_domaingroup_attr_hdl), &
                               xios(is_defined_domaingroup_attr), xios(is_defined_domaingroup_attr_hdl)
+
+USE iduration, ONLY: txios(duration), &
+                     xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
+                     xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg), &
+                     xios(duration_eq), xios(duration_neq), &
+                     OPERATOR(+), OPERATOR(-), OPERATOR(*)
 
 USE ifield, ONLY : txios(field), txios(fieldgroup), xios(get_field_handle),  &
                    xios(get_fieldgroup_handle), xios(is_valid_field),        &
@@ -183,10 +195,22 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
            xios(is_valid_variablegroup)
 
  PUBLIC :: xios(set_current_context)
- PUBLIC :: xios(update_calendar)
  PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),xios(context_is_initialized), &
            xios(solve_inheritance), xios(close_context_definition), xios(context_finalize), xios(send_field),          &
            xios(field_is_active)
+
+ PUBLIC :: xios(set_calendar), xios(set_timestep), xios(update_calendar)
+
+ PUBLIC :: xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
+           xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg), &
+           xios(duration_eq), xios(duration_neq)
+
+ PUBLIC :: xios(date_convert_to_seconds), &
+           xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
+           xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge)
+
+ PUBLIC :: OPERATOR(+), OPERATOR(-), OPERATOR(*), &
+           OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=)
 
  PUBLIC :: xios(getVar)
  PUBLIC :: xios(setVar)

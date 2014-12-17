@@ -95,14 +95,14 @@ MODULE context_interface_attr
     
     SUBROUTINE cxios_set_context_timestep(context_hdl, timestep) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
       TYPE(txios(duration)), VALUE :: timestep
     END SUBROUTINE cxios_set_context_timestep
     
     SUBROUTINE cxios_get_context_timestep(context_hdl, timestep) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
       TYPE(txios(duration)) :: timestep
     END SUBROUTINE cxios_get_context_timestep

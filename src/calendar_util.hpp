@@ -22,6 +22,9 @@ namespace xios
       CDuration operator-(const CDate & dt0, const CDate & dt1);
 
       /// Les opérateurs de comparaison. (Non testés pour le moment)
+      bool operator==(const CDuration& ddr, const CDuration& dr);
+      bool operator!=(const CDuration& ddr, const CDuration& dr);
+
       bool operator==(const CDate& dt0, const CDate& dt1);
       bool operator< (const CDate& dt0, const CDate& dt1);
 

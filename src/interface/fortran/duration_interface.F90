@@ -1,0 +1,51 @@
+#include "../fortran/xios_fortran_prefix.hpp"
+
+MODULE DURATION_INTERFACE
+   USE, INTRINSIC :: ISO_C_BINDING
+
+   TYPE, BIND(C) :: txios(duration)
+      REAL(kind = C_DOUBLE) :: year=0, month=0, day=0, hour=0, minute=0, second=0, timestep=0
+   END TYPE txios(duration)
+     
+   INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
+
+      TYPE(txios(duration)) FUNCTION cxios_duration_add(dur1, dur2) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur1, dur2
+      END FUNCTION cxios_duration_add
+
+      TYPE(txios(duration)) FUNCTION cxios_duration_sub(dur1, dur2) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur1, dur2
+      END FUNCTION cxios_duration_sub
+
+      TYPE(txios(duration)) FUNCTION cxios_duration_mult(val, dur) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         REAL(kind = C_DOUBLE), VALUE :: val
+         TYPE(txios(duration)), VALUE :: dur
+      END FUNCTION cxios_duration_mult
+
+      TYPE(txios(duration)) FUNCTION cxios_duration_neg(dur) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur
+      END FUNCTION cxios_duration_neg
+
+      LOGICAL(kind = C_BOOL) FUNCTION cxios_duration_eq(dur1, dur2) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur1, dur2
+      END FUNCTION cxios_duration_eq
+
+      LOGICAL(kind = C_BOOL) FUNCTION cxios_duration_neq(dur1, dur2) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur1, dur2
+      END FUNCTION cxios_duration_neq
+
+   END INTERFACE
+     
+END MODULE DURATION_INTERFACE

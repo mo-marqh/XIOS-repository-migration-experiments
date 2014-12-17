@@ -150,14 +150,14 @@ MODULE field_interface_attr
     
     SUBROUTINE cxios_set_field_freq_offset(field_hdl, freq_offset) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
       TYPE(txios(duration)), VALUE :: freq_offset
     END SUBROUTINE cxios_set_field_freq_offset
     
     SUBROUTINE cxios_get_field_freq_offset(field_hdl, freq_offset) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
       TYPE(txios(duration)) :: freq_offset
     END SUBROUTINE cxios_get_field_freq_offset
@@ -171,14 +171,14 @@ MODULE field_interface_attr
     
     SUBROUTINE cxios_set_field_freq_op(field_hdl, freq_op) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
       TYPE(txios(duration)), VALUE :: freq_op
     END SUBROUTINE cxios_set_field_freq_op
     
     SUBROUTINE cxios_get_field_freq_op(field_hdl, freq_op) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
       TYPE(txios(duration)) :: freq_op
     END SUBROUTINE cxios_get_field_freq_op

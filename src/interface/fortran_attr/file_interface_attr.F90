@@ -152,14 +152,14 @@ MODULE file_interface_attr
     
     SUBROUTINE cxios_set_file_output_freq(file_hdl, output_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)), VALUE :: output_freq
     END SUBROUTINE cxios_set_file_output_freq
     
     SUBROUTINE cxios_get_file_output_freq(file_hdl, output_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)) :: output_freq
     END SUBROUTINE cxios_get_file_output_freq
@@ -213,14 +213,14 @@ MODULE file_interface_attr
     
     SUBROUTINE cxios_set_file_split_freq(file_hdl, split_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)), VALUE :: split_freq
     END SUBROUTINE cxios_set_file_split_freq
     
     SUBROUTINE cxios_get_file_split_freq(file_hdl, split_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)) :: split_freq
     END SUBROUTINE cxios_get_file_split_freq
@@ -255,14 +255,14 @@ MODULE file_interface_attr
     
     SUBROUTINE cxios_set_file_sync_freq(file_hdl, sync_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)), VALUE :: sync_freq
     END SUBROUTINE cxios_set_file_sync_freq
     
     SUBROUTINE cxios_get_file_sync_freq(file_hdl, sync_freq) BIND(C)
       USE ISO_C_BINDING
-      USE IDATE
+      USE IDURATION
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
       TYPE(txios(duration)) :: sync_freq
     END SUBROUTINE cxios_get_file_sync_freq

@@ -28,13 +28,13 @@ extern "C"
    typedef xios::CContext * XContextPtr;
 
    // ------------------------ Création des handle -----------------------------
-   
+
    void cxios_context_handle_create (XContextPtr * _ret, const char * _id, int _id_len)
    {
-      std::string id; 
+      std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      
+
       std::vector<xios::CContext*> def_vector =
             xios::CContext::getRoot()->getChildList();
 
@@ -52,24 +52,30 @@ extern "C"
              << "Context "<<id<<"  unknown");
       // Lever une exeception ici
    }
-   
+
    // ------------------------ Changements de contextes ------------------------
-   
+
+   void cxios_context_get_current(XContextPtr* context)
+   {
+      CTimer::get("XIOS").resume();
+      *context = CContext::getCurrent();
+      CTimer::get("XIOS").suspend();
+   }
+
    void cxios_context_set_current(XContextPtr context, bool withswap)
    {
       CTimer::get("XIOS").resume() ;
       CContext::setCurrent(context->getId());
       CTimer::get("XIOS").suspend() ;
    }
-   
- 
+
    // -------------------- Vérification des identifiants -----------------------
 
    void cxios_context_valid_id (bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
-      
+
       CTimer::get("XIOS").resume();
       std::vector<xios::CContext*> def_vector =
             xios::CContext::getRoot()->getChildList();

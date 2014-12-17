@@ -361,14 +361,14 @@ macro(int)
   {
     oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
-    oss << "  USE IDATE" << iendl;
+    oss << "  USE IDURATION" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  TYPE(txios(duration)), VALUE :: " << name << iendl;
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << iendl;
     oss << iendl;
     oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ") BIND(C)" << iendl;
     oss << "  USE ISO_C_BINDING" << iendl;
-    oss << "  USE IDATE" << iendl;
+    oss << "  USE IDURATION" << iendl;
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE :: " << className << "_hdl" << iendl;
     oss << "  TYPE(txios(duration)) :: " << name << iendl;
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << iendl;
