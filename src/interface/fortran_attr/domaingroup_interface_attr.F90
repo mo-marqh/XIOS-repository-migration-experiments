@@ -232,6 +232,27 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_domain_group_ref
     
     
+    SUBROUTINE cxios_set_domaingroup_domain_ref(domaingroup_hdl, domain_ref, domain_ref_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_ref
+      INTEGER  (kind = C_INT)     , VALUE        :: domain_ref_size
+    END SUBROUTINE cxios_set_domaingroup_domain_ref
+    
+    SUBROUTINE cxios_get_domaingroup_domain_ref(domaingroup_hdl, domain_ref, domain_ref_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_ref
+      INTEGER  (kind = C_INT)     , VALUE        :: domain_ref_size
+    END SUBROUTINE cxios_get_domaingroup_domain_ref
+    
+    FUNCTION cxios_is_defined_domaingroup_domain_ref(domaingroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_domain_ref
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_domain_ref
+    
+    
     SUBROUTINE cxios_set_domaingroup_group_ref(domaingroup_hdl, group_ref, group_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl

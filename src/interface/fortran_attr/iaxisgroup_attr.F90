@@ -11,12 +11,13 @@ MODULE iaxisgroup_attr
 CONTAINS
   
   SUBROUTINE xios(set_axisgroup_attr)  &
-    ( axisgroup_id, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_id, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
@@ -31,17 +32,18 @@ CONTAINS
       
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(set_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(set_axisgroup_attr)
   
   SUBROUTINE xios(set_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
@@ -55,17 +57,18 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size
       
       CALL xios(set_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(set_axisgroup_attr_hdl)
   
   SUBROUTINE xios(set_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, group_ref_, long_name_, name_, positive_, size_, standard_name_, unit_, value_  &
-    , zoom_begin_, zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, group_ref_, long_name_, name_, positive_, size_, standard_name_  &
+    , unit_, value_, zoom_begin_, zoom_end_, zoom_size_ )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
@@ -77,6 +80,10 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_begin_
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_end_
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size_
+      
+      IF (PRESENT(axis_ref_)) THEN
+        CALL cxios_set_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
       
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_set_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
@@ -127,12 +134,13 @@ CONTAINS
   END SUBROUTINE xios(set_axisgroup_attr_hdl_)
   
   SUBROUTINE xios(get_axisgroup_attr)  &
-    ( axisgroup_id, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_id, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
@@ -147,17 +155,18 @@ CONTAINS
       
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(get_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(get_axisgroup_attr)
   
   SUBROUTINE xios(get_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
@@ -171,17 +180,18 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size
       
       CALL xios(get_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(get_axisgroup_attr_hdl)
   
   SUBROUTINE xios(get_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, group_ref_, long_name_, name_, positive_, size_, standard_name_, unit_, value_  &
-    , zoom_begin_, zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, group_ref_, long_name_, name_, positive_, size_, standard_name_  &
+    , unit_, value_, zoom_begin_, zoom_end_, zoom_size_ )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
@@ -193,6 +203,10 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_begin_
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_end_
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size_
+      
+      IF (PRESENT(axis_ref_)) THEN
+        CALL cxios_get_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
       
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_get_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
@@ -243,12 +257,14 @@ CONTAINS
   END SUBROUTINE xios(get_axisgroup_attr_hdl_)
   
   SUBROUTINE xios(is_defined_axisgroup_attr)  &
-    ( axisgroup_id, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_id, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
@@ -274,17 +290,19 @@ CONTAINS
       
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(is_defined_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(is_defined_axisgroup_attr)
   
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-    , zoom_end, zoom_size )
+    ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+    , zoom_begin, zoom_end, zoom_size )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
+      LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
@@ -309,17 +327,19 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: zoom_size_tmp
       
       CALL xios(is_defined_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, group_ref, long_name, name, positive, size, standard_name, unit, value, zoom_begin  &
-      , zoom_end, zoom_size )
+      ( axisgroup_hdl, axis_ref, group_ref, long_name, name, positive, size, standard_name, unit, value  &
+      , zoom_begin, zoom_end, zoom_size )
     
   END SUBROUTINE xios(is_defined_axisgroup_attr_hdl)
   
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, group_ref_, long_name_, name_, positive_, size_, standard_name_, unit_, value_  &
-    , zoom_begin_, zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, group_ref_, long_name_, name_, positive_, size_, standard_name_  &
+    , unit_, value_, zoom_begin_, zoom_end_, zoom_size_ )
     
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref_
+      LOGICAL(KIND=C_BOOL) :: axis_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
       LOGICAL(KIND=C_BOOL) :: group_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name_
@@ -342,6 +362,11 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: zoom_end__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_size_
       LOGICAL(KIND=C_BOOL) :: zoom_size__tmp
+      
+      IF (PRESENT(axis_ref_)) THEN
+        axis_ref__tmp=cxios_is_defined_axisgroup_axis_ref(axisgroup_hdl%daddr)
+        axis_ref_=axis_ref__tmp
+      ENDIF
       
       IF (PRESENT(group_ref_)) THEN
         group_ref__tmp=cxios_is_defined_axisgroup_group_ref(axisgroup_hdl%daddr)

@@ -17,6 +17,32 @@ extern "C"
 {
   typedef xios::CAxisGroup*  axisgroup_Ptr;
   
+  void cxios_set_axisgroup_axis_ref(axisgroup_Ptr axisgroup_hdl, const char * axis_ref, int axis_ref_size)
+  {
+    std::string axis_ref_str;
+    if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
+     CTimer::get("XIOS").resume();
+    axisgroup_hdl->axis_ref.setValue(axis_ref_str);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axisgroup_axis_ref(axisgroup_Ptr axisgroup_hdl, char * axis_ref, int axis_ref_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(axisgroup_hdl->axis_ref.getInheritedValue(),axis_ref , axis_ref_size))
+      ERROR("void cxios_get_axisgroup_axis_ref(axisgroup_Ptr axisgroup_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_axisgroup_axis_ref(axisgroup_Ptr axisgroup_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axisgroup_hdl->axis_ref.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_axisgroup_group_ref(axisgroup_Ptr axisgroup_hdl, const char * group_ref, int group_ref_size)
   {
     std::string group_ref_str;

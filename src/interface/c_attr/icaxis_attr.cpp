@@ -17,6 +17,32 @@ extern "C"
 {
   typedef xios::CAxis*  axis_Ptr;
   
+  void cxios_set_axis_axis_ref(axis_Ptr axis_hdl, const char * axis_ref, int axis_ref_size)
+  {
+    std::string axis_ref_str;
+    if(!cstr2string(axis_ref, axis_ref_size, axis_ref_str)) return;
+     CTimer::get("XIOS").resume();
+    axis_hdl->axis_ref.setValue(axis_ref_str);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_axis_ref(axis_Ptr axis_hdl, char * axis_ref, int axis_ref_size)
+  {
+     CTimer::get("XIOS").resume();
+    if(!string_copy(axis_hdl->axis_ref.getInheritedValue(),axis_ref , axis_ref_size))
+      ERROR("void cxios_get_axis_axis_ref(axis_Ptr axis_hdl, char * axis_ref, int axis_ref_size)", <<"Input string is to short");
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_axis_axis_ref(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->axis_ref.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_axis_long_name(axis_Ptr axis_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
