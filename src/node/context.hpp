@@ -4,7 +4,7 @@
 /// xios headers ///
 #include "xmlioserver_spl.hpp"
 //#include "node_type.hpp"
-#include "calendar.hpp"
+#include "calendar_wrapper.hpp"
 
 #include "declare_group.hpp"
 //#include "context_client.hpp"
@@ -15,8 +15,8 @@
 
 
 namespace xios {
-   class CContextClient ;
-   class CContextServer ;
+   class CContextClient;
+   class CContextServer;
 
 
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -50,7 +50,7 @@ namespace xios {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
            EVENT_ID_POST_PROCESS
-         } ;
+         };
 
          /// typedef ///
          typedef CObjectTemplate<CContext>   SuperClass;
@@ -86,30 +86,27 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initServer(MPI_Comm intraComm, MPI_Comm interComm) ;
-         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer=0) ;
-         bool isInitialized(void) ;
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm);
+         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer=0);
+         bool isInitialized(void);
 
          // Put sever or client into loop state
-         bool eventLoop(void) ;
-         bool serverLoop(void) ;
-         void clientLoop(void) ;
-
-         // Process all information of calendar
-         void solveCalendar(void);
+         bool eventLoop(void);
+         bool serverLoop(void);
+         void clientLoop(void);
 
          // Finalize a context
-         void finalize(void) ;
-         void closeDefinition(void) ;
+         void finalize(void);
+         void closeDefinition(void);
 
          // Some functions to process context
          void findAllEnabledFields(void);
-         void processEnabledFiles(void) ;
-         void solveAllInheritance(bool apply=true) ;
+         void processEnabledFiles(void);
+         void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
-         void closeAllFile(void) ;
-         void updateCalendar(int step) ;
-         void createFileHeader(void ) ;
+         void closeAllFile(void);
+         void updateCalendar(int step);
+         void createFileHeader(void );
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
          void postProcessing();
@@ -118,10 +115,10 @@ namespace xios {
          void setClientServerBuffer();
 
          // Send context close definition
-         void sendCloseDefinition(void) ;
+         void sendCloseDefinition(void);
          // There are something to send on closing context defintion
-         void sendUpdateCalendar(int step) ;
-         void sendCreateFileHeader(void) ;
+         void sendUpdateCalendar(int step);
+         void sendCreateFileHeader(void);
          void sendEnabledFiles();
          void sendEnabledFields();
          void sendRefDomainsAxis();
@@ -131,18 +128,18 @@ namespace xios {
          const StdString& getIdServer();
 
          // Client side: Receive and process messages
-         static void recvUpdateCalendar(CEventServer& event) ;
-         void recvUpdateCalendar(CBufferIn& buffer) ;
-         static void recvCloseDefinition(CEventServer& event) ;
-         static void recvCreateFileHeader(CEventServer& event) ;
-         void recvCreateFileHeader(CBufferIn& buffer) ;
+         static void recvUpdateCalendar(CEventServer& event);
+         void recvUpdateCalendar(CBufferIn& buffer);
+         static void recvCloseDefinition(CEventServer& event);
+         static void recvCreateFileHeader(CEventServer& event);
+         void recvCreateFileHeader(CBufferIn& buffer);
          static void recvSolveInheritanceContext(CEventServer& event);
          void recvSolveInheritanceContext(CBufferIn& buffer);
          static void recvPostProcessing(CEventServer& event);
          void recvPostProcessing(CBufferIn& buffer);
 
          // dispatch event
-         static bool dispatchEvent(CEventServer& event) ;
+         static bool dispatchEvent(CEventServer& event);
 
       public:
         // Get current context
@@ -190,19 +187,19 @@ namespace xios {
          std::vector<CFile*> enabledFiles;
 
          // Context root
-         static shared_ptr<CContextGroup> root ;
+         static shared_ptr<CContextGroup> root;
 
          // Determine context on client or not
-         bool hasClient ;
+         bool hasClient;
 
          // Determine context on server or not
-         bool hasServer ;
+         bool hasServer;
 
          // Concrete context server
-         CContextServer* server ;
+         CContextServer* server;
 
          // Concrete contex client
-         CContextClient* client ;
+         CContextClient* client;
 
       private:
          bool isPostProcessed;

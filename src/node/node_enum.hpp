@@ -16,7 +16,8 @@ namespace xios
          eFile,gFile,
          eGrid,gGrid,
          eVariable,gVariable,
-         eContext,gContext
+         eContext,gContext,
+         eCalendarWrapper
 
 //#include "node_type.conf"
 

@@ -143,4 +143,44 @@ extern "C"
                                     date2_c.hour, date2_c.minute, date2_c.second);
     return (date1 >= date2);
   }
+
+  int cxios_date_get_second_of_year(cxios_date date_c)
+  {
+    xios::CDate date = xios::CDate(getCalendar("int cxios_date_get_second_of_year(cxios_date date_c)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+    return date.getSecondOfYear();
+  }
+
+  double cxios_date_get_day_of_year(cxios_date date_c)
+  {
+    xios::CDate date = xios::CDate(getCalendar("int cxios_date_get_day_of_year(cxios_date date_c)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+    return date.getDayOfYear();
+  }
+
+  double cxios_date_get_fraction_of_year(cxios_date date_c)
+  {
+    xios::CDate date = xios::CDate(getCalendar("int cxios_date_get_fraction_of_year(cxios_date date_c)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+    return date.getFractionOfYear();
+  }
+
+  int cxios_date_get_second_of_day(cxios_date date_c)
+  {
+    xios::CDate date = xios::CDate(getCalendar("int cxios_date_get_second_of_day(cxios_date date_c)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+    return date.getSecondOfDay();
+  }
+
+  double cxios_date_get_fraction_of_day(cxios_date date_c)
+  {
+    xios::CDate date = xios::CDate(getCalendar("int cxios_date_get_fraction_of_day(cxios_date date_c)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+    return date.getFractionOfDay();
+  }
 } // extern "C"

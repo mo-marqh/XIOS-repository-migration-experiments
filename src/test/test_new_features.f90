@@ -68,7 +68,7 @@ PROGRAM test_new_features
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
-!  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm,llm),lonvalue(ni*nj))
+! ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm,llm),lonvalue(ni*nj))
   lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
   lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
@@ -77,9 +77,9 @@ PROGRAM test_new_features
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
-  CALL xios_set_context_attr("test",calendar_type="Gregorian")
+! CALL xios_define_calendar(type="Gregorian")
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
-!  CALL xios_set_axis_attr("axis_B",size=llm ,value=lval2) ;
+! CALL xios_set_axis_attr("axis_B",size=llm ,value=lval2) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
@@ -95,7 +95,7 @@ PROGRAM test_new_features
 
 
     dtime%second=3600
-    CALL xios_set_context_attr("test", timestep=dtime)
+!   CALL xios_set_timestep(timestep=dtime)
 
     ni=0 ; lonvalue(:)=0
     CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)

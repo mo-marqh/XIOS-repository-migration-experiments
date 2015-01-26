@@ -16,7 +16,7 @@ namespace xios
          public :
 
             /// Constructeur ///
-            CD360Calendar(void);                                   // Not implemented yet.
+            //CD360Calendar(void);                                   // Not implemented yet.
             CD360Calendar(const CDate& startDate);
             CD360Calendar(const CDate& startDate, const CDate& timeOrigin);
             CD360Calendar(int yr = 0, int mth = 1, int d   = 1,

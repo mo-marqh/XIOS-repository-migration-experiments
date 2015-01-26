@@ -11,24 +11,24 @@ namespace xios
          , initDate(*this)
          , timeOrigin(*this)
          , currentDate(*this)
-      {   }
+      {}
 
       CCalendar::CCalendar(const StdString& id)
                : CObject(id)
                , initDate(*this)
                , timeOrigin(*this)
                , currentDate(*this)
-      { }
-      
+      {}
+
       CCalendar::CCalendar(const StdString& id,
-                           int yr, int mth, int d  ,
-                           int hr, int min, int sec)
+                           int yr, int mth, int d,
+                           int hr /*= 0*/, int min /*= 0*/, int sec /*= 0*/)
                : CObject(id)
                , initDate(*this)
                , timeOrigin(*this)
                , currentDate(*this)
-      { 
-        initializeDate(yr, mth, d, hr, min, sec) ;
+      {
+        initializeDate(yr, mth, d, hr, min, sec);
       }
 
       CCalendar::CCalendar(const StdString& id, const CDate& startDate)
@@ -65,27 +65,26 @@ namespace xios
       }
 
       void CCalendar::initializeDate(int yr, int mth, int d,
-                                     int hr, int min, int sec)
+                                     int hr /*= 0*/, int min /*= 0*/, int sec /*= 0*/)
       {
-        initDate=CDate(*this,yr, mth, d, hr, min, sec) ;
-        timeOrigin=initDate;
-        currentDate=initDate ;
+        initDate = CDate(*this, yr, mth, d, hr, min, sec);
+        timeOrigin = initDate;
+        currentDate = initDate;
       }
 
       void CCalendar::initializeDate(const StdString& dateStr)
-      { 
-        initDate=CDate::FromString(dateStr, *this) ;
-        timeOrigin=initDate ;
-        currentDate=initDate ;
+      {
+        initDate = CDate::FromString(dateStr, *this);
+        timeOrigin = initDate;
+        currentDate = initDate;
       }
 
       void CCalendar::initializeDate(const StdString& dateStr, const StdString& timeOriginStr)
-      { 
-        initDate=CDate::FromString(dateStr, *this) ;
-        timeOrigin=CDate::FromString(timeOriginStr, *this) ;
-        currentDate=initDate ;
+      {
+        initDate = CDate::FromString(dateStr, *this);
+        timeOrigin = CDate::FromString(timeOriginStr, *this);
+        currentDate = initDate;
       }
-      
 
       CCalendar::~CCalendar(void)
       { /* Ne rien faire de plus */ }
@@ -101,66 +100,80 @@ namespace xios
          return (oss.str());
       }
 
-      void CCalendar::fromString(const StdString & str)
+      void CCalendar::fromString(const StdString& str)
       { ERROR("CCalendar::fromString(str)",
                << "[ str = " << str << "] Not implemented yet !"); }
 
       //-----------------------------------------------------------------
 
-      void CCalendar::setTimeStep(const CDuration & duration)
-      { this->timestep = duration; }
-
-      CDate & CCalendar::update(int step)
-      { 
-         info(20) << "update step : " << step <<" timestep "<<this->timestep << std::endl;
-         return (this->getCurrentDate() = this->getInitDate() + step * this->timestep);
-      }
-
-      //-----------------------------------------------------------------
-
-      const CDuration & CCalendar::getTimeStep(void) const { return (this->timestep); }
-      const CDate & CCalendar::getInitDate(void) const     { return (this->initDate); }
-      const CDate & CCalendar::getTimeOrigin(void) const     { return (this->timeOrigin); }
-      CDate & CCalendar::getCurrentDate(void)              { return (this->currentDate); }
-
-      //-----------------------------------------------------------------
-
-      int CCalendar::getMonthLength(const CDate & date) const
-      { // Retourne la durée du mois en jour.
-         static const int NoLeapMonthLength[] =
-            {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-         return (NoLeapMonthLength[date.getMonth()-1]);
-      }
-
-      StdString CCalendar::getType(void) const { return (StdString(this->getId())); }
-
-      int CCalendar::getYearTotalLength(const CDate & date) const { return (365 * 86400); }
-
-      int CCalendar::getYearLength  (void) const { return (12); }
-      int CCalendar::getDayLength   (void) const { return (24); }
-      int CCalendar::getHourLength  (void) const { return (60); }
-      int CCalendar::getMinuteLength(void) const { return (60); }
-
-      int CCalendar::getNbSecond(const CDate & date) const
-      { // Retourne le nombre de secondes écoulées depuis le début de l'année.
-         CDate _d0(date); int  nbday = 0;
-
-         for(_d0.setMonth(1); _d0.getMonth() < date.getMonth(); _d0.setMonth(_d0.getMonth()+1))
-            nbday += getMonthLength(_d0);
-         return ((((nbday + date.getDay()) * getDayLength() + date.getHour()) * getHourLength()
-                     + date.getMinute()) * getMinuteLength() + date.getSecond());
-      }
-
-      StdString CCalendar::getMonthName(int month_id) const
+      void CCalendar::setTimeStep(const CDuration& timestep)
       {
-         static const StdString Monthname_str[] =
-            { "january", "february", "march"    , "april"  , "may"     , "june"    ,
-              "july"   , "august"  , "september", "october", "november", "december" };
-         return(Monthname_str[month_id-1]);
+        if (timestep.timestep)
+          ERROR("CCalendar::setTimeStep(const CDuration& timestep)",
+                << "Circular definition of the timestep: the timestep cannot refer to itself.");
+        this->timestep = timestep;
       }
 
-      const StdString CCalendar::getMonthShortName(int month_id) const
-      { StdString value = this->getMonthName(month_id); value.resize(3); return (value); }
+      CDate& CCalendar::update(int step)
+      {
+        info(20) << "update step : " << step << " timestep " << this->timestep << std::endl;
+        return (this->getCurrentDate() = this->getInitDate() + step * this->timestep);
+      }
+
+      //-----------------------------------------------------------------
+
+      void CCalendar::setInitDate(const CDate& initDate)
+      {
+        if (&initDate.getRelCalendar() != this)
+          ERROR("CCalendar::setInitDate(const CDate& initDate)",
+                << "The init date cannot be attached to another calendar.");
+        this->initDate = initDate;
+      }
+
+      void CCalendar::setTimeOrigin(const CDate& timeOrigin)
+      {
+        if (&timeOrigin.getRelCalendar() != this)
+          ERROR("CCalendar::setInitDate(const CDate& timeOrigin)",
+                << "The time origin cannot be attached to another calendar.");
+        this->timeOrigin = timeOrigin;
+      }
+
+      //-----------------------------------------------------------------
+
+      const CDuration& CCalendar::getTimeStep(void) const { return this->timestep; }
+      const CDate& CCalendar::getInitDate(void) const     { return this->initDate; }
+      const CDate& CCalendar::getTimeOrigin(void) const   { return this->timeOrigin; }
+      CDate& CCalendar::getCurrentDate(void)              { return this->currentDate; }
+
+      //-----------------------------------------------------------------
+
+      int CCalendar::getMonthLength(const CDate& date) const
+      { // Retourne la durée du mois en jour.
+        static const int NoLeapMonthLength[] =
+          { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+        return NoLeapMonthLength[date.getMonth() - 1];
+      }
+
+      StdString CCalendar::getType(void) const { return StdString(this->getId()); }
+
+      int CCalendar::getYearTotalLength(const CDate& date) const { return (365 * 86400); }
+
+      int CCalendar::getYearLength  (void) const { return 12; }
+      int CCalendar::getDayLength   (void) const { return 24; }
+      int CCalendar::getHourLength  (void) const { return 60; }
+      int CCalendar::getMinuteLength(void) const { return 60; }
+      int CCalendar::getDayLengthInSeconds(void) const { return getDayLength() * getHourLength() * getMinuteLength(); }
+
+      StdString CCalendar::getMonthName(int monthId) const
+      {
+        static const StdString MonthNames[] =
+          { "january", "february", "march",     "april" ,  "may",      "june",
+            "july",    "august",   "september", "october", "november", "december" };
+        return MonthNames[monthId - 1];
+      }
+
+      const StdString CCalendar::getMonthShortName(int monthId) const
+      { StdString value = this->getMonthName(monthId); value.resize(3); return value; }
 
       ///----------------------------------------------------------------
 

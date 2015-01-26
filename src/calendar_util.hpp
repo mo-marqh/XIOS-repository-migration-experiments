@@ -10,16 +10,16 @@ namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
 
-      CDuration operator*(const double    & scal, const CDuration & ddr);
-      CDuration operator-(const CDuration & ddr , const CDuration & dr);
-      CDuration operator+(const CDuration & ddr , const CDuration & dr);
-      CDuration operator*(const CDuration & ddr , const double    & scal);
-      CDuration operator-(const CDuration & ddr);
+      CDuration operator*(const double& scal,   const CDuration& ddr);
+      CDuration operator-(const CDuration& ddr, const CDuration& dr);
+      CDuration operator+(const CDuration& ddr, const CDuration& dr);
+      CDuration operator*(const CDuration& ddr, const double& scal);
+      CDuration operator-(const CDuration& ddr);
 
-      CDate operator+(const CDate & dt, const CDuration & dr); // Non testée.
-      CDate operator-(const CDate & dt, const CDuration & dr);
+      CDate operator+(const CDate& dt, const CDuration& dr); // Non testée.
+      CDate operator-(const CDate& dt, const CDuration& dr);
 
-      CDuration operator-(const CDate & dt0, const CDate & dt1);
+      CDuration operator-(const CDate& dt0, const CDate& dt1);
 
       /// Les opérateurs de comparaison. (Non testés pour le moment)
       bool operator==(const CDuration& ddr, const CDuration& dr);
@@ -28,10 +28,10 @@ namespace xios
       bool operator==(const CDate& dt0, const CDate& dt1);
       bool operator< (const CDate& dt0, const CDate& dt1);
 
-      bool operator!=(const CDate & dt0, const CDate & dt1);
-      bool operator> (const CDate & dt0, const CDate & dt1);
-      bool operator>=(const CDate & dt0, const CDate & dt1);
-      bool operator<=(const CDate & dt0, const CDate & dt1);
+      bool operator!=(const CDate& dt0, const CDate& dt1);
+      bool operator> (const CDate& dt0, const CDate& dt1);
+      bool operator>=(const CDate& dt0, const CDate& dt1);
+      bool operator<=(const CDate& dt0, const CDate& dt1);
 
       ///---------------------------------------------------------------
 

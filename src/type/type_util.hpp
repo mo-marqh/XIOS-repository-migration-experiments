@@ -4,7 +4,7 @@
 #include <string>
 namespace xios
 {
-    class CDomain ;
+    class CDomain;
     class CDomainGroup;
     class CField;
     class CFieldGroup;
@@ -16,12 +16,13 @@ namespace xios
     class CFileGroup;
     class CContext;
     class CContextGroup;
-    class CVariable ;
-    class CVariableGroup ;
-        
-  template <typename T> inline string getStrType(void) ;
-    
-#define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T) ; }
+    class CCalendarWrapper;
+    class CVariable;
+    class CVariableGroup;
+
+  template <typename T> inline string getStrType(void);
+
+#define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
 
   macro(short)
   macro(unsigned short)
@@ -37,8 +38,8 @@ namespace xios
   macro(wchar_t)
   macro(bool)
 #undef macro
-  
-#define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T) ; }
+
+#define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
   macro(CDomain)
   macro(CDomainGroup)
   macro(CField)
@@ -51,12 +52,11 @@ namespace xios
   macro(CFileGroup)
   macro(CContext)
   macro(CContextGroup)
+  macro(CCalendarWrapper)
   macro(CVariable)
   macro(CVariableGroup)
-  
- 
-#undef macro
 
+#undef macro
 }
 
 

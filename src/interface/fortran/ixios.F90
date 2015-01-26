@@ -2,7 +2,10 @@
 
 MODULE XIOS
 
-USE icalendar, ONLY : xios(set_calendar), xios(set_timestep), xios(update_calendar)
+USE icalendar, ONLY : xios(define_calendar), xios(set_timestep), xios(set_start_date), xios(set_time_origin), &
+                      xios(get_calendar_type), xios(get_timestep), xios(get_start_date), xios(get_time_origin), &
+                      xios(update_calendar), xios(get_current_date), &
+                      xios(get_year_length_in_seconds), xios(get_day_length_in_seconds)
 
 USE icontext, ONLY : txios(context), xios(get_context_handle), xios(set_current_context),    &
                      xios(is_valid_context)
@@ -23,8 +26,11 @@ USE idate, ONLY : txios(date), &
                   xios(date_convert_to_seconds), &
                   xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
                   xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge), &
+                  xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &
+                  xios(date_get_second_of_day), xios(date_get_fraction_of_day), &
                   OPERATOR(+), OPERATOR(-), &
-                  OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=)
+                  OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=), &
+                  ASSIGNMENT(=)
 
 USE idomain, ONLY : txios(domain), txios(domaingroup), xios(get_domain_handle),  &
                     xios(get_domaingroup_handle),xios(is_valid_domain),     &
@@ -199,7 +205,10 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
            xios(solve_inheritance), xios(close_context_definition), xios(context_finalize), xios(send_field),          &
            xios(field_is_active)
 
- PUBLIC :: xios(set_calendar), xios(set_timestep), xios(update_calendar)
+ PUBLIC :: xios(define_calendar), xios(set_timestep), xios(set_start_date), xios(set_time_origin), &
+           xios(get_calendar_type), xios(get_timestep), xios(get_start_date), xios(get_time_origin), &
+           xios(update_calendar), xios(get_current_date), &
+           xios(get_year_length_in_seconds), xios(get_day_length_in_seconds)
 
  PUBLIC :: xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
            xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg), &
@@ -207,10 +216,13 @@ PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_d
 
  PUBLIC :: xios(date_convert_to_seconds), &
            xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
-           xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge)
+           xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge), &
+           xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &
+           xios(date_get_second_of_day), xios(date_get_fraction_of_day)
 
  PUBLIC :: OPERATOR(+), OPERATOR(-), OPERATOR(*), &
-           OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=)
+           OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=), &
+           ASSIGNMENT(=)
 
  PUBLIC :: xios(getVar)
  PUBLIC :: xios(setVar)

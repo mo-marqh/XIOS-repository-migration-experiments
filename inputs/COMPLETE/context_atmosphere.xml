@@ -1,6 +1,6 @@
 <!-- Context atm -->
   
-<context id="atmopshere" calendar_type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-29 15:00:00">
+<context id="atmopshere">
 
   <field_definition level="1" enabled=".FALSE." default_value="9.96921e+36">
     <field id="field_A_atm"  name="field_A_atm" operation="average" freq_op="1ts" domain_ref="domain_atm"  axis_ref="axis_atm" />

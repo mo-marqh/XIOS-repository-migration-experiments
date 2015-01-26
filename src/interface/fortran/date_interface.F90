@@ -6,7 +6,7 @@ MODULE DATE_INTERFACE
    TYPE, BIND(C) :: txios(date)
       INTEGER(kind = C_INT) :: year, month, day, hour, minute, second
    END TYPE txios(date)
-     
+
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
       INTEGER(kind = C_LONG_LONG) FUNCTION cxios_date_convert_to_seconds(date) BIND(C)
@@ -74,6 +74,36 @@ MODULE DATE_INTERFACE
          TYPE(txios(date)), VALUE :: date1, date2
       END FUNCTION cxios_date_ge
 
+      INTEGER(kind = C_INT) FUNCTION cxios_date_get_second_of_year(date) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+      END FUNCTION cxios_date_get_second_of_year
+
+      REAL(kind = C_DOUBLE) FUNCTION cxios_date_get_day_of_year(date) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+      END FUNCTION cxios_date_get_day_of_year
+
+      REAL(kind = C_DOUBLE) FUNCTION cxios_date_get_fraction_of_year(date) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+      END FUNCTION cxios_date_get_fraction_of_year
+
+      INTEGER(kind = C_INT) FUNCTION cxios_date_get_second_of_day(date) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+      END FUNCTION cxios_date_get_second_of_day
+
+      REAL(kind = C_DOUBLE) FUNCTION cxios_date_get_fraction_of_day(date) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+      END FUNCTION cxios_date_get_fraction_of_day
+
    END INTERFACE
-     
+
 END MODULE DATE_INTERFACE

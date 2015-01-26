@@ -36,6 +36,10 @@ MODULE IDATE
       MODULE PROCEDURE xios(date_ge)
    END INTERFACE
 
+   INTERFACE ASSIGNMENT(=)
+      MODULE PROCEDURE xios(date_assign_duration)
+   END INTERFACE
+
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
    FUNCTION xios(date_convert_to_seconds)(date) RESULT(res)
@@ -138,5 +142,60 @@ MODULE IDATE
 
       res = cxios_date_ge(date1, date2)
    END FUNCTION xios(date_ge)
+
+   SUBROUTINE xios(date_assign_duration)(date, dur)
+      USE DATE_INTERFACE, only : txios(date)
+      USE IDURATION, only : txios(duration)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(duration)), INTENT(IN) :: dur
+
+      date = txios(date)(0, 1, 1, 0, 0, 0) + dur
+   END SUBROUTINE xios(date_assign_duration)
+
+   FUNCTION xios(date_get_second_of_year)(date) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      INTEGER(kind = C_INT) :: res
+
+      res = cxios_date_get_second_of_year(date)
+   END FUNCTION xios(date_get_second_of_year)
+
+   FUNCTION xios(date_get_day_of_year)(date) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      REAL(kind = C_DOUBLE) :: res
+
+      res = cxios_date_get_day_of_year(date)
+   END FUNCTION xios(date_get_day_of_year)
+
+   FUNCTION xios(date_get_fraction_of_year)(date) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      REAL(kind = C_DOUBLE) :: res
+
+      res = cxios_date_get_fraction_of_year(date)
+   END FUNCTION xios(date_get_fraction_of_year)
+
+   FUNCTION xios(date_get_second_of_day)(date) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      INTEGER(kind = C_INT) :: res
+
+      res = cxios_date_get_second_of_day(date)
+   END FUNCTION xios(date_get_second_of_day)
+
+   FUNCTION xios(date_get_fraction_of_day)(date) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(OUT) :: date
+      REAL(kind = C_DOUBLE) :: res
+
+      res = cxios_date_get_fraction_of_day(date)
+   END FUNCTION xios(date_get_fraction_of_day)
 
 END MODULE IDATE

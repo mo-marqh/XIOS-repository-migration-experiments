@@ -13,14 +13,15 @@ namespace xios
   template bool CObjectFactory::HasObject<U>(const StdString & id); \
   template bool CObjectFactory::HasObject<U>(const StdString& context,const StdString & id); \
   template boost::shared_ptr<U> CObjectFactory::CreateObject<U>(const StdString & id ); \
-  template  StdString CObjectFactory::GenUId<U>(void) ; 
-  
+  template  StdString CObjectFactory::GenUId<U>(void);
+
   macro(CField)
   macro(CFile)
   macro(CGrid)
   macro(CAxis)
   macro(CDomain)
   macro(CContext)
+  macro(CCalendarWrapper)
   macro(CVariable)
 
   macro(CFieldGroup)

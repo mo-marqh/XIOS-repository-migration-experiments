@@ -7,15 +7,14 @@ PROGRAM test_complete
   INTEGER :: rank
   INTEGER :: size_loc
   INTEGER :: ierr
-  
+
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
-  TYPE(xios_date)      :: start_date, time_origin
   TYPE(xios_duration)  :: dtime
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100 
-  INTEGER,PARAMETER :: llm=5 
+  INTEGER,PARAMETER :: nj_glo=100
+  INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -33,16 +32,16 @@ PROGRAM test_complete
 !!! MPI Initialization
 
   CALL MPI_INIT(ierr)
-  
+
   CALL init_wait
- 
+
 !!! XIOS Initialization (get the local communicator)
 
   CALL xios_initialize(id,return_comm=comm)
 
   CALL MPI_COMM_RANK(comm,rank,ierr)
-  CALL MPI_COMM_SIZE(comm,size_loc,ierr)  
-  
+  CALL MPI_COMM_SIZE(comm,size_loc,ierr)
+
 
 !###########################################################################
 ! Contexte ATM
@@ -65,29 +64,27 @@ PROGRAM test_complete
   DO n=0,size_loc-1
     nj=nj_glo/size_loc
     IF (n<MOD(nj_glo,size_loc)) nj=nj+1
-    IF (n==rank) exit 
+    IF (n==rank) exit
     jbegin=jbegin+nj
   ENDDO
-  
+
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A_atm(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
   lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
   lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
   field_A_atm(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
- 
+
 
 !!! Context ATMOSPHERE
 
   CALL xios_context_initialize("atmosphere",comm)
   CALL xios_get_handle("atmosphere",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
-  
-  CALL xios_set_context_attr("atmosphere",calendar_type="Gregorian")
-  start_date = xios_date(2000, 01, 01, 00, 00, 00)
-  CALL xios_set_context_attr("atmosphere",start_date=start_date)
-  time_origin = xios_date(1999, 01, 01, 15, 00, 00)
-  CALL xios_set_context_attr("atmosphere",time_origin=time_origin)
+
+  CALL xios_define_calendar(type="Gregorian", &
+                            start_date=xios_date(2000, 01, 01, 00, 00, 00), &
+                            time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
   CALL xios_set_axis_attr("axis_atm",size=llm ,value=lval) ;
 
@@ -103,7 +100,7 @@ PROGRAM test_complete
 
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
-!!! Création d un nouveau champ 
+!!! Création d un nouveau champ
 
   CALL xios_get_handle("field_definition",fieldgroup_hdl)
   CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B_atm")
@@ -111,23 +108,23 @@ PROGRAM test_complete
 !!! Heritage des attributs d un autre champ
 
   CALL xios_set_attr(field_hdl,field_ref="field_A_atm",name="field_B_atm")
-  
+
 !!! Affectation de ce nouveau champ au fichier avec un nouveau nom
 
   CALL xios_get_handle("output_atmosphere",file_hdl)
   CALL xios_add_child(file_hdl,field_hdl)
   CALL xios_set_attr(field_hdl,field_ref="field_B_atm",name="field_C_atm")
-    
+
 !!! Definition du timestep
 
   dtime%second=3600
-  CALL xios_set_context_attr("atmosphere", timestep=dtime)
-    
+  CALL xios_set_timestep(timestep=dtime)
+
 !!! Recupration des valeurs des longitudes et de taille des domaines locaux (pour test de fonctionnalité)
 
   ni=0 ; lonvalue(:)=0
   CALL xios_get_domain_attr("domain_atm",ni=ni,lonvalue=lonvalue)
-    
+
   PRINT *,"ni",ni
   PRINT *,"lonvalue",lonvalue ;
 
@@ -136,18 +133,18 @@ PROGRAM test_complete
   CALL xios_close_context_definition()
 
 !!! Test des valeurs des champs/fichiers
-  
-  !!! Attribut defini ? 
+
+  !!! Attribut defini ?
 
   CALL xios_is_defined_field_attr("field_A_atm",enabled=ok)
   PRINT *,"field_A_atm : attribute enabled is defined ? ",ok
 
   !!! Recuperer la valeur d un attribut
-  
+
   CALL xios_get_field_attr("field_A_atm",name=crname)
   PRINT *,"field_A_atm : attribute name is : ",TRIM(crname)
 
-  !!! Champ actif (besoin de fournir la valeur) ? 
+  !!! Champ actif (besoin de fournir la valeur) ?
 
     PRINT*,"field field_A_atm is active ? ",xios_field_is_active("field_A_atm")
 
@@ -172,12 +169,10 @@ PROGRAM test_complete
   CALL xios_context_initialize("surface",comm)
   CALL xios_get_handle("surface",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
-  
-  CALL xios_set_context_attr("surface",calendar_type="Gregorian")
-  start_date = xios_date(2000, 01, 01, 00, 00, 00)
-  CALL xios_set_context_attr("surface",start_date=start_date)
-  time_origin = xios_date(1999, 01, 01, 15, 00, 00)
-  CALL xios_set_context_attr("surface",time_origin=time_origin)
+
+  CALL xios_define_calendar(type="Gregorian", &
+                            start_date=xios_date(2000, 01, 01, 00, 00, 00), &
+                            time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
   CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_srf",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
@@ -185,7 +180,7 @@ PROGRAM test_complete
   CALL xios_set_domain_attr("domain_srf",data_n_index=nb_pt, data_i_index=kindex)
   CALL xios_set_domain_attr("domain_srf",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
 
-!!! Création d un nouveau champ 
+!!! Création d un nouveau champ
 
   CALL xios_get_handle("field_definition",fieldgroup_hdl)
   CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B_srf")
@@ -193,23 +188,23 @@ PROGRAM test_complete
 !!! Heritage des attributs d un autre champ
 
   CALL xios_set_attr(field_hdl,field_ref="field_A_srf",name="field_B_srf")
-  
+
 !!! Affectation de ce nouveau champ au fichier avec un nouveau nom
 
   CALL xios_get_handle("output_surface",file_hdl)
   CALL xios_add_child(file_hdl,field_hdl)
   CALL xios_set_attr(field_hdl,field_ref="field_B_srf",name="field_C_srf")
-    
+
 !!! Definition du timestep
 
   dtime%second=1800
-  CALL xios_set_context_attr("surface", timestep=dtime)
-    
+  CALL xios_set_timestep(timestep=dtime)
+
 !!! Recupration des valeurs des longitudes et de taille des domaines locaux (pour test de fonctionnalité)
 
   ni=0 ; lonvalue(:)=0
   CALL xios_get_domain_attr("domain_srf",ni=ni,lonvalue=lonvalue)
-    
+
   PRINT *,"ni",ni
   PRINT *,"lonvalue",lonvalue ;
 
@@ -225,7 +220,7 @@ PROGRAM test_complete
     DO ts=1,24*10
 
       CALL xios_get_handle("atmosphere",ctx_hdl)
-      CALL xios_set_current_context(ctx_hdl)    
+      CALL xios_set_current_context(ctx_hdl)
 
 !!! Mise a jour du pas de temps
 
@@ -238,7 +233,7 @@ PROGRAM test_complete
 !!! On change de contexte
 
       CALL xios_get_handle("surface",ctx_hdl)
-      CALL xios_set_current_context(ctx_hdl)    
+      CALL xios_set_current_context(ctx_hdl)
 
 !!! Mise a jour du pas de temps
 
@@ -256,22 +251,22 @@ PROGRAM test_complete
 !####################################################################################
 
 !!! Fin des contextes
-    
+
     CALL xios_context_finalize()
     CALL xios_get_handle("atmosphere",ctx_hdl)
-    CALL xios_set_current_context(ctx_hdl)    
+    CALL xios_set_current_context(ctx_hdl)
     CALL xios_context_finalize()
-    
+
 !!! Fin de XIOS
 
     CALL xios_finalize()
-  
+
     CALL MPI_FINALIZE(ierr)
-  
+
   END PROGRAM test_complete
 
 
 
-  
 
-  
+
+

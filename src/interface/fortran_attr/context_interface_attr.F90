@@ -9,27 +9,6 @@ MODULE context_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
-    SUBROUTINE cxios_set_context_calendar_type(context_hdl, calendar_type, calendar_type_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: calendar_type
-      INTEGER  (kind = C_INT)     , VALUE        :: calendar_type_size
-    END SUBROUTINE cxios_set_context_calendar_type
-    
-    SUBROUTINE cxios_get_context_calendar_type(context_hdl, calendar_type, calendar_type_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: calendar_type
-      INTEGER  (kind = C_INT)     , VALUE        :: calendar_type_size
-    END SUBROUTINE cxios_get_context_calendar_type
-    
-    FUNCTION cxios_is_defined_context_calendar_type(context_hdl ) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_calendar_type
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-    END FUNCTION cxios_is_defined_context_calendar_type
-    
-    
     SUBROUTINE cxios_set_context_output_dir(context_hdl, output_dir, output_dir_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
@@ -49,69 +28,6 @@ MODULE context_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_output_dir
       INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
     END FUNCTION cxios_is_defined_context_output_dir
-    
-    
-    SUBROUTINE cxios_set_context_start_date(context_hdl, start_date) BIND(C)
-      USE ISO_C_BINDING
-      USE IDATE
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(date)), VALUE :: start_date
-    END SUBROUTINE cxios_set_context_start_date
-    
-    SUBROUTINE cxios_get_context_start_date(context_hdl, start_date) BIND(C)
-      USE ISO_C_BINDING
-      USE IDATE
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(date)) :: start_date
-    END SUBROUTINE cxios_get_context_start_date
-    
-    FUNCTION cxios_is_defined_context_start_date(context_hdl ) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_start_date
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-    END FUNCTION cxios_is_defined_context_start_date
-    
-    
-    SUBROUTINE cxios_set_context_time_origin(context_hdl, time_origin) BIND(C)
-      USE ISO_C_BINDING
-      USE IDATE
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(date)), VALUE :: time_origin
-    END SUBROUTINE cxios_set_context_time_origin
-    
-    SUBROUTINE cxios_get_context_time_origin(context_hdl, time_origin) BIND(C)
-      USE ISO_C_BINDING
-      USE IDATE
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(date)) :: time_origin
-    END SUBROUTINE cxios_get_context_time_origin
-    
-    FUNCTION cxios_is_defined_context_time_origin(context_hdl ) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_time_origin
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-    END FUNCTION cxios_is_defined_context_time_origin
-    
-    
-    SUBROUTINE cxios_set_context_timestep(context_hdl, timestep) BIND(C)
-      USE ISO_C_BINDING
-      USE IDURATION
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(duration)), VALUE :: timestep
-    END SUBROUTINE cxios_set_context_timestep
-    
-    SUBROUTINE cxios_get_context_timestep(context_hdl, timestep) BIND(C)
-      USE ISO_C_BINDING
-      USE IDURATION
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-      TYPE(txios(duration)) :: timestep
-    END SUBROUTINE cxios_get_context_timestep
-    
-    FUNCTION cxios_is_defined_context_timestep(context_hdl ) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_context_timestep
-      INTEGER (kind = C_INTPTR_T), VALUE :: context_hdl
-    END FUNCTION cxios_is_defined_context_timestep
     
     
     END INTERFACE

@@ -32,7 +32,7 @@ namespace xios
 
             /// Constructeurs ///
             CCalendar(void);
-            CCalendar(const StdString& id) ;
+            CCalendar(const StdString& id);
             CCalendar(const StdString& id,
                       int yr, int mth, int d,
                       int hr = 0, int min = 0, int sec = 0);
@@ -48,46 +48,49 @@ namespace xios
 
             /// Autres ///
             virtual StdString toString(void) const;
-            virtual void fromString(const StdString & str);
+            virtual void fromString(const StdString& str);
 
             /// Mutateur ///
-            void setTimeStep(const CDuration & duration);
+            void setTimeStep(const CDuration& timestep);
+            void setInitDate(const CDate& initDate);
+            void setTimeOrigin(const CDate& timeOrigin);
 
             /// Traitemants ///
-            CDate & update(int step);
+            CDate& update(int step);
 
             /// Accesseurs ///
-            const CDuration & getTimeStep(void) const;
-            const CDate & getInitDate(void) const;
-            const CDate & getTimeOrigin(void) const;
-             CDate & getCurrentDate(void);
-            
+            const CDuration& getTimeStep(void) const;
+            const CDate& getInitDate(void) const;
+            const CDate& getTimeOrigin(void) const;
+            CDate& getCurrentDate(void);
+
          public :
-         
+
             //------------------------------------------------------------
-            virtual int getMonthLength(const CDate & date) const ;
+            virtual int getMonthLength(const CDate& date) const;
 
             virtual StdString getType(void) const;
 
-            virtual int getYearTotalLength(const CDate & date) const ; // Retourne la durée d'une année en seconde.
+            virtual int getYearTotalLength(const CDate& date) const; // Retourne la durée d'une année en seconde.
 
             virtual int getYearLength  (void) const; // Retourne la durée d'une année en mois.
             virtual int getDayLength   (void) const; // Retourne la durée d'un jour en heures.
             virtual int getHourLength  (void) const; // Retourne la durée d'une heure en minute.
             virtual int getMinuteLength(void) const; // Retourne la durée d'une minute en secondes.
+            //!< Returns the day length expressed in seconds
+            virtual int getDayLengthInSeconds(void) const;
 
-            virtual int getNbSecond(const CDate & date) const;
             virtual StdString getMonthName(int month_id) const;
 
             virtual const StdString getMonthShortName(int month_id) const;
-            void initializeDate(int yr, int mth, int d, int hr = 0, int min = 0, int sec = 0) ;
-            void initializeDate(const StdString & dateStr);
-            void initializeDate(const StdString & dateStr, const StdString & timeOrigin);
+            void initializeDate(int yr, int mth, int d, int hr = 0, int min = 0, int sec = 0);
+            void initializeDate(const StdString& dateStr);
+            void initializeDate(const StdString& dateStr, const StdString& timeOrigin);
 
             //------------------------------------------------------------
 
          protected:
-            
+
             //!< Associate the dates to the calendar and check their validity
             void initializeDate();
 

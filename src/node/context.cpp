@@ -16,7 +16,7 @@
 
 namespace xios {
 
-  shared_ptr<CContextGroup> CContext::root ;
+  shared_ptr<CContextGroup> CContext::root;
 
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -32,8 +32,8 @@ namespace xios {
 
    CContext::~CContext(void)
    {
-     if (hasClient) delete client ;
-     if (hasServer) delete server ;
+     if (hasClient) delete client;
+     if (hasServer) delete server;
    }
 
    //----------------------------------------------------------------
@@ -49,7 +49,7 @@ namespace xios {
    */
    CContextGroup* CContext::getRoot(void)
    {
-      if (root.get()==NULL) root=shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName())) ;
+      if (root.get()==NULL) root=shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName()));
       return root.get();
    }
 
@@ -72,66 +72,6 @@ namespace xios {
    void CContext::setCalendar(boost::shared_ptr<CCalendar> newCalendar)
    {
       this->calendar = newCalendar;
-      calendar_type.fromString(this->calendar->getId());
-      start_date.setValue(this->calendar->getInitDate());
-   }
-
-   //----------------------------------------------------------------
-   //! Process all information of calendar
-   void CContext::solveCalendar(void)
-   {
-      if (calendar_type.isEmpty())
-         ERROR(" CContext::solveCalendar(void)",
-               << "[ context id = " << this->getId() << " ] "
-               << "Impossible to define a calendar: the calendar type is missing.");
-      if (start_date.isEmpty())
-         ERROR(" CContext::solveCalendar(void)",
-               << "[ context id = " << this->getId() << " ] "
-               << "Impossible to define a calendar: the start date is missing.");
-      if (timestep.isEmpty())
-         ERROR(" CContext::solveCalendar(void)",
-               << "[ context id = " << this->getId() << " ] "
-               << "Impossible to define a calendar: the timestep is missing.");
-
-      if (this->calendar)
-      {
-        if (this->calendar->getId() != calendar_type.getStringValue()
-              || this->calendar->getInitDate() != start_date.getValue()
-              || (time_origin.isEmpty() && this->calendar->getTimeOrigin() != start_date.getValue())
-              || (!time_origin.isEmpty() && this->calendar->getTimeOrigin() != time_origin.getValue())
-              || this->calendar->getTimeStep() != timestep.getValue())
-          ERROR(" CContext::solveCalendar(void)",
-                << "[ context id = " << this->getId() << " ] "
-                << "Impossible to define a calendar again with new parameters.");
-        return;
-      }
-
-#define DECLARE_CALENDAR(MType, eType)                                             \
-  if (calendar_type.getValue() == eType)                                           \
-  {                                                                                \
-    if (time_origin.isEmpty())                                                     \
-      this->calendar = boost::shared_ptr<CCalendar>                                \
-          (new C##MType##Calendar(start_date.getValue()));                         \
-    else this->calendar = boost::shared_ptr<CCalendar>                             \
-          (new C##MType##Calendar(start_date.getValue(), time_origin.getValue())); \
-                                                                                   \
-    if (!start_date.getValue().setRelCalendar(*this->calendar))                    \
-      ERROR("CContext::solveCalendar(void)",                                       \
-            "start_date: Bad format or date not conform to the calendar");         \
-    if (!time_origin.getValue().setRelCalendar(*this->calendar))                   \
-      ERROR("CContext::solveCalendar(void)",                                       \
-            "time_origin: Bad format or date not conform to the calendar");        \
-                                                                                   \
-    this->calendar->setTimeStep(this->timestep.getValue());                        \
-                                                                                   \
-    return;                                                                        \
-  }
-#include "calendar_type.conf"
-#undef DECLARE_CALENDAR
-
-      ERROR("CContext::solveCalendar(void)",
-            << "[ calendar_type = " << calendar_type.getStringValue() << " ] "
-            << "The calendar is not properly handled!");
    }
 
    //----------------------------------------------------------------
@@ -181,7 +121,7 @@ namespace xios {
 
 #define DECLARE_NODE(Name_, name_)    \
    if (name.compare(C##Name_##Definition::GetDefName()) == 0) \
-   { C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> parse(node) ; continue; }
+   { C##Name_##Definition::create(C##Name_##Definition::GetDefName()) -> parse(node); continue; }
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 
@@ -199,7 +139,7 @@ namespace xios {
    //! Show tree structure of context
    void CContext::ShowTree(StdOStream & out)
    {
-      StdString currentContextId = CContext::getCurrent() -> getId() ;
+      StdString currentContextId = CContext::getCurrent() -> getId();
       std::vector<CContext*> def_vector =
          CContext::getRoot()->getChildList();
       std::vector<CContext*>::iterator
@@ -284,7 +224,7 @@ namespace xios {
 //   void CContext::solveFieldRefInheritance(bool apply)
 //   {
 //      if (!this->hasId()) return;
-//      vector<CField*> allField = CField::getAll() ;
+//      vector<CField*> allField = CField::getAll();
 ////              = CObjectTemplate<CField>::GetAllVectobject(this->getId());
 //      std::vector<CField*>::iterator
 //         it = allField.begin(), end = allField.end();
@@ -300,7 +240,7 @@ namespace xios {
 
    void CContext::CleanTree(void)
    {
-#define DECLARE_NODE(Name_, name_) C##Name_##Group::ClearAllAttributes();
+#define DECLARE_NODE(Name_, name_) C##Name_##Definition::ClearAllAttributes();
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
@@ -309,8 +249,8 @@ namespace xios {
    //! Initialize client side
    void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer)
    {
-     hasClient=true ;
-     client = new CContextClient(this,intraComm, interComm, cxtServer) ;
+     hasClient=true;
+     client = new CContextClient(this,intraComm, interComm, cxtServer);
    }
 
    void CContext::setClientServerBuffer()
@@ -324,20 +264,20 @@ namespace xios {
    //! Verify whether a context is initialized
    bool CContext::isInitialized(void)
    {
-     return hasClient ;
+     return hasClient;
    }
 
    //! Initialize server
    void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm)
    {
-     hasServer=true ;
-     server = new CContextServer(this,intraComm,interComm) ;
+     hasServer=true;
+     server = new CContextServer(this,intraComm,interComm);
    }
 
    //! Server side: Put server into a loop in order to listen message from client
    bool CContext::eventLoop(void)
    {
-     return server->eventLoop() ;
+     return server->eventLoop();
    }
 
    //! Terminate a context
@@ -345,11 +285,11 @@ namespace xios {
    {
       if (hasClient && !hasServer)
       {
-         client->finalize() ;
+         client->finalize();
       }
       if (hasServer)
       {
-        closeAllFile() ;
+        closeAllFile();
       }
    }
 
@@ -383,6 +323,9 @@ namespace xios {
 
       // Send all attributes of current context to server
       this->sendAllAttributesToServer();
+
+      // Send all attributes of current calendar
+      CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer();
 
       // We have enough information to send to server
       // First of all, send all enabled files
@@ -427,7 +370,7 @@ namespace xios {
 ////        //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
 ////        this->findEnabledFiles();
 //
-//        this->processEnabledFiles() ;
+//        this->processEnabledFiles();
 //
 //        this->solveAllGridRef();
 //      }
@@ -444,7 +387,7 @@ namespace xios {
 //      this->findEnabledFiles();
 //
 //
-//      this->processEnabledFiles() ;
+//      this->processEnabledFiles();
 
 /*
       //Recherche des champs à sortir (enable à true + niveau de sortie correct)
@@ -463,7 +406,7 @@ namespace xios {
       // Nettoyage de l'arborescence
       if (hasClient && !hasServer) CleanTree(); // Only on client side??
 //      if (hasClient) CleanTree();
-      if (hasClient) sendCreateFileHeader() ;
+      if (hasClient) sendCreateFileHeader();
    }
 
    void CContext::findAllEnabledFields(void)
@@ -522,7 +465,7 @@ namespace xios {
       solveDescInheritance(apply);
 
      // Résolution des héritages par référence au niveau des fichiers.
-      const vector<CFile*> allFiles=CFile::getAll() ;
+      const vector<CFile*> allFiles=CFile::getAll();
       const vector<CGrid*> allGrids= CGrid::getAll();
 
      //if (hasClient && !hasServer)
@@ -579,31 +522,31 @@ namespace xios {
    bool CContext::dispatchEvent(CEventServer& event)
    {
 
-      if (SuperClass::dispatchEvent(event)) return true ;
+      if (SuperClass::dispatchEvent(event)) return true;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_CLOSE_DEFINITION :
-             recvCloseDefinition(event) ;
-             return true ;
-             break ;
+             recvCloseDefinition(event);
+             return true;
+             break;
            case EVENT_ID_UPDATE_CALENDAR :
-             recvUpdateCalendar(event) ;
-             return true ;
-             break ;
+             recvUpdateCalendar(event);
+             return true;
+             break;
            case EVENT_ID_CREATE_FILE_HEADER :
-             recvCreateFileHeader(event) ;
-             return true ;
-             break ;
+             recvCreateFileHeader(event);
+             return true;
+             break;
            case EVENT_ID_POST_PROCESS:
-             recvPostProcessing(event) ;
-             return true ;
-             break ;
+             recvPostProcessing(event);
+             return true;
+             break;
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
-                    <<"Unknown Event") ;
-           return false ;
+                    <<"Unknown Event");
+           return false;
          }
       }
    }
@@ -611,15 +554,15 @@ namespace xios {
    //! Client side: Send a message to server to make it close
    void CContext::sendCloseDefinition(void)
    {
-     CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION) ;
+     CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
      if (client->isServerLeader())
      {
-       CMessage msg ;
-       msg<<this->getIdServer() ;
-       event.push(client->getServerLeader(),1,msg) ;
-       client->sendEvent(event) ;
+       CMessage msg;
+       msg<<this->getIdServer();
+       event.push(client->getServerLeader(),1,msg);
+       client->sendEvent(event);
      }
-     else client->sendEvent(event) ;
+     else client->sendEvent(event);
    }
 
    //! Server side: Receive a message of client announcing a context close
@@ -628,7 +571,7 @@ namespace xios {
 
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
+      *buffer>>id;
       get(id)->closeDefinition();
    }
 
@@ -637,15 +580,15 @@ namespace xios {
    {
      if (!hasServer)
      {
-       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR) ;
+       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getIdServer()<<step ;
-         event.push(client->getServerLeader(),1,msg) ;
-         client->sendEvent(event) ;
+         CMessage msg;
+         msg<<this->getIdServer()<<step;
+         event.push(client->getServerLeader(),1,msg);
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
      }
    }
 
@@ -655,30 +598,30 @@ namespace xios {
 
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvUpdateCalendar(*buffer) ;
+      *buffer>>id;
+      get(id)->recvUpdateCalendar(*buffer);
    }
 
    //! Server side: Receive a message of client annoucing calendar update
    void CContext::recvUpdateCalendar(CBufferIn& buffer)
    {
-      int step ;
-      buffer>>step ;
-      updateCalendar(step) ;
+      int step;
+      buffer>>step;
+      updateCalendar(step);
    }
 
    //! Client side: Send a message to create header part of netcdf file
    void CContext::sendCreateFileHeader(void)
    {
-     CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER) ;
+     CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER);
      if (client->isServerLeader())
      {
-       CMessage msg ;
-       msg<<this->getIdServer() ;
-       event.push(client->getServerLeader(),1,msg) ;
-       client->sendEvent(event) ;
+       CMessage msg;
+       msg<<this->getIdServer();
+       event.push(client->getServerLeader(),1,msg);
+       client->sendEvent(event);
      }
-     else client->sendEvent(event) ;
+     else client->sendEvent(event);
    }
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
@@ -686,14 +629,14 @@ namespace xios {
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvCreateFileHeader(*buffer) ;
+      *buffer>>id;
+      get(id)->recvCreateFileHeader(*buffer);
    }
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    {
-      createFileHeader() ;
+      createFileHeader();
    }
 
    //! Client side: Send a message to do some post processing on server
@@ -701,15 +644,15 @@ namespace xios {
    {
      if (!hasServer)
      {
-       CEventClient event(getType(),EVENT_ID_POST_PROCESS) ;
+       CEventClient event(getType(),EVENT_ID_POST_PROCESS);
        if (client->isServerLeader())
        {
-         CMessage msg ;
+         CMessage msg;
          msg<<this->getIdServer();
-         event.push(client->getServerLeader(),1,msg) ;
-         client->sendEvent(event) ;
+         event.push(client->getServerLeader(),1,msg);
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
      }
    }
 
@@ -725,6 +668,7 @@ namespace xios {
    //! Server side: Receive a message to do some post processing
    void CContext::recvPostProcessing(CBufferIn& buffer)
    {
+      CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
       postProcessing();
 //      std::cout << "server context " << *this << std::endl;
    }
@@ -750,8 +694,11 @@ namespace xios {
    {
      if (isPostProcessed) return;
 
-     // Solve calendar for both side: client and server
-      this->solveCalendar();
+      // Make sure the calendar was correctly created
+      if (!calendar)
+        ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
+      else if (calendar->getTimeStep() == NoneDu)
+        ERROR("CContext::postProcessing()", << "A timestep must be defined for the context \"" << getId() << "!\"")
 
       // Find all inheritance in xml structure
       this->solveAllInheritance();
@@ -931,15 +878,15 @@ namespace xios {
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    {
-      info(50)<<"updateCalendar : before : "<<calendar->getCurrentDate()<<endl ;
-      calendar->update(step) ;
-      info(50)<<"updateCalendar : after : "<<calendar->getCurrentDate()<<endl ;
+      info(50)<<"updateCalendar : before : "<<calendar->getCurrentDate()<<endl;
+      calendar->update(step);
+      info(50)<<"updateCalendar : after : "<<calendar->getCurrentDate()<<endl;
    }
 
    //! Server side: Create header of netcdf file
    void CContext::createFileHeader(void )
    {
-      vector<CFile*>::const_iterator it ;
+      vector<CFile*>::const_iterator it;
 
       for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
       {
@@ -950,7 +897,7 @@ namespace xios {
    //! Get current context
    CContext* CContext::getCurrent(void)
    {
-     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()).get() ;
+     return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()).get();
    }
 
    /*!
@@ -970,11 +917,11 @@ namespace xios {
   */
   CContext* CContext::create(const StdString& id)
   {
-    CContext::setCurrent(id) ;
+    CContext::setCurrent(id);
 
     bool hasctxt = CContext::has(id);
     CContext* context = CObjectFactory::CreateObject<CContext>(id).get();
-    getRoot() ;
+    getRoot();
     if (!hasctxt) CGroupFactory::AddChild(root, context->getShared());
 
 #define DECLARE_NODE(Name_, name_) \
