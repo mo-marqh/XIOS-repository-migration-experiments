@@ -67,9 +67,9 @@ namespace xios
          public :
 
             //------------------------------------------------------------
-            virtual int getMonthLength(const CDate& date) const;
-
             virtual StdString getType(void) const;
+
+            virtual int getMonthLength(const CDate& date) const;
 
             virtual int getYearTotalLength(const CDate& date) const; // Retourne la durée d'une année en seconde.
 
@@ -77,15 +77,29 @@ namespace xios
             virtual int getDayLength   (void) const; // Retourne la durée d'un jour en heures.
             virtual int getHourLength  (void) const; // Retourne la durée d'une heure en minute.
             virtual int getMinuteLength(void) const; // Retourne la durée d'une minute en secondes.
-            //!< Returns the day length expressed in seconds
+            /*! Returns the day length expressed in seconds. */
             virtual int getDayLengthInSeconds(void) const;
 
-            virtual StdString getMonthName(int month_id) const;
+            virtual StdString getMonthName(int monthId) const;
+            virtual const StdString getMonthShortName(int monthId) const;
 
-            virtual const StdString getMonthShortName(int month_id) const;
+            /*! Test if the calendar can have leap year. */
+            virtual bool hasLeapYear() const;
+
             void initializeDate(int yr, int mth, int d, int hr = 0, int min = 0, int sec = 0);
             void initializeDate(const StdString& dateStr);
             void initializeDate(const StdString& dateStr, const StdString& timeOrigin);
+
+            /*! Simplify a duration based on the calendar information. */
+            virtual CDuration& resolve(CDuration& dur, bool noNegativeTime = false) const;
+
+            /*! Parse a date using a generic parser. */
+            static void parseDateDefault(StdIStream& in, CDate& date);
+            /*! Parse a date using the calendar's parser. */
+            virtual void parseDate(StdIStream& in, CDate& date) const;
+
+            /*! Test if a date is valid with regard to the current calendar. */
+            virtual bool checkDate(CDate& date) const;
 
             //------------------------------------------------------------
 

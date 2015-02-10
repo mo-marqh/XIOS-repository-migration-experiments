@@ -17,6 +17,115 @@ extern "C"
 {
   typedef xios::CCalendarWrapper*  calendar_wrapper_Ptr;
   
+  void cxios_set_calendar_wrapper_day_length(calendar_wrapper_Ptr calendar_wrapper_hdl, int day_length)
+  {
+     CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->day_length.setValue(day_length);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_day_length(calendar_wrapper_Ptr calendar_wrapper_hdl, int* day_length)
+  {
+    *day_length = calendar_wrapper_hdl->day_length.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_day_length(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->day_length.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_calendar_wrapper_leap_year_drift(calendar_wrapper_Ptr calendar_wrapper_hdl, double leap_year_drift)
+  {
+     CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->leap_year_drift.setValue(leap_year_drift);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_leap_year_drift(calendar_wrapper_Ptr calendar_wrapper_hdl, double* leap_year_drift)
+  {
+    *leap_year_drift = calendar_wrapper_hdl->leap_year_drift.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_leap_year_drift(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->leap_year_drift.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_Ptr calendar_wrapper_hdl, double leap_year_drift_offset)
+  {
+     CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->leap_year_drift_offset.setValue(leap_year_drift_offset);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_Ptr calendar_wrapper_hdl, double* leap_year_drift_offset)
+  {
+    *leap_year_drift_offset = calendar_wrapper_hdl->leap_year_drift_offset.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->leap_year_drift_offset.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_calendar_wrapper_leap_year_month(calendar_wrapper_Ptr calendar_wrapper_hdl, int leap_year_month)
+  {
+     CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->leap_year_month.setValue(leap_year_month);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_leap_year_month(calendar_wrapper_Ptr calendar_wrapper_hdl, int* leap_year_month)
+  {
+    *leap_year_month = calendar_wrapper_hdl->leap_year_month.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_leap_year_month(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->leap_year_month.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(month_lengths,shape(extent1),neverDeleteData) ;
+    calendar_wrapper_hdl->month_lengths.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(month_lengths,shape(extent1),neverDeleteData) ;
+    tmp=calendar_wrapper_hdl->month_lengths.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->month_lengths.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_calendar_wrapper_start_date(calendar_wrapper_Ptr calendar_wrapper_hdl, const char * start_date, int start_date_size)
   {
     std::string start_date_str;
@@ -128,6 +237,27 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return calendar_wrapper_hdl->type.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_calendar_wrapper_year_length(calendar_wrapper_Ptr calendar_wrapper_hdl, int year_length)
+  {
+     CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->year_length.setValue(year_length);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_calendar_wrapper_year_length(calendar_wrapper_Ptr calendar_wrapper_hdl, int* year_length)
+  {
+    *year_length = calendar_wrapper_hdl->year_length.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_calendar_wrapper_year_length(calendar_wrapper_Ptr calendar_wrapper_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return calendar_wrapper_hdl->year_length.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

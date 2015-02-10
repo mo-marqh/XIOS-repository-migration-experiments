@@ -699,6 +699,8 @@ namespace xios {
         ERROR("CContext::postProcessing()", << "A calendar must be defined for the context \"" << getId() << "!\"")
       else if (calendar->getTimeStep() == NoneDu)
         ERROR("CContext::postProcessing()", << "A timestep must be defined for the context \"" << getId() << "!\"")
+      // Calendar first update to set the current date equals to the start date
+      calendar->update(0);
 
       // Find all inheritance in xml structure
       this->solveAllInheritance();

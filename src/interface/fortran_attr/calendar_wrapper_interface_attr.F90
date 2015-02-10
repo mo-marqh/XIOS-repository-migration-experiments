@@ -9,6 +9,103 @@ MODULE calendar_wrapper_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
+    SUBROUTINE cxios_set_calendar_wrapper_day_length(calendar_wrapper_hdl, day_length) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: day_length
+    END SUBROUTINE cxios_set_calendar_wrapper_day_length
+    
+    SUBROUTINE cxios_get_calendar_wrapper_day_length(calendar_wrapper_hdl, day_length) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)             :: day_length
+    END SUBROUTINE cxios_get_calendar_wrapper_day_length
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_day_length(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_day_length
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_day_length
+    
+    
+    SUBROUTINE cxios_set_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl, leap_year_drift) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: leap_year_drift
+    END SUBROUTINE cxios_set_calendar_wrapper_leap_year_drift
+    
+    SUBROUTINE cxios_get_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl, leap_year_drift) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      REAL (KIND=C_DOUBLE)             :: leap_year_drift
+    END SUBROUTINE cxios_get_calendar_wrapper_leap_year_drift
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_leap_year_drift
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_leap_year_drift
+    
+    
+    SUBROUTINE cxios_set_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl, leap_year_drift_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: leap_year_drift_offset
+    END SUBROUTINE cxios_set_calendar_wrapper_leap_year_drift_offset
+    
+    SUBROUTINE cxios_get_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl, leap_year_drift_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      REAL (KIND=C_DOUBLE)             :: leap_year_drift_offset
+    END SUBROUTINE cxios_get_calendar_wrapper_leap_year_drift_offset
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_leap_year_drift_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_leap_year_drift_offset
+    
+    
+    SUBROUTINE cxios_set_calendar_wrapper_leap_year_month(calendar_wrapper_hdl, leap_year_month) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: leap_year_month
+    END SUBROUTINE cxios_set_calendar_wrapper_leap_year_month
+    
+    SUBROUTINE cxios_get_calendar_wrapper_leap_year_month(calendar_wrapper_hdl, leap_year_month) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)             :: leap_year_month
+    END SUBROUTINE cxios_get_calendar_wrapper_leap_year_month
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_leap_year_month(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_leap_year_month
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_leap_year_month
+    
+    
+    SUBROUTINE cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent1) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: month_lengths
+      INTEGER (kind = C_INT), VALUE  :: extent1
+    END SUBROUTINE cxios_set_calendar_wrapper_month_lengths
+    
+    SUBROUTINE cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent1) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: month_lengths
+      INTEGER (kind = C_INT), VALUE  :: extent1
+    END SUBROUTINE cxios_get_calendar_wrapper_month_lengths
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_month_lengths(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_month_lengths
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_month_lengths
+    
+    
     SUBROUTINE cxios_set_calendar_wrapper_start_date(calendar_wrapper_hdl, start_date, start_date_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
@@ -91,6 +188,25 @@ MODULE calendar_wrapper_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_type
       INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
     END FUNCTION cxios_is_defined_calendar_wrapper_type
+    
+    
+    SUBROUTINE cxios_set_calendar_wrapper_year_length(calendar_wrapper_hdl, year_length) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: year_length
+    END SUBROUTINE cxios_set_calendar_wrapper_year_length
+    
+    SUBROUTINE cxios_get_calendar_wrapper_year_length(calendar_wrapper_hdl, year_length) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      INTEGER (KIND=C_INT)             :: year_length
+    END SUBROUTINE cxios_get_calendar_wrapper_year_length
+    
+    FUNCTION cxios_is_defined_calendar_wrapper_year_length(calendar_wrapper_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_year_length
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_year_length
     
     
     END INTERFACE

@@ -29,6 +29,8 @@ namespace xios
             virtual int getMonthLength(const CDate & date) const;
             virtual StdString getType(void) const;
 
+            virtual bool hasLeapYear() const;
+
             /// Destructeur ///
             virtual ~CGregorianCalendar(void);
 

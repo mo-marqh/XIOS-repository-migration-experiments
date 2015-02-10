@@ -6,5 +6,6 @@
 #include "gregorian.hpp"
 #include "julian.hpp"
 #include "noleap.hpp"
+#include "user_defined.hpp"
 
 #endif //__XMLIO_calendar_type__

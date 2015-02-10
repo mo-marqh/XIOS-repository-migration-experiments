@@ -32,7 +32,7 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-      int CGregorianCalendar::getYearTotalLength(const CDate & date) const
+      int CGregorianCalendar::getYearTotalLength(const CDate& date) const
       { // Retourne la durée d'une année en seconde.
          if ((date.getYear() % 4   == 0) &&
             ((date.getYear() % 100 != 0)  ||
@@ -41,7 +41,7 @@ namespace xios
          return (365 * 86400);
       }
 
-      int CGregorianCalendar::getMonthLength(const CDate & date) const
+      int CGregorianCalendar::getMonthLength(const CDate& date) const
       { // Retourne la durée du mois en jour.
          if (date.getMonth() == 2)
          { // Traitement du cas particulier en Février.
@@ -56,6 +56,8 @@ namespace xios
 
       StdString CGregorianCalendar::getType(void) const
       { return (StdString("gregorian")); }
+
+      bool CGregorianCalendar::hasLeapYear() const { return true; }
 
       ///--------------------------------------------------------------
 } // namespace xmlioserver

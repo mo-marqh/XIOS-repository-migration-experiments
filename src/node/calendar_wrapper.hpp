@@ -5,6 +5,7 @@
 #include "xmlioserver_spl.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include "attribute_array.hpp"
 #include "declare_attribute.hpp"
 #include "object_template.hpp"
 

@@ -12,40 +12,36 @@ namespace xios
       class CCalendar;
 
       ///---------------------------------------------------------------
-      typedef struct _duration
+
+      struct CDuration
       {
-         public :
+         public: /* static */
+            static CDuration FromString(const StdString& str);
 
+         public:
             /// Opérateurs ///
-            struct _duration & operator=(const struct _duration& duration);
+            CDuration& operator=(const CDuration& duration);
 
-            friend StdOStream & operator<<(StdOStream & out, const struct _duration& duration);
-            friend StdIStream & operator>>(StdIStream & in , struct _duration& duration);
+            friend StdOStream& operator<<(StdOStream& out, const CDuration& duration);
+            friend StdIStream& operator>>(StdIStream& in , CDuration& duration);
 
             /// Test ///
             bool isNone(void) const;
 
             /// Traitement ///
-            struct _duration & resolve(const CCalendar & calendar);
-            struct _duration & solveTimeStep(const CCalendar & c) ;
+            CDuration& resolve(const CCalendar& calendar, bool noNegativeTime = false);
+            CDuration& solveTimeStep(const CCalendar& c);
             /// Autres ///
             StdString toString(void) const;
 
-         public: /* static */
-
-            static struct _duration FromString(const StdString & str);
-
             /// Propriétés publiques ///
             double year, month, day, hour, minute, second, timestep;
-
-      } CDuration;
+      };
 
       ///---------------------------------------------------------------
 
-      const extern CDuration Year, Month , Week  , Day    ,
-                             Hour, Minute, Second, NoneDu, TimeStep ;
-      ///---------------------------------------------------------------
-
+      const extern CDuration Year, Month,  Week,   Day,
+                             Hour, Minute, Second, TimeStep, NoneDu;
 } // namespace xios
 
 #endif // __XMLIO_CDuration__

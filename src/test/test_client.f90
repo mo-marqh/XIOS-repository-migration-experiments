@@ -12,7 +12,7 @@ PROGRAM test_client
   INTEGER :: comm
   TYPE(xios_duration) :: dtime
   TYPE(xios_date) :: date
-  CHARACTER(len=10) :: calendar_type
+  CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100

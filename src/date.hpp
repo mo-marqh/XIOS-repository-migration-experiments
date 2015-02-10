@@ -32,7 +32,7 @@ namespace xios
             /// Opérateurs ///
             CDate& operator=(const CDate& date);
             friend StdOStream& operator<<(StdOStream& out, const CDate& date);
-            friend StdIStream& operator>>(StdIStream& in, CDate& date); // Non testée.
+            friend StdIStream& operator>>(StdIStream& in, CDate& date);
 
             //!< Return the number of seconds since the time origin fixed when creating the calendar
             operator Time(void) const;

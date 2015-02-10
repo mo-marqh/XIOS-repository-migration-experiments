@@ -86,59 +86,12 @@ namespace xios
         return out;
       }
 
-      StdIStream& operator>>(StdIStream& in, CDate& date) // Non testée.
+      StdIStream& operator>>(StdIStream& in, CDate& date)
       {
-        char sep = '-'; // Le caractère c est utilisé pour "recueillir" les séparateurs "/" et ":".
-        char c;
-
-        // Default initialize the date
-        date.year = 0;
-        date.month = 1;
-        date.day = 1;
-        date.hour = 0;
-        date.minute = 0;
-        date.second = 0;
-
-        in >> date.year >> c;
-        if (c == sep)
-        {
-          in >> date.month >> c;
-          if (c == sep)
-          {
-            in >> date.day;
-            c = in.get();
-            sep = ' ';
-            if (c == sep)
-            {
-              in >> date.hour >> c;
-              sep = ':';
-              if (c == sep)
-              {
-                in>>date.minute >> c;
-                if (c == sep)
-                {
-                  in >> date.second;
-                  in >> c;
-                }
-              }
-            }
-          }
-        }
-
-        // Delay the verification until we get a calendar we can compare the date to
-        if (date.relCalendar && !date.checkDate())
-          ERROR("StdIStream& operator >> (StdIStream& in, CDate& date)",
-                << "Bad date format or not conform to calendar");
-
-        if (c == '+') // We will be adding a duration to the date
-        {
-          CDuration dur;
-          in >> dur;
-          date = date + dur;
-        }
-        else if (!in.eof())
-          ERROR("StdIStream& operator >> (StdIStream& in, CDate& date)",
-                << "Invalid date format: unexpected trailing character(s)");
+        if (date.relCalendar)
+          date.relCalendar->parseDate(in, date);
+        else
+          CCalendar::parseDateDefault(in, date);
 
         return in;
       }
@@ -151,14 +104,14 @@ namespace xios
         // Todo : Tester si la date courante est supérieure à la date initiale.
         Time retvalue = getSecondOfYear() - c.getTimeOrigin().getSecondOfYear();
 
-        if ((c.getId().compare("D360")    == 0) ||
-            (c.getId().compare("AllLeap") == 0) ||
-            (c.getId().compare("NoLeap")  == 0))
-        return (retvalue + (getYear() - c.getTimeOrigin().getYear())
-                                      * c.getYearTotalLength(*this));
+        if (c.hasLeapYear())
+        {
+          for (CDate _d(c.getTimeOrigin()); _d.getYear() < getYear(); _d.setYear(_d.getYear() + 1))
+            retvalue += c.getYearTotalLength(_d);
+        }
+        else
+          retvalue += (getYear() - c.getTimeOrigin().getYear()) * c.getYearTotalLength(*this);
 
-        for (CDate _d(c.getTimeOrigin()); _d.getYear() < getYear(); _d.setYear(_d.getYear() + 1))
-           retvalue += c.getYearTotalLength(_d);
 
         return retvalue;
       }
@@ -167,37 +120,8 @@ namespace xios
 
       bool CDate::checkDate(void)
       {
-        bool retValue = true;
-
-        // This will check that a calendar was correctly associated to the date
-        const CCalendar& c = getRelCalendar();
-
-        // Vérification de la valeur du mois.
-        if (month  < 1) { retValue = false; month  = 1; }
-        if (month  > c.getYearLength())
-        { retValue = false; month = c.getYearLength(); }
-
-        // Vérification de la valeur du jour.
-        if (day    < 1) { retValue = false; day  = 1; }
-        if (day    > c.getMonthLength(*this))
-        { retValue = false; day = c.getMonthLength(*this); }
-
-        // Vérification de la valeur de l'heure.
-        if (hour   < 0) { retValue = false; hour  = 0; }
-        if (hour   >= c.getDayLength())
-        { retValue = false; hour = c.getDayLength() - 1; }
-
-        // Vérification de la valeur des minutes.
-        if (minute < 0) { retValue = false; minute = 0; }
-        if (minute >= c.getHourLength())
-        { retValue = false; minute = c.getHourLength() - 1; }
-
-        // Vérification de la valeur des secondes.
-        if (second < 0) { retValue = false; second = 0; }
-        if (second >= c.getMinuteLength())
-        { retValue = false; second = c.getMinuteLength() - 1; }
-
-        return retValue;
+        // This will also check that a calendar was correctly associated to the date
+        return getRelCalendar().checkDate(*this);
       }
 
       //----------------------------------------------------------------
@@ -237,8 +161,10 @@ namespace xios
         for (yearStart.setMonth(1); yearStart.getMonth() < getMonth(); yearStart.setMonth(yearStart.getMonth() + 1))
           nbDay += c.getMonthLength(yearStart);
 
-        return ((((nbDay + getDay() - 1) * c.getDayLength() + getHour()) * c.getHourLength()
-                   + getMinute()) * c.getMinuteLength() + getSecond());
+        // We need to use getDayLengthInSeconds instead of getDayLength since we might
+        // have a non-integral number of hours per day for user defined calendars
+        return ((nbDay + getDay() - 1) * c.getDayLengthInSeconds()
+                  + (getHour() * c.getHourLength() + getMinute()) * c.getMinuteLength() + getSecond());
       }
 
       /*!

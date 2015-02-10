@@ -19,7 +19,9 @@ MODULE ICALENDAR
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
-   SUBROUTINE xios(define_calendar)(type, timestep, start_date, time_origin)
+   SUBROUTINE xios(define_calendar)(type, timestep, start_date, time_origin, &
+                                    day_length, month_lengths, year_length, &
+                                    leap_year_month, leap_year_drift, leap_year_drift_offset)
       USE ICALENDAR_WRAPPER, ONLY : txios(calendar_wrapper), xios(get_default_calendar_wrapper_handle)
       USE icalendar_wrapper_attr, ONLY : xios(set_calendar_wrapper_attr_hdl)
       USE IDURATION, ONLY : txios(duration)
@@ -29,6 +31,12 @@ MODULE ICALENDAR
       TYPE(txios(duration)), OPTIONAL, INTENT(IN) :: timestep
       TYPE(txios(date)),     OPTIONAL, INTENT(IN) :: start_date
       TYPE(txios(date)),     OPTIONAL, INTENT(IN) :: time_origin
+      INTEGER,               OPTIONAL, INTENT(IN) :: day_length
+      INTEGER,               OPTIONAL, INTENT(IN) :: month_lengths(:)
+      INTEGER,               OPTIONAL, INTENT(IN) :: year_length
+      REAL (KIND=8),         OPTIONAL, INTENT(IN) :: leap_year_drift
+      REAL (KIND=8),         OPTIONAL, INTENT(IN) :: leap_year_drift_offset
+      INTEGER,               OPTIONAL, INTENT(IN) :: leap_year_month
       TYPE(txios(calendar_wrapper)) :: calendar_wrapper
 
       CALL xios(get_default_calendar_wrapper_handle)(calendar_wrapper)
@@ -36,6 +44,24 @@ MODULE ICALENDAR
       CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, type=type)
       IF (PRESENT(timestep)) THEN
          CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, timestep=timestep)
+      END IF
+      IF (PRESENT(day_length)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, day_length=day_length)
+      END IF
+      IF (PRESENT(month_lengths)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, month_lengths=month_lengths)
+      END IF
+      IF (PRESENT(year_length)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, year_length=year_length)
+      END IF
+      IF (PRESENT(leap_year_month)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, leap_year_month=leap_year_month)
+      END IF
+      IF (PRESENT(leap_year_drift)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, leap_year_drift=leap_year_drift)
+      END IF
+      IF (PRESENT(leap_year_drift_offset)) THEN
+         CALL xios(set_calendar_wrapper_attr_hdl)(calendar_wrapper, leap_year_drift_offset=leap_year_drift_offset)
       END IF
 
       CALL xios(create_calendar)(calendar_wrapper)

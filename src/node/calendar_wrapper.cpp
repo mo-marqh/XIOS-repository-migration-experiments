@@ -94,9 +94,52 @@ namespace xios {
         calendar = boost::shared_ptr<CCalendar>(new C##MType##Calendar());
 #include "calendar_type.conf"
 #undef DECLARE_CALENDAR
+      // Special case for the user defined calendar
+      if (type.getValue() == type_attr::user_defined)
+      {
+        if (day_length.isEmpty())
+          ERROR("CCalendarWrapper::createCalendar(void)",
+                << "The day length must be configured when using an user defined calendar.");
+        if (month_lengths.isEmpty() == year_length.isEmpty())
+          ERROR("CCalendarWrapper::createCalendar(void)",
+                << "Either the month lengths or the year length must be configured when using an user defined calendar.");
+        if (leap_year_drift.isEmpty() != leap_year_month.isEmpty())
+          ERROR("CCalendarWrapper::createCalendar(void)",
+                << "Both leap_year_drift and leap_year_month attributes must be set if you wish to configure leap years.");
+        if (leap_year_drift.isEmpty() && !leap_year_drift_offset.isEmpty())
+          ERROR("CCalendarWrapper::createCalendar(void)",
+                << "Both leap_year_drift and leap_year_month attributes are mandatory if you wish to use leap_year_drift_offset attribute.");
+
+        boost::shared_ptr<CUserDefinedCalendar> userDefinedCalendar;
+        if (year_length.isEmpty())
+          userDefinedCalendar.reset(new CUserDefinedCalendar(day_length.getValue(), month_lengths.getValue()));
+        else
+          userDefinedCalendar.reset(new CUserDefinedCalendar(day_length.getValue(), year_length.getValue()));
+
+        if (!leap_year_month.isEmpty())
+          userDefinedCalendar->configureLeapYear(leap_year_month.getValue(),
+                                                 leap_year_drift.getValue(),
+                                                 leap_year_drift_offset.isEmpty() ? 0.0 : leap_year_drift_offset.getValue());
+
+        calendar = userDefinedCalendar;
+      }
+      else
+      {
+#define CHECK_EMPTY(attr)                                                                       \
+        if (!attr.isEmpty())                                                                    \
+          ERROR("CCalendarWrapper::createCalendar(void)",                                       \
+                << "The attribute \"" #attr "\" can only be used with user defined calendar.");
+        CHECK_EMPTY(day_length)
+        CHECK_EMPTY(month_lengths)
+        CHECK_EMPTY(year_length)
+        CHECK_EMPTY(leap_year_month)
+        CHECK_EMPTY(leap_year_drift)
+        CHECK_EMPTY(leap_year_drift_offset)
+#undef CHECK_EMPTY
+      }
 
       if (!calendar)
-        ERROR("CCalendarWrapper::parse(xml::CXMLNode& node)",
+        ERROR("CCalendarWrapper::createCalendar(void)",
               << "[ type = " << type.getStringValue() << " ] "
               << "The calendar is not properly handled!");
 
@@ -120,7 +163,7 @@ namespace xios {
     }
     else if (!start_date.isEmpty() || !time_origin.isEmpty())
     {
-      ERROR("CCalendarWrapper::parse(xml::CXMLNode& node)",
+      ERROR("CCalendarWrapper::createCalendar(void)",
             << "The calendar type must be set before defining the start date or the time origin!");
     }
   }
