@@ -74,10 +74,6 @@ namespace xios {
 
       StdSize zoom_begin,zoom_end, zoom_size ;
 
-//      zoom_begin = (this->zoom_begin.isEmpty()) ?  1 : this->zoom_begin.getValue() ;
-//      zoom_end = (this->zoom_end.isEmpty()) ?  size : this->zoom_end.getValue() ;
-//      zoom_size = (this->zoom_size.isEmpty()) ?  size : this->zoom_size.getValue() ;
-
       // Maybe index begins at 0 (zero)
       zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue() ;
       zoom_end = (this->zoom_end.isEmpty()) ?  size-1 : this->zoom_end.getValue() ;
@@ -86,11 +82,8 @@ namespace xios {
       if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1 ;
       if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1 ;
       if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1 ;
-//
-//      if ( (zoom_begin < 1) || (zoom_begin > size) || (zoom_end<1) || (zoom_end>size) || (zoom_size<1) || (zoom_size>size) || (zoom_begin>zoom_end))
-//        ERROR("CAxis::checkAttributes(void)",<< "One or more attribut of <zoom_begin>, <zoom_end>, <zoom_size>, are not well specified") ;
 
-      if ( (zoom_begin < 0) || (zoom_begin > size-1) || (zoom_end<1) || (zoom_end>size-1) || (zoom_size<1) || (zoom_size>size) || (zoom_begin>zoom_end))
+      if ( (zoom_begin < 0) || (zoom_begin > size-1) || (zoom_end<0) || (zoom_end>size-1) || (zoom_size<1) || (zoom_size>size) || (zoom_begin>zoom_end))
         ERROR("CAxis::checkAttributes(void)",<< "One or more attribut of <zoom_begin>, <zoom_end>, <zoom_size>, are not well specified") ;
 
       this->zoom_begin.setValue(zoom_begin) ;
@@ -116,7 +109,7 @@ namespace xios {
               << "Data dimension is negative (data_n).") ;
       }
       else if (data_n.isEmpty())
-        data_n.setValue(zoom_size.getValue());
+        data_n.setValue(ni.getValue());
 
       if (data_index.isEmpty())
       {

@@ -12,6 +12,8 @@
 #include "attribute_array.hpp"
 #include "distribution_client.hpp"
 #include "distribution_server.hpp"
+#include "server_distribution_description.hpp"
+#include "client_server_mapping.hpp"
 
 namespace xios {
 
@@ -24,6 +26,8 @@ namespace xios {
    class CGrid;
    class CDistributionClient;
    class CDistributionServer;
+   class CServerDistributionDescription;
+   class CClientServerMapping;
 
    ///--------------------------------------------------------------
 
@@ -219,6 +223,8 @@ namespace xios {
         bool isAxisListSet, isDomListSet;
         CDistributionClient* clientDistribution_;
         CDistributionServer* serverDistribution_;
+        CServerDistributionDescription* serverDistributionDescription_;
+        CClientServerMapping clientServerMap_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

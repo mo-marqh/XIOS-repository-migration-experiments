@@ -12,8 +12,8 @@ PROGRAM test_new_features
   INTEGER :: comm
   TYPE(xios_duration)      :: dtime
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100
+  INTEGER,PARAMETER :: ni_glo=5
+  INTEGER,PARAMETER :: nj_glo=5
   INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
   DOUBLE PRECISION  :: lval2(llm)=1
@@ -69,8 +69,8 @@ PROGRAM test_new_features
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
 ! ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm,llm),lonvalue(ni*nj))
-  lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
-  lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
+  lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
+  lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
 
   CALL xios_context_initialize("test",comm)

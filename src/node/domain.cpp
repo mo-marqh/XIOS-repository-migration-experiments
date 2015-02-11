@@ -13,6 +13,7 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "array_new.hpp"
+#include "server_distribution_description.hpp"
 
 namespace xios {
 
@@ -20,12 +21,12 @@ namespace xios {
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false)
+      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_()
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false)
+      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_()
          { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -611,6 +612,11 @@ namespace xios {
 
   void CDomain::sendServerAttribut(void)
   {
+    std::vector<int> nGlobDomain(2);
+    nGlobDomain[0] = ni_glo.getValue();
+    nGlobDomain[1] = nj_glo.getValue();
+    CServerDistributionDescription serverDescription(nGlobDomain);
+
     int ni_srv=ni_glo.getValue() ;
     int ibegin_srv=0 ;
     int iend_srv=ni_glo.getValue() ;
@@ -624,15 +630,15 @@ namespace xios {
     int nbServer=client->serverSize ;
     int serverRank=client->getServerLeader() ;
 
-//    jend_srv=0 ;
-    jend_srv= -1 ;
-    for(int i=0;i<=serverRank;i++)
-    {
-      jbegin_srv=jend_srv+1 ;
-      nj_srv=nj_glo.getValue()/nbServer ;
-      if (i<nj_glo.getValue()%nbServer) nj_srv++ ;
-      jend_srv=jbegin_srv+nj_srv-1 ;
-    }
+     serverDescription.computeServerDistribution(nbServer);
+     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+     ibegin_srv = (serverIndexBegin[serverRank])[0];
+     jbegin_srv = serverIndexBegin[serverRank][1];
+     ni_srv = serverDimensionSizes[serverRank][0];
+     nj_srv = serverDimensionSizes[serverRank][1];
+     iend_srv = ibegin_srv+ni_srv-1;
+     jend_srv = jbegin_srv+nj_srv-1;
 
      CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;
      if (client->isServerLeader())
@@ -648,29 +654,42 @@ namespace xios {
 
   void CDomain::computeConnectedServer(void)
   {
-    int i,j,i_ind,j_ind ;
-
     ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
     jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
 
-    CContext* context = CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
-    int nbServer=client->serverSize ;
+    int nbServer=client->serverSize;
+    bool doComputeGlobalIndexServer = true;
 
-    // find how much client are connected to a server
+    int i,j,i_ind,j_ind ;
     int zoom_iend=zoom_ibegin+zoom_ni-1 ;
     int zoom_jend=zoom_jbegin+zoom_nj-1 ;
 
-    int blockSize=nj_glo/nbServer ;
-    int ns=nj_glo%nbServer ;
-    int pos=ns*(blockSize+1) ;
-//    int pos=ns*(blockSize) ;
-    int serverNum ;
+    std::vector<int> nGlobDomain(2);
+    nGlobDomain[0] = ni_glo.getValue();
+    nGlobDomain[1] = nj_glo.getValue();
+    CServerDistributionDescription serverDescription(nGlobDomain);
+    serverDescription.computeServerDistribution(nbServer, doComputeGlobalIndexServer);
 
-    mapConnectedServer.resize(ni,nj) ;
-    vector<int> nbData(nbServer,0) ;
-    vector<int> indServer(nbServer,-1) ;
-    vector<bool> IsConnected(nbServer,false) ;
+    // Precompute number of index
+    int globalIndexCount = 0;
+    for(j=0;j<nj;j++)
+      for(i=0;i<ni;i++)
+      {
+        i_ind=ibegin+i_index(i,j) ;
+        j_ind=jbegin+j_index(i,j) ;
+
+        if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
+        {
+          ++globalIndexCount;
+        }
+      }
+
+    // Fill in index
+    CArray<size_t,1> globalIndexDomain(globalIndexCount);
+    size_t globalIndex;
+    globalIndexCount = 0;
 
     for(j=0;j<nj;j++)
       for(i=0;i<ni;i++)
@@ -678,161 +697,28 @@ namespace xios {
         i_ind=ibegin+i_index(i,j) ;
         j_ind=jbegin+j_index(i,j) ;
 
-        if (j_ind<pos) serverNum=j_ind/(blockSize+1) ;
-        else serverNum=ns+(j_ind-pos)/blockSize ;
-        IsConnected[serverNum]=true ;
-
         if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
         {
-          mapConnectedServer(i,j)=serverNum ;
-          nbData[serverNum]++ ;
-        }
-        else mapConnectedServer(i,j)=-1 ;
-      }
-
-
-    for(serverNum=0 ; serverNum<nbServer ; serverNum++)
-      if (IsConnected[serverNum])
-      {
-        ns=connectedServer.size() ;
-        indServer[serverNum]=ns;
-        connectedServer.push_back(serverNum) ;
-        nbDataSrv.push_back(nbData[serverNum]) ;
-      }
-
-     i_indSrv.resize(connectedServer.size()) ;
-     j_indSrv.resize(connectedServer.size()) ;
-
-     for(j=0;j<nj;j++)
-      for(i=0;i<ni;i++)
-      {
-        if (mapConnectedServer(i,j)>=0)
-        {
-          ns=indServer[mapConnectedServer(i,j)] ;
-          mapConnectedServer(i,j)= ns ;
-          i_indSrv[ns].push_back(i+ibegin) ;
-          j_indSrv[ns].push_back(j+jbegin) ;
+          globalIndex = i_ind + j_ind * ni_glo;
+          globalIndexDomain(globalIndexCount) = globalIndex;
+          ++globalIndexCount;
         }
       }
 
-    int nbConnectedServer=connectedServer.size() ;
-
-    int* recvCount=new int[client->clientSize] ;
-    int* displ=new int[client->clientSize] ;
-    int* sendBuff=new int[nbConnectedServer] ;
-    valarray<int> nbClient(0,client->serverSize) ;
-
-    for(int n=0;n<nbConnectedServer;n++) sendBuff[n]=connectedServer[n] ;
-
-    // get connected server for everybody
-    MPI_Allgather(&nbConnectedServer,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm) ;
-
-    displ[0]=0 ;
-    for(int n=1;n<client->clientSize;n++) displ[n]=displ[n-1]+recvCount[n-1] ;
-    int recvSize=displ[client->clientSize-1]+recvCount[client->clientSize-1] ;
-    int* recvBuff=new int[recvSize] ;
-
-
-    MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,client->intraComm) ;
-    for(int n=0;n<recvSize;n++) nbClient[recvBuff[n]]++ ;
-
-    for(int n=0;n<nbConnectedServer;n++) nbSenders.push_back(nbClient[connectedServer[n]]) ;
-
-    delete [] recvCount ;
-    delete [] displ ;
-    delete [] sendBuff ;
-    delete [] recvBuff ;
+    CClientServerMapping clientServerMap;
+    clientServerMap.computeServerIndexMapping(globalIndexDomain, serverDescription.getGlobalIndex());
+    const std::map<int, std::vector<size_t> >& globalIndexDomainOnServer = clientServerMap.getGlobalIndexOnServer();
+    std::vector<int> connectedServerRank;
+    for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(); it != globalIndexDomainOnServer.end(); ++it) {
+      connectedServerRank.push_back(it->first);
+    }
+    nbConnectedClients_ = clientServerMap.computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank);
+    indSrv_ = globalIndexDomainOnServer;
   }
-
-
-//  void CDomain::sendLonLat(void)
-//  {
-//    int ns,n,i,j,ind,nv ;
-//    CContext* context = CContext::getCurrent() ;
-//    CContextClient* client=context->client ;
-//    // send lon lat for each connected server
-//
-//    CEventClient eventLon(getType(),EVENT_ID_LON) ;
-//    CEventClient eventLat(getType(),EVENT_ID_LAT) ;
-//
-//    list<shared_ptr<CMessage> > list_msgLon ;
-//    list<shared_ptr<CMessage> > list_msgLat ;
-//    list< CArray<int,1>* > list_indi,list_indj ;
-//    list< CArray<double,1>* >list_lon,list_lat ;
-//    list< CArray<double,2>* >list_boundslon,list_boundslat ;
-//
-//    for(int ns=0;ns<connectedServer.size();ns++)
-//    {
-//      int nbData = nbDataSrv[ns] ;
-//      CArray<int,1> indi(nbData) ;
-//      CArray<int,1> indj(nbData) ;
-//      CArray<double,1> lon(nbData) ;
-//      CArray<double,1> lat(nbData) ;
-//      CArray<double,2> boundslon(nvertex,nbData) ;
-//      CArray<double,2> boundslat(nvertex,nbData) ;
-//
-//      for(n=0;n<nbData;n++)
-//      {
-//        i=i_indSrv[ns][n] ;
-//        j=j_indSrv[ns][n] ;
-//        ind=(i-(zoom_ibegin_client-1))+(j-(zoom_jbegin_client-1))*zoom_ni_client ;
-//
-//        lon(n)=lonvalue(ind) ;
-//        lat(n)=latvalue(ind) ;
-//        if (hasBounds)
-//        {
-//          for(nv=0;nv<nvertex;nv++)
-//          {
-//            boundslon(nv,n)=bounds_lon(nv,ind);
-//            boundslat(nv,n)=bounds_lat(nv,ind);
-//          }
-//        }
-//        indi(n)=ibegin+i_index(i-ibegin+1,j-jbegin+1)-1  ;
-//        indj(n)=jbegin+j_index(i-ibegin+1,j-jbegin+1)-1  ;
-//      }
-//
-//      list_indi.push_back(new CArray<int,1>(indi.copy())) ;
-//      list_indj.push_back(new CArray<int,1>(indj.copy())) ;
-//      list_lon.push_back(new CArray<double,1>(lon.copy())) ;
-//      list_lat.push_back(new CArray<double,1>(lat.copy())) ;
-//      if (hasBounds) list_boundslon.push_back(new CArray<double,2>(boundslon.copy())) ;
-//      if (hasBounds) list_boundslat.push_back(new CArray<double,2>(boundslat.copy())) ;
-//
-//      list_msgLon.push_back(shared_ptr<CMessage>(new CMessage)) ;
-//      list_msgLat.push_back(shared_ptr<CMessage>(new CMessage)) ;
-//
-//      *list_msgLon.back()<<this->getId()<<(int)type ; // enum ne fonctionne pour les message => ToFix
-//      *list_msgLat.back()<<this->getId()<<(int)type ;
-//      *list_msgLon.back()<<isCurvilinear ;
-//      *list_msgLat.back()<<isCurvilinear ;
-//      *list_msgLon.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back() ;
-//      *list_msgLat.back()<<*list_indi.back()<<*list_indj.back()<<*list_lat.back() ;
-//
-//      if (hasBounds)
-//      {
-//        *list_msgLon.back()<<*list_boundslon.back();
-//        *list_msgLat.back()<<*list_boundslat.back();
-//      }
-//      eventLon.push(connectedServer[ns],nbSenders[ns],*list_msgLon.back()) ;
-//      eventLat.push(connectedServer[ns],nbSenders[ns],*list_msgLat.back()) ;
-//    }
-//
-//    client->sendEvent(eventLon) ;
-//    client->sendEvent(eventLat) ;
-//
-//
-//    for(list<CArray<int,1>* >::iterator it=list_indi.begin();it!=list_indi.end();it++) delete *it;
-//    for(list<CArray<int,1>* >::iterator it=list_indj.begin();it!=list_indj.end();it++) delete *it;
-//    for(list<CArray<double,1>* >::iterator it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
-//    for(list<CArray<double,1>* >::iterator it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
-//    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslon.begin();it!=list_boundslon.end();it++)   delete *it;
-//    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;
-//
-//  }
 
   void CDomain::sendLonLat(void)
   {
-    int ns,n,i,j,ind,nv ;
+    int ns,n,i,j,ind,nv, idx;
     CContext* context = CContext::getCurrent() ;
     CContextClient* client=context->client ;
     // send lon lat for each connected server
@@ -846,21 +732,25 @@ namespace xios {
     list< CArray<double,1>* >list_lon,list_lat ;
     list< CArray<double,2>* >list_boundslon,list_boundslat ;
 
-    for(int ns=0;ns<connectedServer.size();ns++)
+    std::map<int, std::vector<size_t> >::const_iterator it, itbMap, iteMap;
+    itbMap = indSrv_.begin();
+    iteMap = indSrv_.end();
+    for (it = itbMap; it != iteMap; ++it)
     {
-      int nbData = nbDataSrv[ns] ;
+      int rank = it->first;
+      int nbData = (it->second).size();
       CArray<int,1> indi(nbData) ;
       CArray<int,1> indj(nbData) ;
       CArray<double,1> lon(nbData) ;
       CArray<double,1> lat(nbData) ;
-      CArray<double,2> boundslon(nvertex,nbData) ;
-      CArray<double,2> boundslat(nvertex,nbData) ;
+      CArray<double,2> boundslon(nvertex,nbData);
+      CArray<double,2> boundslat(nvertex,nbData);
 
-      for(n=0;n<nbData;n++)
+      for (n = 0; n < nbData; ++n)
       {
-        i=i_indSrv[ns][n] ;
-        j=j_indSrv[ns][n] ;
-//        ind=(i-(zoom_ibegin_client))+(j-(zoom_jbegin_client-1))*zoom_ni_client ;
+        idx = static_cast<int>((it->second)[n]);
+        i = idx%ni_glo;
+        j = idx/ni_glo;
         ind=(i-(zoom_ibegin_client))+(j-(zoom_jbegin_client))*zoom_ni_client ;
 
         lon(n)=lonvalue(ind) ;
@@ -875,8 +765,6 @@ namespace xios {
         }
         indi(n)=ibegin+i_index(i-ibegin,j-jbegin)  ;
         indj(n)=jbegin+j_index(i-ibegin,j-jbegin)  ;
-//        indi(n)=ibegin+i_index(i-ibegin+1,j-jbegin+1)-1  ;
-//        indj(n)=jbegin+j_index(i-ibegin+1,j-jbegin+1)-1  ;
       }
 
       list_indi.push_back(new CArray<int,1>(indi.copy())) ;
@@ -901,8 +789,8 @@ namespace xios {
         *list_msgLon.back()<<*list_boundslon.back();
         *list_msgLat.back()<<*list_boundslat.back();
       }
-      eventLon.push(connectedServer[ns],nbSenders[ns],*list_msgLon.back()) ;
-      eventLat.push(connectedServer[ns],nbSenders[ns],*list_msgLat.back()) ;
+      eventLon.push(rank,nbConnectedClients_[rank],*list_msgLon.back()) ;
+      eventLat.push(rank,nbConnectedClients_[rank],*list_msgLat.back()) ;
     }
 
     client->sendEvent(eventLon) ;
@@ -915,7 +803,6 @@ namespace xios {
     for(list<CArray<double,1>* >::iterator it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
     if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslon.begin();it!=list_boundslon.end();it++)   delete *it;
     if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;
-
   }
 
   bool CDomain::dispatchEvent(CEventServer& event)
@@ -1051,7 +938,6 @@ namespace xios {
     buffer>>type_int>>isCurvilinear>>indi>>indj>>lat ;
     if (hasBounds) buffer>>boundslat ;
     type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
-
     int i,j,ind_srv ;
     for(int ind=0;ind<indi.numElements();ind++)
     {
@@ -1067,49 +953,7 @@ namespace xios {
       }
     }
   }
-//  void CDomain::recvLonLat(CEventServer& event)
-//  {
-//    list<CEventServer::SSubEvent>::iterator it ;
-//    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
-//    {
-//      CBufferIn* buffer=it->buffer;
-//      string domainId ;
-//      *buffer>>domainId ;
-//      get(domainId)->recvLonLat(*buffer) ;
-//    }
-//  }
-//
-//  void CDomain::recvLonLat(CBufferIn& buffer)
-//  {
-//    CArray<int,1> indi ;
-//    CArray<int,1> indj ;
-//    CArray<double,1> lon ;
-//    CArray<double,1> lat ;
-//    CArray<double,2> boundslon ;
-//    CArray<double,2> boundslat ;
-//
-//    int type_int ;
-//    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon>>lat ;
-//    if (hasBounds) buffer>>boundslon>>boundslat ;
-//    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
-//
-//    int i,j,ind_srv ;
-//    for(int ind=0;ind<indi.numElements();ind++)
-//    {
-//      i=indi(ind) ; j=indj(ind) ;
-//      ind_srv=(i-(zoom_ibegin_srv-1))+(j-(zoom_jbegin_srv-1))*zoom_ni_srv ;
-//      lonvalue_srv(ind_srv)=lon(ind) ;
-//      latvalue_srv(ind_srv)=lat(ind) ;
-//      if (hasBounds)
-//      {
-//        for(int nv=0;nv<nvertex;nv++)
-//        {
-//          bounds_lon_srv(nv,ind_srv)=boundslon(nv,ind) ;
-//          bounds_lat_srv(nv,ind_srv)=boundslat(nv,ind) ;
-//        }
-//      }
-//    }
-//  }
+
    //----------------------------------------------------------------
 
    DEFINE_REF_FUNC(Domain,domain)

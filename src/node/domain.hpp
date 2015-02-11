@@ -112,7 +112,9 @@ namespace xios {
         vector< vector<int> > i_indSrv ; // for each server, i global index to send
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
 
+
         CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
+
 
 //        vector<int> ib_srv, ie_srv, in_srv ;
 //        vector<int> jb_srv, je_srv, jn_srv ;
@@ -151,6 +153,8 @@ namespace xios {
          bool isChecked;
          std::set<StdString> relFiles;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
+         std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
+         std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
 
          DECLARE_REF_FUNC(Domain,domain)
 

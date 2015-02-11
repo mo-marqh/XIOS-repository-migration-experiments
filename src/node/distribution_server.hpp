@@ -1,12 +1,22 @@
+/*!
+   \file distribution_server.hpp
+   \author Ha NGUYEN
+   \since 13 Jan 2015
+   \date 04 Feb 2015
+
+   \brief Index distribution on server side.
+ */
+
 #ifndef __XIOS_DISTRIBUTION_SERVER_HPP__
 #define __XIOS_DISTRIBUTION_SERVER_HPP__
 
 #include "distribution.hpp"
 
 namespace xios {
+
 /*!
-\class CDistributionServer
- The class, for now, plays a role of computing local index for writing data on server
+  \class CDistributionServer
+  The class, for now, plays a role of computing local index for writing data on server
 */
 class CDistributionServer : public CDistribution
 {

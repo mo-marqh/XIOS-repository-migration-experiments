@@ -1,6 +1,15 @@
+/*!
+   \file distribution_server.cpp
+   \author Ha NGUYEN
+   \since 13 Jan 2015
+   \date 04 Feb 2015
+
+   \brief Index distribution on server side.
+ */
 #include "distribution_server.hpp"
 
 namespace xios {
+
 CDistributionServer::CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex)
   : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_()
 {

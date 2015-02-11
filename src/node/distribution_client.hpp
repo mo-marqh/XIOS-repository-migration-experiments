@@ -1,3 +1,11 @@
+/*!
+   \file distribution_client.hpp
+   \author Ha NGUYEN
+   \since 13 Jan 2015
+   \date 09 Feb 2015
+
+   \brief Index distribution on client side.
+ */
 #ifndef __XIOS_DISTRIBUTIONCLIENT_HPP__
 #define __XIOS_DISTRIBUTIONCLIENT_HPP__
 
@@ -14,33 +22,21 @@ class CAxis;
 
 /*!
   \class CDistributionClient
-  This class bases on the knowledge of distribution on client side as well as on server side
-to calculate the index mapping between client and server. Each client awaring of the existences of other clients
-and servers, firstly, computes the global index of its local data then use this information on taking into account of
-distribution of servers to calculate to which server(s) it connects (sends data)
+  This class bases on the knowledge of distribution on client side (decided by users)
+to calculate the global index of its local data.
 */
 class CDistributionClient : public CDistribution
 {
   public:
-    enum ServerDistributionType
-    {
-      BAND_DISTRIBUTION, PLAN_DISTRIBUTION
-    };
-
     /** Default constructor */
     CDistributionClient(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
     CDistributionClient(int rank, CGrid* grid);
-    CDistributionClient(const CDistributionClient& distClient); //! Not implement
 
     /** Default destructor */
     virtual ~CDistributionClient();
 
-    void computeServerIndexMapping(int nServer, ServerDistributionType distType = BAND_DISTRIBUTION);
-    std::map<int,int> computeConnectedClients(int nbServer, int nbClient, MPI_Comm& clientIntraComm);
-
     const CArray<int,1>& getLocalDataIndexOnClient() const;
-    const std::map<int, std::vector<size_t> >& getGlobalIndexOnServer() const;
-    const std::map<int, std::vector<int> >& getLocalIndexSendToServer() const;
+    std::vector<int> getNGlob() { return nGlob_; }
 
   protected:
     void createGlobalIndex();
@@ -50,33 +46,27 @@ class CDistributionClient : public CDistribution
                               const CArray<bool,1>& axisDomainOrder,
                               const CArray<bool,3>& gridMask);
 
+  private:
+    //! Create local index of a domain
+    void createLocalDomainDataIndex();
+
+    //! Create local index of an axis
+    void createLocalAxisDataIndex();
+
     inline int getDomainIndex(const int& dataIIndex, const int& dataJIndex,
                               const int& dataIBegin, const int& dataJBegin,
                               const int& dataDim, const int& ni, int& j);
     inline int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
 
   private:
-    //! Create local index of a domain
-    void createLocalDomainDataIndex();
-    //! Create local index of an axis
-    void createLocalAxisDataIndex();
-
-    //! Compute band distribution on server
-    std::vector<CArray<size_t,1>* > computeServerBandDistribution(int nServer);
-  private:
     //!< LocalData index on client
     CArray<int,1>* localDataIndex_;
 
-    //! Index of the local data which will be sent to the corresponding server(s)
-    std::map<int, std::vector<int> >  localIndexSend2Server_;
-
-    //! Global index of data on SERVER, which are calculated by client(s)
-    std::map<int, std::vector<size_t> > indexGlobalOnServer_;
   private:
     /*! Domains and axis are considered elements.
      * A grid composed of 1 domain and 1 axis has 2 elements */
     int numElement_;
-    CArray<bool,1> axisDomainOrder_; //!<
+    CArray<bool,1> axisDomainOrder_; //!< Order of axis and domain of a grid
 
     std::vector<int> nLocal_; //!< Local size of each dimension (ni, nj, etc, ...)
     std::vector<int> nGlob_; //!< Global size of each dimension (e.x: ni_glo, nj_glo, etc, ...)
@@ -101,11 +91,12 @@ class CDistributionClient : public CDistribution
     std::vector<std::vector<int> > localAxisIndex_;
     std::vector<int> indexMap_; //!< Mapping element index to dimension index
 
-    std::map<int, int> connectedClients_; //!< number of clients connected to a server
-    bool isConnectedServerComputed_; //!< Guard flag
-
-    // The real index of a domain has true value, the ghost one has false value
+    // The correct index of a domain has true value, the ghost one has false value
     std::vector<std::vector<bool> > indexDomainData_;
+    std::vector<std::vector<bool> > indexAxisData_;
+
+  private:
+    CDistributionClient(const CDistributionClient& distClient); //! Not implement
 };
 
 } // namespace xios

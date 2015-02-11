@@ -22,7 +22,7 @@ namespace xios {
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0)
+      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -33,7 +33,7 @@ namespace xios {
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0)
+      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -58,6 +58,7 @@ namespace xios {
 
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
+    if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
 
    }
 
@@ -186,7 +187,7 @@ namespace xios {
      double secureFactor = 2.5 * sizeof(double) * CXios::bufferServerFactorSize;
      StdSize retVal;
      std::map<int, StdSize> ret;
-     const std::map<int, std::vector<int> >& distribution = clientDistribution_->getLocalIndexSendToServer();
+     const std::map<int, std::vector<int> >& distribution = clientServerMap_.getLocalIndexSendToServer();
      std::map<int, std::vector<int> >::const_iterator it = distribution.begin(), itE = distribution.end();
      for (; it != itE; ++it)
      {
@@ -404,10 +405,24 @@ namespace xios {
    {
      CContext* context = CContext::getCurrent() ;
      CContextClient* client=context->client ;
-     clientDistribution_ = new CDistributionClient(client->clientRank, this);
-     clientDistribution_->computeServerIndexMapping(client->serverSize);
-     nbSenders = clientDistribution_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm);
 
+     // First of all, compute distribution on client side
+     clientDistribution_ = new CDistributionClient(client->clientRank, this);
+
+     // Then compute distribution on server side
+     serverDistributionDescription_ = new CServerDistributionDescription(clientDistribution_->getNGlob());
+     serverDistributionDescription_->computeServerDistribution(client->serverSize, true);
+
+     // Finally, compute index mapping between client(s) and server(s)
+     clientServerMap_.computeServerIndexMapping(clientDistribution_->getGlobalIndex(),serverDistributionDescription_->getGlobalIndex());
+     const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_.getGlobalIndexOnServer();
+     std::vector<int> connectedServerRank;
+     for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexOnServer.begin(); it != globalIndexOnServer.end(); ++it) {
+       connectedServerRank.push_back(it->first);
+     }
+     nbSenders = clientServerMap_.computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank);
+
+     // Get local data index on client
      storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().numElements());
      storeIndex_client = (clientDistribution_->getLocalDataIndexOnClient());
 
@@ -714,16 +729,14 @@ namespace xios {
     int rank ;
     list<shared_ptr<CMessage> > list_msg ;
     list< CArray<size_t,1>* > listOutIndex;
-
-    const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientDistribution_->getGlobalIndexOnServer();
-    const std::map<int, std::vector<int> >& localIndexSendToServer  = clientDistribution_->getLocalIndexSendToServer();
+    const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_.getGlobalIndexOnServer();
+    const std::map<int, std::vector<int> >& localIndexSendToServer  = clientServerMap_.getLocalIndexSendToServer();
 
     std::map<int, std::vector<size_t> >::const_iterator iteMap, itbMap, itGlobal;
     std::map<int, std::vector<int> >::const_iterator itLocal;
     itbMap = itGlobal = globalIndexOnServer.begin();
     iteMap = globalIndexOnServer.end();
     itLocal = localIndexSendToServer.begin();
-
 
     for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
     {

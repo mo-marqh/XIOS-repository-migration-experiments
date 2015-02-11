@@ -1,24 +1,30 @@
+/*!
+   \file distribution_client.cpp
+   \author Ha NGUYEN
+   \since 13 Jan 2015
+   \date 09 Feb 2015
+
+   \brief Index distribution on client side.
+ */
 #include "distribution_client.hpp"
 
 namespace xios {
 
 CDistributionClient::CDistributionClient(int rank, int dims, CArray<size_t,1>* globalIndex)
    : CDistribution(rank, dims, globalIndex),
-   localDataIndex_(0), indexGlobalOnServer_(), localIndexSend2Server_(), axisDomainOrder_(),
+   localDataIndex_(0), axisDomainOrder_(),
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
-   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), connectedClients_(),
-   isConnectedServerComputed_(false), indexDomainData_()
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
 {
 }
 
 CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    : CDistribution(rank, 0, 0),
-   localDataIndex_(0), indexGlobalOnServer_(), localIndexSend2Server_(), axisDomainOrder_(),
+   localDataIndex_(0), axisDomainOrder_(),
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
-   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), connectedClients_(),
-   isConnectedServerComputed_(false), indexDomainData_()
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
 {
   readDistributionInfo(grid);
   createGlobalIndex();
@@ -192,9 +198,9 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
     }
     else // So it's an axis
     {
-      nLocal_.at(indexMap_[idx]) = axisList[axisIndex]->zoom_size.getValue();
+      nLocal_.at(indexMap_[idx]) = axisList[axisIndex]->ni.getValue();
       nGlob_.at(indexMap_[idx]) = axisList[axisIndex]->size.getValue();
-      nBeginLocal_.at(indexMap_[idx]) = axisList[axisIndex]->zoom_begin.getValue(); //ibegin.getValue();
+      nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = axisList[axisIndex]->ibegin.getValue();
       nZoomBegin_.at((indexMap_[idx])) = axisList[axisIndex]->zoom_begin;
       nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->zoom_begin + axisList[axisIndex]->zoom_size-1;
@@ -262,6 +268,7 @@ void CDistributionClient::createLocalAxisDataIndex()
     if (!axisDomainOrder_(i)) ++numAxis;
 
   localAxisIndex_.resize(numAxis);
+  indexAxisData_.resize(numAxis);
 
   int idxAxis = 0;
   for (int i = 0; i < axisDomainOrder_.numElements(); ++i)
@@ -269,6 +276,7 @@ void CDistributionClient::createLocalAxisDataIndex()
     if (!axisDomainOrder_(i))
     {
       int iIdx = 0;
+      indexAxisData_[idxAxis].resize(dataNIndex_[i], false);
       for (int j = 0; j < dataNIndex_[i]; ++j)
       {
         iIdx = getAxisIndex(dataIndex_[indexMap_[i]](j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
@@ -276,6 +284,7 @@ void CDistributionClient::createLocalAxisDataIndex()
            (iIdx < nLocal_[indexMap_[i]]) && (axisMasks_[idxAxis](iIdx)))
         {
           localAxisIndex_[idxAxis].push_back(iIdx);
+          indexAxisData_[idxAxis][j] = true;
         }
       }
       ++idxAxis;
@@ -332,7 +341,7 @@ void CDistributionClient::createGlobalIndex()
       }
     }
 
-    // Outer index
+    // Find out outer index
     idxDomain = idxAxis = 0;
     for (int i = 1; i < numElement_; ++i)
     {
@@ -375,21 +384,22 @@ void CDistributionClient::createGlobalIndex()
     idx += innerLoopSize;
   }
 
-  // Fill in the global index
+
+  // Now allocate these arrays
   this->globalIndex_ = new CArray<size_t,1>(indexSend2ServerCount);
   localDataIndex_ = new CArray<int,1>(indexLocalDataOnClientCount);
 
-  eachElementSize = dataNIndex_;
-  innerLoopSize = eachElementSize[0];
-  ssize = 1; for (int i = 0; i < numElement_; ++i) ssize *= eachElementSize[i];
+  // We need to loop with data index
+  innerLoopSize = dataNIndex_[0];
+  ssize = 1; for (int i = 0; i < numElement_; ++i) ssize *= dataNIndex_[i];
   idxLoop.assign(numElement_,0);
   idx = indexLocalDataOnClientCount = indexSend2ServerCount = 0;
-  int count = 0;
+  int count = 0, correctOuterIndexDomain = 0, correctOuterIndexAxis = 0;
   while (idx < ssize)
   {
     for (int i = 0; i < numElement_-1; ++i)
     {
-      if (idxLoop[i] == eachElementSize[i])
+      if (idxLoop[i] == dataNIndex_[i])
       {
         idxLoop[i] = 0;
         ++idxLoop[i+1];
@@ -398,29 +408,37 @@ void CDistributionClient::createGlobalIndex()
 
     // Outer index
     idxDomain = idxAxis = 0;
-    bool isIndexDataCorrect = false;
+    bool isIndexDomainDataCorrect = false;
+    bool isIndexAxisDataCorrect = false;
+
     for (int i = 1; i < numElement_; ++i)
     {
       if (axisDomainOrder_(i))
       {
         if (indexDomainData_[idxDomain][idxLoop[i]])
         {
-          currentIndex[indexMap_[i]]   = localDomainIndex_[idxDomain][idxLoop[i]];
-          currentIndex[indexMap_[i]+1] = localDomainIndex_[idxDomain*2+1][idxLoop[i]];
-          isIndexDataCorrect = true;
+          currentIndex[indexMap_[i]]   = localDomainIndex_[idxDomain][correctOuterIndexDomain];
+          currentIndex[indexMap_[i]+1] = localDomainIndex_[idxDomain*2+1][correctOuterIndexDomain];
+          isIndexDomainDataCorrect = true;
+          ++correctOuterIndexDomain;
         }
         ++idxDomain;
       }
       else
       {
-        currentIndex[indexMap_[i]]   = localAxisIndex_[idxAxis][idxLoop[i]];
+        if (indexAxisData_[idxAxis][idxLoop[i]])
+        {
+          currentIndex[indexMap_[i]]   = localAxisIndex_[idxAxis][correctOuterIndexAxis];
+          isIndexAxisDataCorrect = true;
+          ++correctOuterIndexAxis;
+        }
         ++idxAxis;
       }
     }
 
     // Inner most index
     idxDomain = idxAxis = 0;
-    int correctIndexDomain = 0;
+    int correctIndexDomain = 0, correctIndexAxis = 0;
     for (int i = 0; i < innerLoopSize; ++i)
     {
       if (axisDomainOrder_(0))
@@ -429,28 +447,38 @@ void CDistributionClient::createGlobalIndex()
         {
           currentIndex[0] = localDomainIndex_[idxDomain][correctIndexDomain];
           currentIndex[1] = localDomainIndex_[idxDomain+1][correctIndexDomain];
-          isIndexDataCorrect = true;
+          isIndexDomainDataCorrect = true;
           ++correctIndexDomain;
-        } else isIndexDataCorrect = false;
+        }
+        else isIndexDomainDataCorrect = false;
       }
       else
       {
-        currentIndex[0]   = localAxisIndex_[idxAxis][i];
+        if (indexAxisData_[idxAxis][i])
+        {
+          currentIndex[0] = localAxisIndex_[idxAxis][correctIndexAxis];
+          isIndexAxisDataCorrect = true;
+          ++correctIndexAxis;
+        }
+        else isIndexAxisDataCorrect = false;
       }
 
-      if (isIndexDataCorrect && gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
+      if (isIndexDomainDataCorrect &&
+          isIndexAxisDataCorrect &&
+          gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
       {
         (*localDataIndex_)(indexLocalDataOnClientCount) = count;
         ++indexLocalDataOnClientCount;
 
         bool isIndexOnServer = true;
         for (int j = 0; j < this->dims_; ++j)
-          isIndexOnServer = isIndexOnServer && ((currentIndex[j]+nBeginGlobal_[j]) <= nZoomEnd_[j])
-                                            && (nZoomBegin_[j] <= (currentIndex[j]+nBeginGlobal_[j]));
+          isIndexOnServer = isIndexOnServer &&
+                            ((currentIndex[j]+nBeginGlobal_[j]) <= nZoomEnd_[j]) &&
+                            (nZoomBegin_[j] <= (currentIndex[j]+nBeginGlobal_[j]));
         if (isIndexOnServer)
         {
-          size_t mulDim = 1;
           size_t globalIndex = currentIndex[0] + nBeginGlobal_[0];
+          size_t mulDim = 1;
           for (int k = 1; k < this->dims_; ++k)
           {
             mulDim *= nGlob_[k-1];
@@ -465,9 +493,6 @@ void CDistributionClient::createGlobalIndex()
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
   }
-
-//  std::cout << "global index " << *this->globalIndex_ << std::endl;
-//  std::cout << "local index " << *localDataIndex_ << std::endl;
 }
 
 /*!
@@ -510,228 +535,6 @@ int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin
 {
    int tempI = dataIndex + dataBegin;
    return ((tempI-1)%ni);
-//   return ((tempI)%ni);
-}
-
-/*!
-  Compute global index of each server distributed by band
-  The classic distribution of servers: each server takes charges of writing data divided
-into blocks on the second dimension of grid. If the grid contain a domain, this second dimension is nj.
-  \param [in] nServer number of server
-  \return vector of pointer to array of global index of servers
-*/
-std::vector<CArray<size_t,1>* > CDistributionClient::computeServerBandDistribution(int nServer)
-{
-  // It's not intelligent to allocate dynamic memory inside one function and dellocate in another
-  // but it's a way to free a large amount of unnecessary memory
-  // This function must NEVER made into public.
-  size_t ssize = 1, idx = 0;
-  for (int i = 0; i < nGlob_.size(); ++i) ssize *= nGlob_[i];
-  std::vector<int> idxLoop(this->dims_,0);
-  std::vector<int> indexServer(nServer,0);
-  int njRangeSize;
-  std::vector<int> njRangeBegin(nServer,0);
-  std::vector<int> njRangeEnd(nServer,0);
-  std::vector<CArray<size_t,1>* > globalIndexServer(nServer);
-
-  int innerLoopSize = nGlob_[0], idxServer;
-  if (1<nGlob_.size())
-  {
-    for (int i = 0; i < nServer; ++i)
-    {
-      if (0 < i) njRangeBegin[i] = njRangeEnd[i-1];
-      njRangeSize = nGlob_[1] / nServer;
-      if (i < nGlob_[1]%nServer) ++njRangeSize;
-      njRangeEnd[i] = njRangeSize + njRangeBegin[i];
-    }
-    njRangeEnd[nServer-1] = nGlob_[1];
-
-    // Compute size of each global index server array
-    while (idx < ssize)
-    {
-      for (int i = 0; i < this->dims_-1; ++i)
-      {
-        if (idxLoop[i] == nGlob_[i])
-        {
-          idxLoop[i] = 0;
-          ++idxLoop[i+1];
-        }
-      }
-
-      for (int i = 0; i < nServer; ++i)
-        if ((njRangeBegin[i]<=idxLoop[1]) && (idxLoop[1] < njRangeEnd[i]))
-        {
-          idxServer = i;
-          break;
-        }
-
-      indexServer[idxServer] += innerLoopSize;
-      idxLoop[0] += innerLoopSize;
-      idx += innerLoopSize;
-    }
-
-
-    for (int i = 0; i < nServer; ++i) globalIndexServer[i] = new CArray<size_t,1>(indexServer[i]);
-
-    // Fill in each global index server array
-    idx = 0;
-    idxLoop.assign(this->dims_,0);
-    indexServer.assign(nServer,0);
-    size_t globalIndex = 0;
-    while (idx < ssize)
-    {
-      for (int i = 0; i < this->dims_-1; ++i)
-      {
-        if (idxLoop[i] == nGlob_[i])
-        {
-          idxLoop[i] = 0;
-          ++idxLoop[i+1];
-        }
-      }
-
-      for (int i = 0; i < nServer; ++i)
-        if ((njRangeBegin[i]<=idxLoop[1]) && (idxLoop[1] < njRangeEnd[i]))
-        {
-          idxServer = i;
-          break;
-        }
-
-      for (int i = 0; i < innerLoopSize; ++i)
-      {
-        (*globalIndexServer[idxServer])(indexServer[idxServer]) = globalIndex;
-        ++indexServer[idxServer];
-        ++globalIndex;
-      }
-      idxLoop[0] += innerLoopSize;
-      idx += innerLoopSize;
-    }
-  }
-
-  return globalIndexServer;
-}
-
-/*!
-  Compute index mapping between cliens and servers
-  On using global index of data on clients and servers, each client calculates which part
-of data will be sent to the corresponding server. After the functions is called, client can use
-all computed information to send correct data to server
-  \param [in] nServer number of server
-  \param [in] distributionType type of distribution, like band or plan
-*/
-void CDistributionClient::computeServerIndexMapping(int nServer, ServerDistributionType distributionType)
-{
-  std::vector<CArray<size_t,1>* > globalIndexServer;
-
-  switch (distributionType)
-  {
-    case BAND_DISTRIBUTION:
-      globalIndexServer = computeServerBandDistribution(nServer);
-      break;
-    default:
-      break;
-  }
-
-  std::vector<CArray<size_t,1>::const_iterator> itBegin(nServer), itEnd(nServer), it(nServer);
-  for (int i = 0; i < nServer; ++i)
-  {
-    itBegin[i] = it[i] = globalIndexServer[i]->begin();
-    itEnd[i]   = globalIndexServer[i]->end();
-  }
-
-  size_t ssize = (this->globalIndex_)->numElements();
-  for (int i = 0; i < ssize; ++i)
-  {
-    for (int j = 0; j < nServer; ++j)
-    {
-      // Just temporarily, it's bad.
-
-      if (std::binary_search(itBegin[j], itEnd[j], (*this->globalIndex_)(i)))
-      {
-        // Just try to calculate local index server on client side
-        (indexGlobalOnServer_[j]).push_back((*this->globalIndex_)(i));
-        (localIndexSend2Server_[j]).push_back(i);
-        continue;
-      }
-    }
-  }
-
-  for (int i = 0; i < nServer; ++i)
-    if (0 != globalIndexServer[i]) delete globalIndexServer[i];
-}
-
-/*!
-  Compute how many clients each server will receive data from
-  On client can send data to several servers as well as one server can receive data originated from
-some clients. In order to write data correctly, each server must know from how many clients it receives data
-  \param [in] nbServer number of servers
-  \param [in] nClient number of clients
-  \param [in] clientIntraComm MPI communication of clients
-  \return mapping of server rank and the number of connected clients
-*/
-std::map<int,int> CDistributionClient::computeConnectedClients(int nbServer, int nbClient, MPI_Comm& clientIntraComm)
-{
-  if (isConnectedServerComputed_) return connectedClients_;
-  std::map<int, std::vector<size_t> >::const_iterator itbMap, iteMap, it;
-  itbMap = it = indexGlobalOnServer_.begin();
-  iteMap = indexGlobalOnServer_.end();
-
-  std::vector<int> connectedServer;
-  std::vector<bool> isConnected(nbServer,false);
-
-  for (it = itbMap; it != iteMap; ++it)
-  {
-    for (int serverNum = 0; serverNum < nbServer; ++serverNum)
-      if (it->first == serverNum) isConnected[serverNum] = true;
-  }
-
-  for(int serverNum = 0; serverNum<nbServer; ++serverNum)
-    if (isConnected[serverNum])
-      connectedServer.push_back(serverNum);
-
-
-  int nbConnectedServer=connectedServer.size();
-  int* recvCount=new int[nbClient];
-  int* displ=new int[nbClient];
-  int* sendBuff=new int[nbConnectedServer];
-  valarray<int> clientRes(0,nbServer);
-
-  for(int n=0;n<nbConnectedServer;n++) sendBuff[n]=connectedServer[n] ;
-
-  // get connected server for everybody
-  MPI_Allgather(&nbConnectedServer,1,MPI_INT,recvCount,1,MPI_INT,clientIntraComm) ;
-
-  displ[0]=0 ;
-  for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1] ;
-  int recvSize=displ[nbClient-1]+recvCount[nbClient-1] ;
-  int* recvBuff=new int[recvSize] ;
-
-
-  MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,clientIntraComm) ;
-  for(int n=0;n<recvSize;n++) clientRes[recvBuff[n]]++ ;
-
-//  std::map<int,int> nbSenders;
-  for(int n=0;n<nbConnectedServer;n++)
-  {
-    connectedClients_[connectedServer[n]] = clientRes[connectedServer[n]];
-  }
-
-  isConnectedServerComputed_ = true;
-
-  delete [] recvCount ;
-  delete [] displ ;
-  delete [] sendBuff ;
-  delete [] recvBuff ;
-
-  return connectedClients_;
-}
-
-/*!
-  Return local index of data that is send to server
-  \return mapping of server rank and local index of sending data on the client
-*/
-const std::map<int, std::vector<int> >& CDistributionClient::getLocalIndexSendToServer() const
-{
-  return localIndexSend2Server_;
 }
 
 /*!
@@ -740,17 +543,6 @@ const std::map<int, std::vector<int> >& CDistributionClient::getLocalIndexSendTo
 const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
 {
   return (*localDataIndex_);
-}
-
-/*!
-  Return global index of data on each connected server.
-  On receiving data sent from client(s), each server with this global index, is able to
-know where the data should be written.
-  \return mapping of server rank and its global index.
-*/
-const std::map<int, std::vector<size_t> >& CDistributionClient::getGlobalIndexOnServer() const
-{
-  return indexGlobalOnServer_;
 }
 
 } // namespace xios

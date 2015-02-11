@@ -1,3 +1,11 @@
+/*!
+   \file distribution.hpp
+   \author Ha NGUYEN
+   \since 13 Jan 2015
+   \date 09 Feb 2015
+
+   \brief Index distribution on server side.
+ */
 #include "distribution.hpp"
 
 namespace xios {
@@ -17,10 +25,10 @@ CDistribution::~CDistribution()
   if (0 != globalIndex_) delete globalIndex_;
 }
 
-//const CArray<size_t,1>* CDistribution::getGlobalIndex() const
-//{
-//  return globalIndex_;
-//}
+const CArray<size_t,1>& CDistribution::getGlobalIndex() const
+{
+  return (*globalIndex_);
+}
 
 int CDistribution::getDims() const
 {
