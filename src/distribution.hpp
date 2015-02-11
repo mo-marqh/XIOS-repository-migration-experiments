@@ -13,12 +13,11 @@ class CDistribution
 
     /** Default destructor */
     virtual ~CDistribution();
-    const CArray<size_t,1>* getGlobalIndex() const;
 
     int getDims() const;
     int getRank() const;
   protected:
-    virtual void createGlobalIndex() = 0; // Maybe change to pure ? = 0;
+    virtual void createGlobalIndex() = 0;
   protected:
     CArray<size_t,1>* globalIndex_;
     int dims_;

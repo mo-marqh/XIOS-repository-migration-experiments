@@ -4,12 +4,21 @@ namespace xios {
 
 CDistributionClient::CDistributionClient(int rank, int dims, CArray<size_t,1>* globalIndex)
    : CDistribution(rank, dims, globalIndex),
-   axisDomainOrder_(), indexGlobalOnServer_(), isConnectedServerComputed_(false)
+   localDataIndex_(0), indexGlobalOnServer_(), localIndexSend2Server_(), axisDomainOrder_(),
+   nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
+   dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), connectedClients_(),
+   isConnectedServerComputed_(false), indexDomainData_()
 {
 }
 
 CDistributionClient::CDistributionClient(int rank, CGrid* grid)
-   : CDistribution(rank, 0, 0), isConnectedServerComputed_(false)
+   : CDistribution(rank, 0, 0),
+   localDataIndex_(0), indexGlobalOnServer_(), localIndexSend2Server_(), axisDomainOrder_(),
+   nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
+   dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), connectedClients_(),
+   isConnectedServerComputed_(false), indexDomainData_()
 {
   readDistributionInfo(grid);
   createGlobalIndex();
@@ -17,7 +26,6 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
 
 CDistributionClient::~CDistributionClient()
 {
-  if (0 != this->globalIndex_) delete globalIndex_;
   if (0 != localDataIndex_) delete localDataIndex_;
 }
 
@@ -624,10 +632,9 @@ void CDistributionClient::computeServerIndexMapping(int nServer, ServerDistribut
   }
 
   std::vector<CArray<size_t,1>::const_iterator> itBegin(nServer), itEnd(nServer), it(nServer);
-
   for (int i = 0; i < nServer; ++i)
   {
-    itBegin[i] = globalIndexServer[i]->begin();
+    itBegin[i] = it[i] = globalIndexServer[i]->begin();
     itEnd[i]   = globalIndexServer[i]->end();
   }
 
@@ -636,26 +643,16 @@ void CDistributionClient::computeServerIndexMapping(int nServer, ServerDistribut
   {
     for (int j = 0; j < nServer; ++j)
     {
-      // Just temporarily, it's so so bad.
-//      if (std::binary_search(itBegin[j], itEnd[j], (*this->globalIndex_)(i)))
-//      if (itEnd[j] != std::find(itBegin[j], itEnd[j], (*this->globalIndex_)(i)))
-      it[j] = std::find(itBegin[j], itEnd[j], (*this->globalIndex_)(i));
-      if (itEnd[j] != it[j])
+      // Just temporarily, it's bad.
+
+      if (std::binary_search(itBegin[j], itEnd[j], (*this->globalIndex_)(i)))
       {
-//        (indexGlobalOnServer_[j]).push_back((*this->globalIndex_)(i));
         // Just try to calculate local index server on client side
-        (indexGlobalOnServer_[j]).push_back(std::distance(itBegin[j], it[j]));
+        (indexGlobalOnServer_[j]).push_back((*this->globalIndex_)(i));
         (localIndexSend2Server_[j]).push_back(i);
         continue;
       }
     }
-  }
-
-
-  for (int i = 0; i < nServer; ++i)
-  {
-    if (indexGlobalOnServer_[i].empty()) indexGlobalOnServer_.erase(i);
-    if (localIndexSend2Server_[i].empty()) localIndexSend2Server_.erase(i);
   }
 
   for (int i = 0; i < nServer; ++i)

@@ -1,58 +1,118 @@
 #include "distribution_server.hpp"
 
 namespace xios {
-CDistributionServer::CDistributionServer(int rank, int dims, int nServer, CArray<size_t,1>* globalIndex)
-  : CDistribution(rank, dims, globalIndex), nServer_(nServer), nGlobal_()
+CDistributionServer::CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex)
+  : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_()
 {
-
 }
 
-CDistributionServer::CDistributionServer(int rank, int nServer, const std::vector<int>& nGlobal)
-  : CDistribution(rank, nGlobal.size()), nServer_(nServer)
+CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
+                                         const std::vector<int>& nZoomSize, const std::vector<int>& nGlobal)
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin)
 {
-  readDistributionInfo(nGlobal);
   createGlobalIndex();
 }
 
 CDistributionServer::~CDistributionServer()
 {
-  if (0 != this->globalIndex_) delete globalIndex_;
 }
 
-void CDistributionServer::readDistributionInfo(const std::vector<int>& nGlobal)
-{
-  if (nGlobal.empty())
-  {
-    //! TODO: This error must be replaced a call to function processing scalar value
-    ERROR("CDistributionServer::readDistributionInfo(const std::vector<int>& nGlobal)",
-       << "At least one dimension must be defined for this field.");
-  }
-  nGlobal_ = nGlobal;
-  this->dims_ = nGlobal.size();
-}
-
+/*!
+  Create global index on server side
+  Like the similar function on client side, this function serves on creating global index
+for data written by the server. The global index is used to calculating local index of data
+written on each server
+*/
 void CDistributionServer::createGlobalIndex()
 {
-  size_t globalIndexSize = 1;
-  for (int i = 0; i < nGlobal_.size(); ++i)
-    globalIndexSize *= nGlobal_[i];
-  size_t rangeSize    = globalIndexSize / nServer_;
-  size_t modulusSize = globalIndexSize % nServer_;
+  size_t idx = 0, ssize = 1;
+  for (int i = 0; i < nZoomSize_.size(); ++i) ssize *= nZoomSize_[i];
 
-  if ((this->rank_ == (nServer_-1)) && (0 != modulusSize))
-  {
-    this->globalIndex_ = new CArray<size_t,1>(modulusSize);
-    globalIndexSize = modulusSize;
-  }
-  else
-  {
-    this->globalIndex_ = new CArray<size_t,1>(rangeSize);
-    globalIndexSize = rangeSize;
-  }
+  this->globalIndex_ = new CArray<size_t,1>(ssize);
+  std::vector<int> idxLoop(this->getDims(),0);
+  std::vector<int> currentIndex(this->getDims());
+  int innerLoopSize = nZoomSize_[0];
 
-  size_t idxBegin = this->rank_ * rangeSize;
-  for (size_t i = 0; i < globalIndexSize;++i)
-    (*this->globalIndex_)(i) = i+idxBegin;
+  while (idx<ssize)
+  {
+    for (int i = 0; i < this->dims_-1; ++i)
+    {
+      if (idxLoop[i] == nZoomSize_[i])
+      {
+        idxLoop[i] = 0;
+        ++idxLoop[i+1];
+      }
+    }
+
+    for (int i = 1; i < this->dims_; ++i)  currentIndex[i] = idxLoop[i] + nZoomBegin_[i];
+
+    size_t mulDim, globalIndex;
+    for (int i = 0; i < innerLoopSize; ++i)
+    {
+      mulDim = 1;
+      globalIndex = i + nZoomBegin_[0];
+
+      for (int k = 1; k < this->dims_; ++k)
+      {
+        mulDim *= nGlobal_[k-1];
+        globalIndex += (currentIndex[k])*mulDim;
+      }
+      (*this->globalIndex_)(idx) = globalIndex;
+      ++idx;
+    }
+    idxLoop[0] += innerLoopSize;
+  }
 }
 
+/*!
+  Compute local index for writing data on server
+  \param [in] globalIndex global index received from client
+  \return local index of written data
+*/
+CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& globalIndex)
+{
+  CArray<size_t,1>::const_iterator itBegin = (this->globalIndex_)->begin(),
+                                   itEnd   = (this->globalIndex_)->end(), it;
+
+  int ssize = globalIndex.numElements(), idx = 0;
+  CArray<size_t,1> localIndex(ssize);
+  it = itBegin;
+  for (int i = 0; i < ssize; ++i)
+  {
+    it = std::lower_bound(it, itEnd, globalIndex(i));
+    if (itEnd != it)
+    {
+      localIndex(idx) = std::distance(itBegin, it);
+      ++idx;
+    }
+  }
+
+  return localIndex;
 }
+
+/*!
+  Compute local index for writing data on server
+  \param [in] globalIndex Global index received from client
+*/
+void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
+{
+  CArray<size_t,1>::const_iterator itBegin = (this->globalIndex_)->begin(),
+                                   itEnd   = (this->globalIndex_)->end(), it;
+
+  int ssize = globalIndex.numElements(), idx = 0;
+  CArray<size_t,1> localIndex(ssize);
+  it = itBegin;
+  for (int i = 0; i < ssize; ++i)
+  {
+    it = std::lower_bound(it, itEnd, globalIndex(i));
+    if (itEnd != it)
+    {
+      localIndex(idx) = std::distance(itBegin, it);
+      ++idx;
+    }
+  }
+
+  globalIndex = localIndex;
+}
+
+} // namespace xios

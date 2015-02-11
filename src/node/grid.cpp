@@ -10,6 +10,7 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "context_server.hpp"
 #include "array_new.hpp"
 
 namespace xios {
@@ -21,6 +22,7 @@ namespace xios {
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
+      , serverDistribution_(0)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -31,6 +33,7 @@ namespace xios {
       , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
       , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
+      , serverDistribution_(0)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -54,6 +57,7 @@ namespace xios {
     for(map<int,CArray<size_t,1>* >::iterator it=outIndexFromClient.begin();it!=outIndexFromClient.end();++it) delete (it->second);
 
     if (0 != clientDistribution_) delete clientDistribution_;
+    if (0 != serverDistribution_) delete serverDistribution_;
 
    }
 
@@ -806,8 +810,54 @@ namespace xios {
 
   void CGrid::recvIndex(int rank, CBufferIn& buffer)
   {
+     if (0 == serverDistribution_)
+     {
+       CContext* context = CContext::getCurrent() ;
+       CContextServer* server=context->server ;
+       int idx = 0, numElement = axisDomainOrder.numElements();
+       int ssize = numElement;
+       std::vector<int> indexMap(numElement);
+       for (int i = 0; i < numElement; ++i)
+       {
+         indexMap[i] = idx;
+         if (true == axisDomainOrder(i))
+        {
+          ++ssize;
+          idx += 2;
+        }
+       }
+
+       int axisId = 0, domainId = 0;
+       std::vector<CDomain*> domainList = getDomains();
+       std::vector<CAxis*> axisList = getAxis();
+       std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize);
+       for (int i = 0; i < numElement; ++i)
+       {
+         if (axisDomainOrder(i))
+         {
+            nZoomBegin[indexMap[i]]   = domainList[domainId]->zoom_ibegin_srv;
+            nZoomSize[indexMap[i]]    = domainList[domainId]->zoom_ni_srv;
+            nGlob[indexMap[i]]    = domainList[domainId]->ni_glo;
+
+            nZoomBegin[indexMap[i]+1] = domainList[domainId]->zoom_jbegin_srv;
+            nZoomSize[indexMap[i]+1]  = domainList[domainId]->zoom_nj_srv;
+            nGlob[indexMap[i]+1]    = domainList[domainId]->nj_glo;
+            ++domainId;
+         }
+         else
+         {
+            nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin;
+            nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size;
+            nGlob[indexMap[i]]      = axisList[axisId]->size;
+            ++axisId;
+         }
+       }
+       serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize, nGlob);
+     }
+
      CArray<size_t,1> outIndex;
      buffer>>outIndex;
+     serverDistribution_->computeLocalIndex(outIndex);
      outIndexFromClient.insert(std::pair<int, CArray<size_t,1>* >(rank, new CArray<size_t,1>(outIndex)));
 
     /*

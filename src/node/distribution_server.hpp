@@ -4,25 +4,31 @@
 #include "distribution.hpp"
 
 namespace xios {
+/*!
+\class CDistributionServer
+ The class, for now, plays a role of computing local index for writing data on server
+*/
 class CDistributionServer : public CDistribution
 {
   public:
     /** Default constructor */
-    CDistributionServer(int rank, int dims, int nServer, CArray<size_t,1>* globalIndex = 0);
-    CDistributionServer(int rank, int nServer, const std::vector<int>& nGlobal);
+    CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
+    CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
+                        const std::vector<int>& nZoomSize, const std::vector<int>& nGlobal);
 
     /** Default destructor */
     virtual ~CDistributionServer();
 
+    CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
+    void computeLocalIndex(CArray<size_t,1>& globalIndex);
+
   protected:
     virtual void createGlobalIndex();
-
-    //! Read info
-    void readDistributionInfo(const std::vector<int>& nGlobal);
   private:
-    int nServer_;
     std::vector<int> nGlobal_;
+    std::vector<int> nZoomSize_;
+    std::vector<int> nZoomBegin_;
 };
 
-}
+} // namespace xios
 #endif // __XIOS_DISTRIBUTION_SERVER_HPP__

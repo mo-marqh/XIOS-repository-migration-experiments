@@ -14,12 +14,13 @@ CDistribution::CDistribution(int rank, int dims, CArray<size_t,1>* globalIndex)
 
 CDistribution::~CDistribution()
 {
+  if (0 != globalIndex_) delete globalIndex_;
 }
 
-const CArray<size_t,1>* CDistribution::getGlobalIndex() const
-{
-  return globalIndex_;
-}
+//const CArray<size_t,1>* CDistribution::getGlobalIndex() const
+//{
+//  return globalIndex_;
+//}
 
 int CDistribution::getDims() const
 {

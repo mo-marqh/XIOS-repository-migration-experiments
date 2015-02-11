@@ -11,6 +11,7 @@
 #include "array_new.hpp"
 #include "attribute_array.hpp"
 #include "distribution_client.hpp"
+#include "distribution_server.hpp"
 
 namespace xios {
 
@@ -22,6 +23,7 @@ namespace xios {
    class CAxisGroup;
    class CGrid;
    class CDistributionClient;
+   class CDistributionServer;
 
    ///--------------------------------------------------------------
 
@@ -216,6 +218,7 @@ namespace xios {
         std::vector<std::string> axisList_, domList_;
         bool isAxisListSet, isDomListSet;
         CDistributionClient* clientDistribution_;
+        CDistributionServer* serverDistribution_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

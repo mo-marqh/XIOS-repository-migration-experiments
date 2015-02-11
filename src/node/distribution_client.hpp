@@ -64,17 +64,19 @@ class CDistributionClient : public CDistribution
     //! Compute band distribution on server
     std::vector<CArray<size_t,1>* > computeServerBandDistribution(int nServer);
   private:
-    CArray<int,1>* localDataIndex_; //!< LocalData index on client
-    CArray<size_t,1>* globalIndex_; //!< Global index on client
+    //!< LocalData index on client
+    CArray<int,1>* localDataIndex_;
 
-    std::map<int, std::vector<size_t> > indexGlobalOnServer_;
+    //! Index of the local data which will be sent to the corresponding server(s)
     std::map<int, std::vector<int> >  localIndexSend2Server_;
+
+    //! Global index of data on SERVER, which are calculated by client(s)
+    std::map<int, std::vector<size_t> > indexGlobalOnServer_;
   private:
     /*! Domains and axis are considered elements.
      * A grid composed of 1 domain and 1 axis has 2 elements */
     int numElement_;
     CArray<bool,1> axisDomainOrder_; //!<
-
 
     std::vector<int> nLocal_; //!< Local size of each dimension (ni, nj, etc, ...)
     std::vector<int> nGlob_; //!< Global size of each dimension (e.x: ni_glo, nj_glo, etc, ...)
