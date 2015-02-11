@@ -55,9 +55,9 @@ PROGRAM test_new_features
       ENDDO
     ENDDO
   ENDDO
-  ni=ni_glo ; ibegin=1
+  ni=ni_glo ; ibegin=0
 
-  jbegin=1
+  jbegin=0
   DO n=0,size-1
     nj=nj_glo/size
     IF (n<MOD(nj_glo,size)) nj=nj+1
@@ -71,7 +71,7 @@ PROGRAM test_new_features
 ! ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm,llm),lonvalue(ni*nj))
   lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
   lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
-  field_A(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
+  field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)

@@ -16,32 +16,32 @@
 extern "C"
 {
   typedef xios::CGrid*  grid_Ptr;
-  
-  void cxios_set_grid_axisDomOrder(grid_Ptr grid_hdl, int* axisDomOrder, int extent1)
+
+  void cxios_set_grid_axisDomOrder(grid_Ptr grid_hdl, bool* axisDomainOrder, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(axisDomOrder,shape(extent1),neverDeleteData) ;
-    grid_hdl->axisDomOrder.reference(tmp.copy());
+    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
+    grid_hdl->axisDomainOrder.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
-  
-  void cxios_get_grid_axisDomOrder(grid_Ptr grid_hdl, int* axisDomOrder, int extent1)
+
+  void cxios_get_grid_axisDomOrder(grid_Ptr grid_hdl, bool* axisDomainOrder, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(axisDomOrder,shape(extent1),neverDeleteData) ;
-    tmp=grid_hdl->axisDomOrder.getInheritedValue() ;
+    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
+    tmp=grid_hdl->axisDomainOrder.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
-  
+
   bool cxios_is_defined_grid_axisDomOrder(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return grid_hdl->axisDomOrder.hasInheritedValue();
+    return grid_hdl->axisDomainOrder.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
-  
-  
-  
+
+
+
   void cxios_set_grid_description(grid_Ptr grid_hdl, const char * description, int description_size)
   {
     std::string description_str;
@@ -50,7 +50,7 @@ extern "C"
     grid_hdl->description.setValue(description_str);
      CTimer::get("XIOS").suspend();
   }
-  
+
   void cxios_get_grid_description(grid_Ptr grid_hdl, char * description, int description_size)
   {
      CTimer::get("XIOS").resume();
@@ -58,16 +58,16 @@ extern "C"
       ERROR("void cxios_get_grid_description(grid_Ptr grid_hdl, char * description, int description_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
-  
+
   bool cxios_is_defined_grid_description(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
     return grid_hdl->description.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
-  
-  
-  
+
+
+
   void cxios_set_grid_mask(grid_Ptr grid_hdl, bool* mask, int extent1, int extent2, int extent3)
   {
     CTimer::get("XIOS").resume();
@@ -75,7 +75,7 @@ extern "C"
     grid_hdl->mask.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
-  
+
   void cxios_get_grid_mask(grid_Ptr grid_hdl, bool* mask, int extent1, int extent2, int extent3)
   {
     CTimer::get("XIOS").resume();
@@ -83,16 +83,16 @@ extern "C"
     tmp=grid_hdl->mask.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
-  
+
   bool cxios_is_defined_grid_mask(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
     return grid_hdl->mask.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
-  
-  
-  
+
+
+
   void cxios_set_grid_name(grid_Ptr grid_hdl, const char * name, int name_size)
   {
     std::string name_str;
@@ -101,7 +101,7 @@ extern "C"
     grid_hdl->name.setValue(name_str);
      CTimer::get("XIOS").suspend();
   }
-  
+
   void cxios_get_grid_name(grid_Ptr grid_hdl, char * name, int name_size)
   {
      CTimer::get("XIOS").resume();
@@ -109,15 +109,15 @@ extern "C"
       ERROR("void cxios_get_grid_name(grid_Ptr grid_hdl, char * name, int name_size)", <<"Input string is to short");
      CTimer::get("XIOS").suspend();
   }
-  
+
   bool cxios_is_defined_grid_name(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
     return grid_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
-  
-  
-  
-  
+
+
+
+
 }

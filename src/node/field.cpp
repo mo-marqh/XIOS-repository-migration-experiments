@@ -151,12 +151,11 @@ namespace xios{
     list<shared_ptr<CMessage> > list_msg ;
     list< CArray<double,1>* > list_data ;
 
-    for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
+     for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
     {
       int rank=(*it).first ;
       CArray<int,1>& index = *(it->second) ;
       CArray<double,1> data_tmp(index.numElements()) ;
-
       for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
       list_data.push_back(new CArray<double,1>(data_tmp)) ;
@@ -192,7 +191,8 @@ namespace xios{
 
     if (data_srv.empty())
     {
-      for(map<int, CArray<int, 1>* >::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
+//      for(map<int, CArray<int, 1>* >::iterator it=grid->out_i_fromClient.begin();it!=grid->out_i_fromClient.end();it++)
+      for(map<int, CArray<size_t, 1>* >::iterator it=grid->outIndexFromClient.begin();it!=grid->outIndexFromClient.end();++it)
       {
         int rank=it->first ;
         CArray<double,1> data_tmp(it->second->numElements()) ;
@@ -682,7 +682,11 @@ namespace xios{
    {
       map<int, CArray<double,1>* >::iterator it;
       for(it=data_srv.begin();it!=data_srv.end();it++)
-         grid->outputField(it->first,*it->second, fieldOut) ;
+      {
+        grid->outputField(it->first,*it->second, fieldOut.dataFirst()) ;
+      }
+
+//         grid->outputField(it->first,*it->second, fieldOut.) ;
 
    }
 
@@ -695,6 +699,7 @@ namespace xios{
          grid->outputField(it->first,*it->second, fieldOut) ;
       }
    }
+
    ///-------------------------------------------------------------------
 
    void CField::parse(xml::CXMLNode & node)

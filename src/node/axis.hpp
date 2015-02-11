@@ -69,7 +69,8 @@ namespace xios {
          static ENodeType GetType(void);
 
       private :
-
+         void checkData();
+         void checkMask();
          bool isChecked;
          std::set<StdString> relFiles;
 

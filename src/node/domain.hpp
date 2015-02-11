@@ -150,7 +150,7 @@ namespace xios {
          /// Proriétés protégées ///
          bool isChecked;
          std::set<StdString> relFiles;
-         bool isClientChecked; // Verify whether all attributes of domain on the client side is good
+         bool isClientChecked; // Verify whether all attributes of domain on the client side are good
 
          DECLARE_REF_FUNC(Domain,domain)
 

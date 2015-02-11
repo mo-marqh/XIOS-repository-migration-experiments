@@ -10,6 +10,7 @@
 #include "axis.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
+#include "distribution_client.hpp"
 
 namespace xios {
 
@@ -20,6 +21,7 @@ namespace xios {
    class CDomainGroup;
    class CAxisGroup;
    class CGrid;
+   class CDistributionClient;
 
    ///--------------------------------------------------------------
 
@@ -96,6 +98,7 @@ namespace xios {
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,3>& field)  ;
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,2>& field)  ;
          void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ;
+         void outputField(int rank, const CArray<double,1>& stored,  double* field);
 
          virtual void parse(xml::CXMLNode & node);
 
@@ -153,6 +156,7 @@ namespace xios {
          std::vector<StdString> getAxisList();
          std::vector<CDomain*> getDomains();
          std::vector<CAxis*> getAxis();
+         std::vector<int> getAxisOrder();
 
       public:
 
@@ -160,6 +164,7 @@ namespace xios {
          bool withAxis ;
          bool isChecked;
          bool isDomainAxisChecked;
+         bool isIndexSent;
 
          CAxis*   axis ;
          CDomain* domain ;
@@ -183,6 +188,8 @@ namespace xios {
          map<int, CArray<int, 1>* > out_i_fromClient ;
          map<int, CArray<int, 1>* > out_j_fromClient ;
          map<int, CArray<int, 1>* > out_l_fromClient ;
+
+         map<int, CArray<size_t, 1>* > outIndexFromClient;
          void checkMask(void) ;
 
          std::map<int, int> domConnectedServerSide_;
@@ -208,9 +215,7 @@ namespace xios {
         CAxisGroup* vAxisGroup_;
         std::vector<std::string> axisList_, domList_;
         bool isAxisListSet, isDomListSet;
-
-        // List order of axis in a grid, if there is a domain, it will take value -1
-        std::vector<int> axisOrder_;
+        CDistributionClient* clientDistribution_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

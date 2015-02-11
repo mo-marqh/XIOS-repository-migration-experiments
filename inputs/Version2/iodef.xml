@@ -19,7 +19,7 @@
 
 
    <axis_definition>
-     <axis id="axis_A" zoom_size="2" zoom_end="3" />
+     <axis id="axis_A" />
      <axis id="axis_B" zoom_size="2" zoom_end="3" />
    </axis_definition>
 
