@@ -43,6 +43,94 @@ extern "C"
   
   
   
+  void cxios_set_axis_data_begin(axis_Ptr axis_hdl, int data_begin)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->data_begin.setValue(data_begin);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_data_begin(axis_Ptr axis_hdl, int* data_begin)
+  {
+    *data_begin = axis_hdl->data_begin.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_axis_data_begin(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->data_begin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_axis_data_index(axis_Ptr axis_hdl, int* data_index, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(data_index,shape(extent1),neverDeleteData) ;
+    axis_hdl->data_index.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_data_index(axis_Ptr axis_hdl, int* data_index, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(data_index,shape(extent1),neverDeleteData) ;
+    tmp=axis_hdl->data_index.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_axis_data_index(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->data_index.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_axis_data_n(axis_Ptr axis_hdl, int data_n)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->data_n.setValue(data_n);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_data_n(axis_Ptr axis_hdl, int* data_n)
+  {
+    *data_n = axis_hdl->data_n.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_axis_data_n(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->data_n.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_axis_ibegin(axis_Ptr axis_hdl, int ibegin)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->ibegin.setValue(ibegin);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_ibegin(axis_Ptr axis_hdl, int* ibegin)
+  {
+    *ibegin = axis_hdl->ibegin.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_axis_ibegin(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->ibegin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_axis_long_name(axis_Ptr axis_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
@@ -69,6 +157,31 @@ extern "C"
   
   
   
+  void cxios_set_axis_mask(axis_Ptr axis_hdl, bool* mask, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask,shape(extent1),neverDeleteData) ;
+    axis_hdl->mask.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_mask(axis_Ptr axis_hdl, bool* mask, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask,shape(extent1),neverDeleteData) ;
+    tmp=axis_hdl->mask.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_axis_mask(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->mask.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
   void cxios_set_axis_name(axis_Ptr axis_hdl, const char * name, int name_size)
   {
     std::string name_str;
@@ -90,6 +203,27 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
     return axis_hdl->name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_axis_ni(axis_Ptr axis_hdl, int ni)
+  {
+     CTimer::get("XIOS").resume();
+    axis_hdl->ni.setValue(ni);
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_axis_ni(axis_Ptr axis_hdl, int* ni)
+  {
+    *ni = axis_hdl->ni.getInheritedValue();
+  }
+  
+  bool cxios_is_defined_axis_ni(axis_Ptr axis_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return axis_hdl->ni.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

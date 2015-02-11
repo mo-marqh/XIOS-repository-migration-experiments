@@ -9,25 +9,25 @@ MODULE gridgroup_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
-    SUBROUTINE cxios_set_gridgroup_axisDomOrder(gridgroup_hdl, axisDomOrder, extent1) BIND(C)
+    SUBROUTINE cxios_set_gridgroup_axisDomainOrder(gridgroup_hdl, axisDomainOrder, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      INTEGER (KIND=C_INT)     , DIMENSION(*) :: axisDomOrder
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axisDomainOrder
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_set_gridgroup_axisDomOrder
+    END SUBROUTINE cxios_set_gridgroup_axisDomainOrder
     
-    SUBROUTINE cxios_get_gridgroup_axisDomOrder(gridgroup_hdl, axisDomOrder, extent1) BIND(C)
+    SUBROUTINE cxios_get_gridgroup_axisDomainOrder(gridgroup_hdl, axisDomainOrder, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      INTEGER (KIND=C_INT)     , DIMENSION(*) :: axisDomOrder
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axisDomainOrder
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_get_gridgroup_axisDomOrder
+    END SUBROUTINE cxios_get_gridgroup_axisDomainOrder
     
-    FUNCTION cxios_is_defined_gridgroup_axisDomOrder(gridgroup_hdl ) BIND(C)
+    FUNCTION cxios_is_defined_gridgroup_axisDomainOrder(gridgroup_hdl ) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_axisDomOrder
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_axisDomainOrder
       INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
-    END FUNCTION cxios_is_defined_gridgroup_axisDomOrder
+    END FUNCTION cxios_is_defined_gridgroup_axisDomainOrder
     
     
     SUBROUTINE cxios_set_gridgroup_description(gridgroup_hdl, description, description_size) BIND(C)
