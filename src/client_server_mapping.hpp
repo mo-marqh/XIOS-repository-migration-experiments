@@ -29,15 +29,19 @@ class CClientServerMapping
     /** Default destructor */
     virtual ~CClientServerMapping();
 
-    void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                   const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                           const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
+
     std::map<int,int> computeConnectedClients(int nbServer, int nbClient,
                                               MPI_Comm& clientIntraComm,
                                               const std::vector<int>& connectedServerRank);
 
     const std::map<int, std::vector<size_t> >& getGlobalIndexOnServer() const;
     const std::map<int, std::vector<int> >& getLocalIndexSendToServer() const;
+
   protected:
+    void defaultComputeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                          const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
 
   private:
     //! Global index of data on SERVER, which are calculated by client(s)

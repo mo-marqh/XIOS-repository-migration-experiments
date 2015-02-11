@@ -29,8 +29,8 @@ class CDistributionServer : public CDistribution
     /** Default destructor */
     virtual ~CDistributionServer();
 
-    CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
-    void computeLocalIndex(CArray<size_t,1>& globalIndex);
+    virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
+    virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
 
   protected:
     virtual void createGlobalIndex();

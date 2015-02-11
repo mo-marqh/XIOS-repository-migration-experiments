@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<simulation> 
+<simulation>
 
  <context id="test">
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-28 15:00:00 + 1d" />
@@ -8,33 +8,33 @@
    <field_definition level="1" enabled=".FALSE.">
      <field id="field_A"  operation="average" freq_op="3600s" domain_ref="domain_A"  axis_ref="axis_A" />
    </field_definition>
-    
-    
+
+
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
-     <file id="output" name="output"> 
+     <file id="output" name="output">
         <field field_ref="field_A" />
      </file>
    </file_definition>
-    
-    
+
+
    <axis_definition>
-     <axis id="axis_A" zoom_size="2" zoom_end="3" />
+     <axis id="axis_A" zoom_size="2" zoom_end="2" />
    </axis_definition>
-    
+
    <domain_definition>
      <domain id="domain_A" />
-   </domain_definition>    
-  
-   <grid_definition />    
-  
+   </domain_definition>
+
+   <grid_definition />
+
   </context>
-  
+
   <context id="toto" >
   </context>
-  
+
   <context id="titi">
   </context>
-  
+
   <context id="tata">
   </context>
 
@@ -42,7 +42,7 @@
       <variable_definition>
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
-            <variable id="buffer_factor_size" type="double">1.0</variable> 
+            <variable id="buffer_factor_size" type="double">1.0</variable>
          </variable_group>
 
         <variable_group id="parameters" >

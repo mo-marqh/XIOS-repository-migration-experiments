@@ -19,13 +19,19 @@ CClientServerMapping::~CClientServerMapping()
 {
 }
 
+void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                                     const std::vector<CArray<size_t,1>* >& globalIndexServer)
+{
+  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
+}
+
 /*!
    Compute index of data which are sent to server and index global on server side
    \param [in] globalIndexOnClient global index of data on client
    \param [in] globalIndexServer global index of server(s)
 */
-void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                                     const std::vector<CArray<size_t,1>* >& globalIndexServer)
+void CClientServerMapping::defaultComputeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                                            const std::vector<CArray<size_t,1>* >& globalIndexServer)
 {
   int nServer = globalIndexServer.size();
   std::vector<CArray<size_t,1>::const_iterator> itBegin(nServer), itEnd(nServer), it(nServer);

@@ -35,7 +35,7 @@ class CDistributionClient : public CDistribution
     /** Default destructor */
     virtual ~CDistributionClient();
 
-    const CArray<int,1>& getLocalDataIndexOnClient() const;
+    virtual const CArray<int,1>& getLocalDataIndexOnClient() const;
     std::vector<int> getNGlob() { return nGlob_; }
 
   protected:

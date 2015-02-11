@@ -41,6 +41,7 @@ class CServerDistributionDescription
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
     const std::vector<CArray<size_t,1>* >& getGlobalIndex() const;
+
   protected:
     void computeBandDistribution(int nServer);
     void computePlanDistribution(int nServer);

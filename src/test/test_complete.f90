@@ -58,9 +58,9 @@ PROGRAM test_complete
       ENDDO
     ENDDO
   ENDDO
-  ni=ni_glo ; ibegin=1
+  ni=ni_glo ; ibegin=0
 
-  jbegin=1
+  jbegin=0
   DO n=0,size_loc-1
     nj=nj_glo/size_loc
     IF (n<MOD(nj_glo,size_loc)) nj=nj+1
@@ -71,9 +71,9 @@ PROGRAM test_complete
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A_atm(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
-  lon(:,:)=lon_glo(ibegin:iend,jbegin:jend)
-  lat(:,:)=lat_glo(ibegin:iend,jbegin:jend)
-  field_A_atm(1:ni,1:nj,:)=field_A_glo(ibegin:iend,jbegin:jend,:)
+  lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
+  lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
+  field_A_atm(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
 
 
 !!! Context ATMOSPHERE
@@ -164,7 +164,7 @@ PROGRAM test_complete
     DO i=1,nb_pt
       kindex(i)=2*i-1
     ENDDO
-    field_A_srf(1:nb_pt,:)=RESHAPE(field_A_glo(ibegin:iend:2,jbegin:jend,:),(/ nb_pt,llm /))
+    field_A_srf(1:nb_pt,:)=RESHAPE(field_A_glo(ibegin+1:iend+1:2,jbegin+1:jend+1,:),(/ nb_pt,llm /))
 
   CALL xios_context_initialize("surface",comm)
   CALL xios_get_handle("surface",ctx_hdl)
