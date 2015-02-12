@@ -10,25 +10,24 @@ PROGRAM test_new_features
 
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
-  TYPE(xios_duration)      :: dtime
+  TYPE(xios_duration) :: dtime
+  TYPE(xios_date) :: date
+  CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=5
-  INTEGER,PARAMETER :: nj_glo=5
+  INTEGER,PARAMETER :: ni_glo=100
+  INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
-  DOUBLE PRECISION  :: lval2(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
   LOGICAL :: ok
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
-!  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm,llm)
-!  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:,:), lonvalue(:) ;
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
-  INTEGER :: i,j,l,ts,n,k
+  INTEGER :: i,j,l,ts,n
 
 !!! MPI Initialization
 
@@ -48,9 +47,6 @@ PROGRAM test_new_features
       lon_glo(i,j)=(i-1)+(j-1)*ni_glo
       lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
       DO l=1,llm
-!        DO k=1,llm
-!          field_A_glo(i,j,l,k)=(i-1)+(j-1)*ni_glo+10000*l+100000*k
-!        ENDDO
         field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
       ENDDO
     ENDDO
@@ -68,7 +64,6 @@ PROGRAM test_new_features
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
-! ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm,llm),lonvalue(ni*nj))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
@@ -77,9 +72,10 @@ PROGRAM test_new_features
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
-! CALL xios_define_calendar(type="Gregorian")
+  CALL xios_get_calendar_type(calendar_type)
+  PRINT *, "calendar_type = ", calendar_type
+
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
-! CALL xios_set_axis_attr("axis_B",size=llm ,value=lval2) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
@@ -93,29 +89,47 @@ PROGRAM test_new_features
   CALL xios_add_child(file_hdl,field_hdl)
   CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
 
+  dtime%second = 3600
+  CALL xios_set_timestep(dtime)
 
-    dtime%second=3600
-!   CALL xios_set_timestep(timestep=dtime)
+  ! The calendar is created as soon as the calendar type is defined. This way
+  ! calendar operations can be used before the context definition is closed
+  CALL xios_get_time_origin(date)
+  PRINT *, "--> year length = ", xios_get_year_length_in_seconds(date%year)
+  PRINT *, "--> day length = ", xios_get_day_length_in_seconds()
+  PRINT *, "time_origin = ", date
+  PRINT *, "xios_date_get_second_of_year(time_origin) = ", xios_date_get_second_of_year(date)
+  PRINT *, "xios_date_get_day_of_year(time_origin) = ", xios_date_get_day_of_year(date)
+  PRINT *, "xios_date_get_fraction_of_year(time_origin) = ", xios_date_get_fraction_of_year(date)
+  PRINT *, "xios_date_get_second_of_day(time_origin) = ", xios_date_get_second_of_day(date)
+  PRINT *, "xios_date_get_fraction_of_day(time_origin) = ", xios_date_get_fraction_of_day(date)
+  dtime%timestep = 1
+  dtime = 0.5 * dtime
+  PRINT *, "duration = ", dtime
+  date = date + 3 * (dtime + dtime)
+  PRINT *, "date = time_origin + 3 * (duration + duration) = ", date
+  PRINT *, "xios_date_convert_to_seconds(date) = ", xios_date_convert_to_seconds(date)
+  PRINT *, "xios_date_convert_to_seconds(date - 2.5h) = ", xios_date_convert_to_seconds(date - 2.5 * xios_hour)
 
-    ni=0 ; lonvalue(:)=0
-    CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
+  ni=0 ; lonvalue(:)=0
+  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
 
-    print *,"ni",ni
-    print *,"lonvalue",lonvalue ;
+  print *,"ni",ni
+  print *,"lonvalue",lonvalue ;
 
-    CALL xios_is_defined_field_attr("field_A",enabled=ok)
-    PRINT *,"field_A : attribute enabled is defined ? ",ok
-    CALL xios_close_context_definition()
+  CALL xios_is_defined_field_attr("field_A",enabled=ok)
+  PRINT *,"field_A : attribute enabled is defined ? ",ok
+  CALL xios_close_context_definition()
 
-    PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-    DO ts=1,24*10
-      CALL xios_update_calendar(ts)
-      CALL xios_send_field("field_A",field_A)
-      CALL wait_us(5000) ;
-    ENDDO
+  PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
+  DO ts=1,24*10
+    CALL xios_update_calendar(ts)
+    CALL xios_send_field("field_A",field_A)
+    CALL wait_us(5000) ;
+  ENDDO
 
-    CALL xios_context_finalize()
-    CALL xios_finalize()
+  CALL xios_context_finalize()
+  CALL xios_finalize()
 
   CALL MPI_FINALIZE(ierr)
 

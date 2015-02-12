@@ -98,13 +98,13 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
 void CServerDistributionDescription::computeBandDistribution(int nServer)
 {
   int dim = nGlobal_.size();
-  indexBegin_.resize(dim);
-  dimensionSizes_.resize(dim);
+  indexBegin_.resize(nServer);
+  dimensionSizes_.resize(nServer);
 
   for (int i = 0; i< nServer; ++i)
   {
-    indexBegin_[i].resize(nServer);
-    dimensionSizes_[i].resize(nServer);
+    indexBegin_[i].resize(dim);
+    dimensionSizes_[i].resize(dim);
   }
 
   int njRangeSize;
