@@ -143,7 +143,7 @@ CONTAINS
       IF (PRESENT(axisDomainOrder_)) THEN
         ALLOCATE(axisDomainOrder__tmp(size(axisDomainOrder_,1)))
         CALL cxios_get_gridgroup_axisDomainOrder(gridgroup_hdl%daddr, axisDomainOrder__tmp,size(axisDomainOrder_,1))
-        axisDomainOrder_=axisDomainOrder__tmp_
+        axisDomainOrder_=axisDomainOrder__tmp
       ENDIF
       
       IF (PRESENT(description_)) THEN

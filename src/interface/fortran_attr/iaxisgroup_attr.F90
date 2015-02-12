@@ -305,7 +305,7 @@ CONTAINS
       IF (PRESENT(mask_)) THEN
         ALLOCATE(mask__tmp(size(mask_,1)))
         CALL cxios_get_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp,size(mask_,1))
-        mask_=mask__tmp_
+        mask_=mask__tmp
       ENDIF
       
       IF (PRESENT(name_)) THEN

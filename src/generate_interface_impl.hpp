@@ -659,7 +659,7 @@ macro(int)
      { \
        oss<<"  ALLOCATE("<<name_tmp<<"(size("<<name<<"_,1)))"<<iendl ; \
        oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name_tmp<<",size("<<name<<"_,1))"<<iendl ; \
-       oss<<"  "<<name<<"_="<<name_tmp<<"_"<<iendl ; \
+       oss<<"  "<<name<<"_="<<name_tmp<<iendl ; \
      } \
      else oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
@@ -990,7 +990,7 @@ macro(int)
      { \
        oss<<"  ALLOCATE("<<name_tmp<<"(size("<<name<<"_,1)))"<<iendl ; \
        oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name_tmp<<",size("<<name<<"_,1))"<<iendl ; \
-       oss<<"  "<<name<<"_="<<name_tmp<<"_"<<iendl ; \
+       oss<<"  "<<name<<"_="<<name_tmp<<iendl ; \
      } \
      else oss<<"  CALL cxios_get_"<<className<<"_"<<name<<"("<<className<<"_hdl%daddr, "<<name<<"_,size("<<name<<"_,1))"<<iendl ; \
      oss<<"ENDIF"<<iendl ; \
