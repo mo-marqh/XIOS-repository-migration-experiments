@@ -156,7 +156,7 @@ MODULE IDATE
    FUNCTION xios(date_get_second_of_year)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
-      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(date)), INTENT(IN) :: date
       INTEGER(kind = C_INT) :: res
 
       res = cxios_date_get_second_of_year(date)
@@ -165,7 +165,7 @@ MODULE IDATE
    FUNCTION xios(date_get_day_of_year)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
-      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(date)), INTENT(IN) :: date
       REAL(kind = C_DOUBLE) :: res
 
       res = cxios_date_get_day_of_year(date)
@@ -174,7 +174,7 @@ MODULE IDATE
    FUNCTION xios(date_get_fraction_of_year)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
-      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(date)), INTENT(IN) :: date
       REAL(kind = C_DOUBLE) :: res
 
       res = cxios_date_get_fraction_of_year(date)
@@ -183,7 +183,7 @@ MODULE IDATE
    FUNCTION xios(date_get_second_of_day)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
-      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(date)), INTENT(IN) :: date
       INTEGER(kind = C_INT) :: res
 
       res = cxios_date_get_second_of_day(date)
@@ -192,7 +192,7 @@ MODULE IDATE
    FUNCTION xios(date_get_fraction_of_day)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
-      TYPE(txios(date)), INTENT(OUT) :: date
+      TYPE(txios(date)), INTENT(IN) :: date
       REAL(kind = C_DOUBLE) :: res
 
       res = cxios_date_get_fraction_of_day(date)
