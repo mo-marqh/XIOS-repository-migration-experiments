@@ -187,7 +187,7 @@ namespace xios {
    bool CFile::isSyncTime(void)
    {
      CContext* context = CContext::getCurrent() ;
-     CDate& currentDate=context->calendar->getCurrentDate() ;
+     const CDate& currentDate = context->calendar->getCurrentDate() ;
      if (!sync_freq.isEmpty())
      {
        if (*lastSync + sync_freq.getValue() < currentDate)
@@ -203,7 +203,7 @@ namespace xios {
    void CFile::initFile(void)
    {
       CContext* context = CContext::getCurrent() ;
-      CDate& currentDate=context->calendar->getCurrentDate() ;
+      const CDate& currentDate = context->calendar->getCurrentDate() ;
       CContextServer* server=context->server ;
 
       lastSync=new CDate(currentDate) ;
@@ -248,7 +248,7 @@ namespace xios {
    bool CFile::checkSync(void)
    {
      CContext* context = CContext::getCurrent() ;
-     CDate& currentDate=context->calendar->getCurrentDate() ;
+     const CDate& currentDate = context->calendar->getCurrentDate() ;
      if (!sync_freq.isEmpty())
      {
        if (*lastSync + sync_freq.getValue() <= currentDate)
@@ -270,7 +270,7 @@ namespace xios {
     bool CFile::checkSplit(void)
     {
       CContext* context = CContext::getCurrent() ;
-      CDate& currentDate=context->calendar->getCurrentDate() ;
+      const CDate& currentDate = context->calendar->getCurrentDate() ;
       if (!split_freq.isEmpty())
       {
         if (currentDate > *lastSplit + split_freq.getValue())

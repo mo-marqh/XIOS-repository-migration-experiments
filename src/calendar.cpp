@@ -114,10 +114,10 @@ namespace xios
         this->timestep = timestep;
       }
 
-      CDate& CCalendar::update(int step)
+      const CDate& CCalendar::update(int step)
       {
         info(20) << "update step : " << step << " timestep " << this->timestep << std::endl;
-        return (this->getCurrentDate() = this->getInitDate() + step * this->timestep);
+        return (this->currentDate = this->getInitDate() + step * this->timestep);
       }
 
       //-----------------------------------------------------------------
@@ -143,7 +143,7 @@ namespace xios
       const CDuration& CCalendar::getTimeStep(void) const { return this->timestep; }
       const CDate& CCalendar::getInitDate(void) const     { return this->initDate; }
       const CDate& CCalendar::getTimeOrigin(void) const   { return this->timeOrigin; }
-      CDate& CCalendar::getCurrentDate(void)              { return this->currentDate; }
+      const CDate& CCalendar::getCurrentDate(void) const  { return this->currentDate; }
 
       //-----------------------------------------------------------------
 

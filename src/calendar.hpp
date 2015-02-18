@@ -56,13 +56,13 @@ namespace xios
             void setTimeOrigin(const CDate& timeOrigin);
 
             /// Traitemants ///
-            CDate& update(int step);
+            const CDate& update(int step);
 
             /// Accesseurs ///
             const CDuration& getTimeStep(void) const;
             const CDate& getInitDate(void) const;
             const CDate& getTimeOrigin(void) const;
-            CDate& getCurrentDate(void);
+            const CDate& getCurrentDate(void) const;
 
          public :
 
