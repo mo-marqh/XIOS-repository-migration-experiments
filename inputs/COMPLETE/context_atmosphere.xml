@@ -1,11 +1,10 @@
 <!-- Context atm -->
 
-<context id="atmopshere">
+<context id="atmosphere">
 
   <field_definition level="1" enabled=".FALSE." default_value="9.96921e+36">
     <field id="field_A_atm"  name="field_A_atm" operation="average" freq_op="1ts" domain_ref="domain_atm"  axis_ref="axis_atm" />
   </field_definition>
-
 
   <file_definition type="multiple_file" par_access="collective" output_freq="6h" sync_freq="6h" output_level="10" enabled=".TRUE.">
     <file id="output_atmosphere" name="output_atmosphere">
@@ -16,15 +15,15 @@
     </file>
   </file_definition>
 
-   <axis_definition>
-     <axis id="axis_atm" zoom_size="2" zoom_end="2" />
-   </axis_definition>
+  <axis_definition>
+    <axis id="axis_atm" zoom_size="2" zoom_end="2" />
+  </axis_definition>
 
-   <domain_definition>
-     <domain id="domain_atm" />
-     <domain id="domain_atm_zoom" />
-   </domain_definition>
+  <domain_definition>
+    <domain id="domain_atm" />
+    <domain id="domain_atm_zoom" />
+  </domain_definition>
 
-   <grid_definition />
+  <grid_definition />
 
 </context>
