@@ -95,6 +95,7 @@ PROGRAM test_complete
   CALL xios_set_domain_attr("domain_atm_zoom",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_atm_zoom",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_atm_zoom",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
+  CALL xios_set_domain_attr("domain_atm_zoom",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
 
 !!! Activation du groupe field_definition
 
