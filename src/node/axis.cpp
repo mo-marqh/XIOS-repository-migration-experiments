@@ -53,14 +53,16 @@ namespace xios {
    {
       if (this->isChecked) return;
       if (this->size.isEmpty())
-         ERROR("CAxis::checkAttributes(void)",<< "Attribut <size> of the axis must be specified") ;
+         ERROR("CAxis::checkAttributes(void)",
+               << "Attribute <size> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be specified");
       StdSize size = this->size.getValue();
 
       if (!this->ibegin.isEmpty())
       {
         StdSize ibegin = this->ibegin.getValue();
         if ((ibegin < 0) || (ibegin > size-1))
-          ERROR("CAxis::checkAttributes(void)",<< "Attribut <ibegin> of the axis must be non-negative and smaller than size-1") ;
+          ERROR("CAxis::checkAttributes(void)",
+                << "Attribute <ibegin> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size-1");
       }
       else this->ibegin.setValue(0);
 
@@ -68,32 +70,34 @@ namespace xios {
       {
         StdSize ni = this->ni.getValue();
         if ((ni < 0) || (ni > size))
-          ERROR("CAxis::checkAttributes(void)",<< "Attribut <ni> of the axis must be non-negative and smaller than size") ;
+          ERROR("CAxis::checkAttributes(void)",
+                << "Attribute <ni> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size");
       }
       else this->ni.setValue(size);
 
-      StdSize zoom_begin,zoom_end, zoom_size ;
+      StdSize zoom_begin,zoom_end, zoom_size;
 
       // Maybe index begins at 0 (zero)
-      zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue() ;
-      zoom_end = (this->zoom_end.isEmpty()) ?  size-1 : this->zoom_end.getValue() ;
-      zoom_size = (this->zoom_size.isEmpty()) ?  size : this->zoom_size.getValue() ;
+      zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue();
+      zoom_end = (this->zoom_end.isEmpty()) ?  size-1 : this->zoom_end.getValue();
+      zoom_size = (this->zoom_size.isEmpty()) ?  size : this->zoom_size.getValue();
 
-      if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1 ;
-      if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1 ;
-      if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1 ;
+      if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1;
+      if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1;
+      if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1;
 
       if ( (zoom_begin < 0) || (zoom_begin > size-1) || (zoom_end<0) || (zoom_end>size-1) || (zoom_size<1) || (zoom_size>size) || (zoom_begin>zoom_end))
-        ERROR("CAxis::checkAttributes(void)",<< "One or more attribut of <zoom_begin>, <zoom_end>, <zoom_size>, are not well specified") ;
+        ERROR("CAxis::checkAttributes(void)",
+              << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
-      this->zoom_begin.setValue(zoom_begin) ;
-      this->zoom_end.setValue(zoom_end) ;
-      this->zoom_size.setValue(zoom_size) ;
+      this->zoom_begin.setValue(zoom_begin);
+      this->zoom_end.setValue(zoom_end);
+      this->zoom_size.setValue(zoom_size);
 
       StdSize true_size = value.numElements();
       if (size != true_size)
          ERROR("CAxis::checkAttributes(void)",
-               << "The array \'value\' has a different size that the one defined by the \'size\' attribut")
+               << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
 
       this->checkData();
       this->checkMask();
@@ -106,7 +110,7 @@ namespace xios {
       if (!data_n.isEmpty() && data_n.getValue() <= 0)
       {
         ERROR("CAxis::checkData(void)",
-              << "Data dimension is negative (data_n).") ;
+              << "Data dimension is negative (data_n).");
       }
       else if (data_n.isEmpty())
         data_n.setValue(ni.getValue());
@@ -151,7 +155,7 @@ namespace xios {
       else // (!mask.hasValue())
       { // Si aucun masque n'est défini,
         // on en crée un nouveau qui valide l'intégralité du domaine.
-         mask.resize(ni) ;
+         mask.resize(ni);
          for (int i = 0; i < ni.getValue(); ++i)
          {
                if (i >= begin_mask && i <= end_mask)
