@@ -153,7 +153,7 @@ namespace xios{
 
     if (!grid->doGridHaveDataDistributed())
     {
-       if (0 == client->getClientRank())
+       if (0 == client->clientRank)
        {
           for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
           {
@@ -798,17 +798,28 @@ namespace xios{
    of a field. In some cases, only domain exists but axis doesn't
    \return pair of Domain and Axis id
    */
-//   const std::pair<StdString,StdString>& CField::getDomainAxisIds()
-//   {
-//     CGrid* cgPtr = getRelGrid();
-//     if (NULL != cgPtr)
-//     {
-//       if (NULL != cgPtr->getRelDomain()) domAxisIds_.first = cgPtr->getRelDomain()->getId();
-//       if (NULL != cgPtr->getRelAxis()) domAxisIds_.second = cgPtr->getRelAxis()->getId();
-//     }
-//
-//     return (domAxisIds_);
-//   }
+   const std::pair<StdString,StdString>& CField::getRefDomainAxisIds()
+   {
+     CGrid* cgPtr = getRelGrid();
+     if (NULL != cgPtr)
+     {
+       std::vector<StdString>::iterator it;
+       if (!domain_ref.isEmpty())
+       {
+         std::vector<StdString> domainList = cgPtr->getDomainList();
+         it = std::find(domainList.begin(), domainList.end(), domain_ref.getValue());
+         if (domainList.end() != it) domAxisIds_.first = *it;
+       }
+
+       if (!axis_ref.isEmpty())
+       {
+         std::vector<StdString> axisList = cgPtr->getAxisList();
+         it = std::find(axisList.begin(), axisList.end(), axis_ref.getValue());
+         if (axisList.end() != it) domAxisIds_.second = *it;
+       }
+     }
+     return (domAxisIds_);
+   }
 
    CVariable* CField::addVariable(const string& id)
    {

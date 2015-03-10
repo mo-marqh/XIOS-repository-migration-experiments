@@ -156,7 +156,7 @@ namespace xios {
         void sendAddAllVariables();
 
 
-//        const std::pair<StdString, StdString>& getDomainAxisIds();
+        const std::pair<StdString, StdString>& getRefDomainAxisIds();
       public :
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup ;

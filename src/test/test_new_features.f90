@@ -16,7 +16,7 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llm=10
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -134,8 +134,8 @@ PROGRAM test_new_features
   ni=0 ; lonvalue(:)=0
   CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
 
-  print *,"ni",ni
-  print *,"lonvalue",lonvalue ;
+!  print *,"ni",ni
+!  print *,"lonvalue",lonvalue ;
 
   CALL xios_is_defined_field_attr("field_A",enabled=ok)
   PRINT *,"field_A : attribute enabled is defined ? ",ok
@@ -145,7 +145,7 @@ PROGRAM test_new_features
   DO ts=1,24*10
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
-    CALL xios_send_field("field_Axis",field_Axis)
+!    CALL xios_send_field("field_Axis",field_Axis)
     CALL xios_send_field("field_All_Axis",field_All_Axis)
     CALL wait_us(5000) ;
   ENDDO

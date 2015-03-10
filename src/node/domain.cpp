@@ -14,6 +14,7 @@
 #include "context_client.hpp"
 #include "array_new.hpp"
 #include "server_distribution_description.hpp"
+#include "client_server_mapping_distributed.hpp"
 
 namespace xios {
 
@@ -666,11 +667,6 @@ namespace xios {
     int zoom_iend=zoom_ibegin+zoom_ni-1 ;
     int zoom_jend=zoom_jbegin+zoom_nj-1 ;
 
-    std::vector<int> nGlobDomain(2);
-    nGlobDomain[0] = ni_glo.getValue();
-    nGlobDomain[1] = nj_glo.getValue();
-    CServerDistributionDescription serverDescription(nGlobDomain);
-    serverDescription.computeServerDistribution(nbServer, doComputeGlobalIndexServer);
 
     // Precompute number of index
     int globalIndexCount = 0;
@@ -705,15 +701,36 @@ namespace xios {
         }
       }
 
-    CClientServerMapping clientServerMap;
-    clientServerMap.computeServerIndexMapping(globalIndexDomain, serverDescription.getGlobalIndex());
-    const std::map<int, std::vector<size_t> >& globalIndexDomainOnServer = clientServerMap.getGlobalIndexOnServer();
+     std::vector<int> nGlobDomain(2);
+     nGlobDomain[0] = ni_glo.getValue();
+     nGlobDomain[1] = nj_glo.getValue();
+     size_t globalSizeIndex = 1, indexBegin, indexEnd;
+     int range, clientSize = client->clientSize;
+     for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
+     indexBegin = 0;
+     for (int i = 0; i < clientSize; ++i)
+     {
+       range = globalSizeIndex / clientSize;
+       if (i < (globalSizeIndex%clientSize)) ++range;
+       if (i == client->clientRank) break;
+       indexBegin += range;
+     }
+     indexEnd = indexBegin + range - 1;
+
+    CServerDistributionDescription serverDescription(nGlobDomain);
+    serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd));
+    CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
+                                                                                client->intraComm);
+    clientServerMap->computeServerIndexMapping(globalIndexDomain);
+    const std::map<int, std::vector<size_t> >& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
     std::vector<int> connectedServerRank;
     for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(); it != globalIndexDomainOnServer.end(); ++it) {
       connectedServerRank.push_back(it->first);
     }
-    nbConnectedClients_ = clientServerMap.computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank);
+    nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank);
     indSrv_ = globalIndexDomainOnServer;
+
+    delete clientServerMap;
   }
 
   void CDomain::sendLonLat(void)

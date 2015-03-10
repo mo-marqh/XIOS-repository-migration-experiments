@@ -2,7 +2,7 @@
    \file client_server_mapping.hpp
    \author Ha NGUYEN
    \since 04 Feb 2015
-   \date 06 Feb 2015
+   \date 09 Mars 2015
 
    \brief Mapping between index client and server.
  */
@@ -12,7 +12,6 @@
 #include "xmlioserver_spl.hpp"
 #include "array_new.hpp"
 #include "mpi.hpp"
-#include <boost/unordered_map.hpp>
 
 namespace xios {
 
@@ -30,15 +29,16 @@ class CClientServerMapping
     /** Default destructor */
     virtual ~CClientServerMapping();
 
+    // Only need global index on client to calculate mapping (supposed client has info of distribution)
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient) = 0;
+
+    // In case of computing local index on client sent to server
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                           const CArray<int,1>& localIndexOnClient) = 0;
+
+    // Simple case, global index on client and index on servers
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
                                            const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
-
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                           const CArray<int,1>& localIndexOnClient);
-
-//    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-//                                           const CArray<int,1>& localIndexOnClient,
-//                                           const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
 
     std::map<int,int> computeConnectedClients(int nbServer, int nbClient,
                                               MPI_Comm& clientIntraComm,

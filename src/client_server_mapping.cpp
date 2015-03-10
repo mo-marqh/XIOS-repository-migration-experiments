@@ -2,7 +2,7 @@
    \file client_server_mapping.hpp
    \author Ha NGUYEN
    \since 04 Feb 2015
-   \date 06 Feb 2015
+   \date 09 Mars 2015
 
    \brief Mapping between index client and server.
  */
@@ -19,30 +19,22 @@ CClientServerMapping::~CClientServerMapping()
 {
 }
 
-void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                                     const CArray<int,1>& localIndexOnClient)
-{
-//  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
-}
-
-
+/*!
+  Compute mapping global index of server which client sends to.
+  \param [in] globalIndexOnClient global index on client
+  \param [in] globalIndexServer global index of servers
+*/
 void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
                                                      const std::vector<CArray<size_t,1>* >& globalIndexServer)
 {
   defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
 }
 
-//void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-//                                                     const CArray<int,1>& localIndexOnClient,
-//                                                     const std::vector<CArray<size_t,1>* >& globalIndexOfServer)
-//{
-//  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexOfServer, &localIndexOnClient);
-//}
-
 /*!
    Compute index of data which are sent to server and index global on server side
    \param [in] globalIndexOnClient global index of data on client
    \param [in] globalIndexServer global index of server(s)
+   \param [in] localIndexOnClient local index of data on client which are sent to server
 */
 void CClientServerMapping::defaultComputeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
                                                             const std::vector<CArray<size_t,1>* >& globalIndexServer,
@@ -128,7 +120,6 @@ std::map<int,int> CClientServerMapping::computeConnectedClients(int nbServer, in
   MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,clientIntraComm) ;
   for(int n=0;n<recvSize;n++) clientRes[recvBuff[n]]++ ;
 
-//  std::map<int,int> nbSenders;
   for(int n=0;n<nbConnectedServer;n++)
   {
     connectedClients[connectedServer[n]] = clientRes[connectedServer[n]];

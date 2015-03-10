@@ -1,3 +1,12 @@
+/*!
+   \file client_server_mapping.hpp
+   \author Ha NGUYEN
+   \since 27 Feb 2015
+   \date 09 Mars 2015
+
+   \brief Mapping between index client and server.
+   Clients pre-calculate all information of server distribution.
+ */
 #include "client_server_mapping_distributed.hpp"
 #include <limits>
 #include <boost/functional/hash.hpp>
@@ -6,19 +15,40 @@ namespace xios
 {
 
 CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
-                                                                 const MPI_Comm& clientIntraComm) : CClientServerMapping(), indexClientHash_()
+                                                                 const MPI_Comm& clientIntraComm)
+  : CClientServerMapping(), indexClientHash_(), countIndexGlobal_(0), countIndexServer_(0),
+    indexGlobalBuffBegin_(), indexServerBuffBegin_(), requestRecvIndexServer_()
 {
   clientIntraComm_ = clientIntraComm;
   MPI_Comm_size(clientIntraComm,&(nbClient_));
-  MPI_Comm_rank(clientIntraComm,&clientRank_) ;
+  MPI_Comm_rank(clientIntraComm,&clientRank_);
+  computeHashIndex();
   computeDistributedServerIndex(globalIndexOfServer, clientIntraComm);
 }
 
 CClientServerMappingDistributed::~CClientServerMappingDistributed()
 {
-
 }
 
+/*!
+   Compute mapping global index of server which client sends to.
+   \param [in] globalIndexOnClient global index client has
+*/
+void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
+{
+  int ssize = globalIndexOnClient.numElements();
+  CArray<int,1>* localIndexOnClient = new CArray<int,1>(ssize);
+  for (int i = 0; i < ssize; ++i) (*localIndexOnClient)(i) = i;
+
+  this->computeServerIndexMapping(globalIndexOnClient, *localIndexOnClient);
+  delete localIndexOnClient;
+}
+
+/*!
+   Compute mapping global index of server which client sends to.
+   \param [in] globalIndexOnClient global index client has
+   \param [in] localIndexOnClient local index on client
+*/
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
                                                                 const CArray<int,1>& localIndexOnClient)
 {
@@ -88,7 +118,7 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   if (0 != nbIndexReceivedFromOthers)
     recvBuffIndexServer = new int[nbIndexReceivedFromOthers];
 
-  resetRequestAndCount();
+  resetReceivingRequestAndCount();
   std::map<int, MPI_Request>::iterator itRequest;
   std::vector<int> demandAlreadyReceived, repondAlreadyReceived;
   int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
@@ -167,6 +197,9 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   delete [] recvBuff;
 }
 
+/*!
+  Compute the hash index distribution of whole size_t space then each client will have a range of this distribution
+*/
 void CClientServerMappingDistributed::computeHashIndex()
 {
   // Compute range of hash index for each client
@@ -183,13 +216,17 @@ void CClientServerMappingDistributed::computeHashIndex()
   indexClientHash_[nbClient_] = nbHashIndexMax;
 }
 
+/*!
+  Compute distribution of global index for servers
+  Each client already holds a piece of information about global index and the corresponding server.
+This information is redistributed into size_t sipace in which each client possesses a specific range of index.
+Afterh the redistribution, each client as long as its range of index contains all necessary information about server.
+  \param [in] globalIndexOfServer global index and the corresponding server
+  \param [in] clientIntraComm client joining distribution process.
+*/
 void CClientServerMappingDistributed::computeDistributedServerIndex(const boost::unordered_map<size_t,int>& globalIndexOfServer,
                                                                     const MPI_Comm& clientIntraComm)
 {
-  computeHashIndex();
-  int clientRank;
-  MPI_Comm_rank(clientIntraComm,&clientRank);
-
   int* sendBuff = new int[nbClient_];
   int* sendNbIndexBuff = new int[nbClient_];
   for (int i = 0; i < nbClient_; ++i)
@@ -213,7 +250,7 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
     if (itClientHash != iteClientHash)
     {
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
-      if (clientRank == indexClient)
+      if (clientRank_ == indexClient)
       {
         globalIndexToServerMapping_.insert(std::make_pair<size_t,int>(it->first, it->second));
       }
@@ -227,45 +264,42 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
     }
   }
 
-
-//    for (boost::unordered_map<size_t,int>::const_iterator it = globalIndexToServerMapping_.begin();
-//       it != globalIndexToServerMapping_.end(); ++it)
-//       std::cout << " " << it->first << ":" << it->second;
-//       std::cout << "First Number = " << globalIndexToServerMapping_.size() << std::endl;
-
-
+  // Calculate from how many clients each client receive message.
   int* recvBuff = new int[nbClient_];
   MPI_Allreduce(sendBuff, recvBuff, nbClient_, MPI_INT, MPI_SUM, clientIntraComm);
+  int recvNbClient = recvBuff[clientRank_];
 
+  // Calculate size of buffer for receiving message
   int* recvNbIndexBuff = new int[nbClient_];
   MPI_Allreduce(sendNbIndexBuff, recvNbIndexBuff, nbClient_, MPI_INT, MPI_SUM, clientIntraComm);
-
-  MPI_Status statusIndexGlobal, statusIndexServer;
-  int flag, countIndexGlobal_ = 0, countIndexServer_ = 0;
-
-
-  std::map<int, MPI_Request>::iterator itRequestIndexGlobal, itRequestIndexServer;
-  std::map<int, int> countBuffIndexServer, countBuffIndexGlobal;
-  std::vector<int> processedList;
-
-
-  bool isFinished=false;
-  int recvNbIndexCount = recvNbIndexBuff[clientRank];
-  int recvNbClient = recvBuff[clientRank];
+  int recvNbIndexCount = recvNbIndexBuff[clientRank_];
   unsigned long* recvIndexGlobalBuff = new unsigned long[recvNbIndexCount];
   int* recvIndexServerBuff = new int[recvNbIndexCount];
 
+  // If a client holds information about global index and servers which don't belong to it,
+  // it will send a message to the correct clients.
+  // Contents of the message are global index and its corresponding server index
   std::list<MPI_Request> sendRequest;
   std::map<int, std::vector<size_t> >::iterator itGlobal  = client2ClientIndexGlobal.begin(),
                                                 iteGlobal = client2ClientIndexGlobal.end();
-  for ( ; itGlobal != iteGlobal; ++itGlobal)
+  for ( ;itGlobal != iteGlobal; ++itGlobal)
     sendIndexGlobalToClients(itGlobal->first, itGlobal->second, clientIntraComm, sendRequest);
   std::map<int, std::vector<int> >::iterator itServer  = client2ClientIndexServer.begin(),
                                              iteServer = client2ClientIndexServer.end();
   for (; itServer != iteServer; ++itServer)
     sendIndexServerToClients(itServer->first, itServer->second, clientIntraComm, sendRequest);
 
-  resetRequestAndCount();
+  std::map<int, MPI_Request>::iterator itRequestIndexGlobal, itRequestIndexServer;
+  std::map<int, int> countBuffIndexServer, countBuffIndexGlobal;
+  std::vector<int> processedList;
+
+  bool isFinished = (0 == recvNbClient) ? true : false;
+
+  // Just to make sure before listening message, all counting index and receiving request have already beeen reset
+  resetReceivingRequestAndCount();
+
+  // Now each client trys to listen to demand from others.
+  // If they have message, it processes: pushing global index and corresponding server to its map
   while (!isFinished || (!sendRequest.empty()))
   {
     testSendRequest(sendRequest);
@@ -303,7 +337,6 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
         processedList.push_back(rank);
         --recvNbClient;
       }
-
     }
 
     for (int i = 0; i < processedList.size(); ++i)
@@ -323,14 +356,15 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
   delete [] recvNbIndexBuff;
   delete [] recvIndexGlobalBuff;
   delete [] recvIndexServerBuff;
-
-//    for (boost::unordered_map<size_t,int>::const_iterator it = globalIndexToServerMapping_.begin();
-//       it != globalIndexToServerMapping_.end(); ++it)
-//       std::cout << " " << it->first << ":" << it->second;
-//       std::cout << "Number = " << globalIndexToServerMapping_.size() << std::endl;
-
 }
 
+/*!
+  Probe and receive message containg global index from other clients.
+  Each client can send a message of global index to other clients to fulfill their maps.
+Each client probes message from its queue then if the message is ready, it will be put into the receiving buffer
+  \param [in] recvIndexGlobalBuff buffer dedicated for receiving global index
+  \param [in] recvNbIndexCount size of the buffer
+*/
 void CClientServerMappingDistributed::probeIndexGlobalMessageFromClients(unsigned long* recvIndexGlobalBuff, int recvNbIndexCount)
 {
   MPI_Status statusIndexGlobal;
@@ -349,6 +383,13 @@ void CClientServerMappingDistributed::probeIndexGlobalMessageFromClients(unsigne
   }
 }
 
+/*!
+  Probe and receive message containg server index from other clients.
+  Each client can send a message of server index to other clients to fulfill their maps.
+Each client probes message from its queue then if the message is ready, it will be put into the receiving buffer
+  \param [in] recvIndexServerBuff buffer dedicated for receiving server index
+  \param [in] recvNbIndexCount size of the buffer
+*/
 void CClientServerMappingDistributed::probeIndexServerMessageFromClients(int* recvIndexServerBuff, int recvNbIndexCount)
 {
   MPI_Status statusIndexServer;
@@ -368,7 +409,13 @@ void CClientServerMappingDistributed::probeIndexServerMessageFromClients(int* re
   }
 }
 
-
+/*!
+  Send message containing global index to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] indexGlobal global index to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestSendIndexGlobal list of sending request
+*/
 void CClientServerMappingDistributed::sendIndexGlobalToClients(int clientDestRank, std::vector<size_t>& indexGlobal,
                                                                const MPI_Comm& clientIntraComm,
                                                                std::list<MPI_Request>& requestSendIndexGlobal)
@@ -377,26 +424,15 @@ void CClientServerMappingDistributed::sendIndexGlobalToClients(int clientDestRan
   requestSendIndexGlobal.push_back(request);
   MPI_Isend(&(indexGlobal)[0], (indexGlobal).size(), MPI_UNSIGNED_LONG,
             clientDestRank, 15, clientIntraComm, &(requestSendIndexGlobal.back()));
-
-//  int nbSendClient = indexGlobal.size();
-//  std::map<int, std::vector<size_t> >::iterator
-//                        itClient2ClientIndexGlobal  = indexGlobal.begin(),
-//                        iteClient2ClientIndexGlobal = indexGlobal.end();
-//
-//  for (; itClient2ClientIndexGlobal != iteClient2ClientIndexGlobal;
-//         ++itClient2ClientIndexGlobal)
-//  {
-//    MPI_Request request;
-//    requestSendIndexGlobal.push_back(request);
-//    MPI_Isend(&(itClient2ClientIndexGlobal->second)[0],
-//              (itClient2ClientIndexGlobal->second).size(),
-//              MPI_UNSIGNED_LONG,
-//              itClient2ClientIndexGlobal->first,
-//              15, clientIntraComm, &(requestSendIndexGlobal.back()));
-//  }
-
 }
 
+/*!
+  Send message containing server index to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] indexServer server index to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestSendIndexServer list of sending request
+*/
 void CClientServerMappingDistributed::sendIndexServerToClients(int clientDestRank, std::vector<int>& indexServer,
                                                                const MPI_Comm& clientIntraComm,
                                                                std::list<MPI_Request>& requestSendIndexServer)
@@ -405,26 +441,12 @@ void CClientServerMappingDistributed::sendIndexServerToClients(int clientDestRan
   requestSendIndexServer.push_back(request);
   MPI_Isend(&(indexServer)[0], (indexServer).size(), MPI_INT,
             clientDestRank, 12, clientIntraComm, &(requestSendIndexServer.back()));
-
-//  int nbSendClient = indexServer.size();
-//  std::map<int, std::vector<int> >::iterator
-//                        itClient2ClientIndexServer  = indexServer.begin(),
-//                        iteClient2ClientIndexServer = indexServer.end();
-
-//  for (; itClient2ClientIndexServer != iteClient2ClientIndexServer;
-//         ++itClient2ClientIndexServer)
-//  {
-//    MPI_Request request;
-//    requestSendIndexServer.push_back(request);
-//    MPI_Isend(&(itClient2ClientIndexServer->second)[0],
-//              (itClient2ClientIndexServer->second).size(),
-//              MPI_INT,
-//              itClient2ClientIndexServer->first,
-//              12, clientIntraComm, &(requestSendIndexServer.back()));
-//
-//  }
 }
 
+/*!
+  Verify status of sending request
+  \param [in] sendRequest sending request to verify
+*/
 void CClientServerMappingDistributed::testSendRequest(std::list<MPI_Request>& sendRequest)
 {
   int flag = 0;
@@ -440,7 +462,6 @@ void CClientServerMappingDistributed::testSendRequest(std::list<MPI_Request>& se
       MPI_Test(&(*itRequest), &flag, &status);
       if (true == flag)
       {
-        --sizeListRequest;
         isErased = true;
         break;
       }
@@ -450,12 +471,22 @@ void CClientServerMappingDistributed::testSendRequest(std::list<MPI_Request>& se
   }
 }
 
+/*!
+  Process the received request. Pushing global index and server index into map
+  \param[in] buffIndexGlobal pointer to the begining of buffer containing global index
+  \param[in] buffIndexServer pointer to the begining of buffer containing server index
+  \param[in] count size of received message
+*/
 void CClientServerMappingDistributed::processReceivedRequest(unsigned long* buffIndexGlobal, int* buffIndexServer, int count)
 {
   for (int i = 0; i < count; ++i)
     globalIndexToServerMapping_.insert(std::make_pair<size_t,int>(*(buffIndexGlobal+i),*(buffIndexServer+i)));
 }
 
+/*!
+  Compute size of message containing global index
+  \param[in] requestRecv request of message
+*/
 int CClientServerMappingDistributed::computeBuffCountIndexGlobal(MPI_Request& requestRecv)
 {
   int flag, count = 0;
@@ -470,6 +501,10 @@ int CClientServerMappingDistributed::computeBuffCountIndexGlobal(MPI_Request& re
   return count;
 }
 
+/*!
+  Compute size of message containing server index
+  \param[in] requestRecv request of message
+*/
 int CClientServerMappingDistributed::computeBuffCountIndexServer(MPI_Request& requestRecv)
 {
   int flag, count = 0;
@@ -484,7 +519,10 @@ int CClientServerMappingDistributed::computeBuffCountIndexServer(MPI_Request& re
   return count;
 }
 
-void CClientServerMappingDistributed::resetRequestAndCount()
+/*!
+  Reset all receiving request map and counter
+*/
+void CClientServerMappingDistributed::resetReceivingRequestAndCount()
 {
   countIndexGlobal_ = countIndexServer_ = 0;
   requestRecvIndexGlobal_.clear();

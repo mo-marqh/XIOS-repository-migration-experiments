@@ -2,7 +2,7 @@
    \file server_distribution_description.hpp
    \author Ha NGUYEN
    \since 04 Jan 2015
-   \date 09 Feb 2015
+   \date 09 Mars 2015
 
    \brief Description of index distribution on server(s).
  */
@@ -14,12 +14,10 @@ namespace xios
 CServerDistributionDescription::CServerDistributionDescription(const std::vector<int>& globalDimensionSize)
   : nGlobal_(globalDimensionSize), indexBegin_(), dimensionSizes_(), globalIndex_(), vecGlobalIndex_()
 {
-
 }
 
 CServerDistributionDescription::~CServerDistributionDescription()
 {
-//  if (0 != globalIndex_) delete globalIndex_;
   if (!vecGlobalIndex_.empty())
     for (int i = 0; i < vecGlobalIndex_.size(); ++i) delete vecGlobalIndex_[i];
 }
@@ -91,6 +89,13 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
   }
 }
 
+/*!
+  Compute global index assigned to a server with a range.E.g: if a grid has 100 points and
+  there are 2 servers, the first one takes index from 0 to 49, the second has index from 50 to 99
+  \param [in] nServer number of server
+  \param [in] indexBeginEnd begining and ending index of range
+  \param [in] serType type of server distribution. For now, we can distribute server by band or plan
+*/
 void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer,
                                         const std::pair<size_t, size_t>& indexBeginEnd,
                                         ServerDistributionType distributionType)
@@ -116,10 +121,8 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer
   {
     size_t ssize = 1, idx = 0;
     for (int j = 0; j < dim; ++j) ssize *= dimensionSizes_[idxServer][j];
-    vecGlobalIndex_[idxServer] = new CArray<size_t,1>(ssize);
 
     std::vector<int> idxLoop(dim,0);
-
     int innerLoopSize = dimensionSizes_[idxServer][0];
 
     while (idx<ssize)
@@ -242,6 +245,9 @@ const std::vector<CArray<size_t,1>* >& CServerDistributionDescription::getGlobal
   return vecGlobalIndex_;
 }
 
+/*!
+  Get global index calculated by computeServerGlobalIndexInRange
+*/
 const boost::unordered_map<size_t,int>& CServerDistributionDescription::getGlobalIndexRange() const
 {
   return globalIndex_;

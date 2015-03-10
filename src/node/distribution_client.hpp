@@ -2,7 +2,7 @@
    \file distribution_client.hpp
    \author Ha NGUYEN
    \since 13 Jan 2015
-   \date 09 Feb 2015
+   \date 09 Mars 2015
 
    \brief Index distribution on client side.
  */
@@ -111,6 +111,12 @@ class CDistributionClient : public CDistribution
     CDistributionClient(const CDistributionClient& distClient); //! Not implement
 };
 
+/*!
+  A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
+It's not a good idea to store all multi-dimension arrays corresponding to each mask.
+One of the ways is to convert this array into 1-dimension one and every process is taken place on it.
+  \param [in] multi-dimension array grid mask
+*/
 template<int N>
 void CDistributionClient::readGridMaskInfo(const CArray<bool,N>& gridMask)
 {

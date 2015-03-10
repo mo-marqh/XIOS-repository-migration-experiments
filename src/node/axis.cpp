@@ -125,12 +125,6 @@ namespace xios {
       this->zoom_begin.setValue(zoom_begin) ;
       this->zoom_end.setValue(zoom_end) ;
       this->zoom_size.setValue(zoom_size) ;
-
-      // compute client zoom indices
-//      zoom_begin_client = ibegin_client > zoom_begin ? begin_client : zoom_begin ;
-//      zoom_end_client   = iend_client < zoom_end ? iend_client : zoom_end ;
-//      zoom_size_client  = zoom_end_client-zoom_begin_client+1 ;
-//      if (zoom_ni_client<0) zoom_ni_client=0 ;
    }
 
    void CAxis::checkMask()

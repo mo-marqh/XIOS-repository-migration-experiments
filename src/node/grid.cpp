@@ -339,9 +339,6 @@ namespace xios {
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex(),
                                                  clientDistribution_->getLocalDataIndexSendToServerOnClient());
 
-//     clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex(),
-//                                                 clientDistribution_->getLocalDataIndexSendToServerOnClient(),
-//                                                 serverDistributionDescription_->getGlobalIndex());
      const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
      std::vector<int> connectedServerRank;
      for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexOnServer.begin(); it != globalIndexOnServer.end(); ++it) {
@@ -352,7 +349,6 @@ namespace xios {
      // Get local data index on client
      storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().numElements());
      storeIndex_client = (clientDistribution_->getLocalDataIndexOnClient());
-
    }
 
    //----------------------------------------------------------------
@@ -456,7 +452,7 @@ namespace xios {
 
     if (!doGridHaveDataDistributed())
     {
-      if (0 == client->getClientRank())
+      if (0 == client->clientRank)
       {
        for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
         {

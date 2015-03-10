@@ -2,7 +2,7 @@
    \file distribution_client.cpp
    \author Ha NGUYEN
    \since 13 Jan 2015
-   \date 09 Feb 2015
+   \date 09 Mars 2015
 
    \brief Index distribution on client side.
  */
@@ -55,10 +55,6 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
 
   itbDom  = itDom  = domList.begin();  iteDom  = domList.end();
   itbAxis = itAxis = axisList.begin(); iteAxis = axisList.end();
-
-  // First of all, every attribute of domain and axis should be checked
-//  for (;itDom != iteDom; ++itDom) (*itDom)->checkAttributesOnClient();
-//  for (;itAxis != iteAxis; ++itAxis) (*itAxis)->checkAttributesOnClient();
 
   readDistributionInfo(domList, axisList, axisDomainOrder);
 
@@ -573,6 +569,9 @@ const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
   return (*localDataIndex_);
 }
 
+/*!
+  Return local data index on client which are sent to servers
+*/
 const CArray<int,1>& CDistributionClient::getLocalDataIndexSendToServerOnClient() const
 {
   return (*localDataIndexSendToServer_);
