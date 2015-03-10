@@ -76,7 +76,6 @@ namespace xios {
       }
       else this->ni.setValue(size);
 
-              << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
       StdSize true_size = value.numElements();
       if (size != true_size)
          ERROR("CAxis::checkAttributes(void)",
@@ -120,7 +119,8 @@ namespace xios {
       axisSize = size.getValue();
 
       if ( (zoom_begin < 0) || (zoom_begin > axisSize-1) || (zoom_end<0) || (zoom_end>axisSize-1) || (zoom_size<1) || (zoom_size>axisSize) || (zoom_begin>zoom_end))
-        ERROR("CAxis::checkAttributes(void)",<< "One or more attribut of <zoom_begin>, <zoom_end>, <zoom_size>, are not well specified") ;
+        ERROR("CAxis::checkAttributes(void)",
+              << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
       this->zoom_begin.setValue(zoom_begin) ;
       this->zoom_end.setValue(zoom_end) ;
