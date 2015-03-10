@@ -220,7 +220,7 @@ namespace xios {
         CDistributionClient* clientDistribution_;
         CDistributionServer* serverDistribution_;
         CServerDistributionDescription* serverDistributionDescription_;
-        CClientServerMapping clientServerMap_;
+        CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
    }; // class CGrid
 

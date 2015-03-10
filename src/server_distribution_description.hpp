@@ -12,6 +12,7 @@
 
 #include "xmlioserver_spl.hpp"
 #include "array_new.hpp"
+#include <boost/unordered_map.hpp>
 
 namespace xios
 {
@@ -35,12 +36,14 @@ class CServerDistributionDescription
     void computeServerDistribution(int nServer, bool doComputeGlobalIndex = false,
                                    ServerDistributionType type = BAND_DISTRIBUTION);
 
-    const CArray<size_t,1>& computeServerGlobalIndex(int nServer, int serverRank,
-                                                     ServerDistributionType = BAND_DISTRIBUTION);
+    void computeServerGlobalIndexInRange(int nServer,
+                                         const std::pair<size_t, size_t>& indexBeginEnd,
+                                         ServerDistributionType = BAND_DISTRIBUTION);
 
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
     const std::vector<CArray<size_t,1>* >& getGlobalIndex() const;
+    const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
 
   protected:
     void computeBandDistribution(int nServer);
@@ -55,7 +58,7 @@ class CServerDistributionDescription
     std::vector<CArray<size_t,1>* > vecGlobalIndex_;
 
     //!< In case we need only global index of one server with specific rank
-    CArray<size_t,1>* globalIndex_;
+    boost::unordered_map<size_t,int> globalIndex_;
 };
 
 } // namespace xios

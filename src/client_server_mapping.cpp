@@ -20,17 +20,24 @@ CClientServerMapping::~CClientServerMapping()
 }
 
 void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                                     const CArray<int,1>& localIndexOnClient)
+{
+//  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
+}
+
+
+void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
                                                      const std::vector<CArray<size_t,1>* >& globalIndexServer)
 {
   defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
 }
 
-void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                                     const CArray<int,1>& localIndexOnClient,
-                                                     const std::vector<CArray<size_t,1>* >& globalIndexOnServer)
-{
-  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexOnServer, &localIndexOnClient);
-}
+//void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+//                                                     const CArray<int,1>& localIndexOnClient,
+//                                                     const std::vector<CArray<size_t,1>* >& globalIndexOfServer)
+//{
+//  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexOfServer, &localIndexOnClient);
+//}
 
 /*!
    Compute index of data which are sent to server and index global on server side
@@ -67,7 +74,6 @@ void CClientServerMapping::defaultComputeServerIndexMapping(const CArray<size_t,
     }
   }
 }
-
 
 /*!
   Compute how many clients each server will receive data from

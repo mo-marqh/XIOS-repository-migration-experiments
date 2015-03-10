@@ -12,14 +12,14 @@
 namespace xios
 {
 CServerDistributionDescription::CServerDistributionDescription(const std::vector<int>& globalDimensionSize)
-  : nGlobal_(globalDimensionSize), indexBegin_(), dimensionSizes_(), globalIndex_(0), vecGlobalIndex_()
+  : nGlobal_(globalDimensionSize), indexBegin_(), dimensionSizes_(), globalIndex_(), vecGlobalIndex_()
 {
 
 }
 
 CServerDistributionDescription::~CServerDistributionDescription()
 {
-  if (0 != globalIndex_) delete globalIndex_;
+//  if (0 != globalIndex_) delete globalIndex_;
   if (!vecGlobalIndex_.empty())
     for (int i = 0; i < vecGlobalIndex_.size(); ++i) delete vecGlobalIndex_[i];
 }
@@ -89,6 +89,71 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
       }
     }
   }
+}
+
+void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer,
+                                        const std::pair<size_t, size_t>& indexBeginEnd,
+                                        ServerDistributionType distributionType)
+{
+  switch (distributionType) {
+    case BAND_DISTRIBUTION:
+      computeBandDistribution(nServer);
+      break;
+    default:
+      break;
+  }
+
+  size_t indexBegin = indexBeginEnd.first;
+  size_t indexEnd   = indexBeginEnd.second;
+  if (indexBegin > indexEnd)
+     ERROR("CServerDistributionDescription::computeServerGlobalIndexInRange",
+           << "Index begin is larger than index end");
+
+  int dim = nGlobal_.size();
+  std::vector<int> currentIndex(dim);
+
+  for (int idxServer = 0; idxServer < nServer; ++idxServer)
+  {
+    size_t ssize = 1, idx = 0;
+    for (int j = 0; j < dim; ++j) ssize *= dimensionSizes_[idxServer][j];
+    vecGlobalIndex_[idxServer] = new CArray<size_t,1>(ssize);
+
+    std::vector<int> idxLoop(dim,0);
+
+    int innerLoopSize = dimensionSizes_[idxServer][0];
+
+    while (idx<ssize)
+    {
+      for (int idxDim = 0; idxDim < dim-1; ++idxDim)
+      {
+        if (idxLoop[idxDim] == dimensionSizes_[idxServer][idxDim])
+        {
+          idxLoop[idxDim] = 0;
+          ++idxLoop[idxDim+1];
+        }
+      }
+
+      for (int idxDim = 1; idxDim < dim; ++idxDim)  currentIndex[idxDim] = idxLoop[idxDim] + indexBegin_[idxServer][idxDim];
+
+      size_t mulDim, globalIndex;
+      for (int j = 0; j < innerLoopSize; ++j)
+      {
+        mulDim = 1;
+        globalIndex = j + indexBegin_[idxServer][0];
+
+        for (int k = 1; k < dim; ++k)
+        {
+          mulDim *= nGlobal_[k-1];
+          globalIndex += (currentIndex[k])*mulDim;
+        }
+        if ((indexBegin <= globalIndex) && (globalIndex <= indexEnd))
+          globalIndex_.insert(std::make_pair<size_t,int>(globalIndex, idxServer));
+        ++idx;
+      }
+      idxLoop[0] += innerLoopSize;
+    }
+  }
+
 }
 
 /*!
@@ -177,4 +242,8 @@ const std::vector<CArray<size_t,1>* >& CServerDistributionDescription::getGlobal
   return vecGlobalIndex_;
 }
 
+const boost::unordered_map<size_t,int>& CServerDistributionDescription::getGlobalIndexRange() const
+{
+  return globalIndex_;
+}
 } // namespace xios
