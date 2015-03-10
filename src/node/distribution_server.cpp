@@ -22,6 +22,16 @@ CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoom
   createGlobalIndex();
 }
 
+CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
+                                         const std::vector<int>& nZoomSize,
+                                         const std::vector<int>& nZoomBeginGlobal,
+                                         const std::vector<int>& nGlobal)
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
+    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin)
+{
+  createGlobalIndex();
+}
+
 CDistributionServer::~CDistributionServer()
 {
 }
@@ -88,7 +98,8 @@ CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& 
   it = itBegin;
   for (int i = 0; i < ssize; ++i)
   {
-    it = std::lower_bound(it, itEnd, globalIndex(i));
+    it = std::find(itBegin, itEnd, globalIndex(i));
+//    it = std::lower_bound(it, itEnd, globalIndex(i));
     if (itEnd != it)
     {
       localIndex(idx) = std::distance(itBegin, it);
@@ -113,7 +124,8 @@ void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
   it = itBegin;
   for (int i = 0; i < ssize; ++i)
   {
-    it = std::lower_bound(it, itEnd, globalIndex(i));
+    it = std::find(itBegin, itEnd, globalIndex(i));
+//    it = std::lower_bound(it, itEnd, globalIndex(i));
     if (itEnd != it)
     {
       localIndex(idx) = std::distance(itBegin, it);
@@ -124,4 +136,19 @@ void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
   globalIndex = localIndex;
 }
 
+
+std::vector<int> CDistributionServer::getZoomBeginGlobal() const
+{
+  return nZoomBeginGlobal_;
+}
+
+std::vector<int> CDistributionServer::getZoomBeginServer() const
+{
+  return nZoomBegin_;
+}
+
+std::vector<int> CDistributionServer::getZoomSizeServer() const
+{
+  return nZoomSize_;
+}
 } // namespace xios

@@ -211,14 +211,19 @@ namespace xios {
       isOpen=false ;
 
       allDomainEmpty=true ;
+
       set<CDomain*> setDomain ;
 
       std::vector<CField*>::iterator it, end = this->enabledFields.end();
       for (it = this->enabledFields.begin() ;it != end; it++)
       {
          CField* field = *it;
-         allDomainEmpty&=field->grid->domain->isEmpty() ;
-         setDomain.insert(field->grid->domain) ;
+//         allDomainEmpty&=field->grid->domain->isEmpty() ;
+         allDomainEmpty&=(!field->grid->doGridHaveDataToWrite());
+         std::vector<CDomain*> vecDomain = field->grid->getDomains();
+         for (int i = 0; i < vecDomain.size(); ++i)
+            setDomain.insert(vecDomain[i]);
+//            setDomain.insert(field->grid->domain) ;
       }
       nbDomain=setDomain.size() ;
 
@@ -319,7 +324,7 @@ namespace xios {
          }
 
         bool append = !this->append.isEmpty() && this->append.getValue();
-        
+
          bool useClassicFormat = !format.isEmpty() && format == format_attr::netcdf4_classic;
 
          bool multifile=true ;

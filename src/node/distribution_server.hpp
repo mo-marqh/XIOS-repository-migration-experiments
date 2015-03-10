@@ -23,11 +23,19 @@ class CDistributionServer : public CDistribution
   public:
     /** Default constructor */
     CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
-    CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
-                        const std::vector<int>& nZoomSize, const std::vector<int>& nGlobal);
+    CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,
+                        const std::vector<int>& nZoomSizeServer, const std::vector<int>& nGlobal);
+    CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,
+                        const std::vector<int>& nZoomSizeServer,
+                        const std::vector<int>& nZoomBeginGlobal,
+                        const std::vector<int>& nGlobal);
 
     /** Default destructor */
     virtual ~CDistributionServer();
+
+    std::vector<int> getZoomBeginGlobal() const;
+    std::vector<int> getZoomBeginServer() const;
+    std::vector<int> getZoomSizeServer() const;
 
     virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
@@ -36,8 +44,10 @@ class CDistributionServer : public CDistribution
     virtual void createGlobalIndex();
   private:
     std::vector<int> nGlobal_;
+    std::vector<int> nZoomBeginGlobal_;
     std::vector<int> nZoomSize_;
     std::vector<int> nZoomBegin_;
+
 };
 
 } // namespace xios

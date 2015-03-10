@@ -151,18 +151,40 @@ namespace xios{
     list<shared_ptr<CMessage> > list_msg;
     list< CArray<double,1>* > list_data;
 
-     for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+    if (!grid->doGridHaveDataDistributed())
     {
-      int rank = (*it).first;
-      CArray<int,1>& index = *(it->second);
-      CArray<double,1> data_tmp(index.numElements());
-      for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
-      list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-      list_data.push_back(new CArray<double,1>(data_tmp));
-      *list_msg.back() << getId() << *list_data.back();
-      event.push(rank,grid->nbSenders[rank],*list_msg.back());
+       if (0 == client->getClientRank())
+       {
+          for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
+          {
+            int rank=(*it).first ;
+            CArray<int,1>& index = *(it->second) ;
+            CArray<double,1> data_tmp(index.numElements()) ;
+            for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
+
+            list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+            list_data.push_back(new CArray<double,1>(data_tmp)) ;
+            *list_msg.back()<<getId()<<*list_data.back() ;
+            event.push(rank,1,*list_msg.back()) ;
+          }
+          client->sendEvent(event) ;
+       } else client->sendEvent(event);
     }
-    client->sendEvent(event);
+    else
+    {
+      for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
+      {
+        int rank=(*it).first ;
+        CArray<int,1>& index = *(it->second) ;
+        CArray<double,1> data_tmp(index.numElements()) ;
+        for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
+        list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
+        list_data.push_back(new CArray<double,1>(data_tmp)) ;
+        *list_msg.back()<<getId()<<*list_data.back() ;
+        event.push(rank,grid->nbSenders[rank],*list_msg.back()) ;
+      }
+      client->sendEvent(event) ;
+    }
 
     for (list< CArray<double,1>* >::iterator it = list_data.begin(); it != list_data.end(); it++) delete *it;
   }
@@ -188,10 +210,8 @@ namespace xios{
 
   void  CField::recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers)
   {
-
     if (data_srv.empty())
     {
-//      for (map<int, CArray<int, 1>* >::iterator it = grid->out_i_fromClient.begin(); it != grid->out_i_fromClient.end(); it++)
       for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
       {
         int rank = it->first;
@@ -233,7 +253,7 @@ namespace xios{
   void CField::writeField(void)
   {
     if (!getRelFile()->allDomainEmpty)
-      if (!grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
+      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file) //      if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
       {
         getRelFile()->checkFile();
         this->incrementNStep();
@@ -552,83 +572,11 @@ namespace xios{
                   << "At least one dimension must be defined for this field.");
       }
 
-//     if (!grid_ref.isEmpty())
-//     {
-//       domain = grid->domain;
-//       axis = grid->axis;
-//     }
-
-//     CType<string> goodDomain;
-//     CType<string> goodAxis;
-//     if (!grid_ref.isEmpty())
-//     {
-//       if (!grid->domain_ref.isEmpty()) goodDomain = grid->domain_ref;
-//       if (!grid->axis_ref.isEmpty()) goodAxis = grid->axis_ref;
-//     }
-//     if (!domain_ref.isEmpty()) goodDomain = domain_ref;
-//     if (!axis_ref.isEmpty()) goodAxis = axis_ref;
-
-//     CArray<std::string,1> domListTmp = grid->domainList.getValue();
-//     CArray<std::string,1> axisListTmp = grid->axisList.getValue();
 
      if (domList.empty() && axisList.empty())
      {
        this->grid = CGrid::createGrid(vecDom, vecAxis);
      }
-
-//     std::string goodDomain = domListTmp[0];
-//     std::string goodAxis = axisListTmp[0];
-
-//     if (goodDomain.isEmpty())
-//     if (goodDomain.empty())
-//     {
-//       ERROR("CField::solveGridReference(void)", << "The horizontal domain for this field is not defined");
-//     }
-//     else
-//     {
-//       if (CDomain::has(goodDomain)) domain = CDomain::get(goodDomain);
-//       else ERROR("CField::solveGridReference(void)",<< "Reference to the domain \'"
-//                  << goodDomain << "\' is wrong");
-////                << goodDomain.get() << "\' is wrong");
-//     }
-//
-////     if (!goodAxis.isEmpty())
-//     if (!goodAxis.empty())
-//     {
-//       if (CAxis::has(goodAxis))  axis = CAxis::get(goodAxis);
-//       else  ERROR("CField::solveGridReference(void)", << "Reference to the axis \'"
-//                   << goodAxis <<"\' is wrong");
-//                   << goodAxis.get() <<"\' is wrong");
-//     }
-
-//     bool nothingToDo = false;
-//
-//     if (!grid_ref.isEmpty())
-//     {
-//       if (!grid->domain_ref.isEmpty() && goodDomain.get() == grid->domain_ref.get())
-//         if (goodAxis.isEmpty()) nothingToDo = true;
-//         else if (!grid->axis_ref.isEmpty())
-//                 if (grid->axis_ref.get() == goodAxis.get()) nothingToDo = true;
-//     }
-//
-//     nothingToDo = true;
-//     if (!nothingToDo)
-//     {
-//       if (!goodAxis.isEmpty())
-//       {
-//         this->grid = CGrid::createGrid(domain, axis);
-//         this->grid_ref.setValue(this->grid->getId());
-//       }
-//       else
-//       {
-//         this->grid = CGrid::createGrid(domain);
-//         this->grid_ref.setValue(this->grid->getId());
-//       }
-//     }
-
-//     grid->solveReference();
-//     grid->solveDomainAxisRef();
-//     grid->checkMaskIndex();
    }
 
    void CField::solveGridDomainAxisRef(bool checkAtt)
@@ -681,17 +629,24 @@ namespace xios{
       {
         grid->outputField(it->first,*it->second, fieldOut.dataFirst());
       }
-
-//         grid->outputField(it->first,*it->second, fieldOut.);
    }
 
    void CField::outputField(CArray<double,2>& fieldOut)
    {
       map<int, CArray<double,1>* >::iterator it;
+      for(it=data_srv.begin();it!=data_srv.end();it++)
+      {
+         grid->outputField(it->first,*it->second, fieldOut.dataFirst()) ;
+      }
+   }
+
+   void CField::outputField(CArray<double,1>& fieldOut)
+   {
+      map<int, CArray<double,1>* >::iterator it;
 
       for (it = data_srv.begin(); it != data_srv.end(); it++)
       {
-         grid->outputField(it->first, *it->second, fieldOut);
+         grid->outputField(it->first,*it->second, fieldOut.dataFirst()) ;
       }
    }
 
@@ -843,17 +798,17 @@ namespace xios{
    of a field. In some cases, only domain exists but axis doesn't
    \return pair of Domain and Axis id
    */
-   const std::pair<StdString,StdString>& CField::getDomainAxisIds()
-   {
-     CGrid* cgPtr = getRelGrid();
-     if (NULL != cgPtr)
-     {
-       if (NULL != cgPtr->getRelDomain()) domAxisIds_.first = cgPtr->getRelDomain()->getId();
-       if (NULL != cgPtr->getRelAxis()) domAxisIds_.second = cgPtr->getRelAxis()->getId();
-     }
-
-     return domAxisIds_;
-   }
+//   const std::pair<StdString,StdString>& CField::getDomainAxisIds()
+//   {
+//     CGrid* cgPtr = getRelGrid();
+//     if (NULL != cgPtr)
+//     {
+//       if (NULL != cgPtr->getRelDomain()) domAxisIds_.first = cgPtr->getRelDomain()->getId();
+//       if (NULL != cgPtr->getRelAxis()) domAxisIds_.second = cgPtr->getRelAxis()->getId();
+//     }
+//
+//     return (domAxisIds_);
+//   }
 
    CVariable* CField::addVariable(const string& id)
    {

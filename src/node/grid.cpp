@@ -19,10 +19,9 @@ namespace xios {
 
    CGrid::CGrid(void)
       : CObjectTemplate<CGrid>(), CGridAttributes()
-      , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
-      , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
+      , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_()
+      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(), writtenDataSize_(0), globalDim_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -30,10 +29,9 @@ namespace xios {
 
    CGrid::CGrid(const StdString & id)
       : CObjectTemplate<CGrid>(id), CGridAttributes()
-      , withAxis(false), isChecked(false), isDomainAxisChecked(false), axis(), domain()
-      , storeIndex(1), out_i_index(1), out_j_index(1), out_l_index(1), isDomConServerComputed_(false)
+      , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_()
+      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(), writtenDataSize_(0), globalDim_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -41,25 +39,14 @@ namespace xios {
 
    CGrid::~CGrid(void)
    {
- //     this->axis.reset() ;
-//      this->domain.reset() ;
     deque< CArray<int, 1>* >::iterator it ;
 
     for(deque< CArray<int,1>* >::iterator it=storeIndex.begin(); it!=storeIndex.end();it++)  delete *it ;
-    for(deque< CArray<int,1>* >::iterator it=out_i_index.begin();it!=out_i_index.end();it++) delete *it ;
-    for(deque< CArray<int,1>* >::iterator it=out_j_index.begin();it!=out_j_index.end();it++) delete *it ;
-    for(deque< CArray<int,1>* >::iterator it=out_l_index.begin();it!=out_l_index.end();it++) delete *it ;
-
-    for(map<int,CArray<int,1>* >::iterator it=out_i_fromClient.begin();it!=out_i_fromClient.end();it++) delete it->second ;
-    for(map<int,CArray<int,1>* >::iterator it=out_j_fromClient.begin();it!=out_j_fromClient.end();it++) delete it->second ;
-    for(map<int,CArray<int,1>* >::iterator it=out_l_fromClient.begin();it!=out_l_fromClient.end();it++) delete it->second ;
-
     for(map<int,CArray<size_t,1>* >::iterator it=outIndexFromClient.begin();it!=outIndexFromClient.end();++it) delete (it->second);
 
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
     if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
-
    }
 
    ///---------------------------------------------------------------
@@ -76,52 +63,52 @@ namespace xios {
    }
 
    //---------------------------------------------------------------
+//
+//   const std::deque< CArray<int,1>* > & CGrid::getOutIIndex(void)  const
+//   {
+//      return (this->out_i_index );
+//   }
+//
+//   //---------------------------------------------------------------
+//
+//   const std::deque< CArray<int,1>* > & CGrid::getOutJIndex(void)  const
+//   {
+//      return (this->out_j_index );
+//   }
+//
+//   //---------------------------------------------------------------
+//
+//   const std::deque< CArray<int,1>* > & CGrid::getOutLIndex(void)  const
+//   {
+//      return (this->out_l_index );
+//   }
+//
+//   //---------------------------------------------------------------
+//
+//   const CAxis*   CGrid::getRelAxis  (void) const
+//   {
+//      return (this->axis );
+//   }
 
-   const std::deque< CArray<int,1>* > & CGrid::getOutIIndex(void)  const
-   {
-      return (this->out_i_index );
-   }
+//   //---------------------------------------------------------------
+//
+//   const CDomain* CGrid::getRelDomain(void) const
+//   {
+//      return (this->domain );
+//   }
 
    //---------------------------------------------------------------
 
-   const std::deque< CArray<int,1>* > & CGrid::getOutJIndex(void)  const
-   {
-      return (this->out_j_index );
-   }
-
-   //---------------------------------------------------------------
-
-   const std::deque< CArray<int,1>* > & CGrid::getOutLIndex(void)  const
-   {
-      return (this->out_l_index );
-   }
-
-   //---------------------------------------------------------------
-
-   const CAxis*   CGrid::getRelAxis  (void) const
-   {
-      return (this->axis );
-   }
-
-   //---------------------------------------------------------------
-
-   const CDomain* CGrid::getRelDomain(void) const
-   {
-      return (this->domain );
-   }
-
-   //---------------------------------------------------------------
-
-   bool CGrid::hasAxis(void) const
-   {
-      return (this->withAxis);
-   }
+//   bool CGrid::hasAxis(void) const
+//   {
+//      return (this->withAxis);
+//   }
 
    //---------------------------------------------------------------
 
    StdSize CGrid::getDimension(void) const
    {
-      return ((this->withAxis)?3:2);
+      return (globalDim_.size());
    }
 
    //---------------------------------------------------------------
@@ -175,10 +162,9 @@ namespace xios {
 */
    StdSize CGrid::getDataSize(void) const
    {
-      StdSize retvalue=domain->data_ni.getValue() ;
-      if (domain->data_dim.getValue()==2) retvalue*=domain->data_nj.getValue() ;
-      if (this->withAxis) retvalue*=this->axis->size.getValue() ;
-
+      std::vector<int> dataNindex = clientDistribution_->getDataNIndex();
+      StdSize retvalue = 1;
+      for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];
       return (retvalue);
    }
 
@@ -199,31 +185,6 @@ namespace xios {
      return ret;
    }
 
-
-   //---------------------------------------------------------------
-
-//   void CGrid::solveReference(void)
-//   {
-//      if (this->isChecked) return;
-//      CContext* context = CContext::getCurrent() ;
-//      CContextClient* client=context->client ;
-//
-//      this->solveDomainRef() ;
-//      this->solveAxisRef() ;
-//
-//      if (context->hasClient)
-//      {
-//         checkMask() ;
-//         this->computeIndex() ;
-//
-//         this->storeIndex.push_front(new CArray<int,1>() );
-//         this->out_i_index.push_front(new CArray<int,1>());
-//         this->out_j_index.push_front(new CArray<int,1>());
-//         this->out_l_index.push_front(new CArray<int,1>());
-//      }
-////      this->computeIndexServer();
-//      this->isChecked = true;
-//   }
 
    void CGrid::solveDomainAxisRef(bool areAttributesChecked)
    {
@@ -249,154 +210,87 @@ namespace xios {
      {
         checkMask() ;
         this->computeIndex() ;
-
         this->storeIndex.push_front(new CArray<int,1>() );
-        this->out_i_index.push_front(new CArray<int,1>());
-        this->out_j_index.push_front(new CArray<int,1>());
-        this->out_l_index.push_front(new CArray<int,1>());
      }
-//      this->computeIndexServer();
      this->isChecked = true;
    }
-
 
    void CGrid::checkMask(void)
    {
       using namespace std;
+      std::vector<CDomain*> domainP = this->getDomains();
+      std::vector<CAxis*> axisP = this->getAxis();
+      int dim = domainP.size() * 2 + axisP.size();
 
-      unsigned int niu = domain->ni, nju = domain->nj;
-      unsigned int nlu = 1 ;
-      if (hasAxis()) nlu=axis->size ;
+      std::vector<CArray<bool,2>* > domainMasks(domainP.size());
+      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask);
+      std::vector<CArray<bool,1>* > axisMasks(axisP.size());
+      for (int i = 0; i < axisMasks.size(); ++i) axisMasks[i] = &(axisP[i]->mask);
 
-      if (!mask.isEmpty())
-      {
-         if ((mask.extent(0) != niu) ||
-             (mask.extent(1) != nju) ||
-             (mask.extent(2) != nlu))
-             ERROR("CGrid::checkAttributes(void)",
-                  <<"The mask has not the same size than the local grid"<<endl
-                  <<"Local size is "<<niu<<"x"<<nju<<"x"<<nlu<<endl
-                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1)<<"x"<<mask.extent(2));
+      switch (dim) {
+        case 1:
+          checkGridMask(mask1, domainMasks, axisMasks, axisDomainOrder);
+          break;
+        case 2:
+          checkGridMask(mask2, domainMasks, axisMasks, axisDomainOrder);
+          break;
+        case 3:
+          checkGridMask(mask3, domainMasks, axisMasks, axisDomainOrder);
+          break;
+//        case 4:
+//          checkGridMask(mask4, domainMasks, axisMasks, axisDomainOrder);
+//          break;
+//        case 5:
+//          checkGridMask(mask5, domainMasks, axisMasks, axisDomainOrder);
+//          break;
+//        case 6:
+//          checkGridMask(mask6, domainMasks, axisMasks, axisDomainOrder);
+//          break;
+//        case 7:
+//          checkGridMask(mask7, domainMasks, axisMasks, axisDomainOrder);
+//          break;
+        default:
+          break;
       }
-      else
-      {
-        mask.resize(niu,nju,nlu) ;
-        mask=true  ;
-      }
-
-      CArray<bool,2>& domainMask = domain->mask ;
-      for (int l=0; l < nlu ; l++)
-        for (int j=0; j < nju ; j++)
-          for(int i=0; i<niu ; i++) mask(i,j,l) = mask(i,j,l) && domainMask(i,j) ;
-
-
    }
-
    //---------------------------------------------------------------
-
-//   void CGrid::solveDomainRef(void)
-//   {
-//      if (!domain_ref.isEmpty())
-//      {
-//         if (CDomain::has(domain_ref.getValue()))
-//         {
-//            this->domain = CDomain::get(domain_ref.getValue()) ;
-//            domain->checkAttributes() ;
-//         }
-//         else ERROR("CGrid::solveDomainRef(void)",
-//                     << "Wrong domain reference") ;
-//      }
-//      else ERROR("CGrid::solveDomainRef(void)",
-//                  << "Domain reference is not defined") ;
-//   }
-//
-//   //---------------------------------------------------------------
-//
-//   void CGrid::solveAxisRef(void)
-//   {
-//      if (!axis_ref.isEmpty())
-//      {
-//         this->withAxis = true ;
-//         if (CAxis::get(axis_ref.getValue()))
-//         {
-//            this->axis = CAxis::get(axis_ref.getValue()) ;
-//            axis->checkAttributes() ;
-//         }
-//         else ERROR("CGrid::solveAxisRef(void)",
-//                    << "Wrong axis reference") ;
-//      }
-//      else withAxis = false ;
-//   }
-
 
    void CGrid::solveDomainRef(bool sendAtt)
    {
-//      if (!domain_ref.isEmpty())
-//      {
-//         if (CDomain::has(domain_ref.getValue()))
-//         {
-//            this->domain = CDomain::get(domain_ref.getValue()) ;
-//            if (sendAtt) domain->sendCheckedAttributes();
-//            else domain->checkAttributesOnClient() ;
-//         }
-//         else ERROR("CGrid::solveDomainRef(void)",
-//                     << "Wrong domain reference") ;
-//      }
-//      else ERROR("CGrid::solveDomainRef(void)",
-//                  << "Domain reference is not defined") ;
       setDomainList();
-      this->domain = CDomain::get(domList_.at(0));
-      if (0 != this->domain)
+      std::vector<CDomain*> domListP = this->getDomains();
+      if (!domListP.empty())
       {
-//        this->domain = this->getDomain();
-        if (sendAtt) domain->sendCheckedAttributes();
-        else domain->checkAttributesOnClient() ;
+        computeGridGlobalDimension(getDomains(), getAxis(), axisDomainOrder);
+        for (int i = 0; i < domListP.size(); ++i)
+        {
+          if (sendAtt) domListP[i]->sendCheckedAttributes();
+          else domListP[i]->checkAttributesOnClient();
+        }
       }
-      else ERROR("CGrid::solveDomainRef(void)",
-                  << "Domain reference is not defined") ;
    }
 
    //---------------------------------------------------------------
 
-   void CGrid::solveAxisRef(bool checkAtt)
+   void CGrid::solveAxisRef(bool sendAtt)
    {
-//      if (!axis_ref.isEmpty())
-//      {
-//         this->withAxis = true ;
-//         if (CAxis::get(axis_ref.getValue()))
-//         {
-//            this->axis = CAxis::get(axis_ref.getValue()) ;
-//            axis->checkAttributes() ;
-//         }
-//         else ERROR("CGrid::solveAxisRef(void)",
-//                    << "Wrong axis reference") ;
-//      }
-//      else withAxis = false ;
-//      getAllAxis();
       setAxisList();
-      if (!axisList_.empty())
+      std::vector<CAxis*> axisListP = this->getAxis();
+      if (!axisListP.empty())
       {
-        int sizeList = axisList_.size();
-        for (int i = 0; i < sizeList; ++i)
+        int idx = 0;
+        computeGridGlobalDimension(getDomains(), getAxis(), axisDomainOrder);
+        for (int i = 0; i < axisListP.size(); ++i)
         {
-          CAxis::get(axisList_.at(i))->checkAttributes();
-          this->axis = CAxis::get(axisList_.at(i));
+          while (this->axisDomainOrder(idx)) idx += 2;
+          if (sendAtt)
+            axisListP[i]->sendCheckedAttributes(globalDim_,idx);
+          else
+            axisListP[i]->checkAttributesOnClient(globalDim_,idx);
+          ++idx;
         }
-        withAxis = true;
 
       }
-//      if (!axis_ref.isEmpty())
-//      {
-//         this->withAxis = true ;
-//         if (CAxis::get(axis_ref.getValue()))
-//         {
-//            this->axis = CAxis::get(axis_ref.getValue()) ;
-//            axis->checkAttributes() ;
-//         }
-//         else ERROR("CGrid::solveAxisRef(void)",
-//                    << "Wrong axis reference") ;
-//      }
-      else withAxis = false ;
    }
 
    //---------------------------------------------------------------
@@ -414,7 +308,9 @@ namespace xios {
      serverDistributionDescription_->computeServerDistribution(client->serverSize, true);
 
      // Finally, compute index mapping between client(s) and server(s)
-     clientServerMap_.computeServerIndexMapping(clientDistribution_->getGlobalIndex(),serverDistributionDescription_->getGlobalIndex());
+     clientServerMap_.computeServerIndexMapping(clientDistribution_->getGlobalIndex(),
+                                                clientDistribution_->getLocalDataIndexSendToServerOnClient(),
+                                                serverDistributionDescription_->getGlobalIndex());
      const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_.getGlobalIndexOnServer();
      std::vector<int> connectedServerRank;
      for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexOnServer.begin(); it != globalIndexOnServer.end(); ++it) {
@@ -426,117 +322,26 @@ namespace xios {
      storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().numElements());
      storeIndex_client = (clientDistribution_->getLocalDataIndexOnClient());
 
-/*
-      const int ni   = domain->ni.getValue() ,
-                nj   = domain->nj.getValue() ,
-                size = (this->hasAxis()) ? axis->size.getValue() : 1 ,
-                lbegin = (this->hasAxis()) ? axis->zoom_begin.getValue()-1 : 0 ,
-                lend = (this->hasAxis()) ? axis->zoom_end.getValue()-1 : 0 ;
-
-
-      const int data_dim     = domain->data_dim.getValue() ,
-                data_n_index = domain->data_n_index.getValue() ,
-                data_ibegin  = domain->data_ibegin.getValue() ,
-                data_jbegin  = (data_dim == 2)
-                             ? domain->data_jbegin.getValue() : -1;
-
-      CArray<int,1> data_i_index = domain->data_i_index ;
-      CArray<int,1> data_j_index = domain->data_j_index ;
-
-
-      int indexCount = 0;
-
-      for(int l = 0; l < size ; l++)
-      {
-         for(int n = 0, i = 0, j = 0; n < data_n_index; n++)
-         {
-            int temp_i = data_i_index(n) + data_ibegin,
-                temp_j = (data_dim == 1) ? -1
-                       : data_j_index(n) + data_jbegin;
-            i = (data_dim == 1) ? (temp_i - 1) % ni
-                                : (temp_i - 1) ;
-            j = (data_dim == 1) ? (temp_i - 1) / ni
-                                : (temp_j - 1) ;
-
-            if ((l >=lbegin && l<= lend) &&
-                (i >= 0 && i < ni) &&
-                (j >= 0 && j < nj) && mask(i,j,l))
-               indexCount++ ;
-         }
-      }
-
-      storeIndex[0]  = new CArray<int,1>(indexCount) ;
-      out_i_index[0] = new CArray<int,1>(indexCount) ;
-      out_j_index[0] = new CArray<int,1>(indexCount) ;
-      out_l_index[0] = new CArray<int,1>(indexCount) ;
-
-      storeIndex_client.resize(indexCount) ;
-      out_i_client.resize(indexCount) ;
-      out_j_client.resize(indexCount) ;
-      out_l_client.resize(indexCount) ;
-
-
-      for(int count = 0, indexCount = 0,  l = 0; l < size; l++)
-      {
-         for(int n = 0, i = 0, j = 0; n < data_n_index; n++, count++)
-         {
-            int temp_i = data_i_index(n) + data_ibegin,
-                temp_j = (data_dim == 1) ? -1
-                       : data_j_index(n) + data_jbegin;
-            i = (data_dim == 1) ? (temp_i - 1) % ni
-                                : (temp_i - 1) ;
-            j = (data_dim == 1) ? (temp_i - 1) / ni
-                                : (temp_j - 1) ;
-
-            if ((l >= lbegin && l <= lend) &&
-                (i >= 0 && i < ni) &&
-                (j >= 0 && j < nj) && mask(i,j,l))
-            {
-               (*storeIndex[0])(indexCount) = count ;
-               (*out_l_index[0])(indexCount) = l ;
-               (*out_i_index[0])(indexCount) = i ;
-               (*out_j_index[0])(indexCount) = j ;
-
-               storeIndex_client(indexCount) = count ;
-               out_i_client(indexCount)=i+domain->ibegin_client-1 ;
-               out_j_client(indexCount)=j+domain->jbegin_client-1 ;
-               out_l_client(indexCount)=l-lbegin ;
-               indexCount++ ;
-            }
-         }
-      }
-*/
-//      computeDomConServer();
-//      sendIndex() ;
-
-
    }
 
    //----------------------------------------------------------------
 
    CGrid* CGrid::createGrid(CDomain* domain)
    {
-      StdString new_id = StdString("__") + domain->getId() + StdString("__") ;
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
-
       std::vector<CDomain*> vecDom(1,domain);
-      grid->setDomainList(vecDom);
-//      grid->domain_ref.setValue(domain->getId());
+      std::vector<CAxis*> vecAxis;
+
+      CGrid* grid = createGrid(vecDom, vecAxis);
+
       return (grid);
    }
 
    CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
    {
-      StdString new_id = StdString("__") + domain->getId() +
-                         StdString("_") + axis->getId() + StdString("__") ;
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
-
       std::vector<CDomain*> vecDom(1,domain);
       std::vector<CAxis*> vecAxis(1,axis);
-      grid->setDomainList(vecDom);
-      grid->setAxisList(vecAxis);
-//      grid->domain_ref.setValue(domain->getId());
-//      grid->axis_ref.setValue(axis->getId());
+      CGrid* grid = createGrid(vecDom, vecAxis);
+
       return (grid);
    }
 
@@ -563,6 +368,8 @@ namespace xios {
         }
       }
 
+      grid->computeGridGlobalDimension(domains, axis, grid->axisDomainOrder);
+
       return (grid);
    }
 
@@ -574,36 +381,6 @@ namespace xios {
    CAxisGroup* CGrid::getVirtualAxisGroup() const
    {
      return (this->vAxisGroup_);
-   }
-
-   //----------------------------------------------------------------
-
-   void CGrid::outputField(int rank, const CArray<double, 1>& stored,  CArray<double, 3>& field)
-   {
-      CArray<int,1>& out_i=*out_i_fromClient[rank] ;
-      CArray<int,1>& out_j=*out_j_fromClient[rank] ;
-      CArray<int,1>& out_l=*out_l_fromClient[rank] ;
-
-      for(StdSize n = 0; n < stored.numElements(); n++)
-         field(out_i(n), out_j(n), out_l(n)) = stored(n) ;
-   }
-
-   void CGrid::outputField(int rank, const CArray<double, 1>& stored,  CArray<double, 2>& field)
-   {
-      CArray<int,1>& out_i=*out_i_fromClient[rank] ;
-      CArray<int,1>& out_j=*out_j_fromClient[rank] ;
-
-      for(StdSize n = 0; n < stored.numElements(); n++)
-         field(out_i(n), out_j(n)) = stored(n) ;   }
-
-   //---------------------------------------------------------------
-
-   void CGrid::outputField(int rank,const CArray<double, 1>& stored,  CArray<double, 1>& field)
-   {
-      CArray<int,1>& out_i=*out_i_fromClient[rank] ;
-
-      for(StdSize n = 0; n < stored.numElements(); n++)
-         field(out_i(n)) = stored(n) ;
    }
 
    void CGrid::outputField(int rank, const CArray<double, 1>& stored, double* field)
@@ -628,98 +405,6 @@ namespace xios {
       for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)] ;
    }
 
-   //---------------------------------------------------------------
-
-//  void CGrid::sendIndex(void)
-//  {
-//    CContext* context = CContext::getCurrent() ;
-//    CContextClient* client=context->client ;
-//
-//    CEventClient event(getType(),EVENT_ID_INDEX) ;
-//    int rank ;
-//    list<shared_ptr<CMessage> > list_msg ;
-//    list< CArray<int,1>* > list_out_i,list_out_j,list_out_l ;
-//
-//    for(int ns=0;ns<domain->connectedServer.size();ns++)
-//    {
-//       rank=domain->connectedServer[ns] ;
-//
-//       int i,j ;
-//       int nb=0 ;
-//       for(int k=0;k<storeIndex_client.numElements();k++)
-//       {
-//         i=out_i_client(k)- domain->ibegin +1;
-//         j=out_j_client(k)- domain->jbegin +1;
-//         if (domain->mapConnectedServer(i,j)==ns)  nb++ ;
-//       }
-//       CArray<int,1> storeIndex(nb) ;
-//       CArray<int,1> out_i(nb) ;
-//       CArray<int,1> out_j(nb) ;
-//       CArray<int,1> out_l(nb) ;
-//
-//
-//       nb=0 ;
-//       for(int k=0;k<storeIndex_client.numElements();k++)
-//       {
-//         i=out_i_client(k)- domain->ibegin +1 ;
-//         j=out_j_client(k)- domain->jbegin +1 ;
-//         if (domain->mapConnectedServer(i,j)==ns)
-//         {
-//            storeIndex(nb)=k ;
-//            out_i(nb)=domain->i_index(i,j) + domain->ibegin-1;
-//            out_j(nb)=domain->j_index(i,j) + domain->jbegin-1;
-//            out_l(nb)=out_l_client(k) ;
-//            nb++ ;
-//         }
-//       }
-//
-//       storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(storeIndex) )) ;
-//       nbSenders.insert(pair<int,int>(rank,domain->nbSenders[ns])) ;
-//       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
-//       list_out_i.push_back(new CArray<int,1>(out_i)) ;
-//       list_out_j.push_back(new CArray<int,1>(out_j)) ;
-//       list_out_l.push_back(new CArray<int,1>(out_l)) ;
-//
-//       *list_msg.back()<<getId()<<*list_out_i.back()<<*list_out_j.back()<<*list_out_l.back() ;
-//       event.push(rank,domain->nbSenders[ns],*list_msg.back()) ;
-//    }
-//    client->sendEvent(event) ;
-//
-//    for(list<CArray<int,1>* >::iterator it=list_out_i.begin();it!=list_out_i.end();it++) delete *it ;
-//    for(list<CArray<int,1>* >::iterator it=list_out_j.begin();it!=list_out_j.end();it++) delete *it ;
-//    for(list<CArray<int,1>* >::iterator it=list_out_l.begin();it!=list_out_l.end();it++) delete *it ;
-//
-//  }
-
-  void CGrid::computeDomConServer()
-  {
-    if (!isDomConServerComputed_)
-    {
-      for(int ns=0;ns<domain->connectedServer.size(); ++ns)
-      {
-         int rank=domain->connectedServer[ns] ;
-
-         int i,j ;
-         int nb=0 ;
-         for(int k=0;k<storeIndex_client.numElements();++k)
-         {
-           i=out_i_client(k)- domain->ibegin +1;
-           j=out_j_client(k)- domain->jbegin +1;
-           if (domain->mapConnectedServer(i,j)==ns)  ++nb ;
-         }
-
-         domConnectedServerSide_.insert(std::make_pair(rank, nb));
-      }
-      isDomConServerComputed_ = true;
-    }
-  }
-
-
-  std::map<int, int> CGrid::getDomConServerSide()
-  {
-    return domConnectedServerSide_;
-  }
-
   void CGrid::sendIndex(void)
   {
     CContext* context = CContext::getCurrent() ;
@@ -738,74 +423,59 @@ namespace xios {
     iteMap = globalIndexOnServer.end();
     itLocal = localIndexSendToServer.begin();
 
-    for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
+    if (!doGridHaveDataDistributed())
     {
-      rank = itGlobal->first;
-      int nb = (itGlobal->second).size();
-
-      CArray<size_t, 1> outGlobalIndexOnServer(nb);
-      CArray<int, 1> outLocalIndexToServer(nb);
-      for (int k = 0; k < nb; ++k)
+      if (0 == client->getClientRank())
       {
-        outGlobalIndexOnServer(k) = itGlobal->second.at(k);
-        outLocalIndexToServer(k)  = itLocal->second.at(k);
-      }
+       for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
+        {
+          rank = itGlobal->first;
+          int nb = (itGlobal->second).size();
 
-      storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
-      listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+          CArray<size_t, 1> outGlobalIndexOnServer(nb);
+          CArray<int, 1> outLocalIndexToServer(nb);
+          for (int k = 0; k < nb; ++k)
+          {
+            outGlobalIndexOnServer(k) = itGlobal->second.at(k);
+            outLocalIndexToServer(k)  = itLocal->second.at(k);
+          }
 
-      list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-      *list_msg.back()<<getId()<<*listOutIndex.back();
-      event.push(rank, nbSenders[rank], *list_msg.back());
+          storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
+          listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+
+          list_msg.push_back(shared_ptr<CMessage>(new CMessage));
+          *list_msg.back()<<getId()<<*listOutIndex.back();
+          event.push(rank, 1, *list_msg.back());
+        }
+        client->sendEvent(event);
+      } else client->sendEvent(event);
     }
-    client->sendEvent(event);
-    for(list<CArray<size_t,1>* >::iterator it=listOutIndex.begin();it!=listOutIndex.end();++it) delete *it ;
-
-/*
-    if (!isDomConServerComputed_) computeDomConServer();
-
-    for(int ns=0;ns<domain->connectedServer.size();ns++)
+    else
     {
-       rank=domain->connectedServer[ns] ;
+      for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
+      {
+        rank = itGlobal->first;
+        int nb = (itGlobal->second).size();
 
-       int nb = domConnectedServerSide_.find(rank)->second;
-       CArray<int,1> storeIndex(nb) ;
-       CArray<int,1> out_i(nb) ;
-       CArray<int,1> out_j(nb) ;
-       CArray<int,1> out_l(nb) ;
+        CArray<size_t, 1> outGlobalIndexOnServer(nb);
+        CArray<int, 1> outLocalIndexToServer(nb);
+        for (int k = 0; k < nb; ++k)
+        {
+          outGlobalIndexOnServer(k) = itGlobal->second.at(k);
+          outLocalIndexToServer(k)  = itLocal->second.at(k);
+        }
 
-       int i, j;
-       nb=0 ;
-       for(int k=0;k<storeIndex_client.numElements();k++)
-       {
-         i=out_i_client(k)- domain->ibegin +1 ;
-         j=out_j_client(k)- domain->jbegin +1 ;
-         if (domain->mapConnectedServer(i,j)==ns)
-         {
-            storeIndex(nb)=k ;
-            out_i(nb)=domain->i_index(i,j) + domain->ibegin-1;
-            out_j(nb)=domain->j_index(i,j) + domain->jbegin-1;
-            out_l(nb)=out_l_client(k) ;
-            nb++ ;
-         }
-       }
+        storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
+        listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
 
-       storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(storeIndex) )) ;
-       nbSenders.insert(pair<int,int>(rank,domain->nbSenders[ns])) ;
-       list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
-       list_out_i.push_back(new CArray<int,1>(out_i)) ;
-       list_out_j.push_back(new CArray<int,1>(out_j)) ;
-       list_out_l.push_back(new CArray<int,1>(out_l)) ;
-
-       *list_msg.back()<<getId()<<*list_out_i.back()<<*list_out_j.back()<<*list_out_l.back() ;
-       event.push(rank,domain->nbSenders[ns],*list_msg.back()) ;
+        list_msg.push_back(shared_ptr<CMessage>(new CMessage));
+        *list_msg.back()<<getId()<<*listOutIndex.back();
+        event.push(rank, nbSenders[rank], *list_msg.back());
+      }
+      client->sendEvent(event);
     }
-    client->sendEvent(event) ;
 
-    for(list<CArray<int,1>* >::iterator it=list_out_i.begin();it!=list_out_i.end();it++) delete *it ;
-    for(list<CArray<int,1>* >::iterator it=list_out_j.begin();it!=list_out_j.end();it++) delete *it ;
-    for(list<CArray<int,1>* >::iterator it=list_out_l.begin();it!=list_out_l.end();it++) delete *it ;
-*/
+    for(list<CArray<size_t,1>* >::iterator it=listOutIndex.begin();it!=listOutIndex.end();++it) delete *it ;
   }
 
   void CGrid::recvIndex(CEventServer& event)
@@ -821,6 +491,67 @@ namespace xios {
     }
   }
 
+  void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
+                                         const std::vector<CAxis*>& axis,
+                                         const CArray<bool,1>& axisDomainOrder)
+  {
+    globalDim_.resize(domains.size()*2+axis.size());
+    int idx = 0, idxDomain = 0, idxAxis = 0;
+    for (int i = 0; i < axisDomainOrder.numElements(); ++i)
+    {
+      if (axisDomainOrder(i))
+      {
+        globalDim_[idx]   = domains[idxDomain]->ni_glo.getValue();
+        globalDim_[idx+1] = domains[idxDomain]->nj_glo.getValue();
+        ++idxDomain;
+        idx += 2;
+      }
+      else
+      {
+        globalDim_[idx] = axis[idxAxis]->size.getValue();
+        ++idxAxis;
+        ++idx;
+      }
+    }
+  }
+
+  std::vector<int> CGrid::getGlobalDimension()
+  {
+    return globalDim_;
+  }
+
+  /*!
+    Verify whether one server need to write data
+    There are some cases on which one server has nodata to write. For example, when we
+  just only want to zoom on a domain.
+  */
+  bool CGrid::doGridHaveDataToWrite()
+  {
+    return (0 != serverDistribution_);
+  }
+
+  /*!
+    Return size of data which is written on each server
+    Whatever dimension of a grid, data which are written on server must be presented as
+  an one dimension array.
+  \return size of data written on server
+  */
+  size_t CGrid::getWrittenDataSize() const
+  {
+    return writtenDataSize_;
+  }
+
+
+  const CDistributionServer* CGrid::getDistributionServer() const
+  {
+    return serverDistribution_;
+  }
+
+  bool CGrid::doGridHaveDataDistributed()
+  {
+    return clientDistribution_->isDataDistributed();
+  }
+
   void CGrid::recvIndex(int rank, CBufferIn& buffer)
   {
      if (0 == serverDistribution_)
@@ -834,59 +565,54 @@ namespace xios {
        {
          indexMap[i] = idx;
          if (true == axisDomainOrder(i))
-        {
-          ++ssize;
-          idx += 2;
-        }
+         {
+            ++ssize;
+            idx += 2;
+         }
+         else
+          ++idx;
        }
 
        int axisId = 0, domainId = 0;
        std::vector<CDomain*> domainList = getDomains();
        std::vector<CAxis*> axisList = getAxis();
-       std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize);
+       std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
        for (int i = 0; i < numElement; ++i)
        {
          if (axisDomainOrder(i))
          {
             nZoomBegin[indexMap[i]]   = domainList[domainId]->zoom_ibegin_srv;
             nZoomSize[indexMap[i]]    = domainList[domainId]->zoom_ni_srv;
+            nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->zoom_ibegin;
             nGlob[indexMap[i]]    = domainList[domainId]->ni_glo;
 
             nZoomBegin[indexMap[i]+1] = domainList[domainId]->zoom_jbegin_srv;
             nZoomSize[indexMap[i]+1]  = domainList[domainId]->zoom_nj_srv;
+            nZoomBeginGlobal[indexMap[i]+1] = domainList[domainId]->zoom_jbegin;
             nGlob[indexMap[i]+1]    = domainList[domainId]->nj_glo;
             ++domainId;
          }
          else
          {
-            nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin;
-            nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size;
+            nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
+            nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
+            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->zoom_begin;
             nGlob[indexMap[i]]      = axisList[axisId]->size;
             ++axisId;
          }
        }
-       serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize, nGlob);
+       writtenDataSize_ = 1;
+       for (int i = 0; i < nZoomSize.size(); ++i)
+        writtenDataSize_ *= nZoomSize[i];
+
+       serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
+                                                     nZoomBeginGlobal, nGlob);
      }
 
      CArray<size_t,1> outIndex;
      buffer>>outIndex;
      serverDistribution_->computeLocalIndex(outIndex);
      outIndexFromClient.insert(std::pair<int, CArray<size_t,1>* >(rank, new CArray<size_t,1>(outIndex)));
-
-    /*
-    CArray<int,1> out_i ;
-    CArray<int,1> out_j ;
-    CArray<int,1> out_l ;
-
-    buffer>>out_i>>out_j>>out_l ;
-
-    out_i -= domain->zoom_ibegin_srv-1 ;
-    out_j -= domain->zoom_jbegin_srv-1 ;
-
-    out_i_fromClient.insert(pair< int,CArray<int,1>* >(rank,new CArray<int,1>(out_i) )) ;
-    out_j_fromClient.insert(pair< int,CArray<int,1>* >(rank,new CArray<int,1>(out_j) )) ;
-    out_l_fromClient.insert(pair< int,CArray<int,1>* >(rank,new CArray<int,1>(out_l) )) ;
-    */
   }
 
    /*!
@@ -1239,8 +965,8 @@ namespace xios {
   void CGrid::parse(xml::CXMLNode & node)
   {
     SuperClass::parse(node);
+
     // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
-//    std::vector<int> axisOrder;
     std::vector<bool> order;
 
     if (node.goToChildElement())

@@ -25,13 +25,21 @@ void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& glo
   defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexServer);
 }
 
+void CClientServerMapping::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+                                                     const CArray<int,1>& localIndexOnClient,
+                                                     const std::vector<CArray<size_t,1>* >& globalIndexOnServer)
+{
+  defaultComputeServerIndexMapping(globalIndexOnClient, globalIndexOnServer, &localIndexOnClient);
+}
+
 /*!
    Compute index of data which are sent to server and index global on server side
    \param [in] globalIndexOnClient global index of data on client
    \param [in] globalIndexServer global index of server(s)
 */
 void CClientServerMapping::defaultComputeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                                            const std::vector<CArray<size_t,1>* >& globalIndexServer)
+                                                            const std::vector<CArray<size_t,1>* >& globalIndexServer,
+                                                            const CArray<int,1>* localIndexOnClient)
 {
   int nServer = globalIndexServer.size();
   std::vector<CArray<size_t,1>::const_iterator> itBegin(nServer), itEnd(nServer), it(nServer);
@@ -51,7 +59,9 @@ void CClientServerMapping::defaultComputeServerIndexMapping(const CArray<size_t,
       {
         // Just try to calculate local index server on client side
         (indexGlobalOnServer_[j]).push_back((globalIndexOnClient)(i));
-        (localIndexSend2Server_[j]).push_back(i);
+        if (0 != localIndexOnClient) (localIndexSend2Server_[j]).push_back((*localIndexOnClient)(i));
+        else
+          (localIndexSend2Server_[j]).push_back(i);
         continue;
       }
     }

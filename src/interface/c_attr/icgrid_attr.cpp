@@ -68,26 +68,76 @@ extern "C"
   
   
   
-  void cxios_set_grid_mask(grid_Ptr grid_hdl, bool* mask, int extent1, int extent2, int extent3)
+  void cxios_set_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
-    grid_hdl->mask.reference(tmp.copy());
+    CArray<bool,1> tmp(mask1,shape(extent1),neverDeleteData) ;
+    grid_hdl->mask1.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_grid_mask(grid_Ptr grid_hdl, bool* mask, int extent1, int extent2, int extent3)
+  void cxios_get_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask,shape(extent1,extent2,extent3),neverDeleteData) ;
-    tmp=grid_hdl->mask.getInheritedValue() ;
+    CArray<bool,1> tmp(mask1,shape(extent1),neverDeleteData) ;
+    tmp=grid_hdl->mask1.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
-  bool cxios_is_defined_grid_mask(grid_Ptr grid_hdl )
+  bool cxios_is_defined_grid_mask1(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return grid_hdl->mask.hasInheritedValue();
+    return grid_hdl->mask1.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,2> tmp(mask2,shape(extent1,extent2),neverDeleteData) ;
+    grid_hdl->mask2.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,2> tmp(mask2,shape(extent1,extent2),neverDeleteData) ;
+    tmp=grid_hdl->mask2.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_grid_mask2(grid_Ptr grid_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return grid_hdl->mask2.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+  
+  
+  
+  void cxios_set_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,3> tmp(mask3,shape(extent1,extent2,extent3),neverDeleteData) ;
+    grid_hdl->mask3.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+  
+  void cxios_get_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,3> tmp(mask3,shape(extent1,extent2,extent3),neverDeleteData) ;
+    tmp=grid_hdl->mask3.getInheritedValue() ;
+     CTimer::get("XIOS").suspend();
+  }
+  
+  bool cxios_is_defined_grid_mask3(grid_Ptr grid_hdl )
+  {
+     CTimer::get("XIOS").resume();
+    return grid_hdl->mask3.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

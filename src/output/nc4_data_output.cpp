@@ -482,8 +482,8 @@ namespace xios
       {
          if (axis->IsWritten(this->filename)) return;
          axis->checkAttributes();
-         StdSize zoom_size=axis->zoom_size.getValue() ;
-         StdSize zoom_begin=axis->zoom_begin.getValue()-1 ;
+         StdSize zoom_size_srv=axis->zoom_size_srv;
+         StdSize zoom_begin_srv=axis->zoom_begin_srv;
 
 
          std::vector<StdString> dims;
@@ -491,7 +491,7 @@ namespace xios
                              ? axis->name.getValue() : axis->getId();
          try
          {
-           SuperClassWriter::addDimension(axisid, zoom_size);
+           SuperClassWriter::addDimension(axisid, zoom_size_srv);
            dims.push_back(axisid);
 
            switch (SuperClass::type)
@@ -526,8 +526,8 @@ namespace xios
 
                  SuperClassWriter::definition_end();
 
-                 CArray<double,1> axis_value(zoom_size) ;
-                 for(StdSize i = 0 ; i < zoom_size ; i++) axis_value(i)=axis->value(i+zoom_begin) ;
+                 CArray<double,1> axis_value(zoom_size_srv) ;
+                 for(StdSize i = 0 ; i < zoom_size_srv ; i++) axis_value(i)=axis->value(i+zoom_begin_srv) ;
                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
                  SuperClassWriter::definition_start();
@@ -579,35 +579,61 @@ namespace xios
 
          std::vector<StdString> dims, coodinates;
          CGrid* grid = field->grid;
-         CDomain* domain = grid->domain;
+         if (!grid->doGridHaveDataToWrite())
+          if (SuperClass::type==MULTI_FILE) return ;
 
-         if (domain->isEmpty())
-           if (SuperClass::type==MULTI_FILE) return ;
+         CArray<bool,1> axisDomainOrder = grid->axisDomainOrder;
+         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0;
+         std::vector<StdString> domainList = grid->getDomainList();
+         std::vector<StdString> axisList   = grid->getAxisList();
 
-         StdString timeid    = StdString("time_counter");
-         StdString domid     = (!domain->name.isEmpty())
-                             ? domain->name.getValue() : domain->getId();
-         StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+         StdString timeid  = StdString("time_counter");
+         StdString dimXid,dimYid;
+         std::deque<StdString> dimIdList, dimCoordList;
 
-//         bool isCurvilinear = domain->isCurvilinear ;
-//         bool isCurvilinear = (domain->type == CDomain::type_attr::curvilinear) ;
-
-         StdString dimXid,dimYid ;
-
-         switch (domain->type)
+         for (int i = 0; i < numElement; ++i)
          {
-           case CDomain::type_attr::curvilinear :
-             dimXid     = StdString("x").append(appendDomid);
-             dimYid     = StdString("y").append(appendDomid);
-             break ;
-           case CDomain::type_attr::regular :
-             dimXid     = StdString("lon").append(appendDomid);
-             dimYid     = StdString("lat").append(appendDomid);
-             break ;
-           case CDomain::type_attr::unstructured :
-             dimXid     = StdString("cell").append(appendDomid);
-             break ;
-        }
+           if (axisDomainOrder(i))
+           {
+             CDomain* domain = CDomain::get(domainList[idxDomain]);
+             StdString domid = (!domain->name.isEmpty())
+                                 ? domain->name.getValue() : domain->getId();
+             StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+             switch (domain->type)
+             {
+               case CDomain::type_attr::curvilinear :
+                 dimXid     = StdString("x").append(appendDomid);
+                 dimIdList.push_back(dimXid);
+                 dimYid     = StdString("y").append(appendDomid);
+                 dimIdList.push_back(dimYid);
+                 dimCoordList.push_back(StdString("nav_lon").append(appendDomid));
+                 dimCoordList.push_back(StdString("nav_lat").append(appendDomid));
+                 break ;
+               case CDomain::type_attr::regular :
+                 dimXid     = StdString("lon").append(appendDomid);
+                 dimIdList.push_back(dimXid);
+                 dimYid     = StdString("lat").append(appendDomid);
+                 dimIdList.push_back(dimYid);
+                 break ;
+               case CDomain::type_attr::unstructured :
+                 dimXid     = StdString("cell").append(appendDomid);
+                 dimIdList.push_back(dimXid);
+                 dimCoordList.push_back(StdString("lon").append(appendDomid));
+                 dimCoordList.push_back(StdString("lat").append(appendDomid));
+                 break ;
+            }
+            ++idxDomain;
+           }
+           else
+           {
+             CAxis* axis = CAxis::get(axisList[idxAxis]);
+             StdString axisid = (!axis->name.isEmpty())
+                                ? axis->name.getValue() : axis->getId();
+             dimIdList.push_back(axisid);
+             dimCoordList.push_back(axisid);
+            ++idxAxis;
+           }
+         }
 
 /*
          StdString lonid_loc = (server->intraCommSize > 1)
@@ -647,36 +673,17 @@ namespace xios
             dims.push_back(timeid);
          }
 
-         std::vector<StdString> axisList = grid->getAxisList();
-         if (!axisList.empty())
+         while (!dimIdList.empty())
          {
-           std::vector<StdString>::const_iterator itAxis = axisList.begin(), iteAxis = axisList.end();
-           for (; itAxis != iteAxis; ++itAxis)
-           {
-             CAxis* axis = CAxis::get(*itAxis);
-             StdString axisid = (!axis->name.isEmpty())
-                                ? axis->name.getValue() : axis->getId();
-
-             dims.push_back(axisid);
-             coodinates.push_back(axisid);
-           }
+           dims.push_back(dimIdList.back());
+           dimIdList.pop_back();
          }
 
-         switch (domain->type)
+         while (!dimCoordList.empty())
          {
-           case CDomain::type_attr::curvilinear :
-             coodinates.push_back(StdString("nav_lon").append(appendDomid));
-             coodinates.push_back(StdString("nav_lat").append(appendDomid));
-             break;
-           case CDomain::type_attr::regular :
-           case CDomain::type_attr::unstructured :
-            coodinates.push_back(StdString("lon").append(appendDomid));
-            coodinates.push_back(StdString("lat").append(appendDomid));
-             break;
+           coodinates.push_back(dimCoordList.back());
+           dimCoordList.pop_back();
          }
-
-         if ( domain->type == CDomain::type_attr::curvilinear || domain->type == CDomain::type_attr::regular)dims.push_back(dimYid);
-         dims.push_back(dimXid);
 
          try
          {
@@ -771,6 +778,207 @@ namespace xios
            ERROR("CNc4DataOutput::writeField_(CField* field)", << msg);
          }
       }
+
+
+//      void CNc4DataOutput::writeField_(CField* field)
+//      {
+//         CContext* context = CContext::getCurrent() ;
+//         CContextServer* server=context->server ;
+//
+//         std::vector<StdString> dims, coodinates;
+//         CGrid* grid = field->grid;
+//         CDomain* domain = grid->domain;
+//
+//         if (domain->isEmpty())
+//           if (SuperClass::type==MULTI_FILE) return ;
+//
+//         StdString timeid    = StdString("time_counter");
+//         StdString domid     = (!domain->name.isEmpty())
+//                             ? domain->name.getValue() : domain->getId();
+//         StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+//
+////         bool isCurvilinear = domain->isCurvilinear ;
+////         bool isCurvilinear = (domain->type == CDomain::type_attr::curvilinear) ;
+//
+//         StdString dimXid,dimYid ;
+//
+//         switch (domain->type)
+//         {
+//           case CDomain::type_attr::curvilinear :
+//             dimXid     = StdString("x").append(appendDomid);
+//             dimYid     = StdString("y").append(appendDomid);
+//             break ;
+//           case CDomain::type_attr::regular :
+//             dimXid     = StdString("lon").append(appendDomid);
+//             dimYid     = StdString("lat").append(appendDomid);
+//             break ;
+//           case CDomain::type_attr::unstructured :
+//             dimXid     = StdString("cell").append(appendDomid);
+//             break ;
+//        }
+//
+///*
+//         StdString lonid_loc = (server->intraCommSize > 1)
+//                             ? StdString("lon").append(appendDomid).append("_local")
+//                             : lonid;
+//         StdString latid_loc = (server->intraCommSize > 1)
+//                             ? StdString("lat").append(appendDomid).append("_local")
+//                             : latid;
+//*/
+//         StdString fieldid   = (!field->name.isEmpty())
+//                             ? field->name.getValue() : field->getBaseFieldReference()->getId();
+//
+////         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
+////         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
+////          bool isCurvilinear = domain->isCurvilinear ;
+//
+//         nc_type type ;
+//         if (field->prec.isEmpty()) type =  NC_FLOAT ;
+//         else
+//         {
+//           if (field->prec==2) type = NC_SHORT ;
+//           else if (field->prec==4)  type =  NC_FLOAT ;
+//           else if (field->prec==8)   type =  NC_DOUBLE ;
+//         }
+//
+//         bool wtime   = !(!field->operation.isEmpty() && field->foperation->timeType() == func::CFunctor::once);
+//
+//         if (wtime)
+//         {
+//
+//            //StdOStringStream oss;
+//           // oss << "time_" << field->operation.getValue()
+//           //     << "_" << field->getRelFile()->output_freq.getValue();
+//          //oss
+//            if (field->foperation->timeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
+//            else if (field->foperation->timeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
+//            dims.push_back(timeid);
+//         }
+//
+//         std::vector<StdString> axisList = grid->getAxisList();
+//         if (!axisList.empty())
+//         {
+//           std::vector<StdString>::const_iterator itAxis = axisList.begin(), iteAxis = axisList.end();
+//           for (; itAxis != iteAxis; ++itAxis)
+//           {
+//             CAxis* axis = CAxis::get(*itAxis);
+//             StdString axisid = (!axis->name.isEmpty())
+//                                ? axis->name.getValue() : axis->getId();
+//
+//             dims.push_back(axisid);
+//             coodinates.push_back(axisid);
+//           }
+//         }
+//
+//         switch (domain->type)
+//         {
+//           case CDomain::type_attr::curvilinear :
+//             coodinates.push_back(StdString("nav_lon").append(appendDomid));
+//             coodinates.push_back(StdString("nav_lat").append(appendDomid));
+//             break;
+//           case CDomain::type_attr::regular :
+//           case CDomain::type_attr::unstructured :
+//            coodinates.push_back(StdString("lon").append(appendDomid));
+//            coodinates.push_back(StdString("lat").append(appendDomid));
+//             break;
+//         }
+//
+//         if ( domain->type == CDomain::type_attr::curvilinear || domain->type == CDomain::type_attr::regular)dims.push_back(dimYid);
+//         dims.push_back(dimXid);
+//
+//         try
+//         {
+//           SuperClassWriter::addVariable(fieldid, type, dims);
+//
+//           if (!field->standard_name.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("standard_name",  field->standard_name.getValue(), &fieldid);
+//
+//           if (!field->long_name.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("long_name", field->long_name.getValue(), &fieldid);
+//
+//           if (!field->unit.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("units", field->unit.getValue(), &fieldid);
+//
+//            if (!field->valid_min.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("valid_min", field->valid_min.getValue(), &fieldid);
+//
+//           if (!field->valid_max.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("valid_max", field->valid_max.getValue(), &fieldid);
+//
+//            if (!field->scale_factor.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("scale_factor", field->scale_factor.getValue(), &fieldid);
+//
+//             if (!field->add_offset.isEmpty())
+//              SuperClassWriter::addAttribute
+//                 ("add_offset", field->add_offset.getValue(), &fieldid);
+//
+//           SuperClassWriter::addAttribute
+//                 ("online_operation", field->operation.getValue(), &fieldid);
+//
+//          // write child variables as attributes
+//
+//
+//           vector<CVariable*> listVars = field->getAllVariables() ;
+//           for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
+//
+//
+//           if (wtime)
+//           {
+//              CDuration duration = field->freq_op.getValue();
+//              duration.solveTimeStep(*(context->calendar));
+//              SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
+//
+//              duration = field->getRelFile()->output_freq.getValue();
+//              duration.solveTimeStep(*(context->calendar));
+//              SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
+//           }
+//
+//           if (!field->default_value.isEmpty())
+//           {
+//              double default_value = field->default_value.getValue();
+//              float fdefault_value = (float)default_value;
+//              if (type == NC_DOUBLE)
+//                 SuperClassWriter::setDefaultValue(fieldid, &default_value);
+//              else
+//                 SuperClassWriter::setDefaultValue(fieldid, &fdefault_value);
+//           }
+//           else
+//              SuperClassWriter::setDefaultValue(fieldid, (double*)NULL);
+//
+//           {  // Ecriture des coordonnées
+//
+//              StdString coordstr; //boost::algorithm::join(coodinates, " ")
+//              std::vector<StdString>::iterator
+//                 itc = coodinates.begin(), endc = coodinates.end();
+//
+//              for (; itc!= endc; itc++)
+//              {
+//                 StdString & coord = *itc;
+//                 if (itc+1 != endc)
+//                       coordstr.append(coord).append(" ");
+//                 else  coordstr.append(coord);
+//              }
+//
+//              SuperClassWriter::addAttribute("coordinates", coordstr, &fieldid);
+//
+//           }
+//         }
+//         catch (CNetCdfException& e)
+//         {
+//           StdString msg("On writing field : ");
+//           msg.append(fieldid); msg.append("\n");
+//           msg.append("In the context : ");
+//           msg.append(context->getId()); msg.append("\n");
+//           msg.append(e.what());
+//           ERROR("CNc4DataOutput::writeField_(CField* field)", << msg);
+//         }
+//      }
 
       //--------------------------------------------------------------
 
@@ -931,10 +1139,9 @@ namespace xios
          CContextServer* server=context->server ;
 
          CGrid* grid = field->grid ;
-         CDomain* domain = grid->domain ;
 
-         if(SuperClass::type==MULTI_FILE || !isCollective) if (domain->isEmpty()) return;
-
+         if (!grid->doGridHaveDataToWrite())
+          if (SuperClass::type==MULTI_FILE || !isCollective) return ;
 
          StdString fieldid   = (!field->name.isEmpty())
                              ? field->name.getValue()
@@ -991,106 +1198,53 @@ namespace xios
 
          try
          {
-           if (grid->hasAxis()) // 3D
+           CArray<double,1> fieldData(grid->getWrittenDataSize());
+           if (!field->default_value.isEmpty()) fieldData = field->default_value;
+           field->outputField(fieldData);
+           if (!field->prec.isEmpty() && field->prec==2) fieldData=round(fieldData) ;
+
+           switch (SuperClass::type)
            {
-              CAxis* axis = grid->axis ;
-              CArray<double,3> field_data3D(domain->zoom_ni_srv,domain->zoom_nj_srv,axis->zoom_size) ;
-              if (!field->default_value.isEmpty()) field_data3D = field->default_value ;
-
-              field->outputField(field_data3D);
-
-              if (!field->prec.isEmpty() && field->prec==2) field_data3D=round(field_data3D) ;
-
-              switch (SuperClass::type)
-             {
-                case (MULTI_FILE) :
-                {
-                   SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1);
-                   if (wtime)
-                   {
-                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
-                     SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
-                     SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
-                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
-                   }
-                   break ;
-                }
-                case (ONE_FILE) :
-                {
-                   std::vector<StdSize> start(3) ;
-                   std::vector<StdSize> count(3) ;
-                   if (domain->isEmpty())
-                   {
-                     start[0]=0 ; start[1]=0 ; start[2]=0 ;
-                     count[0]=0 ; count[1]=0 ; start[2]=0 ;
-                   }
-                   else
-                   {
-  //                 start[2]=domain->zoom_ibegin_loc.getValue()-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_loc.getValue()-domain->zoom_jbegin.getValue() ; start[0]=0 ;
-                     start[2]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; start[0]=0 ;
-                     count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->zoom_size.getValue();
-                   }
-                   SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
-                   if (wtime)
-                   {
-                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
-                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
-                     SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot );
-                     SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
-                   }
-                   break;
-                }
-              }
-
-           }
-           else // 2D
-           {
-              CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
-              if (!field->default_value.isEmpty()) field_data2D = field->default_value ;
-              field->outputField(field_data2D);
-              if (!field->prec.isEmpty() && field->prec==2) field_data2D=round(field_data2D) ;
-              switch (SuperClass::type)
+              case (MULTI_FILE) :
               {
-                case (MULTI_FILE) :
-                {
-                  SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1);
-                  if (wtime)
-                  {
-                    SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
-                    SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
-                    SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
-                    SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
-                  }
-                  break;
-                }
-                case (ONE_FILE) :
-                {
-                   std::vector<StdSize> start(2) ;
-                   std::vector<StdSize> count(2) ;
-                   if (domain->isEmpty())
-                   {
-                     start[0]=0 ; start[1]=0 ;
-                     count[0]=0 ; count[1]=0 ;
-                   }
-                   else
-                   {
-                     start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ;
-                     count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
-                   }
-
-                   SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1,&start,&count);
-                   if (wtime)
-                   {
-                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot);
-                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot);
-                     SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot);
-                     SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
-                   }
-                   break;
-
-                }
+                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep()-1);
+                 if (wtime)
+                 {
+                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
+                   SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
+                   SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
+                   SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
+                 }
+                 break ;
               }
-           }
+              case (ONE_FILE) :
+              {
+                std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
+                std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
+                std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
+
+                int ssize = nZoomBeginGlobal.size();
+
+                std::vector<StdSize> start(ssize) ;
+                std::vector<StdSize> count(ssize) ;
+
+                for (int i = 0; i < ssize; ++i)
+                {
+                  start[i] = nZoomBeginServer[ssize-i-1] - nZoomBeginGlobal[ssize-i-1];
+                  count[i] = nZoomSizeServer[ssize-i-1];
+                }
+
+                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep()-1,&start,&count );
+                 if (wtime)
+                 {
+                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
+                   SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
+                   SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot );
+                   SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
+                 }
+                 break;
+              }
+            }
          }
          catch (CNetCdfException& e)
          {
@@ -1102,6 +1256,187 @@ namespace xios
            ERROR("CNc4DataOutput::writeFieldData_ (CField*  field)", << msg);
          }
       }
+
+//      //---------------------------------------------------------------
+//
+//      void CNc4DataOutput::writeFieldData_ (CField*  field)
+//      {
+//         CContext* context = CContext::getCurrent() ;
+////          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
+//         CContextServer* server=context->server ;
+//
+//         CGrid* grid = field->grid ;
+//         CDomain* domain = grid->domain ;
+//
+//         if(SuperClass::type==MULTI_FILE || !isCollective) if (domain->isEmpty()) return;
+//
+//
+//         StdString fieldid   = (!field->name.isEmpty())
+//                             ? field->name.getValue()
+//                             : field->getBaseFieldReference()->getId();
+//
+//         StdOStringStream oss;
+//         string timeAxisId ;
+//         if (field->foperation->timeType() == func::CFunctor::instant)  timeAxisId="time_instant" ;
+//         else if (field->foperation->timeType() == func::CFunctor::centered)  timeAxisId="time_centered" ;
+//
+//         StdString timeBoundId("time_counter_bounds");
+//
+//         StdString timeAxisBoundId;
+//         if (field->foperation->timeType() == func::CFunctor::instant)  timeAxisBoundId="time_instant_bounds" ;
+//         else if (field->foperation->timeType() == func::CFunctor::centered)  timeAxisBoundId="time_centered_bounds" ;
+//
+//         CArray<double,1> time_data(1) ;
+//         CArray<double,1> time_counter(1) ;
+//         CArray<double,1> time_counter_bound(2);
+//         CArray<double,1> time_data_bound(2);
+//
+//        bool wtime   = !(!field->operation.isEmpty() && (field->foperation->timeType() == func::CFunctor::once));
+//
+//        if (wtime)
+//        {
+//          time_counter(0)= (Time(*field->last_Write_srv) + Time(*field->lastlast_Write_srv)) / 2;
+//          if (field->foperation->timeType() == func::CFunctor::instant)
+//            time_data(0) = Time(*field->last_Write_srv);
+//          else if (field->foperation->timeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
+//
+//          time_counter_bound(0) = Time(*field->lastlast_Write_srv);
+//          time_counter_bound(1) = Time(*field->last_Write_srv);
+//          if (field->foperation->timeType() == func::CFunctor::instant)
+//            time_data_bound(0) = time_data_bound(1) = Time(*field->last_Write_srv);
+//          else if (field->foperation->timeType() == func::CFunctor::centered)
+//          {
+//            time_data_bound(0) = time_counter_bound(0);
+//            time_data_bound(1) = time_counter_bound(1);
+//          }
+//         }
+//
+//         bool isRoot ;
+//         if (server->intraCommRank==0) isRoot=true ;
+//         else isRoot=false ;
+//
+//         if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
+//         {
+//           double scaleFactor=1. ;
+//           double addOffset=0. ;
+//           if (!field->scale_factor.isEmpty()) scaleFactor=field->scale_factor ;
+//           if (!field->add_offset.isEmpty()) addOffset=field->add_offset ;
+//           field->scaleFactorAddOffset(scaleFactor,addOffset) ;
+//         }
+//
+//         try
+//         {
+//           if (grid->hasAxis()) // 3D
+//           {
+//              CAxis* axis = grid->axis ;
+//              CArray<double,3> field_data3D(domain->zoom_ni_srv,domain->zoom_nj_srv,axis->zoom_size) ;
+//              if (!field->default_value.isEmpty()) field_data3D = field->default_value ;
+//
+//              field->outputField(field_data3D);
+//
+//              if (!field->prec.isEmpty() && field->prec==2) field_data3D=round(field_data3D) ;
+//
+//              switch (SuperClass::type)
+//             {
+//                case (MULTI_FILE) :
+//                {
+//                   SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1);
+//                   if (wtime)
+//                   {
+//                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
+//                     SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
+//                     SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
+//                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
+//                   }
+//                   break ;
+//                }
+//                case (ONE_FILE) :
+//                {
+//                   std::vector<StdSize> start(3) ;
+//                   std::vector<StdSize> count(3) ;
+//                   if (domain->isEmpty())
+//                   {
+//                     start[0]=0 ; start[1]=0 ; start[2]=0 ;
+//                     count[0]=0 ; count[1]=0 ; start[2]=0 ;
+//                   }
+//                   else
+//                   {
+//  //                 start[2]=domain->zoom_ibegin_loc.getValue()-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_loc.getValue()-domain->zoom_jbegin.getValue() ; start[0]=0 ;
+//                     start[2]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [1]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ; start[0]=0 ;
+//                     count[2]=domain->zoom_ni_srv ; count[1]=domain->zoom_nj_srv ; count[0] = axis->zoom_size.getValue();
+//                   }
+//                   SuperClassWriter::writeData(field_data3D, fieldid, isCollective, field->getNStep()-1,&start,&count );
+//                   if (wtime)
+//                   {
+//                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
+//                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
+//                     SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot );
+//                     SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
+//                   }
+//                   break;
+//                }
+//              }
+//
+//           }
+//           else // 2D
+//           {
+//              CArray<double,2> field_data2D(domain->zoom_ni_srv,domain->zoom_nj_srv) ;
+//              if (!field->default_value.isEmpty()) field_data2D = field->default_value ;
+//              field->outputField(field_data2D);
+//              if (!field->prec.isEmpty() && field->prec==2) field_data2D=round(field_data2D) ;
+//              switch (SuperClass::type)
+//              {
+//                case (MULTI_FILE) :
+//                {
+//                  SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1);
+//                  if (wtime)
+//                  {
+//                    SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
+//                    SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
+//                    SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
+//                    SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
+//                  }
+//                  break;
+//                }
+//                case (ONE_FILE) :
+//                {
+//                   std::vector<StdSize> start(2) ;
+//                   std::vector<StdSize> count(2) ;
+//                   if (domain->isEmpty())
+//                   {
+//                     start[0]=0 ; start[1]=0 ;
+//                     count[0]=0 ; count[1]=0 ;
+//                   }
+//                   else
+//                   {
+//                     start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ;
+//                     count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
+//                   }
+//
+//                   SuperClassWriter::writeData(field_data2D, fieldid, isCollective, field->getNStep()-1,&start,&count);
+//                   if (wtime)
+//                   {
+//                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot);
+//                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot);
+//                     SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot);
+//                     SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
+//                   }
+//                   break;
+//
+//                }
+//              }
+//           }
+//         }
+//         catch (CNetCdfException& e)
+//         {
+//           StdString msg("On writing field data: ");
+//           msg.append(fieldid); msg.append("\n");
+//           msg.append("In the context : ");
+//           msg.append(context->getId()); msg.append("\n");
+//           msg.append(e.what());
+//           ERROR("CNc4DataOutput::writeFieldData_ (CField*  field)", << msg);
+//         }
+//      }
 
       //---------------------------------------------------------------
 

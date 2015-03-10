@@ -5,9 +5,11 @@
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-29 15:00:00" />
 
 
-   <field_definition level="1" enabled=".FALSE.">
+   <field_definition level="1" enabled=".TRUE.">
 <!--     <field id="field_A"  operation="average" freq_op="3600s" domain_ref="domain_A"  axis_ref="axis_A" />-->
      <field id="field_A"  operation="average" freq_op="3600s" grid_ref="grid_A" />
+     <field id="field_Axis"  operation="average" freq_op="3600s" grid_ref="grid_Axis" />
+     <field id="field_All_Axis" operation="average" freq_op="3600s" grid_ref="grid_All_Axis" />
    </field_definition>
 
 
@@ -15,12 +17,18 @@
      <file id="output" name="output">
         <field field_ref="field_A" />
      </file>
+     <file id="output_Axis" name="output_Axis">
+        <field field_ref="field_Axis" />
+        <field field_ref="field_All_Axis" />
+     </file>
    </file_definition>
 
 
    <axis_definition>
-     <axis id="axis_A" zoom_size="2" zoom_end="2"/>
-     <axis id="axis_B" zoom_size="2" zoom_end="3" />
+     <axis id="axis_A" />
+     <axis id="axis_B" />
+     <axis id="axis_C" zoom_size="2" zoom_end="2" />
+     <axis id="axis_D" zoom_size="2" zoom_end="3"/>
    </axis_definition>
 
    <domain_definition>
@@ -31,12 +39,15 @@
      <grid_group id="gridGroup">
        <grid id="grid_A">
          <domain domain_ref="domain_A" />
+         <axis axis_ref="axis_C" />
+       </grid>
+       <grid id="grid_Axis">
+         <axis axis_ref="axis_D" />
+       </grid>
+       <grid id="grid_All_Axis">
          <axis axis_ref="axis_A" />
-       <!--       <axis axis_ref="axis_A" />-->
-<!--       <domain id="domain_A" />-->
-<!--       <axis axis_ref="axis_B" />-->
-      <!--       <axis id="axis_A" />-->
-<!--       <axis id="axis_B" />-->
+         <axis axis_ref="axis_B" />
+         <axis axis_ref="axis_C" />
        </grid>
      </grid_group>
    </grid_definition>
@@ -56,7 +67,7 @@
       <variable_definition>
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
-            <variable id="buffer_factor_size" type="double">1.0</variable>
+            <variable id="buffer_factor_size" type="double">10.0</variable>
          </variable_group>
 
         <variable_group id="parameters" >

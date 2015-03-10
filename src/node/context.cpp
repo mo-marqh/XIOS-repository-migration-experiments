@@ -307,7 +307,6 @@ namespace xios {
 
      if (hasClient)
      {
-//       std::cout << "Current context " << *this << std::endl;
        // After xml is parsed, there are some more works with post processing
        postProcessing();
 //
@@ -316,11 +315,6 @@ namespace xios {
 
      if (hasClient && !hasServer)
      {
-       // After xml is parsed, there are some more works with post processing
-//       postProcessing();
-
-//       setClientServerBuffer();
-
       // Send all attributes of current context to server
       this->sendAllAttributesToServer();
 
@@ -335,12 +329,10 @@ namespace xios {
        sendEnabledFields();
 
       // At last, we have all info of domain and axis, then send them
-       sendRefDomainsAxis();
+//       sendRefDomainsAxis();
 
       // After that, send all grid (if any)
        sendRefGrid();
-
-
     }
 
     // Now tell server that it can process all messages from client
@@ -415,13 +407,6 @@ namespace xios {
      (void)this->enabledFiles[i]->getEnabledFields();
    }
 
-//    void CContext::processEnabledFiles(void)
-//   {
-//     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
-//     this->enabledFiles[i]->processEnabledFile();
-//   }
-
-
    void CContext::solveAllRefOfEnabledFields(bool sendToServer)
    {
      int size = this->enabledFiles.size();
@@ -439,24 +424,6 @@ namespace xios {
        this->enabledFiles[i]->buildAllExpressionOfEnabledFields();
      }
    }
-
-//   void CContext::solveAllGridRef(void)
-//   {
-//     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
-//     this->enabledFiles[i]->solveEFGridRef();
-//   }
-//
-//   void CContext::solveAllOperation(void)
-//   {
-//      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
-//      this->enabledFiles[i]->solveEFOperation();
-//   }
-//
-//   void CContext::solveAllExpression(void)
-//   {
-//      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
-//      this->enabledFiles[i]->solveEFExpression();
-//   }
 
    void CContext::solveAllInheritance(bool apply)
    {
@@ -670,7 +637,6 @@ namespace xios {
    {
       CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
       postProcessing();
-//      std::cout << "server context " << *this << std::endl;
    }
 
    const StdString& CContext::getIdServer()
@@ -718,7 +684,8 @@ namespace xios {
 
    std::map<int, StdSize>& CContext::getDataSize()
    {
-     std::set<StdString> domainIds;
+     // Set of grid used by enabled fields
+     std::set<StdString> usedGrid;
 
      // Find all reference domain and axis of all active fields
      int numEnabledFiles = this->enabledFiles.size();
@@ -728,17 +695,19 @@ namespace xios {
        int numEnabledFields = enabledFields.size();
        for (int j = 0; j < numEnabledFields; ++j)
        {
-         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getDomainAxisIds();
+//         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getDomainAxisIds();
+         StdString currentGrid = enabledFields[j]->grid->getId();
          const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataSize();
          if (dataSize_.empty())
          {
            dataSize_ = mapSize;
-           domainIds.insert(prDomAxisId.first);
+           usedGrid.insert(currentGrid);
+//           domainIds.insert(prDomAxisId.first);
          }
          else
          {
            std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-           if (domainIds.find(prDomAxisId.first) == domainIds.end())
+           if (usedGrid.find(currentGrid) == usedGrid.end())
            {
              for (; it != itE; ++it)
              {
@@ -829,53 +798,53 @@ namespace xios {
 
 
    //! Client side: Send information of reference domain and axis of active fields
-   void CContext::sendRefDomainsAxis()
-   {
-     std::set<StdString> domainIds;
-     std::set<StdString> axisIds;
-
-     // Find all reference domain and axis of all active fields
-     int numEnabledFiles = this->enabledFiles.size();
-     for (int i = 0; i < numEnabledFiles; ++i)
-     {
-       std::vector<CField*> enabledFields = this->enabledFiles[i]->getEnabledFields();
-       int numEnabledFields = enabledFields.size();
-       for (int j = 0; j < numEnabledFields; ++j)
-       {
-         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getDomainAxisIds();
-         domainIds.insert(prDomAxisId.first);
-         axisIds.insert(prDomAxisId.second);
-       }
-     }
-
-     // Create all reference axis on server side
-     std::set<StdString>::iterator itDom, itAxis;
-     std::set<StdString>::const_iterator itE;
-
-     StdString axiDefRoot("axis_definition");
-     CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);
-     itE = axisIds.end();
-     for (itAxis = axisIds.begin(); itAxis != itE; ++itAxis)
-     {
-       if (!itAxis->empty())
-       {
-         axisPtr->sendCreateChild(*itAxis);
-         CAxis::get(*itAxis)->sendAllAttributesToServer();
-       }
-     }
-
-     // Create all reference domains on server side
-     StdString domDefRoot("domain_definition");
-     CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
-     itE = domainIds.end();
-     for (itDom = domainIds.begin(); itDom != itE; ++itDom)
-     {
-       if (!itDom->empty()) {
-          domPtr->sendCreateChild(*itDom);
-          CDomain::get(*itDom)->sendAllAttributesToServer();
-       }
-     }
-   }
+//   void CContext::sendRefDomainsAxis()
+//   {
+//     std::set<StdString> domainIds;
+//     std::set<StdString> axisIds;
+//
+//     // Find all reference domain and axis of all active fields
+//     int numEnabledFiles = this->enabledFiles.size();
+//     for (int i = 0; i < numEnabledFiles; ++i)
+//     {
+//       std::vector<CField*> enabledFields = this->enabledFiles[i]->getEnabledFields();
+//       int numEnabledFields = enabledFields.size();
+//       for (int j = 0; j < numEnabledFields; ++j)
+//       {
+//         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getDomainAxisIds();
+//         domainIds.insert(prDomAxisId.first);
+//         axisIds.insert(prDomAxisId.second);
+//       }
+//     }
+//
+//     // Create all reference axis on server side
+//     std::set<StdString>::iterator itDom, itAxis;
+//     std::set<StdString>::const_iterator itE;
+//
+//     StdString axiDefRoot("axis_definition");
+//     CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);
+//     itE = axisIds.end();
+//     for (itAxis = axisIds.begin(); itAxis != itE; ++itAxis)
+//     {
+//       if (!itAxis->empty())
+//       {
+//         axisPtr->sendCreateChild(*itAxis);
+//         CAxis::get(*itAxis)->sendAllAttributesToServer();
+//       }
+//     }
+//
+//     // Create all reference domains on server side
+//     StdString domDefRoot("domain_definition");
+//     CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
+//     itE = domainIds.end();
+//     for (itDom = domainIds.begin(); itDom != itE; ++itDom)
+//     {
+//       if (!itDom->empty()) {
+//          domPtr->sendCreateChild(*itDom);
+//          CDomain::get(*itDom)->sendAllAttributesToServer();
+//       }
+//     }
+//   }
 
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)

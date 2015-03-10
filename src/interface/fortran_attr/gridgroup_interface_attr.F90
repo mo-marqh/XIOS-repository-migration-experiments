@@ -72,29 +72,73 @@ MODULE gridgroup_interface_attr
     END FUNCTION cxios_is_defined_gridgroup_group_ref
     
     
-    SUBROUTINE cxios_set_gridgroup_mask(gridgroup_hdl, mask, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_set_gridgroup_mask1(gridgroup_hdl, mask1, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask1
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
-    END SUBROUTINE cxios_set_gridgroup_mask
+    END SUBROUTINE cxios_set_gridgroup_mask1
     
-    SUBROUTINE cxios_get_gridgroup_mask(gridgroup_hdl, mask, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_get_gridgroup_mask1(gridgroup_hdl, mask1, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask1
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
-    END SUBROUTINE cxios_get_gridgroup_mask
+    END SUBROUTINE cxios_get_gridgroup_mask1
     
-    FUNCTION cxios_is_defined_gridgroup_mask(gridgroup_hdl ) BIND(C)
+    FUNCTION cxios_is_defined_gridgroup_mask1(gridgroup_hdl ) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_mask
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_mask1
       INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
-    END FUNCTION cxios_is_defined_gridgroup_mask
+    END FUNCTION cxios_is_defined_gridgroup_mask1
+    
+    
+    SUBROUTINE cxios_set_gridgroup_mask2(gridgroup_hdl, mask2, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask2
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_gridgroup_mask2
+    
+    SUBROUTINE cxios_get_gridgroup_mask2(gridgroup_hdl, mask2, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask2
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_gridgroup_mask2
+    
+    FUNCTION cxios_is_defined_gridgroup_mask2(gridgroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_mask2
+      INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
+    END FUNCTION cxios_is_defined_gridgroup_mask2
+    
+    
+    SUBROUTINE cxios_set_gridgroup_mask3(gridgroup_hdl, mask3, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask3
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_set_gridgroup_mask3
+    
+    SUBROUTINE cxios_get_gridgroup_mask3(gridgroup_hdl, mask3, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask3
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_get_gridgroup_mask3
+    
+    FUNCTION cxios_is_defined_gridgroup_mask3(gridgroup_hdl ) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_mask3
+      INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
+    END FUNCTION cxios_is_defined_gridgroup_mask3
     
     
     SUBROUTINE cxios_set_gridgroup_name(gridgroup_hdl, name, name_size) BIND(C)

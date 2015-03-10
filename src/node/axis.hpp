@@ -10,6 +10,7 @@
 #include "attribute_array.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include "server_distribution_description.hpp"
 
 namespace xios {
 
@@ -32,6 +33,11 @@ namespace xios {
       : public CObjectTemplate<CAxis>
       , public CAxisAttributes
    {
+         enum EEventId
+         {
+           EVENT_ID_SERVER_ATTRIBUT
+         } ;
+
          /// typedef ///
          typedef CObjectTemplate<CAxis>   SuperClass;
          typedef CAxisAttributes SuperClassAttribute;
@@ -65,13 +71,29 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
-
          static ENodeType GetType(void);
 
+         void sendServerAttribut(void);
+         static bool dispatchEvent(CEventServer& event);
+         static void recvServerAttribut(CEventServer& event);
+         void recvServerAttribut(CBufferIn& buffer) ;
+         void checkAttributesOnClient(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                      CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
+         void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                    CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
+      public:
+        int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
+        int ni_srv, begin_srv, end_srv;
       private :
          void checkData();
          void checkMask();
+         void checkZoom();
+         void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                 CServerDistributionDescription::ServerDistributionType disType);
+      private:
+
          bool isChecked;
+         bool areClientAttributesChecked_;
          std::set<StdString> relFiles;
 
          DECLARE_REF_FUNC(Axis,axis)

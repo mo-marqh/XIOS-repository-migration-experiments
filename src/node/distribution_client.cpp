@@ -15,7 +15,8 @@ CDistributionClient::CDistributionClient(int rank, int dims, CArray<size_t,1>* g
    localDataIndex_(0), axisDomainOrder_(),
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
-   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_(),
+   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0)
 {
 }
 
@@ -24,7 +25,8 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    localDataIndex_(0), axisDomainOrder_(),
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
-   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
+   gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_(),
+   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0)
 {
   readDistributionInfo(grid);
   createGlobalIndex();
@@ -33,6 +35,7 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
 CDistributionClient::~CDistributionClient()
 {
   if (0 != localDataIndex_) delete localDataIndex_;
+  if (0 != localDataIndexSendToServer_) delete localDataIndexSendToServer_;
 }
 
 /*!
@@ -45,7 +48,7 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
 {
   std::vector<CDomain*> domList = grid->getDomains();
   std::vector<CAxis*> axisList = grid->getAxis();
-  CArray<bool,1>& axisDomainOrder = grid->axisDomainOrder;
+  CArray<bool,1> axisDomainOrder = grid->axisDomainOrder;
 
   std::vector<CDomain*>::iterator itbDom, iteDom, itDom;
   std::vector<CAxis*>::iterator itbAxis, iteAxis, itAxis;
@@ -54,36 +57,27 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
   itbAxis = itAxis = axisList.begin(); iteAxis = axisList.end();
 
   // First of all, every attribute of domain and axis should be checked
-  for (;itDom != iteDom; ++itDom) (*itDom)->checkAttributesOnClient();
-  for (;itAxis != iteAxis; ++itAxis) (*itAxis)->checkAttributes();
+//  for (;itDom != iteDom; ++itDom) (*itDom)->checkAttributesOnClient();
+//  for (;itAxis != iteAxis; ++itAxis) (*itAxis)->checkAttributesOnClient();
+
+  readDistributionInfo(domList, axisList, axisDomainOrder);
 
   // Then check mask of grid
-  grid->checkMask();
-  CArray<bool,3>& gridMask = grid->mask;
-
-  ////////////////////////////////////////////////////////
-
   int gridDim = domList.size()*2 + axisList.size();
-
-  // For now, just suppose that gridMask is all true, but we need to cope with this problem
-  //  std::vector<std::vector<bool> > gridMask(gridDim);
-//  int idxDomain = 0, idxAxis = 0;
-//  for (int i = 0; i < axisDomainOrder.size(); ++i)
-//  {
-//    if (axisDomainOrder(i))
-//    {
-//      gridMask[idxDomain*2+i].resize(domList[idxDomain]->ni);
-//      gridMask[idxDomain*2+i+1].resize(domList[idxDomain]->nj);
-//      ++idxDomain;
-//    }
-//    else
-//    {
-//      gridMask[i].resize(axisList[idxAxis]->ni);
-//      ++idxAxis;
-//    }
-//  }
-
-  readDistributionInfo(domList, axisList, axisDomainOrder, gridMask);
+  grid->checkMask();
+  switch (gridDim) {
+    case 1:
+      readGridMaskInfo(grid->mask1);
+      break;
+    case 2:
+      readGridMaskInfo(grid->mask2);
+      break;
+    case 3:
+      readGridMaskInfo(grid->mask3);
+      break;
+    default:
+      break;
+  }
 }
 
 /*!
@@ -95,35 +89,33 @@ like before, e.g: data_n_index to make sure a compability, however, it should be
   \param [in] domList List of domains of grid
   \param [in] axisList List of axis of grid
   \param [in] axisDomainOrder order of axis and domain inside a grid. True if domain, false if axis
-  \param [in] gridMask Mask of grid, for now, keep it 3 dimension, but it needs changing
+//  \param [in] gridMask Mask of grid, for now, keep it 3 dimension, but it needs changing
 */
 void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domList,
                                                const std::vector<CAxis*>& axisList,
-                                               const CArray<bool,1>& axisDomainOrder,
-                                               const CArray<bool,3>& gridMask)
+                                               const CArray<bool,1>& axisDomainOrder)
 {
+  domainNum_ = domList.size();
+  axisNum_   = axisList.size();
   numElement_ = axisDomainOrder.numElements(); // Number of element, e.x: Axis, Domain
 
   axisDomainOrder_.resize(numElement_);
   axisDomainOrder_ = axisDomainOrder;
 
   // Each domain or axis has its mask, of course
-  domainMasks_.resize(domList.size());
-  for (int i = 0; i < domainMasks_.size();++i)
+  domainMasks_.resize(domainNum_);
+  for (int i = 0; i < domainNum_;++i)
   {
     domainMasks_[i].resize(domList[i]->mask.extent(0), domList[i]->mask.extent(1));
     domainMasks_[i] = domList[i]->mask;
   }
 
-  axisMasks_.resize(axisList.size());
-  for (int i = 0; i < axisMasks_.size(); ++i)
+  axisMasks_.resize(axisNum_);
+  for (int i = 0; i < axisNum_; ++i)
   {
     axisMasks_[i].resize(axisList[i]->mask.numElements());
     axisMasks_[i] = axisList[i]->mask;
   }
-
-  gridMask_.resize(gridMask.extent(0), gridMask.extent(1), gridMask.extent(2));
-  gridMask_ = gridMask;
 
   // Because domain and axis can be in any order (axis1, domain1, axis2, axis3, )
   // their position should be specified. In axisDomainOrder, domain == true, axis == false
@@ -138,6 +130,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       ++(this->dims_);
       idx += 2;
     }
+    else ++idx;
   }
 
   // Size of each dimension (local and global)
@@ -214,6 +207,12 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
     }
     ++idx;
   }
+
+  // Grid has only one axis and it is not distributed
+  bool isDataNotDistributed = true;
+  for (int i = 0; i < this->dims_; ++i)
+    isDataNotDistributed &= (nLocal_[i] == nGlob_[i]);
+  isDataDistributed_ = !isDataNotDistributed;
 }
 
 /*!
@@ -342,7 +341,11 @@ void CDistributionClient::createGlobalIndex()
     }
 
     // Find out outer index
+    // Depending the inner-most element is axis or domain,
+    // The outer loop index begins correspondingly at one (1) or zero (0)
     idxDomain = idxAxis = 0;
+    if (axisDomainOrder_(0)) ++idxDomain;
+    else ++idxAxis;
     for (int i = 1; i < numElement_; ++i)
     {
       if (axisDomainOrder_(i))
@@ -358,6 +361,9 @@ void CDistributionClient::createGlobalIndex()
       }
     }
 
+    int maskIndex = currentIndex[0];
+    for (int j = 0; j < this->dims_; ++j)
+
     // Inner most index
     idxDomain = idxAxis = 0;
     for (int i = 0; i < innerLoopSize; ++i)
@@ -369,7 +375,15 @@ void CDistributionClient::createGlobalIndex()
       }
       else currentIndex[0]   = localAxisIndex_[idxAxis][i];
 
-      if (gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
+      int gridMaskIndex = currentIndex[0];
+      int mulDimMask = 1;
+      for (int k = 1; k < this->dims_; ++k)
+      {
+        mulDimMask *= nLocal_[k-1];
+        gridMaskIndex += (currentIndex[k])*mulDimMask;
+      }
+
+      if (gridMask_(gridMaskIndex)) //(gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
       {
         ++indexLocalDataOnClientCount;
         bool isIndexOnServer = true;
@@ -388,13 +402,15 @@ void CDistributionClient::createGlobalIndex()
   // Now allocate these arrays
   this->globalIndex_ = new CArray<size_t,1>(indexSend2ServerCount);
   localDataIndex_ = new CArray<int,1>(indexLocalDataOnClientCount);
+  localDataIndexSendToServer_ = new CArray<int,1>(indexSend2ServerCount);
 
   // We need to loop with data index
-  innerLoopSize = dataNIndex_[0];
-  ssize = 1; for (int i = 0; i < numElement_; ++i) ssize *= dataNIndex_[i];
   idxLoop.assign(numElement_,0);
   idx = indexLocalDataOnClientCount = indexSend2ServerCount = 0;
-  int count = 0, correctOuterIndexDomain = 0, correctOuterIndexAxis = 0;
+  ssize = 1; for (int i = 0; i < numElement_; ++i) ssize *= dataNIndex_[i];
+  innerLoopSize = dataNIndex_[0];
+  int countLocalData = 0;
+  std::vector<int> correctOuterIndex(numElement_,0);
   while (idx < ssize)
   {
     for (int i = 0; i < numElement_-1; ++i)
@@ -402,14 +418,19 @@ void CDistributionClient::createGlobalIndex()
       if (idxLoop[i] == dataNIndex_[i])
       {
         idxLoop[i] = 0;
+        correctOuterIndex[i] = 0;
         ++idxLoop[i+1];
+        ++correctOuterIndex[i+1];
       }
     }
 
-    // Outer index
+    // Depending the inner-most element axis or domain,
+    // The outer loop index begins correspondingly at one (1) or zero (0)
     idxDomain = idxAxis = 0;
-    bool isIndexDomainDataCorrect = false;
-    bool isIndexAxisDataCorrect = false;
+    if (axisDomainOrder_(0)) ++idxDomain;
+    else ++idxAxis;
+    bool isIndexDomainDataCorrect = true;
+    bool isIndexAxisDataCorrect = true;
 
     for (int i = 1; i < numElement_; ++i)
     {
@@ -417,21 +438,19 @@ void CDistributionClient::createGlobalIndex()
       {
         if (indexDomainData_[idxDomain][idxLoop[i]])
         {
-          currentIndex[indexMap_[i]]   = localDomainIndex_[idxDomain][correctOuterIndexDomain];
-          currentIndex[indexMap_[i]+1] = localDomainIndex_[idxDomain*2+1][correctOuterIndexDomain];
-          isIndexDomainDataCorrect = true;
-          ++correctOuterIndexDomain;
+          currentIndex[indexMap_[i]]   = localDomainIndex_[idxDomain][correctOuterIndex[i]];
+          currentIndex[indexMap_[i]+1] = localDomainIndex_[idxDomain*2+1][correctOuterIndex[i]];
         }
+        else isIndexDomainDataCorrect = false;
         ++idxDomain;
       }
       else
       {
         if (indexAxisData_[idxAxis][idxLoop[i]])
         {
-          currentIndex[indexMap_[i]]   = localAxisIndex_[idxAxis][correctOuterIndexAxis];
-          isIndexAxisDataCorrect = true;
-          ++correctOuterIndexAxis;
+          currentIndex[indexMap_[i]]   = localAxisIndex_[idxAxis][correctOuterIndex[i]];
         }
+        else isIndexAxisDataCorrect = false;
         ++idxAxis;
       }
     }
@@ -463,12 +482,19 @@ void CDistributionClient::createGlobalIndex()
         else isIndexAxisDataCorrect = false;
       }
 
+      int gridMaskIndex = currentIndex[0];
+      int mulDimMask = 1;
+      for (int k = 1; k < this->dims_; ++k)
+      {
+        mulDimMask *= nLocal_[k-1];
+        gridMaskIndex += (currentIndex[k])*mulDimMask;
+      }
+
       if (isIndexDomainDataCorrect &&
           isIndexAxisDataCorrect &&
-          gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
+          gridMask_(gridMaskIndex))
       {
-        (*localDataIndex_)(indexLocalDataOnClientCount) = count;
-        ++indexLocalDataOnClientCount;
+        (*localDataIndex_)(indexLocalDataOnClientCount) = countLocalData;
 
         bool isIndexOnServer = true;
         for (int j = 0; j < this->dims_; ++j)
@@ -485,10 +511,12 @@ void CDistributionClient::createGlobalIndex()
             globalIndex += (currentIndex[k] + nBeginGlobal_[k])*mulDim;
           }
           (*this->globalIndex_)(indexSend2ServerCount) = globalIndex;
+          (*localDataIndexSendToServer_)(indexSend2ServerCount) = indexLocalDataOnClientCount;
           ++indexSend2ServerCount;
         }
+        ++indexLocalDataOnClientCount;
       }
-      ++count;
+      ++countLocalData;
     }
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
@@ -543,6 +571,11 @@ int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin
 const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
 {
   return (*localDataIndex_);
+}
+
+const CArray<int,1>& CDistributionClient::getLocalDataIndexSendToServerOnClient() const
+{
+  return (*localDataIndexSendToServer_);
 }
 
 } // namespace xios

@@ -36,16 +36,18 @@ class CDistributionClient : public CDistribution
     virtual ~CDistributionClient();
 
     virtual const CArray<int,1>& getLocalDataIndexOnClient() const;
+    virtual const CArray<int,1>& getLocalDataIndexSendToServerOnClient() const;
+
     std::vector<int> getNGlob() { return nGlob_; }
+    std::vector<int> getDataNIndex() { return dataNIndex_; }
+    bool isDataDistributed() { return isDataDistributed_; }
 
   protected:
     void createGlobalIndex();
     void readDistributionInfo(CGrid* grid);
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
-                              const CArray<bool,1>& axisDomainOrder,
-                              const CArray<bool,3>& gridMask);
-
+                              const CArray<bool,1>& axisDomainOrder);
   private:
     //! Create local index of a domain
     void createLocalDomainDataIndex();
@@ -58,9 +60,13 @@ class CDistributionClient : public CDistribution
                               const int& dataDim, const int& ni, int& j);
     inline int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
 
+    template<int N>
+    void readGridMaskInfo(const CArray<bool,N>& gridMask);
+
   private:
     //!< LocalData index on client
     CArray<int,1>* localDataIndex_;
+    CArray<int,1>* localDataIndexSendToServer_;
 
   private:
     /*! Domains and axis are considered elements.
@@ -84,9 +90,6 @@ class CDistributionClient : public CDistribution
     std::vector<CArray<bool,2> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
 
-    // Just suppose that grid mask has 3 dimension. Need change
-    CArray<bool,3> gridMask_; // TODO: more general grid mask
-
     std::vector<std::vector<int> > localDomainIndex_;
     std::vector<std::vector<int> > localAxisIndex_;
     std::vector<int> indexMap_; //!< Mapping element index to dimension index
@@ -95,9 +98,54 @@ class CDistributionClient : public CDistribution
     std::vector<std::vector<bool> > indexDomainData_;
     std::vector<std::vector<bool> > indexAxisData_;
 
+    //!< (Only for grid with one axis or scalar)Flag to determine whether data is distributed or not
+    bool isDataDistributed_;
+    int axisNum_;
+    int domainNum_;
+
+  private:
+    // Just suppose that grid mask has 3 dimension. Need change
+    CArray<bool,1> gridMask_; //!< Mask of grid
+
   private:
     CDistributionClient(const CDistributionClient& distClient); //! Not implement
 };
+
+template<int N>
+void CDistributionClient::readGridMaskInfo(const CArray<bool,N>& gridMask)
+{
+  int dim = gridMask.dimensions();
+  std::vector<int> dimensionSizes(dim);
+  for (int i = 0; i < dim; ++i) dimensionSizes[i] = gridMask.extent(i);
+
+  std::vector<int> idxLoop(dim,0);
+  int ssize = gridMask.numElements(), idx = 0;
+  gridMask_.resize(ssize);
+  while (idx < ssize)
+  {
+    for (int i = 0; i < dim-1; ++i)
+    {
+      if (idxLoop[i] == dimensionSizes[i])
+      {
+        idxLoop[i] = 0;
+        ++idxLoop[i+1];
+      }
+    }
+
+    int maskIndex = idxLoop[0];
+    int mulDim = 1;
+    for (int k = 1; k < dim; ++k)
+    {
+      mulDim *= dimensionSizes[k-1];
+      maskIndex += idxLoop[k]*mulDim;
+    }
+    gridMask_(maskIndex) = *(gridMask.dataFirst()+maskIndex);
+
+    ++idxLoop[0];
+    ++idx;
+  }
+}
+
 
 } // namespace xios
 #endif // __XIOS_DISTRIBUTIONCLIENT_HPP__
