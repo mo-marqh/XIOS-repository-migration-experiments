@@ -38,6 +38,14 @@ extern "C"
    typedef xios::CContext * XContextPtr;
 
    // -------------------- Traitement des données ------------------------------
+
+   // This function is not exported to the public Fortran interface,
+   // it is only used from the parse_xml.exe standalone test tool.
+   void cxios_init(void)
+   {
+     CXios::initialize();
+   }
+
    void cxios_init_server(void)
    {
      CXios::initServerSide();

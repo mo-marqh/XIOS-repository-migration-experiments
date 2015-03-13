@@ -2,229 +2,71 @@
 
 MODULE XIOS
 
-USE icalendar, ONLY : xios(define_calendar), xios(set_timestep), xios(set_start_date), xios(set_time_origin), &
+USE icalendar, ONLY : xios(define_calendar), xios(set_timestep), xios(set_start_date), xios(set_time_origin),   &
                       xios(get_calendar_type), xios(get_timestep), xios(get_start_date), xios(get_time_origin), &
-                      xios(update_calendar), xios(get_current_date), &
+                      xios(update_calendar), xios(get_current_date),                                            &
                       xios(get_year_length_in_seconds), xios(get_day_length_in_seconds)
 
-USE icontext, ONLY : txios(context), xios(get_context_handle), xios(set_current_context),    &
-                     xios(is_valid_context)
+USE icontext, ONLY : txios(context), xios(set_current_context), xios(is_valid_context)
 
-USE icontext_attr, ONLY : xios(set_context_attr), xios(set_context_attr_hdl), &
-                          xios(get_context_attr), xios(get_context_attr_hdl), &
-                          xios(is_defined_context_attr), xios(is_defined_context_attr_hdl)
+USE icontext_attr, ONLY : xios(set_context_attr), xios(get_context_attr), xios(is_defined_context_attr)
 
-USE idata, ONLY : xios(initialize),xios(init_server), xios(finalize), xios(context_initialize),  &
-                  xios(context_is_initialized), xios(close_context_definition),xios(solve_inheritance),       &
-                  xios(context_finalize), xios(send_field_r8_1d), xios(send_field_r8_2d), &
-                  xios(send_field_r8_3d), xios(send_field_r4_1d), xios(send_field_r4_2d), &
-                  xios(send_field_r4_3d), xios(getVar_k8), xios(getVar_k4), xios(getVar_int), &
-                  xios(getVar_logic), xios(getVar_char), xios(setVar_k8), xios(setVar_k4), xios(setVar_int), &
-                  xios(setVar_logic), xios(setVar_char)
+USE idata, ONLY : xios(initialize), xios(init_server), xios(finalize), xios(context_initialize), xios(context_is_initialized), &
+                  xios(close_context_definition), xios(context_finalize), xios(solve_inheritance)
 
-USE idate, ONLY : txios(date), &
-                  xios(date_convert_to_seconds), &
-                  xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
-                  xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge), &
-                  xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &
-                  xios(date_get_second_of_day), xios(date_get_fraction_of_day), &
-                  OPERATOR(+), OPERATOR(-), &
-                  OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=), &
-                  ASSIGNMENT(=)
+USE idomain, ONLY : txios(domain), txios(domaingroup), xios(is_valid_domain), xios(is_valid_domaingroup)
 
-USE idomain, ONLY : txios(domain), txios(domaingroup), xios(get_domain_handle),  &
-                    xios(get_domaingroup_handle),xios(is_valid_domain),     &
-                    xios(is_valid_domaingroup)
+USE idomain_attr, ONLY : xios(set_domain_attr), xios(get_domain_attr), xios(is_defined_domain_attr)
 
-USE idomain_attr, ONLY :  xios(set_domain_attr), xios(set_domain_attr_hdl),  &
-                          xios(get_domain_attr), xios(get_domain_attr_hdl), &
-                          xios(is_defined_domain_attr), xios(is_defined_domain_attr_hdl)
+USE idomaingroup_attr, ONLY : xios(set_domaingroup_attr), xios(get_domaingroup_attr), xios(is_defined_domaingroup_attr)
 
-USE idomaingroup_attr, ONLY : xios(set_domaingroup_attr), xios(set_domaingroup_attr_hdl),  &
-                              xios(get_domaingroup_attr), xios(get_domaingroup_attr_hdl), &
-                              xios(is_defined_domaingroup_attr), xios(is_defined_domaingroup_attr_hdl)
-
-USE iduration, ONLY: txios(duration), &
+USE iduration, ONLY: txios(duration),                                                                            &
                      xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
-                     xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg), &
-                     xios(duration_eq), xios(duration_neq), &
+                     xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg),            &
+                     xios(duration_eq), xios(duration_neq),                                                      &
                      OPERATOR(+), OPERATOR(-), OPERATOR(*)
 
-USE ifield, ONLY : txios(field), txios(fieldgroup), xios(get_field_handle),  &
-                   xios(get_fieldgroup_handle), xios(is_valid_field),        &
-                   xios(is_valid_fieldgroup),xios(field_is_active_id),xios(field_is_active_hdl)
+USE idate, ONLY : txios(date),                                                                                &
+                  xios(date_convert_to_seconds),                                                              &
+                  xios(date_add_duration), xios(date_sub_duration), xios(date_sub),                           &
+                  xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge),  &
+                  xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &
+                  xios(date_get_second_of_day), xios(date_get_fraction_of_day),                               &
+                  OPERATOR(+), OPERATOR(-),                                                                   &
+                  OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=),           &
+                  ASSIGNMENT(=)
 
-USE ifield_attr, ONLY : xios(set_field_attr),xios(set_field_attr_hdl),    &
-                        xios(get_field_attr),xios(get_field_attr_hdl), &
-                        xios(is_defined_field_attr),xios(is_defined_field_attr_hdl)
+USE ifield, ONLY : txios(field), txios(fieldgroup), xios(is_valid_field), xios(is_valid_fieldgroup)
 
-USE ifieldgroup_attr, ONLY : xios(set_fieldgroup_attr), xios(set_fieldgroup_attr_hdl),  &
-                             xios(get_fieldgroup_attr), xios(get_fieldgroup_attr_hdl), &
-                             xios(is_defined_fieldgroup_attr), xios(is_defined_fieldgroup_attr_hdl)
+USE ifield_attr, ONLY : xios(set_field_attr), xios(get_field_attr), xios(is_defined_field_attr)
 
-USE ivariable, ONLY : txios(variable), txios(variablegroup), xios(get_variable_handle),  &
-                   xios(get_variablegroup_handle), xios(is_valid_variable),        &
-                   xios(is_valid_variablegroup)
+USE ifieldgroup_attr, ONLY : xios(set_fieldgroup_attr), xios(get_fieldgroup_attr), xios(is_defined_fieldgroup_attr)
 
-USE ivariable_attr, ONLY : xios(set_variable_attr),xios(set_variable_attr_hdl),    &
-                        xios(get_variable_attr),xios(get_variable_attr_hdl), &
-                        xios(is_defined_variable_attr),xios(is_defined_variable_attr_hdl)
+USE ivariable, ONLY : txios(variable), txios(variablegroup), xios(is_valid_variable), xios(is_valid_variablegroup)
 
-USE ivariablegroup_attr, ONLY : xios(set_variablegroup_attr), xios(set_variablegroup_attr_hdl),  &
-                             xios(get_variablegroup_attr), xios(get_variablegroup_attr_hdl), &
-                             xios(is_defined_variablegroup_attr), xios(is_defined_variablegroup_attr_hdl)
+USE ivariable_attr, ONLY : xios(set_variable_attr), xios(get_variable_attr), xios(is_defined_variable_attr)
 
-USE ifile, ONLY : txios(file), txios(filegroup), xios(get_file_handle),    &
-                  xios(get_filegroup_handle), xios(is_valid_file), xios(is_valid_filegroup)
+USE ivariablegroup_attr, ONLY : xios(set_variablegroup_attr), xios(get_variablegroup_attr), xios(is_defined_variablegroup_attr)
 
-USE ifile_attr, ONLY : xios(set_file_attr),xios(set_file_attr_hdl), &
-                       xios(get_file_attr),xios(get_file_attr_hdl), &
-                       xios(is_defined_file_attr),xios(is_defined_file_attr_hdl)
+USE ifile, ONLY : txios(file), txios(filegroup), xios(is_valid_file), xios(is_valid_filegroup)
 
-USE ifilegroup_attr, ONLY : xios(set_filegroup_attr), xios(set_filegroup_attr_hdl), &
-                            xios(get_filegroup_attr), xios(get_filegroup_attr_hdl), &
-                            xios(is_defined_filegroup_attr), xios(is_defined_filegroup_attr_hdl)
+USE ifile_attr, ONLY : xios(set_file_attr), xios(get_file_attr), xios(is_defined_file_attr)
 
-USE igrid, ONLY : txios(grid), txios(gridgroup), xios(get_grid_handle),     &
-                  xios(get_gridgroup_handle), xios(is_valid_grid), xios(is_valid_gridgroup)
+USE ifilegroup_attr, ONLY : xios(set_filegroup_attr), xios(get_filegroup_attr), xios(is_defined_filegroup_attr)
 
-USE igrid_attr, ONLY : xios(set_grid_attr_hdl), xios(set_grid_attr), &
-                       xios(get_grid_attr_hdl), xios(get_grid_attr), &
-                       xios(is_defined_grid_attr_hdl), xios(is_defined_grid_attr)
+USE igrid, ONLY : txios(grid), txios(gridgroup), xios(is_valid_grid), xios(is_valid_gridgroup)
 
-USE igridgroup_attr, ONLY : xios(set_gridgroup_attr), xios(set_gridgroup_attr_hdl),  &
-                            xios(get_gridgroup_attr), xios(get_gridgroup_attr_hdl), &
-                            xios(is_defined_gridgroup_attr), xios(is_defined_gridgroup_attr_hdl)
+USE igrid_attr, ONLY : xios(set_grid_attr), xios(get_grid_attr), xios(is_defined_grid_attr)
 
-USE iaxis, ONLY : txios(axis), txios(axisgroup), xios(get_axis_handle),     &
-                  xios(get_axisgroup_handle), xios(is_valid_axis), xios(is_valid_axisgroup)
+USE igridgroup_attr, ONLY : xios(set_gridgroup_attr), xios(get_gridgroup_attr), xios(is_defined_gridgroup_attr)
 
-USE iaxis_attr, ONLY :  xios(set_axis_attr), xios(set_axis_attr_hdl), &
-                        xios(get_axis_attr), xios(get_axis_attr_hdl), &
-                        xios(is_defined_axis_attr), xios(is_defined_axis_attr_hdl)
+USE iaxis, ONLY : txios(axis), txios(axisgroup), xios(is_valid_axis), xios(is_valid_axisgroup)
 
-USE iaxisgroup_attr, ONLY : xios(set_axisgroup_attr), xios(set_axisgroup_attr_hdl), &
-                            xios(get_axisgroup_attr), xios(get_axisgroup_attr_hdl), &
-                            xios(is_defined_axisgroup_attr), xios(is_defined_axisgroup_attr_hdl)
+USE iaxis_attr, ONLY : xios(set_axis_attr), xios(get_axis_attr), xios(is_defined_axis_attr)
 
-USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),          &
-                     xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),                  &
-                     xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup),         &
-                     xios(add_domaingroup), xios(add_fieldgrouptofile), xios(add_variablegrouptofile),            &
-                     xios(add_variablegrouptofield)
+USE iaxisgroup_attr, ONLY : xios(set_axisgroup_attr), xios(get_axisgroup_attr), xios(is_defined_axisgroup_attr)
 
-PRIVATE
-
-
-INTERFACE xios(set_attr)
-  MODULE PROCEDURE xios(set_domaingroup_attr_hdl), xios(set_domain_attr_hdl), xios(set_fieldgroup_attr_hdl), &
-                   xios(set_field_attr_hdl),xios(set_variable_attr_hdl), xios(set_variablegroup_attr_hdl),   &
-                   xios(set_file_attr_hdl), xios(set_filegroup_attr_hdl),                                    &
-                   xios(set_grid_attr_hdl), xios(set_gridgroup_attr_hdl), xios(set_axis_attr_hdl) ,          &
-                   xios(set_axisgroup_attr_hdl), xios(set_context_attr_hdl)
-END INTERFACE xios(set_attr)
-
-INTERFACE xios(get_attr)
-  MODULE PROCEDURE xios(get_domaingroup_attr_hdl), xios(get_domain_attr_hdl), xios(get_fieldgroup_attr_hdl), &
-                   xios(get_field_attr_hdl), xios(get_variable_attr_hdl), xios(get_variablegroup_attr_hdl),  &
-                   xios(get_file_attr_hdl), xios(get_filegroup_attr_hdl),                                    &
-                   xios(get_grid_attr_hdl), xios(get_gridgroup_attr_hdl), xios(get_axis_attr_hdl) ,          &
-                   xios(get_axisgroup_attr_hdl), xios(get_context_attr_hdl)
-END INTERFACE xios(get_attr)
-
-INTERFACE xios(is_defined_attr)
-  MODULE PROCEDURE xios(is_defined_domaingroup_attr_hdl), xios(is_defined_domain_attr_hdl), xios(is_defined_fieldgroup_attr_hdl), &
-                   xios(is_defined_field_attr_hdl), xios(is_defined_variable_attr_hdl), xios(is_defined_variablegroup_attr_hdl),  &
-                   xios(is_defined_file_attr_hdl), xios(is_defined_filegroup_attr_hdl),                                           &
-                   xios(is_defined_grid_attr_hdl), xios(is_defined_gridgroup_attr_hdl), xios(is_defined_axis_attr_hdl) ,          &
-                   xios(is_defined_axisgroup_attr_hdl), xios(is_defined_context_attr_hdl)
-END INTERFACE xios(is_defined_attr)
-
-INTERFACE xios(get_handle)
-  MODULE PROCEDURE  xios(get_context_handle), xios(get_domain_handle), xios(get_domaingroup_handle),        &
-                    xios(get_file_handle), xios(get_filegroup_handle), xios(get_grid_handle),               &
-                    xios(get_gridgroup_handle), xios(get_axis_handle), xios(get_axisgroup_handle),          &
-                    xios(get_field_handle), xios(get_fieldgroup_handle),xios(get_variable_handle),          &
-                    xios(get_variablegroup_handle)
-END INTERFACE xios(get_handle)
-
-INTERFACE xios(add_child)
-  MODULE PROCEDURE xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),                &
-                   xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield), xios(add_axisgroup),  &
-                   xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), xios(add_domaingroup),            &
-                   xios(add_fieldgrouptofile), xios(add_variablegrouptofile),xios(add_variablegrouptofield)
-END INTERFACE xios(add_child)
-
-
-INTERFACE xios(send_field)
-  MODULE PROCEDURE  xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d),              &
-                    xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d)
-END INTERFACE xios(send_field)
-
-INTERFACE xios(field_is_active)
-  MODULE PROCEDURE xios(field_is_active_id),xios(field_is_active_hdl)
-END INTERFACE
-
-INTERFACE xios(getVar)
-  MODULE PROCEDURE xios(getVar_k8), xios(getVar_k4), xios(getVar_int), xios(getVar_logic), xios(getVar_char)
-END INTERFACE xios(getVar)
-
-INTERFACE xios(setVar)
-  MODULE PROCEDURE xios(setVar_k8), xios(setVar_k4), xios(setVar_int), xios(setVar_logic), xios(setVar_char)
-END INTERFACE xios(setVar)
-
- PUBLIC :: txios(domain), txios(domaingroup),txios(field), txios(fieldgroup),txios(file), txios(filegroup), &
-          txios(grid), txios(gridgroup), txios(axis), txios(axisgroup),txios(context), txios(date),         &
-          txios(duration), txios(variable)
-
- PUBLIC :: xios(set_attr), xios(set_domain_attr), xios(set_domaingroup_attr), xios(set_fieldgroup_attr), &
-          xios(set_field_attr), xios(set_file_attr), xios(set_filegroup_attr),          &
-          xios(set_grid_attr), xios(set_gridgroup_attr), xios(set_axis_attr) ,          &
-          xios(set_axisgroup_attr), xios(set_context_attr)
-
- PUBLIC :: xios(get_attr), xios(get_domain_attr), xios(get_domaingroup_attr), xios(get_fieldgroup_attr), &
-          xios(get_field_attr), xios(get_file_attr), xios(get_filegroup_attr),          &
-          xios(get_grid_attr), xios(get_gridgroup_attr), xios(get_axis_attr) ,          &
-          xios(get_axisgroup_attr), xios(get_context_attr)
-
-PUBLIC :: xios(is_defined_attr), xios(is_defined_domain_attr), xios(is_defined_domaingroup_attr), xios(is_defined_fieldgroup_attr), &
-          xios(is_defined_field_attr), xios(is_defined_file_attr), xios(is_defined_filegroup_attr),          &
-          xios(is_defined_grid_attr), xios(is_defined_gridgroup_attr), xios(is_defined_axis_attr) ,          &
-          xios(is_defined_axisgroup_attr), xios(is_defined_context_attr)
-
- PUBLIC :: xios(get_handle)
- PUBLIC :: xios(add_child)
-
- PUBLIC :: xios(is_valid_context),xios(is_valid_domain), xios(is_valid_domaingroup),xios(is_valid_field),        &
-           xios(is_valid_fieldgroup), xios(is_valid_file), xios(is_valid_filegroup), xios(is_valid_grid),         &
-           xios(is_valid_gridgroup), xios(is_valid_axis), xios(is_valid_axisgroup), xios(is_valid_variable),      &
-           xios(is_valid_variablegroup)
-
- PUBLIC :: xios(set_current_context)
- PUBLIC :: xios(initialize), xios(init_server), xios(finalize), xios(context_initialize),xios(context_is_initialized), &
-           xios(solve_inheritance), xios(close_context_definition), xios(context_finalize), xios(send_field),          &
-           xios(field_is_active)
-
- PUBLIC :: xios(define_calendar), xios(set_timestep), xios(set_start_date), xios(set_time_origin), &
-           xios(get_calendar_type), xios(get_timestep), xios(get_start_date), xios(get_time_origin), &
-           xios(update_calendar), xios(get_current_date), &
-           xios(get_year_length_in_seconds), xios(get_day_length_in_seconds)
-
- PUBLIC :: xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
-           xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg), &
-           xios(duration_eq), xios(duration_neq)
-
- PUBLIC :: xios(date_convert_to_seconds), &
-           xios(date_add_duration), xios(date_sub_duration), xios(date_sub), &
-           xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge), &
-           xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &
-           xios(date_get_second_of_day), xios(date_get_fraction_of_day)
-
- PUBLIC :: OPERATOR(+), OPERATOR(-), OPERATOR(*), &
-           OPERATOR(==), OPERATOR(/=), OPERATOR(<), OPERATOR(<=), OPERATOR(>), OPERATOR(>=), &
-           ASSIGNMENT(=)
-
- PUBLIC :: xios(getVar)
- PUBLIC :: xios(setVar)
+USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), &
+                            xios(add_child), xios(send_field), xios(field_is_active), xios(getVar), xios(setVar)
 
 END MODULE XIOS

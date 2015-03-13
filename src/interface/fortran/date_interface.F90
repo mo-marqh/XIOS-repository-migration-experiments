@@ -2,10 +2,13 @@
 
 MODULE DATE_INTERFACE
    USE, INTRINSIC :: ISO_C_BINDING
+   USE IDURATION, only : txios(duration)
 
    TYPE, BIND(C) :: txios(date)
       INTEGER(kind = C_INT) :: year, month, day, hour, minute, second
    END TYPE txios(date)
+
+   PRIVATE :: txios(duration)
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
@@ -17,24 +20,24 @@ MODULE DATE_INTERFACE
 
       TYPE(txios(date)) FUNCTION cxios_date_add_duration(date, dur) BIND(C)
          USE ISO_C_BINDING
-         USE IDURATION, only : txios(duration)
          IMPORT :: txios(date)
+         IMPORT :: txios(duration)
          TYPE(txios(date)), VALUE :: date
          TYPE(txios(duration)), VALUE :: dur
       END FUNCTION cxios_date_add_duration
 
       TYPE(txios(date)) FUNCTION cxios_date_sub_duration(date, dur) BIND(C)
          USE ISO_C_BINDING
-         USE IDURATION, only : txios(duration)
          IMPORT :: txios(date)
+         IMPORT :: txios(duration)
          TYPE(txios(date)), VALUE :: date
          TYPE(txios(duration)), VALUE :: dur
       END FUNCTION cxios_date_sub_duration
 
       TYPE(txios(duration)) FUNCTION cxios_date_sub(date1, date2) BIND(C)
          USE ISO_C_BINDING
-         USE IDURATION, only : txios(duration)
          IMPORT :: txios(date)
+         IMPORT :: txios(duration)
          TYPE(txios(date)), VALUE :: date1, date2
       END FUNCTION cxios_date_sub
 
