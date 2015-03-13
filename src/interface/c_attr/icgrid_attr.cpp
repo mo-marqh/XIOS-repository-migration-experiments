@@ -17,26 +17,26 @@ extern "C"
 {
   typedef xios::CGrid*  grid_Ptr;
   
-  void cxios_set_grid_axisDomainOrder(grid_Ptr grid_hdl, bool* axisDomainOrder, int extent1)
+  void cxios_set_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
-    grid_hdl->axisDomainOrder.reference(tmp.copy());
+    CArray<bool,1> tmp(axis_domain_order,shape(extent1),neverDeleteData) ;
+    grid_hdl->axis_domain_order.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_grid_axisDomainOrder(grid_Ptr grid_hdl, bool* axisDomainOrder, int extent1)
+  void cxios_get_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
-    tmp=grid_hdl->axisDomainOrder.getInheritedValue() ;
+    CArray<bool,1> tmp(axis_domain_order,shape(extent1),neverDeleteData) ;
+    tmp=grid_hdl->axis_domain_order.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
-  bool cxios_is_defined_grid_axisDomainOrder(grid_Ptr grid_hdl )
+  bool cxios_is_defined_grid_axis_domain_order(grid_Ptr grid_hdl )
   {
      CTimer::get("XIOS").resume();
-    return grid_hdl->axisDomainOrder.hasInheritedValue();
+    return grid_hdl->axis_domain_order.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

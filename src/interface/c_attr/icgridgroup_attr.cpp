@@ -17,26 +17,26 @@ extern "C"
 {
   typedef xios::CGridGroup*  gridgroup_Ptr;
   
-  void cxios_set_gridgroup_axisDomainOrder(gridgroup_Ptr gridgroup_hdl, bool* axisDomainOrder, int extent1)
+  void cxios_set_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
-    gridgroup_hdl->axisDomainOrder.reference(tmp.copy());
+    CArray<bool,1> tmp(axis_domain_order,shape(extent1),neverDeleteData) ;
+    gridgroup_hdl->axis_domain_order.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
   
-  void cxios_get_gridgroup_axisDomainOrder(gridgroup_Ptr gridgroup_hdl, bool* axisDomainOrder, int extent1)
+  void cxios_get_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axisDomainOrder,shape(extent1),neverDeleteData) ;
-    tmp=gridgroup_hdl->axisDomainOrder.getInheritedValue() ;
+    CArray<bool,1> tmp(axis_domain_order,shape(extent1),neverDeleteData) ;
+    tmp=gridgroup_hdl->axis_domain_order.getInheritedValue() ;
      CTimer::get("XIOS").suspend();
   }
   
-  bool cxios_is_defined_gridgroup_axisDomainOrder(gridgroup_Ptr gridgroup_hdl )
+  bool cxios_is_defined_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl )
   {
      CTimer::get("XIOS").resume();
-    return gridgroup_hdl->axisDomainOrder.hasInheritedValue();
+    return gridgroup_hdl->axis_domain_order.hasInheritedValue();
      CTimer::get("XIOS").suspend();
   }
   

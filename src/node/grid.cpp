@@ -230,25 +230,25 @@ namespace xios {
 
       switch (dim) {
         case 1:
-          checkGridMask(mask1, domainMasks, axisMasks, axisDomainOrder);
+          checkGridMask(mask1, domainMasks, axisMasks, axis_domain_order);
           break;
         case 2:
-          checkGridMask(mask2, domainMasks, axisMasks, axisDomainOrder);
+          checkGridMask(mask2, domainMasks, axisMasks, axis_domain_order);
           break;
         case 3:
-          checkGridMask(mask3, domainMasks, axisMasks, axisDomainOrder);
+          checkGridMask(mask3, domainMasks, axisMasks, axis_domain_order);
           break;
 //        case 4:
-//          checkGridMask(mask4, domainMasks, axisMasks, axisDomainOrder);
+//          checkGridMask(mask4, domainMasks, axisMasks, axis_domain_order);
 //          break;
 //        case 5:
-//          checkGridMask(mask5, domainMasks, axisMasks, axisDomainOrder);
+//          checkGridMask(mask5, domainMasks, axisMasks, axis_domain_order);
 //          break;
 //        case 6:
-//          checkGridMask(mask6, domainMasks, axisMasks, axisDomainOrder);
+//          checkGridMask(mask6, domainMasks, axisMasks, axis_domain_order);
 //          break;
 //        case 7:
-//          checkGridMask(mask7, domainMasks, axisMasks, axisDomainOrder);
+//          checkGridMask(mask7, domainMasks, axisMasks, axis_domain_order);
 //          break;
         default:
           break;
@@ -262,7 +262,7 @@ namespace xios {
       std::vector<CDomain*> domListP = this->getDomains();
       if (!domListP.empty())
       {
-        computeGridGlobalDimension(getDomains(), getAxis(), axisDomainOrder);
+        computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
         for (int i = 0; i < domListP.size(); ++i)
         {
           if (sendAtt) domListP[i]->sendCheckedAttributes();
@@ -281,9 +281,9 @@ namespace xios {
       {
         int idx = 0;
         std::vector<int> axisPositionMap;
-        for (int i = 0; i < axisDomainOrder.numElements(); ++i)
+        for (int i = 0; i < axis_domain_order.numElements(); ++i)
         {
-          if (false == axisDomainOrder(i))
+          if (false == axis_domain_order(i))
           {
             axisPositionMap.push_back(idx);
             ++idx;
@@ -291,7 +291,7 @@ namespace xios {
           else idx += 2;
         }
 
-        computeGridGlobalDimension(getDomains(), getAxis(), axisDomainOrder);
+        computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
         for (int i = 0; i < axisListP.size(); ++i)
         {
           if (sendAtt)
@@ -384,18 +384,18 @@ namespace xios {
       grid->setAxisList(axis);
 
       //By default, domains are always the first ones of a grid
-      if (grid->axisDomainOrder.isEmpty())
+      if (grid->axis_domain_order.isEmpty())
       {
         int size = domains.size()+axis.size();
-        grid->axisDomainOrder.resize(size);
+        grid->axis_domain_order.resize(size);
         for (int i = 0; i < size; ++i)
         {
-          if (i < domains.size()) grid->axisDomainOrder(i) = true;
-          else grid->axisDomainOrder(i) = false;
+          if (i < domains.size()) grid->axis_domain_order(i) = true;
+          else grid->axis_domain_order(i) = false;
         }
       }
 
-      grid->computeGridGlobalDimension(domains, axis, grid->axisDomainOrder);
+      grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
 
       return (grid);
    }
@@ -585,13 +585,13 @@ namespace xios {
      {
        CContext* context = CContext::getCurrent() ;
        CContextServer* server=context->server ;
-       int idx = 0, numElement = axisDomainOrder.numElements();
+       int idx = 0, numElement = axis_domain_order.numElements();
        int ssize = numElement;
        std::vector<int> indexMap(numElement);
        for (int i = 0; i < numElement; ++i)
        {
          indexMap[i] = idx;
-         if (true == axisDomainOrder(i))
+         if (true == axis_domain_order(i))
          {
             ++ssize;
             idx += 2;
@@ -606,7 +606,7 @@ namespace xios {
        std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
        for (int i = 0; i < numElement; ++i)
        {
-         if (axisDomainOrder(i))
+         if (axis_domain_order(i))
          {
             nZoomBegin[indexMap[i]]   = domainList[domainId]->zoom_ibegin_srv;
             nZoomSize[indexMap[i]]    = domainList[domainId]->zoom_ni_srv;
@@ -1017,10 +1017,10 @@ namespace xios {
     if (!order.empty())
     {
       int sizeOrd = order.size();
-      axisDomainOrder.resize(sizeOrd);
+      axis_domain_order.resize(sizeOrd);
       for (int i = 0; i < sizeOrd; ++i)
       {
-        axisDomainOrder(i) = order[i];
+        axis_domain_order(i) = order[i];
       }
     }
 

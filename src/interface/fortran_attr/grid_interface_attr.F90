@@ -9,25 +9,25 @@ MODULE grid_interface_attr
   INTERFACE ! Do not call directly / interface FORTRAN 2003 <-> C99
     
     
-    SUBROUTINE cxios_set_grid_axisDomainOrder(grid_hdl, axisDomainOrder, extent1) BIND(C)
+    SUBROUTINE cxios_set_grid_axis_domain_order(grid_hdl, axis_domain_order, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axisDomainOrder
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axis_domain_order
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_set_grid_axisDomainOrder
+    END SUBROUTINE cxios_set_grid_axis_domain_order
     
-    SUBROUTINE cxios_get_grid_axisDomainOrder(grid_hdl, axisDomainOrder, extent1) BIND(C)
+    SUBROUTINE cxios_get_grid_axis_domain_order(grid_hdl, axis_domain_order, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axisDomainOrder
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axis_domain_order
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_get_grid_axisDomainOrder
+    END SUBROUTINE cxios_get_grid_axis_domain_order
     
-    FUNCTION cxios_is_defined_grid_axisDomainOrder(grid_hdl ) BIND(C)
+    FUNCTION cxios_is_defined_grid_axis_domain_order(grid_hdl ) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_axisDomainOrder
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_axis_domain_order
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
-    END FUNCTION cxios_is_defined_grid_axisDomainOrder
+    END FUNCTION cxios_is_defined_grid_axis_domain_order
     
     
     SUBROUTINE cxios_set_grid_description(grid_hdl, description, description_size) BIND(C)

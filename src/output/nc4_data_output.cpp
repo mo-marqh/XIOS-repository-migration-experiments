@@ -582,7 +582,7 @@ namespace xios
          if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type==MULTI_FILE) return ;
 
-         CArray<bool,1> axisDomainOrder = grid->axisDomainOrder;
+         CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
          int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0;
          std::vector<StdString> domainList = grid->getDomainList();
          std::vector<StdString> axisList   = grid->getAxisList();

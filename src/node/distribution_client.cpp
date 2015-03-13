@@ -48,7 +48,7 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
 {
   std::vector<CDomain*> domList = grid->getDomains();
   std::vector<CAxis*> axisList = grid->getAxis();
-  CArray<bool,1> axisDomainOrder = grid->axisDomainOrder;
+  CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
 
   std::vector<CDomain*>::iterator itbDom, iteDom, itDom;
   std::vector<CAxis*>::iterator itbAxis, iteAxis, itAxis;
