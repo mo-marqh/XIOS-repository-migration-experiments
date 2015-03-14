@@ -27,7 +27,8 @@ USE ivariable, ONLY : xios(get_variable_handle), xios(get_variablegroup_handle)
 
 USE ivariable_attr, ONLY : xios(set_variable_attr_hdl), xios(get_variable_attr_hdl), xios(is_defined_variable_attr_hdl)
 
-USE ivariablegroup_attr, ONLY : xios(set_variablegroup_attr_hdl), xios(get_variablegroup_attr_hdl), xios(is_defined_variablegroup_attr_hdl)
+USE ivariablegroup_attr, ONLY : xios(set_variablegroup_attr_hdl), xios(get_variablegroup_attr_hdl), &
+                                xios(is_defined_variablegroup_attr_hdl)
 
 USE ifile, ONLY : xios(get_file_handle), xios(get_filegroup_handle)
 
