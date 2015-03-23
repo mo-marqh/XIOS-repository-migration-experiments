@@ -111,6 +111,7 @@ namespace xios
         month  += timestep * timeStep.month;
         year   += timestep * timeStep.year;
         timestep = 0.0;
+        return *this;
       }
 
       CDuration& CDuration::resolve(const CCalendar& c, bool noNegativeTime /*= false*/)
