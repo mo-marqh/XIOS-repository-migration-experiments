@@ -1,5 +1,5 @@
 /* ************************************************************************** *
- *               Interface auto generated - do not modify                   *
+ *               Interface auto generated - do not modify                     *
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
@@ -15,59 +15,56 @@
 
 extern "C"
 {
-  typedef xios::CVariable*  variable_Ptr;
-  
+  typedef xios::CVariable* variable_Ptr;
+
   void cxios_set_variable_name(variable_Ptr variable_hdl, const char * name, int name_size)
   {
     std::string name_str;
-    if(!cstr2string(name, name_size, name_str)) return;
-     CTimer::get("XIOS").resume();
+    if (!cstr2string(name, name_size, name_str)) return;
+    CTimer::get("XIOS").resume();
     variable_hdl->name.setValue(name_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").suspend();
   }
-  
+
   void cxios_get_variable_name(variable_Ptr variable_hdl, char * name, int name_size)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(variable_hdl->name.getInheritedValue(),name , name_size))
-      ERROR("void cxios_get_variable_name(variable_Ptr variable_hdl, char * name, int name_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    if (!string_copy(variable_hdl->name.getInheritedValue(), name, name_size))
+      ERROR("void cxios_get_variable_name(variable_Ptr variable_hdl, char * name, int name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
   }
-  
-  bool cxios_is_defined_variable_name(variable_Ptr variable_hdl )
+
+  bool cxios_is_defined_variable_name(variable_Ptr variable_hdl)
   {
      CTimer::get("XIOS").resume();
-    return variable_hdl->name.hasInheritedValue();
+     bool isDefined = variable_hdl->name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
+     return isDefined;
   }
-  
-  
-  
+
+
   void cxios_set_variable_type(variable_Ptr variable_hdl, const char * type, int type_size)
   {
     std::string type_str;
-    if(!cstr2string(type, type_size, type_str)) return;
-     CTimer::get("XIOS").resume();
+    if (!cstr2string(type, type_size, type_str)) return;
+    CTimer::get("XIOS").resume();
     variable_hdl->type.fromString(type_str);
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").suspend();
   }
-  
+
   void cxios_get_variable_type(variable_Ptr variable_hdl, char * type, int type_size)
   {
-     CTimer::get("XIOS").resume();
-    if(!string_copy(variable_hdl->type.getInheritedStringValue(),type , type_size))
-      ERROR("void cxios_get_variable_type(variable_Ptr variable_hdl, char * type, int type_size)", <<"Input string is to short");
-     CTimer::get("XIOS").suspend();
+    CTimer::get("XIOS").resume();
+    if (!string_copy(variable_hdl->type.getInheritedStringValue(), type, type_size))
+      ERROR("void cxios_get_variable_type(variable_Ptr variable_hdl, char * type, int type_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
   }
-  
-  bool cxios_is_defined_variable_type(variable_Ptr variable_hdl )
+
+  bool cxios_is_defined_variable_type(variable_Ptr variable_hdl)
   {
      CTimer::get("XIOS").resume();
-    return variable_hdl->type.hasInheritedValue();
+     bool isDefined = variable_hdl->type.hasInheritedValue();
      CTimer::get("XIOS").suspend();
+     return isDefined;
   }
-  
-  
-  
-  
 }

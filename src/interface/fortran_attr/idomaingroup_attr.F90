@@ -7,16 +7,16 @@ MODULE idomaingroup_attr
   USE, INTRINSIC :: ISO_C_BINDING
   USE idomain
   USE domaingroup_interface_attr
-  
+
 CONTAINS
-  
+
   SUBROUTINE xios(set_domaingroup_attr)  &
     ( domaingroup_id, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::domaingroup_id
@@ -60,7 +60,7 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_ni_loc
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj_loc
-      
+
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(set_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
@@ -68,16 +68,16 @@ CONTAINS
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(set_domaingroup_attr)
-  
+
   SUBROUTINE xios(set_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: bounds_lat(:,:)
@@ -120,23 +120,23 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_ni_loc
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj_loc
-      
+
       CALL xios(set_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
       , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(set_domaingroup_attr_hdl)
-  
+
   SUBROUTINE xios(set_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, bounds_lat_, bounds_lon_, data_dim_, data_i_index_, data_ibegin_, data_j_index_  &
     , data_jbegin_, data_n_index_, data_ni_, data_nj_, domain_group_ref_, domain_ref_, group_ref_  &
     , i_index_, ibegin_, iend_, j_index_, jbegin_, jend_, latvalue_, long_name_, lonvalue_, mask_  &
     , name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, standard_name_, type_, zoom_ibegin_, zoom_ibegin_loc_  &
     , zoom_jbegin_, zoom_jbegin_loc_, zoom_ni_, zoom_ni_loc_, zoom_nj_, zoom_nj_loc_ )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: bounds_lat_(:,:)
@@ -179,176 +179,174 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_ni_loc_
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj_
       INTEGER  , OPTIONAL, INTENT(IN) :: zoom_nj_loc_
-      
+
       IF (PRESENT(bounds_lat_)) THEN
-        CALL cxios_set_domaingroup_bounds_lat(domaingroup_hdl%daddr, bounds_lat_,size(bounds_lat_,1),size(bounds_lat_,2))
+        CALL cxios_set_domaingroup_bounds_lat(domaingroup_hdl%daddr, bounds_lat_, size(bounds_lat_,1), size(bounds_lat_,2))
       ENDIF
-      
+
       IF (PRESENT(bounds_lon_)) THEN
-        CALL cxios_set_domaingroup_bounds_lon(domaingroup_hdl%daddr, bounds_lon_,size(bounds_lon_,1),size(bounds_lon_,2))
+        CALL cxios_set_domaingroup_bounds_lon(domaingroup_hdl%daddr, bounds_lon_, size(bounds_lon_,1), size(bounds_lon_,2))
       ENDIF
-      
+
       IF (PRESENT(data_dim_)) THEN
         CALL cxios_set_domaingroup_data_dim(domaingroup_hdl%daddr, data_dim_)
       ENDIF
-      
+
       IF (PRESENT(data_i_index_)) THEN
-        CALL cxios_set_domaingroup_data_i_index(domaingroup_hdl%daddr, data_i_index_,size(data_i_index_,1))
+        CALL cxios_set_domaingroup_data_i_index(domaingroup_hdl%daddr, data_i_index_, size(data_i_index_,1))
       ENDIF
-      
+
       IF (PRESENT(data_ibegin_)) THEN
         CALL cxios_set_domaingroup_data_ibegin(domaingroup_hdl%daddr, data_ibegin_)
       ENDIF
-      
+
       IF (PRESENT(data_j_index_)) THEN
-        CALL cxios_set_domaingroup_data_j_index(domaingroup_hdl%daddr, data_j_index_,size(data_j_index_,1))
+        CALL cxios_set_domaingroup_data_j_index(domaingroup_hdl%daddr, data_j_index_, size(data_j_index_,1))
       ENDIF
-      
+
       IF (PRESENT(data_jbegin_)) THEN
         CALL cxios_set_domaingroup_data_jbegin(domaingroup_hdl%daddr, data_jbegin_)
       ENDIF
-      
+
       IF (PRESENT(data_n_index_)) THEN
         CALL cxios_set_domaingroup_data_n_index(domaingroup_hdl%daddr, data_n_index_)
       ENDIF
-      
+
       IF (PRESENT(data_ni_)) THEN
         CALL cxios_set_domaingroup_data_ni(domaingroup_hdl%daddr, data_ni_)
       ENDIF
-      
+
       IF (PRESENT(data_nj_)) THEN
         CALL cxios_set_domaingroup_data_nj(domaingroup_hdl%daddr, data_nj_)
       ENDIF
-      
+
       IF (PRESENT(domain_group_ref_)) THEN
         CALL cxios_set_domaingroup_domain_group_ref(domaingroup_hdl%daddr, domain_group_ref_, len(domain_group_ref_))
       ENDIF
-      
+
       IF (PRESENT(domain_ref_)) THEN
         CALL cxios_set_domaingroup_domain_ref(domaingroup_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
-      
+
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_set_domaingroup_group_ref(domaingroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
-      
+
       IF (PRESENT(i_index_)) THEN
-        CALL cxios_set_domaingroup_i_index(domaingroup_hdl%daddr, i_index_,size(i_index_,1),size(i_index_,2))
+        CALL cxios_set_domaingroup_i_index(domaingroup_hdl%daddr, i_index_, size(i_index_,1), size(i_index_,2))
       ENDIF
-      
+
       IF (PRESENT(ibegin_)) THEN
         CALL cxios_set_domaingroup_ibegin(domaingroup_hdl%daddr, ibegin_)
       ENDIF
-      
+
       IF (PRESENT(iend_)) THEN
         CALL cxios_set_domaingroup_iend(domaingroup_hdl%daddr, iend_)
       ENDIF
-      
+
       IF (PRESENT(j_index_)) THEN
-        CALL cxios_set_domaingroup_j_index(domaingroup_hdl%daddr, j_index_,size(j_index_,1),size(j_index_,2))
+        CALL cxios_set_domaingroup_j_index(domaingroup_hdl%daddr, j_index_, size(j_index_,1), size(j_index_,2))
       ENDIF
-      
+
       IF (PRESENT(jbegin_)) THEN
         CALL cxios_set_domaingroup_jbegin(domaingroup_hdl%daddr, jbegin_)
       ENDIF
-      
+
       IF (PRESENT(jend_)) THEN
         CALL cxios_set_domaingroup_jend(domaingroup_hdl%daddr, jend_)
       ENDIF
-      
+
       IF (PRESENT(latvalue_)) THEN
-        CALL cxios_set_domaingroup_latvalue(domaingroup_hdl%daddr, latvalue_,size(latvalue_,1))
+        CALL cxios_set_domaingroup_latvalue(domaingroup_hdl%daddr, latvalue_, size(latvalue_,1))
       ENDIF
-      
+
       IF (PRESENT(long_name_)) THEN
         CALL cxios_set_domaingroup_long_name(domaingroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
-      
+
       IF (PRESENT(lonvalue_)) THEN
-        CALL cxios_set_domaingroup_lonvalue(domaingroup_hdl%daddr, lonvalue_,size(lonvalue_,1))
+        CALL cxios_set_domaingroup_lonvalue(domaingroup_hdl%daddr, lonvalue_, size(lonvalue_,1))
       ENDIF
-      
+
       IF (PRESENT(mask_)) THEN
-        ALLOCATE(mask__tmp(size(mask_,1),size(mask_,2)))
-        mask__tmp=mask_
-        CALL cxios_set_domaingroup_mask(domaingroup_hdl%daddr, mask__tmp,size(mask_,1),size(mask_,2))
+        ALLOCATE(mask__tmp(size(mask_,1), size(mask_,2)))
+        mask__tmp = mask_
+        CALL cxios_set_domaingroup_mask(domaingroup_hdl%daddr, mask__tmp, size(mask_,1), size(mask_,2))
       ENDIF
-      
+
       IF (PRESENT(name_)) THEN
         CALL cxios_set_domaingroup_name(domaingroup_hdl%daddr, name_, len(name_))
       ENDIF
-      
+
       IF (PRESENT(ni_)) THEN
         CALL cxios_set_domaingroup_ni(domaingroup_hdl%daddr, ni_)
       ENDIF
-      
+
       IF (PRESENT(ni_glo_)) THEN
         CALL cxios_set_domaingroup_ni_glo(domaingroup_hdl%daddr, ni_glo_)
       ENDIF
-      
+
       IF (PRESENT(nj_)) THEN
         CALL cxios_set_domaingroup_nj(domaingroup_hdl%daddr, nj_)
       ENDIF
-      
+
       IF (PRESENT(nj_glo_)) THEN
         CALL cxios_set_domaingroup_nj_glo(domaingroup_hdl%daddr, nj_glo_)
       ENDIF
-      
+
       IF (PRESENT(nvertex_)) THEN
         CALL cxios_set_domaingroup_nvertex(domaingroup_hdl%daddr, nvertex_)
       ENDIF
-      
+
       IF (PRESENT(standard_name_)) THEN
         CALL cxios_set_domaingroup_standard_name(domaingroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
-      
+
       IF (PRESENT(type_)) THEN
         CALL cxios_set_domaingroup_type(domaingroup_hdl%daddr, type_, len(type_))
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_)) THEN
         CALL cxios_set_domaingroup_zoom_ibegin(domaingroup_hdl%daddr, zoom_ibegin_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_loc_)) THEN
         CALL cxios_set_domaingroup_zoom_ibegin_loc(domaingroup_hdl%daddr, zoom_ibegin_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_)) THEN
         CALL cxios_set_domaingroup_zoom_jbegin(domaingroup_hdl%daddr, zoom_jbegin_)
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_loc_)) THEN
         CALL cxios_set_domaingroup_zoom_jbegin_loc(domaingroup_hdl%daddr, zoom_jbegin_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_)) THEN
         CALL cxios_set_domaingroup_zoom_ni(domaingroup_hdl%daddr, zoom_ni_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_loc_)) THEN
         CALL cxios_set_domaingroup_zoom_ni_loc(domaingroup_hdl%daddr, zoom_ni_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_)) THEN
         CALL cxios_set_domaingroup_zoom_nj(domaingroup_hdl%daddr, zoom_nj_)
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_loc_)) THEN
         CALL cxios_set_domaingroup_zoom_nj_loc(domaingroup_hdl%daddr, zoom_nj_loc_)
       ENDIF
-      
-      
-    
+
   END SUBROUTINE xios(set_domaingroup_attr_hdl_)
-  
+
   SUBROUTINE xios(get_domaingroup_attr)  &
     ( domaingroup_id, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::domaingroup_id
@@ -392,7 +390,7 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_ni_loc
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj_loc
-      
+
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(get_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
@@ -400,16 +398,16 @@ CONTAINS
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(get_domaingroup_attr)
-  
+
   SUBROUTINE xios(get_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: bounds_lat(:,:)
@@ -452,23 +450,23 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_ni_loc
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj_loc
-      
+
       CALL xios(get_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
       , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(get_domaingroup_attr_hdl)
-  
+
   SUBROUTINE xios(get_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, bounds_lat_, bounds_lon_, data_dim_, data_i_index_, data_ibegin_, data_j_index_  &
     , data_jbegin_, data_n_index_, data_ni_, data_nj_, domain_group_ref_, domain_ref_, group_ref_  &
     , i_index_, ibegin_, iend_, j_index_, jbegin_, jend_, latvalue_, long_name_, lonvalue_, mask_  &
     , name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, standard_name_, type_, zoom_ibegin_, zoom_ibegin_loc_  &
     , zoom_jbegin_, zoom_jbegin_loc_, zoom_ni_, zoom_ni_loc_, zoom_nj_, zoom_nj_loc_ )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: bounds_lat_(:,:)
@@ -511,176 +509,174 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_ni_loc_
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj_
       INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_nj_loc_
-      
+
       IF (PRESENT(bounds_lat_)) THEN
-        CALL cxios_get_domaingroup_bounds_lat(domaingroup_hdl%daddr, bounds_lat_,size(bounds_lat_,1),size(bounds_lat_,2))
+        CALL cxios_get_domaingroup_bounds_lat(domaingroup_hdl%daddr, bounds_lat_, size(bounds_lat_,1), size(bounds_lat_,2))
       ENDIF
-      
+
       IF (PRESENT(bounds_lon_)) THEN
-        CALL cxios_get_domaingroup_bounds_lon(domaingroup_hdl%daddr, bounds_lon_,size(bounds_lon_,1),size(bounds_lon_,2))
+        CALL cxios_get_domaingroup_bounds_lon(domaingroup_hdl%daddr, bounds_lon_, size(bounds_lon_,1), size(bounds_lon_,2))
       ENDIF
-      
+
       IF (PRESENT(data_dim_)) THEN
         CALL cxios_get_domaingroup_data_dim(domaingroup_hdl%daddr, data_dim_)
       ENDIF
-      
+
       IF (PRESENT(data_i_index_)) THEN
-        CALL cxios_get_domaingroup_data_i_index(domaingroup_hdl%daddr, data_i_index_,size(data_i_index_,1))
+        CALL cxios_get_domaingroup_data_i_index(domaingroup_hdl%daddr, data_i_index_, size(data_i_index_,1))
       ENDIF
-      
+
       IF (PRESENT(data_ibegin_)) THEN
         CALL cxios_get_domaingroup_data_ibegin(domaingroup_hdl%daddr, data_ibegin_)
       ENDIF
-      
+
       IF (PRESENT(data_j_index_)) THEN
-        CALL cxios_get_domaingroup_data_j_index(domaingroup_hdl%daddr, data_j_index_,size(data_j_index_,1))
+        CALL cxios_get_domaingroup_data_j_index(domaingroup_hdl%daddr, data_j_index_, size(data_j_index_,1))
       ENDIF
-      
+
       IF (PRESENT(data_jbegin_)) THEN
         CALL cxios_get_domaingroup_data_jbegin(domaingroup_hdl%daddr, data_jbegin_)
       ENDIF
-      
+
       IF (PRESENT(data_n_index_)) THEN
         CALL cxios_get_domaingroup_data_n_index(domaingroup_hdl%daddr, data_n_index_)
       ENDIF
-      
+
       IF (PRESENT(data_ni_)) THEN
         CALL cxios_get_domaingroup_data_ni(domaingroup_hdl%daddr, data_ni_)
       ENDIF
-      
+
       IF (PRESENT(data_nj_)) THEN
         CALL cxios_get_domaingroup_data_nj(domaingroup_hdl%daddr, data_nj_)
       ENDIF
-      
+
       IF (PRESENT(domain_group_ref_)) THEN
         CALL cxios_get_domaingroup_domain_group_ref(domaingroup_hdl%daddr, domain_group_ref_, len(domain_group_ref_))
       ENDIF
-      
+
       IF (PRESENT(domain_ref_)) THEN
         CALL cxios_get_domaingroup_domain_ref(domaingroup_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
-      
+
       IF (PRESENT(group_ref_)) THEN
         CALL cxios_get_domaingroup_group_ref(domaingroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
-      
+
       IF (PRESENT(i_index_)) THEN
-        CALL cxios_get_domaingroup_i_index(domaingroup_hdl%daddr, i_index_,size(i_index_,1),size(i_index_,2))
+        CALL cxios_get_domaingroup_i_index(domaingroup_hdl%daddr, i_index_, size(i_index_,1), size(i_index_,2))
       ENDIF
-      
+
       IF (PRESENT(ibegin_)) THEN
         CALL cxios_get_domaingroup_ibegin(domaingroup_hdl%daddr, ibegin_)
       ENDIF
-      
+
       IF (PRESENT(iend_)) THEN
         CALL cxios_get_domaingroup_iend(domaingroup_hdl%daddr, iend_)
       ENDIF
-      
+
       IF (PRESENT(j_index_)) THEN
-        CALL cxios_get_domaingroup_j_index(domaingroup_hdl%daddr, j_index_,size(j_index_,1),size(j_index_,2))
+        CALL cxios_get_domaingroup_j_index(domaingroup_hdl%daddr, j_index_, size(j_index_,1), size(j_index_,2))
       ENDIF
-      
+
       IF (PRESENT(jbegin_)) THEN
         CALL cxios_get_domaingroup_jbegin(domaingroup_hdl%daddr, jbegin_)
       ENDIF
-      
+
       IF (PRESENT(jend_)) THEN
         CALL cxios_get_domaingroup_jend(domaingroup_hdl%daddr, jend_)
       ENDIF
-      
+
       IF (PRESENT(latvalue_)) THEN
-        CALL cxios_get_domaingroup_latvalue(domaingroup_hdl%daddr, latvalue_,size(latvalue_,1))
+        CALL cxios_get_domaingroup_latvalue(domaingroup_hdl%daddr, latvalue_, size(latvalue_,1))
       ENDIF
-      
+
       IF (PRESENT(long_name_)) THEN
         CALL cxios_get_domaingroup_long_name(domaingroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
-      
+
       IF (PRESENT(lonvalue_)) THEN
-        CALL cxios_get_domaingroup_lonvalue(domaingroup_hdl%daddr, lonvalue_,size(lonvalue_,1))
+        CALL cxios_get_domaingroup_lonvalue(domaingroup_hdl%daddr, lonvalue_, size(lonvalue_,1))
       ENDIF
-      
+
       IF (PRESENT(mask_)) THEN
-        ALLOCATE(mask__tmp(size(mask_,1),size(mask_,2)))
-        CALL cxios_get_domaingroup_mask(domaingroup_hdl%daddr, mask__tmp,size(mask_,1),size(mask_,2))
-        mask_=mask__tmp
+        ALLOCATE(mask__tmp(size(mask_,1), size(mask_,2)))
+        CALL cxios_get_domaingroup_mask(domaingroup_hdl%daddr, mask__tmp, size(mask_,1), size(mask_,2))
+        mask_ = mask__tmp
       ENDIF
-      
+
       IF (PRESENT(name_)) THEN
         CALL cxios_get_domaingroup_name(domaingroup_hdl%daddr, name_, len(name_))
       ENDIF
-      
+
       IF (PRESENT(ni_)) THEN
         CALL cxios_get_domaingroup_ni(domaingroup_hdl%daddr, ni_)
       ENDIF
-      
+
       IF (PRESENT(ni_glo_)) THEN
         CALL cxios_get_domaingroup_ni_glo(domaingroup_hdl%daddr, ni_glo_)
       ENDIF
-      
+
       IF (PRESENT(nj_)) THEN
         CALL cxios_get_domaingroup_nj(domaingroup_hdl%daddr, nj_)
       ENDIF
-      
+
       IF (PRESENT(nj_glo_)) THEN
         CALL cxios_get_domaingroup_nj_glo(domaingroup_hdl%daddr, nj_glo_)
       ENDIF
-      
+
       IF (PRESENT(nvertex_)) THEN
         CALL cxios_get_domaingroup_nvertex(domaingroup_hdl%daddr, nvertex_)
       ENDIF
-      
+
       IF (PRESENT(standard_name_)) THEN
         CALL cxios_get_domaingroup_standard_name(domaingroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
-      
+
       IF (PRESENT(type_)) THEN
         CALL cxios_get_domaingroup_type(domaingroup_hdl%daddr, type_, len(type_))
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_)) THEN
         CALL cxios_get_domaingroup_zoom_ibegin(domaingroup_hdl%daddr, zoom_ibegin_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_loc_)) THEN
         CALL cxios_get_domaingroup_zoom_ibegin_loc(domaingroup_hdl%daddr, zoom_ibegin_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_)) THEN
         CALL cxios_get_domaingroup_zoom_jbegin(domaingroup_hdl%daddr, zoom_jbegin_)
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_loc_)) THEN
         CALL cxios_get_domaingroup_zoom_jbegin_loc(domaingroup_hdl%daddr, zoom_jbegin_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_)) THEN
         CALL cxios_get_domaingroup_zoom_ni(domaingroup_hdl%daddr, zoom_ni_)
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_loc_)) THEN
         CALL cxios_get_domaingroup_zoom_ni_loc(domaingroup_hdl%daddr, zoom_ni_loc_)
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_)) THEN
         CALL cxios_get_domaingroup_zoom_nj(domaingroup_hdl%daddr, zoom_nj_)
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_loc_)) THEN
         CALL cxios_get_domaingroup_zoom_nj_loc(domaingroup_hdl%daddr, zoom_nj_loc_)
       ENDIF
-      
-      
-    
+
   END SUBROUTINE xios(get_domaingroup_attr_hdl_)
-  
+
   SUBROUTINE xios(is_defined_domaingroup_attr)  &
     ( domaingroup_id, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::domaingroup_id
@@ -762,7 +758,7 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: zoom_nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_nj_loc
       LOGICAL(KIND=C_BOOL) :: zoom_nj_loc_tmp
-      
+
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(is_defined_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
@@ -770,16 +766,16 @@ CONTAINS
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(is_defined_domaingroup_attr)
-  
+
   SUBROUTINE xios(is_defined_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
     , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
     , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
     , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
     , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       LOGICAL, OPTIONAL, INTENT(OUT) :: bounds_lat
@@ -860,23 +856,23 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: zoom_nj_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_nj_loc
       LOGICAL(KIND=C_BOOL) :: zoom_nj_loc_tmp
-      
+
       CALL xios(is_defined_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, bounds_lat, bounds_lon, data_dim, data_i_index, data_ibegin, data_j_index  &
       , data_jbegin, data_n_index, data_ni, data_nj, domain_group_ref, domain_ref, group_ref, i_index  &
       , ibegin, iend, j_index, jbegin, jend, latvalue, long_name, lonvalue, mask, name, ni, ni_glo  &
       , nj, nj_glo, nvertex, standard_name, type, zoom_ibegin, zoom_ibegin_loc, zoom_jbegin, zoom_jbegin_loc  &
       , zoom_ni, zoom_ni_loc, zoom_nj, zoom_nj_loc )
-    
+
   END SUBROUTINE xios(is_defined_domaingroup_attr_hdl)
-  
+
   SUBROUTINE xios(is_defined_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, bounds_lat_, bounds_lon_, data_dim_, data_i_index_, data_ibegin_, data_j_index_  &
     , data_jbegin_, data_n_index_, data_ni_, data_nj_, domain_group_ref_, domain_ref_, group_ref_  &
     , i_index_, ibegin_, iend_, j_index_, jbegin_, jend_, latvalue_, long_name_, lonvalue_, mask_  &
     , name_, ni_, ni_glo_, nj_, nj_glo_, nvertex_, standard_name_, type_, zoom_ibegin_, zoom_ibegin_loc_  &
     , zoom_jbegin_, zoom_jbegin_loc_, zoom_ni_, zoom_ni_loc_, zoom_nj_, zoom_nj_loc_ )
-    
+
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
       LOGICAL, OPTIONAL, INTENT(OUT) :: bounds_lat_
@@ -957,204 +953,202 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: zoom_nj__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_nj_loc_
       LOGICAL(KIND=C_BOOL) :: zoom_nj_loc__tmp
-      
+
       IF (PRESENT(bounds_lat_)) THEN
-        bounds_lat__tmp=cxios_is_defined_domaingroup_bounds_lat(domaingroup_hdl%daddr)
-        bounds_lat_=bounds_lat__tmp
+        bounds_lat__tmp = cxios_is_defined_domaingroup_bounds_lat(domaingroup_hdl%daddr)
+        bounds_lat_ = bounds_lat__tmp
       ENDIF
-      
+
       IF (PRESENT(bounds_lon_)) THEN
-        bounds_lon__tmp=cxios_is_defined_domaingroup_bounds_lon(domaingroup_hdl%daddr)
-        bounds_lon_=bounds_lon__tmp
+        bounds_lon__tmp = cxios_is_defined_domaingroup_bounds_lon(domaingroup_hdl%daddr)
+        bounds_lon_ = bounds_lon__tmp
       ENDIF
-      
+
       IF (PRESENT(data_dim_)) THEN
-        data_dim__tmp=cxios_is_defined_domaingroup_data_dim(domaingroup_hdl%daddr)
-        data_dim_=data_dim__tmp
+        data_dim__tmp = cxios_is_defined_domaingroup_data_dim(domaingroup_hdl%daddr)
+        data_dim_ = data_dim__tmp
       ENDIF
-      
+
       IF (PRESENT(data_i_index_)) THEN
-        data_i_index__tmp=cxios_is_defined_domaingroup_data_i_index(domaingroup_hdl%daddr)
-        data_i_index_=data_i_index__tmp
+        data_i_index__tmp = cxios_is_defined_domaingroup_data_i_index(domaingroup_hdl%daddr)
+        data_i_index_ = data_i_index__tmp
       ENDIF
-      
+
       IF (PRESENT(data_ibegin_)) THEN
-        data_ibegin__tmp=cxios_is_defined_domaingroup_data_ibegin(domaingroup_hdl%daddr)
-        data_ibegin_=data_ibegin__tmp
+        data_ibegin__tmp = cxios_is_defined_domaingroup_data_ibegin(domaingroup_hdl%daddr)
+        data_ibegin_ = data_ibegin__tmp
       ENDIF
-      
+
       IF (PRESENT(data_j_index_)) THEN
-        data_j_index__tmp=cxios_is_defined_domaingroup_data_j_index(domaingroup_hdl%daddr)
-        data_j_index_=data_j_index__tmp
+        data_j_index__tmp = cxios_is_defined_domaingroup_data_j_index(domaingroup_hdl%daddr)
+        data_j_index_ = data_j_index__tmp
       ENDIF
-      
+
       IF (PRESENT(data_jbegin_)) THEN
-        data_jbegin__tmp=cxios_is_defined_domaingroup_data_jbegin(domaingroup_hdl%daddr)
-        data_jbegin_=data_jbegin__tmp
+        data_jbegin__tmp = cxios_is_defined_domaingroup_data_jbegin(domaingroup_hdl%daddr)
+        data_jbegin_ = data_jbegin__tmp
       ENDIF
-      
+
       IF (PRESENT(data_n_index_)) THEN
-        data_n_index__tmp=cxios_is_defined_domaingroup_data_n_index(domaingroup_hdl%daddr)
-        data_n_index_=data_n_index__tmp
+        data_n_index__tmp = cxios_is_defined_domaingroup_data_n_index(domaingroup_hdl%daddr)
+        data_n_index_ = data_n_index__tmp
       ENDIF
-      
+
       IF (PRESENT(data_ni_)) THEN
-        data_ni__tmp=cxios_is_defined_domaingroup_data_ni(domaingroup_hdl%daddr)
-        data_ni_=data_ni__tmp
+        data_ni__tmp = cxios_is_defined_domaingroup_data_ni(domaingroup_hdl%daddr)
+        data_ni_ = data_ni__tmp
       ENDIF
-      
+
       IF (PRESENT(data_nj_)) THEN
-        data_nj__tmp=cxios_is_defined_domaingroup_data_nj(domaingroup_hdl%daddr)
-        data_nj_=data_nj__tmp
+        data_nj__tmp = cxios_is_defined_domaingroup_data_nj(domaingroup_hdl%daddr)
+        data_nj_ = data_nj__tmp
       ENDIF
-      
+
       IF (PRESENT(domain_group_ref_)) THEN
-        domain_group_ref__tmp=cxios_is_defined_domaingroup_domain_group_ref(domaingroup_hdl%daddr)
-        domain_group_ref_=domain_group_ref__tmp
+        domain_group_ref__tmp = cxios_is_defined_domaingroup_domain_group_ref(domaingroup_hdl%daddr)
+        domain_group_ref_ = domain_group_ref__tmp
       ENDIF
-      
+
       IF (PRESENT(domain_ref_)) THEN
-        domain_ref__tmp=cxios_is_defined_domaingroup_domain_ref(domaingroup_hdl%daddr)
-        domain_ref_=domain_ref__tmp
+        domain_ref__tmp = cxios_is_defined_domaingroup_domain_ref(domaingroup_hdl%daddr)
+        domain_ref_ = domain_ref__tmp
       ENDIF
-      
+
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp=cxios_is_defined_domaingroup_group_ref(domaingroup_hdl%daddr)
-        group_ref_=group_ref__tmp
+        group_ref__tmp = cxios_is_defined_domaingroup_group_ref(domaingroup_hdl%daddr)
+        group_ref_ = group_ref__tmp
       ENDIF
-      
+
       IF (PRESENT(i_index_)) THEN
-        i_index__tmp=cxios_is_defined_domaingroup_i_index(domaingroup_hdl%daddr)
-        i_index_=i_index__tmp
+        i_index__tmp = cxios_is_defined_domaingroup_i_index(domaingroup_hdl%daddr)
+        i_index_ = i_index__tmp
       ENDIF
-      
+
       IF (PRESENT(ibegin_)) THEN
-        ibegin__tmp=cxios_is_defined_domaingroup_ibegin(domaingroup_hdl%daddr)
-        ibegin_=ibegin__tmp
+        ibegin__tmp = cxios_is_defined_domaingroup_ibegin(domaingroup_hdl%daddr)
+        ibegin_ = ibegin__tmp
       ENDIF
-      
+
       IF (PRESENT(iend_)) THEN
-        iend__tmp=cxios_is_defined_domaingroup_iend(domaingroup_hdl%daddr)
-        iend_=iend__tmp
+        iend__tmp = cxios_is_defined_domaingroup_iend(domaingroup_hdl%daddr)
+        iend_ = iend__tmp
       ENDIF
-      
+
       IF (PRESENT(j_index_)) THEN
-        j_index__tmp=cxios_is_defined_domaingroup_j_index(domaingroup_hdl%daddr)
-        j_index_=j_index__tmp
+        j_index__tmp = cxios_is_defined_domaingroup_j_index(domaingroup_hdl%daddr)
+        j_index_ = j_index__tmp
       ENDIF
-      
+
       IF (PRESENT(jbegin_)) THEN
-        jbegin__tmp=cxios_is_defined_domaingroup_jbegin(domaingroup_hdl%daddr)
-        jbegin_=jbegin__tmp
+        jbegin__tmp = cxios_is_defined_domaingroup_jbegin(domaingroup_hdl%daddr)
+        jbegin_ = jbegin__tmp
       ENDIF
-      
+
       IF (PRESENT(jend_)) THEN
-        jend__tmp=cxios_is_defined_domaingroup_jend(domaingroup_hdl%daddr)
-        jend_=jend__tmp
+        jend__tmp = cxios_is_defined_domaingroup_jend(domaingroup_hdl%daddr)
+        jend_ = jend__tmp
       ENDIF
-      
+
       IF (PRESENT(latvalue_)) THEN
-        latvalue__tmp=cxios_is_defined_domaingroup_latvalue(domaingroup_hdl%daddr)
-        latvalue_=latvalue__tmp
+        latvalue__tmp = cxios_is_defined_domaingroup_latvalue(domaingroup_hdl%daddr)
+        latvalue_ = latvalue__tmp
       ENDIF
-      
+
       IF (PRESENT(long_name_)) THEN
-        long_name__tmp=cxios_is_defined_domaingroup_long_name(domaingroup_hdl%daddr)
-        long_name_=long_name__tmp
+        long_name__tmp = cxios_is_defined_domaingroup_long_name(domaingroup_hdl%daddr)
+        long_name_ = long_name__tmp
       ENDIF
-      
+
       IF (PRESENT(lonvalue_)) THEN
-        lonvalue__tmp=cxios_is_defined_domaingroup_lonvalue(domaingroup_hdl%daddr)
-        lonvalue_=lonvalue__tmp
+        lonvalue__tmp = cxios_is_defined_domaingroup_lonvalue(domaingroup_hdl%daddr)
+        lonvalue_ = lonvalue__tmp
       ENDIF
-      
+
       IF (PRESENT(mask_)) THEN
-        mask__tmp=cxios_is_defined_domaingroup_mask(domaingroup_hdl%daddr)
-        mask_=mask__tmp
+        mask__tmp = cxios_is_defined_domaingroup_mask(domaingroup_hdl%daddr)
+        mask_ = mask__tmp
       ENDIF
-      
+
       IF (PRESENT(name_)) THEN
-        name__tmp=cxios_is_defined_domaingroup_name(domaingroup_hdl%daddr)
-        name_=name__tmp
+        name__tmp = cxios_is_defined_domaingroup_name(domaingroup_hdl%daddr)
+        name_ = name__tmp
       ENDIF
-      
+
       IF (PRESENT(ni_)) THEN
-        ni__tmp=cxios_is_defined_domaingroup_ni(domaingroup_hdl%daddr)
-        ni_=ni__tmp
+        ni__tmp = cxios_is_defined_domaingroup_ni(domaingroup_hdl%daddr)
+        ni_ = ni__tmp
       ENDIF
-      
+
       IF (PRESENT(ni_glo_)) THEN
-        ni_glo__tmp=cxios_is_defined_domaingroup_ni_glo(domaingroup_hdl%daddr)
-        ni_glo_=ni_glo__tmp
+        ni_glo__tmp = cxios_is_defined_domaingroup_ni_glo(domaingroup_hdl%daddr)
+        ni_glo_ = ni_glo__tmp
       ENDIF
-      
+
       IF (PRESENT(nj_)) THEN
-        nj__tmp=cxios_is_defined_domaingroup_nj(domaingroup_hdl%daddr)
-        nj_=nj__tmp
+        nj__tmp = cxios_is_defined_domaingroup_nj(domaingroup_hdl%daddr)
+        nj_ = nj__tmp
       ENDIF
-      
+
       IF (PRESENT(nj_glo_)) THEN
-        nj_glo__tmp=cxios_is_defined_domaingroup_nj_glo(domaingroup_hdl%daddr)
-        nj_glo_=nj_glo__tmp
+        nj_glo__tmp = cxios_is_defined_domaingroup_nj_glo(domaingroup_hdl%daddr)
+        nj_glo_ = nj_glo__tmp
       ENDIF
-      
+
       IF (PRESENT(nvertex_)) THEN
-        nvertex__tmp=cxios_is_defined_domaingroup_nvertex(domaingroup_hdl%daddr)
-        nvertex_=nvertex__tmp
+        nvertex__tmp = cxios_is_defined_domaingroup_nvertex(domaingroup_hdl%daddr)
+        nvertex_ = nvertex__tmp
       ENDIF
-      
+
       IF (PRESENT(standard_name_)) THEN
-        standard_name__tmp=cxios_is_defined_domaingroup_standard_name(domaingroup_hdl%daddr)
-        standard_name_=standard_name__tmp
+        standard_name__tmp = cxios_is_defined_domaingroup_standard_name(domaingroup_hdl%daddr)
+        standard_name_ = standard_name__tmp
       ENDIF
-      
+
       IF (PRESENT(type_)) THEN
-        type__tmp=cxios_is_defined_domaingroup_type(domaingroup_hdl%daddr)
-        type_=type__tmp
+        type__tmp = cxios_is_defined_domaingroup_type(domaingroup_hdl%daddr)
+        type_ = type__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_)) THEN
-        zoom_ibegin__tmp=cxios_is_defined_domaingroup_zoom_ibegin(domaingroup_hdl%daddr)
-        zoom_ibegin_=zoom_ibegin__tmp
+        zoom_ibegin__tmp = cxios_is_defined_domaingroup_zoom_ibegin(domaingroup_hdl%daddr)
+        zoom_ibegin_ = zoom_ibegin__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_ibegin_loc_)) THEN
-        zoom_ibegin_loc__tmp=cxios_is_defined_domaingroup_zoom_ibegin_loc(domaingroup_hdl%daddr)
-        zoom_ibegin_loc_=zoom_ibegin_loc__tmp
+        zoom_ibegin_loc__tmp = cxios_is_defined_domaingroup_zoom_ibegin_loc(domaingroup_hdl%daddr)
+        zoom_ibegin_loc_ = zoom_ibegin_loc__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_)) THEN
-        zoom_jbegin__tmp=cxios_is_defined_domaingroup_zoom_jbegin(domaingroup_hdl%daddr)
-        zoom_jbegin_=zoom_jbegin__tmp
+        zoom_jbegin__tmp = cxios_is_defined_domaingroup_zoom_jbegin(domaingroup_hdl%daddr)
+        zoom_jbegin_ = zoom_jbegin__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_jbegin_loc_)) THEN
-        zoom_jbegin_loc__tmp=cxios_is_defined_domaingroup_zoom_jbegin_loc(domaingroup_hdl%daddr)
-        zoom_jbegin_loc_=zoom_jbegin_loc__tmp
+        zoom_jbegin_loc__tmp = cxios_is_defined_domaingroup_zoom_jbegin_loc(domaingroup_hdl%daddr)
+        zoom_jbegin_loc_ = zoom_jbegin_loc__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_)) THEN
-        zoom_ni__tmp=cxios_is_defined_domaingroup_zoom_ni(domaingroup_hdl%daddr)
-        zoom_ni_=zoom_ni__tmp
+        zoom_ni__tmp = cxios_is_defined_domaingroup_zoom_ni(domaingroup_hdl%daddr)
+        zoom_ni_ = zoom_ni__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_ni_loc_)) THEN
-        zoom_ni_loc__tmp=cxios_is_defined_domaingroup_zoom_ni_loc(domaingroup_hdl%daddr)
-        zoom_ni_loc_=zoom_ni_loc__tmp
+        zoom_ni_loc__tmp = cxios_is_defined_domaingroup_zoom_ni_loc(domaingroup_hdl%daddr)
+        zoom_ni_loc_ = zoom_ni_loc__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_)) THEN
-        zoom_nj__tmp=cxios_is_defined_domaingroup_zoom_nj(domaingroup_hdl%daddr)
-        zoom_nj_=zoom_nj__tmp
+        zoom_nj__tmp = cxios_is_defined_domaingroup_zoom_nj(domaingroup_hdl%daddr)
+        zoom_nj_ = zoom_nj__tmp
       ENDIF
-      
+
       IF (PRESENT(zoom_nj_loc_)) THEN
-        zoom_nj_loc__tmp=cxios_is_defined_domaingroup_zoom_nj_loc(domaingroup_hdl%daddr)
-        zoom_nj_loc_=zoom_nj_loc__tmp
+        zoom_nj_loc__tmp = cxios_is_defined_domaingroup_zoom_nj_loc(domaingroup_hdl%daddr)
+        zoom_nj_loc_ = zoom_nj_loc__tmp
       ENDIF
-      
-      
-    
+
   END SUBROUTINE xios(is_defined_domaingroup_attr_hdl_)
-  
+
 END MODULE idomaingroup_attr
