@@ -155,6 +155,7 @@ namespace xios {
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
+         std::vector<int> connectedServerRank_;
 
          DECLARE_REF_FUNC(Domain,domain)
 

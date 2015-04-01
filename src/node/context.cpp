@@ -219,23 +219,6 @@ namespace xios {
       false);
 }
 
-//   //----------------------------------------------------------------
-//
-//   void CContext::solveFieldRefInheritance(bool apply)
-//   {
-//      if (!this->hasId()) return;
-//      vector<CField*> allField = CField::getAll();
-////              = CObjectTemplate<CField>::GetAllVectobject(this->getId());
-//      std::vector<CField*>::iterator
-//         it = allField.begin(), end = allField.end();
-//
-//      for (; it != end; it++)
-//      {
-//         CField* field = *it;
-//         field->solveRefInheritance(apply);
-//      }
-//   }
-
    //----------------------------------------------------------------
 
    void CContext::CleanTree(void)
@@ -257,12 +240,22 @@ namespace xios {
    {
      if (hasClient)
      {
-       size_t bufferSizeMin = 1;
+       size_t bufferSizeMin = 10*sizeof(size_t)*1024;
 #define DECLARE_NODE(Name_, name_)    \
    bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
        std::map<int, StdSize> bufferSize = getDataSize();
+       if (bufferSize.empty())
+       {
+         if (client->isServerLeader())
+         {
+           bufferSize[client->getServerLeader()] = bufferSizeMin;
+         }
+         else
+          return;
+       }
+
        std::map<int, StdSize>::iterator  it = bufferSize.begin(),
                                         ite = bufferSize.end();
        for (; it != ite; ++it)
@@ -314,12 +307,12 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
-
+     // There is nothing client need to send to server
      if (hasClient)
      {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
-//
+
        setClientServerBuffer();
      }
 
@@ -352,7 +345,6 @@ namespace xios {
     if (hasClient && !hasServer) sendPostProcessing();
 
     // There are some processings that should be done after all of above. For example: check mask or index
-//    if (hasClient && !hasServer)
     if (hasClient)
     {
       this->solveAllRefOfEnabledFields(true);
@@ -360,55 +352,10 @@ namespace xios {
     }
 
 
+    // Nettoyage de l'arborescence
+    if (hasClient && !hasServer) CleanTree(); // Only on client side??
 
-//      if (hasClient)
-//      {
-//        //solveCalendar();
-//
-//        // Résolution des héritages pour le context actuel.
-////        this->solveAllInheritance();
-//
-//
-////        //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
-////        this->findEnabledFiles();
-//
-//        this->processEnabledFiles();
-//
-//        this->solveAllGridRef();
-//      }
-
-
-
-
-//      solveCalendar();
-//
-//      // Résolution des héritages pour le context actuel.
-//      this->solveAllInheritance();
-//
-//      //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
-//      this->findEnabledFiles();
-//
-//
-//      this->processEnabledFiles();
-
-/*
-      //Recherche des champs à sortir (enable à true + niveau de sortie correct)
-      // pour chaque fichier précédemment listé.
-      this->findAllEnabledFields();
-
-      // Résolution des références de grilles pour chacun des champs.
-      this->solveAllGridRef();
-
-      // Traitement des opérations.
-      this->solveAllOperation();
-
-      // Traitement des expressions.
-      this->solveAllExpression();
-*/
-      // Nettoyage de l'arborescence
-      if (hasClient && !hasServer) CleanTree(); // Only on client side??
-//      if (hasClient) CleanTree();
-      if (hasClient) sendCreateFileHeader();
+    if (hasClient) sendCreateFileHeader();
    }
 
    void CContext::findAllEnabledFields(void)
@@ -508,7 +455,7 @@ namespace xios {
              recvCloseDefinition(event);
              return true;
              break;
-           case EVENT_ID_UPDATE_CALENDAR :
+           case EVENT_ID_UPDATE_CALENDAR:
              recvUpdateCalendar(event);
              return true;
              break;
@@ -520,6 +467,7 @@ namespace xios {
              recvPostProcessing(event);
              return true;
              break;
+
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
                     <<"Unknown Event");

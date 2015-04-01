@@ -22,12 +22,12 @@ namespace xios {
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_()
+      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_()
+      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
          { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -448,8 +448,13 @@ namespace xios {
 
       StdSize dm = zoom_ni_client * zoom_nj_client;
 
-      lonvalue.resize(dm);
-      latvalue.resize(dm);
+      // Make sure that this attribute is non-empty for every client.
+      if (0 != dm)
+      {
+        lonvalue.resize(dm);
+        latvalue.resize(dm);
+      }
+
 
       for (int i = 0; i < zoom_ni_client; i++)
       {
@@ -667,9 +672,8 @@ namespace xios {
     int zoom_iend=zoom_ibegin+zoom_ni-1 ;
     int zoom_jend=zoom_jbegin+zoom_nj-1 ;
 
-
     // Precompute number of index
-    int globalIndexCount = 0;
+    int globalIndexCountZoom = 0;
     for(j=0;j<nj;j++)
       for(i=0;i<ni;i++)
       {
@@ -678,14 +682,16 @@ namespace xios {
 
         if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
         {
-          ++globalIndexCount;
+          ++globalIndexCountZoom;
         }
       }
 
     // Fill in index
-    CArray<size_t,1> globalIndexDomain(globalIndexCount);
+    CArray<size_t,1> globalIndexDomainZoom(globalIndexCountZoom);
+    CArray<size_t,1> globalIndexDomain(ni*nj);
     size_t globalIndex;
-    globalIndexCount = 0;
+    int globalIndexCount = 0;
+    globalIndexCountZoom = 0;
 
     for(j=0;j<nj;j++)
       for(i=0;i<ni;i++)
@@ -693,11 +699,13 @@ namespace xios {
         i_ind=ibegin+i_index(i,j) ;
         j_ind=jbegin+j_index(i,j) ;
 
+        globalIndex = i_ind + j_ind * ni_glo;
+        globalIndexDomain(globalIndexCount) = globalIndex;
+        ++globalIndexCount;
         if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
         {
-          globalIndex = i_ind + j_ind * ni_glo;
-          globalIndexDomain(globalIndexCount) = globalIndex;
-          ++globalIndexCount;
+          globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
+          ++globalIndexCountZoom;
         }
       }
 
@@ -723,12 +731,37 @@ namespace xios {
                                                                                 client->intraComm);
     clientServerMap->computeServerIndexMapping(globalIndexDomain);
     const std::map<int, std::vector<size_t> >& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
-    std::vector<int> connectedServerRank;
-    for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(); it != globalIndexDomainOnServer.end(); ++it) {
-      connectedServerRank.push_back(it->first);
+
+    std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(),
+                                                       ite = globalIndexDomainOnServer.end();
+    indSrv_.clear();
+    for (; it != ite; ++it)
+    {
+      int rank = it->first;
+      std::vector<size_t>::const_iterator itbVec  = (it->second).begin(),
+                                           iteVec = (it->second).end();
+      int nb = globalIndexDomainZoom.numElements();
+      for (int i = 0; i < nb; ++i)
+      {
+        if (std::binary_search(itbVec, iteVec, globalIndexDomainZoom(i)))
+        {
+          indSrv_[rank].push_back(globalIndexDomainZoom(i));
+        }
+      }
     }
-    nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank);
-    indSrv_ = globalIndexDomainOnServer;
+
+    connectedServerRank_.clear();
+    for (it = globalIndexDomainOnServer.begin(); it != ite; ++it) {
+      connectedServerRank_.push_back(it->first);
+    }
+
+    if (!indSrv_.empty())
+    {
+      connectedServerRank_.clear();
+      for (it = indSrv_.begin(); it != indSrv_.end(); ++it)
+        connectedServerRank_.push_back(it->first);
+    }
+    nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
 
     delete clientServerMap;
   }
@@ -752,10 +785,14 @@ namespace xios {
     std::map<int, std::vector<size_t> >::const_iterator it, itbMap, iteMap;
     itbMap = indSrv_.begin();
     iteMap = indSrv_.end();
-    for (it = itbMap; it != iteMap; ++it)
+    for (int k = 0; k < connectedServerRank_.size(); ++k)
     {
-      int rank = it->first;
-      int nbData = (it->second).size();
+      int nbData = 0;
+      int rank = connectedServerRank_[k];
+      it = indSrv_.find(rank);
+      if (iteMap != it)
+        nbData = (it->second).size();
+
       CArray<int,1> indi(nbData) ;
       CArray<int,1> indj(nbData) ;
       CArray<double,1> lon(nbData) ;
@@ -806,6 +843,7 @@ namespace xios {
         *list_msgLon.back()<<*list_boundslon.back();
         *list_msgLat.back()<<*list_boundslat.back();
       }
+
       eventLon.push(rank,nbConnectedClients_[rank],*list_msgLon.back()) ;
       eventLat.push(rank,nbConnectedClients_[rank],*list_msgLat.back()) ;
     }

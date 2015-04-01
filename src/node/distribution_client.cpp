@@ -16,7 +16,7 @@ CDistributionClient::CDistributionClient(int rank, int dims, CArray<size_t,1>* g
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
    gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_(),
-   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0)
+   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0), nIndexDomain_(), nIndexAxis_()
 {
 }
 
@@ -26,14 +26,16 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_(),
    dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_(),
    gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_(),
-   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0)
+   isDataDistributed_(true), axisNum_(0), domainNum_(0), localDataIndexSendToServer_(0), nIndexDomain_(), nIndexAxis_()
 {
   readDistributionInfo(grid);
   createGlobalIndex();
+  createGlobalIndexSendToServer();
 }
 
 CDistributionClient::~CDistributionClient()
 {
+  if (0 != globalDataSendToServer_) delete globalDataSendToServer_;
   if (0 != localDataIndex_) delete localDataIndex_;
   if (0 != localDataIndexSendToServer_) delete localDataIndexSendToServer_;
 }
@@ -73,6 +75,37 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
       break;
     default:
       break;
+  }
+}
+
+void CDistributionClient::readDomainIndex(const std::vector<CDomain*>& domList)
+{
+  int domainSize = domList.size();
+  nIndexDomain_.resize(domainSize);
+
+  for (int k = 0; k < domainSize; ++k)
+  {
+    nIndexDomain_[k].resize(2);
+    int ni = domList[k]->ni;
+    int nj = domList[k]->nj;
+    nIndexDomain_[k][0].resize(ni,nj);
+    nIndexDomain_[k][1].resize(ni,nj);
+    nIndexDomain_[k][0] = domList[k]->i_index;
+    nIndexDomain_[k][1] = domList[k]->j_index;
+  }
+}
+
+void CDistributionClient::readAxisIndex(const std::vector<CAxis*>& axisList)
+{
+  int axisSize = axisList.size();
+  nIndexAxis_.resize(axisSize);
+
+  for (int k = 0; k < axisSize; ++k)
+  {
+    int n = axisList[k]->ni;
+    nIndexAxis_[k].resize(n);
+    for (int i = 0; i < n; ++i)
+      nIndexAxis_[k](i) = i;
   }
 }
 
@@ -203,6 +236,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
     }
     ++idx;
   }
+  readDomainIndex(domList);
+  readAxisIndex(axisList);
 
   // Grid has only one axis and it is not distributed
   bool isDataNotDistributed = true;
@@ -287,6 +322,43 @@ void CDistributionClient::createLocalAxisDataIndex()
   }
 }
 
+void CDistributionClient::createGlobalIndex()
+{
+  size_t ssize = 1, idx = 0;
+  for (int i = 0; i < this->dims_; ++i)
+    ssize *= nLocal_[i];
+
+  this->globalIndex_ = new CArray<size_t,1>(ssize);
+  std::vector<int> idxLoop(this->dims_,0);
+  int innnerLoopSize = nLocal_[0];
+  while (idx < ssize)
+  {
+    for (int i = 0; i < this->dims_; ++i)
+    {
+      if (idxLoop[i] == nLocal_[i])
+      {
+        idxLoop[i] = 0;
+        ++idxLoop[i+1];
+      }
+    }
+
+    for (int i = 0; i < innnerLoopSize; ++i)
+    {
+      size_t globalIndex = idxLoop[0] + nBeginGlobal_[0];
+      size_t mulDim = 1;
+      for (int k = 1; k < this->dims_; ++k)
+      {
+        mulDim *= nGlob_[k-1];
+        globalIndex += (idxLoop[k] + nBeginGlobal_[k])*mulDim;
+      }
+      (*this->globalIndex_)(idx) = globalIndex;
+      ++idxLoop[0];
+      ++idx;
+    }
+  }
+}
+
+
 /*!
    Create global index on client
    In order to do the mapping between client-server, each client creates its own
@@ -295,7 +367,7 @@ the client needs to send it data as well as which part of data belongs to the se
 So as to make clients and server coherent in order of index, global index is calculated by
 take into account of C-convention, the rightmost dimension varies faster.
 */
-void CDistributionClient::createGlobalIndex()
+void CDistributionClient::createGlobalIndexSendToServer()
 {
   createLocalDomainDataIndex();
   createLocalAxisDataIndex();
@@ -396,7 +468,7 @@ void CDistributionClient::createGlobalIndex()
 
 
   // Now allocate these arrays
-  this->globalIndex_ = new CArray<size_t,1>(indexSend2ServerCount);
+  this->globalDataSendToServer_ = new CArray<size_t,1>(indexSend2ServerCount);
   localDataIndex_ = new CArray<int,1>(indexLocalDataOnClientCount);
   localDataIndexSendToServer_ = new CArray<int,1>(indexSend2ServerCount);
 
@@ -506,7 +578,7 @@ void CDistributionClient::createGlobalIndex()
             mulDim *= nGlob_[k-1];
             globalIndex += (currentIndex[k] + nBeginGlobal_[k])*mulDim;
           }
-          (*this->globalIndex_)(indexSend2ServerCount) = globalIndex;
+          (*this->globalDataSendToServer_)(indexSend2ServerCount) = globalIndex;
           (*localDataIndexSendToServer_)(indexSend2ServerCount) = indexLocalDataOnClientCount;
           ++indexSend2ServerCount;
         }
@@ -561,6 +633,11 @@ int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin
    return ((tempI-1)%ni);
 }
 
+const CArray<size_t,1>& CDistributionClient::getGlobalDataIndexSendToServer() const
+{
+  return (*globalDataSendToServer_);
+}
+
 /*!
   Return local data index of client
 */
@@ -572,7 +649,7 @@ const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
 /*!
   Return local data index on client which are sent to servers
 */
-const CArray<int,1>& CDistributionClient::getLocalDataIndexSendToServerOnClient() const
+const CArray<int,1>& CDistributionClient::getLocalDataIndexSendToServer() const
 {
   return (*localDataIndexSendToServer_);
 }

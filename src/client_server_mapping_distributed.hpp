@@ -35,13 +35,17 @@ class CClientServerMappingDistributed : public CClientServerMapping
     CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
                                     const MPI_Comm& clientIntraComm);
 
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient);
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
 
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                           const CArray<int,1>& localIndexOnClient);
+//    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer,
+//                                           const CArray<int,1>& localIndexOnClientSendToServer);
+
+    std::vector<int> computeConnectedServerRank(const CArray<size_t,1> globalIndexClient);
 
     /** Default destructor */
     virtual ~CClientServerMappingDistributed();
+
+
 
   protected:
     // Redistribute global index and server index among clients

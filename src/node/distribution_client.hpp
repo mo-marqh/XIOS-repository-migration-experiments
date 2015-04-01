@@ -36,7 +36,8 @@ class CDistributionClient : public CDistribution
     virtual ~CDistributionClient();
 
     virtual const CArray<int,1>& getLocalDataIndexOnClient() const;
-    virtual const CArray<int,1>& getLocalDataIndexSendToServerOnClient() const;
+    virtual const CArray<int,1>& getLocalDataIndexSendToServer() const;
+    const CArray<size_t,1>& getGlobalDataIndexSendToServer() const;
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
@@ -44,10 +45,13 @@ class CDistributionClient : public CDistribution
 
   protected:
     void createGlobalIndex();
+    void createGlobalIndexSendToServer();
     void readDistributionInfo(CGrid* grid);
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
                               const CArray<bool,1>& axisDomainOrder);
+    void readDomainIndex(const std::vector<CDomain*>& domList);
+    void readAxisIndex(const std::vector<CAxis*>& axisList);
   private:
     //! Create local index of a domain
     void createLocalDomainDataIndex();
@@ -65,6 +69,7 @@ class CDistributionClient : public CDistribution
 
   private:
     //!< LocalData index on client
+    CArray<size_t,1>* globalDataSendToServer_;
     CArray<int,1>* localDataIndex_;
     CArray<int,1>* localDataIndexSendToServer_;
 
@@ -80,6 +85,8 @@ class CDistributionClient : public CDistribution
     std::vector<int> nBeginGlobal_; //!< Begin index of each dimension (e.x: ibegin, jbegin, ...)
     std::vector<int> nZoomBegin_; //!< Begin index of zoom of each dimension
     std::vector<int> nZoomEnd_; //!< End index of zoom of each dimension
+    std::vector<std::vector<CArray<int,2> > > nIndexDomain_; //!< Local index of each domain dimension (e.x: i_index, j_index)
+    std::vector<CArray<int,1> > nIndexAxis_;
 
     // Data_n_index of domain or axis (For now, axis uses its size as data_n_index
     std::vector<int> dataNIndex_; //!< Data_n_index in case of domain

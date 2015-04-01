@@ -222,6 +222,8 @@ namespace xios {
         CServerDistributionDescription* serverDistributionDescription_;
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
+        std::map<int,size_t> connectedDataSize_;
+        std::vector<int> connectedServerRank_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

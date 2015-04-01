@@ -130,6 +130,62 @@ namespace xios
     }
   };
 
+  template <int v>
+  struct Int2Type
+  {
+  enum { value = v };
+  };
+
+  template<typename T>
+  union TypeToBytes {
+    T value;
+    unsigned char bytes[sizeof(value)];
+  };
+
+  template<typename T>
+  struct HashAlgorithm
+  {
+    /*!
+      Adapted version of one-at-a-time hash by Bob Jenkins,
+      which is an expanded version of his Dr. Dobbs article.
+    */
+    static inline size_t jenkins_hash(const T& value)
+    {
+      TypeToBytes<T> u;
+      (u.value) = value;
+
+      size_t hash = 0;
+      size_t length = sizeof(value);
+
+      for (size_t i = 0; i < length; ++i)
+      {
+          hash += u.bytes[i];
+          hash += (hash << 10);
+          hash ^= (hash >> 6);
+      }
+      hash += (hash << 3);
+      hash ^= (hash >> 11);
+      hash += (hash << 15);
+
+      return hash;
+    }
+  };
+
+  template<typename T, typename Algo = Int2Type<0> >
+  struct HashXIOS
+  {
+    std::size_t operator()(const T& val)
+    {
+      Algo al;
+      return hash_value(val, al);
+    }
+
+  private:
+    size_t hash_value(const T& val, Int2Type<0>)
+    {
+      return HashAlgorithm<T>::jenkins_hash(val);
+    }
+  };
 }
 
 #endif // __UTILS_HPP__

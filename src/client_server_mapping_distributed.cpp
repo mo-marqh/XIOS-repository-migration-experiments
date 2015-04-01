@@ -10,6 +10,7 @@
 #include "client_server_mapping_distributed.hpp"
 #include <limits>
 #include <boost/functional/hash.hpp>
+#include "utils.hpp"
 
 namespace xios
 {
@@ -34,23 +35,24 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
    Compute mapping global index of server which client sends to.
    \param [in] globalIndexOnClient global index client has
 */
-void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
-{
-  int ssize = globalIndexOnClient.numElements();
-  CArray<int,1>* localIndexOnClient = new CArray<int,1>(ssize);
-  for (int i = 0; i < ssize; ++i) (*localIndexOnClient)(i) = i;
-
-  this->computeServerIndexMapping(globalIndexOnClient, *localIndexOnClient);
-  delete localIndexOnClient;
-}
+//void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
+//{
+//  int ssize = globalIndexOnClient.numElements();
+//  CArray<int,1>* localIndexOnClient = new CArray<int,1>(ssize);
+//  for (int i = 0; i < ssize; ++i) (*localIndexOnClient)(i) = i;
+//
+//  this->computeServerIndexMapping(globalIndexOnClient, *localIndexOnClient);
+//  delete localIndexOnClient;
+//}
 
 /*!
    Compute mapping global index of server which client sends to.
    \param [in] globalIndexOnClient global index client has
    \param [in] localIndexOnClient local index on client
 */
-void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                                                const CArray<int,1>& localIndexOnClient)
+//void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+//                                                                const CArray<int,1>& localIndexOnClient)
+void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
   size_t ssize = globalIndexOnClient.numElements(), hashedIndex;
 
@@ -58,14 +60,14 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
                                       iteClientHash = indexClientHash_.end();
   std::map<int, std::vector<size_t> > client2ClientIndexGlobal;
   std::map<int, std::vector<int> > client2ClientIndexServer;
-  std::map<int, std::vector<int> > clientLocalIndex;
+//  std::map<int, std::vector<int> > clientLocalIndex;
 
   // Number of global index whose mapping server can be found out thanks to index-server mapping
   int nbIndexAlreadyOnClient = 0;
 
   // Number of global index whose mapping server are on other clients
   int nbIndexSendToOthers = 0;
-  boost::hash<size_t> hashGlobalIndex;
+  HashXIOS<size_t> hashGlobalIndex;
   for (int i = 0; i < ssize; ++i)
   {
     size_t globalIndexClient = globalIndexOnClient(i);
@@ -78,13 +80,13 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
       if (clientRank_ == indexClient)
       {
         (indexGlobalOnServer_[globalIndexToServerMapping_[globalIndexClient]]).push_back(globalIndexClient);
-        (localIndexSend2Server_[globalIndexToServerMapping_[globalIndexClient]]).push_back(localIndexOnClient(i));
+//        (localIndexSend2Server_[globalIndexToServerMapping_[globalIndexClient]]).push_back(localIndexOnClient(i));
         ++nbIndexAlreadyOnClient;
       }
       else
       {
         client2ClientIndexGlobal[indexClient].push_back(globalIndexClient);
-        clientLocalIndex[indexClient].push_back(i);
+//        clientLocalIndex[indexClient].push_back(i);
         ++nbIndexSendToOthers;
       }
     }
@@ -122,6 +124,8 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   std::map<int, MPI_Request>::iterator itRequest;
   std::vector<int> demandAlreadyReceived, repondAlreadyReceived;
   int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
+
+  resetReceivingRequestAndCount();
   while ((0 < nbDemandingClient) || (!sendRequest.empty()) ||
          (nbIndexServerReceived < nbIndexReceivedFromOthers))
   {
@@ -175,11 +179,11 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
         int clientSourceRank = statusIndexServer.MPI_SOURCE;
         int* beginBuff = indexServerBuffBegin_[clientSourceRank];
         std::vector<size_t>& globalIndexTmp = client2ClientIndexGlobal[clientSourceRank];
-        std::vector<int>& localIndexTmp = clientLocalIndex[clientSourceRank];
+//        std::vector<int>& localIndexTmp = clientLocalIndex[clientSourceRank];
         for (int i = 0; i < count; ++i)
         {
           (indexGlobalOnServer_[*(beginBuff+i)]).push_back(globalIndexTmp[i]);
-          (localIndexSend2Server_[*(beginBuff+i)]).push_back(localIndexOnClient(localIndexTmp[i]));
+//          (localIndexSend2Server_[*(beginBuff+i)]).push_back(localIndexOnClient(localIndexTmp[i]));
         }
         nbIndexServerReceived += count;
         repondAlreadyReceived.push_back(clientSourceRank);
@@ -242,7 +246,7 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
                                       iteClientHash = indexClientHash_.end();
   boost::unordered_map<size_t,int>::const_iterator it  = globalIndexOfServer.begin(),
                                                    ite = globalIndexOfServer.end();
-  boost::hash<size_t> hashGlobalIndex;
+  HashXIOS<size_t> hashGlobalIndex;
   for (; it != ite; ++it)
   {
     size_t hashIndex = hashGlobalIndex(it->first);

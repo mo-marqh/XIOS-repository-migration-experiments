@@ -32,9 +32,9 @@ class CClientServerMapping
     // Only need global index on client to calculate mapping (supposed client has info of distribution)
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient) = 0;
 
-    // In case of computing local index on client sent to server
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-                                           const CArray<int,1>& localIndexOnClient) = 0;
+//    // In case of computing local index on client sent to server
+//    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
+//                                           const CArray<int,1>& localIndexOnClient) = 0;
 
     // Simple case, global index on client and index on servers
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
