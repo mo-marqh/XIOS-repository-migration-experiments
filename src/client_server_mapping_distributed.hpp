@@ -33,7 +33,7 @@ class CClientServerMappingDistributed : public CClientServerMapping
   public:
     /** Default constructor */
     CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
-                                    const MPI_Comm& clientIntraComm);
+                                    const MPI_Comm& clientIntraComm, bool isDataDistributed = true);
 
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
 
@@ -117,6 +117,9 @@ class CClientServerMappingDistributed : public CClientServerMapping
 
     //! Mapping client rank and the begining position of receiving buffer for message of server index from this client
     std::map<int, int*> indexServerBuffBegin_;
+
+    //! Flag to specify whether data is distributed or not
+    bool isDataDistributed_;
 };
 
 } // namespace xios

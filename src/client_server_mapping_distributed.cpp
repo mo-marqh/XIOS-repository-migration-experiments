@@ -16,9 +16,9 @@ namespace xios
 {
 
 CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
-                                                                 const MPI_Comm& clientIntraComm)
+                                                                 const MPI_Comm& clientIntraComm, bool isDataDistributed)
   : CClientServerMapping(), indexClientHash_(), countIndexGlobal_(0), countIndexServer_(0),
-    indexGlobalBuffBegin_(), indexServerBuffBegin_(), requestRecvIndexServer_()
+    indexGlobalBuffBegin_(), indexServerBuffBegin_(), requestRecvIndexServer_(), isDataDistributed_(isDataDistributed)
 {
   clientIntraComm_ = clientIntraComm;
   MPI_Comm_size(clientIntraComm,&(nbClient_));
@@ -30,20 +30,6 @@ CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::un
 CClientServerMappingDistributed::~CClientServerMappingDistributed()
 {
 }
-
-/*!
-   Compute mapping global index of server which client sends to.
-   \param [in] globalIndexOnClient global index client has
-*/
-//void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
-//{
-//  int ssize = globalIndexOnClient.numElements();
-//  CArray<int,1>* localIndexOnClient = new CArray<int,1>(ssize);
-//  for (int i = 0; i < ssize; ++i) (*localIndexOnClient)(i) = i;
-//
-//  this->computeServerIndexMapping(globalIndexOnClient, *localIndexOnClient);
-//  delete localIndexOnClient;
-//}
 
 /*!
    Compute mapping global index of server which client sends to.
@@ -60,7 +46,6 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
                                       iteClientHash = indexClientHash_.end();
   std::map<int, std::vector<size_t> > client2ClientIndexGlobal;
   std::map<int, std::vector<int> > client2ClientIndexServer;
-//  std::map<int, std::vector<int> > clientLocalIndex;
 
   // Number of global index whose mapping server can be found out thanks to index-server mapping
   int nbIndexAlreadyOnClient = 0;
@@ -80,13 +65,11 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
       if (clientRank_ == indexClient)
       {
         (indexGlobalOnServer_[globalIndexToServerMapping_[globalIndexClient]]).push_back(globalIndexClient);
-//        (localIndexSend2Server_[globalIndexToServerMapping_[globalIndexClient]]).push_back(localIndexOnClient(i));
         ++nbIndexAlreadyOnClient;
       }
       else
       {
         client2ClientIndexGlobal[indexClient].push_back(globalIndexClient);
-//        clientLocalIndex[indexClient].push_back(i);
         ++nbIndexSendToOthers;
       }
     }
@@ -105,25 +88,28 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
       for (it = client2ClientIndexGlobal.begin(); it != ite; ++it)
          sendIndexGlobalToClients(it->first, it->second, clientIntraComm_, sendRequest);
 
+  int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
   // Receiving demand as well as the responds from other clients
   // The demand message contains global index; meanwhile the responds have server index information
   // Buffer to receive demand from other clients, it can be allocated or not depending whether it has demand(s)
   unsigned long* recvBuffIndexGlobal = 0;
   int maxNbIndexDemandedFromOthers = (nbIndexAlreadyOnClient >= globalIndexToServerMapping_.size())
                                    ? 0 : (globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient);
+  if (!isDataDistributed_) maxNbIndexDemandedFromOthers = nbDemandingClient * globalIndexToServerMapping_.size(); // Not very optimal but it's general
+
   if (0 != maxNbIndexDemandedFromOthers)
     recvBuffIndexGlobal = new unsigned long[maxNbIndexDemandedFromOthers];
 
   // Buffer to receive respond from other clients, it can be allocated or not depending whether it demands other clients
   int* recvBuffIndexServer = 0;
   int nbIndexReceivedFromOthers = nbIndexSendToOthers;
+//  int nbIndexReceivedFromOthers = globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient;
   if (0 != nbIndexReceivedFromOthers)
     recvBuffIndexServer = new int[nbIndexReceivedFromOthers];
 
-  resetReceivingRequestAndCount();
   std::map<int, MPI_Request>::iterator itRequest;
   std::vector<int> demandAlreadyReceived, repondAlreadyReceived;
-  int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
+
 
   resetReceivingRequestAndCount();
   while ((0 < nbDemandingClient) || (!sendRequest.empty()) ||
@@ -179,11 +165,9 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
         int clientSourceRank = statusIndexServer.MPI_SOURCE;
         int* beginBuff = indexServerBuffBegin_[clientSourceRank];
         std::vector<size_t>& globalIndexTmp = client2ClientIndexGlobal[clientSourceRank];
-//        std::vector<int>& localIndexTmp = clientLocalIndex[clientSourceRank];
         for (int i = 0; i < count; ++i)
         {
           (indexGlobalOnServer_[*(beginBuff+i)]).push_back(globalIndexTmp[i]);
-//          (localIndexSend2Server_[*(beginBuff+i)]).push_back(localIndexOnClient(localIndexTmp[i]));
         }
         nbIndexServerReceived += count;
         repondAlreadyReceived.push_back(clientSourceRank);
@@ -223,8 +207,8 @@ void CClientServerMappingDistributed::computeHashIndex()
 /*!
   Compute distribution of global index for servers
   Each client already holds a piece of information about global index and the corresponding server.
-This information is redistributed into size_t sipace in which each client possesses a specific range of index.
-Afterh the redistribution, each client as long as its range of index contains all necessary information about server.
+This information is redistributed into size_t space in which each client possesses a specific range of index.
+After the redistribution, each client as well as its range of index contains all necessary information about server.
   \param [in] globalIndexOfServer global index and the corresponding server
   \param [in] clientIntraComm client joining distribution process.
 */

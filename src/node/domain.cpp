@@ -743,7 +743,7 @@ namespace xios {
       int nb = globalIndexDomainZoom.numElements();
       for (int i = 0; i < nb; ++i)
       {
-        if (std::binary_search(itbVec, iteVec, globalIndexDomainZoom(i)))
+        if (iteVec != std::find(itbVec, iteVec, globalIndexDomainZoom(i)))
         {
           indSrv_[rank].push_back(globalIndexDomainZoom(i));
         }

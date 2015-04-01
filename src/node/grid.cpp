@@ -335,7 +335,8 @@ namespace xios {
 
      // Finally, compute index mapping between client(s) and server(s)
      clientServerMap_ = new CClientServerMappingDistributed(serverDistributionDescription_->getGlobalIndexRange(),
-                                                            client->intraComm);
+                                                            client->intraComm,
+                                                            clientDistribution_->isDataDistributed());
 
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
      const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
@@ -500,30 +501,34 @@ namespace xios {
 
     if (!doGridHaveDataDistributed())
     {
-//      if (0 == client->clientRank)
-//      {
-//       for (int ns = 0; itGlobal != iteMap; ++itGlobal, ++itLocal, ++ns)
-//        {
-//          rank = itGlobal->first;
-//          int nb = (itGlobal->second).size();
-//
-//          CArray<size_t, 1> outGlobalIndexOnServer(nb);
-//          CArray<int, 1> outLocalIndexToServer(nb);
-//          for (int k = 0; k < nb; ++k)
-//          {
-//            outGlobalIndexOnServer(k) = itGlobal->second.at(k);
-//            outLocalIndexToServer(k)  = itLocal->second.at(k);
-//          }
-//
-//          storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
-//          listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
-//
-//          list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-//          *list_msg.back()<<getId()<<*listOutIndex.back();
-//          event.push(rank, 1, *list_msg.back());
-//        }
-//        client->sendEvent(event);
-//      } else client->sendEvent(event);
+      if (0 == client->clientRank)
+      {
+        for (rank = 0; rank < client->serverSize; ++rank)
+        {
+          int nb = 0;
+          if (globalIndexTmp.end() != globalIndexTmp.find(rank))
+            nb = globalIndexTmp[rank].size();
+
+          CArray<size_t, 1> outGlobalIndexOnServer(nb);
+          CArray<int, 1> outLocalIndexToServer(nb);
+          for (int k = 0; k < nb; ++k)
+          {
+            outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
+            outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
+          }
+
+          storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
+          listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+
+          list_msg.push_back(shared_ptr<CMessage>(new CMessage));
+          *list_msg.back()<<getId()<<*listOutIndex.back();
+
+          event.push(rank, 1, *list_msg.back());
+        }
+        client->sendEvent(event);
+      }
+      else
+        client->sendEvent(event);
     }
     else
     {
