@@ -257,7 +257,17 @@ namespace xios {
    {
      if (hasClient)
      {
-       client->setBufferSize(getDataSize());
+       size_t bufferSizeMin = 1;
+#define DECLARE_NODE(Name_, name_)    \
+   bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
+#define DECLARE_NODE_PAR(Name_, name_)
+#include "node_type.conf"
+       std::map<int, StdSize> bufferSize = getDataSize();
+       std::map<int, StdSize>::iterator  it = bufferSize.begin(),
+                                        ite = bufferSize.end();
+       for (; it != ite; ++it)
+       it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
+       client->setBufferSize(bufferSize);
      }
    }
 
