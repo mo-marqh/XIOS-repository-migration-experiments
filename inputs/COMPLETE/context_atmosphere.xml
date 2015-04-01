@@ -16,7 +16,7 @@
   </file_definition>
 
   <axis_definition>
-    <axis id="axis_atm" zoom_size="2" zoom_end="3" />
+    <axis id="axis_atm" zoom_size="2" zoom_end="2" />
   </axis_definition>
 
   <domain_definition>

@@ -10,6 +10,7 @@
 #include "xmlioserver_spl.hpp"
 #include "type.hpp"
 #include "context_client.hpp"
+#include "context_server.hpp"
 #include <set>
 
 namespace xios{
@@ -253,12 +254,14 @@ namespace xios{
   void CField::writeField(void)
   {
     if (!getRelFile()->allDomainEmpty)
+    {
       if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file) //      if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
       {
         getRelFile()->checkFile();
         this->incrementNStep();
         getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
       }
+    }
   }
 
    //----------------------------------------------------------------
@@ -559,11 +562,19 @@ namespace xios{
            this->grid = CGrid::get(grid_ref.getValue());
            domList = grid->getDomainList();
            axisList = grid->getAxisList();
+           if (domList.empty() && axisList.empty() && (!(this->grid->scalar_grid.getValue())))
+           {
+             this->grid = CGrid::createGrid(vecDom, vecAxis);
+           }
          }
          else
             ERROR("CField::solveGridReference(void)",
                   << "Reference to the grid \'"
                   << grid_ref.getValue() << "\' is wrong");
+      }
+      else
+      {
+         this->grid = CGrid::createGrid(vecDom, vecAxis);
       }
 
       if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
@@ -571,12 +582,6 @@ namespace xios{
             ERROR("CField::solveGridReference(void)",
                   << "At least one dimension must be defined for this field.");
       }
-
-
-     if (domList.empty() && axisList.empty())
-     {
-       this->grid = CGrid::createGrid(vecDom, vecAxis);
-     }
    }
 
    void CField::solveGridDomainAxisRef(bool checkAtt)

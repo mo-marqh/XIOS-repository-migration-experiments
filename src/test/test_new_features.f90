@@ -16,8 +16,8 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=10
-  DOUBLE PRECISION  :: lval(llm)=1
+  INTEGER,PARAMETER :: llm=5
+  DOUBLE PRECISION  :: lval(llm)=1, tsTemp
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
@@ -85,16 +85,17 @@ PROGRAM test_new_features
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
-!  CALL xios_get_calendar_type(calendar_type)
-!  PRINT *, "calendar_type = ", calendar_type
+  CALL xios_get_calendar_type(calendar_type)
+  PRINT *, "calendar_type = ", calendar_type
 
   CALL xios_set_axis_attr("axis_A", size=ni_glo, ibegin=ibegin, ni=ni, value=lval_ni)
   CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj)
   CALL xios_set_axis_attr("axis_C", size=llm, value=lval)
-  CALL xios_set_axis_attr("axis_D", size=llm, value=lval)
+  CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lval)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
+  CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
   CALL xios_get_handle("field_definition",fieldgroup_hdl)
@@ -105,7 +106,7 @@ PROGRAM test_new_features
   CALL xios_add_child(file_hdl,field_hdl)
   CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
 
-  CALL xios_get_handle("output_Axis",file_hdl)
+  CALL xios_get_handle("output_All_Axis",file_hdl)
   CALL xios_add_child(file_hdl,field_hdl)
   CALL xios_set_attr(field_hdl,field_ref="field_All_Axis",name="field_C")
 
@@ -145,8 +146,10 @@ PROGRAM test_new_features
   DO ts=1,24*10
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
-!    CALL xios_send_field("field_Axis",field_Axis)
+    CALL xios_send_field("field_Axis",field_Axis)
     CALL xios_send_field("field_All_Axis",field_All_Axis)
+    tsTemp = ts
+    CALL xios_send_field("field_Scalar", tsTemp)
     CALL wait_us(5000) ;
   ENDDO
 

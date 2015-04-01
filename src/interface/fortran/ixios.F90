@@ -10,6 +10,7 @@ USE icalendar, ONLY : xios(define_calendar), xios(set_timestep), xios(set_start_
 USE icontext, ONLY : txios(context), xios(set_current_context), xios(is_valid_context)
 
 USE icontext_attr, ONLY : xios(set_context_attr), xios(get_context_attr), xios(is_defined_context_attr)
+                  xios(setVar_logic), xios(setVar_char), xios(send_field_r8), xios(send_field_r4)
 
 USE idata, ONLY : xios(initialize), xios(init_server), xios(finalize), xios(context_initialize), xios(context_is_initialized), &
                   xios(close_context_definition), xios(context_finalize), xios(solve_inheritance)
@@ -37,6 +38,8 @@ USE idate, ONLY : txios(date),                                                  
                   ASSIGNMENT(=)
 
 USE ifield, ONLY : txios(field), txios(fieldgroup), xios(is_valid_field), xios(is_valid_fieldgroup)
+                    xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d),              &
+                    xios(send_field_r8), xios(send_field_r4)
 
 USE ifield_attr, ONLY : xios(set_field_attr), xios(get_field_attr), xios(is_defined_field_attr)
 

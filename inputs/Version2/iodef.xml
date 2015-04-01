@@ -5,21 +5,27 @@
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-29 15:00:00" />
 
 
-   <field_definition level="1" enabled=".TRUE.">
+   <field_definition level="1" enabled=".FALSE.">
      <field id="field_AA"  operation="average" freq_op="3600s" domain_ref="domain_A"  axis_ref="axis_A" />
      <field id="field_A"  operation="average" freq_op="3600s" grid_ref="grid_A" />
      <field id="field_Axis"  operation="average" freq_op="3600s" grid_ref="grid_Axis" />
      <field id="field_All_Axis" operation="average" freq_op="3600s" grid_ref="grid_All_Axis" />
+     <field id="field_Scalar" operation="average" freq_op="3600s" grid_ref="ScalarGrid" />
    </field_definition>
 
 
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-        <field field_ref="field_A" />
+<!--        <field field_ref="field_A" />-->
      </file>
-     <file id="output_Axis" name="output_Axis">
-<!--        <field field_ref="field_Axis" />-->
-        <field field_ref="field_All_Axis" />
+     <file id="output_Axis" name="output_Axis" type="one_file">
+        <field field_ref="field_Axis" />
+     </file>
+     <file id="output_All_Axis" name="output_All_Axis" type="one_file">
+<!--        <field field_ref="field_All_Axis" />-->
+     </file>
+     <file id="output_Scalar" name="output_Scalar" type="one_file">
+<!--        <field field_ref="field_Scalar" />-->
      </file>
    </file_definition>
 
@@ -49,6 +55,8 @@
          <axis axis_ref="axis_B" />
          <axis axis_ref="axis_C" />
        </grid>
+       <grid id="ScalarGrid">
+       </grid>
      </grid_group>
    </grid_definition>
 
@@ -67,7 +75,7 @@
       <variable_definition>
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
-            <variable id="buffer_factor_size" type="double">10.0</variable>
+            <variable id="buffer_factor_size" type="double">1.0</variable>
          </variable_group>
 
         <variable_group id="parameters" >

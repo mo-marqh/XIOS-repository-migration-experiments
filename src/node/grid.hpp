@@ -35,6 +35,7 @@ namespace xios {
    // Declare/Define CGridAttribute
    BEGIN_DECLARE_ATTRIBUTE_MAP(CGrid)
 #  include "grid_attribute.conf"
+     DECLARE_ATTRIBUTE(bool, scalar_grid)
    END_DECLARE_ATTRIBUTE_MAP(CGrid)
 
    ///--------------------------------------------------------------
@@ -133,6 +134,7 @@ namespace xios {
          /// Traitements protégés ///
          void computeIndexServer(void);
          void computeIndex(void);
+         void computeIndexScalarGrid();
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
@@ -153,6 +155,7 @@ namespace xios {
          static void recvIndex(CEventServer& event) ;
          void recvIndex(int rank, CBufferIn& buffer) ;
          void sendIndex(void) ;
+         void sendIndexScalarGrid();
 
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
@@ -224,6 +227,7 @@ namespace xios {
         size_t writtenDataSize_;
         std::map<int,size_t> connectedDataSize_;
         std::vector<int> connectedServerRank_;
+        bool isDataDistributed_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

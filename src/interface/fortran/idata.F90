@@ -48,6 +48,22 @@ MODULE IDATA
       SUBROUTINE  cxios_solve_inheritance() BIND(C)
       END SUBROUTINE cxios_solve_inheritance
 
+      SUBROUTINE cxios_write_data_k80(fieldid, fieldid_size, data_k8, data_Xsize) BIND(C)
+         USE ISO_C_BINDING
+         CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
+         REAL     (kind = C_DOUBLE)               :: data_k8
+         INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
+         INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+      END SUBROUTINE cxios_write_data_k80
+
+      SUBROUTINE cxios_write_data_k40(fieldid, fieldid_size, data_k4, data_Xsize) BIND(C)
+         USE ISO_C_BINDING
+         CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
+         REAL     (kind = C_FLOAT)                :: data_k4
+         INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
+         INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
+      END SUBROUTINE cxios_write_data_k40
+
 
       SUBROUTINE cxios_write_data_k81(fieldid, fieldid_size, data_k8, data_Xsize) BIND(C)
          USE ISO_C_BINDING
@@ -258,6 +274,22 @@ MODULE IDATA
    IMPLICIT NONE
       CALL cxios_solve_inheritance()
    END SUBROUTINE xios(solve_inheritance)
+
+
+   SUBROUTINE xios(send_field_r8)(fieldid, data_k8)
+   IMPLICIT NONE
+      CHARACTER(len = *) , INTENT(IN) :: fieldid
+      REAL     (kind = 8), INTENT(IN) :: data_k8
+      CALL cxios_write_data_k80(fieldid, len(fieldid), data_k8, 1)
+   END SUBROUTINE xios(send_field_r8)
+
+   SUBROUTINE xios(send_field_r4)(fieldid, data_k4)
+   IMPLICIT NONE
+      CHARACTER(len = *) , INTENT(IN) :: fieldid
+      REAL     (kind = 4), INTENT(IN) :: data_k4
+      CALL cxios_write_data_k40(fieldid, len(fieldid), data_k4, 1)
+   END SUBROUTINE xios(send_field_r4)
+
 
 
    SUBROUTINE xios(send_field_r8_1d)(fieldid, data1d_k8)

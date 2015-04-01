@@ -117,6 +117,7 @@ namespace xios
 
                  if (server->intraCommSize > 1)
                  {
+
   //                 SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
   //                 SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
                  }
@@ -484,6 +485,10 @@ namespace xios
          axis->checkAttributes();
          StdSize zoom_size_srv=axis->zoom_size_srv;
          StdSize zoom_begin_srv=axis->zoom_begin_srv;
+         StdSize zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv
+                                                              : axis->zoom_size;
+         StdSize zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv
+                                                              : axis->zoom_begin;
 
 
          std::vector<StdString> dims;
@@ -491,7 +496,7 @@ namespace xios
                              ? axis->name.getValue() : axis->getId();
          try
          {
-           SuperClassWriter::addDimension(axisid, zoom_size_srv);
+           SuperClassWriter::addDimension(axisid, zoom_size);
            dims.push_back(axisid);
 
            switch (SuperClass::type)
@@ -526,7 +531,7 @@ namespace xios
 
                  SuperClassWriter::definition_end();
 
-                 CArray<double,1> axis_value(zoom_size_srv) ;
+                 CArray<double,1> axis_value(zoom_size) ;
                  for(StdSize i = 0 ; i < zoom_size_srv ; i++) axis_value(i)=axis->value(i+zoom_begin_srv) ;
                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
@@ -1234,15 +1239,16 @@ namespace xios
                   count[i] = nZoomSizeServer[ssize-i-1];
                 }
 
-                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep()-1,&start,&count );
-                 if (wtime)
-                 {
-                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
-                   SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
-                   SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot );
-                   SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
-                 }
-                 break;
+                SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep()-1,&start,&count );
+                if (wtime)
+                {
+                  SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep()-1,isRoot );
+                  SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep()-1,isRoot );
+                  SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1, isRoot );
+                  SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1, isRoot);
+                }
+
+                break;
               }
             }
          }

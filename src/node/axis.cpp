@@ -279,6 +279,13 @@ namespace xios {
     {
       zoom_begin_srv=0 ; zoom_end_srv=0 ; zoom_size_srv=0 ;
     }
+
+    if (size == ni)
+    {
+      zoom_begin_srv = zoom_begin.getValue();
+      zoom_end_srv   = zoom_end;
+      zoom_size_srv  = zoom_end_srv-zoom_begin_srv+1 ;
+    }
   }
 
    DEFINE_REF_FUNC(Axis,axis)
