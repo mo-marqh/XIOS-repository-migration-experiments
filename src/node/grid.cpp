@@ -481,7 +481,7 @@ namespace xios {
       if (domains.empty() && axis.empty()) grid->scalar_grid = true;
       else grid->scalar_grid = false;
 
-      grid->computeGridGlobalDimension(domains, axis, grid->axisDomainOrder);
+      grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
 
       return (grid);
    }
@@ -761,6 +761,7 @@ namespace xios {
 
      if (0 == serverDistribution_)
      {
+       int idx = 0, numElement = axis_domain_order.numElements();
        int ssize = numElement;
        std::vector<int> indexMap(numElement);
        for (int i = 0; i < numElement; ++i)

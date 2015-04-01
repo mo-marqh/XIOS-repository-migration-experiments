@@ -6,8 +6,8 @@ USE icontext, ONLY : xios(get_context_handle)
 
 USE icontext_attr, ONLY : xios(set_context_attr_hdl), xios(get_context_attr_hdl), xios(is_defined_context_attr_hdl)
 
-USE idata, ONLY : xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d),                    &
-                  xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d),                    &
+USE idata, ONLY : xios(send_scalar_r8), xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d),                    &
+                  xios(send_scalar_r4), xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d),                    &
                   xios(getVar_k8), xios(getVar_k4), xios(getVar_int), xios(getVar_logic), xios(getVar_char), &
                   xios(setVar_k8), xios(setVar_k4), xios(setVar_int), xios(setVar_logic), xios(setVar_char)
 
@@ -101,6 +101,10 @@ INTERFACE xios(send_field)
                    xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d)
 END INTERFACE xios(send_field)
 
+INTERFACE xios(send_scalar)
+  MODULE PROCEDURE xios(send_scalar_r8), xios(send_scalar_r4)
+END INTERFACE xios(send_scalar)
+
 INTERFACE xios(field_is_active)
   MODULE PROCEDURE xios(field_is_active_id),xios(field_is_active_hdl)
 END INTERFACE xios(field_is_active)
@@ -114,6 +118,6 @@ INTERFACE xios(setVar)
 END INTERFACE xios(setVar)
 
 PUBLIC :: xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), &
-          xios(add_child), xios(send_field), xios(field_is_active), xios(getVar), xios(setVar)
+          xios(add_child), xios(send_field), xios(field_is_active), xios(getVar), xios(setVar), xios(send_scalar)
 
 END MODULE XIOS_INTERFACES
