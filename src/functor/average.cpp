@@ -40,7 +40,7 @@ namespace xios
             int i, n =_dinput.numElements() ;
             const double * in=_dinput.dataFirst() ;
             int* nc=nbcalls.dataFirst() ;
-            for (i=0; i<n; ++i,++nc) 
+            for (i=0; i<n; ++i,++nc,++in) 
               if (*in!=missingValue) (*nc) ++;
           }
         }
