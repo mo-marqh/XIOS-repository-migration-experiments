@@ -320,7 +320,7 @@ namespace xios {
            }
            else splitFormat=split_freq_format ;
            oss << "_" << lastSplit->getStr(splitFormat)
-               << "-" << (*lastSplit + (split_freq.getValue() - 1 * Second)).getStr(splitFormat);
+               << "-" << (*lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
          }
 
         bool append = !this->append.isEmpty() && this->append.getValue();
