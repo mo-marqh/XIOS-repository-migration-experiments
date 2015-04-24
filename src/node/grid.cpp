@@ -412,7 +412,7 @@ namespace xios {
         if (iteVecGlobal != std::find(itbVecGlobal, iteVecGlobal, globalIndexSendToServer(i)))
         {
           if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
-            connectedDataSize_[serverRank] = 0;
+            connectedDataSize_[serverRank] = 1;
           else
             ++connectedDataSize_[serverRank];
         }
