@@ -9,7 +9,7 @@
 #ifndef __NETCDF_INTERFACE_HPP_
 #define __NETCDF_INTERFACE_HPP_
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
 #if !defined(USING_NETCDF_PAR)
 #include "exception.hpp"

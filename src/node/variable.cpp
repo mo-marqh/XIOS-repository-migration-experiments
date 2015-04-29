@@ -4,7 +4,7 @@
 #include "object_template.hpp"
 #include "group_template.hpp"
 #include "object_factory.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"

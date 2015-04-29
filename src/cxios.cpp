@@ -1,5 +1,5 @@
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "client.hpp"
 #include "server.hpp"

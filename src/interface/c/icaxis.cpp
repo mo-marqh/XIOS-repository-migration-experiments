@@ -5,7 +5,7 @@
 #include <boost/multi_array.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "xmlioserver.hpp"
+#include "xios.hpp"
 
 #include "object_template.hpp"
 #include "group_template.hpp"

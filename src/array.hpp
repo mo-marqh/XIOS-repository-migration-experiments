@@ -1,13 +1,13 @@
-#ifndef __XMLIO_CArray__
-#define __XMLIO_CArray__
+#ifndef __XIOS_CArray__
+#define __XIOS_CArray__
 
 /// boost headers ///
 #include <boost/cstdint.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/multi_array.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 
@@ -90,4 +90,4 @@ namespace xios
    template <typename ValueType> void FromBinary(StdIStream & is, ARRAY(ValueType, 2) & array) ;
    template <typename ValueType> void FromBinary(StdIStream & is, ARRAY(ValueType, 3) & array) ;
 }
-#endif // __XMLIO_CArray__
+#endif // __XIOS_CArray__

@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CMethod__
-#define __XMLIO_CMethod__
+#ifndef __XIOS_CMethod__
+#define __XIOS_CMethod__
 
 namespace xios
 {
@@ -96,4 +96,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CMethod__
+#endif // __XIOS_CMethod__

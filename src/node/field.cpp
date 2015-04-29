@@ -7,7 +7,7 @@
 #include "node_type.hpp"
 #include "calendar_util.hpp"
 #include "message.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "type.hpp"
 #include "context_client.hpp"
 #include "context_server.hpp"

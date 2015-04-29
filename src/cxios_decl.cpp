@@ -1,5 +1,5 @@
 #include "cxios_impl.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include <string>
 
 namespace xios

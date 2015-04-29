@@ -12,7 +12,7 @@
 #define __XIOS_CLIENT_SERVER_MAPPING_DISTRIBUTED_HPP__
 
 #include <client_server_mapping.hpp>
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "array_new.hpp"
 #include "mpi.hpp"
 #include <boost/unordered_map.hpp>

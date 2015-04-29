@@ -9,7 +9,7 @@
 #include <iostream>
 
 
-#include "xmlioserver.hpp"
+#include "xios.hpp"
 #include "oasis_cinterface.hpp"
 
 #include "attribute_template.hpp"

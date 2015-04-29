@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CObjectFactory_impl__
-#define __XMLIO_CObjectFactory_impl__
+#ifndef __XIOS_CObjectFactory_impl__
+#define __XIOS_CObjectFactory_impl__
 
 #include "object_factory.hpp"
 
@@ -151,4 +151,4 @@ namespace xios
           
 } // namespace xios
 
-#endif // __XMLIO_CObjectFactory_impl__
+#endif // __XIOS_CObjectFactory_impl__

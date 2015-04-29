@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CUserDefinedCalendar__
-#define __XMLIO_CUserDefinedCalendar__
+#ifndef __XIOS_CUserDefinedCalendar__
+#define __XIOS_CUserDefinedCalendar__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "calendar.hpp"
 #include "array_new.hpp"
 
@@ -68,6 +68,6 @@ namespace xios
       bool isLeapYear(int year) const;
   }; // class CUserDefinedCalendar
 
-} // namespace xmlioserver
+} // namespace xios
 
-#endif // __XMLIO_CUserDefinedCalendar__
+#endif // __XIOS_CUserDefinedCalendar__

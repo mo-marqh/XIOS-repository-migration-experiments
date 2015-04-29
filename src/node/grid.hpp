@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CGrid__
-#define __XMLIO_CGrid__
+#ifndef __XIOS_CGrid__
+#define __XIOS_CGrid__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
@@ -341,4 +341,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CGrid__
+#endif // __XIOS_CGrid__

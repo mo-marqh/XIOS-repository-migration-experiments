@@ -1,5 +1,5 @@
-#ifndef __XMLIO_NODE_ENUM__
-#define __XMLIO_NODE_ENUM__
+#ifndef __XIOS_NODE_ENUM__
+#define __XIOS_NODE_ENUM__
 
 //#define DECLARE_NODE(Name_, name_)     ,e##Name_, g##Name_
 //#define DECLARE_NODE_PAR(Name_, name_) ,e##Name_, g##Name_
@@ -25,4 +25,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_NODE_ENUM__
+#endif // __XIOS_NODE_ENUM__

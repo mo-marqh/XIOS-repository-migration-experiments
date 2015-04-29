@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CInstant__
-#define __XMLIO_CInstant__
+#ifndef __XIOS_CInstant__
+#define __XIOS_CInstant__
 
-/// xios headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -35,6 +35,6 @@ namespace xios
       }; // class CInstant
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
-#endif //__XMLIO_CInstant__
+#endif //__XIOS_CInstant__

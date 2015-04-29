@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CXML_PARSER_IMPL__
-#define __XMLIO_CXML_PARSER_IMPL__
+#ifndef __XIOS_CXML_PARSER_IMPL__
+#define __XIOS_CXML_PARSER_IMPL__
 
-/// xios headers ///
+/// XIOS headers ///
 #include "xml_parser.hpp"
 
 namespace xios
@@ -46,5 +46,5 @@ namespace xios
    } // namespace xml
 } // namespace xios
 
-#endif // __XMLIO_CXML_PARSER_IMPL__
+#endif // __XIOS_CXML_PARSER_IMPL__
 

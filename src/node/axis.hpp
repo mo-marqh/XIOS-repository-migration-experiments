@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CAxis__
-#define __XMLIO_CAxis__
+#ifndef __XIOS_CAxis__
+#define __XIOS_CAxis__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
@@ -110,4 +110,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CAxis__
+#endif // __XIOS_CAxis__

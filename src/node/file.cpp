@@ -12,7 +12,7 @@
 #include "date.hpp"
 #include "message.hpp"
 #include "type.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "context_client.hpp"
 #include "mpi.hpp"
 

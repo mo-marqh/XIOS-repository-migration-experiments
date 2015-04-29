@@ -60,5 +60,5 @@ namespace xios
       bool CGregorianCalendar::hasLeapYear() const { return true; }
 
       ///--------------------------------------------------------------
-} // namespace xmlioserver
+} // namespace xios
 

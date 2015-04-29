@@ -707,4 +707,4 @@ namespace xios
          oss << std::endl << (iendl -= 2);
          oss << "END SUBROUTINE xios(is_defined_" << className << "_attr)" << std::endl;
       }
-} // namespace xmlioser
+} // namespace xios

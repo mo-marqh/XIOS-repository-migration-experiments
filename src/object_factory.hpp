@@ -1,11 +1,11 @@
-#ifndef __XMLIO_CObjectFactory__
-#define __XMLIO_CObjectFactory__
+#ifndef __XIOS_CObjectFactory__
+#define __XIOS_CObjectFactory__
 
 /// boost headers ///
 #include <boost/shared_ptr.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "object_template.hpp"
 
@@ -63,4 +63,4 @@ namespace xios
 
 //#include "object_factory_impl.hpp"
 
-#endif // __XMLIO_CObjectFactory__
+#endif // __XIOS_CObjectFactory__

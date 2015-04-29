@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CDate__
-#define __XMLIO_CDate__
+#ifndef __XIOS_CDate__
+#define __XIOS_CDate__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "duration.hpp"
 
@@ -100,4 +100,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CDate__
+#endif // __XIOS_CDate__

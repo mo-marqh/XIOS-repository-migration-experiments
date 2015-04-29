@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CIndent_XML__
-#define __XMLIO_CIndent_XML__
+#ifndef __XIOS_CIndent_XML__
+#define __XIOS_CIndent_XML__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "xml_node.hpp"
 
 namespace xios
@@ -47,4 +47,4 @@ namespace xios
 #define IncIndent CIndent::IncIndent
 #define DecEndl   CIndent::DecEndl
 
-#endif // __XMLIO_CIndent__
+#endif // __XIOS_CIndent__

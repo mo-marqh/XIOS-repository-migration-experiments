@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CFunctor__
-#define __XMLIO_CFunctor__
+#ifndef __XIOS_CFunctor__
+#define __XIOS_CFunctor__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "array_new.hpp"
 
@@ -59,4 +59,4 @@ namespace xios
 
 //#include "functor_type.hpp"
 
-#endif // __XMLIO_CFunctor__
+#endif // __XIOS_CFunctor__

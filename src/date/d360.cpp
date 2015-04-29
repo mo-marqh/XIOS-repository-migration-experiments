@@ -42,5 +42,5 @@ namespace xios
       { return (StdString("360_day")); }
 
       ///--------------------------------------------------------------
-} // namespace xmlioserver
+} // namespace xios
 

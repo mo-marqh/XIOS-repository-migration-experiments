@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CObjectTemplate__
-#define __XMLIO_CObjectTemplate__
+#ifndef __XIOS_CObjectTemplate__
+#define __XIOS_CObjectTemplate__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "attribute_map.hpp"
 #include "node_enum.hpp"
 #include "buffer_in.hpp"
@@ -108,4 +108,4 @@ namespace xios
 
 //#include "object_template_impl.hpp"
 
-#endif // __XMLIO_CObjectTemplate__
+#endif // __XIOS_CObjectTemplate__

@@ -1,4 +1,4 @@
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include "event_client.hpp"

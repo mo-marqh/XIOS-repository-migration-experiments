@@ -1,8 +1,8 @@
-#ifndef __XMLIO_INETCDF4__
-#define __XMLIO_INETCDF4__
+#ifndef __XIOS_INETCDF4__
+#define __XIOS_INETCDF4__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "data_output.hpp"
 #include "array_new.hpp"
@@ -129,4 +129,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XMLIO_INETCDF4__
+#endif //__XIOS_INETCDF4__

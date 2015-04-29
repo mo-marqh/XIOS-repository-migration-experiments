@@ -1,11 +1,11 @@
-#ifndef __XMLIO_CAttributeTemplate__
-#define __XMLIO_CAttributeTemplate__
+#ifndef __XIOS_CAttributeTemplate__
+#define __XIOS_CAttributeTemplate__
 
 /// boost headers ///
 #include <boost/lexical_cast.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "attribute.hpp"
 #include "buffer_in.hpp"
@@ -101,4 +101,4 @@ namespace xios
    
 } // namespace xios
 
-#endif // __XMLIO_CAttributeTemplate__
+#endif // __XIOS_CAttributeTemplate__

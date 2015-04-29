@@ -12,7 +12,7 @@
 #include "node_type.hpp"
 #include "message.hpp"
 #include "type.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
 namespace xios {
 

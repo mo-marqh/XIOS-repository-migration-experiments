@@ -1,7 +1,7 @@
 #ifndef __EVENT_SCHEDULER_HPP__
 #define __EVENT_SCHEDULER_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "mpi.hpp"
 
 namespace xios

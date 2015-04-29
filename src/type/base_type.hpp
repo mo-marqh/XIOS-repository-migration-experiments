@@ -1,7 +1,7 @@
 #ifndef __BASE_TYPE_HPP__
 #define __BASE_TYPE_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 

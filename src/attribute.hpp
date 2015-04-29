@@ -1,11 +1,11 @@
-#ifndef __XMLIO_CAttribute__
-#define __XMLIO_CAttribute__
+#ifndef __XIOS_CAttribute__
+#define __XIOS_CAttribute__
 
 /// boost headers ///
 #include <boost/any.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "object.hpp"
 #include "base_type.hpp"
 #include "message.hpp"
@@ -115,4 +115,4 @@ namespace xios
 }
   // namespace xios
 
-#endif // __XMLIO_CAttribute__
+#endif // __XIOS_CAttribute__

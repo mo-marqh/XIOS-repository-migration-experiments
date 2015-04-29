@@ -1,5 +1,5 @@
 #include "event_scheduler.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "mpi.hpp"
 
 namespace xios

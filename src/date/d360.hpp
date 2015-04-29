@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CD360Calendar__
-#define __XMLIO_CD360Calendar__
+#ifndef __XIOS_CD360Calendar__
+#define __XIOS_CD360Calendar__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "calendar.hpp"
 
 namespace xios
@@ -34,7 +34,7 @@ namespace xios
 
       }; // class CD360Calendar
 
-} // namespace xmlioserver
+} // namespace xios
 
-#endif // __XMLIO_CD360Calendar__
+#endif // __XIOS_CD360Calendar__
 

@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CGregorianCalendar__
-#define __XMLIO_CGregorianCalendar__
+#ifndef __XIOS_CGregorianCalendar__
+#define __XIOS_CGregorianCalendar__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "calendar.hpp"
 
 namespace xios
@@ -36,6 +36,6 @@ namespace xios
 
       }; // class CGregorianCalendar
 
-} // namespace xmlioserver
+} // namespace xios
 
-#endif // __XMLIO_CGregorianCalendar__
+#endif // __XIOS_CGregorianCalendar__

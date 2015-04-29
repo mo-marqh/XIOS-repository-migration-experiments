@@ -1,5 +1,5 @@
 #include "object_template_impl.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "field.hpp"
 #include "context.hpp"
 #include "file.hpp"

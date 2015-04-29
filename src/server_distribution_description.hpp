@@ -10,7 +10,7 @@
 #ifndef __XIOS_SERVER_DISTRIBUTION_DESCRIPTION_HPP
 #define __XIOS_SERVER_DISTRIBUTION_DESCRIPTION_HPP
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "array_new.hpp"
 #include <boost/unordered_map.hpp>
 

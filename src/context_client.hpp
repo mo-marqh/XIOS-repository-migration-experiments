@@ -1,7 +1,7 @@
 #ifndef __CONTEXT_CLIENT_HPP__
 #define __CONTEXT_CLIENT_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
 #include "event_client.hpp"

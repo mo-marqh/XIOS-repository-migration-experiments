@@ -1,7 +1,7 @@
-#define __XMLIO_Configure__ // < Ne pas supprimer
+#define __XIOS_Configure__ // < Ne pas supprimer
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 
 /// /////////// Macros /////////// ///
 #undef  DECLARE_PROPERTY

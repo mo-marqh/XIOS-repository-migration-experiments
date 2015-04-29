@@ -7,7 +7,7 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
 namespace xios {
 

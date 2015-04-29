@@ -1,11 +1,11 @@
-#ifndef __XMLIO_CGroupFactory__
-#define __XMLIO_CGroupFactory__
+#ifndef __XIOS_CGroupFactory__
+#define __XIOS_CGroupFactory__
 
 /// boost headers ///
 #include <boost/shared_ptr.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "object_factory.hpp"
 #include "group_template.hpp"
@@ -76,4 +76,4 @@ namespace xios
 //#include "group_factory_impl.hpp"
 //#include "group_parser.hpp"
 
-#endif // __XMLIO_CGroupFactory__
+#endif // __XIOS_CGroupFactory__

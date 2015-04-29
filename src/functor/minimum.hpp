@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CMinimum__
-#define __XMLIO_CMinimum__
+#ifndef __XIOS_CMinimum__
+#define __XIOS_CMinimum__
 
-/// xmlioserver headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -35,6 +35,6 @@ namespace xios
       }; // class CMinimum
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
-#endif //__XMLIO_CMinimum__
+#endif //__XIOS_CMinimum__

@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CDomain__
-#define __XMLIO_CDomain__
+#ifndef __XIOS_CDomain__
+#define __XIOS_CDomain__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "group_factory.hpp"
 
 #include "declare_group.hpp"
@@ -170,4 +170,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CDomain__
+#endif // __XIOS_CDomain__

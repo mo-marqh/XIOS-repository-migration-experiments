@@ -1,7 +1,7 @@
 #ifndef __XIOS_GENERATE_INTERFACE_IMPL_HPP__
 #define __XIOS_GENERATE_INTERFACE_IMPL_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "generate_interface.hpp"
 #include "type_util.hpp"
 #include "indent.hpp"

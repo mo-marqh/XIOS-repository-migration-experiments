@@ -6,7 +6,7 @@
 #include "group_template.hpp"
 #include "message.hpp"
 #include <iostream>
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"

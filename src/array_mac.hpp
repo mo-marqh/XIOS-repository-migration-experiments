@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CArray_mac__
-#define __XMLIO_CArray_mac__
+#ifndef __XIOS_CArray_mac__
+#define __XIOS_CArray_mac__
 
 /// ////////////////////// Macros ////////////////////// ///
 
@@ -23,4 +23,4 @@
 
 ///---------------------------------------------------------------
 
-#endif // __XMLIO_CArray_mac__
+#endif // __XIOS_CArray_mac__

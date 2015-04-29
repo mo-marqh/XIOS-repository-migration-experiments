@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CNoLeapCalendar__
-#define __XMLIO_CNoLeapCalendar__
+#ifndef __XIOS_CNoLeapCalendar__
+#define __XIOS_CNoLeapCalendar__
 
-/// xmlioserver headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "calendar.hpp"
 
 namespace xios
@@ -32,7 +32,7 @@ namespace xios
 
       }; // class CNoLeapCalendar
 
-} // namespace xmlioserver
+} // namespace xios
 
-#endif // __XMLIO_CNoLeapCalendar__
+#endif // __XIOS_CNoLeapCalendar__
 

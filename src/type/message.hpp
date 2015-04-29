@@ -1,7 +1,7 @@
 #ifndef __MESSAGE_HPP__
 #define __MESSAGE_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "base_type.hpp"
 #include "buffer_in.hpp"

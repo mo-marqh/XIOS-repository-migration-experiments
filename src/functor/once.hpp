@@ -1,7 +1,7 @@
-#ifndef __XMLIO_COnce__
-#define __XMLIO_COnce__
+#ifndef __XIOS_COnce__
+#define __XIOS_COnce__
 
-/// xios headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -36,5 +36,5 @@ namespace xios
    } // namespace func
 } // namespace xios
 
-#endif //__XMLIO_COnce__
+#endif //__XIOS_COnce__
 

@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CObject__
-#define __XMLIO_CObject__
+#ifndef __XIOS_CObject__
+#define __XIOS_CObject__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 
 namespace xios
 {
@@ -56,5 +56,5 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CObject__
+#endif // __XIOS_CObject__
 

@@ -2,7 +2,7 @@
 #ifndef __FIELD_IMPL_HPP__
 #define __FIELD_IMPL_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "field.hpp"
 #include "context.hpp"
 #include "grid.hpp"

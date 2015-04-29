@@ -1,4 +1,4 @@
-#include "xmlioserver.hpp"
+#include "xios.hpp"
 #include "generate_interface.hpp"
 #include "indent.hpp"
 #include "attribute_template.hpp"

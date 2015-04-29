@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CAverage__
-#define __XMLIO_CAverage__
+#ifndef __XIOS_CAverage__
+#define __XIOS_CAverage__
 
-/// xmlioserver headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -36,6 +36,6 @@ namespace xios
       }; // class CAverage
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
-#endif //__XMLIO_CAverage__
+#endif //__XIOS_CAverage__

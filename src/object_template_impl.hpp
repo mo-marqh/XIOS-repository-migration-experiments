@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CObjectTemplate_impl__
-#define __XMLIO_CObjectTemplate_impl__
+#ifndef __XIOS_CObjectTemplate_impl__
+#define __XIOS_CObjectTemplate_impl__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "context_client.hpp"
 #include "object_factory.hpp"
 #include "context.hpp"
@@ -329,7 +329,7 @@ namespace xios
      oss << iendl;
      oss << "#include <boost/multi_array.hpp>" << iendl;
      oss << "#include <boost/shared_ptr.hpp>" << iendl;
-     oss << "#include \"xmlioserver.hpp\"" << iendl;
+     oss << "#include \"xios.hpp\"" << iendl;
      oss << "#include \"attribute_template.hpp\"" << iendl;
      oss << "#include \"object_template.hpp\"" << iendl;
      oss << "#include \"group_template.hpp\"" << iendl;
@@ -416,4 +416,4 @@ namespace xios
    }
 } // namespace xios
 
-#endif // __XMLIO_CObjectTemplate_impl__
+#endif // __XIOS_CObjectTemplate_impl__

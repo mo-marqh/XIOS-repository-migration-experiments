@@ -49,4 +49,4 @@ namespace xios
       //---------------------------------------------------------------
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios

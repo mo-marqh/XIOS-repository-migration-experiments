@@ -4,7 +4,7 @@
 #include "object_template.hpp"
 #include "group_template.hpp"
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "event_client.hpp"
 #include "event_server.hpp"
 #include "buffer_in.hpp"

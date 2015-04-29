@@ -1,5 +1,5 @@
-#ifndef __XMLIO_DECLARE_GROUP__
-#define __XMLIO_DECLARE_GROUP__
+#ifndef __XIOS_DECLARE_GROUP__
+#define __XIOS_DECLARE_GROUP__
 
 /// ///////////////////////////// Macros ///////////////////////////// ///
 
@@ -55,4 +55,4 @@
    };                                                                    \
    typedef type##Group type##Definition
 
-#endif // __XMLIO_DECLARE_GROUP__
+#endif // __XIOS_DECLARE_GROUP__

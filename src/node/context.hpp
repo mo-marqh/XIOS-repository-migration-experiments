@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CContext__
-#define __XMLIO_CContext__
+#ifndef __XIOS_CContext__
+#define __XIOS_CContext__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 //#include "node_type.hpp"
 #include "calendar_wrapper.hpp"
 
@@ -226,4 +226,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CContext__
+#endif // __XIOS_CContext__

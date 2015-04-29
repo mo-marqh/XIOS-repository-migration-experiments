@@ -264,5 +264,5 @@ namespace xios
 
     return isValid;
   }
-} // namespace xmlioserver
+} // namespace xios
 

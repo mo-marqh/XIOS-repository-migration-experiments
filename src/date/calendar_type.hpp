@@ -1,5 +1,5 @@
-#ifndef __XMLIO_calendar_type__
-#define __XMLIO_calendar_type__
+#ifndef __XIOS_calendar_type__
+#define __XIOS_calendar_type__
 
 #include "allleap.hpp"
 #include "d360.hpp"
@@ -8,4 +8,4 @@
 #include "noleap.hpp"
 #include "user_defined.hpp"
 
-#endif //__XMLIO_calendar_type__
+#endif //__XIOS_calendar_type__

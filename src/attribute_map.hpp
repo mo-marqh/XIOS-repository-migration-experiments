@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CAttributeMap__
-#define __XMLIO_CAttributeMap__
+#ifndef __XIOS_CAttributeMap__
+#define __XIOS_CAttributeMap__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "attribute.hpp"
 #include "attribute_template.hpp"
 #include "exception.hpp"
@@ -73,4 +73,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CAttributeMap__
+#endif // __XIOS_CAttributeMap__

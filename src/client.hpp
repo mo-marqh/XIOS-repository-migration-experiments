@@ -1,7 +1,7 @@
 #ifndef __CLIENT_HPP__
 #define __CLIENT_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "mpi.hpp"
 
 namespace xios

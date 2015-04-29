@@ -38,5 +38,5 @@ namespace xios
       { return (StdString("noleap")); }
 
       ///--------------------------------------------------------------
-} // namespace xmlioserver
+} // namespace xios
 

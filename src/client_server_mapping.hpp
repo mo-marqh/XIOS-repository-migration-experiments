@@ -9,7 +9,7 @@
 #ifndef __XIOS_CLIENT_SERVER_MAPPING_HPP__
 #define __XIOS_CLIENT_SERVER_MAPPING_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "array_new.hpp"
 #include "mpi.hpp"
 

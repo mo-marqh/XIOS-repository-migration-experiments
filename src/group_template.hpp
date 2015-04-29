@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CGroupTemplate__
-#define __XMLIO_CGroupTemplate__
+#ifndef __XIOS_CGroupTemplate__
+#define __XIOS_CGroupTemplate__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "declare_attribute.hpp"
 #include "event_server.hpp"
 #include "object_template.hpp"
@@ -103,4 +103,4 @@ namespace xios
 
 //#include "group_template_impl.hpp"
 
-#endif // __XMLIO_CGroupTemplate__
+#endif // __XIOS_CGroupTemplate__

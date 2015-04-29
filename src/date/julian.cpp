@@ -54,4 +54,4 @@ namespace xios
       bool CJulianCalendar::hasLeapYear() const { return true; }
 
       ///--------------------------------------------------------------
-} // namespace xmlioserver
+} // namespace xios

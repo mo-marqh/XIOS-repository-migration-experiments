@@ -1,7 +1,7 @@
 #ifndef __SERVER_HPP__
 #define __SERVER_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "context.hpp"
 #include "mpi.hpp"
 #include "event_scheduler.hpp"

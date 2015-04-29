@@ -1,7 +1,7 @@
 #ifndef __XIOS_IMPL_HPP__
 #define __XIOS_IMPL_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "variable.hpp"
 #include "object_template.hpp"
 #include "cxios.hpp"

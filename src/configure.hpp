@@ -1,5 +1,5 @@
-#ifndef __XMLIO_Configure__
-#define __XMLIO_Configure__
+#ifndef __XIOS_Configure__
+#define __XIOS_Configure__
 
 
 /// /////////// Macros /////////// ///
@@ -11,4 +11,4 @@ namespace xios
 #include "properties.conf"
 } // namespace xios
 
-#endif // __XMLIO_Configure__
+#endif // __XIOS_Configure__

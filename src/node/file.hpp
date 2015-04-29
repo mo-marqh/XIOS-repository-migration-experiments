@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CFile__
-#define __XMLIO_CFile__
+#ifndef __XIOS_CFile__
+#define __XIOS_CFile__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "field.hpp"
 #include "data_output.hpp"
 #include "declare_group.hpp"
@@ -176,4 +176,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CFile__
+#endif // __XIOS_CFile__

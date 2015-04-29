@@ -2,7 +2,7 @@
 #define __BUFFER_OUT_HPP__
 
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
 namespace xios
 {

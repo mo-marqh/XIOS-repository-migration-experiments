@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CCalendarWrapper__
-#define __XMLIO_CCalendarWrapper__
+#ifndef __XIOS_CCalendarWrapper__
+#define __XIOS_CCalendarWrapper__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
 #include "attribute_array.hpp"
@@ -84,4 +84,4 @@ namespace xios {
   typedef CCalendarWrapper CCalendarWrapperDefinition;
 } // namespace xios
 
-#endif // __XMLIO_CCalendarWrapper__
+#endif // __XIOS_CCalendarWrapper__

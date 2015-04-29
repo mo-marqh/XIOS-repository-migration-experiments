@@ -1,5 +1,5 @@
-#ifndef __XMLIO_SPL__
-#define __XMLIO_SPL__
+#ifndef __XIOS_SPL__
+#define __XIOS_SPL__
 
 /// standard C++ headers ///
 #include <utility>
@@ -51,11 +51,11 @@ typedef  unsigned short int   ushort;
 typedef  unsigned int         uint;
 typedef  unsigned long int    ulong;
 
-/// xios headers ///
+/// XIOS headers ///
 #include "configure.hpp"
 #include "log.hpp"
 using namespace std;
 using namespace boost ;
 
 
-#endif //__XMLIO_SPL__
+#endif //__XIOS_SPL__

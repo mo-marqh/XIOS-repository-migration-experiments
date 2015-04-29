@@ -1,7 +1,7 @@
 #ifndef __XIOS_ENUM_IMPL__
 #define __XIOS_ENUM_IMPL__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"

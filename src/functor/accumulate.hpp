@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CAccumulate__
-#define __XMLIO_CAccumulate__
+#ifndef __XIOS_CAccumulate__
+#define __XIOS_CAccumulate__
 
-/// xmlioserver headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -36,6 +36,6 @@ namespace xios
       }; // class CAccumulate
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
-#endif //__XMLIO_CAccumulate__
+#endif //__XIOS_CAccumulate__

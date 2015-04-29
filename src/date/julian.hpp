@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CJulianCalendar__
-#define __XMLIO_CJulianCalendar__
+#ifndef __XIOS_CJulianCalendar__
+#define __XIOS_CJulianCalendar__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "calendar.hpp"
 
 namespace xios
@@ -36,6 +36,6 @@ namespace xios
 
       }; // class CJulianCalendar
 
-} // namespace xmlioserver
+} // namespace xios
 
-#endif // __XMLIO_CJulianCalendar__
+#endif // __XIOS_CJulianCalendar__

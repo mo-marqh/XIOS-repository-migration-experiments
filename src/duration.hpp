@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CDuration__
-#define __XMLIO_CDuration__
+#ifndef __XIOS_CDuration__
+#define __XIOS_CDuration__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 
 namespace xios
@@ -44,4 +44,4 @@ namespace xios
                              Hour, Minute, Second, TimeStep, NoneDu;
 } // namespace xios
 
-#endif // __XMLIO_CDuration__
+#endif // __XIOS_CDuration__

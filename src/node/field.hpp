@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CField__
-#define __XMLIO_CField__
+#ifndef __XIOS_CField__
+#define __XIOS_CField__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "group_factory.hpp"
 #include "functor.hpp"
 #include "functor_type.hpp"
@@ -229,4 +229,4 @@ namespace xios {
 } // namespace xios
 
 
-#endif // __XMLIO_CField__
+#endif // __XIOS_CField__

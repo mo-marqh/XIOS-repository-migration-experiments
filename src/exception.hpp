@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CException__
-#define __XMLIO_CException__
+#ifndef __XIOS_CException__
+#define __XIOS_CException__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "object.hpp"
 
 namespace xios
@@ -53,4 +53,4 @@ namespace xios
 
 #define ERROR(id, x)  CException(id).getStream() << INFO(x)
 
-#endif // __XMLIO_CException__
+#endif // __XIOS_CException__

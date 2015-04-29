@@ -1,5 +1,5 @@
 #include "globalScopeData.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "server.hpp"
 #include "type.hpp"

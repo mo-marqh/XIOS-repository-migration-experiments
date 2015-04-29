@@ -1,9 +1,9 @@
-#ifndef __XMLIO__
-#define __XMLIO__
+#ifndef __XIOS__
+#define __XIOS__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
-/// xios headers ///
+/// XIOS headers ///
 #include "nc4_data_output.hpp"
 
 
@@ -11,4 +11,4 @@ using namespace xios;
 using namespace xios::xml;
 using namespace xios::func;
 
-#endif //__XMLIO__
+#endif //__XIOS__

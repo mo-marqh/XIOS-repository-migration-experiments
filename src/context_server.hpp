@@ -1,6 +1,6 @@
 #ifndef __CONTEXT_SERVER_HPP__
 #define __CONTEXT_SERVER_HPP__
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "event_server.hpp"
 #include "buffer_server.hpp"
 #include "mpi.hpp"

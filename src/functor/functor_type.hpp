@@ -1,5 +1,5 @@
-#ifndef __XMLIO_functor_type__
-#define __XMLIO_functor_type__
+#ifndef __XIOS_functor_type__
+#define __XIOS_functor_type__
 
 #include "average.hpp"
 #include "accumulate.hpp"
@@ -8,5 +8,5 @@
 #include "maximum.hpp"
 #include "minimum.hpp"
 
-#endif //__XMLIO_functor_type__
+#endif //__XIOS_functor_type__
 

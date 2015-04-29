@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CVariable__
-#define __XMLIO_CVariable__
+#ifndef __XIOS_CVariable__
+#define __XIOS_CVariable__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "declare_group.hpp"
 #include "group_template.hpp"
 #include "array_new.hpp"
@@ -140,4 +140,4 @@ namespace xios
       DECLARE_GROUP_PARSE_REDEF(CVariable);
 } // namespace xios
 
-#endif // __XMLIO_CVariable__
+#endif // __XIOS_CVariable__

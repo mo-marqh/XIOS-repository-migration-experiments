@@ -1,5 +1,5 @@
 #include "globalScopeData.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "client.hpp"
 #include <boost/functional/hash.hpp>

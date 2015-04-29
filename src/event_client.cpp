@@ -1,4 +1,4 @@
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "event_client.hpp"
 #include "buffer_out.hpp"
 #include "message.hpp"

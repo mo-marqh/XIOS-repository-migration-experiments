@@ -1,5 +1,5 @@
-#ifndef __XMLIO_DECLARE_ATTRIBUTE__
-#define __XMLIO_DECLARE_ATTRIBUTE__
+#ifndef __XIOS_DECLARE_ATTRIBUTE__
+#define __XIOS_DECLARE_ATTRIBUTE__
 
 /// ///////////////////////////// Macros ///////////////////////////// ///
 
@@ -136,4 +136,4 @@
          { /* Ne rien faire de plus */ }           \
    };
 
-#endif // __XMLIO_DECLARE_ATTRIBUTE__
+#endif // __XIOS_DECLARE_ATTRIBUTE__

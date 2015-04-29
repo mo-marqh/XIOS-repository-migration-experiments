@@ -9,7 +9,7 @@
 #ifndef __XIOS_DISTRIBUTION_HPP__
 #define __XIOS_DISTRIBUTION_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "array_new.hpp"
 
 namespace xios {

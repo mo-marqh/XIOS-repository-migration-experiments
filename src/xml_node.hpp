@@ -1,11 +1,11 @@
-#ifndef __XMLIO_CXMLNode__
-#define __XMLIO_CXMLNode__
+#ifndef __XIOS_CXMLNode__
+#define __XIOS_CXMLNode__
 
 /// rapidXML headers ///
 #include <rapidxml.hpp>
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 
 namespace xios
 {
@@ -54,4 +54,4 @@ namespace xios
    }// namespace xml
 } // namespace xios
 
-#endif // __XMLIO_CXMLNode__
+#endif // __XIOS_CXMLNode__

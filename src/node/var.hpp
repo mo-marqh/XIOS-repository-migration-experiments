@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CVar__
-#define __XMLIO_CVar__
+#ifndef __XIOS_CVar__
+#define __XIOS_CVar__
 
 namespace xios
 {
@@ -96,4 +96,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CVar__
+#endif // __XIOS_CVar__

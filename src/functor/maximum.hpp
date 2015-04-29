@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CMaximum__
-#define __XMLIO_CMaximum__
+#ifndef __XIOS_CMaximum__
+#define __XIOS_CMaximum__
 
-/// xios headers ///
+/// XIOS headers ///
 #include "functor.hpp"
 #include "array_new.hpp"
 
@@ -35,6 +35,6 @@ namespace xios
       }; // class CMaximum
 
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios
 
-#endif //__XMLIO_CMaximum__
+#endif //__XIOS_CMaximum__

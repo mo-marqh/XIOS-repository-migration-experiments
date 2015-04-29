@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CAttributeTemplate_impl__
-#define __XMLIO_CAttributeTemplate_impl__
+#ifndef __XIOS_CAttributeTemplate_impl__
+#define __XIOS_CAttributeTemplate_impl__
 
 #include "type.hpp"
 #include "buffer_in.hpp"
@@ -356,4 +356,4 @@ namespace xios
 */      
 } // namespace xios
 
-#endif // __XMLIO_CAttributeTemplate_impl__
+#endif // __XIOS_CAttributeTemplate_impl__

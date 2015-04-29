@@ -1,8 +1,8 @@
-#ifndef __XMLIO_NC4_DATA_OUTPUT__
-#define __XMLIO_NC4_DATA_OUTPUT__
+#ifndef __XIOS_NC4_DATA_OUTPUT__
+#define __XIOS_NC4_DATA_OUTPUT__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "onetcdf4.hpp"
 #include "data_output.hpp"
 
@@ -99,4 +99,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XMLIO_NC4_DATA_OUTPUT__
+#endif //__XIOS_NC4_DATA_OUTPUT__

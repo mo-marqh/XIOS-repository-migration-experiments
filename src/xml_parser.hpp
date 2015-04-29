@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CXMLParser__
-#define __XMLIO_CXMLParser__
+#ifndef __XIOS_CXMLParser__
+#define __XIOS_CXMLParser__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "xml_node.hpp"
 
@@ -48,4 +48,4 @@ namespace xios
    }// namespace xml
 } // namespace xios
 
-#endif // __XMLIO_CXMLParser__
+#endif // __XIOS_CXMLParser__

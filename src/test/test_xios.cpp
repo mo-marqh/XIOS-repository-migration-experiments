@@ -1,4 +1,4 @@
-#include "xmlioserver.hpp"
+#include "xios.hpp"
 #include "attribute_template.hpp"
 #include "buffer_out.hpp"
 #include "buffer_in.hpp"

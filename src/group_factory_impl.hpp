@@ -1,5 +1,5 @@
-#ifndef __XMLIO_CGroupFactory_impl__
-#define __XMLIO_CGroupFactory_impl__
+#ifndef __XIOS_CGroupFactory_impl__
+#define __XIOS_CGroupFactory_impl__
 
 #include "group_factory.hpp"
 
@@ -137,4 +137,4 @@ namespace xios
 
 } // namespace xios
 
-#endif // __XMLIO_CGroupFactory_impl__
+#endif // __XIOS_CGroupFactory_impl__

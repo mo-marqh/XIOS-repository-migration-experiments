@@ -1,7 +1,7 @@
 #ifndef __BUFFER_CLIENT_HPP__
 #define __BUFFER_CLIENT_HPP__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "buffer_out.hpp"
 #include "mpi.hpp"
 #include "cxios.hpp"

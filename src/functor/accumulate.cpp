@@ -48,4 +48,4 @@ namespace xios
         this->nbcall = 0; 
       }
    } // namespace func
-} // namespace xmlioserver
+} // namespace xios

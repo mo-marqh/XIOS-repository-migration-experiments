@@ -1,8 +1,8 @@
-#ifndef __XMLIO_NC4_DATA_INPUT__
-#define __XMLIO_NC4_DATA_INPUT__
+#ifndef __XIOS_NC4_DATA_INPUT__
+#define __XIOS_NC4_DATA_INPUT__
 
-/// xmlioserver headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "inetcdf4.hpp"
 
 namespace xios
@@ -25,4 +25,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XMLIO_NC4_DATA_INPUT__
+#endif //__XIOS_NC4_DATA_INPUT__

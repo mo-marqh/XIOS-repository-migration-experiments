@@ -1,5 +1,5 @@
-#ifndef __XMLIO_NODE_TYPE__
-#define __XMLIO_NODE_TYPE__
+#ifndef __XIOS_NODE_TYPE__
+#define __XIOS_NODE_TYPE__
 
 #include "axis.hpp"
 #include "domain.hpp"
@@ -9,4 +9,4 @@
 #include "variable.hpp"
 #include "context.hpp"
 
-#endif // __XMLIO_NODE_TYPE__
+#endif // __XIOS_NODE_TYPE__

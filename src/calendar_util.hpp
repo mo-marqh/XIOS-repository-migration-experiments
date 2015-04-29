@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CCalendar_util__
-#define __XMLIO_CCalendar_util__
+#ifndef __XIOS_CCalendar_util__
+#define __XIOS_CCalendar_util__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "calendar.hpp"
 
@@ -37,4 +37,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XMLIO_CCalendar_util__
+#endif //__XIOS_CCalendar_util__

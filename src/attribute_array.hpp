@@ -1,8 +1,8 @@
 #ifndef __XIOS_ATTRIBUTE_ARRAY__
 #define __XIOS_ATTRIBUTE_ARRAY__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "attribute.hpp"
 #include "buffer_in.hpp"

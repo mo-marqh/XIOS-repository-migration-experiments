@@ -1,8 +1,8 @@
-#ifndef __XMLIO_DATA_OUTPUT__
-#define __XMLIO_DATA_OUTPUT__
+#ifndef __XIOS_DATA_OUTPUT__
+#define __XIOS_DATA_OUTPUT__
 
-/// xios headers ///
-#include "xmlioserver_spl.hpp"
+/// XIOS headers ///
+#include "xios_spl.hpp"
 #include "exception.hpp"
 #include "grid.hpp"
 #include "field.hpp"
@@ -65,4 +65,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XMLIO_DATA_OUTPUT__
+#endif //__XIOS_DATA_OUTPUT__

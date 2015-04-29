@@ -112,14 +112,14 @@ rm -r $PWD/extern/netcdf4
 if [[ "$netcdf_lib" == "netcdf4_par" ]]
    then
      ln -s $PWD/.void_dir $PWD/extern/netcdf4
-     XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR"
+     XIOS_CPPKEY="$XIOS_CPPKEY USING_NETCDF_PAR"
 elif [[ "$netcdf_lib" == "netcdf4_seq" ]]
   then 
     ln -s $PWD/.void_dir $PWD/extern/netcdf4
 elif [[ "$netcdf_lib" == "netcdf4_internal" ]]
   then 
     ln -s $PWD/extern/src_netcdf4 $PWD/extern/netcdf4
-    XMLIO_CPPKEY="$XMLIO_CPPKEY USING_NETCDF_PAR USING_NETCDF_INTERNAL"
+    XIOS_CPPKEY="$XIOS_CPPKEY USING_NETCDF_PAR USING_NETCDF_INTERNAL"
     export NETCDF_INCDIR="-I${PWD}/extern/netcdf4"
     export NETCDF_LIBDIR=""
     export NETCDF_LIB=""
@@ -132,10 +132,10 @@ if [[ "$use_oasis" == "true" ]]
    then
     if [[ "$oasis" == "oasis3_mct" ]]
     then
-	XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OMCT"
+	XIOS_CPPKEY="$XIOS_CPPKEY USE_OMCT"
     elif [[ "$oasis" == "oasis3"  ]]
     then
-	XMLIO_CPPKEY="$XMLIO_CPPKEY USE_OASIS"
+	XIOS_CPPKEY="$XIOS_CPPKEY USE_OASIS"
 	OASIS_INCDIR="-I$PWD/../../prism/X64/build/lib/psmile.MPI1"
 	OASIS_LIBDIR="-L$PWD/../../prism/X64/lib"
 	OASIS_LIB="-lpsmile.MPI1 -lmpp_io"
@@ -144,29 +144,29 @@ if [[ "$use_oasis" == "true" ]]
 	exit
     fi
     NETCDF_LIB="-lnetcdff -lnetcdf"
-    XMLIO_FINCDIR="$OASIS_INCDIR $XMLIO_FINCDIR"
-    XMLIO_LIB="$OASIS_LIBDIR $OASIS_LIB $XMLIO_LIB"
+    XIOS_FINCDIR="$OASIS_INCDIR $XIOS_FINCDIR"
+    XIOS_LIB="$OASIS_LIBDIR $OASIS_LIB $XIOS_LIB"
 fi 
 
 if [[ "$use_memtrack" == "true" ]]
    then
-   XMLIO_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XMLIO_LIB"
-   XMLIO_CPPKEY="$XMLIO_CPPKEY XIOS_MEMTRACK"
+   XIOS_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XIOS_LIB"
+   XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK"
 fi 
 
-XMLIO_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
-XMLIO_FINCDIR="$XMLIO_FINCDIR $MPI_INCDIR"
+XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
+XIOS_FINCDIR="$XIOS_FINCDIR $MPI_INCDIR"
 
-XMLIO_LIB="$XMLIO_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
+XIOS_LIB="$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
 rm -f config.fcm
 echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> config.fcm
 echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> config.fcm
-echo "%CPP_KEY       $XMLIO_CPPKEY"  >> config.fcm
+echo "%CPP_KEY       $XIOS_CPPKEY"   >> config.fcm
 
-echo "%CBASE_INC     $XMLIO_CINCDIR" >> config.fcm     
-echo "%FBASE_INC     $XMLIO_FINCDIR" >> config.fcm
-echo "%ARCH_LD       $XMLIO_LIB" >> config.fcm 
+echo "%CBASE_INC     $XIOS_CINCDIR" >> config.fcm     
+echo "%FBASE_INC     $XIOS_FINCDIR" >> config.fcm
+echo "%ARCH_LD       $XIOS_LIB"     >> config.fcm 
 
 echo "=> Using "$compil_mode" mode for compiling under architecture \""$arch"\" !"
 
@@ -181,9 +181,6 @@ make_dir=$PWD
 
 export PATH=$PWD/tools/FCM/bin:$PATH
 
-#$make_dir/tools/preprocess_cpp $make_dir/src/xmlio/iface/interface.cpp      $make_dir/src/xmlio/iface/interface.cpp.in
-#$make_dir/tools/preprocess_f03 $make_dir/src/xmlio/fortran/ixmlioserver.f90 $make_dir/src/xmlio/fortran/ixmlioserver.f03.in
-
 if [[ "$compil_full" == "true" ]]
    then
    fcm build --clean --ignore-lock 
@@ -196,7 +193,7 @@ fi
 if [[ $? == 0 ]]
   then
   set nothing
-#    cd $WORKDIR/XMLIO_NEMO_COUPLE/modeles/NEMO/WORK
-#    cd $WORKDIR/XMLIO_NEMO/modeles/NEMO/WORK
+#    cd $WORKDIR/XIOS_NEMO_COUPLE/modeles/NEMO/WORK
+#    cd $WORKDIR/XIOS_NEMO/modeles/NEMO/WORK
 #    make
 fi

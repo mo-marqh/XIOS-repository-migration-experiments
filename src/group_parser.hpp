@@ -1,5 +1,5 @@
-#ifndef __XMLIO_GroupParser__
-#define __XMLIO_GroupParser__
+#ifndef __XIOS_GroupParser__
+#define __XIOS_GroupParser__
 
 /// boost headers ///
 #include <boost/cast.hpp>
@@ -124,4 +124,4 @@ namespace xios
    }
 } // namespace xios
 
-#endif // __XMLIO_GroupParser__
+#endif // __XIOS_GroupParser__

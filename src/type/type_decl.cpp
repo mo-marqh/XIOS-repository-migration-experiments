@@ -4,7 +4,7 @@
 #include "type_specialisation.hpp"
 #include <string> ;
 #include "date.hpp"
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 
 namespace xios
 {
