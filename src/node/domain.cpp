@@ -645,39 +645,40 @@ namespace xios {
     nGlobDomain[1] = nj_glo.getValue();
     CServerDistributionDescription serverDescription(nGlobDomain);
 
-    int ni_srv=ni_glo.getValue() ;
-    int ibegin_srv=0 ;
-    int iend_srv=ni_glo.getValue() ;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
+    int nbServer = client->serverSize;
 
-    int nj_srv ;
-    int jbegin_srv ;
-    int jend_srv ;
+    serverDescription.computeServerDistribution(nbServer);
+    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
-    CContext* context=CContext::getCurrent() ;
-    CContextClient* client=context->client ;
-    int nbServer=client->serverSize ;
-    int serverRank=client->getServerLeader() ;
+    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
+    if (client->isServerLeader())
+    {
+      std::list<CMessage> msgs;
 
-     serverDescription.computeServerDistribution(nbServer);
-     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-     ibegin_srv = (serverIndexBegin[serverRank])[0];
-     jbegin_srv = serverIndexBegin[serverRank][1];
-     ni_srv = serverDimensionSizes[serverRank][0];
-     nj_srv = serverDimensionSizes[serverRank][1];
-     iend_srv = ibegin_srv+ni_srv-1;
-     jend_srv = jbegin_srv+nj_srv-1;
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      {
+        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+        const int ibegin_srv = serverIndexBegin[*itRank][0];
+        const int jbegin_srv = serverIndexBegin[*itRank][1];
+        const int ni_srv = serverDimensionSizes[*itRank][0];
+        const int nj_srv = serverDimensionSizes[*itRank][1];
+        const int iend_srv = ibegin_srv + ni_srv - 1;
+        const int jend_srv = jbegin_srv + nj_srv - 1;
 
-     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;
-     if (client->isServerLeader())
-     {
-       CMessage msg ;
-       msg<<this->getId() ;
-       msg<<ni_srv<<ibegin_srv<<iend_srv<<nj_srv<<jbegin_srv<<jend_srv;
-       event.push(client->getServerLeader(),1,msg) ;
-       client->sendEvent(event) ;
-     }
-     else client->sendEvent(event) ;
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << this->getId() ;
+        msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
+
+        event.push(*itRank,1,msg);
+      }
+      client->sendEvent(event);
+    }
+    else client->sendEvent(event);
   }
 
   void CDomain::computeConnectedServer(void)
@@ -920,11 +921,10 @@ namespace xios {
 
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
-    int zoom_iend=zoom_ibegin.getValue()+zoom_ni.getValue()-1 ;
-    int zoom_jend=zoom_jbegin.getValue()+zoom_nj.getValue()-1 ;
+    int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
+    int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
 
-     buffer>>ni_srv>>ibegin_srv>>iend_srv>>nj_srv>>jbegin_srv>>jend_srv;
-
+    buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv;
 
     zoom_ibegin_srv = zoom_ibegin.getValue() > ibegin_srv ? zoom_ibegin.getValue() : ibegin_srv ;
     zoom_iend_srv = zoom_iend < iend_srv ? zoom_iend : iend_srv ;

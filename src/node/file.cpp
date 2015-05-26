@@ -616,7 +616,9 @@ namespace xios {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         event.push(client->getServerLeader(),1,msg) ;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event) ;
        }
        else client->sendEvent(event) ;
@@ -641,7 +643,9 @@ namespace xios {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         event.push(client->getServerLeader(),1,msg) ;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event) ;
        }
        else client->sendEvent(event) ;
@@ -743,7 +747,9 @@ namespace xios {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         event.push(client->getServerLeader(),1,msg) ;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event) ;
        }
        else client->sendEvent(event) ;
@@ -768,7 +774,9 @@ namespace xios {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         event.push(client->getServerLeader(),1,msg) ;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event) ;
        }
        else client->sendEvent(event) ;

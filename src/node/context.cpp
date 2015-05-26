@@ -240,9 +240,9 @@ namespace xios {
    {
      if (hasClient)
      {
-       size_t bufferSizeMin = 10*sizeof(size_t)*1024;
+       size_t bufferSizeMin = 10 * sizeof(size_t) * 1024;
 #define DECLARE_NODE(Name_, name_)    \
-   bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
+       bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
        std::map<int, StdSize> bufferSize = getDataSize();
@@ -250,16 +250,21 @@ namespace xios {
        {
          if (client->isServerLeader())
          {
-           bufferSize[client->getServerLeader()] = bufferSizeMin;
+           const std::list<int>& ranks = client->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             bufferSize[*itRank] = bufferSizeMin;
          }
          else
           return;
        }
+       else
+       {
+         std::map<int, StdSize>::iterator it  = bufferSize.begin(),
+                                          ite = bufferSize.end();
+         for (; it != ite; ++it)
+           it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
+       }
 
-       std::map<int, StdSize>::iterator  it = bufferSize.begin(),
-                                        ite = bufferSize.end();
-       for (; it != ite; ++it)
-       it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
        client->setBufferSize(bufferSize);
      }
    }
@@ -512,7 +517,9 @@ namespace xios {
      {
        CMessage msg;
        msg<<this->getIdServer();
-       event.push(client->getServerLeader(),1,msg);
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
        client->sendEvent(event);
      }
      else client->sendEvent(event);
@@ -538,7 +545,9 @@ namespace xios {
        {
          CMessage msg;
          msg<<this->getIdServer()<<step;
-         event.push(client->getServerLeader(),1,msg);
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event);
        }
        else client->sendEvent(event);
@@ -548,7 +557,6 @@ namespace xios {
    //! Server side: Receive a message of client annoucing calendar update
    void CContext::recvUpdateCalendar(CEventServer& event)
    {
-
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
@@ -571,7 +579,9 @@ namespace xios {
      {
        CMessage msg;
        msg<<this->getIdServer();
-       event.push(client->getServerLeader(),1,msg);
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg) ;
        client->sendEvent(event);
      }
      else client->sendEvent(event);
@@ -602,7 +612,9 @@ namespace xios {
        {
          CMessage msg;
          msg<<this->getIdServer();
-         event.push(client->getServerLeader(),1,msg);
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
          client->sendEvent(event);
        }
        else client->sendEvent(event);

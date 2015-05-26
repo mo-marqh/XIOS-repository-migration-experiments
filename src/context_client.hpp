@@ -9,7 +9,7 @@
 
 namespace xios
 {
-  class CContext ;
+  class CContext;
 
   /*!
   \class CContextClient
@@ -22,61 +22,64 @@ namespace xios
   class CContextClient
   {
     public:
-    // Contructor
-    CContextClient(CContext* parent,MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0) ;
+      // Contructor
+      CContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0);
 
-    // Send event to server
-    void sendEvent(CEventClient& event) ;
-    void waitEvent(list<int>& ranks) ;
+      // Send event to server
+      void sendEvent(CEventClient& event);
+      void waitEvent(list<int>& ranks);
 
-    // Functions relates to set/get buffers
-    list<CBufferOut*> getBuffers(list<int>& serverlist, list<int>& sizeList) ;
-    void newBuffer(int rank) ;
-    bool checkBuffers(list<int>& ranks) ;
-    bool checkBuffers(void);
-    void releaseBuffers(void);
+      // Functions relates to set/get buffers
+      list<CBufferOut*> getBuffers(list<int>& serverlist, list<int>& sizeList);
+      void newBuffer(int rank);
+      bool checkBuffers(list<int>& ranks);
+      bool checkBuffers(void);
+      void releaseBuffers(void);
 
-    bool isServerLeader(void) ;
-    int getServerLeader(void) ;
+      bool isServerLeader(void) const;
+      const std::list<int>& getRanksServerLeader(void) const;
 
-    // Close and finalize context client
-    void closeContext(void) ;
-    void finalize(void) ;
+      // Close and finalize context client
+      void closeContext(void);
+      void finalize(void);
 
-    void setBufferSize(const std::map<int, StdSize>& mapSize);
-    void sendBufferSizeEvent();
+      void setBufferSize(const std::map<int,StdSize>& mapSize);
+      void sendBufferSizeEvent();
 
     public:
-      CContext* context ; //!< Context for client
+      CContext* context; //!< Context for client
 
-      size_t timeLine ; //!< Timeline of each event
+      size_t timeLine; //!< Timeline of each event
 
-      int clientRank ; //!< Rank of current client
+      int clientRank; //!< Rank of current client
 
-      int clientSize ; //!< Size of client group
+      int clientSize; //!< Size of client group
 
-      int serverSize ; //!< Size of server group
+      int serverSize; //!< Size of server group
 
-      MPI_Comm interComm ; //!< Communicator of server group
+      MPI_Comm interComm; //!< Communicator of server group
 
-      MPI_Comm intraComm ; //!< Communicator of client group
+      MPI_Comm intraComm; //!< Communicator of client group
 
-      map<int,CClientBuffer*> buffers ; //!< Buffers for connection to servers
+      map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 
     private:
       //! Mapping of server and buffer size for each connection to server
-      std::map<int, StdSize> mapBufferSize_;
+      std::map<int,StdSize> mapBufferSize_;
 
       //! Context for server (Only used in attached mode)
       CContext* parentServer;
 
-    public: // Some function should be removed in the future
-      //    void registerEvent(CEventClient& event) ;
-//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes) ;
-//    bool locked ;
-//    set<int> connectedServer ;
+      //! List of server ranks for which the client is leader
+      std::list<int> ranksServerLeader;
 
-  } ;
+    public: // Some function should be removed in the future
+      //    void registerEvent(CEventClient& event);
+//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes);
+//    bool locked;
+//    set<int> connectedServer;
+
+  };
 }
 
 #endif // __CONTEXT_CLIENT_HPP__

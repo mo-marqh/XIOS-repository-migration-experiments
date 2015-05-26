@@ -118,22 +118,22 @@ namespace xios {
    {
       StdSize zoom_begin,zoom_end, zoom_size, axisSize;
 
-      zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue() ;
-      zoom_size  = (this->zoom_size.isEmpty()) ?  size.getValue() : this->zoom_size.getValue() ;
-      zoom_end   = (this->zoom_end.isEmpty()) ?  (size.getValue() - 1) : this->zoom_end.getValue() ;
+      zoom_begin = this->zoom_begin.isEmpty() ? 0 : this->zoom_begin.getValue();
+      zoom_size  = this->zoom_size.isEmpty() ? size.getValue() : this->zoom_size.getValue();
+      zoom_end   = this->zoom_end.isEmpty() ? (size.getValue() - 1) : this->zoom_end.getValue();
 
-      if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1 ;
-      if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1 ;
-      if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1 ;
+      if (this->zoom_begin.isEmpty()) zoom_begin = zoom_end - zoom_size + 1;
+      if (this->zoom_end.isEmpty()) zoom_end = zoom_begin + zoom_size - 1;
+      if (this->zoom_size.isEmpty()) zoom_size = zoom_end - zoom_begin + 1;
       axisSize = size.getValue();
 
       if ( (zoom_begin < 0) || (zoom_begin > axisSize-1) || (zoom_end<0) || (zoom_end>axisSize-1) || (zoom_size<1) || (zoom_size>axisSize) || (zoom_begin>zoom_end))
         ERROR("CAxis::checkAttributes(void)",
               << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
-      this->zoom_begin.setValue(zoom_begin) ;
-      this->zoom_end.setValue(zoom_end) ;
-      this->zoom_size.setValue(zoom_size) ;
+      this->zoom_begin.setValue(zoom_begin);
+      this->zoom_end.setValue(zoom_end);
+      this->zoom_size.setValue(zoom_size);
    }
 
    void CAxis::checkMask()
@@ -157,9 +157,9 @@ namespace xios {
       {
          if (mask.extent(0) != ni)
             ERROR("CAxis::checkMask(void)",
-                  <<"the mask has not the same size than the local axis"<<endl
-                  <<"Local size is "<<ni<<"x"<<endl
-                  <<"Mask size is "<<mask.extent(0)<<"x");
+                  << "the mask has not the same size than the local axis" << endl
+                  << "Local size is " << ni << "x" << endl
+                  << "Mask size is " << mask.extent(0) << "x");
          for (int i = 0; i < ni; ++i)
          {
            if (i < begin_mask && i > end_mask)  mask(i) = false;
@@ -180,19 +180,19 @@ namespace xios {
 
   bool CAxis::dispatchEvent(CEventServer& event)
    {
-      if (SuperClass::dispatchEvent(event)) return true ;
+      if (SuperClass::dispatchEvent(event)) return true;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_SERVER_ATTRIBUT :
-             recvServerAttribut(event) ;
-             return true ;
-             break ;
+             recvServerAttribut(event);
+             return true;
+             break;
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
-                    <<"Unknown Event") ;
-           return false ;
+                    << "Unknown Event");
+           return false;
          }
       }
    }
@@ -201,33 +201,10 @@ namespace xios {
                                        CServerDistributionDescription::ServerDistributionType distType)
    {
      if (this->areClientAttributesChecked_) return;
+
      this->checkAttributes();
 
-     CContext* context=CContext::getCurrent() ;
-     if (context->hasClient)
-     {
-       computeServerIndex(globalDim, orderPositionInGrid, distType);
-     }
-
      this->areClientAttributesChecked_ = true;
-   }
-
-   void CAxis::computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                  CServerDistributionDescription::ServerDistributionType distType)
-   {
-     CServerDistributionDescription serverDescription(globalDim);
-
-     CContext* context=CContext::getCurrent() ;
-     CContextClient* client=context->client ;
-     int nbServer=client->serverSize ;
-     int serverRank=client->getServerLeader() ;
-
-     serverDescription.computeServerDistribution(nbServer, false, distType);
-     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-     begin_srv = (serverIndexBegin[serverRank])[orderPositionInGrid];
-     ni_srv = serverDimensionSizes[serverRank][orderPositionInGrid];
-     end_srv = begin_srv+ni_srv-1;
    }
 
    // Send all checked attributes to server
@@ -237,40 +214,62 @@ namespace xios {
      if (!this->areClientAttributesChecked_) checkAttributesOnClient(globalDim,
                                                                      orderPositionInGrid,
                                                                      distType);
-     CContext* context=CContext::getCurrent() ;
+     CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;
      if (context->hasClient)
      {
-       sendServerAttribut() ;
+       sendServerAttribut(globalDim, orderPositionInGrid, distType);
      }
 
      this->isChecked = true;
    }
 
-  void CAxis::sendServerAttribut(void)
+  void CAxis::sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                 CServerDistributionDescription::ServerDistributionType distType)
   {
-    CContext* context=CContext::getCurrent();
-    CContextClient* client=context->client;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
 
-    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT) ;
+    CServerDistributionDescription serverDescription(globalDim);
+
+    int nbServer = client->serverSize;
+
+    serverDescription.computeServerDistribution(nbServer, false, distType);
+    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
     if (client->isServerLeader())
     {
-      CMessage msg ;
-      msg<<this->getId() ;
-      msg<<ni_srv<<begin_srv<<end_srv;
-      event.push(client->getServerLeader(),1,msg) ;
-      client->sendEvent(event) ;
+      std::list<CMessage> msgs;
+
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      {
+        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+        const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
+        const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
+        const int end   = begin + ni - 1;
+
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << this->getId();
+        msg << ni << begin << end;
+
+        event.push(*itRank,1,msg);
+      }
+      client->sendEvent(event);
     }
-    else client->sendEvent(event) ;
+    else client->sendEvent(event);
   }
 
   void CAxis::recvServerAttribut(CEventServer& event)
   {
-    CBufferIn* buffer=event.subEvents.begin()->buffer;
-    string axisId ;
-    *buffer>>axisId ;
-    get(axisId)->recvServerAttribut(*buffer) ;
+    CBufferIn* buffer = event.subEvents.begin()->buffer;
+    string axisId;
+    *buffer >> axisId;
+    get(axisId)->recvServerAttribut(*buffer);
   }
 
   void CAxis::recvServerAttribut(CBufferIn& buffer)
@@ -280,20 +279,20 @@ namespace xios {
 
     buffer>>ni_srv>>begin_srv>>end_srv;
 
-    zoom_begin_srv = zoom_begin.getValue() > begin_srv ? zoom_begin.getValue() : begin_srv ;
-    zoom_end_srv   = zoom_end < end_srv ? zoom_end : end_srv ;
-    zoom_size_srv  = zoom_end_srv-zoom_begin_srv+1 ;
+    zoom_begin_srv = zoom_begin.getValue() > begin_srv ? zoom_begin.getValue() : begin_srv;
+    zoom_end_srv   = zoom_end < end_srv ? zoom_end : end_srv;
+    zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
 
     if (zoom_size_srv<=0)
     {
-      zoom_begin_srv=0 ; zoom_end_srv=0 ; zoom_size_srv=0 ;
+      zoom_begin_srv = 0; zoom_end_srv = 0; zoom_size_srv = 0;
     }
 
     if (size == ni)
     {
       zoom_begin_srv = zoom_begin.getValue();
       zoom_end_srv   = zoom_end;
-      zoom_size_srv  = zoom_end_srv-zoom_begin_srv+1 ;
+      zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
     }
   }
 

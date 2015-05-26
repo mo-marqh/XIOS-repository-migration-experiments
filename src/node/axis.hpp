@@ -13,7 +13,6 @@
 #include "server_distribution_description.hpp"
 
 namespace xios {
-
    /// ////////////////////// Déclarations ////////////////////// ///
 
    class CAxisGroup;
@@ -74,7 +73,8 @@ namespace xios {
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         void sendServerAttribut(void);
+         void sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                 CServerDistributionDescription::ServerDistributionType distType);
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
          void recvServerAttribut(CBufferIn& buffer) ;
@@ -85,12 +85,12 @@ namespace xios {
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
+
       private :
          void checkData();
          void checkMask();
          void checkZoom();
-         void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                 CServerDistributionDescription::ServerDistributionType disType);
+
       private:
 
          bool isChecked;
@@ -99,17 +99,12 @@ namespace xios {
          bool isDistributed_;
 
          DECLARE_REF_FUNC(Axis,axis)
-
-
    }; // class CAxis
 
    ///--------------------------------------------------------------
 
    // Declare/Define CAxisGroup and CAxisDefinition
    DECLARE_GROUP(CAxis);
-
-   ///--------------------------------------------------------------
-
 } // namespace xios
 
 #endif // __XIOS_CAxis__
