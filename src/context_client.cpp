@@ -102,7 +102,7 @@ namespace xios
         checkBuffers(ranks);
       }
 
-      if (0 != parentServer) // context->hasServer
+      if (0 != parentServer) // attached mode
       {
         waitEvent(ranks);
         CContext::setCurrent(context->getId());
@@ -138,6 +138,15 @@ namespace xios
         bufOut->put(mapBufferSize_[it->first]);  // Stupid C++
         (it->second)->checkBuffer();
       }
+
+      if (0 != parentServer) // attached mode
+      {
+        while (checkBuffers())
+        {
+          parentServer->server->listen();
+        }
+        CContext::setCurrent(context->getId());
+      }
     }
 
     /*!
@@ -147,18 +156,6 @@ namespace xios
     */
     void CContextClient::waitEvent(list<int>& ranks)
     {
-//      context->server->setPendingEvent();
-//      while (checkBuffers(ranks))
-//      {
-//        context->server->listen();
-//        context->server->checkPendingRequest();
-//      }
-//
-//      while (context->server->hasPendingEvent())
-//      {
-//       context->server->eventLoop();
-//      }
-
       parentServer->server->setPendingEvent();
       while (checkBuffers(ranks))
       {
