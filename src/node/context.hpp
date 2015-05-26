@@ -86,14 +86,14 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initServer(MPI_Comm intraComm, MPI_Comm interComm);
-         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer=0);
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
+         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
          bool isInitialized(void);
 
          // Put sever or client into loop state
          bool eventLoop(void);
-         bool serverLoop(void);
-         void clientLoop(void);
+
+         bool checkBuffersAndListen(void);
 
          // Finalize a context
          void finalize(void);
@@ -209,6 +209,7 @@ namespace xios {
 
       private:
          bool isPostProcessed;
+         bool finalized;
          std::map<int, StdSize> dataSize_;
          StdString idServer_;
 

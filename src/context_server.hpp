@@ -22,6 +22,7 @@ namespace xios
     void dispatchEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
+    bool hasFinished(void);
 
     MPI_Comm intraComm ;
     int intraCommSize ;

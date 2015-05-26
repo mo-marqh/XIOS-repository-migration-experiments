@@ -12,7 +12,7 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     xios::CContext* context = CContext::getCurrent();
-    if (!context->hasServer) context->client->checkBuffers();
+    if (!context->hasServer) context->checkBuffersAndListen();
     context->updateCalendar(step);
     context->sendUpdateCalendar(step);
     CTimer::get("XIOS").suspend();

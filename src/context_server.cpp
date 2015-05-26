@@ -51,6 +51,11 @@ namespace xios
     return pendingEvent;
   }
 
+  bool CContextServer::hasFinished(void)
+  {
+    return finished;
+  }
+
   bool CContextServer::eventLoop(void)
   {
     listen();
@@ -78,7 +83,7 @@ namespace xios
         if (flag==true)
         {
           it=buffers.find(rank);
-          if (it==buffers.end())
+          if (it==buffers.end()) // Receive the buffer size and allocate the buffer
           {
             StdSize buffSize = 0;
             MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
@@ -168,12 +173,12 @@ namespace xios
 
       if (event->isFull())
       {
-        if (!scheduled && !CXios::isServer)
+        if (!scheduled && CServer::eventScheduler) // Skip event scheduling for attached mode and reception on client side
         {
           CServer::eventScheduler->registerEvent(currentTimeLine,hashId);
           scheduled=true;
         }
-        else if (CXios::isServer || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) )
+        else if (!CServer::eventScheduler || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) )
         {
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
@@ -206,6 +211,7 @@ namespace xios
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
+      finished=true;
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                                              iteMap = mapBufferSize_.end(), itMap;
@@ -217,7 +223,6 @@ namespace xios
         totalBuf += itMap->second;
       }
       context->finalize();
-      finished=true;
       report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);

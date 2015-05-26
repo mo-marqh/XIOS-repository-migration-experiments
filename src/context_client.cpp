@@ -205,6 +205,8 @@ namespace xios
           (*itBuffer)->checkBuffer();
          free &= (*itBuffer)->isBufferFree(*itSize);
         }
+        if (!free)
+          context->server->listen();
       }
       CTimer::get("Blocking time").suspend();
 

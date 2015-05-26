@@ -22,18 +22,20 @@ namespace xios {
 
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
-      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_(), idServer_()
+      , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
+      , dataSize_(), idServer_(), client(0), server(0)
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
-      , calendar(),hasClient(false),hasServer(false), isPostProcessed(false), dataSize_(), idServer_()
+      , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
+      , dataSize_(), idServer_(), client(0), server(0)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
    {
-     if (hasClient) delete client;
-     if (hasServer) delete server;
+     delete client;
+     delete server;
    }
 
    //----------------------------------------------------------------
@@ -230,10 +232,22 @@ namespace xios {
    ///---------------------------------------------------------------
 
    //! Initialize client side
-   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer)
+   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer /*= 0*/)
    {
      hasClient=true;
      client = new CContextClient(this,intraComm, interComm, cxtServer);
+     MPI_Comm intraCommServer, interCommServer;
+     if (cxtServer) // Attached mode
+     {
+       intraCommServer = intraComm;
+       interCommServer = interComm;
+     }
+     else
+     {
+       MPI_Comm_dup(intraComm, &intraCommServer);
+       MPI_Comm_dup(interComm, &interCommServer);
+     }
+     server = new CContextServer(this,intraCommServer,interCommServer);
    }
 
    void CContext::setClientServerBuffer()
@@ -276,10 +290,27 @@ namespace xios {
    }
 
    //! Initialize server
-   void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm)
+   void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm, CContext* cxtClient /*= 0*/)
    {
      hasServer=true;
      server = new CContextServer(this,intraComm,interComm);
+     MPI_Comm intraCommClient, interCommClient;
+     if (cxtClient) // Attached mode
+     {
+       intraCommClient = intraComm;
+       interCommClient = interComm;
+     }
+     else
+     {
+       MPI_Comm_dup(intraComm, &intraCommClient);
+       MPI_Comm_dup(interComm, &interCommClient);
+     }
+     client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
+     // Do something clever instead
+     std::map<int, StdSize> bufferSize;
+     for (int r = 0; r < client->serverSize; r++)
+       bufferSize[r] = 10 * sizeof(size_t) * 1024;
+     client->setBufferSize(bufferSize);
    }
 
    //! Server side: Put server into a loop in order to listen message from client
@@ -288,16 +319,30 @@ namespace xios {
      return server->eventLoop();
    }
 
+   //! Try to send the buffers and receive possible answers
+   bool CContext::checkBuffersAndListen(void)
+   {
+     client->checkBuffers();
+     return server->eventLoop();
+   }
+
    //! Terminate a context
    void CContext::finalize(void)
    {
-      if (hasClient && !hasServer)
+      if (!finalized)
       {
-         client->finalize();
-      }
-      if (hasServer)
-      {
-        closeAllFile();
+        finalized = true;
+
+        client->finalize();
+        while (!server->hasFinished())
+        {
+          server->eventLoop();
+        }
+
+        if (hasServer)
+        {
+          closeAllFile();
+        }
       }
    }
 

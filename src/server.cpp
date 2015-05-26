@@ -24,7 +24,7 @@ namespace xios
     map<string,CContext*> CServer::contextList ;
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
-    CEventScheduler* CServer::eventScheduler ;
+    CEventScheduler* CServer::eventScheduler = 0;
 
     void CServer::initialize(void)
     {
@@ -391,7 +391,7 @@ namespace xios
        map<string,CContext*>::iterator it ;
        for(it=contextList.begin();it!=contextList.end();it++)
        {
-         finished=it->second->eventLoop() ;
+         finished=it->second->checkBuffersAndListen();
          if (finished)
          {
            contextList.erase(it) ;

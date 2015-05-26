@@ -200,9 +200,8 @@ namespace xios
         // Firstly, initialize context on client side
         context->initClient(contextComm,contextInterComm, contextServer);
 
-
         // Secondly, initialize context on server side
-        contextServer->initServer(contextComm,contextInterComm);
+        contextServer->initServer(contextComm,contextInterComm, context);
 
         // Finally, we should return current context to context client
         CContext::setCurrent(id);
