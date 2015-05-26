@@ -129,6 +129,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_min_digits
 
 
+    SUBROUTINE cxios_set_filegroup_mode(filegroup_hdl, mode, mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: mode
+      INTEGER  (kind = C_INT)     , VALUE        :: mode_size
+    END SUBROUTINE cxios_set_filegroup_mode
+
+    SUBROUTINE cxios_get_filegroup_mode(filegroup_hdl, mode, mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: mode
+      INTEGER  (kind = C_INT)     , VALUE        :: mode_size
+    END SUBROUTINE cxios_get_filegroup_mode
+
+    FUNCTION cxios_is_defined_filegroup_mode(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_mode
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_mode
+
+
     SUBROUTINE cxios_set_filegroup_name(filegroup_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

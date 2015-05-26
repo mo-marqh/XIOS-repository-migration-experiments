@@ -27,6 +27,7 @@ namespace xios{
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , isReadDataRequestPending(false)
       { setVirtualVariableGroup(); }
 
    CField::CField(const StdString& id)
@@ -39,6 +40,7 @@ namespace xios{
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
 
    CField::~CField(void)
@@ -111,9 +113,8 @@ namespace xios{
       return false;
    }
 
-   bool CField::dispatchEvent(CEventServer& event)
+  bool CField::dispatchEvent(CEventServer& event)
   {
-
     if (SuperClass::dispatchEvent(event)) return true;
     else
     {
@@ -124,15 +125,25 @@ namespace xios{
           return true;
           break;
 
-            case EVENT_ID_ADD_VARIABLE :
-             recvAddVariable(event);
-             return true;
-             break;
+        case EVENT_ID_READ_DATA :
+          recvReadDataRequest(event);
+          return true;
+          break;
 
-           case EVENT_ID_ADD_VARIABLE_GROUP :
-             recvAddVariableGroup(event);
-             return true;
-             break;
+        case EVENT_ID_READ_DATA_READY :
+          recvReadDataReady(event);
+          return true;
+          break;
+
+        case EVENT_ID_ADD_VARIABLE :
+          recvAddVariable(event);
+          return true;
+          break;
+
+        case EVENT_ID_ADD_VARIABLE_GROUP :
+          recvAddVariableGroup(event);
+          return true;
+          break;
 
         default :
           ERROR("bool CField::dispatchEvent(CEventServer& event)", << "Unknown Event");
@@ -262,6 +273,126 @@ namespace xios{
         getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
       }
     }
+  }
+
+  void CField::sendReadDataRequest(void)
+  {
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
+
+    CEventClient event(getType(), EVENT_ID_READ_DATA);
+    if (client->isServerLeader())
+    {
+      CMessage msg;
+      msg << getId();
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        event.push(*itRank, 1, msg);
+      client->sendEvent(event);
+    }
+    else client->sendEvent(event);
+
+    lastDataRequestedFromServer = context->getCalendar()->getCurrentDate();
+    isReadDataRequestPending = true;
+  }
+
+  /*!
+  Send request new data read from file if need be, that is the current data is out-of-date.
+  \return true if and only if some data was requested
+  */
+  bool CField::sendReadDataRequestIfNeeded(void)
+  {
+    const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
+
+    bool requestData = (currentDate >= lastDataRequestedFromServer + file->output_freq.getValue());
+
+    if (requestData)
+      sendReadDataRequest();
+
+    return requestData;
+  }
+
+  void CField::recvReadDataRequest(CEventServer& event)
+  {
+    CBufferIn* buffer = event.subEvents.begin()->buffer;
+    StdString fieldId;
+    *buffer >> fieldId;
+    get(fieldId)->recvReadDataRequest();
+  }
+
+  void CField::recvReadDataRequest(void)
+  {
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
+
+    CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
+    std::list<CMessage> msgs;
+
+    // TODO: Read the data from the file
+    if (data_srv.empty())
+    {
+      for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+        data_srv.insert( pair<int, CArray<double,1>* >(it->first, new CArray<double,1>(it->second->numElements())));
+    }
+
+    map<int, CArray<double,1>* >::iterator it;
+    for (it = data_srv.begin(); it != data_srv.end(); it++)
+    {
+      msgs.push_back(CMessage());
+      CMessage& msg = msgs.back();
+      msg << getId() << getNStep() << *it->second;
+      event.push(it->first, grid->nbSenders[it->first], msg);
+    }
+    client->sendEvent(event);
+
+    incrementNStep();
+  }
+
+  void CField::recvReadDataReady(CEventServer& event)
+  {
+    string fieldId;
+    vector<int> ranks;
+    vector<CBufferIn*> buffers;
+
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
+    {
+      ranks.push_back(it->rank);
+      CBufferIn* buffer = it->buffer;
+      *buffer >> fieldId;
+      buffers.push_back(buffer);
+    }
+    get(fieldId)->recvReadDataReady(ranks, buffers);
+  }
+
+  void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
+  {
+    CContext* context = CContext::getCurrent();
+    StdSize record;
+    for (int i = 0; i < ranks.size(); i++)
+    {
+      int rank = ranks[i];
+      CArray<int,1>& index = *grid->storeIndex_toSrv[rank];
+      CArray<double,1> data_tmp(index.numElements());
+      *buffers[i] >> record >> data_tmp;
+
+      for (int n = 0; n < data_tmp.numElements(); n++)
+        instantData(index(n)) = data_tmp(n);
+    }
+
+    for (list< pair<CField*, int> >::iterator it = fieldDependency.begin(); it != fieldDependency.end(); ++it)
+      it->first->setSlot(it->second);
+
+    if (!hasExpression) // Should be always true ?
+    {
+      const std::vector<CField*>& refField = getAllReference();
+      std::vector<CField*>::const_iterator it = refField.begin(), end = refField.end();
+
+      for (; it != end; it++) (*it)->setDataFromExpression(instantData);
+      if (hasFieldOut) updateDataFromExpression(instantData);
+    }
+
+    isReadDataRequestPending = false;
   }
 
    //----------------------------------------------------------------
@@ -476,6 +607,8 @@ namespace xios{
 
          const CDuration toffset = this->freq_operation - freq_offset.getValue() - context->getCalendar()->getTimeStep();
          *this->last_operation   = *this->last_operation - toffset;
+
+         lastDataRequestedFromServer.setRelCalendar(*context->getCalendar());
 
         if (operation.get() == "once") isOnceOperation = true;
         else isOnceOperation = false;

@@ -183,6 +183,12 @@ namespace xios {
   {
     if (!read_access.isEmpty() && read_access.getValue() && hasInstantData)
     {
+      CContext* context = CContext::getCurrent();
+      const CDate& currentDate = context->getCalendar()->getCurrentDate();
+
+      while (isReadDataRequestPending)
+        context->checkBuffersAndListen();
+
       grid->outputField(instantData, _data);
     }
     else

@@ -11,7 +11,7 @@ MODULE ifilegroup_attr
 CONTAINS
 
   SUBROUTINE xios(set_filegroup_attr)  &
-    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -25,6 +25,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
@@ -37,13 +38,13 @@ CONTAINS
 
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(set_filegroup_attr_hdl_)   &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(set_filegroup_attr)
 
   SUBROUTINE xios(set_filegroup_attr_hdl)  &
-    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -56,6 +57,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq
@@ -67,15 +69,15 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
       CALL xios(set_filegroup_attr_hdl_)  &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(set_filegroup_attr_hdl)
 
   SUBROUTINE xios(set_filegroup_attr_hdl_)   &
-    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, name_, name_suffix_  &
-    , output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_, type_  &
-     )
+    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, mode_, name_  &
+    , name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_  &
+    , type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -87,6 +89,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: format_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(IN) :: min_digits_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_suffix_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: output_freq_
@@ -121,6 +124,10 @@ CONTAINS
 
       IF (PRESENT(min_digits_)) THEN
         CALL cxios_set_filegroup_min_digits(filegroup_hdl%daddr, min_digits_)
+      ENDIF
+
+      IF (PRESENT(mode_)) THEN
+        CALL cxios_set_filegroup_mode(filegroup_hdl%daddr, mode_, len(mode_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -162,7 +169,7 @@ CONTAINS
   END SUBROUTINE xios(set_filegroup_attr_hdl_)
 
   SUBROUTINE xios(get_filegroup_attr)  &
-    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -176,6 +183,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
@@ -188,13 +196,13 @@ CONTAINS
 
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(get_filegroup_attr_hdl_)   &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(get_filegroup_attr)
 
   SUBROUTINE xios(get_filegroup_attr_hdl)  &
-    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -207,6 +215,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq
@@ -218,15 +227,15 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
       CALL xios(get_filegroup_attr_hdl_)  &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(get_filegroup_attr_hdl)
 
   SUBROUTINE xios(get_filegroup_attr_hdl_)   &
-    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, name_, name_suffix_  &
-    , output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_, type_  &
-     )
+    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, mode_, name_  &
+    , name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_  &
+    , type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -238,6 +247,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: format_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
       INTEGER  , OPTIONAL, INTENT(OUT) :: min_digits_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_suffix_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: output_freq_
@@ -272,6 +282,10 @@ CONTAINS
 
       IF (PRESENT(min_digits_)) THEN
         CALL cxios_get_filegroup_min_digits(filegroup_hdl%daddr, min_digits_)
+      ENDIF
+
+      IF (PRESENT(mode_)) THEN
+        CALL cxios_get_filegroup_mode(filegroup_hdl%daddr, mode_, len(mode_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -313,7 +327,7 @@ CONTAINS
   END SUBROUTINE xios(get_filegroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_filegroup_attr)  &
-    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_id, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -331,6 +345,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits
       LOGICAL(KIND=C_BOOL) :: min_digits_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mode
+      LOGICAL(KIND=C_BOOL) :: mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_suffix
@@ -352,13 +368,13 @@ CONTAINS
 
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(is_defined_filegroup_attr_hdl_)   &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(is_defined_filegroup_attr)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl)  &
-    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+    ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
     , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
     IMPLICIT NONE
@@ -375,6 +391,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits
       LOGICAL(KIND=C_BOOL) :: min_digits_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mode
+      LOGICAL(KIND=C_BOOL) :: mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_suffix
@@ -395,15 +413,15 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
       CALL xios(is_defined_filegroup_attr_hdl_)  &
-      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, name, name_suffix  &
+      ( filegroup_hdl, append, description, enabled, format, group_ref, min_digits, mode, name, name_suffix  &
       , output_freq, output_level, par_access, split_freq, split_freq_format, sync_freq, type )
 
   END SUBROUTINE xios(is_defined_filegroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl_)   &
-    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, name_, name_suffix_  &
-    , output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_, type_  &
-     )
+    ( filegroup_hdl, append_, description_, enabled_, format_, group_ref_, min_digits_, mode_, name_  &
+    , name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_, sync_freq_  &
+    , type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -419,6 +437,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: group_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: min_digits_
       LOGICAL(KIND=C_BOOL) :: min_digits__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mode_
+      LOGICAL(KIND=C_BOOL) :: mode__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_suffix_
@@ -466,6 +486,11 @@ CONTAINS
       IF (PRESENT(min_digits_)) THEN
         min_digits__tmp = cxios_is_defined_filegroup_min_digits(filegroup_hdl%daddr)
         min_digits_ = min_digits__tmp
+      ENDIF
+
+      IF (PRESENT(mode_)) THEN
+        mode__tmp = cxios_is_defined_filegroup_mode(filegroup_hdl%daddr)
+        mode_ = mode__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN

@@ -15,6 +15,7 @@ extern "C"
     if (!context->hasServer) context->checkBuffersAndListen();
     context->updateCalendar(step);
     context->sendUpdateCalendar(step);
+    context->checkPrefetchingOfEnabledReadModeFiles();
     CTimer::get("XIOS").suspend();
   }
 

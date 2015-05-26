@@ -252,35 +252,32 @@ namespace xios {
 
    void CContext::setClientServerBuffer()
    {
-     if (hasClient)
-     {
-       size_t bufferSizeMin = 10 * sizeof(size_t) * 1024;
+     size_t bufferSizeMin = 10 * sizeof(size_t) * 1024;
 #define DECLARE_NODE(Name_, name_)    \
-       bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
+     bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
-       std::map<int, StdSize> bufferSize = getDataSize();
-       if (bufferSize.empty())
+     std::map<int, StdSize> bufferSize = getDataSize();
+     if (bufferSize.empty())
+     {
+       if (client->isServerLeader())
        {
-         if (client->isServerLeader())
-         {
-           const std::list<int>& ranks = client->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             bufferSize[*itRank] = bufferSizeMin;
-         }
-         else
-          return;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           bufferSize[*itRank] = bufferSizeMin;
        }
        else
-       {
-         std::map<int, StdSize>::iterator it  = bufferSize.begin(),
-                                          ite = bufferSize.end();
-         for (; it != ite; ++it)
-           it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
-       }
-
-       client->setBufferSize(bufferSize);
+        return;
      }
+     else
+     {
+       std::map<int, StdSize>::iterator it  = bufferSize.begin(),
+                                        ite = bufferSize.end();
+       for (; it != ite; ++it)
+         it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
+     }
+
+     client->setBufferSize(bufferSize);
    }
 
    //! Verify whether a context is initialized
@@ -306,11 +303,6 @@ namespace xios {
        MPI_Comm_dup(interComm, &interCommClient);
      }
      client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
-     // Do something clever instead
-     std::map<int, StdSize> bufferSize;
-     for (int r = 0; r < client->serverSize; r++)
-       bufferSize[r] = 10 * sizeof(size_t) * 1024;
-     client->setBufferSize(bufferSize);
    }
 
    //! Server side: Put server into a loop in order to listen message from client
@@ -362,9 +354,8 @@ namespace xios {
      {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
-
-       setClientServerBuffer();
      }
+     setClientServerBuffer();
 
      if (hasClient && !hasServer)
      {
@@ -388,9 +379,6 @@ namespace xios {
        sendRefGrid();
     }
 
-    // Now tell server that it can process all messages from client
-    if (hasClient && !hasServer) this->sendCloseDefinition();
-
     // We have a xml tree on the server side and now, it should be also processed
     if (hasClient && !hasServer) sendPostProcessing();
 
@@ -402,11 +390,18 @@ namespace xios {
       buildAllExpressionOfFieldsWithReadAccess();
     }
 
+    // Now tell server that it can process all messages from client
+    if (hasClient && !hasServer) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
     if (hasClient && !hasServer) CleanTree(); // Only on client side??
 
-    if (hasClient) sendCreateFileHeader();
+    if (hasClient)
+    {
+      sendCreateFileHeader();
+
+      startPrefetchingOfEnabledReadModeFiles();
+    }
    }
 
    void CContext::findAllEnabledFields(void)
@@ -433,12 +428,32 @@ namespace xios {
      }
    }
 
+   void CContext::startPrefetchingOfEnabledReadModeFiles()
+   {
+     int size = enabledReadModeFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+        enabledReadModeFiles[i]->prefetchEnabledReadModeFields();
+     }
+   }
+
+   void CContext::checkPrefetchingOfEnabledReadModeFiles()
+   {
+     int size = enabledReadModeFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+        enabledReadModeFiles[i]->prefetchEnabledReadModeFieldsIfNeeded();
+     }
+   }
+
   void CContext::findFieldsWithReadAccess(void)
   {
     fieldsWithReadAccess.clear();
     const vector<CField*> allFields = CField::getAll();
     for (size_t i = 0; i < allFields.size(); ++i)
     {
+      if (allFields[i]->file && !allFields[i]->file->mode.isEmpty() && allFields[i]->file->mode.getValue() == CFile::mode_attr::read)
+        allFields[i]->read_access = true;
       if (!allFields[i]->read_access.isEmpty() && allFields[i]->read_access.getValue())
         fieldsWithReadAccess.push_back(allFields[i]);
     }
@@ -500,6 +515,16 @@ namespace xios {
       if (enabledFiles.size() == 0)
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
                << getId() << "\" !");
+   }
+
+   void CContext::findEnabledReadModeFiles(void)
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       if (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::read)
+        enabledReadModeFiles.push_back(enabledFiles[i]);
+     }
    }
 
    void CContext::closeAllFile(void)
@@ -716,6 +741,7 @@ namespace xios {
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
+      this->findEnabledReadModeFiles();
 
       // Find all enabled fields of each file
       this->findAllEnabledFields();
@@ -733,6 +759,8 @@ namespace xios {
 
    std::map<int, StdSize>& CContext::getDataSize()
    {
+     CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
+
      // Set of grid used by enabled fields
      std::set<StdString> usedGrid;
 
@@ -740,40 +768,44 @@ namespace xios {
      int numEnabledFiles = this->enabledFiles.size();
      for (int i = 0; i < numEnabledFiles; ++i)
      {
-       std::vector<CField*> enabledFields = this->enabledFiles[i]->getEnabledFields();
-       int numEnabledFields = enabledFields.size();
-       for (int j = 0; j < numEnabledFields; ++j)
+       CFile* file = this->enabledFiles[i];
+       CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
+
+       if (fileMode == mode)
        {
-//         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getDomainAxisIds();
-         StdString currentGrid = enabledFields[j]->grid->getId();
-         const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataSize();
-         if (dataSize_.empty())
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         int numEnabledFields = enabledFields.size();
+         for (int j = 0; j < numEnabledFields; ++j)
          {
-           dataSize_ = mapSize;
-           usedGrid.insert(currentGrid);
-//           domainIds.insert(prDomAxisId.first);
-         }
-         else
-         {
-           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-           if (usedGrid.find(currentGrid) == usedGrid.end())
+           StdString currentGrid = enabledFields[j]->grid->getId();
+           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataSize();
+           if (dataSize_.empty())
            {
-             for (; it != itE; ++it)
-             {
-               if (0 < dataSize_.count(it->first)) dataSize_[it->first] += it->second;
-               else dataSize_.insert(make_pair(it->first, it->second));
-             }
-           } else
+             dataSize_ = mapSize;
+             usedGrid.insert(currentGrid);
+           }
+           else
            {
-             for (; it != itE; ++it)
+             std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+             if (usedGrid.find(currentGrid) == usedGrid.end())
              {
-               if (0 < dataSize_.count(it->first))
-                if (CXios::isOptPerformance) dataSize_[it->first] += it->second;
-                else
-                {
-                  if (dataSize_[it->first] < it->second) dataSize_[it->first] = it->second;
-                }
-               else dataSize_.insert(make_pair(it->first, it->second));
+               for (; it != itE; ++it)
+               {
+                 if (0 < dataSize_.count(it->first)) dataSize_[it->first] += it->second;
+                 else dataSize_.insert(make_pair(it->first, it->second));
+               }
+             } else
+             {
+               for (; it != itE; ++it)
+               {
+                 if (0 < dataSize_.count(it->first))
+                  if (CXios::isOptPerformance) dataSize_[it->first] += it->second;
+                  else
+                  {
+                    if (dataSize_[it->first] < it->second) dataSize_[it->first] = it->second;
+                  }
+                 else dataSize_.insert(make_pair(it->first, it->second));
+               }
              }
            }
          }

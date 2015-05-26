@@ -104,11 +104,14 @@ namespace xios {
          void processEnabledFiles(void);
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
+         void findEnabledReadModeFiles(void);
          void closeAllFile(void);
          void updateCalendar(int step);
          void createFileHeader(void );
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
+         void startPrefetchingOfEnabledReadModeFiles();
+         void checkPrefetchingOfEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void solveAllRefOfFieldsWithReadAccess();
          void buildAllExpressionOfFieldsWithReadAccess();
@@ -186,8 +189,10 @@ namespace xios {
          // Calendar of context
          boost::shared_ptr<CCalendar>   calendar;
 
-         // List of all enabled files (files on which fields are written)
+         // List of all enabled files (files on which fields are written or read)
          std::vector<CFile*> enabledFiles;
+         // List of all enabled files in read mode (files on which fields are read)
+         std::vector<CFile*> enabledReadModeFiles;
 
          // List of all fields whose instant data is accessible from the public API
          std::vector<CField*> fieldsWithReadAccess;

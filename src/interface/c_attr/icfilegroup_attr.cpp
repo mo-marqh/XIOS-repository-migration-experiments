@@ -164,6 +164,32 @@ extern "C"
   }
 
 
+  void cxios_set_filegroup_mode(filegroup_Ptr filegroup_hdl, const char * mode, int mode_size)
+  {
+    std::string mode_str;
+    if (!cstr2string(mode, mode_size, mode_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->mode.fromString(mode_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_mode(filegroup_Ptr filegroup_hdl, char * mode, int mode_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->mode.getInheritedStringValue(), mode, mode_size))
+      ERROR("void cxios_get_filegroup_mode(filegroup_Ptr filegroup_hdl, char * mode, int mode_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_mode(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->mode.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_filegroup_name(filegroup_Ptr filegroup_hdl, const char * name, int name_size)
   {
     std::string name_str;

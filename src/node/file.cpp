@@ -516,6 +516,32 @@ namespace xios {
      }
    }
 
+   /*!
+     Prefetching the data for enabled fields read from file.
+   */
+   void CFile::prefetchEnabledReadModeFields(void)
+   {
+     if (mode.isEmpty() || mode.getValue() != mode_attr::read)
+       return;
+
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+       this->enabledFields[i]->sendReadDataRequest();
+   }
+
+   /*!
+     Prefetching the data for enabled fields read from file whose data is out-of-date.
+   */
+   void CFile::prefetchEnabledReadModeFieldsIfNeeded(void)
+   {
+     if (mode.isEmpty() || mode.getValue() != mode_attr::read)
+       return;
+
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+       this->enabledFields[i]->sendReadDataRequestIfNeeded();
+   }
+
    void CFile::solveFieldRefInheritance(bool apply)
    {
       // Résolution des héritages par référence de chacun des champs contenus dans le fichier.

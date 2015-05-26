@@ -104,6 +104,8 @@ namespace xios {
          void processEnabledFields(void) ;
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
+         void prefetchEnabledReadModeFields();
+         void prefetchEnabledReadModeFieldsIfNeeded();
 
          // Add component into file
          CField* addField(const string& id="") ;

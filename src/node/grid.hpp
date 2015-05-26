@@ -156,7 +156,7 @@ namespace xios {
          static bool dispatchEvent(CEventServer& event) ;
          void outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut) ;
          static void recvIndex(CEventServer& event) ;
-         void recvIndex(int rank, CBufferIn& buffer) ;
+         void recvIndex(vector<int> ranks, vector<CBufferIn*> buffers) ;
          void sendIndex(void) ;
          void sendIndexScalarGrid();
 

@@ -53,7 +53,8 @@ namespace xios {
 
          enum EEventId
          {
-           EVENT_ID_UPDATE_DATA, EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
+           EVENT_ID_UPDATE_DATA, EVENT_ID_READ_DATA, EVENT_ID_READ_DATA_READY,
+           EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
          } ;
 
          /// Constructeurs ///
@@ -132,6 +133,12 @@ namespace xios {
         static void recvUpdateData(CEventServer& event) ;
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers) ;
         void writeField(void) ;
+        void sendReadDataRequest(void);
+        bool sendReadDataRequestIfNeeded(void);
+        static void recvReadDataRequest(CEventServer& event);
+        void recvReadDataRequest(void);
+        static void recvReadDataReady(CEventServer& event);
+        void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void outputField(CArray<double,3>& fieldOut) ;
         void outputField(CArray<double,2>& fieldOut) ;
         void outputField(CArray<double,1>& fieldOut) ;
@@ -171,6 +178,7 @@ namespace xios {
          StdSize nstep;
          boost::shared_ptr<CDate>    last_Write, last_operation;
          boost::shared_ptr<CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
+         CDate lastDataRequestedFromServer;
 
          boost::shared_ptr<func::CFunctor> foperation;
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
@@ -197,6 +205,7 @@ namespace xios {
          bool areAllReferenceSolved;
          bool areAllExpressionBuilt;
          std::pair<StdString,StdString> domAxisIds_;
+         bool isReadDataRequestPending;
          DECLARE_REF_FUNC(Field,field)
 //       public:
 //         bool hasDirectFieldReference(void) const;
