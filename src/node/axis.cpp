@@ -16,11 +16,13 @@ namespace xios {
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
+      , isDistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
+      , isDistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CAxis::~CAxis(void)
@@ -36,6 +38,11 @@ namespace xios {
    bool CAxis::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
+   }
+
+   bool CAxis::isDistributed(void) const
+   {
+      return isDistributed_;
    }
 
    void CAxis::addRelFile(const StdString & filename)
@@ -57,6 +64,8 @@ namespace xios {
          ERROR("CAxis::checkAttributes(void)",
                << "Attribute <size> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be specified");
       StdSize size = this->size.getValue();
+
+      isDistributed_ = !this->ibegin.isEmpty() || !this->ni.isEmpty();
 
       if (!this->ibegin.isEmpty())
       {

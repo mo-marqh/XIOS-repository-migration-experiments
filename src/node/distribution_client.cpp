@@ -182,6 +182,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   int domIndex = 0, axisIndex = 0;
   idx = 0;
 
+  isDataDistributed_ = false;
   // Update all the vectors above
   while (idx < numElement_)
   {
@@ -216,6 +217,9 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
 
       dataNIndex_.at(idx) = domList[domIndex]->data_n_index.getValue();
       dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
+
+      isDataDistributed_ |= domList[domIndex]->isDistributed();
+
       ++domIndex;
     }
     else // So it's an axis
@@ -232,18 +236,15 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       dataIndex_.at(indexMap_[idx]) = axisList[axisIndex]->data_index;
       dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();
       dataDims_.at(idx) = 1;
+
+      isDataDistributed_ |= axisList[axisIndex]->isDistributed();
+
       ++axisIndex;
     }
     ++idx;
   }
   readDomainIndex(domList);
   readAxisIndex(axisList);
-
-  // Grid has only one axis and it is not distributed
-  bool isDataNotDistributed = true;
-  for (int i = 0; i < this->dims_; ++i)
-    isDataNotDistributed &= (nLocal_[i] == nGlob_[i]);
-  isDataDistributed_ = !isDataNotDistributed;
 }
 
 /*!

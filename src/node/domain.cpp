@@ -23,11 +23,13 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
+      , isDistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
+      , isDistributed_(false)
          { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -62,6 +64,13 @@ namespace xios {
    bool CDomain::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
+   }
+
+   //----------------------------------------------------------------
+
+   bool CDomain::isDistributed(void) const
+   {
+      return isDistributed_;
    }
 
    //----------------------------------------------------------------
@@ -122,23 +131,28 @@ namespace xios {
                << "The global domain is badly defined,"
                << " check the \'ni_glo\' et \'nj_glo\' values !")
       }
-      checkLocalIDomain() ;
-      checkLocalJDomain() ;
 
-     if (i_index.isEmpty())
-     {
-       i_index.resize(ni,nj) ;
-       for(int j=0;j<nj;j++)
-         for(int i=0;i<ni;i++) i_index(i,j)=i ;
-     }
+      isDistributed_ = !ibegin.isEmpty() || !iend.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !jend.isEmpty() || !nj.isEmpty();
 
-     if (j_index.isEmpty())
-     {
-        j_index.resize(ni,nj) ;
-        for(int j=0;j<nj;j++)
-         for(int i=0;i<ni;i++) j_index(i,j)=j ;
-     }
+      checkLocalIDomain();
+      checkLocalJDomain();
 
+      ibegin_client = ibegin; iend_client = iend; ni_client = ni;
+      jbegin_client = jbegin; jend_client = jend; nj_client = nj;
+
+      if (i_index.isEmpty())
+      {
+        i_index.resize(ni,nj);
+        for (int j = 0; j < nj; j++)
+          for (int i = 0; i < ni; i++) i_index(i,j) = i;
+      }
+
+      if (j_index.isEmpty())
+      {
+        j_index.resize(ni,nj);
+        for (int j = 0; j < nj; j++)
+          for (int i = 0; i < ni; i++) j_index(i,j) = j;
+      }
    }
 
    //----------------------------------------------------------------
@@ -146,38 +160,41 @@ namespace xios {
    void CDomain::checkLocalIDomain(void)
    {
       if (!ni.isEmpty() && !ibegin.isEmpty() && iend.isEmpty())
-         iend.setValue(ibegin.getValue() + ni.getValue() - 1) ;
-
-      else if (!ni.isEmpty() && !iend.isEmpty()   && ibegin.isEmpty())
-         ibegin.setValue( - ni.getValue() + iend.getValue() + 1) ;
-
+        iend.setValue(ibegin.getValue() + ni.getValue() - 1);
+      else if (!ni.isEmpty() && !iend.isEmpty() && ibegin.isEmpty())
+        ibegin.setValue(iend.getValue() - ni.getValue()  + 1);
       else if (!ibegin.isEmpty() && !iend.isEmpty() && ni.isEmpty())
-         ni.setValue(iend.getValue() - ibegin.getValue() + 1) ;
-
-      else if (!ibegin.isEmpty() && !iend.isEmpty() && !ni.isEmpty() )
+        ni.setValue(iend.getValue() - ibegin.getValue() + 1);
+      else if (!ibegin.isEmpty() && !iend.isEmpty() && !ni.isEmpty())
       {
-         if (iend.getValue() != ibegin.getValue() + ni.getValue() - 1)
-           ERROR("CDomain::checkAttributes(void)",
-                 << "The domain si wrong defined,"
-                 << " iend is different of (ibegin + ni - 1) !") ;
+        if (iend.getValue() != ibegin.getValue() + ni.getValue() - 1)
+          ERROR("CDomain::checkLocalIDomain(void)",
+                << "[ Id = " << this->getId() << " ] "
+                << "The local domain is wrongly defined,"
+                << " iend is different from (ibegin + ni - 1)");
+      }
+      else if (ibegin.isEmpty() && iend.isEmpty() && ni.isEmpty())
+      {
+        ibegin = 0;
+        iend = ni_glo - 1;
+        ni = ni_glo;
       }
       else
       {
-         ERROR("CDomain::checkAttributes(void)",
-               << "The domain is wrong defined,"
-               << " 2 value from \'iend\', \'ibegin\', \'ni\'  must be defined !") ;
+        ERROR("CDomain::checkLocalIDomain(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The local domain is wrongly defined,"
+              << " defining just one attribute among 'ibegin', 'iend' or 'ni' is invalid");
       }
 
-
       if (ni.getValue() < 0 || ibegin.getValue() > iend.getValue() ||
-          ibegin.getValue() < 0 || iend.getValue() > (ni_glo.getValue()-1))
-          {
-
-         ERROR("CDomain::checkAttributes(void)",
-               << "[ Id = " << this->getId() << " ] "
-               << "Local domain is wrong defined,"
-               << " Check the value : ni, ni_glo, ibegin, iend") ;
-        }
+          ibegin.getValue() < 0 || iend.getValue() > (ni_glo.getValue() - 1))
+      {
+        ERROR("CDomain::checkLocalIDomain(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The local domain is wrongly defined,"
+              << " check the attributes 'ni_glo', 'ni', 'ibegin' and 'iend'");
+      }
    }
 
    //----------------------------------------------------------------
@@ -185,36 +202,41 @@ namespace xios {
    void CDomain::checkLocalJDomain(void)
    {
       if (!nj.isEmpty() && !jbegin.isEmpty() && jend.isEmpty())
-         jend.setValue(jbegin.getValue() + nj.getValue() - 1) ;
-
+        jend.setValue(jbegin.getValue() + nj.getValue() - 1);
       else if (!nj.isEmpty() && !jend.isEmpty() && jbegin.isEmpty())
-         jbegin.setValue( - nj.getValue() + jend.getValue() + 1) ;
-
+        jbegin.setValue(jend.getValue() - nj.getValue() + 1);
       else if (!jbegin.isEmpty() && !jend.isEmpty() && nj.isEmpty())
-         nj.setValue(jend.getValue() - jbegin.getValue() + 1) ;
-
-      else if (!jbegin.isEmpty() && !jend.isEmpty() && !nj.isEmpty() )
+        nj.setValue(jend.getValue() - jbegin.getValue() + 1);
+      else if (!jbegin.isEmpty() && !jend.isEmpty() && !nj.isEmpty())
       {
-          if  (jend.getValue() != jbegin.getValue() + nj.getValue() - 1)
-             ERROR("CDomain::checkAttributes(void)",
-                 << "The domain is wrong defined,"
-                 << " iend is different of (jbegin + nj - 1) !") ;
+        if (jend.getValue() != jbegin.getValue() + nj.getValue() - 1)
+          ERROR("CDomain::checkLocalJDomain(void)",
+                << "[ Id = " << this->getId() << " ] "
+                << "The local domain is wrongly defined,"
+                << " jend is different from (jbegin + nj - 1)");
+      }
+      else if (jbegin.isEmpty() && jend.isEmpty() && nj.isEmpty())
+      {
+        jbegin = 0;
+        jend = nj_glo - 1;
+        nj = nj_glo;
       }
       else
       {
-         ERROR("CDomain::checkAttributes(void)",
-               << "The domain is wrong defined,"
-               << " 2 values from  jend, jbegin, nj  must be defined !") ;
+        ERROR("CDomain::checkLocalJDomain(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The local domain is wrongly defined,"
+              << " defining just one attribute among 'jbegin', 'jend' or 'nj' is invalid");
       }
 
       if (nj.getValue() < 0 || jbegin.getValue() > jend.getValue() ||
-          jbegin.getValue() < 0 || jend.getValue() > (nj_glo.getValue()-1))
-         ERROR("CDomain::checkAttributes(void)",
-               << "Domain is wrong defined,"
-               << " Check the values : nj, nj_glo, jbegin, jend") ;
-
-     ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
-     jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
+          jbegin.getValue() < 0 || jend.getValue() > (nj_glo.getValue() - 1))
+      {
+        ERROR("CDomain::checkLocalJDomain(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The local domain is wrongly defined,"
+              << " check the attributes 'nj_glo', 'nj', 'jbegin' and 'jend'");
+      }
    }
 
    //----------------------------------------------------------------
@@ -496,7 +518,7 @@ namespace xios {
 
             if (zoom_ibegin < 0  || zoom_jbegin < 0 || zoom_iend > (ni_glo-1) || zoom_jend > (nj_glo-1))
                ERROR("CDomain::checkZoom(void)",
-                     << "Zoom is wrong defined,"
+                     << "Zoom is wrongly defined,"
                      << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_jbegin") ;
          }
       }

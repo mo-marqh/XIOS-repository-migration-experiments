@@ -58,6 +58,7 @@ namespace xios {
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
+         bool isDistributed(void) const;
 
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -95,6 +96,7 @@ namespace xios {
          bool isChecked;
          bool areClientAttributesChecked_;
          std::set<StdString> relFiles;
+         bool isDistributed_;
 
          DECLARE_REF_FUNC(Axis,axis)
 

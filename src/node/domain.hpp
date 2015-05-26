@@ -88,6 +88,7 @@ namespace xios {
          bool IsWritten(const StdString & filename) const;
          bool hasZoom(void) const;
          bool isEmpty(void) const;
+         bool isDistributed(void) const;
 
 
          int ni_client,ibegin_client,iend_client ;
@@ -156,6 +157,7 @@ namespace xios {
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          std::vector<int> connectedServerRank_;
+         bool isDistributed_;
 
          DECLARE_REF_FUNC(Domain,domain)
 
