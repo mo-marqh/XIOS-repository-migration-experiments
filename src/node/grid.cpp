@@ -506,6 +506,16 @@ namespace xios {
      }
    }
 
+   void CGrid::inputField(int rank, const double* const field, CArray<double,1>& stored)
+   {
+     CArray<size_t,1>& out_i = *outIndexFromClient[rank];
+     StdSize numElements = stored.numElements();
+     for (StdSize n = 0; n < numElements; ++n)
+     {
+       stored(n) = *(field+out_i(n));
+     }
+   }
+
    //----------------------------------------------------------------
 
 

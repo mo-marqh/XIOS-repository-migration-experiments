@@ -88,6 +88,7 @@ namespace xios {
          void setRelFile(CFile* _file);
          void incrementNStep(void);
          void resetNStep() ;
+         void resetNStepMax();
 
          template <int N> bool updateData(const CArray<double, N>&   data);
          bool updateDataFromExpression(const CArray<double, 1>&   data);
@@ -137,12 +138,17 @@ namespace xios {
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
+        bool readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void outputField(CArray<double,3>& fieldOut) ;
         void outputField(CArray<double,2>& fieldOut) ;
         void outputField(CArray<double,1>& fieldOut) ;
+        void inputField(CArray<double,3>& fieldOut);
+        void inputField(CArray<double,2>& fieldOut);
+        void inputField(CArray<double,1>& fieldOut);
         void scaleFactorAddOffset(double scaleFactor, double addOffset) ;
+        void invertScaleFactorAddOffset(double scaleFactor, double addOffset);
         void parse(xml::CXMLNode & node) ;
         CArray<double,1>* getInstantData(void)  ;
 
@@ -175,7 +181,8 @@ namespace xios {
          CDuration freq_operation, freq_write;
          CDuration freq_operation_srv, freq_write_srv;
 
-         StdSize nstep;
+         StdSize nstep, nstepMax;
+         bool isEOF;
          boost::shared_ptr<CDate>    last_Write, last_operation;
          boost::shared_ptr<CDate>    lastlast_Write_srv,last_Write_srv, last_operation_srv;
          CDate lastDataRequestedFromServer;

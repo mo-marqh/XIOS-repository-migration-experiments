@@ -5,6 +5,7 @@
 #include "xios_spl.hpp"
 #include "field.hpp"
 #include "data_output.hpp"
+#include "data_input.hpp"
 #include "declare_group.hpp"
 #include "date.hpp"
 #include "attribute_enum.hpp"
@@ -68,6 +69,7 @@ namespace xios {
       public:
          /// Accesseurs ///
          boost::shared_ptr<CDataOutput> getDataOutput(void) const;
+         boost::shared_ptr<CDataInput> getDataInput(void) const;
          CFieldGroup* getVirtualFieldGroup(void) const;
          CVariableGroup* getVirtualVariableGroup(void) const;
          std::vector<CField*> getAllFields(void) const;
@@ -93,6 +95,7 @@ namespace xios {
          void setVirtualVariableGroup(void);
 
          void createHeader(void);
+         void openInReadMode(void);
          void close(void) ;
 
          // Some processing on file
@@ -161,6 +164,7 @@ namespace xios {
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup ;
          boost::shared_ptr<CDataOutput> data_out;
+         boost::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
 
       public:

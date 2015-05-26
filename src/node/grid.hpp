@@ -105,10 +105,8 @@ namespace xios {
          void inputFieldServer(const std::deque< CArray<double, 1>* > storedClient,
                                CArray<double, 1>&  storedServer) const;
 
-         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,3>& field)  ;
-         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,2>& field)  ;
-         void outputField(int rank, const CArray<double,1>& stored,  CArray<double,1>& field)  ;
-         void outputField(int rank, const CArray<double,1>& stored,  double* field);
+         void outputField(int rank, const CArray<double,1>& stored, double* field);
+         void inputField(int rank, const double* const field, CArray<double,1>& stored);
 
          virtual void parse(xml::CXMLNode & node);
 

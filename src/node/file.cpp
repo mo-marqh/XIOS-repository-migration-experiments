@@ -4,10 +4,10 @@
 #include "object_template.hpp"
 #include "group_template.hpp"
 #include "object_factory.hpp"
-#include "data_output.hpp"
 #include "context.hpp"
 #include "context_server.hpp"
 #include "nc4_data_output.hpp"
+#include "nc4_data_input.hpp"
 #include "calendar_util.hpp"
 #include "date.hpp"
 #include "message.hpp"
@@ -47,14 +47,25 @@ namespace xios {
 
    //----------------------------------------------------------------
    /*!
-   \brief Get data that will be written out.
+   \brief Get data writer object.
    Each enabled file in xml represents a physical netcdf file.
-   This function allows to access to data to be written out into netcdf file
-   \return data written out.
+   This function allows to access the data writer object.
+   \return data writer object.
    */
    boost::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
    {
-      return (data_out);
+      return data_out;
+   }
+
+   /*!
+   \brief Get data reader object.
+   Each enabled file in xml represents a physical netcdf file.
+   This function allows to access the data reader object.
+   \return data reader object.
+   */
+   boost::shared_ptr<CDataInput> CFile::getDataInput(void) const
+   {
+      return data_in;
    }
 
    /*!
@@ -238,11 +249,17 @@ namespace xios {
     //! Verify state of a file
     void CFile::checkFile(void)
     {
-      if (!isOpen) createHeader() ;
-      checkSync() ;
-      checkSplit() ;
+      if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+      {
+        if (!isOpen) createHeader();
+        checkSync();
+      }
+      else
+      {
+        if (!isOpen) openInReadMode();
+      }
+      checkSplit();
     }
-
 
     /*!
     \brief Verify if synchronisation should be done
@@ -282,8 +299,15 @@ namespace xios {
         {
           *lastSplit = *lastSplit + split_freq.getValue();
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
-          for (it = this->enabledFields.begin() ;it != end; it++)  (*it)->resetNStep() ;
-          createHeader() ;
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
+            (*it)->resetNStep();
+            (*it)->resetNStepMax();
+          }
+          if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+            createHeader() ;
+          else
+            openInReadMode();
           return true ;
         }
       }
@@ -397,6 +421,80 @@ namespace xios {
       }
    }
 
+  /*!
+  \brief Open an existing NetCDF file in read-only mode
+  */
+  void CFile::openInReadMode(void)
+  {
+    CContext* context = CContext::getCurrent();
+    CContextServer* server=context->server;
+
+    if (!allDomainEmpty)
+    {
+      StdString filename = (!name.isEmpty()) ? name.getValue() : getId();
+      StdOStringStream oss;
+      oss << filename;
+      if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
+
+      if (!split_freq.isEmpty())
+      {
+        string splitFormat;
+        if (split_freq_format.isEmpty())
+        {
+          if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
+          else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
+          else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
+          else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
+          else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+          else splitFormat = "%y";
+        }
+        else splitFormat=split_freq_format;
+        oss << "_" << lastSplit->getStr(splitFormat)
+        << "-" << (*lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
+      }
+
+      bool multifile = true;
+      if (!type.isEmpty())
+      {
+        if (type == type_attr::one_file) multifile = false;
+        else if (type == type_attr::multiple_file) multifile = true;
+      }
+  #ifndef USING_NETCDF_PAR
+      if (!multifile)
+      {
+        info(0) << "!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : " << filename << " ..." << endl;
+        multifile = true;
+      }
+  #endif
+      if (multifile)
+      {
+        int commSize, commRank;
+        MPI_Comm_size(fileComm, &commSize);
+        MPI_Comm_rank(fileComm, &commRank);
+
+        if (server->intraCommSize > 1)
+        {
+          oss << "_" ;
+          int width = 0, n = commSize - 1;
+          while (n != 0) { n = n / 10; width++; }
+          if (!min_digits.isEmpty() && width < min_digits)
+            width = min_digits;
+          oss.width(width);
+          oss.fill('0');
+          oss << right << commRank;
+        }
+      }
+      oss << ".nc";
+
+      bool isCollective = par_access.isEmpty() || par_access == par_access_attr::collective;
+
+      if (isOpen) data_out->closeFile();
+
+      data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective));
+      isOpen = true;
+    }
+  }
+
    //! Close file
    void CFile::close(void)
    {
@@ -405,7 +503,10 @@ namespace xios {
      if (!allDomainEmpty)
        if (isOpen)
        {
-         this->data_out->closeFile();
+         if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+          this->data_out->closeFile();
+         else
+          this->data_in->closeFile();
        }
       if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm) ;
    }

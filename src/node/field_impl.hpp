@@ -189,6 +189,10 @@ namespace xios {
       while (isReadDataRequestPending)
         context->checkBuffersAndListen();
 
+      if (isEOF)
+        ERROR("void CField::getData(CArray<double, N>& _data) const",
+              << "Impossible to access field data, all the records of the field [ id = " << getId() << " ] have been already read.");
+
       grid->outputField(instantData, _data);
     }
     else

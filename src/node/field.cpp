@@ -22,7 +22,7 @@ namespace xios{
       , refObject(), baseRefObject()
       , grid(), file()
       , freq_operation(), freq_write()
-      , nstep(0)
+      , nstep(0), nstepMax(0), isEOF(false)
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
@@ -35,7 +35,7 @@ namespace xios{
       , refObject(), baseRefObject()
       , grid(), file()
       , freq_operation(), freq_write()
-      , nstep(0)
+      , nstep(0), nstepMax(0), isEOF(false)
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
@@ -266,7 +266,7 @@ namespace xios{
   {
     if (!getRelFile()->allDomainEmpty)
     {
-      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file) //      if (! grid->domain->isEmpty() || getRelFile()->type == CFile::type_attr::one_file)
+      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
       {
         getRelFile()->checkFile();
         this->incrementNStep();
@@ -328,24 +328,51 @@ namespace xios{
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
 
-    // TODO: Read the data from the file
-    if (data_srv.empty())
-    {
-      for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-        data_srv.insert( pair<int, CArray<double,1>* >(it->first, new CArray<double,1>(it->second->numElements())));
-    }
+    bool hasData = readField();
 
     map<int, CArray<double,1>* >::iterator it;
     for (it = data_srv.begin(); it != data_srv.end(); it++)
     {
       msgs.push_back(CMessage());
       CMessage& msg = msgs.back();
-      msg << getId() << getNStep() << *it->second;
+      msg << getId();
+      if (hasData)
+        msg << getNStep() - 1 << *it->second;
+      else
+        msg << SIZE_MAX;
       event.push(it->first, grid->nbSenders[it->first], msg);
     }
     client->sendEvent(event);
+  }
 
-    incrementNStep();
+  bool CField::readField(void)
+  {
+    if (!getRelFile()->allDomainEmpty)
+    {
+      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
+      {
+        if (data_srv.empty())
+        {
+          for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+            data_srv.insert(pair<int, CArray<double,1>*>(it->first, new CArray<double,1>(it->second->numElements())));
+        }
+
+        getRelFile()->checkFile();
+        this->incrementNStep();
+
+        if (!nstepMax)
+        {
+          nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
+        }
+
+        if (getNStep() > nstepMax)
+          return false;
+
+        getRelFile()->getDataInput()->readFieldData(CField::get(this));
+      }
+    }
+
+    return true;
   }
 
   void CField::recvReadDataReady(CEventServer& event)
@@ -372,24 +399,34 @@ namespace xios{
     for (int i = 0; i < ranks.size(); i++)
     {
       int rank = ranks[i];
-      CArray<int,1>& index = *grid->storeIndex_toSrv[rank];
-      CArray<double,1> data_tmp(index.numElements());
-      *buffers[i] >> record >> data_tmp;
+      *buffers[i] >> record;
+      isEOF = (record == SIZE_MAX);
 
-      for (int n = 0; n < data_tmp.numElements(); n++)
-        instantData(index(n)) = data_tmp(n);
+      if (!isEOF)
+      {
+        CArray<int,1>& index = *grid->storeIndex_toSrv[rank];
+        CArray<double,1> data_tmp(index.numElements());
+        *buffers[i] >> data_tmp;
+        for (int n = 0; n < data_tmp.numElements(); n++)
+          instantData(index(n)) = data_tmp(n);
+      }
+      else
+        break;
     }
 
-    for (list< pair<CField*, int> >::iterator it = fieldDependency.begin(); it != fieldDependency.end(); ++it)
-      it->first->setSlot(it->second);
-
-    if (!hasExpression) // Should be always true ?
+    if (!isEOF)
     {
-      const std::vector<CField*>& refField = getAllReference();
-      std::vector<CField*>::const_iterator it = refField.begin(), end = refField.end();
+      for (list< pair<CField*, int> >::iterator it = fieldDependency.begin(); it != fieldDependency.end(); ++it)
+        it->first->setSlot(it->second);
 
-      for (; it != end; it++) (*it)->setDataFromExpression(instantData);
-      if (hasFieldOut) updateDataFromExpression(instantData);
+      if (!hasExpression) // Should be always true ?
+      {
+        const std::vector<CField*>& refField = getAllReference();
+        std::vector<CField*>::const_iterator it = refField.begin(), end = refField.end();
+
+        for (; it != end; it++) (*it)->setDataFromExpression(instantData);
+        if (hasFieldOut) updateDataFromExpression(instantData);
+      }
     }
 
     isReadDataRequestPending = false;
@@ -436,6 +473,11 @@ namespace xios{
    void CField::resetNStep(void)
    {
       this->nstep = 0;
+   }
+
+   void CField::resetNStepMax(void)
+   {
+      this->nstepMax = 0;
    }
 
    //----------------------------------------------------------------
@@ -760,6 +802,12 @@ namespace xios{
      for (it = data_srv.begin(); it != data_srv.end(); it++) *it->second = (*it->second - addOffset) / scaleFactor;
    }
 
+   void CField::invertScaleFactorAddOffset(double scaleFactor, double addOffset)
+   {
+     map<int, CArray<double,1>* >::iterator it;
+     for (it = data_srv.begin(); it != data_srv.end(); it++) *it->second = *it->second * scaleFactor + addOffset;
+   }
+
    void CField::outputField(CArray<double,3>& fieldOut)
    {
       map<int, CArray<double,1>* >::iterator it;
@@ -785,6 +833,33 @@ namespace xios{
       for (it = data_srv.begin(); it != data_srv.end(); it++)
       {
          grid->outputField(it->first,*it->second, fieldOut.dataFirst()) ;
+      }
+   }
+
+   void CField::inputField(CArray<double,3>& fieldOut)
+   {
+      map<int, CArray<double,1>*>::iterator it;
+      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+        grid->inputField(it->first, fieldOut.dataFirst(), *it->second);
+      }
+   }
+
+   void CField::inputField(CArray<double,2>& fieldOut)
+   {
+      map<int, CArray<double,1>*>::iterator it;
+      for(it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+         grid->inputField(it->first, fieldOut.dataFirst(), *it->second);
+      }
+   }
+
+   void CField::inputField(CArray<double,1>& fieldOut)
+   {
+      map<int, CArray<double,1>*>::iterator it;
+      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+         grid->inputField(it->first, fieldOut.dataFirst(), *it->second);
       }
    }
 

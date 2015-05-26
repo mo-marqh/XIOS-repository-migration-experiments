@@ -1,5 +1,5 @@
-#ifndef __XIOS_INETCDF4__
-#define __XIOS_INETCDF4__
+#ifndef __XIOS_ONETCDF4__
+#define __XIOS_ONETCDF4__
 
 /// XIOS headers ///
 #include "xios_spl.hpp"
@@ -129,4 +129,4 @@ namespace xios
 
 } // namespace xios
 
-#endif //__XIOS_INETCDF4__
+#endif //__XIOS_ONETCDF4__
