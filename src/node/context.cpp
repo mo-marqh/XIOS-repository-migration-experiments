@@ -349,6 +349,7 @@ namespace xios {
     {
       this->solveAllRefOfEnabledFields(true);
       this->buildAllExpressionOfEnabledFields();
+      buildAllExpressionOfFieldsWithReadAccess();
     }
 
 
@@ -381,6 +382,33 @@ namespace xios {
        this->enabledFiles[i]->buildAllExpressionOfEnabledFields();
      }
    }
+
+  void CContext::findFieldsWithReadAccess(void)
+  {
+    fieldsWithReadAccess.clear();
+    const vector<CField*> allFields = CField::getAll();
+    for (size_t i = 0; i < allFields.size(); ++i)
+    {
+      if (!allFields[i]->read_access.isEmpty() && allFields[i]->read_access.getValue())
+        fieldsWithReadAccess.push_back(allFields[i]);
+    }
+  }
+
+  void CContext::solveAllRefOfFieldsWithReadAccess()
+  {
+    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
+    {
+      fieldsWithReadAccess[i]->solveAllReferenceEnabledField(false);
+      // Ensure that the instant data will be properly saved
+      fieldsWithReadAccess[i]->getInstantData();
+    }
+  }
+
+  void CContext::buildAllExpressionOfFieldsWithReadAccess()
+  {
+    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
+      fieldsWithReadAccess[i]->buildAllExpressionEnabledField();
+  }
 
    void CContext::solveAllInheritance(bool apply)
    {
@@ -637,6 +665,12 @@ namespace xios {
 
       // Search and rebuild all reference object of enabled fields
       this->solveAllRefOfEnabledFields(false);
+
+      // Find all fields with read access from the public API
+      findFieldsWithReadAccess();
+      // and solve the all reference for them
+      solveAllRefOfFieldsWithReadAccess();
+
       isPostProcessed = true;
    }
 

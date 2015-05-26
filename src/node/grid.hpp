@@ -98,7 +98,9 @@ namespace xios {
 
          /// Entrées-sorties de champs ///
          template <int n>
-            void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
+         template <int n>
+         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;
 
          void inputFieldServer(const std::deque< CArray<double, 1>* > storedClient,
                                CArray<double, 1>&  storedServer) const;
@@ -130,6 +132,7 @@ namespace xios {
 
          /// Entrées-sorties de champs (interne) ///
          void storeField_arr(const double * const data, CArray<double,1>& stored) const;
+         void restoreField_arr(const CArray<double,1>& stored, double * const data) const;
 
          /// Traitements protégés ///
          void computeIndexServer(void);
@@ -182,7 +185,6 @@ namespace xios {
 
          std::deque< CArray<int, 1>* > storeIndex ;
         CArray<int, 1>  storeIndex_client ;
-
 
          map<int, CArray<int, 1>* >  storeIndex_toSrv ;
          map<int,int> nbSenders ;
@@ -241,6 +243,17 @@ namespace xios {
                 << "Received data size = "      << field.numElements() << " ] "
                 << "The array of data has not the good size !")
       this->storeField_arr(field.dataFirst(), stored) ;
+   }
+
+   template <int n>
+   void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const
+   {
+      if (this->getDataSize() != field.numElements())
+         ERROR("void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const",
+                << "[ Size of the data = " << this->getDataSize() << ", "
+                << "Output data size = "   << field.numElements() << " ] "
+                << "The ouput array does not have not the right size!")
+      this->restoreField_arr(stored, field.dataFirst());
    }
 
    template<int N>

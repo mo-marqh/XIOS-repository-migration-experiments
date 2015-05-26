@@ -66,7 +66,7 @@ USE iaxis_attr, ONLY : xios(set_axis_attr), xios(get_axis_attr), xios(is_defined
 
 USE iaxisgroup_attr, ONLY : xios(set_axisgroup_attr), xios(get_axisgroup_attr), xios(is_defined_axisgroup_attr)
 
-USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), &
-                            xios(add_child), xios(send_field), xios(send_scalar), xios(field_is_active), xios(getVar), xios(setVar)
+USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
+                            xios(send_field), xios(send_scalar), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)
 
 END MODULE XIOS

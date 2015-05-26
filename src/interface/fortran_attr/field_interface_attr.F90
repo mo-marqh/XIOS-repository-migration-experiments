@@ -312,6 +312,25 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_prec
 
 
+    SUBROUTINE cxios_set_field_read_access(field_hdl, read_access) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: read_access
+    END SUBROUTINE cxios_set_field_read_access
+
+    SUBROUTINE cxios_get_field_read_access(field_hdl, read_access) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: read_access
+    END SUBROUTINE cxios_get_field_read_access
+
+    FUNCTION cxios_is_defined_field_read_access(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_read_access
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_read_access
+
+
     SUBROUTINE cxios_set_field_scale_factor(field_hdl, scale_factor) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

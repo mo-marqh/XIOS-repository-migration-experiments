@@ -413,6 +413,29 @@ extern "C"
   }
 
 
+  void cxios_set_field_read_access(field_Ptr field_hdl, bool read_access)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->read_access.setValue(read_access);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_read_access(field_Ptr field_hdl, bool* read_access)
+  {
+    CTimer::get("XIOS").resume();
+    *read_access = field_hdl->read_access.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_read_access(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->read_access.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_scale_factor(field_Ptr field_hdl, double scale_factor)
   {
     CTimer::get("XIOS").resume();

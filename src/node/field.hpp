@@ -80,7 +80,7 @@ namespace xios {
          boost::shared_ptr<func::CFunctor> getFieldOperation(void) const;
 
          CArray<double, 1> getData(void) const;
-
+         template <int N> void getData(CArray<double, N>& _data) const;
 
 
          /// Mutateur ///

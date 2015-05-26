@@ -518,6 +518,14 @@ namespace xios {
       for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)] ;
    }
 
+   void CGrid::restoreField_arr
+      (const CArray<double, 1>& stored, double * const data) const
+   {
+      const StdSize size = storeIndex_client.numElements() ;
+
+      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i) ;
+   }
+
   void CGrid::computeIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();

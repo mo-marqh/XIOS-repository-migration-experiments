@@ -178,6 +178,19 @@ namespace xios {
       return (false);
    }
 
+  template <int N>
+  void CField::getData(CArray<double, N>& _data) const
+  {
+    if (!read_access.isEmpty() && read_access.getValue() && hasInstantData)
+    {
+      grid->outputField(instantData, _data);
+    }
+    else
+    {
+      ERROR("void CField::getData(CArray<double, N>& _data) const",
+            << "Impossible to access field data, the field [ id = " << getId() << " ] does not have read access.");
+    }
+  }
 } // namespace xios
 
 #endif

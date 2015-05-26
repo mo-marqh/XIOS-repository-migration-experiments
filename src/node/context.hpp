@@ -109,6 +109,9 @@ namespace xios {
          void createFileHeader(void );
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
+         void findFieldsWithReadAccess(void);
+         void solveAllRefOfFieldsWithReadAccess();
+         void buildAllExpressionOfFieldsWithReadAccess();
          void postProcessing();
 
          std::map<int, StdSize>& getDataSize();
@@ -185,6 +188,9 @@ namespace xios {
 
          // List of all enabled files (files on which fields are written)
          std::vector<CFile*> enabledFiles;
+
+         // List of all fields whose instant data is accessible from the public API
+         std::vector<CField*> fieldsWithReadAccess;
 
          // Context root
          static shared_ptr<CContextGroup> root;

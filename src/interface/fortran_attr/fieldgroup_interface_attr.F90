@@ -333,6 +333,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_prec
 
 
+    SUBROUTINE cxios_set_fieldgroup_read_access(fieldgroup_hdl, read_access) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: read_access
+    END SUBROUTINE cxios_set_fieldgroup_read_access
+
+    SUBROUTINE cxios_get_fieldgroup_read_access(fieldgroup_hdl, read_access) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: read_access
+    END SUBROUTINE cxios_get_fieldgroup_read_access
+
+    FUNCTION cxios_is_defined_fieldgroup_read_access(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_read_access
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_read_access
+
+
     SUBROUTINE cxios_set_fieldgroup_scale_factor(fieldgroup_hdl, scale_factor) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
