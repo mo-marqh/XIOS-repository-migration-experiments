@@ -189,11 +189,14 @@ else
   fcm build --ignore-lock -j $job
 fi
 
+build_exit_status=$?
 
-if [[ $? == 0 ]]
+if [[ $build_exit_status == 0 ]]
   then
   set nothing
 #    cd $WORKDIR/XIOS_NEMO_COUPLE/modeles/NEMO/WORK
 #    cd $WORKDIR/XIOS_NEMO/modeles/NEMO/WORK
 #    make
 fi
+
+exit $build_exit_status
