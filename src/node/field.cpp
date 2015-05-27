@@ -339,7 +339,7 @@ namespace xios{
       if (hasData)
         msg << getNStep() - 1 << *it->second;
       else
-        msg << SIZE_MAX;
+        msg << size_t(-1);
       event.push(it->first, grid->nbSenders[it->first], msg);
     }
     client->sendEvent(event);
@@ -400,7 +400,7 @@ namespace xios{
     {
       int rank = ranks[i];
       *buffers[i] >> record;
-      isEOF = (record == SIZE_MAX);
+      isEOF = (record == size_t(-1));
 
       if (!isEOF)
       {
