@@ -35,7 +35,6 @@ namespace xios {
    // Declare/Define CGridAttribute
    BEGIN_DECLARE_ATTRIBUTE_MAP(CGrid)
 #  include "grid_attribute.conf"
-     DECLARE_ATTRIBUTE(bool, scalar_grid)
    END_DECLARE_ATTRIBUTE_MAP(CGrid)
 
    ///--------------------------------------------------------------
@@ -167,6 +166,7 @@ namespace xios {
          std::vector<CAxis*> getAxis();
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
+         bool isScalarGrid() const;
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed();

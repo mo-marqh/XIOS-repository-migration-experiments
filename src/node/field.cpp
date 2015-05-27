@@ -737,7 +737,7 @@ namespace xios{
            this->grid = CGrid::get(grid_ref.getValue());
            domList = grid->getDomainList();
            axisList = grid->getAxisList();
-           if (domList.empty() && axisList.empty() && (!(this->grid->scalar_grid.getValue())))
+           if (domList.empty() && axisList.empty())
            {
              this->grid = CGrid::createGrid(vecDom, vecAxis);
            }

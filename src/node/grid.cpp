@@ -166,11 +166,12 @@ namespace xios {
    StdSize CGrid::getDataSize(void) const
    {
      StdSize retvalue = 1;
-     if (true == scalar_grid.getValue()) return retvalue;
-      std::vector<int> dataNindex = clientDistribution_->getDataNIndex();
-
-      for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];
-      return (retvalue);
+     if (!isScalarGrid())
+     {
+       std::vector<int> dataNindex = clientDistribution_->getDataNIndex();
+       for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];
+     }
+     return retvalue;
    }
 
    std::map<int, StdSize> CGrid::getConnectedServerDataSize()
@@ -180,7 +181,7 @@ namespace xios {
      std::map<int, StdSize> ret;
      std::map<int, size_t >::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
 
-     if (true == scalar_grid.getValue())
+     if (isScalarGrid())
      {
        for (it = itb; it != itE; ++it)
        {
@@ -226,7 +227,7 @@ namespace xios {
      CContext* context = CContext::getCurrent() ;
      CContextClient* client=context->client ;
 
-     if (true == scalar_grid)
+     if (isScalarGrid())
      {
        if (context->hasClient)
           if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
@@ -478,9 +479,6 @@ namespace xios {
         }
       }
 
-      if (domains.empty() && axis.empty()) grid->scalar_grid = true;
-      else grid->scalar_grid = false;
-
       grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
 
       return (grid);
@@ -722,6 +720,11 @@ namespace xios {
     return globalDim_;
   }
 
+  bool CGrid::isScalarGrid() const
+  {
+    return (axisList_.empty() && domList_.empty());
+  }
+
   /*!
     Verify whether one server need to write data
     There are some cases on which one server has nodata to write. For example, when we
@@ -756,7 +759,7 @@ namespace xios {
 
   bool CGrid::doGridHaveDataDistributed()
   {
-    if (true == scalar_grid.getValue()) return false;
+    if (isScalarGrid()) return false;
     else
       return isDataDistributed_;
   }
@@ -774,7 +777,7 @@ namespace xios {
       buffer >> isDataDistributed_;
       size_t dataSize = 0;
 
-      if (true == scalar_grid)
+      if (isScalarGrid())
       {
         writtenDataSize_ = 1;
         CArray<size_t,1> outIndex;
@@ -1241,9 +1244,7 @@ namespace xios {
       {
         axis_domain_order(i) = order[i];
       }
-      scalar_grid = false;
     }
-    else scalar_grid = true;
 
     setDomainList();
     setAxisList();
