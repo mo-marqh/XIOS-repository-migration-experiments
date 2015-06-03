@@ -12,12 +12,12 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4
-         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm* comm, bool multifile)
             : path()
+            , wmpi(false)
             , useClassicFormat(useClassicFormat)
             , recordOffset(0)
       {
-         this->wmpi = (comm != NULL) && !multifile;
          this->initialize(filename, append, useClassicFormat, comm,multifile);
       }
 
@@ -32,23 +32,32 @@ namespace xios
       ///--------------------------------------------------------------
 
       void CONetCDF4::initialize
-         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm * comm, bool multifile)
+         (const StdString & filename, bool append, bool useClassicFormat, const MPI_Comm* comm, bool multifile)
       {
          this->useClassicFormat = useClassicFormat;
 
          int mode = useClassicFormat ? 0 : NC_NETCDF4;
-         if (!multifile)
+
+         // Don't use parallel mode if there is only one process
+         if (comm)
+         {
+            int commSize = 0;
+            MPI_Comm_size(*comm, &commSize);
+            if (commSize <= 1)
+               comm = NULL;
+         }
+         wmpi = comm && !multifile;
+
+         if (wmpi)
             mode |= useClassicFormat ? NC_PNETCDF : NC_MPIIO;
 
          // If the file does not exist, we always create it
          if (!append || !std::ifstream(filename.c_str()))
          {
-            if (comm != NULL)
-            {
-               if (!multifile) CNetCdfInterface::createPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
-               else CNetCdfInterface::create(filename, mode, this->ncidp);
-            }
-            else CNetCdfInterface::create(filename, mode, this->ncidp);
+            if (wmpi)
+               CNetCdfInterface::createPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
+            else
+               CNetCdfInterface::create(filename, mode, this->ncidp);
 
             this->appendMode = false;
             this->recordOffset = 0;
@@ -56,12 +65,10 @@ namespace xios
          else
          {
             mode |= NC_WRITE;
-            if (comm != NULL)
-            {
-               if (!multifile) CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
-               else CNetCdfInterface::open(filename, mode, this->ncidp);
-            }
-            else CNetCdfInterface::open(filename, mode, this->ncidp);
+            if (wmpi)
+               CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
+            else
+               CNetCdfInterface::open(filename, mode, this->ncidp);
 
             this->appendMode = true;
             // Find out how many temporal records have been written already to the file we are opening
