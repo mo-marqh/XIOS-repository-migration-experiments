@@ -755,6 +755,13 @@ namespace xios
            else
               SuperClassWriter::setDefaultValue(fieldid, (double*)NULL);
 
+            if (field->compression_level.isEmpty())
+              field->compression_level = field->file->compression_level.isEmpty() ? 0 : field->file->compression_level;
+            if (field->compression_level < 0 || field->compression_level > 9)
+              ERROR("void CNc4DataOutput::writeField_(CField* field)",
+                    "Invalid compression level, the value should range between 0 and 9.");
+            SuperClassWriter::setCompressionLevel(fieldid, field->compression_level);
+
            {  // Ecriture des coordonnées
 
               StdString coordstr; //boost::algorithm::join(coodinates, " ")

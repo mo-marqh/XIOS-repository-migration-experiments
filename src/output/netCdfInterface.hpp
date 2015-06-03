@@ -89,6 +89,9 @@ namespace xios
     //! Define variable chunking size
     static int defVarChunking(int ncid, int varId, int storage, StdSize chunkSize[]);
 
+    //! Define variable compression level
+    static int defVarDeflate(int ncid, int varId, int compressionLevel);
+
     //! Set or unset the fill mode
     static int setFill(int ncid, bool fill);
 

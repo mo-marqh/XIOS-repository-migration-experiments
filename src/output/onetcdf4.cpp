@@ -83,7 +83,7 @@ namespace xios
          // If the classic NetCDF format is used, we enable the "no-fill mode" globally.
          // This is done per variable for the NetCDF4 format.
          if (useClassicFormat)
-            CNetCdfInterface::setFill(this->ncidp, false);    
+            CNetCdfInterface::setFill(this->ncidp, false);
       }
 
       void CONetCDF4::close()
@@ -276,30 +276,29 @@ namespace xios
       //---------------------------------------------------------------
 
       int CONetCDF4::addVariable(const StdString & name, nc_type type,
-                                  const std::vector<StdString> & dim)
+                                 const std::vector<StdString> & dim)
       {
          int varid = 0;
          std::vector<int> dimids;
-         std::vector<StdSize> dimsizes ;
-         StdSize size ;
-         StdSize totalSize ;
-         StdSize maxSize=1024*1024*256 ; // == 2GB/8 if output double
+         std::vector<StdSize> dimsizes;
+         StdSize size;
+         StdSize totalSize;
+         StdSize maxSize = 1024 * 1024 * 256; // == 2GB/8 if output double
 
          int grpid = this->getCurrentGroup();
 
-         std::vector<StdString>::const_iterator
-            it  = dim.begin(), end = dim.end();
+         std::vector<StdString>::const_iterator it = dim.begin(), end = dim.end();
 
-         for (;it != end; it++)
+         for (; it != end; it++)
          {
             const StdString & dimid = *it;
             dimids.push_back(this->getDimension(dimid));
-            (CNetCdfInterface::inqDimLen(grpid, this->getDimension(dimid), size));
-            if (size==NC_UNLIMITED) size=1 ;
-            dimsizes.push_back(size) ;
+            CNetCdfInterface::inqDimLen(grpid, this->getDimension(dimid), size);
+            if (size == NC_UNLIMITED) size = 1;
+            dimsizes.push_back(size);
          }
 
-         CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &(dimids[0]), varid);
+         CNetCdfInterface::defVar(grpid, name, type, dimids.size(), &dimids[0], varid);
 
          // The classic NetCDF format does not support chunking nor fill parameters
          if (!useClassicFormat)
@@ -317,7 +316,16 @@ namespace xios
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
          }
 
-         return (varid);
+         return varid;
+      }
+
+      //---------------------------------------------------------------
+
+      void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = this->getVariable(varname);
+         CNetCdfInterface::defVarDeflate(grpid, varid, compressionLevel);
       }
 
       //---------------------------------------------------------------
@@ -448,14 +456,14 @@ namespace xios
          if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
          {
             sstart.push_back(record + recordOffset);
-            scount.push_back(1); 
+            scount.push_back(1);
             if ((start == NULL) &&
                 (count == NULL)) i++;
             it++;
          }
 
          for (;it != end; it++)
-         { 
+         {
             if ((start != NULL) && (count != NULL))
             {
                sstart.push_back((*start)[i]);

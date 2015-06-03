@@ -47,13 +47,15 @@ namespace xios
             int addDimension(const StdString& name, const StdSize size = UNLIMITED_DIM);
             int addVariable(const StdString & name, nc_type type,
                             const std::vector<StdString> & dim);
-                            
+
       //----------------------------------------------------------------
          public :
-         
+
             template <class T>
                void setDefaultValue(const StdString & varname, const T * value = NULL);
-         
+
+            void setCompressionLevel(const StdString& varname, int compressionLevel);
+
             template <class T>  void addAttribute (const StdString & name, const T & value, const StdString * varname = NULL);
 
             /// Ecriture des données ///
@@ -63,7 +65,7 @@ namespace xios
                               const std::vector<StdSize> * start = NULL,
                               const std::vector<StdSize> * count = NULL);
 
-            void writeData(const CArray<int, 2>& data, const StdString & name);     
+            void writeData(const CArray<int, 2>& data, const StdString & name);
             void writeTimeAxisData(const CArray<double,1>& data, const StdString & name,
                                    bool collective, StdSize record, bool Isroot) ;
             /// Accesseur ///
@@ -71,9 +73,9 @@ namespace xios
 
             /// Destructeur ///
             virtual ~CONetCDF4(void);
-            
+
       //----------------------------------------------------------------
-      
+
          protected :
 
             /// Ecriture ///
@@ -96,9 +98,9 @@ namespace xios
             bool useClassicFormat; //!< If true, NetCDF4 will use the classic NetCDF3 format
 
       //----------------------------------------------------------------
-      
+
          private :
-         
+
             template <class T>
                void writeData_(int grpid, int varid,
                                const std::vector<StdSize> & sstart,
@@ -124,7 +126,7 @@ namespace xios
       }; // class CONetCDF4
 
       ///---------------------------------------------------------------
-           
+
 
 
 } // namespace xios
