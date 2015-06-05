@@ -154,7 +154,7 @@ namespace xios {
 
          CDate* lastSync ;
          CDate* lastSplit ;
-         int nbDomain ;
+         int nbAxis, nbDomains;
          bool isOpen ;
          bool allDomainEmpty ;
          MPI_Comm fileComm ;

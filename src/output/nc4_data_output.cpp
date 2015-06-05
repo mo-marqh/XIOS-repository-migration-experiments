@@ -481,81 +481,92 @@ namespace xios
 
       void CNc4DataOutput::writeAxis_(CAxis* axis)
       {
-         if (axis->IsWritten(this->filename)) return;
-         axis->checkAttributes();
-         StdSize zoom_size_srv=axis->zoom_size_srv;
-         StdSize zoom_begin_srv=axis->zoom_begin_srv;
-         StdSize zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv
-                                                              : axis->zoom_size;
-         StdSize zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv
-                                                              : axis->zoom_begin;
+        if (axis->IsWritten(this->filename)) return;
+        axis->checkAttributes();
+        int zoom_size_srv  = axis->zoom_size_srv;
+        int zoom_begin_srv = axis->zoom_begin_srv;
+        int zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv : axis->zoom_size;
+        int zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv : axis->zoom_begin;
 
 
-         std::vector<StdString> dims;
-         StdString axisid = (!axis->name.isEmpty())
-                             ? axis->name.getValue() : axis->getId();
-         try
-         {
-           SuperClassWriter::addDimension(axisid, zoom_size);
-           dims.push_back(axisid);
+        std::vector<StdString> dims;
+        StdString axisid = !axis->name.isEmpty() ? axis->name.getValue() : axis->getId();
+        try
+        {
+          SuperClassWriter::addDimension(axisid, zoom_size);
+          dims.push_back(axisid);
 
-           switch (SuperClass::type)
-           {
-              case (MULTI_FILE ) :
-              {}
-              case (ONE_FILE) :
+          switch (SuperClass::type)
+          {
+            case MULTI_FILE:
+            case ONE_FILE:
+            {
+              SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
+
+              SuperClassWriter::addAttribute("axis", StdString("Z"), &axisid);
+
+              if (!axis->name.isEmpty())
+                SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
+
+              if (!axis->standard_name.isEmpty())
+                SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisid);
+
+              if (!axis->long_name.isEmpty())
+                SuperClassWriter::addAttribute("long_name", axis->long_name.getValue(), &axisid);
+
+              if (!axis->unit.isEmpty())
+                SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
+
+              if (!axis->positive.isEmpty())
+                if (axis->positive == CAxis::positive_attr::up) SuperClassWriter::addAttribute("positive", string("up"), &axisid);
+                else SuperClassWriter::addAttribute("positive", string("down"), &axisid);
+
+              StdString axisBoundsId = axisid + "_bounds";
+              if (!axis->bounds.isEmpty())
               {
-                 SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
-
-                 SuperClassWriter::addAttribute("axis", StdString("Z"), &axisid);
-
-                 if (!axis->name.isEmpty())
-                    SuperClassWriter::addAttribute
-                       ("name", axis->name.getValue(), &axisid);
-
-                 if (!axis->standard_name.isEmpty())
-                    SuperClassWriter::addAttribute
-                       ("standard_name",  axis->standard_name.getValue(), &axisid);
-
-                 if (!axis->long_name.isEmpty())
-                    SuperClassWriter::addAttribute
-                       ("long_name", axis->long_name.getValue(), &axisid);
-
-                 if (!axis->unit.isEmpty())
-                    SuperClassWriter::addAttribute
-                       ("units", axis->unit.getValue(), &axisid);
-
-                if (!axis->positive.isEmpty())
-                  if (axis->positive==CAxis::positive_attr::up) SuperClassWriter::addAttribute("positive", string("up"), &axisid);
-                  else   SuperClassWriter::addAttribute("positive", string("down"), &axisid);
-
-                 SuperClassWriter::definition_end();
-
-                 CArray<double,1> axis_value(zoom_size) ;
-                 for(StdSize i = 0 ; i < zoom_size_srv ; i++) axis_value(i)=axis->value(i+zoom_begin_srv) ;
-                 SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
-
-                 SuperClassWriter::definition_start();
-
-                 break;
+                dims.push_back("axis_nbounds");
+                SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
+                SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
               }
-              default :
-                 ERROR("CNc4DataOutput::writeDomain(domain)",
-                       << "[ type = " << SuperClass::type << "]"
-                       << " not implemented yet !");
-           }
-         }
-         catch (CNetCdfException& e)
-         {
-           StdString msg("On writing the axis : ");
-           msg.append(axisid); msg.append("\n");
-           msg.append("In the context : ");
-           CContext* context = CContext::getCurrent() ;
-           msg.append(context->getId()); msg.append("\n");
-           msg.append(e.what());
-           ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
-         }
-         axis->addRelFile(this->filename);
+
+              SuperClassWriter::definition_end();
+
+              CArray<double,1> axis_value(zoom_size);
+              for (int i = 0; i < zoom_size_srv; i++) axis_value(i) = axis->value(i + zoom_begin_srv);
+              SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+
+              if (!axis->bounds.isEmpty())
+              {
+                CArray<double,2> axisBounds(zoom_size, 2);
+                for (int i = 0; i < zoom_size_srv; i++)
+                {
+                  axisBounds(i, 0) = axis->bounds(i + zoom_begin_srv, 0);
+                  axisBounds(i, 1) = axis->bounds(i + zoom_begin_srv, 1);
+                }
+                SuperClassWriter::writeData(axisBounds, axisBoundsId, isCollective, 0);
+              }
+
+              SuperClassWriter::definition_start();
+
+              break;
+            }
+            default :
+              ERROR("CNc4DataOutput::writeDomain(domain)",
+                    << "[ type = " << SuperClass::type << "]"
+                    << " not implemented yet !");
+          }
+        }
+        catch (CNetCdfException& e)
+        {
+          StdString msg("On writing the axis : ");
+          msg.append(axisid); msg.append("\n");
+          msg.append("In the context : ");
+          CContext* context = CContext::getCurrent() ;
+          msg.append(context->getId()); msg.append("\n");
+          msg.append(e.what());
+          ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
+        }
+        axis->addRelFile(this->filename);
      }
 
      void CNc4DataOutput::writeTimeDimension_(void)
@@ -998,12 +1009,18 @@ namespace xios
          StdString description = (!file->description.isEmpty())
                                ? file->description.getValue()
                                : StdString("Created by xios");
+
+         singleDomain = (file->nbDomains == 1);
+
          try
          {
            this->writeFileAttributes(filename, description,
-                                     StdString ("CF-1.1"),
+                                     StdString("CF-1.1"),
                                      StdString("An IPSL model"),
                                      this->getTimeStamp());
+
+           if (file->nbAxis >= 1)
+             SuperClassWriter::addDimension("axis_nbounds", 2);
          }
          catch (CNetCdfException& e)
          {
@@ -1015,8 +1032,6 @@ namespace xios
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeFile_ (CFile* file)", << msg);
          }
-         if (file->nbDomain==1) singleDomain=true ;
-         else singleDomain=false ;
       }
 
       void CNc4DataOutput::writeAttribute_ (CVariable* var, const string& fieldId)

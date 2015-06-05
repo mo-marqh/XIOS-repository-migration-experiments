@@ -43,6 +43,31 @@ extern "C"
   }
 
 
+  void cxios_set_axis_bounds(axis_Ptr axis_hdl, double* bounds, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds, shape(extent1, extent2), neverDeleteData);
+    axis_hdl->bounds.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_bounds(axis_Ptr axis_hdl, double* bounds, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds, shape(extent1, extent2), neverDeleteData);
+    tmp=axis_hdl->bounds.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_bounds(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->bounds.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axis_data_begin(axis_Ptr axis_hdl, int data_begin)
   {
     CTimer::get("XIOS").resume();

@@ -93,6 +93,15 @@ namespace xios {
       this->checkData();
       this->checkMask();
       this->checkZoom();
+
+      if (!bounds.isEmpty())
+      {
+        if (bounds.extent(0) != size || bounds.extent(1) != 2)
+            ERROR("CAxis::checkAttributes(void)",
+                  << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension axis size x 2" << endl
+                  << "Axis size is " << size << endl
+                  << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1));
+      }
    }
 
    void CAxis::checkData()
