@@ -323,6 +323,13 @@ namespace xios
 
       void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)
       {
+         if (compressionLevel < 0 || compressionLevel > 9)
+           ERROR("void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)",
+                 "Invalid compression level for variable \"" << varname << "\", the value should range between 0 and 9.");
+         if (compressionLevel && wmpi)
+           ERROR("void CONetCDF4::setCompressionLevel(const StdString& varname, int compressionLevel)",
+                 "Impossible to use compression for variable \"" << varname << "\" when using parallel mode.");
+
          int grpid = this->getCurrentGroup();
          int varid = this->getVariable(varname);
          CNetCdfInterface::defVarDeflate(grpid, varid, compressionLevel);
