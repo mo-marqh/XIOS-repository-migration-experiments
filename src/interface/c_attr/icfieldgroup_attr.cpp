@@ -66,6 +66,29 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_compression_level(fieldgroup_Ptr fieldgroup_hdl, int compression_level)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->compression_level.setValue(compression_level);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_compression_level(fieldgroup_Ptr fieldgroup_hdl, int* compression_level)
+  {
+    CTimer::get("XIOS").resume();
+    *compression_level = fieldgroup_hdl->compression_level.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_compression_level(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->compression_level.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_default_value(fieldgroup_Ptr fieldgroup_hdl, double default_value)
   {
     CTimer::get("XIOS").resume();

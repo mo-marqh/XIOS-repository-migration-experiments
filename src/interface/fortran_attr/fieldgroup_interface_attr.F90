@@ -49,6 +49,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_axis_ref
 
 
+    SUBROUTINE cxios_set_fieldgroup_compression_level(fieldgroup_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: compression_level
+    END SUBROUTINE cxios_set_fieldgroup_compression_level
+
+    SUBROUTINE cxios_get_fieldgroup_compression_level(fieldgroup_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      INTEGER (KIND=C_INT)             :: compression_level
+    END SUBROUTINE cxios_get_fieldgroup_compression_level
+
+    FUNCTION cxios_is_defined_fieldgroup_compression_level(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_compression_level
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_compression_level
+
+
     SUBROUTINE cxios_set_fieldgroup_default_value(fieldgroup_hdl, default_value) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

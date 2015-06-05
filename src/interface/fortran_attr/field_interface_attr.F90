@@ -49,6 +49,25 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_axis_ref
 
 
+    SUBROUTINE cxios_set_field_compression_level(field_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: compression_level
+    END SUBROUTINE cxios_set_field_compression_level
+
+    SUBROUTINE cxios_get_field_compression_level(field_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      INTEGER (KIND=C_INT)             :: compression_level
+    END SUBROUTINE cxios_get_field_compression_level
+
+    FUNCTION cxios_is_defined_field_compression_level(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_compression_level
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_compression_level
+
+
     SUBROUTINE cxios_set_field_default_value(field_hdl, default_value) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

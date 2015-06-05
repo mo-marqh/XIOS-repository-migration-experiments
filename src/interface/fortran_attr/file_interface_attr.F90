@@ -28,6 +28,25 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_append
 
 
+    SUBROUTINE cxios_set_file_compression_level(file_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: compression_level
+    END SUBROUTINE cxios_set_file_compression_level
+
+    SUBROUTINE cxios_get_file_compression_level(file_hdl, compression_level) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      INTEGER (KIND=C_INT)             :: compression_level
+    END SUBROUTINE cxios_get_file_compression_level
+
+    FUNCTION cxios_is_defined_file_compression_level(file_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_compression_level
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_compression_level
+
+
     SUBROUTINE cxios_set_file_description(file_hdl, description, description_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
