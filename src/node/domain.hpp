@@ -37,7 +37,7 @@ namespace xios {
    {
          enum EEventId
          {
-           EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_LAT, EVENT_ID_LON
+           EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT
          } ;
 
          /// typedef ///
@@ -128,13 +128,15 @@ namespace xios {
          void sendServerAttribut(void) ;
          void sendLonLat(void) ;
          void computeConnectedServer(void) ;
-         static bool dispatchEvent(CEventServer& event) ;
-         static void recvLat(CEventServer& event) ;
-         static void recvLon(CEventServer& event) ;
-         static void recvServerAttribut(CEventServer& event) ;
-         void recvLat(CBufferIn& buffer) ;
-         void recvLon(CBufferIn& buffer) ;
-         void recvServerAttribut(CBufferIn& buffer) ;
+         static bool dispatchEvent(CEventServer& event);
+         static void recvServerAttribut(CEventServer& event);
+         static void recvIndex(CEventServer& event);
+         static void recvLon(CEventServer& event);
+         static void recvLat(CEventServer& event);
+         void recvServerAttribut(CBufferIn& buffer);
+         void recvIndex(int rank, CBufferIn& buffer);
+         void recvLon(int rank, CBufferIn& buffer);
+         void recvLat(int rank, CBufferIn& buffer);
 
          /// Destructeur ///
          virtual ~CDomain(void);
@@ -154,6 +156,7 @@ namespace xios {
          bool isChecked;
          std::set<StdString> relFiles;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
+         std::map<int, CArray<int,1> > indiSrv, indjSrv;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          std::vector<int> connectedServerRank_;

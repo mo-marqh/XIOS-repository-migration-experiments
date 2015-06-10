@@ -791,22 +791,21 @@ namespace xios {
 
   void CDomain::sendLonLat(void)
   {
-    int ns,n,i,j,ind,nv, idx;
-    CContext* context = CContext::getCurrent() ;
-    CContextClient* client=context->client ;
+    int ns, n, i, j, ind, nv, idx;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client=context->client;
+
     // send lon lat for each connected server
+    CEventClient eventIndex(getType(), EVENT_ID_INDEX);
+    CEventClient eventLon(getType(), EVENT_ID_LON);
+    CEventClient eventLat(getType(), EVENT_ID_LAT);
 
-    CEventClient eventLon(getType(),EVENT_ID_LON) ;
-    CEventClient eventLat(getType(),EVENT_ID_LAT) ;
+    list<CMessage> list_msgsIndex, list_msgsLon, list_msgsLat;
+    list<CArray<int,1> > list_indi, list_indj;
+    list<CArray<double,1> > list_lon, list_lat;
+    list<CArray<double,2> > list_boundslon, list_boundslat;
 
-    list<shared_ptr<CMessage> > list_msgLon ;
-    list<shared_ptr<CMessage> > list_msgLat ;
-    list< CArray<int,1>* > list_indi,list_indj ;
-    list< CArray<double,1>* >list_lon,list_lat ;
-    list< CArray<double,2>* >list_boundslon,list_boundslat ;
-
-    std::map<int, std::vector<size_t> >::const_iterator it, itbMap, iteMap;
-    itbMap = indSrv_.begin();
+    std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
     iteMap = indSrv_.end();
     for (int k = 0; k < connectedServerRank_.size(); ++k)
     {
@@ -814,102 +813,108 @@ namespace xios {
       int rank = connectedServerRank_[k];
       it = indSrv_.find(rank);
       if (iteMap != it)
-        nbData = (it->second).size();
+        nbData = it->second.size();
 
-      CArray<int,1> indi(nbData) ;
-      CArray<int,1> indj(nbData) ;
-      CArray<double,1> lon(nbData) ;
-      CArray<double,1> lat(nbData) ;
-      CArray<double,2> boundslon(nvertex,nbData);
-      CArray<double,2> boundslat(nvertex,nbData);
-
-      for (n = 0; n < nbData; ++n)
-      {
-        idx = static_cast<int>((it->second)[n]);
-        i = idx%ni_glo;
-        j = idx/ni_glo;
-        ind=(i-(zoom_ibegin_client))+(j-(zoom_jbegin_client))*zoom_ni_client ;
-
-        lon(n)=lonvalue(ind) ;
-        lat(n)=latvalue(ind) ;
-        if (hasBounds)
-        {
-          for(nv=0;nv<nvertex;nv++)
-          {
-            boundslon(nv,n)=bounds_lon(nv,ind);
-            boundslat(nv,n)=bounds_lat(nv,ind);
-          }
-        }
-        indi(n)=ibegin+i_index(i-ibegin,j-jbegin)  ;
-        indj(n)=jbegin+j_index(i-ibegin,j-jbegin)  ;
-      }
-
-      list_indi.push_back(new CArray<int,1>(indi.copy())) ;
-      list_indj.push_back(new CArray<int,1>(indj.copy())) ;
-      list_lon.push_back(new CArray<double,1>(lon.copy())) ;
-      list_lat.push_back(new CArray<double,1>(lat.copy())) ;
-      if (hasBounds) list_boundslon.push_back(new CArray<double,2>(boundslon.copy())) ;
-      if (hasBounds) list_boundslat.push_back(new CArray<double,2>(boundslat.copy())) ;
-
-      list_msgLon.push_back(shared_ptr<CMessage>(new CMessage)) ;
-      list_msgLat.push_back(shared_ptr<CMessage>(new CMessage)) ;
-
-      *list_msgLon.back()<<this->getId()<<(int)type ; // enum ne fonctionne pour les message => ToFix
-      *list_msgLat.back()<<this->getId()<<(int)type ;
-      *list_msgLon.back()<<isCurvilinear ;
-      *list_msgLat.back()<<isCurvilinear ;
-      *list_msgLon.back()<<*list_indi.back()<<*list_indj.back()<<*list_lon.back() ;
-      *list_msgLat.back()<<*list_indi.back()<<*list_indj.back()<<*list_lat.back() ;
+      list_indi.push_back(CArray<int,1>(nbData));
+      list_indj.push_back(CArray<int,1>(nbData));
+      list_lon.push_back(CArray<double,1>(nbData));
+      list_lat.push_back(CArray<double,1>(nbData));
 
       if (hasBounds)
       {
-        *list_msgLon.back()<<*list_boundslon.back();
-        *list_msgLat.back()<<*list_boundslat.back();
+        list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
+        list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
       }
 
-      eventLon.push(rank,nbConnectedClients_[rank],*list_msgLon.back()) ;
-      eventLat.push(rank,nbConnectedClients_[rank],*list_msgLat.back()) ;
+      CArray<int,1>& indi = list_indi.back();
+      CArray<int,1>& indj = list_indj.back();
+      CArray<double,1>& lon = list_lon.back();
+      CArray<double,1>& lat = list_lat.back();
+
+      for (n = 0; n < nbData; ++n)
+      {
+        idx = static_cast<int>(it->second[n]);
+        i = idx % ni_glo;
+        j = idx / ni_glo;
+        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
+
+        lon(n) = lonvalue(ind);
+        lat(n) = latvalue(ind);
+
+        if (hasBounds)
+        {
+          CArray<double,2>& boundslon = list_boundslon.back();
+          CArray<double,2>& boundslat = list_boundslat.back();
+
+          for (nv = 0; nv < nvertex; nv++)
+          {
+            boundslon(nv, n) = bounds_lon(nv, ind);
+            boundslat(nv, n) = bounds_lat(nv, ind);
+          }
+        }
+
+        indi(n) = ibegin + i_index(i - ibegin, j - jbegin);
+        indj(n) = jbegin + j_index(i - ibegin, j - jbegin);
+      }
+
+      list_msgsIndex.push_back(CMessage());
+
+      list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
+      list_msgsIndex.back() << isCurvilinear;
+      list_msgsIndex.back() << list_indi.back() << list_indj.back();
+
+      list_msgsLon.push_back(CMessage());
+      list_msgsLat.push_back(CMessage());
+
+      list_msgsLon.back() << this->getId() << list_lon.back();
+      list_msgsLat.back() << this->getId() << list_lat.back();
+
+      if (hasBounds)
+      {
+        list_msgsLon.back() << list_boundslon.back();
+        list_msgsLat.back() << list_boundslat.back();
+      }
+
+      eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
+      eventLon.push(rank, nbConnectedClients_[rank], list_msgsLon.back());
+      eventLat.push(rank, nbConnectedClients_[rank], list_msgsLat.back());
     }
 
-    client->sendEvent(eventLon) ;
-    client->sendEvent(eventLat) ;
-
-
-    for(list<CArray<int,1>* >::iterator it=list_indi.begin();it!=list_indi.end();it++) delete *it;
-    for(list<CArray<int,1>* >::iterator it=list_indj.begin();it!=list_indj.end();it++) delete *it;
-    for(list<CArray<double,1>* >::iterator it=list_lon.begin();it!=list_lon.end();it++)   delete *it;
-    for(list<CArray<double,1>* >::iterator it=list_lat.begin();it!=list_lat.end();it++)   delete *it;
-    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslon.begin();it!=list_boundslon.end();it++)   delete *it;
-    if (hasBounds) for(list<CArray<double,2>* >::iterator it=list_boundslat.begin();it!=list_boundslat.end();it++)   delete *it;
+    client->sendEvent(eventIndex);
+    client->sendEvent(eventLon);
+    client->sendEvent(eventLat);
   }
 
   bool CDomain::dispatchEvent(CEventServer& event)
-   {
-
-      if (SuperClass::dispatchEvent(event)) return true ;
-      else
+  {
+    if (SuperClass::dispatchEvent(event)) return true;
+    else
+    {
+      switch(event.type)
       {
-        switch(event.type)
-        {
-           case EVENT_ID_SERVER_ATTRIBUT :
-             recvServerAttribut(event) ;
-             return true ;
-             break ;
-           case EVENT_ID_LON :
-             recvLon(event) ;
-             return true ;
-             break ;
-           case EVENT_ID_LAT :
-             recvLat(event) ;
-             return true ;
-             break ;
-           default :
-             ERROR("bool CContext::dispatchEvent(CEventServer& event)",
-                    <<"Unknown Event") ;
-           return false ;
-         }
-      }
-   }
+        case EVENT_ID_SERVER_ATTRIBUT:
+          recvServerAttribut(event);
+          return true;
+          break;
+        case EVENT_ID_INDEX:
+          recvIndex(event);
+          return true;
+          break;
+        case EVENT_ID_LON:
+          recvLon(event);
+          return true;
+          break;
+        case EVENT_ID_LAT:
+          recvLat(event);
+          return true;
+          break;
+        default:
+          ERROR("bool CContext::dispatchEvent(CEventServer& event)",
+                << "Unknown Event");
+          return false;
+       }
+    }
+  }
 
   void CDomain::recvServerAttribut(CEventServer& event)
   {
@@ -952,81 +957,91 @@ namespace xios {
     }
   }
 
-  void CDomain::recvLon(CEventServer& event)
+  void CDomain::recvIndex(CEventServer& event)
   {
-    list<CEventServer::SSubEvent>::iterator it ;
-    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
-      CBufferIn* buffer=it->buffer;
-      string domainId ;
-      *buffer>>domainId ;
-      get(domainId)->recvLon(*buffer) ;
+      CBufferIn* buffer = it->buffer;
+      string domainId;
+      *buffer >> domainId;
+      get(domainId)->recvIndex(it->rank, *buffer);
     }
   }
 
-  void CDomain::recvLon(CBufferIn& buffer)
+  void CDomain::recvIndex(int rank, CBufferIn& buffer)
   {
-    CArray<int,1> indi ;
-    CArray<int,1> indj ;
-    CArray<double,1> lon ;
-    CArray<double,2> boundslon ;
+    int type_int;
+    buffer >> type_int >> isCurvilinear >> indiSrv[rank] >> indjSrv[rank];
+    type.setValue((type_attr::t_enum)type_int); // probleme des type enum avec les buffers : ToFix
+  }
 
-    int type_int ;
-    buffer>>type_int>>isCurvilinear>>indi>>indj>>lon ;
-    if (hasBounds) buffer>>boundslon ;
-    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
-
-    int i,j,ind_srv ;
-    for(int ind=0;ind<indi.numElements();ind++)
+  void CDomain::recvLon(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
-      i=indi(ind) ; j=indj(ind) ;
-      ind_srv=(i-(zoom_ibegin_srv))+(j-(zoom_jbegin_srv))*zoom_ni_srv ;
-      lonvalue_srv(ind_srv)=lon(ind) ;
+      CBufferIn* buffer = it->buffer;
+      string domainId;
+      *buffer >> domainId;
+      get(domainId)->recvLon(it->rank, *buffer);
+    }
+  }
+
+  void CDomain::recvLon(int rank, CBufferIn& buffer)
+  {
+    CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
+    CArray<double,1> lon;
+    CArray<double,2> boundslon;
+
+    buffer >> lon;
+    if (hasBounds) buffer >> boundslon;
+
+    int i, j, ind_srv;
+    for (int ind = 0; ind < indi.numElements(); ind++)
+    {
+      i = indi(ind); j = indj(ind);
+      ind_srv = (i - zoom_ibegin_srv) + (j - zoom_jbegin_srv) * zoom_ni_srv;
+      lonvalue_srv(ind_srv) = lon(ind);
       if (hasBounds)
       {
-        for(int nv=0;nv<nvertex;nv++)
-        {
-          bounds_lon_srv(nv,ind_srv)=boundslon(nv,ind) ;
-        }
+        for (int nv = 0; nv < nvertex; nv++)
+          bounds_lon_srv(nv, ind_srv) = boundslon(nv, ind);
       }
     }
   }
 
   void CDomain::recvLat(CEventServer& event)
   {
-    list<CEventServer::SSubEvent>::iterator it ;
-    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
-      CBufferIn* buffer=it->buffer;
-      string domainId ;
-      *buffer>>domainId ;
-      get(domainId)->recvLat(*buffer) ;
+      CBufferIn* buffer = it->buffer;
+      string domainId;
+      *buffer >> domainId;
+      get(domainId)->recvLat(it->rank, *buffer);
     }
   }
 
-  void CDomain::recvLat(CBufferIn& buffer)
+  void CDomain::recvLat(int rank, CBufferIn& buffer)
   {
-    CArray<int,1> indi ;
-    CArray<int,1> indj ;
-    CArray<double,1> lat ;
-    CArray<double,2> boundslat ;
+    CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
+    CArray<double,1> lat;
+    CArray<double,2> boundslat;
 
-    int type_int ;
-    buffer>>type_int>>isCurvilinear>>indi>>indj>>lat ;
-    if (hasBounds) buffer>>boundslat ;
-    type.setValue((type_attr::t_enum)type_int) ; // probleme des type enum avec les buffers : ToFix
-    int i,j,ind_srv ;
-    for(int ind=0;ind<indi.numElements();ind++)
+    buffer >> lat;
+    if (hasBounds) buffer >> boundslat;
+
+    int i, j, ind_srv;
+    for (int ind = 0; ind < indi.numElements(); ind++)
     {
-      i=indi(ind) ; j=indj(ind) ;
-      ind_srv=(i-(zoom_ibegin_srv))+(j-(zoom_jbegin_srv))*zoom_ni_srv ;
-      latvalue_srv(ind_srv)=lat(ind) ;
+      i = indi(ind); j = indj(ind);
+      ind_srv = (i - zoom_ibegin_srv) + (j - zoom_jbegin_srv) * zoom_ni_srv;
+      latvalue_srv(ind_srv) = lat(ind);
       if (hasBounds)
       {
-        for(int nv=0;nv<nvertex;nv++)
-        {
-          bounds_lat_srv(nv,ind_srv)=boundslat(nv,ind) ;
-        }
+        for (int nv = 0; nv < nvertex; nv++)
+          bounds_lat_srv(nv, ind_srv) = boundslat(nv, ind);
       }
     }
   }
