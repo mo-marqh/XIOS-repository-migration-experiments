@@ -63,8 +63,7 @@ namespace xios
                                          const StdString & time_origin,
                                          const StdString & time_bounds   = StdString("bounds"),
                                          const StdString & standard_name = StdString("time"),
-                                         const StdString & long_name     = StdString("Time axis"),
-                                         const StdString & title         = StdString("Time"));
+                                         const StdString & long_name     = StdString("Time axis"));
 
             void writeFileAttributes(const StdString & name,
                                      const StdString & description,

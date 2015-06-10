@@ -82,6 +82,7 @@ namespace xios
 
          StdString dimXid, dimYid ;
 
+         bool isRegularDomain = (domain->type == CDomain::type_attr::regular);
          switch (domain->type)
          {
            case CDomain::type_attr::curvilinear :
@@ -188,8 +189,8 @@ namespace xios
                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                  }
 
-                 this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
-                 this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+                 this->writeAxisAttributes(lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
+                 this->writeAxisAttributes(latid, isRegularDomain ? "Y" : "", "latitude", "Latitude", "degrees_north", domid);
 
                  dim0.clear();
                  if (domain->type != CDomain::type_attr::unstructured) dim0.push_back(dimYid);
@@ -274,9 +275,9 @@ namespace xios
                  }
 
                  this->writeAxisAttributes
-                    (lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+                    (lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
                  this->writeAxisAttributes
-                    (latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+                    (latid, isRegularDomain ? "Y" : "", "latitude", "Latitude", "degrees_north", domid);
 
                  SuperClassWriter::definition_end();
 
@@ -411,9 +412,9 @@ namespace xios
                  bounds_latid = StdString("bounds_lat").append(appendDomid);
 
 
-                 this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+                 this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                  if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
-                 this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+                 this->writeAxisAttributes(latid, "", "latitude", "Latitude", "degrees_north", domid);
                  if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_latid, &latid);
                  if (domain->hasBounds) SuperClassWriter::addDimension(dimVertId, domain->nvertex);
                  dim0.clear();
@@ -462,9 +463,9 @@ namespace xios
                  SuperClassWriter::addDimension(dimXid, domain->nj_glo);
                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
-                 this->writeAxisAttributes(lonid, "X", "longitude", "Longitude", "degrees_east", domid);
+                 this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                  if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
-                 this->writeAxisAttributes(latid, "Y", "latitude", "Latitude", "degrees_north", domid);
+                 this->writeAxisAttributes(latid, "", "latitude", "Latitude", "degrees_north", domid);
                  if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_latid, &latid);
                  if (domain->hasBounds) SuperClassWriter::addDimension(dimVertId, domain->nvertex);
                  dim0.clear();
@@ -565,8 +566,6 @@ namespace xios
             {
               SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
 
-              SuperClassWriter::addAttribute("axis", StdString("Z"), &axisid);
-
               if (!axis->name.isEmpty())
                 SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
 
@@ -580,8 +579,12 @@ namespace xios
                 SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
 
               if (!axis->positive.isEmpty())
-                if (axis->positive == CAxis::positive_attr::up) SuperClassWriter::addAttribute("positive", string("up"), &axisid);
-                else SuperClassWriter::addAttribute("positive", string("down"), &axisid);
+              {
+                SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
+                SuperClassWriter::addAttribute("positive",
+                                               (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
+                                               &axisid);
+              }
 
               StdString axisBoundsId = axisid + "_bounds";
               if (!axis->bounds.isEmpty())
@@ -1650,14 +1653,12 @@ namespace xios
                                                    const StdString & time_origin,
                                                    const StdString & time_bounds,
                                                    const StdString & standard_name,
-                                                   const StdString & long_name,
-                                                   const StdString & title)
+                                                   const StdString & long_name)
       {
          try
          {
            SuperClassWriter::addAttribute("standard_name", standard_name, &axis_name);
            SuperClassWriter::addAttribute("long_name",     long_name    , &axis_name);
-           SuperClassWriter::addAttribute("title",         title        , &axis_name);
            SuperClassWriter::addAttribute("calendar",      calendar     , &axis_name);
            SuperClassWriter::addAttribute("units",         units        , &axis_name);
            SuperClassWriter::addAttribute("time_origin",   time_origin  , &axis_name);
@@ -1671,13 +1672,12 @@ namespace xios
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeTimeAxisAttributes(const StdString & axis_name, \
-                                                   const StdString & calendar,\
-                                                   const StdString & units, \
-                                                   const StdString & time_origin, \
-                                                   const StdString & time_bounds, \
-                                                   const StdString & standard_name, \
-                                                   const StdString & long_name, \
-                                                   const StdString & title)", << msg);
+                                                          const StdString & calendar,\
+                                                          const StdString & units, \
+                                                          const StdString & time_origin, \
+                                                          const StdString & time_bounds, \
+                                                          const StdString & standard_name, \
+                                                          const StdString & long_name)", << msg);
          }
       }
 
@@ -1692,7 +1692,9 @@ namespace xios
       {
          try
          {
-          SuperClassWriter::addAttribute("axis"         , axis         , &axis_name);
+          if (!axis.empty())
+            SuperClassWriter::addAttribute("axis"       , axis         , &axis_name);
+
           SuperClassWriter::addAttribute("standard_name", standard_name, &axis_name);
           SuperClassWriter::addAttribute("long_name"    , long_name    , &axis_name);
           SuperClassWriter::addAttribute("units"        , units        , &axis_name);
@@ -1706,11 +1708,11 @@ namespace xios
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeAxisAttributes(const StdString & axis_name, \
-                                               const StdString & axis, \
-                                               const StdString & standard_name, \
-                                               const StdString & long_name, \
-                                               const StdString & units, \
-                                               const StdString & nav_model)", << msg);
+                                                      const StdString & axis, \
+                                                      const StdString & standard_name, \
+                                                      const StdString & long_name, \
+                                                      const StdString & units, \
+                                                      const StdString & nav_model)", << msg);
          }
       }
 
@@ -1792,7 +1794,8 @@ namespace xios
          {
            SuperClassWriter::addAttribute("name"       , name);
            SuperClassWriter::addAttribute("description", description);
-           SuperClassWriter::addAttribute("conventions", conventions);
+           SuperClassWriter::addAttribute("title"      , description);
+           SuperClassWriter::addAttribute("Conventions", conventions);
            SuperClassWriter::addAttribute("production" , production);
            SuperClassWriter::addAttribute("timeStamp"  , timeStamp);
          }
