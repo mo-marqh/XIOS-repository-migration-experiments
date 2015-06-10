@@ -23,13 +23,13 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , isDistributed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , isDistributed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false)
          { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -118,6 +118,10 @@ namespace xios {
           mask.resize(1,nj) ;
           for(int j=0;j<nj;j++) mask(0,j)=mask_tmp(j,0) ;
          }
+
+         if (!area.isEmpty())
+           area.transposeSelf(1, 0);
+
          ni=1 ;
          ibegin=0 ;
          iend=0 ;
@@ -552,12 +556,24 @@ namespace xios {
      if (!nvertex.isEmpty() && !bounds_lon.isEmpty() && !bounds_lat.isEmpty())
      {
        hasBounds=true ;
-
      }
      else
      {
        hasBounds=false;
        nvertex=0 ;
+     }
+   }
+
+   void CDomain::checkArea(void)
+   {
+     hasArea = !area.isEmpty();
+     if (hasArea)
+     {
+       if (area.extent(0) != ni || area.extent(1) != nj)
+       {
+         ERROR("void CDomain::checkArea(void)",
+               "The area attribute must be of size ni x nj.");
+       }
      }
    }
 
@@ -572,6 +588,7 @@ namespace xios {
       this->checkDomain();
       this->checkZoom();
       this->checkBounds();
+      this->checkArea();
 
       if (context->hasClient)
       { // Côté client uniquement
@@ -600,7 +617,7 @@ namespace xios {
      if (context->hasClient)
      {
        sendServerAttribut() ;
-       sendLonLat() ;
+       sendLonLatArea() ;
      }
 
      this->isChecked = true;
@@ -614,6 +631,7 @@ namespace xios {
       this->checkDomain();
       this->checkZoom();
       this->checkBounds();
+      this->checkArea();
 
       if (context->hasClient)
       { // Côté client uniquement
@@ -632,7 +650,7 @@ namespace xios {
       {
         computeConnectedServer() ;
         sendServerAttribut() ;
-        sendLonLat() ;
+        sendLonLatArea() ;
       }
 
       this->isChecked = true;
@@ -789,7 +807,7 @@ namespace xios {
     delete clientServerMap;
   }
 
-  void CDomain::sendLonLat(void)
+  void CDomain::sendLonLatArea(void)
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
@@ -799,11 +817,13 @@ namespace xios {
     CEventClient eventIndex(getType(), EVENT_ID_INDEX);
     CEventClient eventLon(getType(), EVENT_ID_LON);
     CEventClient eventLat(getType(), EVENT_ID_LAT);
+    CEventClient eventArea(getType(), EVENT_ID_AREA);
 
-    list<CMessage> list_msgsIndex, list_msgsLon, list_msgsLat;
+    list<CMessage> list_msgsIndex, list_msgsLon, list_msgsLat, list_msgsArea;
     list<CArray<int,1> > list_indi, list_indj;
     list<CArray<double,1> > list_lon, list_lat;
     list<CArray<double,2> > list_boundslon, list_boundslat;
+    list<CArray<double,1> > list_area;
 
     std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
     iteMap = indSrv_.end();
@@ -825,6 +845,8 @@ namespace xios {
         list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
         list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
       }
+      if (hasArea)
+        list_area.push_back(CArray<double,1>(nbData));
 
       CArray<int,1>& indi = list_indi.back();
       CArray<int,1>& indj = list_indj.back();
@@ -855,6 +877,9 @@ namespace xios {
 
         indi(n) = ibegin + i_index(i - ibegin, j - jbegin);
         indj(n) = jbegin + j_index(i - ibegin, j - jbegin);
+
+        if (hasArea)
+          list_area.back()(n) = area(i - ibegin, j - jbegin);
       }
 
       list_msgsIndex.push_back(CMessage());
@@ -878,11 +903,20 @@ namespace xios {
       eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
       eventLon.push(rank, nbConnectedClients_[rank], list_msgsLon.back());
       eventLat.push(rank, nbConnectedClients_[rank], list_msgsLat.back());
+
+      if (hasArea)
+      {
+        list_msgsArea.push_back(CMessage());
+        list_msgsArea.back() << this->getId() << list_area.back();
+        eventArea.push(rank, nbConnectedClients_[rank], list_msgsArea.back());
+      }
     }
 
     client->sendEvent(eventIndex);
     client->sendEvent(eventLon);
     client->sendEvent(eventLat);
+    if (hasArea)
+      client->sendEvent(eventArea);
   }
 
   bool CDomain::dispatchEvent(CEventServer& event)
@@ -906,6 +940,10 @@ namespace xios {
           break;
         case EVENT_ID_LAT:
           recvLat(event);
+          return true;
+          break;
+        case EVENT_ID_AREA:
+          recvArea(event);
           return true;
           break;
         default:
@@ -955,6 +993,9 @@ namespace xios {
       bounds_lat_srv.resize(nvertex,zoom_ni_srv*zoom_nj_srv) ;
       bounds_lat_srv = 0. ;
     }
+
+    if (hasArea)
+      area_srv.resize(zoom_ni_srv * zoom_nj_srv);
   }
 
   void CDomain::recvIndex(CEventServer& event)
@@ -1043,6 +1084,34 @@ namespace xios {
         for (int nv = 0; nv < nvertex; nv++)
           bounds_lat_srv(nv, ind_srv) = boundslat(nv, ind);
       }
+    }
+  }
+
+  void CDomain::recvArea(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
+    {
+      CBufferIn* buffer = it->buffer;
+      string domainId;
+      *buffer >> domainId;
+      get(domainId)->recvArea(it->rank, *buffer);
+    }
+  }
+
+  void CDomain::recvArea(int rank, CBufferIn& buffer)
+  {
+    CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
+    CArray<double,1> clientArea;
+
+    buffer >> clientArea;
+
+    int i, j, ind_srv;
+    for (int ind = 0; ind < indi.numElements(); ind++)
+    {
+      i = indi(ind); j = indj(ind);
+      ind_srv = (i - zoom_ibegin_srv) + (j - zoom_jbegin_srv) * zoom_ni_srv;
+      area_srv(ind_srv) = clientArea(ind);
     }
   }
 

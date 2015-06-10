@@ -17,6 +17,31 @@ extern "C"
 {
   typedef xios::CDomain* domain_Ptr;
 
+  void cxios_set_domain_area(domain_Ptr domain_hdl, double* area, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(area, shape(extent1, extent2), neverDeleteData);
+    domain_hdl->area.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_area(domain_Ptr domain_hdl, double* area, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(area, shape(extent1, extent2), neverDeleteData);
+    tmp=domain_hdl->area.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_area(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->area.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domain_bounds_lat(domain_Ptr domain_hdl, double* bounds_lat, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();

@@ -98,6 +98,7 @@ namespace xios
          }
 
          string lonid,latid,bounds_lonid,bounds_latid ;
+         string areaId = "area" + appendDomid;
 /*
          StdString lonid_loc = (server->intraCommSize > 1)
                              ? StdString("lon").append(appendDomid).append("_local")
@@ -117,7 +118,6 @@ namespace xios
 
                  if (server->intraCommSize > 1)
                  {
-
   //                 SuperClassWriter::addDimension(lonid, domain->zoom_ni.getValue());
   //                 SuperClassWriter::addDimension(latid, domain->zoom_nj.getValue());
                  }
@@ -210,6 +210,12 @@ namespace xios
 
                  //SuperClassWriter::setDefaultValue(maskid, &dvm);
 
+                 if (domain->hasArea)
+                 {
+                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
+                 }
+
                  SuperClassWriter::definition_end();
 
                  switch (domain->type)
@@ -225,6 +231,10 @@ namespace xios
                      SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
                      break;
                  }
+
+                 if (domain->hasArea)
+                   SuperClassWriter::writeData(domain->area_srv, areaId, isCollective, 0);
+
                  SuperClassWriter::definition_start();
 
                  break;
@@ -233,7 +243,6 @@ namespace xios
               {
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni.getValue());
                  SuperClassWriter::addDimension(dimYid, domain->zoom_nj.getValue());
-
 
                  switch (domain->type)
                  {
@@ -254,13 +263,23 @@ namespace xios
                      SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
                      break;
                  }
+
+                 if (domain->hasArea)
+                 {
+                   dim0.clear();
+                   dim0.push_back(dimYid); dim0.push_back(dimXid);
+                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
+                   dim0.clear();
+                 }
+
                  this->writeAxisAttributes
                     (lonid, "X", "longitude", "Longitude", "degrees_east", domid);
                  this->writeAxisAttributes
                     (latid, "Y", "latitude", "Latitude", "degrees_north", domid);
 
-
                  SuperClassWriter::definition_end();
+
                  switch (domain->type)
                  {
                    case CDomain::type_attr::curvilinear :
@@ -269,7 +288,7 @@ namespace xios
                      std::vector<StdSize> count(2) ;
                      if (domain->isEmpty())
                      {
-                       start[0]=0 ; start [1]=0 ;
+                       start[0]=0 ; start[1]=0 ;
                        count[0]=0 ; count[1]=0 ;
                      }
                      else
@@ -307,6 +326,28 @@ namespace xios
                      break;
                    }
                  }
+
+                 if (domain->hasArea)
+                 {
+                   std::vector<StdSize> start(2);
+                   std::vector<StdSize> count(2);
+
+                   if (domain->isEmpty())
+                   {
+                     start[0] = 0; start[1] = 0;
+                     count[0] = 0; count[1] = 0;
+                   }
+                   else
+                   {
+                     start[1] = domain->zoom_ibegin_srv - domain->zoom_ibegin.getValue();
+                     start[0] = domain->zoom_jbegin_srv - domain->zoom_jbegin.getValue();
+                     count[1] = domain->zoom_ni_srv;
+                     count[0] = domain->zoom_nj_srv;
+                   }
+
+                   SuperClassWriter::writeData(domain->area_srv, areaId, isCollective, 0, &start, &count);
+                 }
+
                  SuperClassWriter::definition_start();
                  break;
               }
@@ -350,6 +391,7 @@ namespace xios
          StdString dimVertId = StdString("nvertex").append(appendDomid);
 
          string lonid,latid,bounds_lonid,bounds_latid ;
+         string areaId = "area" + appendDomid;
 
          try
          {
@@ -386,6 +428,12 @@ namespace xios
                  dim0.clear();
                  dim0.push_back(dimXid);
 
+                 if (domain->hasArea)
+                 {
+                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
+                 }
+
                  SuperClassWriter::definition_end();
 
                  SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
@@ -396,6 +444,10 @@ namespace xios
                    SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0);
                    SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0);
                  }
+
+                 if (domain->hasArea)
+                   SuperClassWriter::writeData(domain->area_srv, areaId, isCollective, 0);
+
                  SuperClassWriter::definition_start();
                  break ;
               }
@@ -423,6 +475,14 @@ namespace xios
                    dim0.push_back(dimVertId);
                    SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
                    SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                 }
+
+                 if (domain->hasArea)
+                 {
+                   dim0.clear();
+                   dim0.push_back(dimXid);
+                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
 
                  SuperClassWriter::definition_end();
@@ -455,6 +515,8 @@ namespace xios
                    SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0,&startBounds,&countBounds);
                  }
 
+                 if (domain->hasArea)
+                   SuperClassWriter::writeData(domain->area_srv, areaId, isCollective, 0, &start, &count);
 
                  SuperClassWriter::definition_start();
 
@@ -606,6 +668,8 @@ namespace xios
          StdString timeid  = StdString("time_counter");
          StdString dimXid,dimYid;
          std::deque<StdString> dimIdList, dimCoordList;
+         bool hasArea = false;
+         StdString cellMeasures = "area:";
 
          for (int i = 0; i < numElement; ++i)
          {
@@ -637,6 +701,11 @@ namespace xios
                  dimCoordList.push_back(StdString("lon").append(appendDomid));
                  dimCoordList.push_back(StdString("lat").append(appendDomid));
                  break ;
+            }
+            if (domain->hasArea)
+            {
+              hasArea = true;
+              cellMeasures += " area" + appendDomid;
             }
             ++idxDomain;
            }
@@ -753,6 +822,9 @@ namespace xios
               duration.solveTimeStep(*(context->calendar));
               SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
            }
+
+           if (hasArea)
+             SuperClassWriter::addAttribute("cell_measures", cellMeasures, &fieldid);
 
            if (!field->default_value.isEmpty())
            {

@@ -17,6 +17,31 @@ extern "C"
 {
   typedef xios::CDomainGroup* domaingroup_Ptr;
 
+  void cxios_set_domaingroup_area(domaingroup_Ptr domaingroup_hdl, double* area, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(area, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->area.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_area(domaingroup_Ptr domaingroup_hdl, double* area, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(area, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->area.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_area(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->area.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl, double* bounds_lat, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();

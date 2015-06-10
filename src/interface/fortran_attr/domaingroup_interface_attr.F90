@@ -9,6 +9,29 @@ MODULE domaingroup_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_domaingroup_area(domaingroup_hdl, area, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_area
+
+    SUBROUTINE cxios_get_domaingroup_area(domaingroup_hdl, area, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_area
+
+    FUNCTION cxios_is_defined_domaingroup_area(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_area
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_area
+
+
     SUBROUTINE cxios_set_domaingroup_bounds_lat(domaingroup_hdl, bounds_lat, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
