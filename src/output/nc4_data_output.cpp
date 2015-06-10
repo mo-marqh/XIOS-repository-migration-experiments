@@ -815,12 +815,21 @@ namespace xios
            if (wtime)
            {
               CDuration duration = field->freq_op.getValue();
-              duration.solveTimeStep(*(context->calendar));
-              SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
+              duration.solveTimeStep(*context->calendar);
+              StdString freqOpStr = duration.toStringUDUnits();
+              SuperClassWriter::addAttribute("interval_operation", freqOpStr, &fieldid);
 
               duration = field->getRelFile()->output_freq.getValue();
-              duration.solveTimeStep(*(context->calendar));
-              SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
+              duration.solveTimeStep(*context->calendar);
+              SuperClassWriter::addAttribute("interval_write", duration.toStringUDUnits(), &fieldid);
+
+              StdString cellMethods = coodinates.front() + ": ";
+              if (field->operation.getValue() == "instant") cellMethods += "point";
+              else if (field->operation.getValue() == "average") cellMethods += "mean";
+              else if (field->operation.getValue() == "accumulate") cellMethods += "sum";
+              else cellMethods += field->operation;
+              cellMethods += " (interval: " + freqOpStr + ")";
+              SuperClassWriter::addAttribute("cell_methods", cellMethods, &fieldid);
            }
 
            if (hasArea)
@@ -1024,11 +1033,11 @@ namespace xios
 //           {
 //              CDuration duration = field->freq_op.getValue();
 //              duration.solveTimeStep(*(context->calendar));
-//              SuperClassWriter::addAttribute("interval_operation", duration.toString(), &fieldid);
+//              SuperClassWriter::addAttribute("interval_operation", duration.toStringUDUnits(), &fieldid);
 //
 //              duration = field->getRelFile()->output_freq.getValue();
 //              duration.solveTimeStep(*(context->calendar));
-//              SuperClassWriter::addAttribute("interval_write", duration.toString(), &fieldid);
+//              SuperClassWriter::addAttribute("interval_write", duration.toStringUDUnits(), &fieldid);
 //           }
 //
 //           if (!field->default_value.isEmpty())

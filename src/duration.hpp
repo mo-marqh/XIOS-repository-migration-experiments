@@ -33,6 +33,7 @@ namespace xios
             CDuration& solveTimeStep(const CCalendar& c);
             /// Autres ///
             StdString toString(void) const;
+            StdString toStringUDUnits(void) const;
 
             /// Propriétés publiques ///
             double year, month, day, hour, minute, second, timestep;

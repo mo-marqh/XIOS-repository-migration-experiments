@@ -27,21 +27,8 @@ namespace xios
 
       StdOStream& operator<<(StdOStream& out, const CDuration& duration)
       {
-        StdOStringStream sout;
-        bool forceOutput = true;
-
-        if (duration.year   != 0.0) { forceOutput = false; sout << duration.year   << "y "; }
-        if (duration.month  != 0.0) { forceOutput = false; sout << duration.month  << "mo "; }
-        if (duration.day    != 0.0) { forceOutput = false; sout << duration.day    << "d "; }
-        if (duration.hour   != 0.0) { forceOutput = false; sout << duration.hour   << "h "; }
-        if (duration.minute != 0.0) { forceOutput = false; sout << duration.minute << "mi "; }
-        if (duration.second != 0.0) { forceOutput = false; sout << duration.second << "s "; }
-        if (duration.timestep != 0.0 || forceOutput)     { sout << duration.timestep << "ts "; }
-
-        // suppression de l'espace en fin de chaîne.
-        StdString strOut = sout.str();
-        out << strOut.erase(strOut.size() - 1);
-        return out;
+         out << duration.toString();
+         return out;
       }
 
       StdIStream& operator>>(StdIStream& in , CDuration& duration)
@@ -123,8 +110,41 @@ namespace xios
 
       StdString CDuration::toString(void) const
       {
-        StdOStringStream oss; oss << *this;
-        return oss.str();
+        StdOStringStream sout;
+        bool forceOutput = true;
+
+        if (year   != 0.0) { forceOutput = false; sout << year   << "y "; }
+        if (month  != 0.0) { forceOutput = false; sout << month  << "mo "; }
+        if (day    != 0.0) { forceOutput = false; sout << day    << "d "; }
+        if (hour   != 0.0) { forceOutput = false; sout << hour   << "h "; }
+        if (minute != 0.0) { forceOutput = false; sout << minute << "mi "; }
+        if (second != 0.0) { forceOutput = false; sout << second << "s "; }
+        if (timestep != 0.0 || forceOutput)     { sout << timestep << "ts "; }
+
+         // Remove the trailing space
+        StdString strOut = sout.str();
+        return strOut.erase(strOut.size() - 1);
+      }
+
+      StdString CDuration::toStringUDUnits(void) const
+      {
+         if (timestep != 0.0)
+           ERROR("StdString CDuration::toStringUDUnits(void) const",
+                 "Impossible to convert a duration to string using UDUnits when a timestep is set.");
+
+         StdOStringStream sout;
+         bool forceOutput = true;
+
+         if (year   != 0.0) { forceOutput = false; sout << year   << " yr "; }
+         if (month  != 0.0) { forceOutput = false; sout << month  << " month "; }
+         if (day    != 0.0) { forceOutput = false; sout << day    << " d "; }
+         if (hour   != 0.0) { forceOutput = false; sout << hour   << " h "; }
+         if (minute != 0.0) { forceOutput = false; sout << minute << " min "; }
+         if (second != 0.0 || forceOutput)       { sout << second << " s "; }
+
+         // Remove the trailing space
+         StdString strOut = sout.str();
+         return strOut.erase(strOut.size() - 1);
       }
 
       CDuration CDuration::FromString(const StdString& str)
