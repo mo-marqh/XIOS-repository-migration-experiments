@@ -93,9 +93,6 @@ namespace xios
              dimXid     = StdString("lon").append(appendDomid);
              dimYid     = StdString("lat").append(appendDomid);
              break;
-           case CDomain::type_attr::unstructured :
-             dimXid     = StdString("cell").append(appendDomid);
-             break;
          }
 
          string lonid,latid,bounds_lonid,bounds_latid ;
@@ -136,42 +133,25 @@ namespace xios
                      dim0.push_back(dimYid);
                      dim1.push_back(dimXid);
                      break;
-                   case CDomain::type_attr::unstructured :
-                     lonid = StdString("lon").append(appendDomid);
-                     latid = StdString("lat").append(appendDomid);
-                     bounds_lonid=string("bounds_lon").append(appendDomid);
-                     bounds_latid=string("bounds_lat").append(appendDomid);
-                     dim0.push_back(dimXid);
-                     break;
                  }
 
-                 if (domain->type == CDomain::type_attr::unstructured)
-                 {
-                   SuperClassWriter::addDimension(dimXid, domain->nj_glo);
-                 }
-                 else
-                 {
-                   SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
-                   SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
-                 }
+                 SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
+                 SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
 
                  if (server->intraCommSize > 1)
                  {
-                    if (domain->type != CDomain::type_attr::unstructured)
-                    {
-                      this->writeLocalAttributes(domain->zoom_ibegin_srv,
-                                                 domain->zoom_ni_srv,
-                                                 domain->zoom_jbegin_srv,
-                                                 domain->zoom_nj_srv,
-                                                 appendDomid);
+                   this->writeLocalAttributes(domain->zoom_ibegin_srv,
+                                              domain->zoom_ni_srv,
+                                              domain->zoom_jbegin_srv,
+                                              domain->zoom_nj_srv,
+                                              appendDomid);
 
-                      if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
-                                                 domain->zoom_ni_srv,
-                                                 domain->zoom_jbegin_srv,
-                                                 domain->zoom_nj_srv,
-                                                 domain->ni_glo,domain->nj_glo,
-                                                 server->intraCommRank,server->intraCommSize);
-                   }
+                   if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
+                                              domain->zoom_ni_srv,
+                                              domain->zoom_jbegin_srv,
+                                              domain->zoom_nj_srv,
+                                              domain->ni_glo,domain->nj_glo,
+                                              server->intraCommRank,server->intraCommSize);
                  }
 
                  switch (domain->type)
@@ -184,16 +164,13 @@ namespace xios
                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
                       break ;
-                    case CDomain::type_attr::unstructured :
-                      SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                      SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                  }
 
                  this->writeAxisAttributes(lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
                  this->writeAxisAttributes(latid, isRegularDomain ? "Y" : "", "latitude", "Latitude", "degrees_north", domid);
 
                  dim0.clear();
-                 if (domain->type != CDomain::type_attr::unstructured) dim0.push_back(dimYid);
+                 dim0.push_back(dimYid);
                  dim0.push_back(dimXid);
 
 
