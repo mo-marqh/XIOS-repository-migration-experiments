@@ -95,6 +95,8 @@ namespace xios
              break;
          }
 
+         StdString dimVertId = StdString("nvertex").append(appendDomid);
+
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
 /*
@@ -135,8 +137,14 @@ namespace xios
                      break;
                  }
 
+                 bounds_lonid = StdString("bounds_lon").append(appendDomid);
+                 bounds_latid = StdString("bounds_lat").append(appendDomid);
+
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
                  SuperClassWriter::addDimension(dimYid, domain->zoom_nj_srv);
+
+                 if (domain->hasBounds)
+                   SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
                  if (server->intraCommSize > 1)
                  {
@@ -168,6 +176,19 @@ namespace xios
 
                  this->writeAxisAttributes(lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
                  this->writeAxisAttributes(latid, isRegularDomain ? "Y" : "", "latitude", "Latitude", "degrees_north", domid);
+
+                 if (domain->hasBounds)
+                 {
+                   SuperClassWriter::addAttribute("bounds", bounds_lonid, &lonid);
+                   SuperClassWriter::addAttribute("bounds", bounds_latid, &latid);
+
+                   dim0.clear();
+                   dim0.push_back(dimYid);
+                   dim0.push_back(dimXid);
+                   dim0.push_back(dimVertId);
+                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                 }
 
                  dim0.clear();
                  dim0.push_back(dimYid);
@@ -211,6 +232,12 @@ namespace xios
                      break;
                  }
 
+                 if (domain->hasBounds)
+                 {
+                   SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0);
+                   SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0);
+                 }
+
                  if (domain->hasArea)
                    SuperClassWriter::writeData(domain->area_srv, areaId, isCollective, 0);
 
@@ -222,6 +249,9 @@ namespace xios
               {
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni.getValue());
                  SuperClassWriter::addDimension(dimYid, domain->zoom_nj.getValue());
+
+                 if (domain->hasBounds)
+                   SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
                  switch (domain->type)
                  {
@@ -243,6 +273,9 @@ namespace xios
                      break;
                  }
 
+                 bounds_lonid = StdString("bounds_lon").append(appendDomid);
+                 bounds_latid = StdString("bounds_lat").append(appendDomid);
+
                  if (domain->hasArea)
                  {
                    dim0.clear();
@@ -257,6 +290,19 @@ namespace xios
                     (lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
                  this->writeAxisAttributes
                     (latid, isRegularDomain ? "Y" : "", "latitude", "Latitude", "degrees_north", domid);
+
+                 if (domain->hasBounds)
+                 {
+                   SuperClassWriter::addAttribute("bounds", bounds_lonid, &lonid);
+                   SuperClassWriter::addAttribute("bounds", bounds_latid, &latid);
+
+                   dim0.clear();
+                   dim0.push_back(dimYid);
+                   dim0.push_back(dimXid);
+                   dim0.push_back(dimVertId);
+                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                 }
 
                  SuperClassWriter::definition_end();
 
@@ -305,6 +351,29 @@ namespace xios
                      }
                      break;
                    }
+                 }
+
+                 if (domain->hasBounds)
+                 {
+                   std::vector<StdSize> start(3);
+                   std::vector<StdSize> count(3);
+                   if (domain->isEmpty())
+                   {
+                     start[2] = start[1] = start[0] = 0;
+                     count[2] = count[1] = count[0] = 0;
+                   }
+                   else
+                   {
+                     start[2] = 0;
+                     start[1] = domain->zoom_ibegin_srv - domain->zoom_ibegin.getValue();
+                     start[0] = domain->zoom_jbegin_srv - domain->zoom_jbegin.getValue();
+                     count[2] = domain->nvertex;
+                     count[1] = domain->zoom_ni_srv;
+                     count[0] = domain->zoom_nj_srv;
+                   }
+                   
+                   SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0, &start, &count);
+                   SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0, &start, &count);
                  }
 
                  if (domain->hasArea)
