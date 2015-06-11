@@ -214,6 +214,7 @@ namespace xios
                  if (domain->hasArea)
                  {
                    SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
 
@@ -270,6 +271,7 @@ namespace xios
                    dim0.clear();
                    dim0.push_back(dimYid); dim0.push_back(dimXid);
                    SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                    dim0.clear();
                  }
@@ -432,6 +434,7 @@ namespace xios
                  if (domain->hasArea)
                  {
                    SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
 
@@ -483,6 +486,7 @@ namespace xios
                    dim0.clear();
                    dim0.push_back(dimXid);
                    SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
 
@@ -639,11 +643,10 @@ namespace xios
        try
        {
         SuperClassWriter::addDimension("time_counter");
-        SuperClassWriter::addDimension("time_bounds", 2);
        }
        catch (CNetCdfException& e)
        {
-         StdString msg("On writing time dimension : time_couter, time_bounds \n");
+         StdString msg("On writing time dimension : time_couter\n");
          msg.append("In the context : ");
          CContext* context = CContext::getCurrent() ;
          msg.append(context->getId()); msg.append("\n");
@@ -817,21 +820,22 @@ namespace xios
 
            if (wtime)
            {
-              CDuration duration = field->freq_op.getValue();
-              duration.solveTimeStep(*context->calendar);
-              StdString freqOpStr = duration.toStringUDUnits();
+              CDuration freqOp = field->freq_op.getValue();
+              freqOp.solveTimeStep(*context->calendar);
+              StdString freqOpStr = freqOp.toStringUDUnits();
               SuperClassWriter::addAttribute("interval_operation", freqOpStr, &fieldid);
 
-              duration = field->getRelFile()->output_freq.getValue();
-              duration.solveTimeStep(*context->calendar);
-              SuperClassWriter::addAttribute("interval_write", duration.toStringUDUnits(), &fieldid);
+              CDuration freqOut = field->getRelFile()->output_freq.getValue();
+              freqOut.solveTimeStep(*context->calendar);
+              SuperClassWriter::addAttribute("interval_write", freqOut.toStringUDUnits(), &fieldid);
 
               StdString cellMethods = coodinates.front() + ": ";
               if (field->operation.getValue() == "instant") cellMethods += "point";
               else if (field->operation.getValue() == "average") cellMethods += "mean";
               else if (field->operation.getValue() == "accumulate") cellMethods += "sum";
               else cellMethods += field->operation;
-              cellMethods += " (interval: " + freqOpStr + ")";
+              if (freqOp.resolve(*context->calendar) != freqOut.resolve(*context->calendar))
+                cellMethods += " (interval: " + freqOpStr + ")";
               SuperClassWriter::addAttribute("cell_methods", cellMethods, &fieldid);
            }
 
@@ -1099,12 +1103,11 @@ namespace xios
          try
          {
            this->writeFileAttributes(filename, description,
-                                     StdString("CF-1.1"),
+                                     StdString("CF-1.5"),
                                      StdString("An IPSL model"),
                                      this->getTimeStamp());
 
-           if (file->nbAxis >= 1)
-             SuperClassWriter::addDimension("axis_nbounds", 2);
+           SuperClassWriter::addDimension("axis_nbounds", 2);
          }
          catch (CNetCdfException& e)
          {
@@ -1568,7 +1571,7 @@ namespace xios
          StdString axisid("time_centered") ;
          StdString axisBoundId("time_centered_bounds");
          StdString timeid("time_counter");
-         StdString timeBoundId("time_bounds");
+         StdString timeBoundId("axis_nbounds");
 
          if (field->foperation->timeType() == func::CFunctor::instant)
          {
