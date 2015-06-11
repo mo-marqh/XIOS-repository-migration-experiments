@@ -606,11 +606,11 @@ namespace xios
 
               if (!axis->bounds.isEmpty())
               {
-                CArray<double,2> axisBounds(zoom_size, 2);
+                CArray<double,2> axisBounds(2, zoom_size);
                 for (int i = 0; i < zoom_size_srv; i++)
                 {
-                  axisBounds(i, 0) = axis->bounds(i + zoom_begin_srv, 0);
-                  axisBounds(i, 1) = axis->bounds(i + zoom_begin_srv, 1);
+                  axisBounds(0, i) = axis->bounds(i + zoom_begin_srv, 0);
+                  axisBounds(1, i) = axis->bounds(i + zoom_begin_srv, 1);
                 }
                 SuperClassWriter::writeData(axisBounds, axisBoundsId, isCollective, 0);
               }
