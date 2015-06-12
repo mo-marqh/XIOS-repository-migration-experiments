@@ -875,7 +875,7 @@ namespace xios
               freqOut.solveTimeStep(*context->calendar);
               SuperClassWriter::addAttribute("interval_write", freqOut.toStringUDUnits(), &fieldid);
 
-              StdString cellMethods = coodinates.front() + ": ";
+              StdString cellMethods = "time: ";
               if (field->operation.getValue() == "instant") cellMethods += "point";
               else if (field->operation.getValue() == "average") cellMethods += "mean";
               else if (field->operation.getValue() == "accumulate") cellMethods += "sum";
