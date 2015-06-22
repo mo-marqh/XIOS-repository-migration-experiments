@@ -12,6 +12,7 @@
 #define __XIOS_UTILS_HPP__
 
 #include <vector>
+#include <limits>
 #include "array_new.hpp"
 #include "exception.hpp"
 
@@ -186,6 +187,25 @@ namespace xios
       return HashAlgorithm<T>::jenkins_hash(val);
     }
   };
+
+template<typename K>
+struct NumTraits {
+    typedef K Type;
+};
+
+template<>
+struct NumTraits<unsigned long>
+{
+  typedef unsigned long Scalar;
+  typedef Scalar magnitudeType;
+
+  static inline Scalar sfmin() {
+    return std::numeric_limits<Scalar>::min();
+  }
+  static inline Scalar sfmax() {
+    return std::numeric_limits<Scalar>::max();
+  }
+};
 }
 
 #endif // __UTILS_HPP__

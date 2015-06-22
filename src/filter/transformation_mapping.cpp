@@ -1,3 +1,12 @@
+/*!
+   \file transformation_mapping.cpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Take charge of communication among clients to exchange transformed data.
+ */
+
 #include "transformation_mapping.hpp"
 #include <boost/unordered_map.hpp>
 #include "context.hpp"
@@ -13,9 +22,9 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
 
-  CDistributionClient distributionClientDest(client->clientRank, gridSource_);
+  CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
 
-  const CArray<size_t,1>& globalIndexGridSrc = distributionClientDest.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
+  const CArray<size_t,1>& globalIndexGridSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
   boost::unordered_map<size_t,int> globalIndexOfServer;
   int globalIndexSize = globalIndexGridSrc.numElements();
   for (int idx = 0; idx < globalIndexSize; ++idx)
@@ -23,6 +32,7 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
     globalIndexOfServer[globalIndexGridSrc(idx)] = clientRank;
   }
 
+  std::cout << "global index grid src " << globalIndexGridSrc << std::endl;
   gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfServer,
                                                                       client->intraComm,
                                                                       true);
@@ -150,11 +160,21 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
   if (0 != buffSize) delete [] recvBuffGlobalIndex;
 }
 
+/*!
+  Return (grid) global index on grid destination. This mapping contains the rank of client source (that sends info to grid destination)
+and the corresponding global index to write on grid destination.
+  \return global index mapping to receive on grid destination
+*/
 const std::map<int,std::vector<std::vector<size_t> > >& CTransformationMapping::getGlobalIndexReceivedOnGridDestMapping() const
 {
   return globalIndexReceivedOnGridDestMapping_;
 }
 
+/*!
+  Return (grid) global index on grid source. This mapping contains the rank of client destination (which receives transformation info) and
+the corresponding global index to send
+  \return global index mapping to send on grid source
+*/
 const std::map<int,std::vector<size_t> >& CTransformationMapping::getGlobalIndexSendToGridDestMapping() const
 {
   return globalIndexSendToGridDestMapping_;

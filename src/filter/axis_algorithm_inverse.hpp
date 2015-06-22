@@ -6,12 +6,12 @@
 
 namespace xios {
 
-class CAxisInverse : public CAxisAlgorithmTransformation //public CConcreteAlgo
+class CAxisAlgorithmInverse : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisInverse(CAxis* axisDestination, CAxis* axisSource);
+  CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource);
 
-  virtual ~CAxisInverse() {}
+  virtual ~CAxisAlgorithmInverse() {}
 
   virtual void computeIndexSourceMapping();
 };

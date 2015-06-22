@@ -29,7 +29,7 @@ namespace xios
 
             void setAttributes(const xml::THashAttributes & attributes);
             void setAttributes(const CAttributeMap * const _parent, bool apply=true);
-
+            void duplicateAttributes(const CAttributeMap* const _parent);
             void clearAllAttributes(void);
 
             void clearAttribute(const StdString& key);

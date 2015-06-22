@@ -297,6 +297,30 @@ namespace xios {
           break;
       }
    }
+
+   void CGrid::modifyMask(const CArray<int,1>& indexToModify)
+   {
+      using namespace std;
+      std::vector<CDomain*> domainP = this->getDomains();
+      std::vector<CAxis*> axisP = this->getAxis();
+      int dim = domainP.size() * 2 + axisP.size();
+
+      switch (dim) {
+        case 1:
+          modifyGridMask(mask1, indexToModify);
+          break;
+        case 2:
+          modifyGridMask(mask2, indexToModify);
+          break;
+        case 3:
+          modifyGridMask(mask3, indexToModify);
+          break;
+
+        default:
+          break;
+      }
+   }
+
    //---------------------------------------------------------------
 
    void CGrid::solveDomainRef(bool sendAtt)
@@ -849,7 +873,7 @@ namespace xios {
           {
             nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
             nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
-            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->zoom_begin;
+            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
             nGlob[indexMap[i]] = axisList[axisId]->size;
             ++axisId;
           }
@@ -1157,6 +1181,9 @@ namespace xios {
 
     transformations_ = new CGridTransformation(transformedGrid, this);
     transformations_->computeAll();
+
+    // Ok, now need to compute index of grid source
+    checkMaskIndex(false);
   }
 
   /*!

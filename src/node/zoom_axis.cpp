@@ -24,8 +24,8 @@ namespace xios {
 
   void CZoomAxis::checkValid(CAxis* axisDest)
   {
-    StdSize axisIBegin, axisNi, axisSize;
-    StdSize zoom_begin, zoom_end, zoom_size;
+    int axisIBegin, axisNi, axisSize;
+    int zoom_begin, zoom_end, zoom_size;
 
     axisIBegin = axisDest->ibegin.getValue();
     axisNi     = axisDest->ni.getValue();
@@ -35,9 +35,9 @@ namespace xios {
     zoom_size  = (this->zoom_size.isEmpty()) ?  axisSize : this->zoom_size.getValue() ;
     zoom_end   = (this->zoom_end.isEmpty()) ?  (axisSize - 1) : this->zoom_end.getValue() ;
 
-    if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1 ;
-    if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1 ;
-    if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1 ;
+    if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1;
+    if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1;
+    if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1;
 
     if ((zoom_begin < 0) || (zoom_begin > axisSize-1) || (zoom_end<0) || (zoom_end>axisSize-1) || (zoom_size<1) || (zoom_size>axisSize) || (zoom_begin>zoom_end))
       ERROR("CZoomAxis::checkAttributes(void)",

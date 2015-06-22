@@ -143,6 +143,24 @@ namespace xios
          }
       }
 
+      void CAttributeMap::duplicateAttributes(const CAttributeMap* const srcAttr)
+      {
+         typedef std::pair<StdString, CAttribute*> StdStrAttPair;
+
+         SuperClassMap::const_iterator it = srcAttr->begin(), end = srcAttr->end();
+         for (; it != end; it++)
+         {
+            const StdStrAttPair& el = *it;
+            if (this->hasAttribute(el.first))
+            {
+               if (!el.second->isEmpty())
+               {
+                 this->setAttribute(el.first, el.second);
+               }
+            }
+         }
+      }
+
       //---------------------------------------------------------------
 /*
       void CAttributeMap::toBinary(StdOStream& os) const

@@ -22,6 +22,7 @@ PROGRAM test_new_features
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
   LOGICAL :: ok
+  LOGICAL,ALLOCATABLE :: mask_glo(:),mask(:)
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
@@ -80,6 +81,14 @@ PROGRAM test_new_features
 
 
   ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), lval_ni(ni), lval_nj(nj), field_Two_Axis(ni_glo,1:nj))
+  ALLOCATE(mask(nj))
+  DO i = 1, nj
+!    IF (MOD(i,2)>=0) THEN
+!      mask(i)=.FALSE.
+!    ELSE
+      mask(i)=.TRUE.
+!    ENDIF
+  ENDDO
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
@@ -98,7 +107,7 @@ PROGRAM test_new_features
   PRINT *, "calendar_type = ", calendar_type
 
   CALL xios_set_axis_attr("axis_A", size=ni_glo, ibegin=ibegin, ni=ni, value=lval_ni)
-  CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj)
+  CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj, mask=mask)
   CALL xios_set_axis_attr("axis_C", size=llm, value=lval)
   CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lvaln)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)

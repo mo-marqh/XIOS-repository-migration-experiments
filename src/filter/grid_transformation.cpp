@@ -1,6 +1,14 @@
+/*!
+   \file grid_transformation.cpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Interface for all transformations.
+ */
 #include "grid_transformation.hpp"
-#include "axis_inverse.hpp"
-#include "axis_zoom.hpp"
+#include "axis_algorithm_inverse.hpp"
+#include "axis_algorithm_zoom.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
 #include "transformation_mapping.hpp"
@@ -34,14 +42,14 @@ CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
   for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
   {
     CAxis* axis = CAxis::createAxis();
-    axisSrcTmp[idx]->duplicateAttributes(axis);
+    axis->setAttributes(axisSrcTmp[idx]);
     axisSrc.push_back(axis);
   }
 
   for (int idx = 0; idx < domainSrcTmp.size(); ++idx)
   {
     CDomain* domain = CDomain::createDomain();
-    domainSrcTmp[idx]->duplicateAttributes(domain);
+    domain->setAttributes(domainSrcTmp[idx]);
     domainSrc.push_back(domain);
   }
 
@@ -167,10 +175,10 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
   {
     case TRANS_ZOOM_AXIS:
       zoomAxis = dynamic_cast<CZoomAxis*> (it->second);
-      algo = new CAxisZoom(axisListDestP[axisIndex], axisListSrcP[axisIndex], zoomAxis);
+      algo = new CAxisAlgorithmZoom(axisListDestP[axisIndex], axisListSrcP[axisIndex], zoomAxis);
       break;
     case TRANS_INVERSE_AXIS:
-      algo = new CAxisInverse(axisListDestP[axisIndex], axisListSrcP[axisIndex]);
+      algo = new CAxisAlgorithmInverse(axisListDestP[axisIndex], axisListSrcP[axisIndex]);
       break;
     default:
       break;
@@ -195,7 +203,7 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
       axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
-      axisListDestP[axisIndex]->duplicateAttributes(axisListSrcP[axisIndex]);
+      axisListSrcP[axisIndex]->duplicateAttributes(axisListDestP[axisIndex]);
       break;
     default:
       break;
@@ -225,6 +233,7 @@ void CGridTransformation::computeAll()
     CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
     const CArray<size_t,1>& globalIndexGridDestSendToServer = distributionClientDest.getGlobalDataIndexSendToServer();
 
+   std::cout << "global index grid  dest send to server " << globalIndexGridDestSendToServer << std::endl;
     // ComputeTransformation of global index of each element
     std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
     int elementPosition = it->first;
@@ -240,39 +249,68 @@ void CGridTransformation::computeAll()
     setUpGrid(elementPositionInGrid, transType);
   }
 
- std::cout << "global index destination 0 " << *globalIndexOfCurrentGridSource_ << std::endl;
- std::cout << "global index destination 1 " << *globalIndexOfOriginalGridSource_ << std::endl;
+ std::cout << "global index destination 0 final " << *globalIndexOfCurrentGridSource_ << std::endl;
+ std::cout << "global index destination 1 final " << *globalIndexOfOriginalGridSource_ << std::endl;
+  updateFinalGridDestination();
   computeFinalTransformationMapping();
 }
 
 
 /*!
-  Compute index mapping representing transformation between two grids
-  Each domain and each axis can contain some information of transformation, these information are then converted into
-form of global index mapping reprensenting transformation between two grids.
+  After applying the algorithms, there are some informations on grid destination needing change, for now, there are:
+   +) mask
 */
-void CGridTransformation::computeTransformation()
+void CGridTransformation::updateFinalGridDestination()
 {
-//  const CArray<size_t,1>& globalIndexGridDestSendToServer = gridDestination_->getDistributionClient()->getGlobalDataIndexSendToServer();
-//  std::list<std::pair<int,CGenericAlgorithmTransformation*> >::const_iterator itbMap, itMap, iteMap;
-//  itbMap = algoTransformation_.begin();
-//  iteMap = algoTransformation_.end();
-//
-//  std::vector<CGenericAlgorithmTransformation*>::const_iterator itbVec, itVec, iteVec;
-//
-//  for (itMap = itbMap; itMap != iteMap; ++itMap)
-//  {
-//    int elementPosition = itMap->first;
-//    itbVec = (itMap->second).begin();
-//    iteVec = (itMap->second).end();
-//    for (itVec = itbVec; itVec != iteVec; ++itVec)
-//    {
-//      (*itVec)->computeGlobalSourceIndex(elementPosition,
-//                                         gridDestinationDimensionSize_,
-//                                         globalIndexGridDestSendToServer,
-//                                         globaIndexMapFromDestToSource_);
-//    }
-//  }
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+
+  //First of all, retrieve info of local mask of grid destination
+  CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
+  const CArray<int, 1>& localMaskIndexOnClientDest = distributionClientDest.getLocalMaskIndexOnClient();
+  std::cout << "local mask " << localMaskIndexOnClientDest << std::endl;
+
+  const CArray<size_t,1>& globalIndexOnClientDest = distributionClientDest.getGlobalDataIndexSendToServer();
+  std::cout << "global index " << globalIndexOnClientDest <<  std::endl;
+  CArray<size_t, 1>::const_iterator itbArr, itArr, iteArr;
+  itbArr = globalIndexOnClientDest.begin();
+  iteArr = globalIndexOnClientDest.end();
+
+  // Then find out which index became invalid (become masked after being applied the algorithms, or demande some masked points from grid source)
+  int num = globalIndexOfOriginalGridSource_->numElements();
+  const size_t sfmax = NumTraits<unsigned long>::sfmax();
+  int maskIndexNum = 0;
+  for (int idx = 0; idx < num; ++idx)
+  {
+    if (sfmax == (*globalIndexOfOriginalGridSource_)(idx))
+    {
+      size_t maskedGlobalIndex = (*globalIndexOfCurrentGridSource_)(idx);
+      itArr = std::find(itbArr, iteArr, maskedGlobalIndex);
+      if (iteArr != itArr) ++maskIndexNum;
+    }
+  }
+
+  CArray<int,1>* maskIndexToModify = new CArray<int,1>(maskIndexNum);
+  maskIndexNum = 0;
+  for (int idx = 0; idx < num; ++idx)
+  {
+    if (sfmax == (*globalIndexOfOriginalGridSource_)(idx))
+    {
+      size_t maskedGlobalIndex = (*globalIndexOfCurrentGridSource_)(idx);
+      itArr = std::find(itbArr, iteArr, maskedGlobalIndex);
+      if (iteArr != itArr)
+      {
+        int localIdx = std::distance(itbArr, itArr);
+        (*maskIndexToModify)(maskIndexNum) = (localMaskIndexOnClientDest)(localIdx);
+        ++maskIndexNum;
+      }
+    }
+  }
+
+  std::cout << "index to modify " << *maskIndexToModify << std::endl;
+  gridDestination_->modifyMask(*maskIndexToModify);
+
+  delete maskIndexToModify;
 }
 
 /*!
@@ -301,8 +339,14 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
  int sendBuffSize = 0;
  for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize += (itSend->second).size();
 
+ std::cout << "global index destination 0 before" << *globalIndexOfCurrentGridSource_ << std::endl;
+ std::cout << "global index destination 1 before" << *globalIndexOfOriginalGridSource_ << std::endl;
+
+ typedef unsigned long Scalar;
  unsigned long* sendBuff, *currentSendBuff;
  if (0 != sendBuffSize) sendBuff = new unsigned long [sendBuffSize];
+ for (StdSize idx = 0; idx < sendBuffSize; ++idx) sendBuff[idx] = NumTraits<Scalar>::sfmax();
+
  int currentBuffPosition = 0;
  for (itSend = itbSend; itSend != iteSend; ++itSend)
  {
@@ -331,6 +375,8 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
 
  unsigned long* recvBuff, *currentRecvBuff;
  if (0 != recvBuffSize) recvBuff = new unsigned long [recvBuffSize];
+ for (StdSize idx = 0; idx < recvBuffSize; ++idx) recvBuff[idx] = NumTraits<Scalar>::sfmax();
+
  int currentRecvBuffPosition = 0;
  for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
  {
@@ -352,8 +398,24 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
    }
  }
 
- globalIndexOfCurrentGridSource_->resize(nbCurrentGridSource);
- globalIndexOfOriginalGridSource_->resize(nbCurrentGridSource);
+ if (globalIndexOfCurrentGridSource_->numElements()  != nbCurrentGridSource)
+ {
+   if ((0 != nbCurrentGridSource) && (0 != globalIndexOfCurrentGridSource_))
+   {
+     delete globalIndexOfCurrentGridSource_;
+     globalIndexOfCurrentGridSource_ = new CArray<size_t,1>(nbCurrentGridSource);
+   }
+ }
+
+ if (globalIndexOfOriginalGridSource_->numElements() != nbCurrentGridSource)
+ {
+   if ((0 != nbCurrentGridSource) && (0 != globalIndexOfOriginalGridSource_))
+   {
+     delete globalIndexOfOriginalGridSource_;
+     globalIndexOfOriginalGridSource_ = new CArray<size_t,1>(nbCurrentGridSource);
+   }
+ }
+
  int k = 0;
  currentRecvBuff = recvBuff;
  for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
@@ -371,6 +433,8 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
    }
  }
 
+ std::cout << "global index destination 0 after " << *globalIndexOfCurrentGridSource_ << std::endl;
+ std::cout << "global index destination 1 after " << *globalIndexOfOriginalGridSource_ << std::endl;
  if (0 != sendBuffSize) delete [] sendBuff;
  if (0 != recvBuffSize) delete [] recvBuff;
 }
@@ -390,9 +454,11 @@ void CGridTransformation::computeFinalTransformationMapping()
   std::map<size_t, std::set<size_t> > globaIndexMapFromDestToSource;
 
   int nb = globalIndexOfCurrentGridSource_->numElements();
+  const size_t sfmax = NumTraits<unsigned long>::sfmax();
   for (int idx = 0; idx < nb; ++idx)
   {
-    globaIndexMapFromDestToSource[(*globalIndexOfCurrentGridSource_)(idx)].insert((*globalIndexOfOriginalGridSource_)(idx));
+    if (sfmax != (*globalIndexOfOriginalGridSource_)(idx))
+      globaIndexMapFromDestToSource[(*globalIndexOfCurrentGridSource_)(idx)].insert((*globalIndexOfOriginalGridSource_)(idx));
   }
 
   // Then compute transformation mapping among clients
@@ -402,19 +468,20 @@ void CGridTransformation::computeFinalTransformationMapping()
   const std::map<int,std::vector<size_t> >& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
 
   CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-  CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
+  CDistributionClient distributionClientSrc(client->clientRank, originalGridSource_);
 
-  CArray<int, 1> localIndexOnClientDest = distributionClientDest.getLocalDataIndexOnClient(); //gridDestination_->getDistributionClient()->getLocalDataIndexOnClient();
-  CArray<size_t,1> globalIndexOnClientDest = distributionClientDest.getGlobalDataIndexSendToServer(); //gridDestination_->getDistributionClient()->getGlobalDataIndexSendToServer();
+//  const CArray<int, 1>& localIndexOnClientDest = distributionClientDest.getLocalDataIndexOnClient(); //gridDestination_->getDistributionClient()->getLocalDataIndexOnClient();
+  const CArray<int, 1>& localIndexOnClientDest = distributionClientDest.getLocalDataIndexSendToServer();
+  const CArray<size_t,1>& globalIndexOnClientDest = distributionClientDest.getGlobalDataIndexSendToServer(); //gridDestination_->getDistributionClient()->getGlobalDataIndexSendToServer();
 
  std::cout << "dest: local index " << localIndexOnClientDest << std::endl;
  std::cout << "dest: global index " << globalIndexOnClientDest << std::endl;
-  CArray<int, 1> localIndexOnClientSrc = distributionClientSrc.getLocalDataIndexOnClient(); //gridSource_->getDistributionClient()->getLocalDataIndexOnClient();
-  CArray<size_t,1> globalIndexOnClientSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
+  const CArray<int, 1>& localIndexOnClientSrc = distributionClientSrc.getLocalDataIndexOnClient(); //gridSource_->getDistributionClient()->getLocalDataIndexOnClient();
+  const CArray<size_t,1>& globalIndexOnClientSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
  std::cout << "src: local index " << localIndexOnClientSrc << std::endl;
  std::cout << "src: global index " << globalIndexOnClientSrc << std::endl;
   std::vector<size_t>::const_iterator itbVec, itVec, iteVec;
-  CArray<size_t, 1>::iterator itbArr, itArr, iteArr;
+  CArray<size_t, 1>::const_iterator itbArr, itArr, iteArr;
 
   std::map<int,std::vector<std::vector<size_t> > >::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
 
@@ -438,11 +505,12 @@ void CGridTransformation::computeFinalTransformationMapping()
         if (iteArr != itArr)
         {
           int localIdx = std::distance(itbArr, itArr);
-//          (*localIndexToReceiveOnGridDest_[sourceRank][i])(idx) = localIndexOnClientDest(localIdx); // Local index of un-extracted data (only domain)
-          (*localIndexToReceiveOnGridDest_[sourceRank][i])(idx) = (localIdx); // Local index of extracted data
+          (*localIndexToReceiveOnGridDest_[sourceRank][i])(idx) = localIndexOnClientDest(localIdx); // Local index of un-extracted data (only domain)
+//          (*localIndexToReceiveOnGridDest_[sourceRank][i])(idx) = (localIdx); // Local index of extracted data
         }
       }
     }
+//    std::cout << "local index to receive from source Rank = " << sourceRank << (*localIndexToReceiveOnGridDest_[sourceRank][i]) << std::endl;
   }
 
   std::map<int,std::vector<size_t> >::const_iterator itbMap, itMap, iteMap;
@@ -467,6 +535,7 @@ void CGridTransformation::computeFinalTransformationMapping()
         (*localIndexToSendFromGridSource_[destRank])(idx) = (localIdx);
       }
     }
+    std::cout << "local index to send to dest Rank = " << destRank << (*localIndexToSendFromGridSource_[destRank]) << std::endl;
   }
 }
 

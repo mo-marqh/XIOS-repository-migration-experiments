@@ -19,7 +19,7 @@ public:
                                 const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                 std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource);
 
-                                  /*!
+  /*!
   Compute global index mapping from one element of destination grid to the corresponding element of source grid
   */
   virtual void computeIndexSourceMapping() = 0;

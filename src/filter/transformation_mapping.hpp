@@ -1,3 +1,11 @@
+/*!
+   \file transformation_mapping.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Take charge of communication among clients to exchange transformed data.
+ */
 #ifndef __XIOS_TRANSFORMATION_MAPPING_HPP__
 #define __XIOS_TRANSFORMATION_MAPPING_HPP__
 

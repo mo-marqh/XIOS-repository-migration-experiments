@@ -42,11 +42,12 @@
      <axis id="axis_D" />
      <axis id="axis_E" axis_ref="axis_B">
         <inverse_axis />
-        <inverse_axis />
-<!--        <zoom_axis zoom_begin="1" zoom_size="3" />-->
+
+        <zoom_axis zoom_begin="0" zoom_size="4" />
+<!--        <inverse_axis />-->
      </axis>
      <axis id="axis_F" axis_ref="axis_A">
-       <inverse_axis />
+<!--       <inverse_axis />-->
      </axis>
    </axis_definition>
 
@@ -62,6 +63,7 @@
        </grid>
        <grid id="grid_Axis">
          <axis axis_ref="axis_D" />
+
        </grid>
        <grid id="grid_Two_Axis">
          <axis axis_ref="axis_A" />
@@ -69,10 +71,8 @@
        </grid>
        <grid id="grid_Axis_tranformed">
 <!--         <domain domain_ref="domain_A" />-->
-<!--         <axis axis_ref="axis_E" />-->
          <axis axis_ref="axis_F" />
          <axis axis_ref="axis_E" />
-
        </grid>
        <grid id="grid_All_Axis">
          <axis axis_ref="axis_A" />

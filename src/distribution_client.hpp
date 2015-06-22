@@ -38,9 +38,11 @@ class CDistributionClient : public CDistribution
     virtual const CArray<int,1>& getLocalDataIndexOnClient() const;
     virtual const CArray<int,1>& getLocalDataIndexSendToServer() const;
     const CArray<size_t,1>& getGlobalDataIndexSendToServer() const;
+    const CArray<int,1>& getLocalMaskIndexOnClient() const;
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
+
     bool isDataDistributed() { return isDataDistributed_; }
 
   protected:
@@ -72,6 +74,7 @@ class CDistributionClient : public CDistribution
     CArray<size_t,1>* globalDataSendToServer_;
     CArray<int,1>* localDataIndex_;
     CArray<int,1>* localDataIndexSendToServer_;
+    CArray<int,1>* localMaskIndex_;
 
   private:
     /*! Domains and axis are considered elements.

@@ -17,7 +17,7 @@ namespace xios {
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
       , isDistributed_(false)
-      , transformationMap_()
+      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
    {
    }
 
@@ -25,7 +25,7 @@ namespace xios {
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
       , isDistributed_(false)
-      , transformationMap_()
+      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
    {
    }
 
@@ -68,11 +68,6 @@ namespace xios {
      return axis;
    }
 
-   void CAxis::duplicateAttributes(CAxis* axis)
-   {
-     axis->setAttributes(this);
-   }
-
    void CAxis::checkAttributes(void)
    {
       if (this->size.isEmpty())
@@ -100,14 +95,15 @@ namespace xios {
       }
       else this->ni.setValue(size);
       std::cout <<  "value " <<  value <<  std::endl;
-      StdSize true_size = value.numElements();
-      if (this->ni.getValue() != true_size)
-         ERROR("CAxis::checkAttributes(void)",
-               << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
+//      StdSize true_size = value.numElements();
+//      if (this->ni.getValue() != true_size)
+//         ERROR("CAxis::checkAttributes(void)",
+//               << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
 
+      if (0 == global_zoom_size) global_zoom_size = size;
       this->checkData();
       this->checkMask();
-      this->checkZoom();
+//      this->checkZoom();
 
       if (!bounds.isEmpty())
       {
@@ -280,6 +276,7 @@ namespace xios {
         CMessage& msg = msgs.back();
         msg << this->getId();
         msg << ni << begin << end;
+        msg<<global_zoom_begin<<global_zoom_size;
 
         event.push(*itRank,1,msg);
       }
@@ -298,13 +295,15 @@ namespace xios {
 
   void CAxis::recvServerAttribut(CBufferIn& buffer)
   {
-    int zoom_end = zoom_begin.getValue()+zoom_size.getValue()-1;
-    int ni_srv, begin_srv, end_srv;
+    int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_size_tmp;
 
-    buffer>>ni_srv>>begin_srv>>end_srv;
+    buffer>>ni_srv>>begin_srv>>end_srv>>global_zoom_begin_tmp>>global_zoom_size_tmp;
+    global_zoom_begin = global_zoom_begin_tmp;
+    global_zoom_size  = global_zoom_size_tmp;
+    int global_zoom_end = global_zoom_begin + global_zoom_size - 1;
 
-    zoom_begin_srv = zoom_begin.getValue() > begin_srv ? zoom_begin.getValue() : begin_srv;
-    zoom_end_srv   = zoom_end < end_srv ? zoom_end : end_srv;
+    zoom_begin_srv = global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
+    zoom_end_srv   = global_zoom_end < end_srv ? global_zoom_end : end_srv ;
     zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
 
     if (zoom_size_srv<=0)
@@ -314,8 +313,8 @@ namespace xios {
 
     if (size == ni)
     {
-      zoom_begin_srv = zoom_begin.getValue();
-      zoom_end_srv   = zoom_end;
+      zoom_begin_srv = global_zoom_begin;
+      zoom_end_srv   = global_zoom_end; //zoom_end;
       zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
     }
   }

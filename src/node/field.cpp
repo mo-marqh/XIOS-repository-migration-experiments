@@ -550,11 +550,11 @@ namespace xios{
         solveGridReference();
      }
      solveGridDomainAxisRef(doSending2Sever);
-     solveCheckMaskIndex(doSending2Sever);
      if (context->hasClient)
      {
        solveTransformedGrid();
      }
+     solveCheckMaskIndex(doSending2Sever);
    }
 
    std::map<int, StdSize> CField::getGridDataSize()
@@ -783,7 +783,7 @@ namespace xios{
            gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
            fieldRef->addReference(this);
            fieldRef->solveGridDomainAxisRef(false);
-           fieldRef->solveCheckMaskIndex(false);
+//           fieldRef->solveCheckMaskIndex(false);
            break;
          }
          CField* tmp = fieldRef->getDirectFieldReference();
@@ -797,7 +797,7 @@ namespace xios{
          gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
          fieldRef->addReference(this);
          fieldRef->solveGridDomainAxisRef(false);
-         fieldRef->solveCheckMaskIndex(false);
+//         fieldRef->solveCheckMaskIndex(false);
        }
 
        CGrid* relGridRef = CGrid::get(grid_ref.getValue());
@@ -856,6 +856,7 @@ namespace xios{
        int destRank = itSend->first;
        CArray<int,1>* localIndex_p = itSend->second;
        int countSize = localIndex_p->numElements();
+       std::cout << "Data Source " <<  dataSrc <<  std::endl;
        for (int idx = 0; idx < countSize; ++idx)
        {
          sendBuff[idx] = dataSrc((*localIndex_p)(idx));
@@ -886,6 +887,7 @@ namespace xios{
            dataDest((*localIndex_p)(i)) = recvBuff[idx];
          }
        }
+       std::cout << "Data Destination " <<  dataDest <<  std::endl;
      }
 
      if (0 != sendBuffSize) delete [] sendBuff;

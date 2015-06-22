@@ -189,10 +189,6 @@ namespace xios {
          void transformGrid(CGrid* transformedGrid);
          bool isTransformed();
          void setTransformed();
-//         EElementType getGridElementType();
-//
-//         std::vector<ETransformationType> getTransformations();
-//         const std::vector<CGenericAlgorithm*>& getTransformationAlgo();
 
       public:
 
@@ -209,6 +205,7 @@ namespace xios {
 
          map<int, CArray<size_t, 1>* > outIndexFromClient;
          void checkMask(void) ;
+         void modifyMask(const CArray<int,1>& indexToModify);
 
       private:
        template<int N>
@@ -216,6 +213,9 @@ namespace xios {
                           const std::vector<CArray<bool,2>* >& domainMasks,
                           const std::vector<CArray<bool,1>* >& axisMasks,
                           const CArray<bool,1>& axisDomainOrder);
+        template<int N>
+        void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify);
+
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualDomainGroup();
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -365,7 +365,7 @@ namespace xios {
         mulDim *= eachDimSize[k-1];
         maskIndex += idxLoop[k]*mulDim;
       }
-      *(gridMask.dataFirst()+maskIndex) = maskValue;
+      *(gridMask.dataFirst()+maskIndex) &= maskValue;
 
       ++idxLoop[0];
       ++idx;
@@ -373,6 +373,21 @@ namespace xios {
 
    }
 
+   /*!
+     Modify the current mask of grid, the local index to be modified will take value false
+     \param [in/out] gridMask current mask of grid
+     \param [in] indexToModify local index to modify
+   */
+   template<int N>
+   void CGrid::modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify)
+   {
+     bool valueToModify = false;
+     int num = indexToModify.numElements();
+     for (int idx = 0; idx < num; ++idx)
+     {
+       *(gridMask.dataFirst()+indexToModify(idx)) = valueToModify;
+     }
+   }
    ///--------------------------------------------------------------
 
    // Declare/Define CGridGroup and CGridDefinition

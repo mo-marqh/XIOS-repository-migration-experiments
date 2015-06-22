@@ -36,8 +36,6 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
    \param [in] globalIndexOnClient global index client has
    \param [in] localIndexOnClient local index on client
 */
-//void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-//                                                                const CArray<int,1>& localIndexOnClient)
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
   size_t ssize = globalIndexOnClient.numElements(), hashedIndex;
@@ -179,8 +177,8 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
     repondAlreadyReceived.resize(0);
   }
 
-  if (0 != recvBuffIndexGlobal) delete recvBuffIndexGlobal;
-  if (0 != recvBuffIndexServer) delete recvBuffIndexServer;
+  if (0 != maxNbIndexDemandedFromOthers) delete [] recvBuffIndexGlobal;
+  if (0 != nbIndexReceivedFromOthers) delete [] recvBuffIndexServer;
   delete [] sendBuff;
   delete [] recvBuff;
 }

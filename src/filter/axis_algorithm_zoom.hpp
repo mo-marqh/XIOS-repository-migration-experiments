@@ -7,15 +7,18 @@
 
 namespace xios {
 
-class CAxisZoom : public CAxisAlgorithmTransformation
+class CAxisAlgorithmZoom : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
+  CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
 
-  virtual ~CAxisZoom() {}
+  virtual ~CAxisAlgorithmZoom() {}
 
   virtual void computeIndexSourceMapping();
 
+private:
+  void updateAxisDestinationMask();
+  void updateZoom();
 private:
   StdSize zoomBegin_;
   StdSize zoomEnd_;

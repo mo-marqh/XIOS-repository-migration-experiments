@@ -64,7 +64,6 @@ namespace xios {
 
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
-         void duplicateAttributes(CAxis* axis);
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
@@ -103,7 +102,7 @@ namespace xios {
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
-
+        int global_zoom_begin, global_zoom_size;  // The real global zoom begin and zoom size after axis is transformed (zoomed)
       private :
          void checkData();
          void checkMask();

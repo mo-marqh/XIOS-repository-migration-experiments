@@ -599,7 +599,8 @@ namespace xios
         int zoom_size_srv  = axis->zoom_size_srv;
         int zoom_begin_srv = axis->zoom_begin_srv;
         int zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv : axis->zoom_size;
-        int zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv : axis->zoom_begin;
+                                                              : axis->global_zoom_size;
+                                                              : axis->global_zoom_begin;
 
 
         std::vector<StdString> dims;
@@ -1360,6 +1361,7 @@ namespace xios
            field->outputField(fieldData);
            if (!field->prec.isEmpty() && field->prec==2) fieldData=round(fieldData) ;
 
+           std::cout << "fieldData "<< fieldData << std::endl;
            switch (SuperClass::type)
            {
               case (MULTI_FILE) :
