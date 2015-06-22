@@ -1151,8 +1151,6 @@ namespace xios {
 
     transformations_ = new CGridTransformation(transformedGrid, this);
     transformations_->computeTransformationMapping();
-    std::cout << "send index " << *(transformations_->getLocalIndexToSendFromGridSource()[0]) << std::endl;
-    std::cout << "receive index " << *(transformations_->getLocalIndexToReceiveOnGridDest()[0][0]) << std::endl;
   }
 
   /*!

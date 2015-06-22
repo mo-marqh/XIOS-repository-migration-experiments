@@ -15,6 +15,8 @@
 #include "server_distribution_description.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
+#include "inverse_axis.hpp"
+#include "zoom_axis.hpp"
 
 namespace xios {
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -22,10 +24,7 @@ namespace xios {
    class CAxisGroup;
    class CAxisAttributes;
    class CAxis;
-   class CTransformationGroup;
-   class CVirtualTransformationGroup;
 
-   DECLARE_VIRTUAL_NODE(TransformationGroup);
    ///--------------------------------------------------------------
 
    // Declare/Define CAxisAttribute
@@ -38,7 +37,6 @@ namespace xios {
    class CAxis
       : public CObjectTemplate<CAxis>
       , public CAxisAttributes
-      , public CVirtualTransformationGroup
    {
          enum EEventId
          {
@@ -53,7 +51,9 @@ namespace xios {
 
          typedef CAxisAttributes RelAttributes;
          typedef CAxisGroup      RelGroup;
+         typedef CTransformation<CAxis>::TransformationMapTypes TransMapTypes;
 
+      public:
          /// Constructeurs ///
          CAxis(void);
          explicit CAxis(const StdString & id);
@@ -95,7 +95,7 @@ namespace xios {
 
          bool hasTransformation();
          void solveInheritanceTransformation();
-         std::vector<CTransformation*> getAllTransformations();
+         TransMapTypes getAllTransformations();
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
@@ -105,15 +105,17 @@ namespace xios {
          void checkData();
          void checkMask();
          void checkZoom();
+         void checkTransformations();
+         void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                 CServerDistributionDescription::ServerDistributionType disType);
 
 
-
-         void setTransformations(const std::vector<CTransformation*>&);
+         void setTransformations(const TransMapTypes&);
       private:
          bool isChecked;
          bool areClientAttributesChecked_;
          std::set<StdString> relFiles;
-         std::vector<CTransformation*> transformations_;
+         TransMapTypes transformationMap_;
          bool isDistributed_;
 
          DECLARE_REF_FUNC(Axis,axis)

@@ -1,14 +1,45 @@
 #include "axis_algorithm_transformation.hpp"
+#include "axis_inverse.hpp"
+#include "axis_zoom.hpp"
 
 namespace xios {
 
-CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination)
+CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource, std::vector<ETranformationType>& algos)
  : CGenericAlgorithmTransformation()
 {
-  int niDest = axisDestination->ni.getValue();
-  int ibeginDest = axisDestination->ibegin.getValue();
+  for (int idx = 0; idx < algos.size(); ++idx)
+  {
+    switch (algos[idx])
+    {
+      case TRANS_ZOOM_AXIS:
+        algosOfAnAxis_.push_back(new CAxisZoom(axisDestination, axisSource));
+        break;
+      case TRANS_INVERSE_AXIS:
+        algosOfAnAxis_.push_back(new CAxisInverse(axisDestination, axisSource));
+        break;
+      default:
+        break;
+    }
+  }
+  computeIndexSourceMapping();
+}
 
-  for (int idx = 0; idx < niDest; ++idx) axisDestGlobalIndex_.push_back(ibeginDest+idx);
+CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
+{
+  for (int idx = 0; idx < algosOfAnAxis_.size(); ++idx) delete algosOfAnAxis_[idx];
+}
+
+void CAxisAlgorithmTransformation::computeIndexSourceMapping()
+{
+  if (!algosOfAnAxis_.empty())
+  {
+    algosOfAnAxis_[0]->computeIndexSourceMapping(this->transformationMapping_);
+    for (int idx = 1; idx < algosOfAnAxis_.size(); ++idx)
+    {
+      algosOfAnAxis_[idx]->computeIndexSourceMapping(algosOfAnAxis_[idx-1]->getTransformationMapping());
+    }
+    this->transformationMapping_ = algosOfAnAxis_[algosOfAnAxis_.size()-1]->getTransformationMapping();
+  }
 }
 
 /*!

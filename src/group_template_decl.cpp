@@ -13,7 +13,8 @@ namespace xios
   macro(Grid)
   macro(Axis)
   macro(Variable)
-  macro(Transformation)
+  macro(InverseAxis)
+  macro(ZoomAxis)
 
 
 }

@@ -19,8 +19,10 @@ namespace xios
     class CCalendarWrapper;
     class CVariable;
     class CVariableGroup;
-    class CTransformation;
-    class CTransformationGroup;
+    class CInverseAxis;
+    class CInverseAxisGroup;
+    class CZoomAxis;
+    class CZoomAxisGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -57,9 +59,10 @@ namespace xios
   macro(CCalendarWrapper)
   macro(CVariable)
   macro(CVariableGroup)
-  macro(CTransformation)
-  macro(CTransformationGroup)
-
+  macro(CInverseAxis)
+  macro(CInverseAxisGroup)
+  macro(CZoomAxis)
+  macro(CZoomAxisGroup)
 #undef macro
 }
 

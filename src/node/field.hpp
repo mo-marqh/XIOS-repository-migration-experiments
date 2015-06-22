@@ -231,7 +231,6 @@ namespace xios {
          bool isReadDataRequestPending;
          std::vector<CField*> filterSources_;
          std::vector<CGenericAlgorithm*> algorithms_;
-         std::vector<ETransformationType> transformations_;
          DECLARE_REF_FUNC(Field,field)
 
    }; // class CField

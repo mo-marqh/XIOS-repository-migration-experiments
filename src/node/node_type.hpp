@@ -9,5 +9,7 @@
 #include "variable.hpp"
 #include "context.hpp"
 #include "transformation.hpp"
+#include "inverse_axis.hpp"
+#include "zoom_axis.hpp"
 
 #endif // __XIOS_NODE_TYPE__

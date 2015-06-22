@@ -3,14 +3,16 @@
 
 #include "generic_algorithm_transformation.hpp"
 #include "axis.hpp"
+#include "concrete_algo.hpp"
 
 namespace xios {
 
 class CAxisAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmTransformation(CAxis* axisDestination);
-  virtual ~CAxisAlgorithmTransformation() {}
+  CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource, std::vector<ETranformationType>&);
+
+  virtual ~CAxisAlgorithmTransformation();
 
 protected:
   virtual void computeGlobalIndexFromGlobalIndexElement(int axisDestGlobalIndex,
@@ -20,10 +22,9 @@ protected:
                                                         const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<CArray<size_t,1> >& globalIndexSrcGrid);
-  virtual void computeIndexSourceMapping() = 0;
-
+  void computeIndexSourceMapping();
 protected:
-  std::vector<int> axisDestGlobalIndex_;
+  std::vector<CConcreteAlgo*> algosOfAnAxis_;
 
 };
 

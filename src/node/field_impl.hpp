@@ -37,23 +37,19 @@ namespace xios {
           for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
           {
             (*itFilterSrc)->updateDataWithoutOperation(_data, (*itFilterSrc)->data);
-            (*it)->updateDataWithoutOperation(_data, (*it)->filteredData);
+            if ((*it)->filteredData.numElements() != (*it)->grid->storeIndex_client.numElements())
+            {
+               (*it)->filteredData.resize((*it)->grid->storeIndex_client.numElements());
+            }
             (*it)->applyFilter((*itFilterSrc)->data, (*it)->filteredData);
           }
           if ((*it)->hasOutputFile || (*it)->hasFieldOut) (*it)->updateFilteredData((*it)->filteredData);
-//          itFilterSrc = fieldFilterSources.begin(); iteFilterSrc = fieldFilterSources.end();
-//          for (; itFilterSrc != iteFilterSrc; ++itFilterSrc) (*itFilterSrc)->updateDataWithoutOperation(_data);
-//          (*it)->applyFilter();
-//          std::cout << "it data " << (*it)->data << std::endl;
-//          std::cout << "it filtered data " << (*it)->filteredData << std::endl;
-//          if ((*it)->hasOutputFile || (*it)->hasFieldOut) (*it)->updateFilteredData((*it)->filteredData);
         }
         else
         {
           (*it)->setData(_data);
           if (hasOutputFile || hasFieldOut) updateData(_data);
         }
-
       }
 
     }

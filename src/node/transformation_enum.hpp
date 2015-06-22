@@ -7,15 +7,11 @@
 namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
-      typedef enum transformationType
+      typedef enum transformation_type
       {
-         UnknownTransformation = 0,
-         eInverse,
-         eZoom
-
-//#include "node_type.conf"
-
-      } ETransformationType;
+        TRANS_ZOOM_AXIS,
+        TRANS_INVERSE_AXIS
+      } ETranformationType;
 
 } // namespace xios
 

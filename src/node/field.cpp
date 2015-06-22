@@ -30,6 +30,7 @@ namespace xios{
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
       , isReadDataRequestPending(false)
+      , filterSources_(), algorithms_()
       { setVirtualVariableGroup(); }
 
    CField::CField(const StdString& id)
@@ -43,6 +44,7 @@ namespace xios{
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
       , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
       , isReadDataRequestPending(false)
+      , filterSources_(), algorithms_()
    { setVirtualVariableGroup(); }
 
    CField::~CField(void)
@@ -803,41 +805,9 @@ namespace xios{
        {
          gridRefOfFieldRef->transformGrid(relGridRef);
          filterSources_.push_back(fieldRef);
-//         transformations_ = relGridRef->getTransformations();
-//         switch (gridRefOfFieldRef->getGridElementType()) {
-//         case CGrid::GRID_ONLY_AXIS:
-////           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
-////           break;
-//         default:
-//           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
-//           break;
-//         }
-//         setAlgorithms();
        }
      }
    }
-
-
-//  void CField::setAlgorithms()
-//  {
-//    std::vector<ETransformationType>::iterator itTrans  = transformations_.begin(),
-//                                               iteTrans = transformations_.end();
-//    std::set<ETransformationType> tmp;
-//    for (; itTrans != iteTrans; ++itTrans)
-//    {
-//      if (tmp.end() == tmp.find(*itTrans))
-//      {
-//        switch (*itTrans) {
-//        case eInverse:
-//          algorithms_.push_back(new CInvertAlgorithm());
-//          break;
-//        default:
-//          break;
-//        }
-//      }
-//      tmp.insert(*itTrans);
-//    }
-//  }
 
    const std::vector<CField*>& CField::getFilterSources()
    {
@@ -856,14 +826,12 @@ namespace xios{
           {
              const std::map<int, CArray<int,1>* >& localIndexToSend = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToSendFromGridSource();
              const std::map<int, std::vector<CArray<int,1>* > > localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
+
              sendAndReceiveTransformedData(localIndexToSend, dataToSend,
                                            localIndexToReceive, dataToReceive);
           }
 
         }
-
-//        std::cout << "it data " << (*it)->data << std::endl;
-//        std::cout << "it filtered data " << (*it)->filteredData << std::endl;
      }
    }
 

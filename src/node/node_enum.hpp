@@ -18,8 +18,9 @@ namespace xios
          eVariable,gVariable,
          eContext,gContext,
          eCalendarWrapper,
-         eTransformation
-
+         eTransformation,
+         eInverseAxis,
+         eZoomAxis
 //#include "node_type.conf"
 
       } ENodeType;

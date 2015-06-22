@@ -24,5 +24,6 @@ namespace xios
   macro(CDomainGroup)
   macro(CContextGroup)
   macro(CVariableGroup)
-  macro(CTransformationGroup)
+  macro(CInverseAxisGroup)
+  macro(CZoomAxisGroup)
 }

@@ -1,17 +1,17 @@
-#ifndef __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
-#define __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
+#ifndef __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
+#define __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 
 #include "concrete_algo.hpp"
 #include "axis.hpp"
 
 namespace xios {
 
-class CAxisInverse : public CConcreteAlgo
+class CAxisZoom : public CConcreteAlgo
 {
 public:
-  CAxisInverse(CAxis* axisDestination, CAxis* axisSource);
+  CAxisZoom(CAxis* axisDestination, CAxis* axisSource);
 
-  virtual ~CAxisInverse() {}
+  virtual ~CAxisZoom() {}
 
   virtual void computeIndexSourceMapping(const std::map<int, std::vector<int> >& transformationMappingOfPreviousAlgo);
 
@@ -23,4 +23,4 @@ private:
 };
 
 }
-#endif // __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
+#endif // __XIOS_AXIS_ALGORITHM_ZOOM_HPP__

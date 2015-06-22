@@ -32,7 +32,7 @@ CTransformationMapping::~CTransformationMapping()
 
 /*!
   Suppose that we have transformations between two grids, which are represented in form of mapping between global indexes of these two grids,
-this function tries to find out which clients a client need to send and receive these global indexes to accomplish the transformations.
+this function tries to find out which clients a client needs to send and receive these global indexes to accomplish the transformations.
   The grid destination is the grid whose global indexes demande global indexes from the grid source
   Grid destination and grid source are also distributed among clients but in a different manner.
   \param [in] globaIndexMapFromDestToSource mapping representing the transformations

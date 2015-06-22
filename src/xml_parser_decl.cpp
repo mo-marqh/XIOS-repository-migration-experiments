@@ -24,6 +24,7 @@ namespace xios
     macro( Field )
     macro( File )
     macro( Variable )
-    macro( Transformation )
+    macro( InverseAxis )
+    macro( ZoomAxis )
   }
 }

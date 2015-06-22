@@ -27,7 +27,7 @@
 #include <sstream>
 
 /// boost headers ///
-//#include <boost/unordered_map.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/cast.hpp>
 /// Map ///

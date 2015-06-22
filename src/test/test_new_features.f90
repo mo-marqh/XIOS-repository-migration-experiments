@@ -16,7 +16,7 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=5
   INTEGER,PARAMETER :: nj_glo=5
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llm=2
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -154,11 +154,11 @@ PROGRAM test_new_features
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
   DO ts=1,24*10
     CALL xios_update_calendar(ts)
-!    CALL xios_send_field("field_A",field_A)
+    CALL xios_send_field("field_A",field_A)
     CALL xios_send_field("field_Axis",field_Axis)
 
     CALL xios_send_field("field_Two_Axis",field_Two_Axis)
-!    CALL xios_send_field("field_All_Axis",field_All_Axis)
+    CALL xios_send_field("field_All_Axis",field_All_Axis)
 !    tsTemp = ts
 !    CALL xios_send_scalar("field_Scalar", tsTemp)
     CALL wait_us(5000) ;

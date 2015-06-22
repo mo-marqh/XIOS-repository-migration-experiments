@@ -17,13 +17,17 @@ namespace xios {
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
       , isDistributed_(false)
-   { /* Ne rien faire de plus */ }
+      , transformationMap_()
+   {
+   }
 
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
       , isDistributed_(false)
-   { /* Ne rien faire de plus */ }
+      , transformationMap_()
+   {
+   }
 
    CAxis::~CAxis(void)
    { /* Ne rien faire de plus */ }
@@ -307,20 +311,31 @@ namespace xios {
 
   bool CAxis::hasTransformation()
   {
-    return (!transformations_.empty());
+    return (!transformationMap_.empty());
   }
 
-  void CAxis::setTransformations(const std::vector<CTransformation*>& transformations)
+  void CAxis::setTransformations(const TransMapTypes& axisTrans)
   {
-    transformations_ = transformations;
+    transformationMap_ = axisTrans;
   }
 
-  std::vector<CTransformation*> CAxis::getAllTransformations(void)
+  CAxis::TransMapTypes CAxis::getAllTransformations(void)
   {
-    if (!hasTransformation())
-      setTransformations(this->getVirtualTransformationGroup()->getAllChildren());
+    return transformationMap_;
+  }
 
-    return transformations_;
+  /*!
+    Check the validity of all transformations applied on axis
+  This functions is called AFTER all inherited attributes are solved
+  */
+  void CAxis::checkTransformations()
+  {
+    TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
+                                  ite = transformationMap_.end();
+    for (it = itb; it != ite; ++it)
+    {
+      (it->second)->checkValid(this);
+    }
   }
 
   void CAxis::solveInheritanceTransformation()
@@ -349,16 +364,24 @@ namespace xios {
 
     if (node.goToChildElement())
     {
-      StdString tranformation("transformation");
+      StdString inverseAxisDefRoot("inverse_axis_definition");
+      StdString inverse("inverse_axis");
+      StdString zoomAxisDefRoot("zoom_axis_definition");
+      StdString zoom("zoom_axis");
       do
       {
-        if (node.getElementName() == tranformation) {
-           this->getVirtualTransformationGroup()->parseChild(node);
+        if (node.getElementName() == inverse) {
+          CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_[TRANS_INVERSE_AXIS] = tmp;
+        } else if (node.getElementName() == zoom) {
+          CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_[TRANS_ZOOM_AXIS] = tmp;
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();
     }
-    setTransformations(this->getVirtualTransformationGroup()->getAllChildren());
   }
 
   DEFINE_REF_FUNC(Axis,axis)

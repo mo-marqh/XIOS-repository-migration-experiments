@@ -23,7 +23,8 @@ namespace xios
   macro(CContext)
   macro(CCalendarWrapper)
   macro(CVariable)
-  macro(CTransformation)
+  macro(CInverseAxis)
+  macro(CZoomAxis)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -32,5 +33,6 @@ namespace xios
   macro(CDomainGroup)
   macro(CContextGroup)
   macro(CVariableGroup)
-  macro(CTransformationGroup)
+  macro(CInverseAxisGroup)
+  macro(CZoomAxisGroup)
 }
