@@ -18,6 +18,12 @@ public:
                                 const std::vector<int>& gridDestGlobalDim,
                                 const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                 std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource);
+
+                                  /*!
+  Compute global index mapping from one element of destination grid to the corresponding element of source grid
+  */
+  virtual void computeIndexSourceMapping() = 0;
+
 protected:
   /*!
   Compute an array of global index from a global index on an element
@@ -37,10 +43,7 @@ protected:
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<CArray<size_t,1> >& globalIndexSrcGrid) = 0;
 
-  /*!
-  Compute global index mapping from one element of destination grid to the corresponding element of source grid
-  */
-  virtual void computeIndexSourceMapping() = 0;
+
 
 protected:
   std::map<int, std::vector<int> > transformationMapping_;

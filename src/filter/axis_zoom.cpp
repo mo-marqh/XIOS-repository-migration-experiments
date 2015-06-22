@@ -2,43 +2,53 @@
 
 namespace xios {
 
-CAxisZoom::CAxisZoom(CAxis* axisDestination, CAxis* axisSource)
- : CConcreteAlgo()
+CAxisZoom::CAxisZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
+: CAxisAlgorithmTransformation(axisDestination, axisSource), axisDest_(axisDestination), axisSrc_(axisSource)
 {
-  if (axisDestination->size.getValue() != axisSource->size.getValue())
+  zoomAxis->checkValid(axisSource);
+  zoomBegin_ = zoomAxis->zoom_begin.getValue();
+  zoomEnd_   = zoomAxis->zoom_end.getValue();
+  zoomSize_  = zoomAxis->zoom_size.getValue();
+
+  if (zoomSize_ > axisSource->size.getValue())
   {
-    ERROR("CAxisZoom::CAxisZoom(CAxis* axisDestination, CAxis* axisSource)",
-           << "Two axis have different size"
+    ERROR("CAxisZoom::CAxisZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)",
+           << "Zoom size is greater than size of axis source"
            << "Size of axis source " <<axisSource->getId() << " is " << axisSource->size.getValue()  << std::endl
-           << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->size.getValue());
+           << "Zoom size is " << zoomSize_ );
   }
 
-
-  axisDestGlobalSize_ = axisDestination->size.getValue();
-  int niDest = axisDestination->ni.getValue();
-  int ibeginDest = axisDestination->ibegin.getValue();
-
-  for (int idx = 0; idx < niDest; ++idx) axisDestGlobalIndex_.push_back(ibeginDest+idx);
+  // Axis destination now must have new size equal to zoom size
+  axisDestination->size.setValue(zoomSize_);
+  computeIndexSourceMapping();
 }
 
-void CAxisZoom::computeIndexSourceMapping(const std::map<int, std::vector<int> >& transformationMappingOfPreviousAlgo)
+void CAxisZoom::computeIndexSourceMapping()
 {
-//  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-//  if (transformationMappingOfPreviousAlgo.empty())
-//  {
-//    int globalIndexSize = axisDestGlobalIndex_.size();
-//    for (int idx = 0; idx < globalIndexSize; ++idx)
-//      transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
-//  }
-//  else
-//  {
-//    std::map<int, std::vector<int> >::const_iterator itb = transformationMappingOfPreviousAlgo.begin(), it,
-//                                                     ite = transformationMappingOfPreviousAlgo.end();
-//    for (it = itb; it != ite; ++it)
-//    {
-//      transMap[it->first].push_back(axisDestGlobalSize_-it->first-1);
-//    }
-//  }
+  StdSize niSource = axisSrc_->ni.getValue();
+  StdSize ibeginSource = axisSrc_->ibegin.getValue();
+  StdSize iendSource = ibeginSource + niSource - 1;
+
+  StdSize ibegin = std::max(ibeginSource, zoomBegin_);
+  StdSize iend = std::min(iendSource, zoomEnd_);
+  StdSize ni = iend + 1 - ibegin;
+  if (ibeginSource > zoomEnd_)
+  {
+    axisDest_->ibegin.setValue(0);
+    axisDest_->ni.setValue(0);
+  }
+  else
+  {
+    axisDest_->ibegin.setValue(ibegin - zoomBegin_);
+    axisDest_->ni.setValue(ni);
+  }
+
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
+  StdSize axisDestIBegin = axisDest_->ibegin.getValue();
+  for (StdSize idx = 0; idx < ni; ++idx)
+  {
+    transMap[axisDestIBegin+idx].push_back(ibegin+idx);
+  }
 }
 
 }

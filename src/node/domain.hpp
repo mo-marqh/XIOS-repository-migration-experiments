@@ -55,6 +55,9 @@ namespace xios {
          CDomain(const CDomain & domain);       // Not implemented yet.
          CDomain(const CDomain * const domain); // Not implemented yet.
 
+         static CDomain* createDomain();
+         void duplicateAttributes(CDomain* domain);
+
          /// Vérifications ///
          void checkAttributes(void);
 

@@ -2,6 +2,7 @@
 #include <boost/unordered_map.hpp>
 #include "context.hpp"
 #include "context_client.hpp"
+#include "distribution_client.hpp"
 
 namespace xios {
 
@@ -12,7 +13,9 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
 
-  const CArray<size_t,1>& globalIndexGridSrc = gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
+  CDistributionClient distributionClientDest(client->clientRank, gridSource_);
+
+  const CArray<size_t,1>& globalIndexGridSrc = distributionClientDest.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
   boost::unordered_map<size_t,int> globalIndexOfServer;
   int globalIndexSize = globalIndexGridSrc.numElements();
   for (int idx = 0; idx < globalIndexSize; ++idx)
@@ -34,7 +37,7 @@ CTransformationMapping::~CTransformationMapping()
   Suppose that we have transformations between two grids, which are represented in form of mapping between global indexes of these two grids,
 this function tries to find out which clients a client needs to send and receive these global indexes to accomplish the transformations.
   The grid destination is the grid whose global indexes demande global indexes from the grid source
-  Grid destination and grid source are also distributed among clients but in a different manner.
+  Grid destination and grid source are also distributed among clients but in different manners.
   \param [in] globaIndexMapFromDestToSource mapping representing the transformations
 */
 void CTransformationMapping::computeTransformationMapping(const std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource)

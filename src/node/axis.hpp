@@ -60,8 +60,11 @@ namespace xios {
          CAxis(const CAxis & axis);       // Not implemented yet.
          CAxis(const CAxis * const axis); // Not implemented yet.
 
+         static CAxis* createAxis();
+
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
+         void duplicateAttributes(CAxis* axis);
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;

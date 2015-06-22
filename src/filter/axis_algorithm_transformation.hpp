@@ -10,7 +10,7 @@ namespace xios {
 class CAxisAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource, std::vector<ETranformationType>&);
+  CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource);
 
   virtual ~CAxisAlgorithmTransformation();
 
@@ -24,7 +24,8 @@ protected:
                                                         std::vector<CArray<size_t,1> >& globalIndexSrcGrid);
   void computeIndexSourceMapping();
 protected:
-  std::vector<CConcreteAlgo*> algosOfAnAxis_;
+  std::vector<int> axisDestGlobalIndex_;
+  int axisDestGlobalSize_;
 
 };
 

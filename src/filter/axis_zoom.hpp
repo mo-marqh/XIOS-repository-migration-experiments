@@ -1,25 +1,29 @@
 #ifndef __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 #define __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 
-#include "concrete_algo.hpp"
+#include "axis_algorithm_transformation.hpp"
 #include "axis.hpp"
+#include "zoom_axis.hpp"
 
 namespace xios {
 
-class CAxisZoom : public CConcreteAlgo
+class CAxisZoom : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisZoom(CAxis* axisDestination, CAxis* axisSource);
+  CAxisZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis);
 
   virtual ~CAxisZoom() {}
 
-  virtual void computeIndexSourceMapping(const std::map<int, std::vector<int> >& transformationMappingOfPreviousAlgo);
-
-protected:
-  std::vector<int> axisDestGlobalIndex_;
+  virtual void computeIndexSourceMapping();
 
 private:
-  int axisDestGlobalSize_;
+  StdSize zoomBegin_;
+  StdSize zoomEnd_;
+  StdSize zoomSize_;
+
+private:
+  CAxis* axisDest_;
+  CAxis* axisSrc_;
 };
 
 }

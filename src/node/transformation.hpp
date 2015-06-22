@@ -15,7 +15,7 @@ namespace xios {
   class CTransformation
   {
   public:
-    typedef typename boost::unordered_map<ETranformationType, CTransformation<T>*, boost::hash<int> > TransformationMapTypes;
+    typedef typename std::list<std::pair<ETranformationType, CTransformation<T>* > > TransformationMapTypes;
     typedef TransformationMapTypes TransMapTypes;
 
     public :

@@ -3,7 +3,7 @@
 namespace xios {
 
 CAxisInverse::CAxisInverse(CAxis* axisDestination, CAxis* axisSource)
- : CConcreteAlgo()
+ : CAxisAlgorithmTransformation(axisDestination, axisSource)
 {
   if (axisDestination->size.getValue() != axisSource->size.getValue())
   {
@@ -19,26 +19,16 @@ CAxisInverse::CAxisInverse(CAxis* axisDestination, CAxis* axisSource)
   int ibeginDest = axisDestination->ibegin.getValue();
 
   for (int idx = 0; idx < niDest; ++idx) axisDestGlobalIndex_.push_back(ibeginDest+idx);
+  this->computeIndexSourceMapping();
 }
 
-void CAxisInverse::computeIndexSourceMapping(const std::map<int, std::vector<int> >& transformationMappingOfPreviousAlgo)
+void CAxisInverse::computeIndexSourceMapping()
 {
   std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  if (transformationMappingOfPreviousAlgo.empty())
-  {
-    int globalIndexSize = axisDestGlobalIndex_.size();
-    for (int idx = 0; idx < globalIndexSize; ++idx)
-      transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
-  }
-  else
-  {
-    std::map<int, std::vector<int> >::const_iterator itb = transformationMappingOfPreviousAlgo.begin(), it,
-                                                     ite = transformationMappingOfPreviousAlgo.end();
-    for (it = itb; it != ite; ++it)
-    {
-      transMap[it->first].push_back(axisDestGlobalSize_-it->first-1);
-    }
-  }
+
+  int globalIndexSize = axisDestGlobalIndex_.size();
+  for (int idx = 0; idx < globalIndexSize; ++idx)
+    transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
 }
 
 }

@@ -62,6 +62,17 @@ namespace xios {
 
    //----------------------------------------------------------------
 
+   CAxis* CAxis::createAxis()
+   {
+     CAxis* axis = CAxisGroup::get("axis_definition")->createChild();
+     return axis;
+   }
+
+   void CAxis::duplicateAttributes(CAxis* axis)
+   {
+     axis->setAttributes(this);
+   }
+
    void CAxis::checkAttributes(void)
    {
       if (this->size.isEmpty())
@@ -373,11 +384,11 @@ namespace xios {
         if (node.getElementName() == inverse) {
           CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild();
           tmp->parse(node);
-          transformationMap_[TRANS_INVERSE_AXIS] = tmp;
+          transformationMap_.push_back(std::make_pair(TRANS_INVERSE_AXIS,tmp));
         } else if (node.getElementName() == zoom) {
           CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild();
           tmp->parse(node);
-          transformationMap_[TRANS_ZOOM_AXIS] = tmp;
+          transformationMap_.push_back(std::make_pair(TRANS_ZOOM_AXIS,tmp));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

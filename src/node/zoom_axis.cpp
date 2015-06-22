@@ -25,7 +25,7 @@ namespace xios {
   void CZoomAxis::checkValid(CAxis* axisDest)
   {
     StdSize axisIBegin, axisNi, axisSize;
-    StdSize zoom_begin,zoom_end, zoom_size;
+    StdSize zoom_begin, zoom_end, zoom_size;
 
     axisIBegin = axisDest->ibegin.getValue();
     axisNi     = axisDest->ni.getValue();

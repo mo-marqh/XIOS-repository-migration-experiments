@@ -449,8 +449,8 @@ namespace xios {
    {
       std::vector<CDomain*> vecDom(1,domain);
       std::vector<CAxis*> vecAxis;
-
-      CGrid* grid = createGrid(vecDom, vecAxis);
+      CArray<bool,1> axisDomainOrder;
+      CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
 
       return (grid);
    }
@@ -459,12 +459,13 @@ namespace xios {
    {
       std::vector<CDomain*> vecDom(1,domain);
       std::vector<CAxis*> vecAxis(1,axis);
-      CGrid* grid = createGrid(vecDom, vecAxis);
+      CArray<bool,1> axisDomainOrder;
+      CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
 
       return (grid);
    }
 
-   CGrid* CGrid::createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis)
+   CGrid* CGrid::createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, CArray<bool,1> axisDomainOrder)
    {
       StdString new_id = StdString("__");
       if (!domains.empty()) for (int i = 0; i < domains.size(); ++i) new_id += domains[i]->getId() + StdString("_");
@@ -477,7 +478,7 @@ namespace xios {
       grid->setAxisList(axis);
 
       //By default, domains are always the first ones of a grid
-      if (grid->axis_domain_order.isEmpty())
+      if (0 == axisDomainOrder.numElements())
       {
         int size = domains.size()+axis.size();
         grid->axis_domain_order.resize(size);
@@ -486,6 +487,11 @@ namespace xios {
           if (i < domains.size()) grid->axis_domain_order(i) = true;
           else grid->axis_domain_order(i) = false;
         }
+      }
+      else
+      {
+        grid->axis_domain_order.resize(axisDomainOrder.numElements());
+        grid->axis_domain_order = axisDomainOrder;
       }
 
       grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
@@ -1150,7 +1156,7 @@ namespace xios {
     }
 
     transformations_ = new CGridTransformation(transformedGrid, this);
-    transformations_->computeTransformationMapping();
+    transformations_->computeAll();
   }
 
   /*!
