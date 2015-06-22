@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CInverseAxis__
-#define __XMLIO_CInverseAxis__
+#ifndef __XIOS_CInverseAxis__
+#define __XIOS_CInverseAxis__
 
 /// xios headers ///
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
 #include "attribute_array.hpp"
@@ -60,4 +60,4 @@ namespace xios {
   DECLARE_GROUP(CInverseAxis);
 } // namespace xios
 
-#endif // __XMLIO_CInverseAxis__
+#endif // __XIOS_CInverseAxis__

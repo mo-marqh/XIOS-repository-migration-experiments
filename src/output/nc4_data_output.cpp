@@ -371,7 +371,7 @@ namespace xios
                      count[1] = domain->zoom_ni_srv;
                      count[0] = domain->zoom_nj_srv;
                    }
-                   
+
                    SuperClassWriter::writeData(domain->bounds_lon_srv, bounds_lonid, isCollective, 0, &start, &count);
                    SuperClassWriter::writeData(domain->bounds_lat_srv, bounds_latid, isCollective, 0, &start, &count);
                  }
@@ -598,8 +598,9 @@ namespace xios
         axis->checkAttributes();
         int zoom_size_srv  = axis->zoom_size_srv;
         int zoom_begin_srv = axis->zoom_begin_srv;
-        int zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv : axis->zoom_size;
+        StdSize zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv
                                                               : axis->global_zoom_size;
+        StdSize zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv
                                                               : axis->global_zoom_begin;
 
 

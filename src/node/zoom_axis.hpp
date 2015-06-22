@@ -1,8 +1,8 @@
-#ifndef __XMLIO_CZoomAxis__
-#define __XMLIO_CZoomAxis__
+#ifndef __XIOS_CZoomAxis__
+#define __XIOS_CZoomAxis__
 
 /// xios headers ///
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
 #include "attribute_array.hpp"
@@ -62,4 +62,4 @@ namespace xios {
   DECLARE_GROUP(CZoomAxis);
 } // namespace xios
 
-#endif // __XMLIO_CZoomAxis__
+#endif // __XIOS_CZoomAxis__

@@ -1,7 +1,7 @@
-#ifndef __XMLIO_CTransformation__
-#define __XMLIO_CTransformation__
+#ifndef __XIOS_CTransformation__
+#define __XIOS_CTransformation__
 
-#include "xmlioserver_spl.hpp"
+#include "xios_spl.hpp"
 #include "transformation_enum.hpp"
 
 namespace xios {
@@ -29,4 +29,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XMLIO_CTransformation__
+#endif // __XIOS_CTransformation__
