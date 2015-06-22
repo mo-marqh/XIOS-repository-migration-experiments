@@ -14,9 +14,9 @@ PROGRAM test_new_features
   TYPE(xios_date) :: date
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=10
+  INTEGER,PARAMETER :: ni_glo=5
+  INTEGER,PARAMETER :: nj_glo=5
+  INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -24,8 +24,8 @@ PROGRAM test_new_features
   LOGICAL :: ok
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
-  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni(ni_glo), lval_nj(nj_glo)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , field_Axis(:), lvaln(:), field_Two_Axis(:,:)
+  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:)
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
   INTEGER :: i,j,l,ts,n
 
@@ -46,12 +46,12 @@ PROGRAM test_new_features
     DO i=1,ni_glo
       lon_glo(i,j)=(i-1)+(j-1)*ni_glo
       lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
-      lval_ni(i) = i-1
+      lval_ni_glo(i) = i-1
       DO l=1,llm
         field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
       ENDDO
     ENDDO
-    lval_nj(j) = j-1
+    lval_nj_glo(j) = j-1
   ENDDO
   ni=ni_glo ; ibegin=0
 
@@ -79,14 +79,16 @@ PROGRAM test_new_features
   ENDDO
 
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), field_Two_Axis(ni_glo,1:nj))
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), lval_ni(ni), lval_nj(nj), field_Two_Axis(ni_glo,1:nj))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_Axis(1:nAxis)  = field_A_glo(1,1,axisBegin+1:axisEnd+1)
   field_All_Axis(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
-  field_Two_Axis(:,1:nAxis)  = field_A_glo(:,jbegin+1:jend+1,1)
+  field_Two_Axis(:,1:nj)  = field_A_glo(:,jbegin+1:jend+1,1)
   lvaln(1:nAxis) = lval(axisBegin+1:axisEnd+1)
+  lval_nj(1:nj) = lval_nj_glo(jbegin+1:jend+1);
+  lval_ni(1:ni) = lval_ni_glo(ibegin+1:iend+1);
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
@@ -102,7 +104,7 @@ PROGRAM test_new_features
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
-  CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
+!  CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
 !  CALL xios_get_handle("field_definition",fieldgroup_hdl)

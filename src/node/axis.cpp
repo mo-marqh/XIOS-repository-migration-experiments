@@ -84,7 +84,7 @@ namespace xios {
                 << "Attribute <ni> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size");
       }
       else this->ni.setValue(size);
-
+      std::cout <<  "value " <<  value <<  std::endl;
       StdSize true_size = value.numElements();
       if (this->ni.getValue() != true_size)
          ERROR("CAxis::checkAttributes(void)",
@@ -310,9 +310,17 @@ namespace xios {
     return (!transformations_.empty());
   }
 
-  void CAxis::setTransformations(const std::vector<ETransformationType>& transformations)
+  void CAxis::setTransformations(const std::vector<CTransformation*>& transformations)
   {
     transformations_ = transformations;
+  }
+
+  std::vector<CTransformation*> CAxis::getAllTransformations(void)
+  {
+    if (!hasTransformation())
+      setTransformations(this->getVirtualTransformationGroup()->getAllChildren());
+
+    return transformations_;
   }
 
   void CAxis::solveInheritanceTransformation()
@@ -332,7 +340,7 @@ namespace xios {
 
     if (refer_ptr->hasTransformation())
       for (int idx = 0; idx < refAxis.size(); ++idx)
-        refAxis[idx]->setTransformations(refer_ptr->getTransformations());
+        refAxis[idx]->setTransformations(refer_ptr->getAllTransformations());
   }
 
   void CAxis::parse(xml::CXMLNode & node)
@@ -346,19 +354,14 @@ namespace xios {
       {
         if (node.getElementName() == tranformation) {
            this->getVirtualTransformationGroup()->parseChild(node);
-           transformations_.push_back(eInverse);
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();
     }
+    setTransformations(this->getVirtualTransformationGroup()->getAllChildren());
   }
 
-  const std::vector<ETransformationType>& CAxis::getTransformations()
-  {
-    return transformations_;
-  }
-
-   DEFINE_REF_FUNC(Axis,axis)
+  DEFINE_REF_FUNC(Axis,axis)
 
    ///---------------------------------------------------------------
 

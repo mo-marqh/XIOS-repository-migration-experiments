@@ -13,8 +13,6 @@
 #include "context_server.hpp"
 #include "array_new.hpp"
 #include "client_server_mapping_distributed.hpp"
-#include "invert_algorithm.hpp"
-#include "visitable.hpp"
 
 namespace xios {
 
@@ -25,7 +23,8 @@ namespace xios {
       , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
       , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), algorithms_(), transformations_(), isTransformed_(false)
+      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
+      , axisPositionInGrid_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -36,7 +35,8 @@ namespace xios {
       , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
       , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), algorithms_(), transformations_(), isTransformed_(false)
+      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
+      , axisPositionInGrid_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -52,7 +52,7 @@ namespace xios {
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
     if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
-    for (std::vector<CGenericAlgorithm*>::iterator it = algorithms_.begin(); it != algorithms_.end(); ++it) delete *it;
+    if (0 != transformations_) delete transformations_;
    }
 
    ///---------------------------------------------------------------
@@ -323,12 +323,12 @@ namespace xios {
       if (!axisListP.empty())
       {
         int idx = 0;
-        std::vector<int> axisPositionMap;
+        axisPositionInGrid_.resize(0);
         for (int i = 0; i < axis_domain_order.numElements(); ++i)
         {
           if (false == axis_domain_order(i))
           {
-            axisPositionMap.push_back(idx);
+            axisPositionInGrid_.push_back(idx);
             ++idx;
           }
           else idx += 2;
@@ -338,14 +338,20 @@ namespace xios {
         for (int i = 0; i < axisListP.size(); ++i)
         {
           if (sendAtt)
-            axisListP[i]->sendCheckedAttributes(globalDim_,axisPositionMap[i]);
+            axisListP[i]->sendCheckedAttributes(globalDim_,axisPositionInGrid_[i]);
           else
-            axisListP[i]->checkAttributesOnClient(globalDim_,axisPositionMap[i]);
+            axisListP[i]->checkAttributesOnClient(globalDim_,axisPositionInGrid_[i]);
           ++idx;
         }
 
       }
    }
+
+   std::vector<int> CGrid::getAxisPositionInGrid() const
+   {
+     return axisPositionInGrid_;
+   }
+
 
    //---------------------------------------------------------------
 
@@ -760,6 +766,11 @@ namespace xios {
     return serverDistribution_;
   }
 
+  const CDistributionClient* CGrid::getDistributionClient() const
+  {
+    return clientDistribution_;
+  }
+
   bool CGrid::doGridHaveDataDistributed()
   {
     if (isScalarGrid()) return false;
@@ -1102,56 +1113,6 @@ namespace xios {
     }
   }
 
-  CGrid::EElementType CGrid::getGridElementType()
-  {
-    EElementType gridType = GRID_ONLY_AXIS;
-    int numElements = axis_domain_order.numElements();
-    if (1 == numElements)
-    {
-      if (true == axis_domain_order(0)) gridType = GRID_ONLY_DOMAIN;
-    }
-    else gridType = GRID_AXIS_DOMAIN;
-  }
-
-  void CGrid::solveTransformations()
-  {
-    std::vector<CAxis*> axisPtr = getAxis();
-    for (std::vector<CAxis*>::iterator it = axisPtr.begin(); it != axisPtr.end(); ++it)
-    {
-      std::vector<ETransformationType> axisTransformation = (*it)->getTransformations();
-      std::vector<ETransformationType>::iterator itTrans  = axisTransformation.begin(),
-                                                 iteTrans = axisTransformation.end();
-      for (;itTrans != iteTrans; ++ itTrans)
-        transformations_.push_back(*itTrans);
-    }
-  }
-
-  void CGrid::setTransformationAlgorithms()
-  {
-    std::vector<ETransformationType>::iterator itTrans  = transformations_.begin(),
-                                               iteTrans = transformations_.end();
-    std::set<ETransformationType> tmp;
-    for (; itTrans != iteTrans; ++itTrans)
-    {
-      if (tmp.end() == tmp.find(*itTrans))
-      {
-        switch (*itTrans) {
-        case eInverse:
-          algorithms_.push_back(new CInvertAlgorithm());
-          break;
-        default:
-          break;
-        }
-      }
-      tmp.insert(*itTrans);
-    }
-  }
-
-  std::vector<ETransformationType> CGrid::getTransformations()
-  {
-    return transformations_;
-  }
-
   bool CGrid::isTransformed()
   {
     return isTransformed_;
@@ -1162,9 +1123,9 @@ namespace xios {
     isTransformed_ = true;
   }
 
-  const std::vector<CGenericAlgorithm*>& CGrid::getTransformationAlgo()
+  CGridTransformation* CGrid::getTransformations()
   {
-    return algorithms_;
+    return transformations_;
   }
 
   void CGrid::transformGrid(CGrid* transformedGrid)
@@ -1188,24 +1149,10 @@ namespace xios {
                 << " don't have elements in the same order");
     }
 
-    EElementType gridType = getGridElementType();
-    CGenericTransformation* gTransform = 0;
-    switch (gridType) {
-    case GRID_ONLY_AXIS:
-      gTransform = new CAxisTransformation(this->getAxis(), transformedGrid->getAxis());
-      break;
-    case GRID_ONLY_DOMAIN:
-      break;
-    case GRID_AXIS_DOMAIN:
-      break;
-    default:
-      break;
-    }
-
-    transformedGrid->solveTransformations();
-    transformedGrid->setTransformationAlgorithms();
-    gTransform->apply(transformedGrid->algorithms_);
-    if (0 != gTransform) delete gTransform;
+    transformations_ = new CGridTransformation(transformedGrid, this);
+    transformations_->computeTransformationMapping();
+    std::cout << "send index " << *(transformations_->getLocalIndexToSendFromGridSource()[0]) << std::endl;
+    std::cout << "receive index " << *(transformations_->getLocalIndexToReceiveOnGridDest()[0][0]) << std::endl;
   }
 
   /*!

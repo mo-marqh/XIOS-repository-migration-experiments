@@ -548,11 +548,11 @@ namespace xios{
         solveGridReference();
      }
      solveGridDomainAxisRef(doSending2Sever);
+     solveCheckMaskIndex(doSending2Sever);
      if (context->hasClient)
      {
        solveTransformedGrid();
      }
-     solveCheckMaskIndex(doSending2Sever);
    }
 
    std::map<int, StdSize> CField::getGridDataSize()
@@ -803,52 +803,125 @@ namespace xios{
        {
          gridRefOfFieldRef->transformGrid(relGridRef);
          filterSources_.push_back(fieldRef);
-         transformations_ = relGridRef->getTransformations();
-         switch (gridRefOfFieldRef->getGridElementType()) {
-         case CGrid::GRID_ONLY_AXIS:
-           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
-           break;
-         default:
-           break;
-         }
-         setAlgorithms();
+//         transformations_ = relGridRef->getTransformations();
+//         switch (gridRefOfFieldRef->getGridElementType()) {
+//         case CGrid::GRID_ONLY_AXIS:
+////           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
+////           break;
+//         default:
+//           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
+//           break;
+//         }
+//         setAlgorithms();
        }
      }
    }
 
 
-  void CField::setAlgorithms()
-  {
-    std::vector<ETransformationType>::iterator itTrans  = transformations_.begin(),
-                                               iteTrans = transformations_.end();
-    std::set<ETransformationType> tmp;
-    for (; itTrans != iteTrans; ++itTrans)
-    {
-      if (tmp.end() == tmp.find(*itTrans))
-      {
-        switch (*itTrans) {
-        case eInverse:
-          algorithms_.push_back(new CInvertAlgorithm());
-          break;
-        default:
-          break;
-        }
-      }
-      tmp.insert(*itTrans);
-    }
-  }
+//  void CField::setAlgorithms()
+//  {
+//    std::vector<ETransformationType>::iterator itTrans  = transformations_.begin(),
+//                                               iteTrans = transformations_.end();
+//    std::set<ETransformationType> tmp;
+//    for (; itTrans != iteTrans; ++itTrans)
+//    {
+//      if (tmp.end() == tmp.find(*itTrans))
+//      {
+//        switch (*itTrans) {
+//        case eInverse:
+//          algorithms_.push_back(new CInvertAlgorithm());
+//          break;
+//        default:
+//          break;
+//        }
+//      }
+//      tmp.insert(*itTrans);
+//    }
+//  }
 
    const std::vector<CField*>& CField::getFilterSources()
    {
      return filterSources_;
    }
 
-   void CField::applyFilter()
+   void CField::applyFilter(const CArray<double, 1>& dataToSend, CArray<double,1>& dataToReceive)
    {
-     filter->setInputs(filterSources_);
-     filter->setOutput(this);
-     filter->apply(algorithms_);
+     std::vector<CField*>::iterator  itFilterSrc, iteFilterSrc;
+     if (!filterSources_.empty())
+     {
+        itFilterSrc = filterSources_.begin(); iteFilterSrc = filterSources_.end();
+        for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
+        {
+          if (0 != (*itFilterSrc)->grid->getTransformations())
+          {
+             const std::map<int, CArray<int,1>* >& localIndexToSend = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToSendFromGridSource();
+             const std::map<int, std::vector<CArray<int,1>* > > localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
+             sendAndReceiveTransformedData(localIndexToSend, dataToSend,
+                                           localIndexToReceive, dataToReceive);
+          }
 
+        }
+
+//        std::cout << "it data " << (*it)->data << std::endl;
+//        std::cout << "it filtered data " << (*it)->filteredData << std::endl;
+     }
+   }
+
+   void CField::sendAndReceiveTransformedData(const std::map<int, CArray<int,1>* >& localIndexToSend,
+                                              const CArray<double, 1>& dataSrc,
+                                              const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive,
+                                              CArray<double,1>& dataDest)
+   {
+     CContext* context = CContext::getCurrent();
+     CContextClient* client=context->client;
+
+     // Sending data from field sources to do transformations
+     std::map<int, CArray<int,1>* >::const_iterator itbSend = localIndexToSend.begin(), itSend,
+                                                    iteSend = localIndexToSend.end();
+     int sendBuffSize = 0;
+     for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize = (sendBuffSize < (itSend->second)->numElements())
+                                                                        ? (itSend->second)->numElements(): sendBuffSize;
+     double* sendBuff;
+     if (0 != sendBuffSize) sendBuff = new double [sendBuffSize];
+     for (itSend = itbSend; itSend != iteSend; ++itSend)
+     {
+       int destRank = itSend->first;
+       CArray<int,1>* localIndex_p = itSend->second;
+       int countSize = localIndex_p->numElements();
+       for (int idx = 0; idx < countSize; ++idx)
+       {
+         sendBuff[idx] = dataSrc((*localIndex_p)(idx));
+       }
+       MPI_Send(sendBuff, countSize, MPI_DOUBLE, destRank, 12, client->intraComm);
+     }
+
+     // Receiving data on destination fields
+     std::map<int, std::vector<CArray<int,1>* > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
+                                                                  iteRecv = localIndexToReceive.end();
+     int recvBuffSize = 0;
+     for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < (itRecv->second).size())
+                                                                        ? (itRecv->second).size() : recvBuffSize;
+     double* recvBuff;
+     if (0 != recvBuffSize) recvBuff = new double [recvBuffSize];
+     for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
+     {
+       MPI_Status status;
+       int srcRank = itRecv->first;
+       int countSize = (itRecv->second).size();
+       MPI_Recv(recvBuff, recvBuffSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &status);
+       for (int idx = 0; idx < countSize; ++idx)
+       {
+         CArray<int,1>* localIndex_p = (itRecv->second)[idx];
+         int numIndex = localIndex_p->numElements();
+         for (int i = 0; i < numIndex; ++i)
+         {
+           dataDest((*localIndex_p)(i)) = recvBuff[idx];
+         }
+       }
+     }
+
+     if (0 != sendBuffSize) delete [] sendBuff;
+     if (0 != recvBuffSize) delete [] recvBuff;
    }
 
    ///-------------------------------------------------------------------

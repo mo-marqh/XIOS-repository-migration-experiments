@@ -32,12 +32,21 @@ namespace xios {
         const std::vector<CField*>& fieldFilterSources = (*it)->getFilterSources();
         if (!fieldFilterSources.empty())
         {
-          itFilterSrc = fieldFilterSources.begin(); iteFilterSrc = fieldFilterSources.end();
-          for (; itFilterSrc != iteFilterSrc; ++itFilterSrc) (*itFilterSrc)->updateDataWithoutOperation(_data);
-          (*it)->applyFilter();
-          std::cout << "it data " << (*it)->data << std::endl;
-          std::cout << "it filtered data " << (*it)->filteredData << std::endl;
+          itFilterSrc  = fieldFilterSources.begin();
+          iteFilterSrc = fieldFilterSources.end();
+          for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
+          {
+            (*itFilterSrc)->updateDataWithoutOperation(_data, (*itFilterSrc)->data);
+            (*it)->updateDataWithoutOperation(_data, (*it)->filteredData);
+            (*it)->applyFilter((*itFilterSrc)->data, (*it)->filteredData);
+          }
           if ((*it)->hasOutputFile || (*it)->hasFieldOut) (*it)->updateFilteredData((*it)->filteredData);
+//          itFilterSrc = fieldFilterSources.begin(); iteFilterSrc = fieldFilterSources.end();
+//          for (; itFilterSrc != iteFilterSrc; ++itFilterSrc) (*itFilterSrc)->updateDataWithoutOperation(_data);
+//          (*it)->applyFilter();
+//          std::cout << "it data " << (*it)->data << std::endl;
+//          std::cout << "it filtered data " << (*it)->filteredData << std::endl;
+//          if ((*it)->hasOutputFile || (*it)->hasFieldOut) (*it)->updateFilteredData((*it)->filteredData);
         }
         else
         {
@@ -69,12 +78,12 @@ namespace xios {
   }
 
    template<int N>
-   void CField::updateDataWithoutOperation(const CArray<double, N>& _data)
+   void CField::updateDataWithoutOperation(const CArray<double, N>& _data, CArray<double,1>& updatedData)
    {
-     if (this->data.numElements() != this->grid->storeIndex_client.numElements())
+     if (updatedData.numElements() != this->grid->storeIndex_client.numElements())
      {
-        this->data.resize(this->grid->storeIndex_client.numElements());
-        this->grid->inputField(_data, this->data);
+        updatedData.resize(this->grid->storeIndex_client.numElements());
+        this->grid->inputField(_data, updatedData);
      }
    }
 

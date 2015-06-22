@@ -16,7 +16,7 @@
 #include "client_server_mapping.hpp"
 #include "utils.hpp"
 #include "transformation_enum.hpp"
-#include "visitor.hpp"
+#include "grid_transformation.hpp"
 
 namespace xios {
 
@@ -31,6 +31,7 @@ namespace xios {
    class CDistributionServer;
    class CServerDistributionDescription;
    class CClientServerMapping;
+   class CGridTransformation;
 
    ///--------------------------------------------------------------
 
@@ -175,20 +176,23 @@ namespace xios {
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
          bool isScalarGrid() const;
+         std::vector<int> getAxisPositionInGrid() const;
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed();
          size_t getWrittenDataSize() const;
 
          const CDistributionServer* getDistributionServer() const;
+         const CDistributionClient* getDistributionClient() const;
+         CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformedGrid);
          bool isTransformed();
          void setTransformed();
-         EElementType getGridElementType();
-
-         std::vector<ETransformationType> getTransformations();
-         const std::vector<CGenericAlgorithm*>& getTransformationAlgo();
+//         EElementType getGridElementType();
+//
+//         std::vector<ETransformationType> getTransformations();
+//         const std::vector<CGenericAlgorithm*>& getTransformationAlgo();
 
       public:
 
@@ -206,7 +210,6 @@ namespace xios {
          map<int, CArray<size_t, 1>* > outIndexFromClient;
          void checkMask(void) ;
 
-         std::vector<CGenericAlgorithm*> algorithms_;
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
@@ -251,8 +254,10 @@ namespace xios {
         bool isDataDistributed_;
 
 
-        std::vector<ETransformationType> transformations_;
+//        std::vector<ETransformationType> transformations_;
         bool isTransformed_;
+        std::vector<int> axisPositionInGrid_;
+        CGridTransformation* transformations_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

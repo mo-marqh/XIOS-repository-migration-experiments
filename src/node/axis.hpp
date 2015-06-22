@@ -94,9 +94,8 @@ namespace xios {
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
          bool hasTransformation();
-         void setTransformations(const std::vector<ETransformationType>&);
-         const std::vector<ETransformationType>& getTransformations();
          void solveInheritanceTransformation();
+         std::vector<CTransformation*> getAllTransformations();
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
@@ -108,12 +107,13 @@ namespace xios {
          void checkZoom();
 
 
-         void checkTransformation();
+
+         void setTransformations(const std::vector<CTransformation*>&);
       private:
          bool isChecked;
          bool areClientAttributesChecked_;
          std::set<StdString> relFiles;
-         std::vector<ETransformationType> transformations_;
+         std::vector<CTransformation*> transformations_;
          bool isDistributed_;
 
          DECLARE_REF_FUNC(Axis,axis)

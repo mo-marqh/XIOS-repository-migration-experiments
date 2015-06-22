@@ -97,7 +97,7 @@ namespace xios {
          template <int N> bool updateData(const CArray<double, N>&   data);
          template <int N> bool updateFilteredData(CArray<double, N>&   data);
          template<int N>
-         void updateDataWithoutOperation(const CArray<double, N>& data);
+         void updateDataWithoutOperation(const CArray<double, N>& _data, CArray<double,1>& updatedData);
          bool updateDataFromExpression(const CArray<double, 1>&   data);
          void setDataFromExpression(const CArray<double, 1>& _data) ;
 
@@ -180,8 +180,11 @@ namespace xios {
         const std::pair<StdString, StdString>& getRefDomainAxisIds();
 
         const std::vector<CField*>& getFilterSources();
-        void applyFilter();
-        void setAlgorithms();
+        void applyFilter(const CArray<double, 1>& dataToSend, CArray<double,1>& dataToReceive);
+        void sendAndReceiveTransformedData(const std::map<int, CArray<int,1>* >& localIndexToSend,
+                                           const CArray<double, 1>& dataSrc,
+                                           const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive,
+                                           CArray<double,1>& dataDest);
       public :
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup ;

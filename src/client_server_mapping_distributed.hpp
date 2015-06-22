@@ -37,9 +37,6 @@ class CClientServerMappingDistributed : public CClientServerMapping
 
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
 
-//    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer,
-//                                           const CArray<int,1>& localIndexOnClientSendToServer);
-
     std::vector<int> computeConnectedServerRank(const CArray<size_t,1> globalIndexClient);
 
     /** Default destructor */
@@ -84,7 +81,7 @@ class CClientServerMappingDistributed : public CClientServerMapping
     // Reset request map
     void resetReceivingRequestAndCount();
 
-  private:
+  protected:
     //! Mapping of global index to the corresponding server
     boost::unordered_map<size_t,int> globalIndexToServerMapping_;
 
