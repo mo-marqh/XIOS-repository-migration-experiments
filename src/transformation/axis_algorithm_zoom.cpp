@@ -1,3 +1,11 @@
+/*!
+   \file axis_algorithm_zoom.cpp
+   \author Ha NGUYEN
+   \since 03 June 2015
+   \date 12 June 2015
+
+   \brief Algorithm for zooming on an axis.
+ */
 #include "axis_algorithm_zoom.hpp"
 
 namespace xios {
@@ -21,6 +29,9 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
   computeIndexSourceMapping();
 }
 
+/*!
+  Compute the index mapping between axis on grid source and one on grid destination
+*/
 void CAxisAlgorithmZoom::computeIndexSourceMapping()
 {
   StdSize niSource = axisSrc_->ni.getValue();
@@ -42,12 +53,20 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping()
   updateAxisDestinationMask();
 }
 
+/*!
+  After a zoom on axis, it should be certain that (global) zoom begin and (global) zoom size are updated
+*/
 void CAxisAlgorithmZoom::updateZoom()
 {
   axisDest_->global_zoom_begin = zoomBegin_;
   axisDest_->global_zoom_size  = zoomSize_;
 }
 
+/*!
+  Update mask on axis
+  Because only zoomed region on axis is not masked, the remaining must be masked to make sure
+correct index be extracted
+*/
 void CAxisAlgorithmZoom::updateAxisDestinationMask()
 {
   StdSize niMask = axisDest_->mask.numElements();

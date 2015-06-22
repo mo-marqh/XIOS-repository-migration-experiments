@@ -1,3 +1,11 @@
+/*!
+   \file generic_algorithm_transformation.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Interface for all transformation algorithms.
+ */
 #include "generic_algorithm_transformation.hpp"
 
 namespace xios {
@@ -25,11 +33,11 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                    itTransMap = itbTransMap,
                                                    iteTransMap = transformationMapping_.end();
   std::vector<int>::const_iterator itbVec, itVec, iteVec;
-  std::vector<CArray<size_t,1> > globalIndexSrcGrid((itTransMap->second).size());
+  std::vector<CArray<size_t,1> > globalIndexSrcGrid; //((itTransMap->second).size());
   CArray<size_t,1> globalIndexDestGrid;
-
   for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap)
   {
+
     this->computeGlobalIndexFromGlobalIndexElement(itTransMap->first,
                                                    itTransMap->second,
                                                    elementPositionInGrid,

@@ -14,9 +14,9 @@ PROGRAM test_new_features
   TYPE(xios_date) :: date
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=5
-  INTEGER,PARAMETER :: nj_glo=5
-  INTEGER,PARAMETER :: llm=2
+  INTEGER,PARAMETER :: ni_glo=100
+  INTEGER,PARAMETER :: nj_glo=100
+  INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -67,12 +67,12 @@ PROGRAM test_new_features
 
   axisBegin = 0
   nAxis = llm
-  DO n=0, size -1
-    nAxis = llm/size
-    IF (n<MOD(llm,size)) nAxis=nAxis+1
-    IF (n==rank) exit
-    axisBegin=axisBegin+nAxis
-  ENDDO
+!  DO n=0, size -1
+!    nAxis = llm/size
+!    IF (n<MOD(llm,size)) nAxis=nAxis+1
+!    IF (n==rank) exit
+!    axisBegin=axisBegin+nAxis
+!  ENDDO
   axisEnd=axisBegin+nAxis-1
 
   DO i=1,llm
@@ -116,13 +116,13 @@ PROGRAM test_new_features
 !  CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
-!  CALL xios_get_handle("field_definition",fieldgroup_hdl)
-!  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
-!  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
-!
-!  CALL xios_get_handle("output",file_hdl)
-!  CALL xios_add_child(file_hdl,field_hdl)
-!  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
+  CALL xios_get_handle("field_definition",fieldgroup_hdl)
+  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
+  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
+
+  CALL xios_get_handle("output",file_hdl)
+  CALL xios_add_child(file_hdl,field_hdl)
+  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
 !
 !  CALL xios_get_handle("output_All_Axis",file_hdl)
 !  CALL xios_add_child(file_hdl,field_hdl)

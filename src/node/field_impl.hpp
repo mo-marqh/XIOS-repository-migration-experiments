@@ -48,10 +48,9 @@ namespace xios {
         else
         {
           (*it)->setData(_data);
-          if (hasOutputFile || hasFieldOut) updateData(_data);
         }
       }
-
+      if (hasOutputFile || hasFieldOut) updateData(_data);
     }
   }
 

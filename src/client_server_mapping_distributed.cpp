@@ -34,7 +34,6 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 /*!
    Compute mapping global index of server which client sends to.
    \param [in] globalIndexOnClient global index client has
-   \param [in] localIndexOnClient local index on client
 */
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
@@ -60,12 +59,6 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
     {
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
 
-      if (clientRank_ == indexClient)
-      {
-        (indexGlobalOnServer_[globalIndexToServerMapping_[globalIndexClient]]).push_back(globalIndexClient);
-        ++nbIndexAlreadyOnClient;
-      }
-      else
       {
         client2ClientIndexGlobal[indexClient].push_back(globalIndexClient);
         ++nbIndexSendToOthers;
@@ -87,13 +80,17 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
          sendIndexGlobalToClients(it->first, it->second, clientIntraComm_, sendRequest);
 
   int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
+
   // Receiving demand as well as the responds from other clients
   // The demand message contains global index; meanwhile the responds have server index information
   // Buffer to receive demand from other clients, it can be allocated or not depending whether it has demand(s)
   unsigned long* recvBuffIndexGlobal = 0;
-  int maxNbIndexDemandedFromOthers = (nbIndexAlreadyOnClient >= globalIndexToServerMapping_.size())
-                                   ? 0 : (globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient);
-  if (!isDataDistributed_) maxNbIndexDemandedFromOthers = nbDemandingClient * globalIndexToServerMapping_.size(); // Not very optimal but it's general
+//  int maxNbIndexDemandedFromOthers = (nbIndexAlreadyOnClient >= globalIndexToServerMapping_.size())
+//                                   ? 0 : (globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient);
+  int maxNbIndexDemandedFromOthers = (globalIndexToServerMapping_.size() > nbIndexSendToOthers)
+                                      ? globalIndexToServerMapping_.size() : nbIndexSendToOthers;
+
+  if (!isDataDistributed_) maxNbIndexDemandedFromOthers = nbDemandingClient * nbIndexSendToOthers; //globalIndexToServerMapping_.size(); // Not very optimal but it's general
 
   if (0 != maxNbIndexDemandedFromOthers)
     recvBuffIndexGlobal = new unsigned long[maxNbIndexDemandedFromOthers];
@@ -101,7 +98,6 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   // Buffer to receive respond from other clients, it can be allocated or not depending whether it demands other clients
   int* recvBuffIndexServer = 0;
   int nbIndexReceivedFromOthers = nbIndexSendToOthers;
-//  int nbIndexReceivedFromOthers = globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient;
   if (0 != nbIndexReceivedFromOthers)
     recvBuffIndexServer = new int[nbIndexReceivedFromOthers];
 
@@ -236,11 +232,6 @@ void CClientServerMappingDistributed::computeDistributedServerIndex(const boost:
     if (itClientHash != iteClientHash)
     {
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
-      if (clientRank_ == indexClient)
-      {
-        globalIndexToServerMapping_.insert(std::make_pair<size_t,int>(it->first, it->second));
-      }
-      else
       {
         sendBuff[indexClient] = 1;
         ++sendNbIndexBuff[indexClient];

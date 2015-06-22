@@ -2,7 +2,7 @@
    \file transformation_mapping.cpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 18 June 2015
 
    \brief Take charge of communication among clients to exchange transformed data.
  */
@@ -32,7 +32,6 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
     globalIndexOfServer[globalIndexGridSrc(idx)] = clientRank;
   }
 
-  std::cout << "global index grid src " << globalIndexGridSrc << std::endl;
   gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfServer,
                                                                       client->intraComm,
                                                                       true);

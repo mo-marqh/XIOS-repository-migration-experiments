@@ -771,13 +771,14 @@ namespace xios {
   */
   bool CGrid::doGridHaveDataToWrite()
   {
-    size_t ssize = 0;
-    for (map<int, CArray<size_t, 1>* >::const_iterator it = outIndexFromClient.begin();
-                                                       it != outIndexFromClient.end(); ++it)
-    {
-      ssize += (it->second)->numElements();
-    }
-    return (0 != ssize);
+//    size_t ssize = 0;
+//    for (map<int, CArray<size_t, 1>* >::const_iterator it = outIndexFromClient.begin();
+//                                                       it != outIndexFromClient.end(); ++it)
+//    {
+//      ssize += (it->second)->numElements();
+//    }
+//    return (0 != ssize);
+     return (0 != writtenDataSize_);
   }
 
   /*!

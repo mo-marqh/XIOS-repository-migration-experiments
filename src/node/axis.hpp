@@ -106,7 +106,7 @@ namespace xios {
       private :
          void checkData();
          void checkMask();
-         void checkZoom();
+//         void checkZoom();
          void checkTransformations();
          void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
                                  CServerDistributionDescription::ServerDistributionType disType);

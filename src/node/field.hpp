@@ -14,7 +14,6 @@
 #include "attribute_array.hpp"
 #include "expr_node.hpp"
 #include "declare_ref_func.hpp"
-#include "generic_filter.hpp"
 #include "transformation_enum.hpp"
 
 
@@ -230,7 +229,6 @@ namespace xios {
          std::pair<StdString,StdString> domAxisIds_;
          bool isReadDataRequestPending;
          std::vector<CField*> filterSources_;
-         std::vector<CGenericAlgorithm*> algorithms_;
          DECLARE_REF_FUNC(Field,field)
 
    }; // class CField

@@ -46,7 +46,6 @@ protected:
 
   //! Mapping of client rank of grid destination and global index to send from grid source
   std::map<int,std::vector<size_t> > globalIndexSendToGridDestMapping_;
-
 };
 
 }

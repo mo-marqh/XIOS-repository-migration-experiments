@@ -1,3 +1,11 @@
+/*!
+   \file axis_algorithm_inverse.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Algorithm for inversing an axis..
+ */
 #include "axis_algorithm_inverse.hpp"
 
 namespace xios {

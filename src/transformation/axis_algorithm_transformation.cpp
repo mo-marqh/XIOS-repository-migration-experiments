@@ -1,44 +1,29 @@
+/*!
+   \file axis_algorithm_transformation.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Interface for all axis transformation algorithms.
+ */
+
 #include "axis_algorithm_transformation.hpp"
-#include "axis_inverse.hpp"
-#include "axis_zoom.hpp"
+#include "axis_algorithm_inverse.hpp"
+#include "axis_algorithm_zoom.hpp"
 
 namespace xios {
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
  : CGenericAlgorithmTransformation()
 {
-//  if (axisDestination->size.getValue() != axisSource->size.getValue())
-//  {
-//    ERROR("CAxisZoom::CAxisZoom(CAxis* axisDestination, CAxis* axisSource)",
-//           << "Two axis have different size"
-//           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->size.getValue()  << std::endl
-//           << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->size.getValue());
-//  }
-//
-//
-//  axisDestGlobalSize_ = axisDestination->size.getValue();
-//  int niDest = axisDestination->ni.getValue();
-//  int ibeginDest = axisDestination->ibegin.getValue();
-//
-//  for (int idx = 0; idx < niDest; ++idx) axisDestGlobalIndex_.push_back(ibeginDest+idx);
 }
 
 CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
 {
-//  for (int idx = 0; idx < algosOfAnAxis_.size(); ++idx) delete algosOfAnAxis_[idx];
 }
 
 void CAxisAlgorithmTransformation::computeIndexSourceMapping()
 {
-//  if (!algosOfAnAxis_.empty())
-//  {
-//    algosOfAnAxis_[0]->computeIndexSourceMapping(this->transformationMapping_);
-//    for (int idx = 1; idx < algosOfAnAxis_.size(); ++idx)
-//    {
-//      algosOfAnAxis_[idx]->computeIndexSourceMapping(algosOfAnAxis_[idx-1]->getTransformationMapping());
-//    }
-//    this->transformationMapping_ = algosOfAnAxis_[algosOfAnAxis_.size()-1]->getTransformationMapping();
-//  }
 }
 
 /*!
@@ -161,6 +146,4 @@ void CAxisAlgorithmTransformation::computeGlobalIndexFromGlobalIndexElement(int 
     ++idx;
   }
 }
-
-
 }

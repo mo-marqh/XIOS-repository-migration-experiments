@@ -1,3 +1,11 @@
+/*!
+   \file generic_algorithm_transformation.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Interface for all transformation algorithms.
+ */
 #ifndef __XIOS_GENERIC_ALGORITHM_TRANSFORMATION_HPP__
 #define __XIOS_GENERIC_ALGORITHM_TRANSFORMATION_HPP__
 
@@ -6,7 +14,10 @@
 #include "array_new.hpp"
 
 namespace xios {
-
+  /*!
+  \class CGenericAlgorithmTransformation
+  This class defines the interface for all other inherted algorithms class
+  */
 class CGenericAlgorithmTransformation
 {
 public:

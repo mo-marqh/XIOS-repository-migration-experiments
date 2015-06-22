@@ -1361,7 +1361,6 @@ namespace xios
            field->outputField(fieldData);
            if (!field->prec.isEmpty() && field->prec==2) fieldData=round(fieldData) ;
 
-           std::cout << "fieldData "<< fieldData << std::endl;
            switch (SuperClass::type)
            {
               case (MULTI_FILE) :

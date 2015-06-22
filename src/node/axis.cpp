@@ -94,7 +94,7 @@ namespace xios {
                 << "Attribute <ni> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size");
       }
       else this->ni.setValue(size);
-      std::cout <<  "value " <<  value <<  std::endl;
+
 //      StdSize true_size = value.numElements();
 //      if (this->ni.getValue() != true_size)
 //         ERROR("CAxis::checkAttributes(void)",
@@ -134,27 +134,27 @@ namespace xios {
       }
    }
 
-   void CAxis::checkZoom(void)
-   {
-      StdSize zoom_begin,zoom_end, zoom_size, axisSize;
-
-      zoom_begin = this->zoom_begin.isEmpty() ? 0 : this->zoom_begin.getValue();
-      zoom_size  = this->zoom_size.isEmpty() ? size.getValue() : this->zoom_size.getValue();
-      zoom_end   = this->zoom_end.isEmpty() ? (size.getValue() - 1) : this->zoom_end.getValue();
-
-      if (this->zoom_begin.isEmpty()) zoom_begin = zoom_end - zoom_size + 1;
-      if (this->zoom_end.isEmpty()) zoom_end = zoom_begin + zoom_size - 1;
-      if (this->zoom_size.isEmpty()) zoom_size = zoom_end - zoom_begin + 1;
-      axisSize = size.getValue();
-
-      if ( (zoom_begin < 0) || (zoom_begin > axisSize-1) || (zoom_end<0) || (zoom_end>axisSize-1) || (zoom_size<1) || (zoom_size>axisSize) || (zoom_begin>zoom_end))
-        ERROR("CAxis::checkAttributes(void)",
-              << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
-
-      this->zoom_begin.setValue(zoom_begin);
-      this->zoom_end.setValue(zoom_end);
-      this->zoom_size.setValue(zoom_size);
-   }
+//   void CAxis::checkZoom(void)
+//   {
+//      StdSize zoom_begin,zoom_end, zoom_size, axisSize;
+//
+//      zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue() ;
+//      zoom_size  = (this->zoom_size.isEmpty()) ?  size.getValue() : this->zoom_size.getValue() ;
+//      zoom_end   = (this->zoom_end.isEmpty()) ?  (size.getValue() - 1) : this->zoom_end.getValue() ;
+//
+//      if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1 ;
+//      if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1 ;
+//      if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1 ;
+//      axisSize = size.getValue();
+//
+//      if ( (zoom_begin < 0) || (zoom_begin > axisSize-1) || (zoom_end<0) || (zoom_end>axisSize-1) || (zoom_size<1) || (zoom_size>axisSize) || (zoom_begin>zoom_end))
+//        ERROR("CAxis::checkAttributes(void)",
+//              << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+//
+//      this->zoom_begin.setValue(zoom_begin) ;
+//      this->zoom_end.setValue(zoom_end) ;
+//      this->zoom_size.setValue(zoom_size) ;
+//   }
 
    void CAxis::checkMask()
    {

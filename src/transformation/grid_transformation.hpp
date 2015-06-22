@@ -2,7 +2,7 @@
    \file grid_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 18 June 2015
 
    \brief Interface for all transformations.
  */
@@ -39,9 +39,8 @@ public:
 
   void computeAll();
 
-
-  std::map<int, CArray<int,1>* > getLocalIndexToSendFromGridSource();
-  std::map<int, std::vector<CArray<int,1>* > > getLocalIndexToReceiveOnGridDest();
+  const std::map<int, CArray<int,1>* >& getLocalIndexToSendFromGridSource() const;
+  const std::map<int, std::vector<CArray<int,1>* > >& getLocalIndexToReceiveOnGridDest() const;
 
 private:
   void computeTransformation();

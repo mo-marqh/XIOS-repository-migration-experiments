@@ -1,12 +1,23 @@
+/*!
+   \file axis_algorithm_transformation.hpp
+   \author Ha NGUYEN
+   \since 14 May 2015
+   \date 09 June 2015
+
+   \brief Interface for all axis transformation algorithms.
+ */
 #ifndef __XIOS_AXIS_ALGORITHM_TRANSFORMATION_HPP__
 #define __XIOS_AXIS_ALGORITHM_TRANSFORMATION_HPP__
 
 #include "generic_algorithm_transformation.hpp"
 #include "axis.hpp"
-#include "concrete_algo.hpp"
 
 namespace xios {
 
+/*!
+  \class CAxisAlgorithmTransformation
+  Algorithms for axis.
+*/
 class CAxisAlgorithmTransformation : public virtual CGenericAlgorithmTransformation
 {
 public:
@@ -23,8 +34,12 @@ protected:
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<CArray<size_t,1> >& globalIndexSrcGrid);
   void computeIndexSourceMapping();
+
 protected:
+  //! Global index of an axis on grid destination
   std::vector<int> axisDestGlobalIndex_;
+
+  //! Size of
   int axisDestGlobalSize_;
 
 };

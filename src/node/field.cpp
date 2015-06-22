@@ -12,8 +12,6 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include <set>
-#include "axis_filter.hpp"
-#include "invert_algorithm.hpp"
 
 namespace xios{
 
@@ -28,9 +26,9 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
+      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
       , isReadDataRequestPending(false)
-      , filterSources_(), algorithms_()
+      , filterSources_()
       { setVirtualVariableGroup(); }
 
    CField::CField(const StdString& id)
@@ -42,9 +40,9 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
+      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
       , isReadDataRequestPending(false)
-      , filterSources_(), algorithms_()
+      , filterSources_()
    { setVirtualVariableGroup(); }
 
    CField::~CField(void)
@@ -54,7 +52,6 @@ namespace xios{
       this->foperation.reset();
       if (hasExpression) delete expression;
       if (slotUpdateDate != NULL) delete slotUpdateDate;
-      if (0 != filter) delete filter;
 
    }
 
@@ -176,8 +173,6 @@ namespace xios{
           {
             int rank=(*it).first ;
             CArray<int,1>& index = *(it->second) ;
-                       std::cout << "rank " << index << std::endl;
-                       std::cout << "data " << data << std::endl;
             CArray<double,1> data_tmp(index.numElements()) ;
             for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
 
@@ -783,7 +778,6 @@ namespace xios{
            gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
            fieldRef->addReference(this);
            fieldRef->solveGridDomainAxisRef(false);
-//           fieldRef->solveCheckMaskIndex(false);
            break;
          }
          CField* tmp = fieldRef->getDirectFieldReference();
@@ -797,7 +791,6 @@ namespace xios{
          gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
          fieldRef->addReference(this);
          fieldRef->solveGridDomainAxisRef(false);
-//         fieldRef->solveCheckMaskIndex(false);
        }
 
        CGrid* relGridRef = CGrid::get(grid_ref.getValue());
@@ -825,7 +818,7 @@ namespace xios{
           if (0 != (*itFilterSrc)->grid->getTransformations())
           {
              const std::map<int, CArray<int,1>* >& localIndexToSend = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToSendFromGridSource();
-             const std::map<int, std::vector<CArray<int,1>* > > localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
+             const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
 
              sendAndReceiveTransformedData(localIndexToSend, dataToSend,
                                            localIndexToReceive, dataToReceive);
@@ -856,7 +849,6 @@ namespace xios{
        int destRank = itSend->first;
        CArray<int,1>* localIndex_p = itSend->second;
        int countSize = localIndex_p->numElements();
-       std::cout << "Data Source " <<  dataSrc <<  std::endl;
        for (int idx = 0; idx < countSize; ++idx)
        {
          sendBuff[idx] = dataSrc((*localIndex_p)(idx));
@@ -887,7 +879,6 @@ namespace xios{
            dataDest((*localIndex_p)(i)) = recvBuff[idx];
          }
        }
-       std::cout << "Data Destination " <<  dataDest <<  std::endl;
      }
 
      if (0 != sendBuffSize) delete [] sendBuff;
