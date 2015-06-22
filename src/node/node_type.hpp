@@ -8,5 +8,6 @@
 #include "grid.hpp"
 #include "variable.hpp"
 #include "context.hpp"
+#include "transformation.hpp"
 
 #endif // __XIOS_NODE_TYPE__

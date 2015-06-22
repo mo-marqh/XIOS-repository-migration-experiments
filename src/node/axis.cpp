@@ -86,7 +86,7 @@ namespace xios {
       else this->ni.setValue(size);
 
       StdSize true_size = value.numElements();
-      if (size != true_size)
+      if (this->ni.getValue() != true_size)
          ERROR("CAxis::checkAttributes(void)",
                << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
 
@@ -303,6 +303,59 @@ namespace xios {
       zoom_end_srv   = zoom_end;
       zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
     }
+  }
+
+  bool CAxis::hasTransformation()
+  {
+    return (!transformations_.empty());
+  }
+
+  void CAxis::setTransformations(const std::vector<ETransformationType>& transformations)
+  {
+    transformations_ = transformations;
+  }
+
+  void CAxis::solveInheritanceTransformation()
+  {
+    if (this->hasTransformation()) return;
+
+    std::vector<CAxis*> refAxis;
+    CAxis* refer_sptr;
+    CAxis* refer_ptr = this;
+    while (refer_ptr->hasDirectAxisReference())
+    {
+      refAxis.push_back(refer_ptr);
+      refer_sptr = refer_ptr->getDirectAxisReference();
+      refer_ptr  = refer_sptr;
+      if (refer_ptr->hasTransformation()) break;
+    }
+
+    if (refer_ptr->hasTransformation())
+      for (int idx = 0; idx < refAxis.size(); ++idx)
+        refAxis[idx]->setTransformations(refer_ptr->getTransformations());
+  }
+
+  void CAxis::parse(xml::CXMLNode & node)
+  {
+    SuperClass::parse(node);
+
+    if (node.goToChildElement())
+    {
+      StdString tranformation("transformation");
+      do
+      {
+        if (node.getElementName() == tranformation) {
+           this->getVirtualTransformationGroup()->parseChild(node);
+           transformations_.push_back(eInverse);
+        }
+      } while (node.goToNextElement()) ;
+      node.goToParentElement();
+    }
+  }
+
+  const std::vector<ETransformationType>& CAxis::getTransformations()
+  {
+    return transformations_;
   }
 
    DEFINE_REF_FUNC(Axis,axis)

@@ -4,13 +4,17 @@
 /// XIOS headers ///
 #include "xios_spl.hpp"
 #include "group_factory.hpp"
+#include "virtual_node.hpp"
 
 #include "declare_group.hpp"
 #include "declare_ref_func.hpp"
+#include "declare_virtual_node.hpp"
 #include "attribute_array.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
 #include "server_distribution_description.hpp"
+#include "transformation.hpp"
+#include "transformation_enum.hpp"
 
 namespace xios {
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -18,7 +22,10 @@ namespace xios {
    class CAxisGroup;
    class CAxisAttributes;
    class CAxis;
+   class CTransformationGroup;
+   class CVirtualTransformationGroup;
 
+   DECLARE_VIRTUAL_NODE(TransformationGroup);
    ///--------------------------------------------------------------
 
    // Declare/Define CAxisAttribute
@@ -31,6 +38,7 @@ namespace xios {
    class CAxis
       : public CObjectTemplate<CAxis>
       , public CAxisAttributes
+      , public CVirtualTransformationGroup
    {
          enum EEventId
          {
@@ -68,6 +76,8 @@ namespace xios {
          /// Destructeur ///
          virtual ~CAxis(void);
 
+         virtual void parse(xml::CXMLNode & node);
+
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
@@ -82,6 +92,12 @@ namespace xios {
                                       CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
          void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
+
+         bool hasTransformation();
+         void setTransformations(const std::vector<ETransformationType>&);
+         const std::vector<ETransformationType>& getTransformations();
+         void solveInheritanceTransformation();
+
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
@@ -91,11 +107,13 @@ namespace xios {
          void checkMask();
          void checkZoom();
 
-      private:
 
+         void checkTransformation();
+      private:
          bool isChecked;
          bool areClientAttributesChecked_;
          std::set<StdString> relFiles;
+         std::vector<ETransformationType> transformations_;
          bool isDistributed_;
 
          DECLARE_REF_FUNC(Axis,axis)

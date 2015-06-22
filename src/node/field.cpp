@@ -12,6 +12,8 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include <set>
+#include "axis_filter.hpp"
+#include "invert_algorithm.hpp"
 
 namespace xios{
 
@@ -26,7 +28,7 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
       , isReadDataRequestPending(false)
       { setVirtualVariableGroup(); }
 
@@ -39,7 +41,7 @@ namespace xios{
       , last_Write(), last_operation()
       , foperation(), hasInstantData(false), hasExpression(false)
       , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false), filter(0)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
 
@@ -50,6 +52,7 @@ namespace xios{
       this->foperation.reset();
       if (hasExpression) delete expression;
       if (slotUpdateDate != NULL) delete slotUpdateDate;
+      if (0 != filter) delete filter;
 
    }
 
@@ -171,6 +174,8 @@ namespace xios{
           {
             int rank=(*it).first ;
             CArray<int,1>& index = *(it->second) ;
+                       std::cout << "rank " << index << std::endl;
+                       std::cout << "data " << data << std::endl;
             CArray<double,1> data_tmp(index.numElements()) ;
             for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
 
@@ -527,24 +532,6 @@ namespace xios{
       return(this->last_operation);
    }
 
-   //----------------------------------------------------------------
-
-//   void CField::processEnabledField(void)
-//   {
-//      if (!processed)
-//      {
-//        processed = true;
-//        solveRefInheritance(true);
-//        solveBaseReference();
-//        solveOperation();
-//        solveGridReference();
-//
-//        if (hasDirectFieldReference()) baseRefObject->processEnabledField();
-//        buildExpression();
-//        active = true;
-//      }
-//    }
-
    void CField::solveAllReferenceEnabledField(bool doSending2Sever)
    {
      CContext* context = CContext::getCurrent();
@@ -561,6 +548,10 @@ namespace xios{
         solveGridReference();
      }
      solveGridDomainAxisRef(doSending2Sever);
+     if (context->hasClient)
+     {
+       solveTransformedGrid();
+     }
      solveCheckMaskIndex(doSending2Sever);
    }
 
@@ -575,9 +566,7 @@ namespace xios{
      if (!areAllExpressionBuilt)
      {
        areAllExpressionBuilt = true;
-//       solveCheckMaskIndex(true);
-//       solveCheckMaskIndex();
-       if (hasDirectFieldReference()) baseRefObject->buildAllExpressionEnabledField();
+       if (hasDirectFieldReference() && (grid_ref.isEmpty())) baseRefObject->buildAllExpressionEnabledField();
        buildExpression();
        active = true;
      }
@@ -767,6 +756,99 @@ namespace xios{
    void CField::solveCheckMaskIndex(bool doSendingIndex)
    {
      grid->checkMaskIndex(doSendingIndex);
+   }
+
+   CGrid* CField::getGridRefOfBaseReference()
+   {
+     solveRefInheritance(true);
+     solveBaseReference();
+     baseRefObject->solveGridReference();
+
+     return baseRefObject->grid;
+   }
+
+   void CField::solveTransformedGrid()
+   {
+     if (!grid_ref.isEmpty() && (!field_ref.isEmpty()))
+     {
+       CField* fieldRef  = this;
+       CGrid* gridRefOfFieldRef = 0;
+       while (fieldRef->hasDirectFieldReference())
+       {
+         if ((!(fieldRef->grid_ref.isEmpty())) &&
+             (fieldRef->grid_ref.getValue() != grid_ref.getValue()))
+         {
+           gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
+           fieldRef->addReference(this);
+           fieldRef->solveGridDomainAxisRef(false);
+           fieldRef->solveCheckMaskIndex(false);
+           break;
+         }
+         CField* tmp = fieldRef->getDirectFieldReference();
+         fieldRef = tmp;
+       }
+
+       if ((0 == gridRefOfFieldRef) &&
+           (!(fieldRef->grid_ref.isEmpty())) &&
+           (fieldRef->grid_ref.getValue() != grid_ref.getValue()))
+       {
+         gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
+         fieldRef->addReference(this);
+         fieldRef->solveGridDomainAxisRef(false);
+         fieldRef->solveCheckMaskIndex(false);
+       }
+
+       CGrid* relGridRef = CGrid::get(grid_ref.getValue());
+       if ((0 != gridRefOfFieldRef) && (relGridRef != gridRefOfFieldRef) && (!(relGridRef->isTransformed())))
+       {
+         gridRefOfFieldRef->transformGrid(relGridRef);
+         filterSources_.push_back(fieldRef);
+         transformations_ = relGridRef->getTransformations();
+         switch (gridRefOfFieldRef->getGridElementType()) {
+         case CGrid::GRID_ONLY_AXIS:
+           filter = new CAxisFilter(gridRefOfFieldRef, relGridRef);
+           break;
+         default:
+           break;
+         }
+         setAlgorithms();
+       }
+     }
+   }
+
+
+  void CField::setAlgorithms()
+  {
+    std::vector<ETransformationType>::iterator itTrans  = transformations_.begin(),
+                                               iteTrans = transformations_.end();
+    std::set<ETransformationType> tmp;
+    for (; itTrans != iteTrans; ++itTrans)
+    {
+      if (tmp.end() == tmp.find(*itTrans))
+      {
+        switch (*itTrans) {
+        case eInverse:
+          algorithms_.push_back(new CInvertAlgorithm());
+          break;
+        default:
+          break;
+        }
+      }
+      tmp.insert(*itTrans);
+    }
+  }
+
+   const std::vector<CField*>& CField::getFilterSources()
+   {
+     return filterSources_;
+   }
+
+   void CField::applyFilter()
+   {
+     filter->setInputs(filterSources_);
+     filter->setOutput(this);
+     filter->apply(algorithms_);
+
    }
 
    ///-------------------------------------------------------------------

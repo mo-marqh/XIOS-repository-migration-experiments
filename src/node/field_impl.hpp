@@ -24,10 +24,29 @@ namespace xios {
     if (!hasExpression)
     {
       const std::vector<CField*>& refField=getAllReference();
-      std::vector<CField*>::const_iterator  it = refField.begin(), end = refField.end();
+      std::vector<CField*>::const_iterator  it = refField.begin(), end = refField.end(),
+                                            itFilterSrc, iteFilterSrc;
 
-      for (; it != end; it++) (*it)->setData(_data);
-      if (hasOutputFile || hasFieldOut) updateData(_data);
+      for (; it != end; it++)
+      {
+        const std::vector<CField*>& fieldFilterSources = (*it)->getFilterSources();
+        if (!fieldFilterSources.empty())
+        {
+          itFilterSrc = fieldFilterSources.begin(); iteFilterSrc = fieldFilterSources.end();
+          for (; itFilterSrc != iteFilterSrc; ++itFilterSrc) (*itFilterSrc)->updateDataWithoutOperation(_data);
+          (*it)->applyFilter();
+          std::cout << "it data " << (*it)->data << std::endl;
+          std::cout << "it filtered data " << (*it)->filteredData << std::endl;
+          if ((*it)->hasOutputFile || (*it)->hasFieldOut) (*it)->updateFilteredData((*it)->filteredData);
+        }
+        else
+        {
+          (*it)->setData(_data);
+          if (hasOutputFile || hasFieldOut) updateData(_data);
+        }
+
+      }
+
     }
   }
 
@@ -48,6 +67,80 @@ namespace xios {
       if (hasOutputFile || hasFieldOut) updateDataFromExpression(_data);
     }
   }
+
+   template<int N>
+   void CField::updateDataWithoutOperation(const CArray<double, N>& _data)
+   {
+     if (this->data.numElements() != this->grid->storeIndex_client.numElements())
+     {
+        this->data.resize(this->grid->storeIndex_client.numElements());
+        this->grid->inputField(_data, this->data);
+     }
+   }
+
+   template<int N>
+   bool CField::updateFilteredData(CArray<double, N>& filteredData)
+   {
+      CContext* context=CContext::getCurrent();
+      const CDate & currDate = context->getCalendar()->getCurrentDate();
+      const CDate opeDate      = *last_operation + freq_operation;
+      const CDate writeDate    = *last_Write     + freq_write;
+      bool doOperation, doWrite;
+
+
+      info(50) << "CField::updateData " << currDate <<  " : send data to " << this->getBaseFieldId() << std::endl;
+      info(50) << "Next operation "  << opeDate<<std::endl;
+
+      doOperation = (opeDate <= currDate);
+      if (isOnceOperation)
+        if (isFirstOperation) doOperation=true;
+        else doOperation=false;
+
+      if (doOperation)
+      {
+         if (this->data.numElements() != filteredData.numElements())
+         {
+            this->data.resize(filteredData.numElements());
+         }
+
+         (*this->foperation)(filteredData);
+
+         *last_operation = currDate;
+         info(50) << "(*last_operation = currDate) : " << *last_operation << " = " << currDate << std::endl;
+      }
+
+      doWrite = (writeDate < (currDate + freq_operation));
+      if (isOnceOperation)
+      {
+        if(isFirstOperation)
+        {
+          doWrite=true;
+          isFirstOperation=false;
+        }
+        else doWrite=false;
+      }
+
+      if (doWrite)
+      {
+         this->foperation->final();
+         *last_Write = writeDate;
+         if (hasOutputFile)
+         {
+           info(50) << "(*last_Write = currDate) : " << *last_Write << " = " << currDate << std::endl;
+           CTimer::get("XIOS Send Data").resume();
+           sendUpdateData();
+           CTimer::get("XIOS Send Data").suspend();
+         }
+
+//         if (hasFieldOut)
+//         {
+//           fieldOut->setDataFromExpression(data);
+//         }
+         return (true);
+      }
+
+      return (false);
+   }
 
    template <int N>
    bool CField::updateData(const CArray<double, N>& _data)

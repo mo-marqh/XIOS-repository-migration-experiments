@@ -16,7 +16,7 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llm=10
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -25,7 +25,7 @@ PROGRAM test_new_features
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni(ni_glo), lval_nj(nj_glo)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , field_Axis(:)
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , field_Axis(:), lvaln(:), field_Two_Axis(:,:)
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
   INTEGER :: i,j,l,ts,n
 
@@ -66,20 +66,27 @@ PROGRAM test_new_features
 
   axisBegin = 0
   nAxis = llm
-!  DO n=0, size -1
-!    nAxis = llm/size
-!    IF (n<MOD(llm,size)) nAxis=nAxis+1
-!    IF (n==rank) exit
-!    axisBegin=axisBegin+nAxis
-!  ENDDO
+  DO n=0, size -1
+    nAxis = llm/size
+    IF (n<MOD(llm,size)) nAxis=nAxis+1
+    IF (n==rank) exit
+    axisBegin=axisBegin+nAxis
+  ENDDO
   axisEnd=axisBegin+nAxis-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm))
+  DO i=1,llm
+    lval(i) = i
+  ENDDO
+
+
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), field_Two_Axis(ni_glo,1:nj))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_Axis(1:nAxis)  = field_A_glo(1,1,axisBegin+1:axisEnd+1)
   field_All_Axis(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
+  field_Two_Axis(:,1:nAxis)  = field_A_glo(:,jbegin+1:jend+1,1)
+  lvaln(1:nAxis) = lval(axisBegin+1:axisEnd+1)
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
@@ -91,24 +98,24 @@ PROGRAM test_new_features
   CALL xios_set_axis_attr("axis_A", size=ni_glo, ibegin=ibegin, ni=ni, value=lval_ni)
   CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj)
   CALL xios_set_axis_attr("axis_C", size=llm, value=lval)
-  CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lval)
+  CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lvaln)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
   CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
-  CALL xios_get_handle("field_definition",fieldgroup_hdl)
-  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
-
-  CALL xios_get_handle("output",file_hdl)
-  CALL xios_add_child(file_hdl,field_hdl)
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
-
-  CALL xios_get_handle("output_All_Axis",file_hdl)
-  CALL xios_add_child(file_hdl,field_hdl)
-  CALL xios_set_attr(field_hdl,field_ref="field_All_Axis",name="field_C")
+!  CALL xios_get_handle("field_definition",fieldgroup_hdl)
+!  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
+!  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
+!
+!  CALL xios_get_handle("output",file_hdl)
+!  CALL xios_add_child(file_hdl,field_hdl)
+!  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
+!
+!  CALL xios_get_handle("output_All_Axis",file_hdl)
+!  CALL xios_add_child(file_hdl,field_hdl)
+!  CALL xios_set_attr(field_hdl,field_ref="field_All_Axis",name="field_C")
 
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
@@ -145,11 +152,13 @@ PROGRAM test_new_features
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
   DO ts=1,24*10
     CALL xios_update_calendar(ts)
-    CALL xios_send_field("field_A",field_A)
+!    CALL xios_send_field("field_A",field_A)
     CALL xios_send_field("field_Axis",field_Axis)
-    CALL xios_send_field("field_All_Axis",field_All_Axis)
-    tsTemp = ts
-    CALL xios_send_scalar("field_Scalar", tsTemp)
+
+    CALL xios_send_field("field_Two_Axis",field_Two_Axis)
+!    CALL xios_send_field("field_All_Axis",field_All_Axis)
+!    tsTemp = ts
+!    CALL xios_send_scalar("field_Scalar", tsTemp)
     CALL wait_us(5000) ;
   ENDDO
 

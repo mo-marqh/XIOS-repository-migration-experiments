@@ -893,8 +893,8 @@ namespace xios {
        for (int j = 0; j < numEnabledFields; ++j)
        {
          const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getRefDomainAxisIds();
-         domainIds.insert(prDomAxisId.first);
-         axisIds.insert(prDomAxisId.second);
+         if ("" != prDomAxisId.first) domainIds.insert(prDomAxisId.first);
+         if ("" != prDomAxisId.second) axisIds.insert(prDomAxisId.second);
        }
      }
 

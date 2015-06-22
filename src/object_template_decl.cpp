@@ -7,6 +7,7 @@
 #include "grid.hpp"
 #include "axis.hpp"
 #include "variable.hpp"
+#include "transformation.hpp"
 
 
 namespace xios
@@ -19,6 +20,7 @@ namespace xios
   template class CObjectTemplate<CGrid>;
   template class CObjectTemplate<CAxis>;
   template class CObjectTemplate<CVariable>;
+  template class CObjectTemplate<CTransformation>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -27,4 +29,5 @@ namespace xios
   template class CObjectTemplate<CGridGroup>;
   template class CObjectTemplate<CAxisGroup>;
   template class CObjectTemplate<CVariableGroup>;
+  template class CObjectTemplate<CTransformationGroup>;
 }

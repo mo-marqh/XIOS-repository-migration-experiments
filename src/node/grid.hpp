@@ -15,6 +15,8 @@
 #include "server_distribution_description.hpp"
 #include "client_server_mapping.hpp"
 #include "utils.hpp"
+#include "transformation_enum.hpp"
+#include "visitor.hpp"
 
 namespace xios {
 
@@ -56,6 +58,11 @@ namespace xios {
          {
            EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS
          } ;
+
+         enum EElementType
+         {
+           GRID_ONLY_AXIS, GRID_ONLY_DOMAIN, GRID_AXIS_DOMAIN
+         };
 
          /// Constructeurs ///
          CGrid(void);
@@ -139,6 +146,7 @@ namespace xios {
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
          void solveDomainAxisRefInheritance(bool apply = true);
+         void solveTransformations();
 
          void sendAddDomain(const std::string& id="");
          void sendAddAxis(const std::string& id="");
@@ -174,6 +182,14 @@ namespace xios {
 
          const CDistributionServer* getDistributionServer() const;
 
+         void transformGrid(CGrid* transformedGrid);
+         bool isTransformed();
+         void setTransformed();
+         EElementType getGridElementType();
+
+         std::vector<ETransformationType> getTransformations();
+         const std::vector<CGenericAlgorithm*>& getTransformationAlgo();
+
       public:
 
          /// Propriétés privées ///
@@ -190,6 +206,7 @@ namespace xios {
          map<int, CArray<size_t, 1>* > outIndexFromClient;
          void checkMask(void) ;
 
+         std::vector<CGenericAlgorithm*> algorithms_;
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
@@ -213,6 +230,10 @@ namespace xios {
 
         CAxisGroup* getVirtualAxisGroup() const;
         CDomainGroup* getVirtualDomainGroup() const;
+
+
+        void setTransformationAlgorithms();
+
         std::vector<int> globalDim_;
       private:
         CDomainGroup* vDomainGroup_;
@@ -228,6 +249,10 @@ namespace xios {
         std::map<int,size_t> connectedDataSize_;
         std::vector<int> connectedServerRank_;
         bool isDataDistributed_;
+
+
+        std::vector<ETransformationType> transformations_;
+        bool isTransformed_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

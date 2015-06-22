@@ -14,6 +14,8 @@
 #include "attribute_array.hpp"
 #include "expr_node.hpp"
 #include "declare_ref_func.hpp"
+#include "generic_filter.hpp"
+#include "transformation_enum.hpp"
 
 
 namespace xios {
@@ -27,6 +29,8 @@ namespace xios {
    class CFile;
    class CGrid;
    class CContext ;
+   class CGenericFilter;
+
    ///--------------------------------------------------------------
 
    // Declare/Define CFieldAttribute
@@ -91,6 +95,9 @@ namespace xios {
          void resetNStepMax();
 
          template <int N> bool updateData(const CArray<double, N>&   data);
+         template <int N> bool updateFilteredData(CArray<double, N>&   data);
+         template<int N>
+         void updateDataWithoutOperation(const CArray<double, N>& data);
          bool updateDataFromExpression(const CArray<double, 1>&   data);
          void setDataFromExpression(const CArray<double, 1>& _data) ;
 
@@ -115,7 +122,8 @@ namespace xios {
          void solveAllReferenceEnabledField(bool doSending2Sever);
          void buildAllExpressionEnabledField();
          void solveGridDomainAxisRef(bool checkAtt);
-
+         void solveTransformedGrid();
+         CGrid* getGridRefOfBaseReference();
 
 //         virtual void fromBinary(StdIStream & is);
 
@@ -170,6 +178,10 @@ namespace xios {
 
 
         const std::pair<StdString, StdString>& getRefDomainAxisIds();
+
+        const std::vector<CField*>& getFilterSources();
+        void applyFilter();
+        void setAlgorithms();
       public :
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup ;
@@ -192,6 +204,7 @@ namespace xios {
 
          CArray<double, 1> data;
          CArray<double, 1> instantData;
+         CArray<double, 1> filteredData;
          bool hasInstantData ;
          map<int, CArray<double,1>* > data_srv ;
          bool isOnceOperation ;
@@ -213,21 +226,10 @@ namespace xios {
          bool areAllExpressionBuilt;
          std::pair<StdString,StdString> domAxisIds_;
          bool isReadDataRequestPending;
+         std::vector<CField*> filterSources_;
+         std::vector<CGenericAlgorithm*> algorithms_;
+         std::vector<ETransformationType> transformations_;
          DECLARE_REF_FUNC(Field,field)
-//       public:
-//         bool hasDirectFieldReference(void) const;
-//         CField* getDirectFieldReference(void) const;
-//         CField* getBaseFieldReference(void) const;
-//         void addReference(CField* field);
-//         const std::vector<CField*> & getAllReference(void) const;
-//void solveRefInheritance(bool apply);
-//void solveBaseReference(void);
-//         void removeRefInheritance();
-//         const StdString & getBaseFieldId(void) const;
-//
-//         std::vector<CField*> refObject;
-//         CField* baseRefObject;
-
 
    }; // class CField
 
