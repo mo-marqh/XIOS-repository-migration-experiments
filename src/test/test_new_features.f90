@@ -26,7 +26,8 @@ PROGRAM test_new_features
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:), lat(:,:), field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:), &
+                                  field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:)
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
   INTEGER :: i,j,l,ts,n
 
@@ -80,7 +81,8 @@ PROGRAM test_new_features
   ENDDO
 
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), lval_ni(ni), lval_nj(nj), field_Two_Axis(ni_glo,1:nj))
+  ALLOCATE(lon(ni,nj), lat(ni,nj), field_A(0:ni+1,-1:nj+2,llm), lonvalue(ni*nj), field_Axis(nAxis), &
+           field_All_Axis(1:ni,1:nj,llm), lvaln(nAxis), lval_ni(ni), lval_nj(nj), field_Two_Axis(ni_glo,1:nj))
   ALLOCATE(mask(nj))
   DO i = 1, nj
 !    IF (MOD(i,2)>=0) THEN
@@ -179,8 +181,3 @@ PROGRAM test_new_features
   CALL MPI_FINALIZE(ierr)
 
 END PROGRAM test_new_features
-
-
-
-
-
