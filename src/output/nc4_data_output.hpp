@@ -56,7 +56,8 @@ namespace xios
          protected :
             void writeUnstructuredDomain (CDomain* domain);
             void writeLocalAttributes(int ibegin, int ni, int jbegin, int nj, StdString domid);
-            void writeLocalAttributes_IOIPSL(int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size) ;
+            void writeLocalAttributes_IOIPSL(const StdString& dimXid, const StdString& dimYid,
+                                             int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size);
             void writeTimeAxisAttributes(const StdString & axis_name,
                                          const StdString & calendar,
                                          const StdString & units,

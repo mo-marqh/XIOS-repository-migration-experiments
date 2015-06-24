@@ -154,12 +154,14 @@ namespace xios
                                               domain->zoom_nj_srv,
                                               appendDomid);
 
-                   if (singleDomain) this->writeLocalAttributes_IOIPSL(domain->zoom_ibegin_srv,
-                                              domain->zoom_ni_srv,
-                                              domain->zoom_jbegin_srv,
-                                              domain->zoom_nj_srv,
-                                              domain->ni_glo,domain->nj_glo,
-                                              server->intraCommRank,server->intraCommSize);
+                   if (singleDomain)
+                    this->writeLocalAttributes_IOIPSL(dimXid, dimYid,
+                                                      domain->zoom_ibegin_srv,
+                                                      domain->zoom_ni_srv,
+                                                      domain->zoom_jbegin_srv,
+                                                      domain->zoom_nj_srv,
+                                                      domain->ni_glo,domain->nj_glo,
+                                                      server->intraCommRank,server->intraCommSize);
                  }
 
                  switch (domain->type)
@@ -1792,8 +1794,8 @@ namespace xios
 
       }
 
-     void CNc4DataOutput::writeLocalAttributes_IOIPSL
-         (int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size)
+      void CNc4DataOutput::writeLocalAttributes_IOIPSL(const StdString& dimXid, const StdString& dimYid,
+                                                       int ibegin, int ni, int jbegin, int nj, int ni_glo, int nj_glo, int rank, int size)
       {
          CArray<int,1> array(2) ;
 
@@ -1801,7 +1803,7 @@ namespace xios
          {
            SuperClassWriter::addAttribute("DOMAIN_number_total",size ) ;
            SuperClassWriter::addAttribute("DOMAIN_number", rank) ;
-           array=1,2 ;
+           array=SuperClassWriter::getDimension(dimXid),SuperClassWriter::getDimension(dimYid);
            SuperClassWriter::addAttribute("DOMAIN_dimensions_ids",array) ;
            array=ni_glo,nj_glo ;
            SuperClassWriter::addAttribute("DOMAIN_size_global", array) ;
@@ -1824,7 +1826,7 @@ namespace xios
          }
          catch (CNetCdfException& e)
          {
-           StdString msg("On writing Local Attributes IOI PSL \n");
+           StdString msg("On writing Local Attributes IOIPSL \n");
            msg.append("In the context : ");
            CContext* context = CContext::getCurrent() ;
            msg.append(context->getId()); msg.append("\n");
