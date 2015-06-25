@@ -1803,7 +1803,7 @@ namespace xios
          {
            SuperClassWriter::addAttribute("DOMAIN_number_total",size ) ;
            SuperClassWriter::addAttribute("DOMAIN_number", rank) ;
-           array=SuperClassWriter::getDimension(dimXid),SuperClassWriter::getDimension(dimYid);
+           array = SuperClassWriter::getDimension(dimXid) + 1, SuperClassWriter::getDimension(dimYid) + 1;
            SuperClassWriter::addAttribute("DOMAIN_dimensions_ids",array) ;
            array=ni_glo,nj_glo ;
            SuperClassWriter::addAttribute("DOMAIN_size_global", array) ;
