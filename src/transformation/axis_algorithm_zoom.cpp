@@ -11,7 +11,7 @@
 namespace xios {
 
 CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource), axisDest_(axisDestination), axisSrc_(axisSource)
+: CAxisAlgorithmTransformation(axisDestination, axisSource)
 {
   zoomAxis->checkValid(axisSource);
   zoomBegin_ = zoomAxis->zoom_begin.getValue();
@@ -44,9 +44,11 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping()
   if (iend < ibegin) ni = 0;
 
   std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
   for (StdSize idx = 0; idx < ni; ++idx)
   {
     transMap[ibegin+idx].push_back(ibegin+idx);
+    transWeight[ibegin+idx].push_back(1.0);
   }
 
   updateZoom();

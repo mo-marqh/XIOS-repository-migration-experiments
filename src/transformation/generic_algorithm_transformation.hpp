@@ -2,7 +2,7 @@
    \file generic_algorithm_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 29 June 2015
 
    \brief Interface for all transformation algorithms.
  */
@@ -10,7 +10,7 @@
 #define __XIOS_GENERIC_ALGORITHM_TRANSFORMATION_HPP__
 
 #include <map>
-#include <vector>
+#include <set>
 #include "array_new.hpp"
 
 namespace xios {
@@ -28,7 +28,7 @@ public:
   void computeGlobalSourceIndex(int elementPositionInGrid,
                                 const std::vector<int>& gridDestGlobalDim,
                                 const CArray<size_t,1>& globalIndexGridDestSendToServer,
-                                std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource);
+                                std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource);
 
   /*!
   Compute global index mapping from one element of destination grid to the corresponding element of source grid
@@ -46,18 +46,19 @@ protected:
     \param[in/out] globalIndexDestGrid array of global index (for 2d grid, this array maybe a line, for 3d, this array may represent a plan). It should be preallocated
     \param[in/out] globalIndexSrcGrid array of global index of source grid (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
   */
-  virtual void computeGlobalIndexFromGlobalIndexElement(int destGlobalIndex,
+  virtual void computeGlobalGridIndexFromGlobalIndexElement(int destGlobalIndex,
                                                         const std::vector<int>& srcGlobalIndex,
                                                         int elementPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
-                                                        std::vector<CArray<size_t,1> >& globalIndexSrcGrid) = 0;
+                                                        std::vector<std::vector<size_t> >& globalIndexSrcGrid) = 0;
 
 
 
 protected:
   std::map<int, std::vector<int> > transformationMapping_;
+  std::map<int, std::vector<double> > transformationWeight_;
 };
 
 }

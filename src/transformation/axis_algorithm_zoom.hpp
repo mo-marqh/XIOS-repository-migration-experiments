@@ -42,13 +42,6 @@ private:
 
   //! Global zoom size on axis
   StdSize zoomSize_;
-
-private:
-  //! Axis on grid destination
-  CAxis* axisDest_;
-
-  //! Axis on grid source
-  CAxis* axisSrc_;
 };
 
 }

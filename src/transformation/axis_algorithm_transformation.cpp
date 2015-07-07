@@ -2,7 +2,7 @@
    \file axis_algorithm_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 29 June 2015
 
    \brief Interface for all axis transformation algorithms.
  */
@@ -14,8 +14,14 @@
 namespace xios {
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
- : CGenericAlgorithmTransformation()
+ : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource)
 {
+  axisDestGlobalSize_ = axisDestination->size.getValue();
+  int niDest = axisDestination->ni.getValue();
+  int ibeginDest = axisDestination->ibegin.getValue();
+
+  for (int idx = 0; idx < niDest; ++idx)
+    if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
 }
 
 CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
@@ -36,13 +42,13 @@ void CAxisAlgorithmTransformation::computeIndexSourceMapping()
   \param[in/out] globalIndexDestGrid array of global index (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
   \param[in/out] globalIndexSrcGrid array of global index of source grid (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
 */
-void CAxisAlgorithmTransformation::computeGlobalIndexFromGlobalIndexElement(int axisDestGlobalIndex,
+void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(int axisDestGlobalIndex,
                                                                           const std::vector<int>& axisSrcGlobalIndex,
                                                                           int axisPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                                           CArray<size_t,1>& globalIndexDestGrid,
-                                                                          std::vector<CArray<size_t,1> >& globalIndexSrcGrid)
+                                                                          std::vector<std::vector<size_t> >& globalIndexSrcGrid)
 {
   int globalDim = gridDestGlobalDim.size();
 
@@ -92,11 +98,10 @@ void CAxisAlgorithmTransformation::computeGlobalIndexFromGlobalIndexElement(int 
   if (globalIndexDestGrid.numElements() != realGlobalIndexSize)
     globalIndexDestGrid.resize(realGlobalIndexSize);
 
-  if (axisSrcGlobalIndex.size() != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(axisSrcGlobalIndex.size());
+  if (realGlobalIndexSize != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(realGlobalIndexSize);
   for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
-    if (globalIndexSrcGrid[i].numElements() != realGlobalIndexSize)
-      globalIndexSrcGrid[i].resize(realGlobalIndexSize);
-
+    if (globalIndexSrcGrid[i].size() != axisSrcGlobalIndex.size())
+      globalIndexSrcGrid[i].resize(axisSrcGlobalIndex.size());
 
   size_t realGlobalIndex = 0;
   idx = 0;
@@ -127,7 +132,7 @@ void CAxisAlgorithmTransformation::computeGlobalIndexFromGlobalIndexElement(int 
     if (iteArr != itArr)
     {
       globalIndexDestGrid(realGlobalIndex) = globIndex;
-      for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
+      for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)
       {
         currentIndex[axisPositionInGrid] = axisSrcGlobalIndex[i];
         globIndex = currentIndex[0];
@@ -137,7 +142,7 @@ void CAxisAlgorithmTransformation::computeGlobalIndexFromGlobalIndexElement(int 
           mulDim *= gridDestGlobalDim[k-1];
           globIndex += (currentIndex[k])*mulDim;
         }
-        (globalIndexSrcGrid[i])(realGlobalIndex) = globIndex;
+        (globalIndexSrcGrid[realGlobalIndex])[i] = globIndex;
       }
       ++realGlobalIndex;
     }

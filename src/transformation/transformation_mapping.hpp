@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include "grid.hpp"
+#include "axis.hpp"
 #include "array_new.hpp"
 #include "client_server_mapping_distributed.hpp"
 
@@ -28,10 +29,12 @@ class CTransformationMapping
 public:
   /** Default constructor */
   CTransformationMapping(CGrid* destination, CGrid* source);
+  CTransformationMapping(CAxis* destination, CAxis* source);
+
   ~CTransformationMapping();
 
-  void computeTransformationMapping(const std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource);
-  const std::map<int,std::vector<std::vector<size_t> > >& getGlobalIndexReceivedOnGridDestMapping() const;
+  void computeTransformationMapping(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
+  const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& getGlobalIndexReceivedOnGridDestMapping() const;
   const std::map<int,std::vector<size_t> >& getGlobalIndexSendToGridDestMapping() const;
 
 protected:
@@ -42,7 +45,7 @@ protected:
   CClientServerMappingDistributed* gridIndexClientClientMapping_;
 
   //! Mapping of client rank of grid source and global index received in grid destination
-  std::map<int,std::vector<std::vector<size_t> > > globalIndexReceivedOnGridDestMapping_;
+  std::map<int,std::vector<std::vector<std::pair<size_t,double> > > > globalIndexReceivedOnGridDestMapping_;
 
   //! Mapping of client rank of grid destination and global index to send from grid source
   std::map<int,std::vector<size_t> > globalIndexSendToGridDestMapping_;

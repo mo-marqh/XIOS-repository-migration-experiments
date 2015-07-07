@@ -813,12 +813,13 @@ namespace xios{
      if (!filterSources_.empty())
      {
         itFilterSrc = filterSources_.begin(); iteFilterSrc = filterSources_.end();
+        dataToReceive = 0.0; // Reset all data destination
         for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
         {
           if (0 != (*itFilterSrc)->grid->getTransformations())
           {
              const std::map<int, CArray<int,1>* >& localIndexToSend = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToSendFromGridSource();
-             const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
+             const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
 
              sendAndReceiveTransformedData(localIndexToSend, dataToSend,
                                            localIndexToReceive, dataToReceive);
@@ -830,7 +831,7 @@ namespace xios{
 
    void CField::sendAndReceiveTransformedData(const std::map<int, CArray<int,1>* >& localIndexToSend,
                                               const CArray<double, 1>& dataSrc,
-                                              const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive,
+                                              const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive,
                                               CArray<double,1>& dataDest)
    {
      CContext* context = CContext::getCurrent();
@@ -857,7 +858,7 @@ namespace xios{
      }
 
      // Receiving data on destination fields
-     std::map<int, std::vector<CArray<int,1>* > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
+     std::map<int,std::vector<std::vector<std::pair<int,double> > > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
                                                                   iteRecv = localIndexToReceive.end();
      int recvBuffSize = 0;
      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < (itRecv->second).size())
@@ -872,11 +873,12 @@ namespace xios{
        MPI_Recv(recvBuff, recvBuffSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &status);
        for (int idx = 0; idx < countSize; ++idx)
        {
-         CArray<int,1>* localIndex_p = (itRecv->second)[idx];
-         int numIndex = localIndex_p->numElements();
+         const std::vector<std::pair<int,double> >& localIndex_p = (itRecv->second)[idx];
+         int numIndex = localIndex_p.size();
          for (int i = 0; i < numIndex; ++i)
          {
-           dataDest((*localIndex_p)(i)) = recvBuff[idx];
+//           if ((localIndex_p)[i].first >= dataDest.numElements() )
+           dataDest((localIndex_p)[i].first) += recvBuff[idx] * ((localIndex_p)[i].second);
          }
        }
      }

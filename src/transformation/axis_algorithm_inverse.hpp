@@ -25,6 +25,9 @@ public:
   virtual ~CAxisAlgorithmInverse() {}
 
   virtual void computeIndexSourceMapping();
+
+private:
+  void updateAxisValue();
 };
 
 }

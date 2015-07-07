@@ -182,7 +182,7 @@ namespace xios {
         void applyFilter(const CArray<double, 1>& dataToSend, CArray<double,1>& dataToReceive);
         void sendAndReceiveTransformedData(const std::map<int, CArray<int,1>* >& localIndexToSend,
                                            const CArray<double, 1>& dataSrc,
-                                           const std::map<int, std::vector<CArray<int,1>* > >& localIndexToReceive,
+                                           const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive,
                                            CArray<double,1>& dataDest);
       public :
          /// Propriétés privées ///

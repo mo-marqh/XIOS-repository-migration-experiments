@@ -2,7 +2,7 @@
    \file axis_algorithm_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 29 June 2015
 
    \brief Interface for all axis transformation algorithms.
  */
@@ -26,13 +26,13 @@ public:
   virtual ~CAxisAlgorithmTransformation();
 
 protected:
-  virtual void computeGlobalIndexFromGlobalIndexElement(int axisDestGlobalIndex,
+  virtual void computeGlobalGridIndexFromGlobalIndexElement(int axisDestGlobalIndex,
                                                         const std::vector<int>& axisSrcGlobalIndex,
                                                         int axisPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
-                                                        std::vector<CArray<size_t,1> >& globalIndexSrcGrid);
+                                                        std::vector<std::vector<size_t> >& globalIndexSrcGrid);
   void computeIndexSourceMapping();
 
 protected:
@@ -42,6 +42,11 @@ protected:
   //! Size of
   int axisDestGlobalSize_;
 
+    //! Axis on grid destination
+  CAxis* axisDest_;
+
+  //! Axis on grid source
+  CAxis* axisSrc_;
 };
 
 }

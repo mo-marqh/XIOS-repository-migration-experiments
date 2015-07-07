@@ -23,7 +23,7 @@ class CGrid;
   \class CGridTransformation
   This class is an interface for all transformations to interact with the rest of XIOS.
 The class, firstly, tries to get all information relating to requested transformations by retrieving directly from grid.
-Then with all these information, all necessary transformations will be be created by generic class \class CGenericAlgorithmTransformation.
+Then with all these information, all necessary transformations will be created by generic class \class CGenericAlgorithmTransformation.
 Because there are information exchange among clients to accomplish the transformations (e.g: some index need retrieving from other clients),
 this class uses class \class CTransformationMapping to fulfill this demand.
 For each transformation, a new temporary grid source is created.
@@ -40,7 +40,7 @@ public:
   void computeAll();
 
   const std::map<int, CArray<int,1>* >& getLocalIndexToSendFromGridSource() const;
-  const std::map<int, std::vector<CArray<int,1>* > >& getLocalIndexToReceiveOnGridDest() const;
+  const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
 
 private:
   void computeTransformation();
@@ -54,7 +54,7 @@ private:
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void setUpGrid(int elementPositionInGrid, ETranformationType transType);
   void computeFinalTransformationMapping();
-  void computeTransformationFromOriginalGridSource(const std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource);
+  void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
   void updateFinalGridDestination();
 
 private:
@@ -88,7 +88,7 @@ private:
   std::map<int, CArray<int,1>* > localIndexToSendFromGridSource_;
 
   //! Local index of data to receive on grid destination
-  std::map<int, std::vector<CArray<int,1>* > > localIndexToReceiveOnGridDest_;
+  std::map<int,std::vector<std::vector<std::pair<int,double> > > > localIndexToReceiveOnGridDest_;
 
   //! Position of axis and domain in grid
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
@@ -96,6 +96,7 @@ private:
   //! (Grid) Global index of grid source
   CArray<size_t,1>* globalIndexOfCurrentGridSource_;
   CArray<size_t,1>* globalIndexOfOriginalGridSource_;
+  CArray<double,1>* weightOfGlobalIndexOfOriginalGridSource_;
 };
 
 }

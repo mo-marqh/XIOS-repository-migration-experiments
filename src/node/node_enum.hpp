@@ -20,8 +20,8 @@ namespace xios
          eCalendarWrapper,
          eTransformation,
          eInverseAxis,
-         eZoomAxis
-//#include "node_type.conf"
+         eZoomAxis,
+         eInterpolateAxis
 
       } ENodeType;
 

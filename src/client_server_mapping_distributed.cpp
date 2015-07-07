@@ -58,7 +58,6 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
     if (iteClientHash != itClientHash)
     {
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
-
       {
         client2ClientIndexGlobal[indexClient].push_back(globalIndexClient);
         ++nbIndexSendToOthers;
@@ -68,15 +67,15 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
 
   int* sendBuff = new int[nbClient_];
   for (int i = 0; i < nbClient_; ++i) sendBuff[i] = 0;
-  std::map<int, std::vector<size_t> >::iterator it  = client2ClientIndexGlobal.begin(),
-                                                ite = client2ClientIndexGlobal.end();
-  for (; it != ite; ++it) sendBuff[it->first] = 1;
+  std::map<int, std::vector<size_t> >::iterator itb  = client2ClientIndexGlobal.begin(), it,
+                                                ite  = client2ClientIndexGlobal.end();
+  for (it = itb; it != ite; ++it) sendBuff[it->first] = 1;
   int* recvBuff = new int[nbClient_];
   MPI_Allreduce(sendBuff, recvBuff, nbClient_, MPI_INT, MPI_SUM, clientIntraComm_);
 
   std::list<MPI_Request> sendRequest;
   if (0 != nbIndexSendToOthers)
-      for (it = client2ClientIndexGlobal.begin(); it != ite; ++it)
+      for (it = itb; it != ite; ++it)
          sendIndexGlobalToClients(it->first, it->second, clientIntraComm_, sendRequest);
 
   int nbDemandingClient = recvBuff[clientRank_], nbIndexServerReceived = 0;
@@ -84,12 +83,12 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   // Receiving demand as well as the responds from other clients
   // The demand message contains global index; meanwhile the responds have server index information
   // Buffer to receive demand from other clients, it can be allocated or not depending whether it has demand(s)
-  unsigned long* recvBuffIndexGlobal = 0;
-//  int maxNbIndexDemandedFromOthers = (nbIndexAlreadyOnClient >= globalIndexToServerMapping_.size())
-//                                   ? 0 : (globalIndexToServerMapping_.size() - nbIndexAlreadyOnClient);
-  int maxNbIndexDemandedFromOthers = (globalIndexToServerMapping_.size() > nbIndexSendToOthers)
-                                      ? globalIndexToServerMapping_.size() : nbIndexSendToOthers;
+    // There are some cases we demand duplicate index so need to determine maxium size of demanding buffer
+  for (it = itb; it != ite; ++it) sendBuff[it->first] = (it->second).size();
+  MPI_Allreduce(sendBuff, recvBuff, nbClient_, MPI_INT, MPI_SUM, clientIntraComm_);
 
+  unsigned long* recvBuffIndexGlobal = 0;
+  int maxNbIndexDemandedFromOthers = recvBuff[clientRank_];
   if (!isDataDistributed_) maxNbIndexDemandedFromOthers = nbDemandingClient * nbIndexSendToOthers; //globalIndexToServerMapping_.size(); // Not very optimal but it's general
 
   if (0 != maxNbIndexDemandedFromOthers)

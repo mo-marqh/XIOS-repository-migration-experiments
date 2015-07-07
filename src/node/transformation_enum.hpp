@@ -1,8 +1,5 @@
-#ifndef __XMLIO_TRANSFORMATION_ENUM__
-#define __XMLIO_TRANSFORMATION_ENUM__
-
-//#define DECLARE_NODE(Name_, name_)     ,e##Name_, g##Name_
-//#define DECLARE_NODE_PAR(Name_, name_) ,e##Name_, g##Name_
+#ifndef __XIOS_TRANSFORMATION_ENUM__
+#define __XIOS_TRANSFORMATION_ENUM__
 
 namespace xios
 {
@@ -10,9 +7,10 @@ namespace xios
       typedef enum transformation_type
       {
         TRANS_ZOOM_AXIS,
-        TRANS_INVERSE_AXIS
+        TRANS_INVERSE_AXIS,
+        TRANS_INTERPOLATE_AXIS
       } ETranformationType;
 
 } // namespace xios
 
-#endif // __XMLIO_TRANSFORMATION_ENUM__
+#endif // __XIOS_TRANSFORMATION_ENUM__

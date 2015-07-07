@@ -6,7 +6,10 @@
 #include "field.hpp"
 #include "file.hpp"
 #include "variable.hpp"
-#include "transformation.hpp"
+//#include "transformation.hpp"
+#include "inverse_axis.hpp"
+#include "zoom_axis.hpp"
+#include "interpolate_axis.hpp"
 
 namespace xios
 {
@@ -26,5 +29,6 @@ namespace xios
     macro( Variable )
     macro( InverseAxis )
     macro( ZoomAxis )
+    macro( InterpolateAxis )
   }
 }

@@ -8,6 +8,9 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "xios_spl.hpp"
+#include "inverse_axis.hpp"
+#include "zoom_axis.hpp"
+#include "interpolate_axis.hpp"
 
 namespace xios {
 
@@ -378,6 +381,8 @@ namespace xios {
       StdString inverse("inverse_axis");
       StdString zoomAxisDefRoot("zoom_axis_definition");
       StdString zoom("zoom_axis");
+      StdString interpAxisDefRoot("interpolate_axis_definition");
+      StdString interp("interpolate_axis");
       do
       {
         if (node.getElementName() == inverse) {
@@ -388,6 +393,11 @@ namespace xios {
           CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild();
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_ZOOM_AXIS,tmp));
+        }
+        else if (node.getElementName() == interp) {
+          CInterpolateAxis* tmp = (CInterpolateAxisGroup::get(interpAxisDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_AXIS,tmp));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

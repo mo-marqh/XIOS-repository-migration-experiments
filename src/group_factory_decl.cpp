@@ -26,4 +26,5 @@ namespace xios
   macro(CVariableGroup)
   macro(CInverseAxisGroup)
   macro(CZoomAxisGroup)
+  macro(CInterpolateAxisGroup)
 }

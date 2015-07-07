@@ -15,8 +15,6 @@
 #include "server_distribution_description.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
-#include "inverse_axis.hpp"
-#include "zoom_axis.hpp"
 
 namespace xios {
    /// ////////////////////// Déclarations ////////////////////// ///

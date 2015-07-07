@@ -25,6 +25,7 @@ namespace xios
   macro(CVariable)
   macro(CInverseAxis)
   macro(CZoomAxis)
+  macro(CInterpolateAxis)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -35,4 +36,5 @@ namespace xios
   macro(CVariableGroup)
   macro(CInverseAxisGroup)
   macro(CZoomAxisGroup)
+  macro(CInterpolateAxisGroup)
 }

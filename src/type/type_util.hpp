@@ -23,6 +23,8 @@ namespace xios
     class CInverseAxisGroup;
     class CZoomAxis;
     class CZoomAxisGroup;
+    class CInterpolateAxis;
+    class CInterpolateAxisGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -63,6 +65,8 @@ namespace xios
   macro(CInverseAxisGroup)
   macro(CZoomAxis)
   macro(CZoomAxisGroup)
+  macro(CInterpolateAxis)
+  macro(CInterpolateAxisGroup)
 #undef macro
 }
 

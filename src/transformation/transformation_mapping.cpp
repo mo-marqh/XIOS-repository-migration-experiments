@@ -37,6 +37,27 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
                                                                       true);
 }
 
+CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source)
+  : gridSource_(0), gridDestination_(0)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+
+  int niSrc     = source->ni.getValue();
+  int ibeginSrc = source->ibegin.getValue();
+
+  boost::unordered_map<size_t,int> globalIndexOfAxisSource;
+  for (int idx = 0; idx < niSrc; ++idx)
+  {
+    globalIndexOfAxisSource[idx+ibeginSrc] = clientRank;
+  }
+
+  gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfAxisSource,
+                                                                      client->intraComm,
+                                                                      true);
+}
+
 CTransformationMapping::~CTransformationMapping()
 {
   if (0 != gridIndexClientClientMapping_) delete gridIndexClientClientMapping_;
@@ -45,40 +66,41 @@ CTransformationMapping::~CTransformationMapping()
 /*!
   Suppose that we have transformations between two grids, which are represented in form of mapping between global indexes of these two grids,
 this function tries to find out which clients a client needs to send and receive these global indexes to accomplish the transformations.
-  The grid destination is the grid whose global indexes demande global indexes from the grid source
+  The grid destination is the grid whose global indexes demande global indexes from the other grid
   Grid destination and grid source are also distributed among clients but in different manners.
-  \param [in] globaIndexMapFromDestToSource mapping representing the transformations
+  \param [in] globaIndexWeightFromDestToSource mapping representing the transformations
 */
-void CTransformationMapping::computeTransformationMapping(const std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource)
+void CTransformationMapping::computeTransformationMapping(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
 
-  int numMappingPoints = 0;
-  std::map<size_t, std::set<size_t> >::const_iterator itbMap = globaIndexMapFromDestToSource.begin(), itMap,
-                                                      iteMap = globaIndexMapFromDestToSource.end();
+  std::map<size_t, std::vector<std::pair<size_t,double> > >::const_iterator itbMap = globaIndexWeightFromDestToSource.begin(), itMap,
+                                                                            iteMap = globaIndexWeightFromDestToSource.end();
+
+  // Not only one index on grid destination can demande two indexes from grid source
+  // but an index on grid source has to be sent to two indexes of grid destination
+  std::map<size_t, std::vector<std::pair<size_t,double> > > globalIndexMapFromSrcToDest;
+  std::vector<std::pair<size_t,double> >::const_iterator itbVecPair, itVecPair, iteVecPair;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
-    numMappingPoints += (itMap->second).size();
+    itbVecPair = (itMap->second).begin();
+    iteVecPair = (itMap->second).end();
+    for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
+    {
+      globalIndexMapFromSrcToDest[itVecPair->first].push_back(std::make_pair(itMap->first, itVecPair->second));
+    }
   }
 
   // All global indexes of a client on grid destination
-  CArray<size_t,1> globalIndexMap(numMappingPoints);
-  // Not only one index on grid destination can demande two indexes from grid source
-  // but an index on grid destination have to be sent to two indexes of grid destination
-  std::map<size_t, std::vector<size_t> > globalIndexMapFromSrcToDest;
-  std::set<size_t>::const_iterator itbSet, itSet, iteSet;
+  CArray<size_t,1> globalIndexMap(globalIndexMapFromSrcToDest.size());
+  itbMap = globalIndexMapFromSrcToDest.begin();
+  iteMap = globalIndexMapFromSrcToDest.end();
   int idx = 0;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
-    itbSet = (itMap->second).begin();
-    iteSet = (itMap->second).end();
-    for (itSet = itbSet; itSet != iteSet; ++itSet)
-    {
-      globalIndexMap(idx) = *itSet;
-      globalIndexMapFromSrcToDest[*itSet].push_back(itMap->first);
-      ++idx;
-    }
+    globalIndexMap(idx) = itMap->first;
+    ++idx;
   }
 
   // Find out on which clients the necessary indexes of grid source are.
@@ -164,7 +186,7 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
 and the corresponding global index to write on grid destination.
   \return global index mapping to receive on grid destination
 */
-const std::map<int,std::vector<std::vector<size_t> > >& CTransformationMapping::getGlobalIndexReceivedOnGridDestMapping() const
+const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& CTransformationMapping::getGlobalIndexReceivedOnGridDestMapping() const
 {
   return globalIndexReceivedOnGridDestMapping_;
 }

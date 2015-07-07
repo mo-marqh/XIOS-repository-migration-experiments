@@ -206,6 +206,36 @@ struct NumTraits<unsigned long>
     return std::numeric_limits<Scalar>::max();
   }
 };
+
+template<>
+struct NumTraits<double>
+{
+  typedef double Scalar;
+  typedef Scalar magnitudeType;
+
+  static inline Scalar sfmin() {
+    return std::numeric_limits<Scalar>::min();
+  }
+  static inline Scalar sfmax() {
+    return std::numeric_limits<Scalar>::max();
+  }
+};
+
+template<class T>
+class sorter
+{
+  const std::vector<T>& values;
+public:
+  sorter(const std::vector<T> &v) : values(v) {}
+  bool operator()(int a, int b) { return values[a] < values[b]; }
+};
+
+template<class T>
+void order(const std::vector<T>& values, std::vector<int>& rv)
+{
+  std::sort(rv.begin(), rv.end(), sorter<T>(values));
+}
+
 }
 
 #endif // __UTILS_HPP__

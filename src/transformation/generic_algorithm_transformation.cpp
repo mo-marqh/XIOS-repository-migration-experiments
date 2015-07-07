@@ -2,7 +2,7 @@
    \file generic_algorithm_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 09 June 2015
+   \date 29 June 2015
 
    \brief Interface for all transformation algorithms.
  */
@@ -11,7 +11,7 @@
 namespace xios {
 
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
- : transformationMapping_()
+ : transformationMapping_(), transformationWeight_()
 {
 }
 
@@ -21,24 +21,26 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
                 then position of axis in grid is 2 (since a domain is considered to contain 2 elements (axis)
   \param[in] gridDestGlobalDim global size of each dimension of grid source (all dimension must have the same size except of the one on which transformation is performed)
   \param[in] globalIndexGridDestSendToServer global index of grid destination on the current client to send to server
-  \param[in/out] globaIndexMapFromDestToSource mapping between transformed global index of grid destination
-                    and the demanded global index of grid source
+  \param[in/out] globaIndexWeightFromDestToSource mapping between transformed global index of grid destination
+             and the weighted value as long as global index from grid index source
 */
 void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositionInGrid,
                                                              const std::vector<int>& gridDestGlobalDim,
                                                              const CArray<size_t,1>& globalIndexGridDestSendToServer,
-                                                             std::map<size_t, std::set<size_t> >& globaIndexMapFromDestToSource)
+                                                             std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
   std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_.begin(),
                                                    itTransMap = itbTransMap,
                                                    iteTransMap = transformationMapping_.end();
+  std::map<int, std::vector<double> >::const_iterator itTransWeight = transformationWeight_.begin();
+  std::map<size_t, std::vector<std::pair<size_t,double> > >::iterator iteWeight, itWeight;
   std::vector<int>::const_iterator itbVec, itVec, iteVec;
-  std::vector<CArray<size_t,1> > globalIndexSrcGrid; //((itTransMap->second).size());
+  std::vector<std::vector<size_t> > globalIndexSrcGrid;
   CArray<size_t,1> globalIndexDestGrid;
-  for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap)
-  {
 
-    this->computeGlobalIndexFromGlobalIndexElement(itTransMap->first,
+  for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
+  {
+    this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
                                                    itTransMap->second,
                                                    elementPositionInGrid,
                                                    gridDestGlobalDim,
@@ -46,11 +48,13 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                    globalIndexDestGrid,
                                                    globalIndexSrcGrid);
     size_t globalIndexSize = globalIndexDestGrid.numElements();
+    std::vector<double> currentVecWeight = itTransWeight->second;
     for (size_t idx = 0; idx < globalIndexSize; ++idx)
     {
-      for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
+      size_t globalIndex = globalIndexDestGrid(idx);
+      for (int i = 0; i < globalIndexSrcGrid[idx].size(); ++i)
       {
-        globaIndexMapFromDestToSource[globalIndexDestGrid(idx)].insert(globalIndexSrcGrid[i](idx));
+        globaIndexWeightFromDestToSource[globalIndex].push_back(make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i]));
       }
     }
   }
