@@ -13,6 +13,8 @@
 #include "array_new.hpp"
 #include "attribute_array.hpp"
 #include "attribute_enum.hpp"
+#include "transformation.hpp"
+#include "transformation_enum.hpp"
 
 namespace xios {
 
@@ -48,6 +50,7 @@ namespace xios {
 
          typedef CDomainAttributes RelAttributes;
          typedef CDomainGroup      RelGroup;
+         typedef CTransformation<CDomain>::TransformationMapTypes TransMapTypes;
 
          /// Constructeurs ///
          CDomain(void);
@@ -58,12 +61,18 @@ namespace xios {
          static CDomain* createDomain();
          void duplicateAttributes(CDomain* domain);
 
+         virtual void parse(xml::CXMLNode & node);
+
          /// Vérifications ///
          void checkAttributes(void);
 
          void checkAttributesOnClient();
 
          void sendCheckedAttributes();
+
+         bool hasTransformation();
+         void solveInheritanceTransformation();
+         TransMapTypes getAllTransformations();
 
       private :
 
@@ -121,7 +130,8 @@ namespace xios {
 
         CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
 
-
+        int global_zoom_ibegin, global_zoom_ni;
+        int global_zoom_jbegin, global_zoom_nj;
 //        vector<int> ib_srv, ie_srv, in_srv ;
 //        vector<int> jb_srv, je_srv, jn_srv ;
 
@@ -159,9 +169,11 @@ namespace xios {
          bool isCurvilinear ;
          bool hasBounds ;
          bool hasArea;
-       private :
+      private:
+         void checkTransformations();
+         void setTransformations(const TransMapTypes&);
 
-         /// Proriétés protégées ///
+       private :
          bool isChecked;
          std::set<StdString> relFiles;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
@@ -170,6 +182,7 @@ namespace xios {
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          std::vector<int> connectedServerRank_;
          bool isDistributed_;
+         TransMapTypes transformationMap_;
 
          DECLARE_REF_FUNC(Domain,domain)
 

@@ -12,5 +12,6 @@
 #include "inverse_axis.hpp"
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
+#include "zoom_domain.hpp"
 
 #endif // __XIOS_NODE_TYPE__

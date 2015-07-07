@@ -53,13 +53,17 @@
        <interpolate_axis type="polynomial" order="3"/>
      </axis>
      <axis id="axis_H" axis_ref="axis_C">
-<!--       <inverse_axis />-->
-       <zoom_axis zoom_begin="0" zoom_size="3" />
+       <inverse_axis />
+       <zoom_axis zoom_begin="0" zoom_size="1" />
      </axis>
    </axis_definition>
 
    <domain_definition>
      <domain id="domain_A" />
+     <domain id="domain_A_zoom" domain_ref="domain_A">
+       <zoom_domain zoom_ibegin="1" zoom_ni="3" zoom_jbegin="0" zoom_nj="4"/>
+       <zoom_domain zoom_ibegin="0" zoom_ni="2" zoom_jbegin="0" zoom_nj="2"/>
+     </domain>
    </domain_definition>
 
    <grid_definition>
@@ -81,8 +85,9 @@
          <axis axis_ref="axis_C" />
        </grid>
        <grid id="grid_Axis_tranformed">
-         <domain domain_ref="domain_A" />
-            <axis axis_ref="axis_H" />
+<!--         <domain domain_ref="domain_A" />-->
+         <domain domain_ref="domain_A_zoom" />
+         <axis axis_ref="axis_H" />
 <!--         <axis axis_ref="axis_E" />-->
 <!--         <axis axis_ref="axis_F" />-->
        </grid>

@@ -15,6 +15,7 @@
 #include "array_new.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
+#include "zoom_domain.hpp"
 
 namespace xios {
 
@@ -546,19 +547,35 @@ namespace xios {
       }
 
       // compute client zoom indices
+      // compute client zoom indices
+      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
+      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
 
-      int zoom_iend=zoom_ibegin+zoom_ni-1 ;
-      zoom_ibegin_client = ibegin_client > zoom_ibegin ? ibegin_client : zoom_ibegin ;
-      zoom_iend_client = iend_client < zoom_iend ? iend_client : zoom_iend ;
+      int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
+      zoom_ibegin_client = ibegin_client > global_zoom_ibegin ? ibegin_client : global_zoom_ibegin ;
+      zoom_iend_client = iend_client < global_zoom_iend ? iend_client : global_zoom_iend ;
       zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
       if (zoom_ni_client<0) zoom_ni_client=0 ;
 
 
-      int zoom_jend=zoom_jbegin+zoom_nj-1 ;
-      zoom_jbegin_client = jbegin_client > zoom_jbegin ? jbegin_client : zoom_jbegin ;
-      zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
+      int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
+      zoom_jbegin_client = jbegin_client > global_zoom_jbegin ? jbegin_client : global_zoom_jbegin ;
+      zoom_jend_client = jend_client < global_zoom_jend ? jend_client : global_zoom_jend ;
       zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
       if (zoom_nj_client<0) zoom_nj_client=0 ;
+
+//      int zoom_iend=zoom_ibegin+zoom_ni-1 ;
+//      zoom_ibegin_client = ibegin_client > zoom_ibegin ? ibegin_client : zoom_ibegin ;
+//      zoom_iend_client = iend_client < zoom_iend ? iend_client : zoom_iend ;
+//      zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
+//      if (zoom_ni_client<0) zoom_ni_client=0 ;
+//
+//
+//      int zoom_jend=zoom_jbegin+zoom_nj-1 ;
+//      zoom_jbegin_client = jbegin_client > zoom_jbegin ? jbegin_client : zoom_jbegin ;
+//      zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
+//      zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
+//      if (zoom_nj_client<0) zoom_nj_client=0 ;
 
    }
 
@@ -597,7 +614,7 @@ namespace xios {
      CContext* context=CContext::getCurrent();
 
       this->checkDomain();
-      this->checkZoom();
+//      this->checkZoom();
       this->checkBounds();
       this->checkArea();
 
@@ -606,8 +623,8 @@ namespace xios {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
-         this->completeLonLatClient();
-         this->computeConnectedServer() ;
+//         this->completeLonLatClient();
+//         this->computeConnectedServer() ;
       }
       else
       { // Côté serveur uniquement
@@ -624,9 +641,13 @@ namespace xios {
      if (!this->isClientChecked) checkAttributesOnClient();
      CContext* context=CContext::getCurrent() ;
 
+     this->checkZoom();
      if (this->isChecked) return;
      if (context->hasClient)
      {
+       this->computeConnectedServer();
+       this->completeLonLatClient();
+
        sendServerAttribut() ;
        sendLonLatArea() ;
      }
@@ -702,6 +723,7 @@ namespace xios {
         CMessage& msg = msgs.back();
         msg << this->getId() ;
         msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
+        msg << global_zoom_ni << global_zoom_ibegin << global_zoom_nj << global_zoom_jbegin;
 
         event.push(*itRank,1,msg);
       }
@@ -721,8 +743,8 @@ namespace xios {
     bool doComputeGlobalIndexServer = true;
 
     int i,j,i_ind,j_ind ;
-    int zoom_iend=zoom_ibegin+zoom_ni-1 ;
-    int zoom_jend=zoom_jbegin+zoom_nj-1 ;
+    int zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
+    int zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
 
     // Precompute number of index
     int globalIndexCountZoom = 0;
@@ -732,7 +754,7 @@ namespace xios {
         i_ind=ibegin+i_index(i,j) ;
         j_ind=jbegin+j_index(i,j) ;
 
-        if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
+        if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
         {
           ++globalIndexCountZoom;
         }
@@ -754,7 +776,7 @@ namespace xios {
         globalIndex = i_ind + j_ind * ni_glo;
         globalIndexDomain(globalIndexCount) = globalIndex;
         ++globalIndexCount;
-        if (i_ind >= zoom_ibegin && i_ind <= zoom_iend && j_ind >= zoom_jbegin && j_ind <= zoom_jend)
+        if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
         {
           globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
           ++globalIndexCountZoom;
@@ -975,16 +997,17 @@ namespace xios {
 
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
-    int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
-    int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
+    buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv
+           >> global_zoom_ni >> global_zoom_ibegin >> global_zoom_nj >> global_zoom_jbegin;
 
-    buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv;
+    int zoom_iend = global_zoom_ibegin + global_zoom_ni - 1;
+    int zoom_jend = global_zoom_jbegin + global_zoom_nj - 1;
 
-    zoom_ibegin_srv = zoom_ibegin.getValue() > ibegin_srv ? zoom_ibegin.getValue() : ibegin_srv ;
+    zoom_ibegin_srv = global_zoom_ibegin > ibegin_srv ? global_zoom_ibegin : ibegin_srv ;
     zoom_iend_srv = zoom_iend < iend_srv ? zoom_iend : iend_srv ;
     zoom_ni_srv=zoom_iend_srv-zoom_ibegin_srv+1 ;
 
-    zoom_jbegin_srv = zoom_jbegin.getValue() > jbegin_srv ? zoom_jbegin.getValue() : jbegin_srv ;
+    zoom_jbegin_srv = global_zoom_jbegin > jbegin_srv ? global_zoom_jbegin : jbegin_srv ;
     zoom_jend_srv = zoom_jend < jend_srv ? zoom_jend : jend_srv ;
     zoom_nj_srv=zoom_jend_srv-zoom_jbegin_srv+1 ;
 
@@ -1126,6 +1149,74 @@ namespace xios {
     }
   }
 
+  bool CDomain::hasTransformation()
+  {
+    return (!transformationMap_.empty());
+  }
+
+  void CDomain::setTransformations(const TransMapTypes& domTrans)
+  {
+    transformationMap_ = domTrans;
+  }
+
+  CDomain::TransMapTypes CDomain::getAllTransformations(void)
+  {
+    return transformationMap_;
+  }
+
+  /*!
+    Check the validity of all transformations applied on domain
+  This functions is called AFTER all inherited attributes are solved
+  */
+  void CDomain::checkTransformations()
+  {
+    TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
+                                  ite = transformationMap_.end();
+    for (it = itb; it != ite; ++it)
+    {
+      (it->second)->checkValid(this);
+    }
+  }
+
+  void CDomain::solveInheritanceTransformation()
+  {
+    if (this->hasTransformation()) return;
+
+    std::vector<CDomain*> refDomain;
+    CDomain* refer_sptr;
+    CDomain* refer_ptr = this;
+    while (refer_ptr->hasDirectDomainReference())
+    {
+      refDomain.push_back(refer_ptr);
+      refer_sptr = refer_ptr->getDirectDomainReference();
+      refer_ptr  = refer_sptr;
+      if (refer_ptr->hasTransformation()) break;
+    }
+
+    if (refer_ptr->hasTransformation())
+      for (int idx = 0; idx < refDomain.size(); ++idx)
+        refDomain[idx]->setTransformations(refer_ptr->getAllTransformations());
+  }
+
+  void CDomain::parse(xml::CXMLNode & node)
+  {
+    SuperClass::parse(node);
+
+    if (node.goToChildElement())
+    {
+      StdString zoomDomainDefRoot("zoom_domain_definition");
+      StdString zoom("zoom_domain");
+      do
+      {
+        if (node.getElementName() == zoom) {
+          CZoomDomain* tmp = (CZoomDomainGroup::get(zoomDomainDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_.push_back(std::make_pair(TRANS_ZOOM_DOMAIN,tmp));
+        }
+      } while (node.goToNextElement()) ;
+      node.goToParentElement();
+    }
+  }
    //----------------------------------------------------------------
 
    DEFINE_REF_FUNC(Domain,domain)

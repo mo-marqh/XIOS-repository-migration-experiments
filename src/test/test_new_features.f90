@@ -123,10 +123,6 @@ PROGRAM test_new_features
 !  CALL xios_get_handle("output",file_hdl)
 !  CALL xios_add_child(file_hdl,field_hdl)
 !  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_C")
-!
-!  CALL xios_get_handle("output_All_Axis",file_hdl)
-!  CALL xios_add_child(file_hdl,field_hdl)
-!  CALL xios_set_attr(field_hdl,field_ref="field_All_Axis",name="field_C")
 
   dtime%second = 3600
   CALL xios_set_timestep(dtime)

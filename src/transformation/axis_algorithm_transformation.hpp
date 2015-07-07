@@ -30,6 +30,7 @@ protected:
                                                         const std::vector<int>& axisSrcGlobalIndex,
                                                         int axisPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
+                                                        const std::vector<int>& gridSrcGlobalDim,
                                                         const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid);

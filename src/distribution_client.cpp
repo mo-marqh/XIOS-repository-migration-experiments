@@ -199,8 +199,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nGlob_.at(indexMap_[idx]+1)  = domList[domIndex]->nj_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]+1) = 0;
       nBeginGlobal_.at(indexMap_[idx]+1) = domList[domIndex]->jbegin;
-      nZoomBegin_.at((indexMap_[idx]+1)) = domList[domIndex]->zoom_jbegin;
-      nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->zoom_jbegin + domList[domIndex]->zoom_nj-1;
+      nZoomBegin_.at((indexMap_[idx]+1)) = domList[domIndex]->global_zoom_jbegin;
+      nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
       dataBegin_.at(indexMap_[idx]+1) = (2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
       dataIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->data_j_index.numElements());
@@ -211,8 +211,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nGlob_.at(indexMap_[idx]) = domList[domIndex]->ni_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = domList[domIndex]->ibegin;
-      nZoomBegin_.at((indexMap_[idx])) = domList[domIndex]->zoom_ibegin;
-      nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->zoom_ibegin + domList[domIndex]->zoom_ni-1;
+      nZoomBegin_.at((indexMap_[idx])) = domList[domIndex]->global_zoom_ibegin;
+      nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
 
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
       dataIndex_.at(indexMap_[idx]).resize(domList[domIndex]->data_i_index.numElements());

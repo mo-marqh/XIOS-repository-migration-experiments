@@ -249,8 +249,8 @@ namespace xios
               }
               case (ONE_FILE) :
               {
-                 SuperClassWriter::addDimension(dimXid, domain->zoom_ni.getValue());
-                 SuperClassWriter::addDimension(dimYid, domain->zoom_nj.getValue());
+                 SuperClassWriter::addDimension(dimXid, domain->global_zoom_ni);
+                 SuperClassWriter::addDimension(dimYid, domain->global_zoom_nj);
 
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
@@ -321,7 +321,8 @@ namespace xios
                      }
                      else
                      {
-                       start[1]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ; start [0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ;
+                       start[1]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
+                       start[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
                        count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
                      }
 
@@ -338,15 +339,16 @@ namespace xios
                        start[0]=0 ;
                        count[0]=0 ;
                        SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0,&start,&count);
-                       SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);                 }
+                       SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
+                     }
                      else
                      {
-                       start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin.getValue() ;
+                       start[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
                        count[0]=domain->zoom_nj_srv ;
                        CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
-                       start[0]=domain->zoom_ibegin_srv-domain->zoom_ibegin.getValue() ;
+                       start[0]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
                        count[0]=domain->zoom_ni_srv ;
                        CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
@@ -367,8 +369,8 @@ namespace xios
                    else
                    {
                      start[2] = 0;
-                     start[1] = domain->zoom_ibegin_srv - domain->zoom_ibegin.getValue();
-                     start[0] = domain->zoom_jbegin_srv - domain->zoom_jbegin.getValue();
+                     start[1] = domain->zoom_ibegin_srv - domain->global_zoom_ibegin;
+                     start[0] = domain->zoom_jbegin_srv - domain->global_zoom_jbegin;
                      count[2] = domain->nvertex;
                      count[1] = domain->zoom_ni_srv;
                      count[0] = domain->zoom_nj_srv;
@@ -390,8 +392,8 @@ namespace xios
                    }
                    else
                    {
-                     start[1] = domain->zoom_ibegin_srv - domain->zoom_ibegin.getValue();
-                     start[0] = domain->zoom_jbegin_srv - domain->zoom_jbegin.getValue();
+                     start[1] = domain->zoom_ibegin_srv - domain->global_zoom_ibegin;
+                     start[0] = domain->zoom_jbegin_srv - domain->global_zoom_jbegin;
                      count[1] = domain->zoom_ni_srv;
                      count[0] = domain->zoom_nj_srv;
                    }
@@ -553,9 +555,9 @@ namespace xios
                  }
                  else
                  {
-                   start[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin ;
+                   start[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
                    count[0]=domain->zoom_nj_srv ;
-                   startBounds[0]=domain->zoom_jbegin_srv-domain->zoom_jbegin ;
+                   startBounds[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
                    startBounds[1]=0 ;
                    countBounds[0]=domain->zoom_nj_srv ;
                    countBounds[1]=domain->nvertex ;

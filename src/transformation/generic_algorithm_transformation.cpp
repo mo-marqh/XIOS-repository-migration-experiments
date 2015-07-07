@@ -20,12 +20,14 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
   \param[in] elementPositionInGrid position of an element in a grid .E.g: if grid is composed of domain and axis (in order),
                 then position of axis in grid is 2 (since a domain is considered to contain 2 elements (axis)
   \param[in] gridDestGlobalDim global size of each dimension of grid source (all dimension must have the same size except of the one on which transformation is performed)
+  \param[in] gridSrcGlobalDim dimension size of source grid (it should share the same size for all dimension, maybe except the domain on which transformation is performed)
   \param[in] globalIndexGridDestSendToServer global index of grid destination on the current client to send to server
   \param[in/out] globaIndexWeightFromDestToSource mapping between transformed global index of grid destination
              and the weighted value as long as global index from grid index source
 */
 void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositionInGrid,
                                                              const std::vector<int>& gridDestGlobalDim,
+                                                             const std::vector<int>& gridSrcGlobalDim,
                                                              const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                              std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
@@ -44,6 +46,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                    itTransMap->second,
                                                    elementPositionInGrid,
                                                    gridDestGlobalDim,
+                                                   gridSrcGlobalDim,
                                                    globalIndexGridDestSendToServer,
                                                    globalIndexDestGrid,
                                                    globalIndexSrcGrid);

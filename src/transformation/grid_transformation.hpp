@@ -45,13 +45,13 @@ public:
 private:
   void computeTransformation();
   void initializeAlgorithms();
-  void initializeAxisAlgorithms();
-  void initializeDomainAlgorithms();
+  void initializeAxisAlgorithms(int axisPositionInGrid);
+  void initializeDomainAlgorithms(int domPositionInGrid);
   void initializeMappingOfOriginalGridSource();
 
   void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
-  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
+  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
   void setUpGrid(int elementPositionInGrid, ETranformationType transType);
   void computeFinalTransformationMapping();
   void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
@@ -77,6 +77,8 @@ private:
   typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
   //! List of algorithm types and their order
   ListAlgoType listAlgos_;
+  // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_
+  std::vector<bool> algoTypes_;
 
   // Mapping between position of an element in grid and its transformation (if any)
   std::list<CGenericAlgorithmTransformation*> algoTransformation_;

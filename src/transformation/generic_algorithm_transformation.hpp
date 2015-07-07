@@ -27,6 +27,7 @@ public:
 
   void computeGlobalSourceIndex(int elementPositionInGrid,
                                 const std::vector<int>& gridDestGlobalDim,
+                                const std::vector<int>& gridSrcGlobalDim,
                                 const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                 std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource);
 
@@ -50,6 +51,7 @@ protected:
                                                         const std::vector<int>& srcGlobalIndex,
                                                         int elementPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
+                                                        const std::vector<int>& gridSrcGlobalDim,
                                                         const CArray<size_t,1>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid) = 0;

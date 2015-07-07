@@ -861,12 +861,12 @@ namespace xios {
           {
             nZoomBegin[indexMap[i]] = domainList[domainId]->zoom_ibegin_srv;
             nZoomSize[indexMap[i]]  = domainList[domainId]->zoom_ni_srv;
-            nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->zoom_ibegin;
+            nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->global_zoom_ibegin;
             nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
 
             nZoomBegin[indexMap[i] + 1] = domainList[domainId]->zoom_jbegin_srv;
             nZoomSize[indexMap[i] + 1] = domainList[domainId]->zoom_nj_srv;
-            nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->zoom_jbegin;
+            nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->global_zoom_jbegin;
             nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
             ++domainId;
           }
@@ -1123,6 +1123,7 @@ namespace xios {
       {
         pDom->solveRefInheritance(apply);
         pDom->solveBaseReference();
+        pDom->solveInheritanceTransformation();
         if ((!pDom->domain_ref.isEmpty()) && (pDom->name.isEmpty()))
           pDom->name.setValue(pDom->getBaseDomainReference()->getId());
       }

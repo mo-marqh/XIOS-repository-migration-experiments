@@ -11,6 +11,7 @@
 #include "inverse_axis.hpp"
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
+#include "zoom_domain.hpp"
 
 namespace xios
 {
@@ -25,6 +26,7 @@ namespace xios
   template class CObjectTemplate<CInverseAxis>;
   template class CObjectTemplate<CZoomAxis>;
   template class CObjectTemplate<CInterpolateAxis>;
+  template class CObjectTemplate<CZoomDomain>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -36,4 +38,5 @@ namespace xios
   template class CObjectTemplate<CInverseAxisGroup>;
   template class CObjectTemplate<CZoomAxisGroup>;
   template class CObjectTemplate<CInterpolateAxisGroup>;
+  template class CObjectTemplate<CZoomDomainGroup>;
 }
