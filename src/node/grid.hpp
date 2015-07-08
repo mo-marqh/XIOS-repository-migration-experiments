@@ -186,7 +186,7 @@ namespace xios {
          const CDistributionClient* getDistributionClient() const;
          CGridTransformation* getTransformations();
 
-         void transformGrid(CGrid* transformedGrid);
+         void transformGrid(CGrid* transformGridSrc);
          bool isTransformed();
          void setTransformed();
 

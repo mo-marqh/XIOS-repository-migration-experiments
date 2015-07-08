@@ -796,7 +796,7 @@ namespace xios{
        CGrid* relGridRef = CGrid::get(grid_ref.getValue());
        if ((0 != gridRefOfFieldRef) && (relGridRef != gridRefOfFieldRef) && (!(relGridRef->isTransformed())))
        {
-         gridRefOfFieldRef->transformGrid(relGridRef);
+         relGridRef->transformGrid(gridRefOfFieldRef);
          filterSources_.push_back(fieldRef);
        }
      }
@@ -816,10 +816,10 @@ namespace xios{
         dataToReceive = 0.0; // Reset all data destination
         for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
         {
-          if (0 != (*itFilterSrc)->grid->getTransformations())
+          if (0 != grid->getTransformations())
           {
-             const std::map<int, CArray<int,1>* >& localIndexToSend = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToSendFromGridSource();
-             const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = (*itFilterSrc)->grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
+             const std::map<int, CArray<int,1>* >& localIndexToSend = grid->getTransformations()->getLocalIndexToSendFromGridSource();
+             const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
 
              sendAndReceiveTransformedData(localIndexToSend, dataToSend,
                                            localIndexToReceive, dataToReceive);

@@ -1160,32 +1160,32 @@ namespace xios {
     return transformations_;
   }
 
-  void CGrid::transformGrid(CGrid* transformedGrid)
+  void CGrid::transformGrid(CGrid* transformGridSrc)
   {
-    if (transformedGrid->isTransformed()) return;
-    transformedGrid->setTransformed();
-    if (axis_domain_order.numElements() != transformedGrid->axis_domain_order.numElements())
+    if (isTransformed()) return;
+    setTransformed();
+    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
     {
-      ERROR("CGrid::transformGrid(CGrid* transformedGrid)",
+      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
            << "Two grids have different dimension size"
-           << "Dimension of grid source " <<this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Dimension of grid destination " <<transformedGrid->getId() << " is " << transformedGrid->axis_domain_order.numElements());
+           << "Dimension of grid destination " <<this->getId() << " is " << axis_domain_order.numElements() << std::endl
+           << "Dimension of grid source " <<transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
     }
     else
     {
       int ssize = axis_domain_order.numElements();
       for (int i = 0; i < ssize; ++i)
-        if (axis_domain_order(i) != (transformedGrid->axis_domain_order)(i))
-          ERROR("CGrid::transformGrid(CGrid* transformedGrid)",
-                << "Grids " <<this->getId() <<" and " << transformedGrid->getId()
+        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
+          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+                << "Grids " <<this->getId() <<" and " << transformGridSrc->getId()
                 << " don't have elements in the same order");
     }
 
-    transformations_ = new CGridTransformation(transformedGrid, this);
+    transformations_ = new CGridTransformation(this, transformGridSrc);
     transformations_->computeAll();
 
     // Ok, now need to compute index of grid source
-    checkMaskIndex(false);
+    transformGridSrc->checkMaskIndex(false);
   }
 
   /*!

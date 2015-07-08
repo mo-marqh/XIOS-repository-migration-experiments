@@ -41,6 +41,8 @@ public:
 
   const std::map<int, CArray<int,1>* >& getLocalIndexToSendFromGridSource() const;
   const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
+  CGrid* getGridSource() {return gridSource_; }
+  CGrid* getGridDestination() { return gridDestination_; }
 
 private:
   void computeTransformation();
