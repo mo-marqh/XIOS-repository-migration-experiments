@@ -38,7 +38,10 @@ namespace xios {
    {
          enum EEventId
          {
-           EVENT_ID_SERVER_ATTRIBUT
+           EVENT_ID_SERVER_ATTRIBUT,
+           EVENT_ID_INDEX,
+           EVENT_ID_DISTRIBUTED_VALUE,
+           EVENT_ID_NON_DISTRIBUTED_VALUE
          } ;
 
          /// typedef ///
@@ -101,14 +104,27 @@ namespace xios {
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
         int global_zoom_begin, global_zoom_size;  // The real global zoom begin and zoom size after axis is transformed (zoomed)
+        CArray<double,1> value_srv;
+        CArray<double,2> bound_srv;
       private :
          void checkData();
          void checkMask();
          void checkZoom();
+         void checkBounds();
          void checkTransformations();
          void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
                                  CServerDistributionDescription::ServerDistributionType disType);
+         void sendValue();
+         void computeConnectedServer(void);
+         void sendDistributedValue();
+         void sendNonDistributedValue();
 
+         static void recvIndex(CEventServer& event);
+         static void recvDistributedValue(CEventServer& event);
+         static void recvNonDistributedValue(CEventServer& event);
+         void recvIndex(int rank, CBufferIn& buffer);
+         void recvDistributedValue(int rank, CBufferIn& buffer);
+         void recvNonDistributedValue(int rank, CBufferIn& buffer);
 
          void setTransformations(const TransMapTypes&);
       private:
@@ -117,7 +133,11 @@ namespace xios {
          std::set<StdString> relFiles;
          TransMapTypes transformationMap_;
          bool isDistributed_;
-
+         std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
+         std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
+         std::vector<int> connectedServerRank_;
+         std::map<int, CArray<int,1> > indiSrv_;
+         bool hasBounds_;
          DECLARE_REF_FUNC(Axis,axis)
    }; // class CAxis
 

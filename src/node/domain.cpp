@@ -562,21 +562,7 @@ namespace xios {
       zoom_jbegin_client = jbegin_client > global_zoom_jbegin ? jbegin_client : global_zoom_jbegin ;
       zoom_jend_client = jend_client < global_zoom_jend ? jend_client : global_zoom_jend ;
       zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
-      if (zoom_nj_client<0) zoom_nj_client=0 ;
-
-//      int zoom_iend=zoom_ibegin+zoom_ni-1 ;
-//      zoom_ibegin_client = ibegin_client > zoom_ibegin ? ibegin_client : zoom_ibegin ;
-//      zoom_iend_client = iend_client < zoom_iend ? iend_client : zoom_iend ;
-//      zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
-//      if (zoom_ni_client<0) zoom_ni_client=0 ;
-//
-//
-//      int zoom_jend=zoom_jbegin+zoom_nj-1 ;
-//      zoom_jbegin_client = jbegin_client > zoom_jbegin ? jbegin_client : zoom_jbegin ;
-//      zoom_jend_client = jend_client < zoom_jend ? jend_client : zoom_jend ;
-//      zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
-//      if (zoom_nj_client<0) zoom_nj_client=0 ;
-
+      if (zoom_nj_client<0) zoom_nj_client=0;
    }
 
    void CDomain::checkBounds(void)
@@ -614,7 +600,6 @@ namespace xios {
      CContext* context=CContext::getCurrent();
 
       this->checkDomain();
-//      this->checkZoom();
       this->checkBounds();
       this->checkArea();
 
@@ -623,8 +608,6 @@ namespace xios {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
-//         this->completeLonLatClient();
-//         this->computeConnectedServer() ;
       }
       else
       { // Côté serveur uniquement
