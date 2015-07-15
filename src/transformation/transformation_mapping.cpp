@@ -139,10 +139,11 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
   unsigned long* recvBuffGlobalIndex;
   if (0 != buffSize) recvBuffGlobalIndex = new unsigned long [buffSize];
 
+  std::map<int, MPI_Request> requests;
+
   // Inform all "source clients" about index that they need to send
   for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc)
   {
-    MPI_Request request;
     unsigned long* sendPtr = const_cast<unsigned long*>(&(itMapSrc->second)[0]);
     MPI_Isend(sendPtr,
               (itMapSrc->second).size(),
@@ -150,7 +151,7 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
               itMapSrc->first,
               11,
               client->intraComm,
-              &request);
+              &requests[itMapSrc->first]);
   }
 
   // Now all the "source clients" try listening messages from other "destination clients"
@@ -175,6 +176,10 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
     }
     ++numClientReceived;
   }
+
+  std::map<int, MPI_Request>::iterator itRequest;
+  for (itRequest = requests.begin(); itRequest != requests.end(); ++itRequest)
+    MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
 
   delete [] sendBuff;
   delete [] recvBuff;

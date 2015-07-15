@@ -471,6 +471,8 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
  if (0 != sendBuffSize) sendBuff = new unsigned long [sendBuffSize];
  for (StdSize idx = 0; idx < sendBuffSize; ++idx) sendBuff[idx] = NumTraits<Scalar>::sfmax();
 
+ std::map<int, MPI_Request> requests;
+
  int currentBuffPosition = 0;
  for (itSend = itbSend; itSend != iteSend; ++itSend)
  {
@@ -487,7 +489,7 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
      }
    }
    currentSendBuff = sendBuff + currentBuffPosition;
-   MPI_Send(currentSendBuff, countSize, MPI_UNSIGNED_LONG, destRank, 14, client->intraComm);
+   MPI_Isend(currentSendBuff, countSize, MPI_UNSIGNED_LONG, destRank, 14, client->intraComm, &requests[destRank]);
    currentBuffPosition += countSize;
  }
 
@@ -549,6 +551,10 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
      }
    }
  }
+
+ std::map<int, MPI_Request>::iterator itRequest;
+ for (itRequest = requests.begin(); itRequest != requests.end(); ++itRequest)
+   MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
 
  if (0 != sendBuffSize) delete [] sendBuff;
  if (0 != recvBuffSize) delete [] recvBuff;
