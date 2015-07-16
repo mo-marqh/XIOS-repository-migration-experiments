@@ -25,13 +25,15 @@ namespace xios {
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false)
+      , global_zoom_ibegin(0), global_zoom_ni(0), global_zoom_jbegin(0), global_zoom_nj(0)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false)
-         { /* Ne rien faire de plus */ }
+      , global_zoom_ibegin(0), global_zoom_ni(0), global_zoom_jbegin(0), global_zoom_nj(0)
+   { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
    {
