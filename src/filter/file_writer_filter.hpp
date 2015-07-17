@@ -14,11 +14,13 @@ namespace xios
   {
     public:
       /*!
-       * Constructs the filter (with one input slot) associated to the specified field.
+       * Constructs the filter (with one input slot) associated to the specified field
+       * and a garbage collector.
        *
+       * \param gc the associated garbage collector
        * \param field the associated field
        */
-      CFileWriterFilter(CField* field);
+      CFileWriterFilter(CGarbageCollector& gc, CField* field);
 
     protected:
       /*!

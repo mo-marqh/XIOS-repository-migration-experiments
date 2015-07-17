@@ -4,8 +4,8 @@
 
 namespace xios
 {
-  CFileWriterFilter::CFileWriterFilter(CField* field)
-    : CInputPin(1)
+  CFileWriterFilter::CFileWriterFilter(CGarbageCollector& gc, CField* field)
+    : CInputPin(gc, 1)
     , field(field)
   {
     if (!field)

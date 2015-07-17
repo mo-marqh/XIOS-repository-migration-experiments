@@ -19,10 +19,11 @@ namespace xios
        * Constructs a filter with the specified number of input slots
        * and the specified engine.
        *
+       * \param gc the associated garbage collector
        * \param inputSlotsCount the number of input slots
        * \param engine the filter engine
        */
-      CFilter(size_t inputSlotsCount, IFilterEngine* engine);
+      CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine);
 
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself

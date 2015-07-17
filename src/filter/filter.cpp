@@ -2,8 +2,8 @@
 
 namespace xios
 {
-  CFilter::CFilter(size_t inputSlotsCount, IFilterEngine* engine)
-    : CInputPin(inputSlotsCount)
+  CFilter::CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine)
+    : CInputPin(gc, inputSlotsCount)
     , COutputPin()
     , engine(engine)
   { /* Nothing to do */ }

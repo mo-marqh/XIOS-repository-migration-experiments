@@ -10,6 +10,7 @@
 //#include "context_client.hpp"
 //#include "context_server.hpp"
 #include "data_output.hpp"
+#include "garbage_collector.hpp"
 
 #include "mpi.hpp"
 
@@ -217,6 +218,7 @@ namespace xios {
          bool finalized;
          std::map<int, StdSize> dataSize_;
          StdString idServer_;
+         CGarbageCollector garbageCollector;
 
 
       public: // Some function maybe removed in the near future

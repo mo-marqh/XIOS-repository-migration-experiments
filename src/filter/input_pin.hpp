@@ -8,6 +8,8 @@
 
 namespace xios
 {
+  class CGarbageCollector;
+
   /*!
    * An input pin handles the data packets received by a filter.
    */
@@ -15,11 +17,13 @@ namespace xios
   {
     public:
       /*!
-       * Constructs an input pin with the specified number of slots.
+       * Constructs an input pin with the specified number of slots
+       * and an associated garbage collector.
        *
+       * \param gc the garbage collector associated with this input pin
        * \param slotsCount the number of slots
        */
-      CInputPin(size_t slotsCount);
+      CInputPin(CGarbageCollector& gc, size_t slotsCount);
 
       /*!
        * Receives a data packet from an upstream filter on
@@ -31,7 +35,16 @@ namespace xios
        */
       void setInput(size_t inputSlot, CDataPacketPtr packet);
 
+      /*!
+       * Removes all pending packets which are older than the specified timestamp.
+       *
+       * \param timestamp the timestamp used for invalidation
+       */
+      void virtual invalidate(Time timestamp);
+
     protected:
+      CGarbageCollector& gc; //!< The garbage collector associated to the input pin
+
       /*!
        * Function triggered when all slots have been filled for a specific timestamp.
        * It should be implemented by the filter class to process the data.

@@ -930,9 +930,15 @@ namespace xios {
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    {
-      info(50)<<"updateCalendar : before : "<<calendar->getCurrentDate()<<endl;
+      info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
       calendar->update(step);
-      info(50)<<"updateCalendar : after : "<<calendar->getCurrentDate()<<endl;
+      info(50) << "updateCalendar : after : " << calendar->getCurrentDate() << endl;
+
+      if (hasClient)
+      {
+        checkPrefetchingOfEnabledReadModeFiles();
+        garbageCollector.invalidate(calendar->getCurrentDate());
+      }
    }
 
    //! Server side: Create header of netcdf file

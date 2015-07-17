@@ -15,13 +15,14 @@ namespace xios
   {
     public:
       /*!
-       * Constructs the filter with one input slot for the specified grid
-       * and context.
+       * Constructs the filter with one input slot and an associated
+       * garbage collector for the specified grid and context.
        *
+       * \param gc the garbage collector associated with this input pin
        * \param context the context to which the data belongs
        * \param grid the grid to which the data is attached
        */
-      CStoreFilter(CContext* context, CGrid* grid);
+      CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid);
 
       /*!
        * Accesses the filter storage and retuns the packet corresponding
@@ -46,6 +47,13 @@ namespace xios
        */
       template <int N>
       CDataPacket::StatusCode getData(Time timestamp, CArray<double, N>& data);
+
+      /*!
+       * Removes all pending packets which are older than the specified timestamp.
+       *
+       * \param timestamp the timestamp used for invalidation
+       */
+      void virtual invalidate(Time timestamp);
 
     protected:
       /*!

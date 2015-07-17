@@ -5,8 +5,8 @@
 
 namespace xios
 {
-  CStoreFilter::CStoreFilter(CContext* context, CGrid* grid)
-    : CInputPin(1)
+  CStoreFilter::CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid)
+    : CInputPin(gc, 1)
     , context(context)
     , grid(grid)
   {
@@ -62,5 +62,14 @@ namespace xios
   void CStoreFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
     packets.insert(std::make_pair(data[0]->timestamp, data[0]));
+    // The packet is always destroyed by the garbage collector
+    // so we register but never unregister
+    gc.registerFilter(this, data[0]->timestamp);
+  }
+
+  void CStoreFilter::invalidate(Time timestamp)
+  {
+    CInputPin::invalidate(timestamp);
+    packets.erase(packets.begin(), packets.lower_bound(timestamp));
   }
 } // namespace xios
