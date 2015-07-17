@@ -12,9 +12,9 @@
 #include "calendar_util.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
-#include "expr_node.hpp"
 #include "declare_ref_func.hpp"
 #include "transformation_enum.hpp"
+#include "variable.hpp"
 
 
 namespace xios {
