@@ -9,6 +9,7 @@
 #include "message.hpp"
 #include "xios_spl.hpp"
 #include "type.hpp"
+#include "timer.hpp"
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include <set>
@@ -201,6 +202,62 @@ namespace xios{
     }
 
     for (list< CArray<double,1>* >::iterator it = list_data.begin(); it != list_data.end(); it++) delete *it;
+  }
+
+  void CField::sendUpdateData(const CArray<double,1>& data)
+  {
+    CTimer::get("XIOS Send Data").resume();
+
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
+
+    CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
+
+    map<int, CArray<int,1>* >::iterator it;
+    list<CMessage> list_msg;
+    list<CArray<double,1> > list_data;
+
+    if (!grid->doGridHaveDataDistributed())
+    {
+       if (0 == client->clientRank)
+       {
+          for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+          {
+            int rank = (*it).first;
+            CArray<int,1>& index = *(it->second);
+
+            list_msg.push_back(CMessage());
+            list_data.push_back(CArray<double,1>(index.numElements()));
+
+            CArray<double,1>& data_tmp = list_data.back();
+            for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+
+            list_msg.back() << getId() << data_tmp;
+            event.push(rank, 1, list_msg.back());
+          }
+          client->sendEvent(event);
+       } else client->sendEvent(event);
+    }
+    else
+    {
+      for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+      {
+        int rank = (*it).first;
+        CArray<int,1>& index = *(it->second);
+
+        list_msg.push_back(CMessage());
+        list_data.push_back(CArray<double,1>(index.numElements()));
+
+        CArray<double,1>& data_tmp = list_data.back();
+        for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+
+        list_msg.back() << getId() << data_tmp;
+        event.push(rank, grid->nbSenders[rank], list_msg.back());
+      }
+      client->sendEvent(event);
+    }
+    
+    CTimer::get("XIOS Send Data").suspend();
   }
 
   void CField::recvUpdateData(CEventServer& event)
