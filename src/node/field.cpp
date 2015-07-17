@@ -31,40 +31,24 @@ namespace xios{
       : CObjectTemplate<CField>(), CFieldAttributes()
       , refObject(), baseRefObject()
       , grid(), file()
-      , freq_operation(), freq_write()
-      , nstep(0), nstepMax(0), isEOF(false)
-      , last_Write(), last_operation()
-      , foperation(), hasInstantData(false), hasExpression(false)
-      , active(false) , hasOutputFile(false),hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , nstep(0), nstepMax(0)
+      , hasOutputFile(false)
+      , domAxisIds_("", ""), areAllReferenceSolved(false)
       , isReadDataRequestPending(false)
-      , filterSources_()
    { setVirtualVariableGroup(); }
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
       , refObject(), baseRefObject()
       , grid(), file()
-      , freq_operation(), freq_write()
-      , nstep(0), nstepMax(0), isEOF(false)
-      , last_Write(), last_operation()
-      , foperation(), hasInstantData(false), hasExpression(false)
-      , active(false), hasOutputFile(false), hasFieldOut(false), slotUpdateDate(NULL)
-      , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
+      , nstep(0), nstepMax(0)
+      , hasOutputFile(false)
+      , domAxisIds_("", ""), areAllReferenceSolved(false)
       , isReadDataRequestPending(false)
-      , filterSources_()
    { setVirtualVariableGroup(); }
 
    CField::~CField(void)
-   {
-//      this->grid.reset();
-//      this->file.reset();
-      this->foperation.reset();
-      if (hasExpression) delete expression;
-      if (slotUpdateDate != NULL) delete slotUpdateDate;
-
-   }
-
+   {}
 
   //----------------------------------------------------------------
 
@@ -94,36 +78,8 @@ namespace xios{
       SuperClassAttribute::setAttributes(parent, apply);
       this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
    }
-   //----------------------------------------------------------------
-   //----------------------------------------------------------------
 
-   bool CField::updateDataServer
-      (const CDate& currDate,
-       const std::deque< CArray<double, 1>* > storedClient)
-   {
-      const CDate opeDate      = *last_operation + freq_operation;
-      const CDate writeDate    = *last_Write     + freq_write;
-
-      if (opeDate <= currDate)
-      {
-         if (this->data.numElements() != this->grid->storeIndex[0]->numElements())
-         {
-            this->data.resize(this->grid->storeIndex[0]->numElements());
-         }
-         CArray<double,1> input(data.numElements());
-         this->grid->inputFieldServer(storedClient, input);
-         (*this->foperation)(input);
-         *last_operation = currDate;
-      }
-      if (writeDate < (currDate + freq_operation))
-      {
-         this->foperation->final();
-         this->incrementNStep();
-         *last_Write = writeDate;
-         return true;
-      }
-      return false;
-   }
+  //----------------------------------------------------------------
 
   bool CField::dispatchEvent(CEventServer& event)
   {
@@ -162,55 +118,6 @@ namespace xios{
           return false;
       }
     }
-  }
-
-  void CField::sendUpdateData(void)
-  {
-    CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
-
-    CEventClient event(getType(),EVENT_ID_UPDATE_DATA);
-
-    map<int,CArray<int, 1>* >::iterator it;
-    list<shared_ptr<CMessage> > list_msg;
-    list< CArray<double,1>* > list_data;
-
-    if (!grid->doGridHaveDataDistributed())
-    {
-       if (0 == client->clientRank)
-       {
-          for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
-          {
-            int rank=(*it).first ;
-            CArray<int,1>& index = *(it->second) ;
-            CArray<double,1> data_tmp(index.numElements()) ;
-            for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
-
-            list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
-            list_data.push_back(new CArray<double,1>(data_tmp)) ;
-            *list_msg.back()<<getId()<<*list_data.back() ;
-            event.push(rank,1,*list_msg.back()) ;
-          }
-          client->sendEvent(event) ;
-       } else client->sendEvent(event);
-    }
-    else
-    {
-      for(it=grid->storeIndex_toSrv.begin();it!=grid->storeIndex_toSrv.end();it++)
-      {
-        int rank=(*it).first ;
-        CArray<int,1>& index = *(it->second) ;
-        CArray<double,1> data_tmp(index.numElements()) ;
-        for(int n=0;n<data_tmp.numElements();n++) data_tmp(n)=data(index(n)) ;
-        list_msg.push_back(shared_ptr<CMessage>(new CMessage)) ;
-        list_data.push_back(new CArray<double,1>(data_tmp)) ;
-        *list_msg.back()<<getId()<<*list_data.back() ;
-        event.push(rank,grid->nbSenders[rank],*list_msg.back()) ;
-      }
-      client->sendEvent(event) ;
-    }
-
-    for (list< CArray<double,1>* >::iterator it = list_data.begin(); it != list_data.end(); it++) delete *it;
   }
 
   void CField::sendUpdateData(const CArray<double,1>& data)
@@ -466,6 +373,8 @@ namespace xios{
     StdSize record;
     std::map<int, CArray<double,1> > data;
 
+    bool isEOF = false;
+
     for (int i = 0; i < ranks.size(); i++)
     {
       int rank = ranks[i];
@@ -482,39 +391,6 @@ namespace xios{
       serverSourceFilter->signalEndOfStream(lastDataRequestedFromServer);
     else
       serverSourceFilter->streamDataFromServer(lastDataRequestedFromServer, data);
-
-    /*for (int i = 0; i < ranks.size(); i++)
-    {
-      int rank = ranks[i];
-      *buffers[i] >> record;
-      isEOF = (record == size_t(-1));
-
-      if (!isEOF)
-      {
-        CArray<int,1>& index = *grid->storeIndex_toSrv[rank];
-        CArray<double,1> data_tmp(index.numElements());
-        *buffers[i] >> data_tmp;
-        for (int n = 0; n < data_tmp.numElements(); n++)
-          instantData(index(n)) = data_tmp(n);
-      }
-      else
-        break;
-    }
-
-    if (!isEOF)
-    {
-      for (list< pair<CField*, int> >::iterator it = fieldDependency.begin(); it != fieldDependency.end(); ++it)
-        it->first->setSlot(it->second);
-
-      if (!hasExpression) // Should be always true ?
-      {
-        const std::vector<CField*>& refField = getAllReference();
-        std::vector<CField*>::const_iterator it = refField.begin(), end = refField.end();
-
-        for (; it != end; it++) (*it)->setDataFromExpression(instantData);
-        if (hasFieldOut) updateDataFromExpression(instantData);
-      }
-    }*/
 
     isReadDataRequestPending = false;
   }
@@ -552,6 +428,13 @@ namespace xios{
       return this->nstep;
    }
 
+   func::CFunctor::ETimeType CField::getOperationTimeType() const
+   {
+     return operationTimeType;
+   }
+
+   //----------------------------------------------------------------
+
    void CField::incrementNStep(void)
    {
       this->nstep++;
@@ -569,49 +452,9 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   const CDuration& CField::getFreqOperation(void) const
-   {
-      return this->freq_operation;
-   }
-
-   //----------------------------------------------------------------
-
-   const CDuration& CField::getFreqWrite(void) const
-   {
-      return this->freq_write;
-   }
-
-   //----------------------------------------------------------------
-
-   boost::shared_ptr<func::CFunctor> CField::getFieldOperation(void) const
-   {
-      return this->foperation;
-   }
-
    bool CField::isActive(void) const
    {
       return !this->refObject.empty();
-   }
-
-   //----------------------------------------------------------------
-
-   CArray<double, 1> CField::getData(void) const
-   {
-      return(this->data);
-   }
-
-   //----------------------------------------------------------------
-
-   boost::shared_ptr<CDate> CField::getLastWriteDate(void) const
-   {
-      return(this->last_Write);
-   }
-
-   //----------------------------------------------------------------
-
-   boost::shared_ptr<CDate> CField::getLastOperationDate(void) const
-   {
-      return(this->last_operation);
    }
 
    //----------------------------------------------------------------
@@ -636,9 +479,12 @@ namespace xios{
           solveBaseReference();
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
+        else if (context->hasServer)
+          solveServerOperation();
 
-        solveOperation();
         solveGridReference();
+
+        lastDataRequestedFromServer.setRelCalendar(*context->getCalendar());
      }
      solveGridDomainAxisRef(doSending2Sever);
      if (context->hasClient)
@@ -653,113 +499,50 @@ namespace xios{
      return grid->getConnectedServerDataSize();
    }
 
-   void CField::buildAllExpressionEnabledField()
-   {
-     if (!areAllReferenceSolved) solveAllReferenceEnabledField(true);
-     if (!areAllExpressionBuilt)
-     {
-       areAllExpressionBuilt = true;
-       if (hasDirectFieldReference() && (grid_ref.isEmpty())) baseRefObject->buildAllExpressionEnabledField();
-       buildExpression();
-       active = true;
-     }
-   }
-
    //----------------------------------------------------------------
 
-   void  CField::solveOperation(void)
+   void CField::solveServerOperation(void)
    {
-      using namespace func;
-
       CContext* context = CContext::getCurrent();
 
       if (!context->hasServer || !hasOutputFile) return;
 
-      StdString id;
-      if (hasId()) id = getId();
-      else if (!name.isEmpty()) id = name;
-      else if (hasDirectFieldReference()) id = baseRefObject->getId();
-
-      if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
-
-      if (operation.isEmpty())
-      {
-         ERROR("CField::solveOperation(void)",
-               << "[ id = " << id << "]"
-               << "Impossible to define an operation for this field !");
-      }
+      if (freq_op.isEmpty())
+        freq_op.setValue(TimeStep);
 
       if (freq_offset.isEmpty())
         freq_offset.setValue(NoneDu);
 
-//      if (CXIOSManager::GetStatus() == CXIOSManager::LOC_SERVER)
-      if (context->hasServer)
-      {
-         if (hasOutputFile)
-         {
-           this->freq_operation_srv = this->file->output_freq.getValue();
-           this->freq_write_srv = this->file->output_freq.getValue();
-         }
-         this->lastlast_Write_srv = boost::shared_ptr<CDate>
-                        (new CDate(context->getCalendar()->getInitDate()));
-         this->last_Write_srv     = boost::shared_ptr<CDate>
-                        (new CDate(context->getCalendar()->getInitDate()));
-         this->last_operation_srv = boost::shared_ptr<CDate>
-                        (new CDate(context->getCalendar()->getInitDate()));
-//         this->foperation_srv     =
-//             boost::shared_ptr<func::CFunctor>(new CInstant(this->data_srv));
+      freq_operation_srv = file->output_freq.getValue();
+      freq_write_srv     = file->output_freq.getValue();
 
-         if (hasOutputFile)
-         {
-           const CDuration toffset = this->freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
-           *this->last_operation_srv   = *this->last_operation_srv - toffset;
-         }
-      }
+      lastlast_Write_srv = boost::shared_ptr<CDate>(new CDate(context->getCalendar()->getInitDate()));
+      last_Write_srv     = boost::shared_ptr<CDate>(new CDate(context->getCalendar()->getInitDate()));
+      last_operation_srv = boost::shared_ptr<CDate>(new CDate(context->getCalendar()->getInitDate()));
 
-//      if (context->hasClient)
-//      {
-         this->freq_operation = freq_op.getValue();
-         if (hasOutputFile) this->freq_write = this->file->output_freq.getValue();
-         if (hasFieldOut)
-         {
-           this->freq_write = this->fieldOut->freq_op.getValue();
-         }
-         this->last_Write     = boost::shared_ptr<CDate>
-                        (new CDate(context->getCalendar()->getInitDate()));
-         this->last_operation = boost::shared_ptr<CDate>
-                        (new CDate(context->getCalendar()->getInitDate()));
+      const CDuration toffset = freq_operation_srv - freq_offset.getValue() - context->getCalendar()->getTimeStep();
+      *last_operation_srv     = *last_operation_srv - toffset;
 
-         const CDuration toffset = this->freq_operation - freq_offset.getValue() - context->getCalendar()->getTimeStep();
-         *this->last_operation   = *this->last_operation - toffset;
+      if (operation.isEmpty())
+        ERROR("void CField::solveServerOperation(void)",
+              << "An operation must be defined for field \"" << getId() << "\".");
 
-         lastDataRequestedFromServer.setRelCalendar(*context->getCalendar());
-
-        if (operation.get() == "once") isOnceOperation = true;
-        else isOnceOperation = false;
-        isFirstOperation = true;
+      boost::shared_ptr<func::CFunctor> functor;
+      CArray<double, 1> dummyData;
 
 #define DECLARE_FUNCTOR(MType, mtype) \
-   if (operation.getValue().compare(#mtype) == 0) \
-   { \
-      if (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true) \
+      if (operation.getValue().compare(#mtype) == 0) \
       { \
-        boost::shared_ptr<func::CFunctor> foperation_(new C##MType(this->data,default_value)); \
-        this->foperation = foperation_; \
-      } \
-      else \
-      { \
-        boost::shared_ptr<func::CFunctor> foperation_(new C##MType(this->data)); \
-        this->foperation = foperation_; \
-      } \
-      return; \
-   }
+        functor.reset(new func::C##MType(dummyData)); \
+      }
 
 #include "functor_type.conf"
 
-         ERROR("CField::solveOperation(void)",
-               << "[ operation = " << operation.getValue() << "]"
-               << "The operation is not defined !");
-//      }
+      if (!functor)
+        ERROR("void CField::solveServerOperation(void)",
+              << "\"" << operation << "\" is not a valid operation.");
+
+      operationTimeType = functor->timeType();
    }
 
    //----------------------------------------------------------------
@@ -973,140 +756,11 @@ namespace xios{
      grid->checkMaskIndex(doSendingIndex);
    }
 
-   CGrid* CField::getGridRefOfBaseReference()
-   {
-     solveRefInheritance(true);
-     solveBaseReference();
-     baseRefObject->solveGridReference();
-
-     return baseRefObject->grid;
-   }
-
    void CField::solveTransformedGrid()
    {
      if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
          && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
        grid->transformGrid(getDirectFieldReference()->grid);
-
-     /*if (!grid_ref.isEmpty() && (!field_ref.isEmpty()))
-     {
-       CField* fieldRef  = this;
-       CGrid* gridRefOfFieldRef = 0;
-       while (fieldRef->hasDirectFieldReference())
-       {
-         if ((!(fieldRef->grid_ref.isEmpty())) &&
-             (fieldRef->grid_ref.getValue() != grid_ref.getValue()))
-         {
-           gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
-           fieldRef->addReference(this);
-           fieldRef->solveGridDomainAxisRef(false);
-           break;
-         }
-         CField* tmp = fieldRef->getDirectFieldReference();
-         fieldRef = tmp;
-       }
-
-       if ((0 == gridRefOfFieldRef) &&
-           (!(fieldRef->grid_ref.isEmpty())) &&
-           (fieldRef->grid_ref.getValue() != grid_ref.getValue()))
-       {
-         gridRefOfFieldRef = fieldRef->getGridRefOfBaseReference();
-         fieldRef->addReference(this);
-         fieldRef->solveGridDomainAxisRef(false);
-       }
-
-       CGrid* relGridRef = CGrid::get(grid_ref.getValue());
-       if ((0 != gridRefOfFieldRef) && (relGridRef != gridRefOfFieldRef) && (!(relGridRef->isTransformed())))
-       {
-         relGridRef->transformGrid(gridRefOfFieldRef);
-         filterSources_.push_back(fieldRef);
-       }
-     }*/
-   }
-
-   const std::vector<CField*>& CField::getFilterSources()
-   {
-     return filterSources_;
-   }
-
-   void CField::applyFilter(const CArray<double, 1>& dataToSend, CArray<double,1>& dataToReceive)
-   {
-     std::vector<CField*>::iterator  itFilterSrc, iteFilterSrc;
-     if (!filterSources_.empty())
-     {
-        itFilterSrc = filterSources_.begin(); iteFilterSrc = filterSources_.end();
-        dataToReceive = 0.0; // Reset all data destination
-        for (; itFilterSrc != iteFilterSrc; ++itFilterSrc)
-        {
-          if (0 != grid->getTransformations())
-          {
-             const std::map<int, CArray<int,1>* >& localIndexToSend = grid->getTransformations()->getLocalIndexToSendFromGridSource();
-             const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = grid->getTransformations()->getLocalIndexToReceiveOnGridDest();
-
-             sendAndReceiveTransformedData(localIndexToSend, dataToSend,
-                                           localIndexToReceive, dataToReceive);
-          }
-
-        }
-     }
-   }
-
-   void CField::sendAndReceiveTransformedData(const std::map<int, CArray<int,1>* >& localIndexToSend,
-                                              const CArray<double, 1>& dataSrc,
-                                              const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive,
-                                              CArray<double,1>& dataDest)
-   {
-     CContext* context = CContext::getCurrent();
-     CContextClient* client=context->client;
-
-     // Sending data from field sources to do transformations
-     std::map<int, CArray<int,1>* >::const_iterator itbSend = localIndexToSend.begin(), itSend,
-                                                    iteSend = localIndexToSend.end();
-     int sendBuffSize = 0;
-     for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize = (sendBuffSize < (itSend->second)->numElements())
-                                                                        ? (itSend->second)->numElements(): sendBuffSize;
-     double* sendBuff;
-     if (0 != sendBuffSize) sendBuff = new double [sendBuffSize];
-     for (itSend = itbSend; itSend != iteSend; ++itSend)
-     {
-       int destRank = itSend->first;
-       CArray<int,1>* localIndex_p = itSend->second;
-       int countSize = localIndex_p->numElements();
-       for (int idx = 0; idx < countSize; ++idx)
-       {
-         sendBuff[idx] = dataSrc((*localIndex_p)(idx));
-       }
-       MPI_Send(sendBuff, countSize, MPI_DOUBLE, destRank, 12, client->intraComm);
-     }
-
-     // Receiving data on destination fields
-     std::map<int,std::vector<std::vector<std::pair<int,double> > > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
-                                                                  iteRecv = localIndexToReceive.end();
-     int recvBuffSize = 0;
-     for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < (itRecv->second).size())
-                                                                        ? (itRecv->second).size() : recvBuffSize;
-     double* recvBuff;
-     if (0 != recvBuffSize) recvBuff = new double [recvBuffSize];
-     for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
-     {
-       MPI_Status status;
-       int srcRank = itRecv->first;
-       int countSize = (itRecv->second).size();
-       MPI_Recv(recvBuff, recvBuffSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &status);
-       for (int idx = 0; idx < countSize; ++idx)
-       {
-         const std::vector<std::pair<int,double> >& localIndex_p = (itRecv->second)[idx];
-         int numIndex = localIndex_p.size();
-         for (int i = 0; i < numIndex; ++i)
-         {
-//           if ((localIndex_p)[i].first >= dataDest.numElements() )
-           dataDest((localIndex_p)[i].first) += recvBuff[idx] * ((localIndex_p)[i].second);
-         }
-       }
-     }
-
-     if (0 != sendBuffSize) delete [] sendBuff;
-     if (0 != recvBuffSize) delete [] recvBuff;
    }
 
    ///-------------------------------------------------------------------
@@ -1220,131 +874,6 @@ namespace xios{
         }
       }
     }
-
-  CArray<double,1>* CField::getInstantData(void)
-  {
-    if (!hasInstantData)
-    {
-      instantData.resize(grid->storeIndex_client.numElements());
-      hasInstantData = true;
-    }
-    return &instantData;
-  }
-
-  void CField::addDependency(CField* field, int slotId)
-  {
-    fieldDependency.push_back(pair<CField*,int>(field,slotId));
-  }
-
-  void CField::buildExpression(void)
-  {
-    if (content.size() > 0)
-    {
-      CSimpleNodeExpr* simpleExpr;// = parseExpr(content+'\0');
-      expression = CFieldNode::newNode(simpleExpr);
-      delete simpleExpr;
-      set<string> instantFieldIds;
-      map<string,CField*> associatedInstantFieldIds;
-      expression->getInstantFieldIds(instantFieldIds);
-      for (set<string>::iterator it = instantFieldIds.begin(); it != instantFieldIds.end(); ++it)
-      {
-        if (*it != "this")
-        {
-          if (CField::has(*it))
-          {
-            CField* field = CField::get(*it);
-//            field->processEnabledField();
-            field->buildAllExpressionEnabledField();
-            associatedInstantFieldIds[*it] = field;
-          }
-          else  ERROR("void CField::buildExpression(void)", << " Field " << *it << " does not exist");
-        }
-      }
-
-      set<string> averageFieldIds;
-      map<string,CField*> associatedAverageFieldIds;
-
-      expression->getAverageFieldIds(averageFieldIds);
-      for (set<string>::iterator it = averageFieldIds.begin(); it != averageFieldIds.end(); ++it)
-      {
-        if (CField::has(*it))
-        {
-           CFieldGroup* root = CFieldGroup::get("field_definition");
-           CField* averageField = root->createChild();
-           CField* instantField = root->createChild();
-           averageField->field_ref = *it;
-           averageField->hasFieldOut = true;
-           averageField->fieldOut = instantField;
-           instantField->freq_op = freq_op;
-//           averageField-> processEnabledField();
-           averageField->buildAllExpressionEnabledField();
-           instantField->SuperClassAttribute::setAttributes(averageField, true);
-           instantField->field_ref.reset();
-           instantField->operation.reset();
-
-//           instantField-> processEnabledField();
-           instantField->buildAllExpressionEnabledField();
-           associatedAverageFieldIds[*it] = instantField;
-        }
-        else ERROR("void CField::buildExpression(void)", << " Field " << *it << " does not exist");
-      }
-
-      expression->reduce(this,associatedInstantFieldIds,associatedAverageFieldIds);
-
-      slots.resize(instantFieldIds.size() + averageFieldIds.size());
-      resetSlots();
-      int slotId = 0;
-      set<CField*> fields;
-      expression->getFields(fields);
-      for (set<CField*>::iterator it = fields.begin(); it != fields.end(); ++it, ++slotId) (*it)->addDependency(this,slotId);
-      hasExpression = true;
-    }
-  }
-
-  void CField::resetSlots(void)
-  {
-    for (vector<bool>::iterator it = slots.begin(); it != slots.end(); ++it) *it = false;
-  }
-
-  bool CField::slotsFull(void)
-  {
-    bool ret = true;
-    for (vector<bool>::iterator it = slots.begin(); it != slots.end(); ++it) ret &= *it;
-    return ret;
-  }
-
-  void CField::setSlot(int slotId)
-  {
-    CContext* context = CContext::getCurrent();
-    const CDate& currDate = context->getCalendar()->getCurrentDate();
-    if (slotUpdateDate == NULL || currDate != *slotUpdateDate)
-    {
-      resetSlots();
-      if (slotUpdateDate == NULL) slotUpdateDate = new CDate(currDate);
-      else *slotUpdateDate = currDate;
-    }
-    slots[slotId] = true;
-    if (slotsFull())
-    {
-      CArray<double,1> expr(expression->compute());
-
-      if (hasInstantData)
-      {
-        instantData = expr;
-        for (list< pair<CField *,int> >::iterator it = fieldDependency.begin(); it != fieldDependency.end(); ++it)
-          if (it->first != this) it->first->setSlot(it->second);
-      }
-
-      if (hasOutputFile) updateDataFromExpression(expr);
-
-      const std::vector<CField*>& refField = getAllReference();
-      for (std::vector<CField*>::const_iterator it = refField.begin(); it != refField.end(); it++)
-      {
-        if (!(*it)->hasExpression)
-          (*it)->setDataFromExpression(expr);
-      }
-    }
-  }
 
    /*!
      This function retrieves Id of corresponding domain_ref and axis_ref (if any)
@@ -1483,124 +1012,4 @@ namespace xios{
    }
 
    DEFINE_REF_FUNC(Field,field)
-
-//  void CField::addReference(CField* field)
-//  {
-//    refObject.push_back(field);
-//  }
-//
-//   //----------------------------------------------------------------
-//
-//   bool CField::hasDirectFieldReference(void) const
-//   {
-//     return !this->field_ref.isEmpty();
-//   }
-//
-//   //----------------------------------------------------------------
-//
-//   const StdString& CField::getBaseFieldId(void) const
-//   {
-//      return this->getBaseFieldReference()->getId();
-//   }
-//
-//   //----------------------------------------------------------------
-//
-//   /*!
-//   \brief Get pointer to direct field to which the current field refers.
-//   */
-//   CField* CField::getDirectFieldReference(void) const
-//   {
-//      if (this->field_ref.isEmpty())
-//         return this->getBaseFieldReference();
-//
-//      if (!CField::has(this->field_ref.getValue()))
-//         ERROR("CField::getDirectFieldReference(void)",
-//               << "[ ref_name = " << this->field_ref.getValue() << "]"
-//               << " invalid field name !");
-//
-//      return CField::get(this->field_ref.getValue());
-//   }
-//
-//   //----------------------------------------------------------------
-//
-//   CField* CField::getBaseFieldReference(void) const
-//   {
-//      return baseRefObject;
-//   }
-//
-//   //----------------------------------------------------------------
-//
-//   const std::vector<CField*>& CField::getAllReference(void) const
-//   {
-//      return refObject;
-//   }
-//
-//   /*!
-//   \brief Searching for all reference of a field
-//   If a field refers to (an)other field(s), we will search for all its referenced parents.
-//   Moreover, if any father, direct or indirect (e.g: two levels up), has non-empty attributes,
-//   all its attributes will be added to the current field
-//   \param [in] apply Flag to specify whether current field uses attributes of its father
-//               in case the attribute is empty (true) or its attributes are replaced by ones of its father (false)
-//   */
-//   void CField::solveRefInheritance(bool apply)
-//   {
-//      std::set<CField *> sset;
-//      CField* refer_sptr;
-//      CField* refer_ptr = this;
-//
-//      while (refer_ptr->hasDirectFieldReference())
-//      {
-//         refer_sptr = refer_ptr->getDirectFieldReference();
-//         refer_ptr  = refer_sptr;
-//
-//         if(sset.end() != sset.find(refer_ptr))
-//         {
-//            DEBUG (<< "Circular dependency stopped for field object on "
-//                   << "\"" + refer_ptr->getId() + "\" !");
-//            break;
-//         }
-//
-//         SuperClassAttribute::setAttributes(refer_ptr, apply);
-//         sset.insert(refer_ptr);
-//      }
-//   }
-//
-//   /*!
-//   \brief Only on SERVER side. Remove all field_ref from current field
-//   On creating a new field on server side, redundant "field_ref" is still kept in the attribute list
-//   of the current field. This function removes this from current field
-//   */
-//   void CField::removeRefInheritance()
-//   {
-//     if (this->field_ref.isEmpty()) return;
-//     this->clearAttribute("field_ref");
-//   }
-//
-//   void CField::solveBaseReference(void)
-//   {
-//      std::set<CField *> sset;
-//      CField* refer_sptr;
-//      CField* refer_ptr = this;
-//
-//      if (this->hasDirectFieldReference())  baseRefObject = getDirectFieldReference();
-//      else  baseRefObject = CField::get(this);
-//
-//      while (refer_ptr->hasDirectFieldReference())
-//      {
-//         refer_sptr = refer_ptr->getDirectFieldReference();
-//         refer_ptr  = refer_sptr;
-//
-//         if(sset.end() != sset.find(refer_ptr))
-//         {
-//            DEBUG (<< "Circular dependency stopped for field object on "
-//                   << "\"" + refer_ptr->getId() + "\" !");
-//            break;
-//         }
-//
-//         sset.insert(refer_ptr);
-//      }
-//
-//      if (hasDirectFieldReference()) baseRefObject->addReference(this);
-//   }
 } // namespace xios

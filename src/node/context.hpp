@@ -102,7 +102,6 @@ namespace xios {
 
          // Some functions to process context
          void findAllEnabledFields(void);
-         void processEnabledFiles(void);
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
          void findEnabledReadModeFiles(void);
@@ -110,13 +109,11 @@ namespace xios {
          void updateCalendar(int step);
          void createFileHeader(void );
          void solveAllRefOfEnabledFields(bool sendToServer);
-         void buildAllExpressionOfEnabledFields();
          void buildFilterGraphOfEnabledFields();
          void startPrefetchingOfEnabledReadModeFiles();
          void checkPrefetchingOfEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void solveAllRefOfFieldsWithReadAccess();
-         void buildAllExpressionOfFieldsWithReadAccess();
          void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
 
@@ -226,11 +223,6 @@ namespace xios {
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;
         // virtual void fromBinary(StdIStream & is);
-        // void solveAllGridRef(void);
-        // void solveAllOperation(void);
-        // void solveAllExpression(void);
-        // void solveFieldRefInheritance(bool apply);
-
    }; // class CContext
 
    ///--------------------------------------------------------------

@@ -826,7 +826,7 @@ namespace xios
            else if (field->prec==8)   type =  NC_DOUBLE ;
          }
 
-         bool wtime   = !(!field->operation.isEmpty() && field->foperation->timeType() == func::CFunctor::once);
+         bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
 
          if (wtime)
          {
@@ -835,8 +835,8 @@ namespace xios
            // oss << "time_" << field->operation.getValue()
            //     << "_" << field->getRelFile()->output_freq.getValue();
           //oss
-            if (field->foperation->timeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
-            else if (field->foperation->timeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
+            if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
+            else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
             dims.push_back(timeid);
          }
 
@@ -1135,34 +1135,34 @@ namespace xios
 
          StdOStringStream oss;
          string timeAxisId ;
-         if (field->foperation->timeType() == func::CFunctor::instant)  timeAxisId="time_instant" ;
-         else if (field->foperation->timeType() == func::CFunctor::centered)  timeAxisId="time_centered" ;
+         if (field->getOperationTimeType() == func::CFunctor::instant)  timeAxisId="time_instant" ;
+         else if (field->getOperationTimeType() == func::CFunctor::centered)  timeAxisId="time_centered" ;
 
          StdString timeBoundId("time_counter_bounds");
 
          StdString timeAxisBoundId;
-         if (field->foperation->timeType() == func::CFunctor::instant)  timeAxisBoundId="time_instant_bounds" ;
-         else if (field->foperation->timeType() == func::CFunctor::centered)  timeAxisBoundId="time_centered_bounds" ;
+         if (field->getOperationTimeType() == func::CFunctor::instant)  timeAxisBoundId="time_instant_bounds" ;
+         else if (field->getOperationTimeType() == func::CFunctor::centered)  timeAxisBoundId="time_centered_bounds" ;
 
          CArray<double,1> time_data(1) ;
          CArray<double,1> time_counter(1) ;
          CArray<double,1> time_counter_bound(2);
          CArray<double,1> time_data_bound(2);
 
-        bool wtime   = !(!field->operation.isEmpty() && (field->foperation->timeType() == func::CFunctor::once));
+        bool wtime   = !(!field->operation.isEmpty() && (field->getOperationTimeType() == func::CFunctor::once));
 
         if (wtime)
         {
           time_counter(0)= (Time(*field->last_Write_srv) + Time(*field->lastlast_Write_srv)) / 2;
-          if (field->foperation->timeType() == func::CFunctor::instant)
+          if (field->getOperationTimeType() == func::CFunctor::instant)
             time_data(0) = Time(*field->last_Write_srv);
-          else if (field->foperation->timeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
+          else if (field->getOperationTimeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
 
           time_counter_bound(0) = Time(*field->lastlast_Write_srv);
           time_counter_bound(1) = Time(*field->last_Write_srv);
-          if (field->foperation->timeType() == func::CFunctor::instant)
+          if (field->getOperationTimeType() == func::CFunctor::instant)
             time_data_bound(0) = time_data_bound(1) = Time(*field->last_Write_srv);
-          else if (field->foperation->timeType() == func::CFunctor::centered)
+          else if (field->getOperationTimeType() == func::CFunctor::centered)
           {
             time_data_bound(0) = time_counter_bound(0);
             time_data_bound(1) = time_counter_bound(1);
@@ -1252,22 +1252,21 @@ namespace xios
       {
          StdOStringStream oss;
 
-//         if (field->operation.getValue().compare("once") == 0) return ;
-         if (field->foperation->timeType() == func::CFunctor::once) return ;
+         if (field->getOperationTimeType() == func::CFunctor::once) return ;
 
 //         oss << "time_" << field->operation.getValue()
 //             << "_" << field->getRelFile()->output_freq.getValue();
 
 //         StdString axisid = oss.str();
-//         if (field->foperation->timeType() == func::CFunctor::centered) axisid="time_centered" ;
-//         else if (field->foperation->timeType() == func::CFunctor::instant) axisid="time_instant" ;
+//         if (field->getOperationTimeType() == func::CFunctor::centered) axisid="time_centered" ;
+//         else if (field->getOperationTimeType() == func::CFunctor::instant) axisid="time_instant" ;
 
          StdString axisid("time_centered") ;
          StdString axisBoundId("time_centered_bounds");
          StdString timeid("time_counter");
          StdString timeBoundId("axis_nbounds");
 
-         if (field->foperation->timeType() == func::CFunctor::instant)
+         if (field->getOperationTimeType() == func::CFunctor::instant)
          {
             axisid = "time_instant";
             axisBoundId = "time_instant_bounds";

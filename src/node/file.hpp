@@ -102,13 +102,8 @@ namespace xios {
 
          // Some processing on file
          void solveFieldRefInheritance(bool apply);
-         void solveEFGridRef(void);
-         void solveEFOperation(void);
-         void solveEFExpression(void);
          void processEnabledFile(void) ;
-         void processEnabledFields(void) ;
          void solveAllRefOfEnabledFields(bool sendToServer);
-         void buildAllExpressionOfEnabledFields();
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void prefetchEnabledReadModeFields();
          void prefetchEnabledReadModeFieldsIfNeeded();

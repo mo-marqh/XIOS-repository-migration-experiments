@@ -387,8 +387,6 @@ namespace xios {
     // There are some processings that should be done after all of above. For example: check mask or index
     if (hasClient)
     {
-      //this->buildAllExpressionOfEnabledFields();
-      //buildAllExpressionOfFieldsWithReadAccess();
       this->buildFilterGraphOfEnabledFields();
       buildFilterGraphOfFieldsWithReadAccess();
       this->solveAllRefOfEnabledFields(true);
@@ -420,15 +418,6 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->solveAllRefOfEnabledFields(sendToServer);
-     }
-   }
-
-   void CContext::buildAllExpressionOfEnabledFields()
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->buildAllExpressionOfEnabledFields();
      }
    }
 
@@ -475,17 +464,7 @@ namespace xios {
   void CContext::solveAllRefOfFieldsWithReadAccess()
   {
     for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
-    {
       fieldsWithReadAccess[i]->solveAllReferenceEnabledField(false);
-      // Ensure that the instant data will be properly saved
-      fieldsWithReadAccess[i]->getInstantData();
-    }
-  }
-
-  void CContext::buildAllExpressionOfFieldsWithReadAccess()
-  {
-    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
-      fieldsWithReadAccess[i]->buildAllExpressionEnabledField();
   }
 
   void CContext::buildFilterGraphOfFieldsWithReadAccess()

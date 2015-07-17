@@ -571,23 +571,6 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-//   void CFile::processEnabledFile(void)
-//   {
-//     if (output_freq.isEmpty()) ERROR("void CFile::processEnabledFile(void)",
-//                                       <<"File attribute <<output_freq>> is undefined");
-//     solveFieldRefInheritance(true) ;
-//     getEnabledFields() ;
-//     processEnabledFields() ;
-//   }
-
-//   void CFile::processEnabledFields(void)
-//   {
-//      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
-//      {
-//        this->enabledFields[i]->processEnabledField() ;
-//      }
-//   }
-
    /*!
    \brief Resolve all reference of active fields.
       In order to know exactly which data each active field has, a search for all its
@@ -602,21 +585,6 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
-     }
-   }
-
-   /*!
-   \brief Contruct all expression related to active fields.
-      Each field can do some expressions which appear on the xml file, and itself can be
-   a result of an expression among some other fields. This function builds all possible expression
-   relating to active fields.
-   */
-   void CFile::buildAllExpressionOfEnabledFields()
-   {
-     int size = this->enabledFields.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->buildAllExpressionEnabledField();
      }
    }
 
@@ -669,26 +637,6 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
-   void CFile::solveEFGridRef(void)
-   {
-      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
-         this->enabledFields[i]->solveGridReference();
-   }
-
-   //----------------------------------------------------------------
-
-   void CFile::solveEFOperation(void)
-   {
-      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
-         this->enabledFields[i]->solveOperation();
-   }
-
-   void CFile::solveEFExpression(void)
-   {
-      for (unsigned int i = 0; i < this->enabledFields.size(); i++)
-         this->enabledFields[i]->buildExpression();
-   }
 
    /*!
    \brief Add a field into file.
