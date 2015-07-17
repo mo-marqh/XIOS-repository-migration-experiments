@@ -92,6 +92,7 @@ namespace xios {
          CArray<double, 1> getData(void) const;
          template <int N> void getData(CArray<double, N>& _data) const;
 
+         boost::shared_ptr<COutputPin> getInstantDataFilter();
 
          /// Mutateur ///
          void setRelFile(CFile* _file);

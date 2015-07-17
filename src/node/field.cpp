@@ -17,6 +17,7 @@
 #include "source_filter.hpp"
 #include "store_filter.hpp"
 #include "file_writer_filter.hpp"
+#include "pass_through_filter.hpp"
 
 namespace xios{
 
@@ -609,6 +610,15 @@ namespace xios{
       return(this->last_operation);
    }
 
+   //----------------------------------------------------------------
+
+   boost::shared_ptr<COutputPin> CField::getInstantDataFilter()
+   {
+     return instantDataFilter;
+   }
+
+   //----------------------------------------------------------------
+
    void CField::solveAllReferenceEnabledField(bool doSending2Sever)
    {
      CContext* context = CContext::getCurrent();
@@ -758,11 +768,22 @@ namespace xios{
     */
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
    {
+     if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
+
      // Start by building a filter which can provide the field's instant data
      if (!instantDataFilter)
      {
+       // Check if we have a reference on another field
+       if (!field_ref.isEmpty())
+       {
+         boost::shared_ptr<CPassThroughFilter> passThroughFilter(new CPassThroughFilter(gc));
+         instantDataFilter = passThroughFilter;
+         CField* fieldRef = CField::get(field_ref);
+         fieldRef->buildFilterGraph(gc, false);
+         fieldRef->getInstantDataFilter()->connectOutput(passThroughFilter, 0);
+       }
        // Check if the data is to be read from a file
-       if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
+       else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
        else // The data might be passed from the model
          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
