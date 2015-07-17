@@ -111,11 +111,13 @@ namespace xios {
          void createFileHeader(void );
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
+         void buildFilterGraphOfEnabledFields();
          void startPrefetchingOfEnabledReadModeFiles();
          void checkPrefetchingOfEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void solveAllRefOfFieldsWithReadAccess();
          void buildAllExpressionOfFieldsWithReadAccess();
+         void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
 
          std::map<int, StdSize>& getDataSize();

@@ -621,6 +621,20 @@ namespace xios {
    }
 
    /*!
+    * Constructs the filter graph for each active field.
+    *
+    * \param gc the garbage collector to use when building the filter graph
+    */
+   void CFile::buildFilterGraphOfEnabledFields(CGarbageCollector& gc)
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->buildFilterGraph(gc, true);
+     }
+   }
+
+   /*!
      Prefetching the data for enabled fields read from file.
    */
    void CFile::prefetchEnabledReadModeFields(void)

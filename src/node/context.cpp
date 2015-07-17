@@ -45,6 +45,7 @@ namespace xios {
    ENodeType CContext::GetType(void)   { return (eContext); }
 
    //----------------------------------------------------------------
+
    /*!
    \brief Get context group (context root)
    \return Context root
@@ -55,8 +56,8 @@ namespace xios {
       return root.get();
    }
 
-
    //----------------------------------------------------------------
+
    /*!
    \brief Get calendar of a context
    \return Calendar
@@ -67,6 +68,7 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
+
    /*!
    \brief Set a context with a calendar
    \param[in] newCalendar new calendar
@@ -385,9 +387,11 @@ namespace xios {
     // There are some processings that should be done after all of above. For example: check mask or index
     if (hasClient)
     {
+      //this->buildAllExpressionOfEnabledFields();
+      //buildAllExpressionOfFieldsWithReadAccess();
+      this->buildFilterGraphOfEnabledFields();
+      buildFilterGraphOfFieldsWithReadAccess();
       this->solveAllRefOfEnabledFields(true);
-      this->buildAllExpressionOfEnabledFields();
-      buildAllExpressionOfFieldsWithReadAccess();
     }
 
     // Now tell server that it can process all messages from client
@@ -425,6 +429,15 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->buildAllExpressionOfEnabledFields();
+     }
+   }
+
+   void CContext::buildFilterGraphOfEnabledFields()
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->buildFilterGraphOfEnabledFields(garbageCollector);
      }
    }
 
@@ -473,6 +486,12 @@ namespace xios {
   {
     for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
       fieldsWithReadAccess[i]->buildAllExpressionEnabledField();
+  }
+
+  void CContext::buildFilterGraphOfFieldsWithReadAccess()
+  {
+    for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
+      fieldsWithReadAccess[i]->buildFilterGraph(garbageCollector, true);
   }
 
    void CContext::solveAllInheritance(bool apply)

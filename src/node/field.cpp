@@ -13,6 +13,10 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include <set>
+#include "garbage_collector.hpp"
+#include "source_filter.hpp"
+#include "store_filter.hpp"
+#include "file_writer_filter.hpp"
 
 namespace xios{
 
@@ -30,7 +34,7 @@ namespace xios{
       , processed(false), domAxisIds_("", ""), areAllReferenceSolved(false), areAllExpressionBuilt(false)
       , isReadDataRequestPending(false)
       , filterSources_()
-      { setVirtualVariableGroup(); }
+   { setVirtualVariableGroup(); }
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
@@ -455,7 +459,26 @@ namespace xios{
   {
     CContext* context = CContext::getCurrent();
     StdSize record;
+    std::map<int, CArray<double,1> > data;
+
     for (int i = 0; i < ranks.size(); i++)
+    {
+      int rank = ranks[i];
+      *buffers[i] >> record;
+      isEOF = (record == size_t(-1));
+
+      if (!isEOF)
+        *buffers[i] >> data[rank];
+      else
+        break;
+    }
+
+    if (isEOF)
+      serverSourceFilter->signalEndOfStream(lastDataRequestedFromServer);
+    else
+      serverSourceFilter->streamDataFromServer(lastDataRequestedFromServer, data);
+
+    /*for (int i = 0; i < ranks.size(); i++)
     {
       int rank = ranks[i];
       *buffers[i] >> record;
@@ -486,7 +509,7 @@ namespace xios{
         for (; it != end; it++) (*it)->setDataFromExpression(instantData);
         if (hasFieldOut) updateDataFromExpression(instantData);
       }
-    }
+    }*/
 
     isReadDataRequestPending = false;
   }
@@ -632,14 +655,14 @@ namespace xios{
    {
       using namespace func;
 
-      if (!hasOutputFile && !hasFieldOut) return;
+      CContext* context = CContext::getCurrent();
+
+      if (!context->hasServer || !hasOutputFile) return;
 
       StdString id;
       if (hasId()) id = getId();
       else if (!name.isEmpty()) id = name;
       else if (hasDirectFieldReference()) id = baseRefObject->getId();
-
-      CContext* context = CContext::getCurrent();
 
       if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
 
@@ -721,6 +744,45 @@ namespace xios{
                << "[ operation = " << operation.getValue() << "]"
                << "The operation is not defined !");
 //      }
+   }
+
+   //----------------------------------------------------------------
+
+   /*!
+    * Constructs the graph filter for the field, enabling or not the data output.
+    * This method should not be called more than once with enableOutput equal to true.
+    *
+    * \param gc the garbage collector to use when building the filter graph
+    * \param enableOutput must be true when the field data is to be
+    *                     read by the client or/and written to a file
+    */
+   void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
+   {
+     // Start by building a filter which can provide the field's instant data
+     if (!instantDataFilter)
+     {
+       // Check if the data is to be read from a file
+       if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
+         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+       else // The data might be passed from the model
+         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+     }
+
+     // If the field data is to be read by the client or/and written to a file
+     if (enableOutput && !storeFilter && !fileWriterFilter)
+     {
+       if (!read_access.isEmpty() && read_access.getValue())
+       {
+         storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid));
+         instantDataFilter->connectOutput(storeFilter, 0);
+       }
+
+       if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+       {
+         fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+         instantDataFilter->connectOutput(fileWriterFilter, 0);
+       }
+     }
    }
 
    //----------------------------------------------------------------

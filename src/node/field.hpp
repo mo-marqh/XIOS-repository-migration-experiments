@@ -27,8 +27,14 @@ namespace xios {
 
    class CFile;
    class CGrid;
-   class CContext ;
+   class CContext;
    class CGenericFilter;
+
+   class CGarbageCollector;
+   class COutputPin;
+   class CSourceFilter;
+   class CStoreFilter;
+   class CFileWriterFilter;
 
    ///--------------------------------------------------------------
 
@@ -123,6 +129,8 @@ namespace xios {
          void solveGridDomainAxisRef(bool checkAtt);
          void solveTransformedGrid();
          CGrid* getGridRefOfBaseReference();
+
+         void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
 
 //         virtual void fromBinary(StdIStream & is);
 
@@ -232,6 +240,17 @@ namespace xios {
          std::vector<CField*> filterSources_;
          DECLARE_REF_FUNC(Field,field)
 
+      private:
+         //! The output pin of the filter providing the instant data for the field
+         boost::shared_ptr<COutputPin> instantDataFilter;
+         //! The source filter for data provided by the client
+         boost::shared_ptr<CSourceFilter> clientSourceFilter;
+         //! The source filter for data provided by the server
+         boost::shared_ptr<CSourceFilter> serverSourceFilter;
+         //! The terminal filter which stores the instant data
+         boost::shared_ptr<CStoreFilter> storeFilter;
+         //! The terminal filter which writes the data to file
+         boost::shared_ptr<CFileWriterFilter> fileWriterFilter;
    }; // class CField
 
    ///--------------------------------------------------------------

@@ -22,6 +22,8 @@ namespace xios {
    class CFileAttributes;
    class CFile;
 
+   class CGarbageCollector;
+
    ///--------------------------------------------------------------
 
    // Declare/Define CFileAttribute
@@ -107,6 +109,7 @@ namespace xios {
          void processEnabledFields(void) ;
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildAllExpressionOfEnabledFields();
+         void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void prefetchEnabledReadModeFields();
          void prefetchEnabledReadModeFieldsIfNeeded();
 

@@ -8,6 +8,8 @@
 #include "grid.hpp"
 #include "timer.hpp"
 #include "array_new.hpp"
+#include "source_filter.hpp"
+#include "store_filter.hpp"
 
 
 namespace xios {
@@ -15,7 +17,13 @@ namespace xios {
   template <int N>
   void CField::setData(const CArray<double, N>& _data)
   {
-    if (hasInstantData)
+    if (clientSourceFilter)
+      clientSourceFilter->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+    else if (!field_ref.isEmpty() || !content.empty())
+      ERROR("void CField::setData(const CArray<double, N>& _data)",
+            << "Impossible to receive data from the model for a field [ id = " << getId() << " ] with a reference or an arithmetic operation.");
+
+    /*if (hasInstantData)
     {
       grid->inputField(_data, instantData);
       for(list< pair<CField *,int> >::iterator it=fieldDependency.begin(); it!=fieldDependency.end(); ++it)  it->first->setSlot(it->second);
@@ -51,7 +59,7 @@ namespace xios {
         }
       }
       if (hasOutputFile || hasFieldOut) updateData(_data);
-    }
+    }*/
   }
 
   void CField::setDataFromExpression(const CArray<double, 1>& _data)
@@ -278,9 +286,15 @@ namespace xios {
   template <int N>
   void CField::getData(CArray<double, N>& _data) const
   {
-    if (!read_access.isEmpty() && read_access.getValue() && hasInstantData)
+    if (storeFilter)
     {
-      CContext* context = CContext::getCurrent();
+      CDataPacket::StatusCode status = storeFilter->getData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
+
+      if (status == CDataPacket::END_OF_STREAM)
+        ERROR("void CField::getData(CArray<double, N>& _data) const",
+              << "Impossible to access field data, all the records of the field [ id = " << getId() << " ] have been already read.");
+
+      /*CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->getCalendar()->getCurrentDate();
 
       while (isReadDataRequestPending)
@@ -290,7 +304,7 @@ namespace xios {
         ERROR("void CField::getData(CArray<double, N>& _data) const",
               << "Impossible to access field data, all the records of the field [ id = " << getId() << " ] have been already read.");
 
-      grid->outputField(instantData, _data);
+      grid->outputField(instantData, _data);*/
     }
     else
     {
