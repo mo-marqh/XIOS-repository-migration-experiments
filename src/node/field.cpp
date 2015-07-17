@@ -21,6 +21,7 @@
 #include "filter_expr_node.hpp"
 #include "lex_parser.hpp"
 #include "temporal_filter.hpp"
+#include "spatial_transform_filter.hpp"
 
 namespace xios{
 
@@ -628,10 +629,12 @@ namespace xios{
      if (!areAllReferenceSolved)
      {
         areAllReferenceSolved = true;
+
         if (context->hasClient)
         {
           solveRefInheritance(true);
           solveBaseReference();
+          if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
 
         solveOperation();
@@ -785,11 +788,18 @@ namespace xios{
        // Check if we have a reference on another field
        else if (!field_ref.isEmpty())
        {
-         boost::shared_ptr<CPassThroughFilter> passThroughFilter(new CPassThroughFilter(gc));
-         instantDataFilter = passThroughFilter;
          CField* fieldRef = CField::get(field_ref);
          fieldRef->buildFilterGraph(gc, false);
-         fieldRef->getInstantDataFilter()->connectOutput(passThroughFilter, 0);
+
+         std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
+         // Check if a spatial transformation is needed
+         if (!grid_ref.isEmpty() && !fieldRef->grid_ref.isEmpty() && grid_ref.getValue() != fieldRef->grid_ref.getValue())
+           filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
+         else
+           filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
+
+         fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+         instantDataFilter = filters.second;
        }
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
@@ -974,7 +984,11 @@ namespace xios{
 
    void CField::solveTransformedGrid()
    {
-     if (!grid_ref.isEmpty() && (!field_ref.isEmpty()))
+     if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
+         && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
+       grid->transformGrid(getDirectFieldReference()->grid);
+
+     /*if (!grid_ref.isEmpty() && (!field_ref.isEmpty()))
      {
        CField* fieldRef  = this;
        CGrid* gridRefOfFieldRef = 0;
@@ -1007,7 +1021,7 @@ namespace xios{
          relGridRef->transformGrid(gridRefOfFieldRef);
          filterSources_.push_back(fieldRef);
        }
-     }
+     }*/
    }
 
    const std::vector<CField*>& CField::getFilterSources()
