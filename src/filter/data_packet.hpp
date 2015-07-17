@@ -4,7 +4,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "array_new.hpp"
-#include "duration.hpp"
+#include "date.hpp"
 
 namespace xios
 {
@@ -22,6 +22,7 @@ namespace xios
     };
 
     CArray<double, 1> data; //!< Array containing the data
+    CDate date;             //!< Date associated to the data
     Time timestamp;         //!< Timestamp of the data
     StatusCode status;      //!< Status of the packet
 
@@ -34,6 +35,7 @@ namespace xios
       CDataPacket* p = new CDataPacket;
       p->data.resize(data.shape());
       p->data = data;
+      p->date = date;
       p->timestamp = timestamp;
       p->status = status;
       return p;

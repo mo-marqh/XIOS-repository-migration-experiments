@@ -133,6 +133,7 @@ namespace xios {
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
+         boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
 //         virtual void fromBinary(StdIStream & is);
 
@@ -245,6 +246,8 @@ namespace xios {
       private:
          //! The output pin of the filter providing the instant data for the field
          boost::shared_ptr<COutputPin> instantDataFilter;
+         //! The output pin of the filters providing the result of the field's temporal operation
+         std::map<CDuration, boost::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
          //! The source filter for data provided by the client
          boost::shared_ptr<CSourceFilter> clientSourceFilter;
          //! The source filter for data provided by the server

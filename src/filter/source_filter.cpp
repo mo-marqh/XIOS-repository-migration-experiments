@@ -13,10 +13,11 @@ namespace xios
   }
 
   template <int N>
-  void CSourceFilter::streamData(Time timestamp, const CArray<double, N>& data)
+  void CSourceFilter::streamData(CDate date, const CArray<double, N>& data)
   {
     CDataPacketPtr packet(new CDataPacket);
-    packet->timestamp = timestamp;
+    packet->date = date;
+    packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
     packet->data.resize(grid->storeIndex_client.numElements());
@@ -25,18 +26,19 @@ namespace xios
     deliverOuput(packet);
   }
 
-  template void CSourceFilter::streamData<1>(Time timestamp, const CArray<double, 1>& data);
-  template void CSourceFilter::streamData<2>(Time timestamp, const CArray<double, 2>& data);
-  template void CSourceFilter::streamData<3>(Time timestamp, const CArray<double, 3>& data);
+  template void CSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data);
+  template void CSourceFilter::streamData<2>(CDate date, const CArray<double, 2>& data);
+  template void CSourceFilter::streamData<3>(CDate date, const CArray<double, 3>& data);
 
-  void CSourceFilter::streamDataFromServer(Time timestamp, const std::map<int, CArray<double, 1> >& data)
+  void CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)
   {
     CDataPacketPtr packet(new CDataPacket);
-    packet->timestamp = timestamp;
+    packet->date = date;
+    packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
     if (data.size() != grid->storeIndex_toSrv.size())
-      ERROR("CSourceFilter::streamDataFromServer(Time timestamp, const std::map<int, CArray<double, 1> >& data)",
+      ERROR("CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)",
             << "Incoherent data received from servers,"
             << " expected " << grid->storeIndex_toSrv.size() << " chunks but " << data.size() << " were given.");
 
@@ -53,10 +55,11 @@ namespace xios
     deliverOuput(packet);
   }
 
-  void CSourceFilter::signalEndOfStream(Time timestamp)
+  void CSourceFilter::signalEndOfStream(CDate date)
   {
     CDataPacketPtr packet(new CDataPacket);
-    packet->timestamp = timestamp;
+    packet->date = date;
+    packet->timestamp = date;
     packet->status = CDataPacket::END_OF_STREAM;
     deliverOuput(packet);
   }

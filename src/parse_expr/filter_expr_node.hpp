@@ -49,6 +49,27 @@ namespace xios
   };
 
   /*!
+   * Expression node corresponding to a field for which the result of
+   * the temporal operation is requested instead of the instant value.
+   */
+  class CFilterTemporalFieldExprNode : public IFilterExprNode
+  {
+    public:
+      /*!
+       * Constructs an expression node corresponding
+       * to the field whose id is provided.
+       *
+       * \param fieldId the identifier of the field
+       */
+      CFilterTemporalFieldExprNode(const std::string& fieldId);
+
+      virtual boost::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+
+    private:
+      std::string fieldId; //!< The identifier of the field
+  };
+
+  /*!
    * Expression node corresponding to a unary operation on a field.
    */
   class CFilterUnaryOpExprNode : public IFilterExprNode

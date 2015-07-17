@@ -33,6 +33,25 @@ namespace xios
     return outputPin;
   }
 
+  CFilterTemporalFieldExprNode::CFilterTemporalFieldExprNode(const std::string& fieldId)
+    : fieldId(fieldId)
+  { /* Nothing to do */ }
+
+  boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  {
+    if (!CField::has(fieldId))
+      ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+            << "The field " << fieldId << " does not exist.");
+
+    CField* field = CField::get(fieldId);
+    if (field == &thisField)
+      ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+            << "The field " << fieldId << " has an invalid reference to itself.");
+
+    field->buildFilterGraph(gc, false);
+    return field->getTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
+  }
+
   CFilterUnaryOpExprNode::CFilterUnaryOpExprNode(const std::string& opId, IFilterExprNode* child)
     : opId(opId)
     , child(child)

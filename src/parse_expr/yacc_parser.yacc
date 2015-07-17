@@ -75,7 +75,7 @@ Expression:
 
 Field_expr:
             ID      { $$ = new CFilterFieldExprNode(*$1); delete $1; }
-          | AVERAGE { /* TODO: Use temporal operation */ $$ = new CFilterFieldExprNode(*$1); delete $1; }
+          | AVERAGE { $$ = new CFilterTemporalFieldExprNode(*$1); delete $1; }
           | Field_expr PLUS Field_expr   { $$ = new CFilterFieldFieldOpExprNode($1, "add", $3); }
           | Field_expr MINUS Field_expr  { $$ = new CFilterFieldFieldOpExprNode($1, "minus", $3); }
           | Field_expr TIMES Field_expr  { $$ = new CFilterFieldFieldOpExprNode($1, "mult", $3); }

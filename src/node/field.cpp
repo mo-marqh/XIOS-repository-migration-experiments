@@ -20,6 +20,7 @@
 #include "pass_through_filter.hpp"
 #include "filter_expr_node.hpp"
 #include "lex_parser.hpp"
+#include "temporal_filter.hpp"
 
 namespace xios{
 
@@ -809,7 +810,7 @@ namespace xios{
        if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
        {
          fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
-         instantDataFilter->connectOutput(fileWriterFilter, 0);
+         getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
        }
      }
    }
@@ -833,6 +834,44 @@ namespace xios{
        clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
 
      return clientSourceFilter;
+   }
+
+   /*!
+    * Returns the temporal filter corresponding to the field's temporal operation
+    * for the specified operation frequency. The filter is created if it does not
+    * exist, otherwise it is reused.
+    *
+    * \param gc the garbage collector to use
+    * \param outFreq the operation frequency, i.e. the frequency at which the output data will be computed
+    * \return the output pin corresponding to the requested temporal filter
+    */
+   boost::shared_ptr<COutputPin> CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   {
+     std::map<CDuration, boost::shared_ptr<COutputPin> >::iterator it = temporalDataFilters.find(outFreq);
+
+     if (it == temporalDataFilters.end())
+     {
+       if (operation.isEmpty())
+         ERROR("void CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
+               << "An operation must be defined for field \"" << getId() << "\".");
+
+       if (freq_op.isEmpty())
+         freq_op.setValue(TimeStep);
+       if (freq_offset.isEmpty())
+         freq_offset.setValue(NoneDu);
+
+       const bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+
+       boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
+                                                                             CContext::getCurrent()->getCalendar()->getInitDate(),
+                                                                             freq_op, freq_offset, outFreq,
+                                                                             ignoreMissingValue, ignoreMissingValue ? default_value : 0.0));
+       instantDataFilter->connectOutput(temporalFilter, 0);
+
+       it = temporalDataFilters.insert(std::make_pair(outFreq, temporalFilter)).first;
+     }
+
+     return it->second;
    }
 
    //----------------------------------------------------------------

@@ -210,6 +210,42 @@ namespace xios
 
     ///----------------------------------------------------------------
 
+    bool DurationFakeLessComparator::operator()(const CDuration& dur1, const CDuration& dur2) const
+    {
+      if (dur1.year < dur2.year)
+        return true;
+      else if (dur1.year == dur2.year)
+      {
+        if (dur1.month < dur2.month)
+          return true;
+        else if (dur1.month == dur2.month)
+        {
+          if (dur1.day < dur2.day)
+            return true;
+          else if (dur1.day == dur2.day)
+          {
+            if (dur1.hour < dur2.hour)
+              return true;
+            else if (dur1.hour == dur2.hour)
+            {
+              if (dur1.minute < dur2.minute)
+                return true;
+              else if (dur1.minute == dur2.minute)
+              {
+                if (dur1.second < dur2.second)
+                  return true;
+                else if (dur1.second == dur2.second)
+                  return (dur1.timestep < dur2.timestep);
+              }
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    ///----------------------------------------------------------------
+
 } // namespace xios
 
 

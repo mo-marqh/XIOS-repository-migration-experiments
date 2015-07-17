@@ -11,6 +11,7 @@ namespace xios
   CDataPacketPtr CScalarFieldArithmeticFilter::apply(std::vector<CDataPacketPtr> data)
   {
     CDataPacketPtr packet(new CDataPacket);
+    packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
     packet->status = data[0]->status;
 
@@ -29,6 +30,7 @@ namespace xios
   CDataPacketPtr CFieldScalarArithmeticFilter::apply(std::vector<CDataPacketPtr> data)
   {
     CDataPacketPtr packet(new CDataPacket);
+    packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
     packet->status = data[0]->status;
 
@@ -46,6 +48,7 @@ namespace xios
   CDataPacketPtr CFieldFieldArithmeticFilter::apply(std::vector<CDataPacketPtr> data)
   {
     CDataPacketPtr packet(new CDataPacket);
+    packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
 
     if (data[0]->status != CDataPacket::NO_ERROR)

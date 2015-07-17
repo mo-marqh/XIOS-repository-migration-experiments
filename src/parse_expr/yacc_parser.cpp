@@ -1372,7 +1372,7 @@ yyreduce:
 
   case 15:
 #line 78 "yacc_parser.yacc" /* yacc.c:1646  */
-    { /* TODO: Use temporal operation */ (yyval.filterNode) = new CFilterFieldExprNode(*(yyvsp[0].str)); delete (yyvsp[0].str); }
+    { (yyval.filterNode) = new CFilterTemporalFieldExprNode(*(yyvsp[0].str)); delete (yyvsp[0].str); }
 #line 1377 "yacc_parser.cpp" /* yacc.c:1646  */
     break;
 

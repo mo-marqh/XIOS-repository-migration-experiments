@@ -10,6 +10,7 @@ namespace xios
   CDataPacketPtr CUnaryArithmeticFilter::apply(std::vector<CDataPacketPtr> data)
   {
     CDataPacketPtr packet(new CDataPacket);
+    packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
     packet->status = data[0]->status;
 

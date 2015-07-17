@@ -35,6 +35,10 @@ namespace xios
 
       ///---------------------------------------------------------------
 
+      //!< Provides a fake "less" comparator for durations that can be used as a comparator for maps
+      struct DurationFakeLessComparator {
+        bool operator()(const CDuration& dur1, const CDuration& dur2) const;
+      };
 } // namespace xios
 
 #endif //__XIOS_CCalendar_util__

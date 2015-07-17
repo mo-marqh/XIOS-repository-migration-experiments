@@ -27,28 +27,28 @@ namespace xios
        * in the filter graph. The array containing the data can safely be reused
        * immediately after this method returns.
        *
-       * \param timestamp the timestamp of the data
+       * \param date the date associated to the data
        * \param data an array containing the data
        */
       template <int N>
-      void streamData(Time timestamp, const CArray<double, N>& data);
+      void streamData(CDate date, const CArray<double, N>& data);
 
       /*!
        * Transforms the data received from the server into a packet and send it
        * in the filter graph. The array containing the data can safely be reused
        * immediately after this method returns.
        *
-       * \param timestamp the timestamp of the data
+       * \param date the date associated to the data
        * \param data an array containing the data
        */
-      void streamDataFromServer(Time timestamp, const std::map<int, CArray<double, 1> >& data);
+      void streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data);
 
       /*!
        * Signals the filter graph that the end of stream was reached.
        *
-       * \param timestamp the timestamp at which the end of stream occurred
+       * \param date the date at which the end of stream occurred
        */
-      void signalEndOfStream(Time timestamp);
+      void signalEndOfStream(CDate date);
 
     private:
       CGrid* grid; //!< The grid attached to the data the filter can accept
