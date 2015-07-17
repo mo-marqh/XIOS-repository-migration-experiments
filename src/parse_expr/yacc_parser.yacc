@@ -1,45 +1,45 @@
 %{
-#include "simple_node_expr.hpp"
+#include "filter_expr_node.hpp"
 #include <string>
 #include <iostream>
 #include "exception.hpp"
 
-using namespace std ;
-using namespace xios ;
+using namespace std;
+using namespace xios;
 
 extern "C"
 {
   int yyparse(void);
   int yylex(void);
-  int yyerror(const char *s) ;
+  int yyerror(const char *s);
 }
 
-   CSimpleNodeExpr* parsed ;
-   std::string globalInputText;
-   int globalReadOffset=0;
-   
-   int readInputForLexer( char *buffer, int *numBytesRead, int maxBytesToRead )
-   {
-    int numBytesToRead = maxBytesToRead;
-    int bytesRemaining = globalInputText.length()-globalReadOffset;
-    int i;
-    if ( numBytesToRead > bytesRemaining ) numBytesToRead = bytesRemaining;
-    for ( i = 0; i < numBytesToRead; i++ ) buffer[i] = globalInputText.c_str()[globalReadOffset+i];
+  IFilterExprNode* parsed;
+  std::string globalInputText;
+  size_t globalReadOffset = 0;
+
+  int readInputForLexer(char* buffer, size_t* numBytesRead, size_t maxBytesToRead)
+  {
+    size_t numBytesToRead = maxBytesToRead;
+    size_t bytesRemaining = globalInputText.length()-globalReadOffset;
+    size_t i;
+    if (numBytesToRead > bytesRemaining) numBytesToRead = bytesRemaining;
+    for (i = 0; i < numBytesToRead; i++) buffer[i] = globalInputText.c_str()[globalReadOffset + i];
     *numBytesRead = numBytesToRead;
     globalReadOffset += numBytesToRead;
     return 0;
-   }
-
+  }
 %}
 
 %union
 {
-    std::string* str ;                /* symbol table index */
-    CSimpleNodeExpr* node ;
+  std::string* str;                /* symbol table index */
+  xios::IScalarExprNode* scalarNode;
+  xios::IFilterExprNode* filterNode;
 };
 
 %token <str> NUMBER
-%token <str>  VAR ID AVERAGE
+%token <str> VAR ID AVERAGE
 %token PLUS MINUS TIMES DIVIDE POWER
 %token LEFT_PARENTHESIS RIGHT_PARENTHESIS
 %token <str> END
@@ -49,68 +49,69 @@ extern "C"
 %nonassoc NEG
 %right POWER
 
-%type <node> Line Expression Field_expr
+%type <scalarNode> Expression
+%type <filterNode> Line Field_expr
 %start Line
 %%
 
 
 Line:
-     END                           {  }
-   | Field_expr END {  parsed=$1 ;}
-   ;
+     END            { /* Nothing to do */ }
+   | Field_expr END { parsed = $1; }
+  ;
 
 Expression:
-            NUMBER { $$=new CSimpleNodeExpr(CSimpleNodeExpr::scalarDouble,$1); delete $1 }
-          | VAR    { $$=new CSimpleNodeExpr(CSimpleNodeExpr::scalarVariable,$1) ; delete $1}
-          | Expression PLUS Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"add") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression MINUS Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"minus") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression TIMES Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"mult") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression DIVIDE Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"div") ; $$->addChild($1) ; $$->addChild($3); }
-          | MINUS Expression %prec NEG { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalar,"neg") ;  $$->addChild($2); }
-          | Expression POWER Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarScalar,"pow") ; $$->addChild($1) ; $$->addChild($3); }
-          | LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS { $$=$2 ; }
-          | ID LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalar,$1) ; $$->addChild($3) ; delete $1 }
+            NUMBER { $$ = new CScalarValExprNode(*$1); delete $1; }
+          | VAR    { $$ = new CScalarVarExprNode(*$1); delete $1; }
+          | Expression PLUS Expression   { $$ = new CScalarBinaryOpExprNode($1, "add", $3); }
+          | Expression MINUS Expression  { $$ = new CScalarBinaryOpExprNode($1, "minus", $3); }
+          | Expression TIMES Expression  { $$ = new CScalarBinaryOpExprNode($1, "mult", $3); }
+          | Expression DIVIDE Expression { $$ = new CScalarBinaryOpExprNode($1, "div", $3); }
+          | MINUS Expression %prec NEG   { $$ = new CScalarUnaryOpExprNode("neg", $2); }
+          | Expression POWER Expression  { $$ = new CScalarBinaryOpExprNode($1, "pow", $3); }
+          | LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS    { $$ = $2; }
+          | ID LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS { $$ = new CScalarUnaryOpExprNode(*$1, $3); delete $1; }
           ;
 
 Field_expr:
-            ID    { $$=new CSimpleNodeExpr(CSimpleNodeExpr::fieldInstant,$1); delete $1}
-          | AVERAGE  { $$=new CSimpleNodeExpr(CSimpleNodeExpr::fieldAverage,$1); delete $1}
-          | Field_expr PLUS Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"add") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr MINUS Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"minus") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr TIMES Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"mult") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr DIVIDE Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"div") ; $$->addChild($1) ; $$->addChild($3); }
-          | MINUS Field_expr %prec NEG { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opField,"neg") ; $$->addChild($2);}
-          | Field_expr POWER Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldField,"pow") ; $$->addChild($1) ; $$->addChild($3); }
-          | LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS	{ $$=$2 ;}
-          | Field_expr PLUS Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"add") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression PLUS Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"add") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr MINUS Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"minus") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression MINUS Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"minus") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr TIMES Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"mult") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression TIMES Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"mult") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr DIVIDE Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"div") ; $$->addChild($1) ; $$->addChild($3); }
-          | Expression DIVIDE Field_expr { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opScalarField,"div") ; $$->addChild($1) ; $$->addChild($3); }
-          | Field_expr POWER Expression { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opFieldScalar,"pow") ; $$->addChild($1) ; $$->addChild($3); }
-          | ID LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS { $$=new CSimpleNodeExpr(CSimpleNodeExpr::opField,$1) ;  $$->addChild($3) ; delete $1}
+            ID      { $$ = new CFilterFieldExprNode(*$1); delete $1; }
+          | AVERAGE { /* TODO: Use temporal operation */ $$ = new CFilterFieldExprNode(*$1); delete $1; }
+          | Field_expr PLUS Field_expr   { $$ = new CFilterFieldFieldOpExprNode($1, "add", $3); }
+          | Field_expr MINUS Field_expr  { $$ = new CFilterFieldFieldOpExprNode($1, "minus", $3); }
+          | Field_expr TIMES Field_expr  { $$ = new CFilterFieldFieldOpExprNode($1, "mult", $3); }
+          | Field_expr DIVIDE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "div", $3); }
+          | MINUS Field_expr %prec NEG   { $$ = new CFilterUnaryOpExprNode("neg", $2); }
+          | Field_expr POWER Field_expr  { $$ = new CFilterFieldFieldOpExprNode($1, "pow", $3); }
+          | LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS	{ $$ = $2; }
+          | Field_expr PLUS Expression   { $$ = new CFilterFieldScalarOpExprNode($1, "add", $3); }
+          | Expression PLUS Field_expr   { $$ = new CFilterScalarFieldOpExprNode($1, "add", $3); }
+          | Field_expr MINUS Expression  { $$ = new CFilterFieldScalarOpExprNode($1, "minus", $3); }
+          | Expression MINUS Field_expr  { $$ = new CFilterScalarFieldOpExprNode($1, "minus", $3); }
+          | Field_expr TIMES Expression  { $$ = new CFilterFieldScalarOpExprNode($1, "mult", $3); }
+          | Expression TIMES Field_expr  { $$ = new CFilterScalarFieldOpExprNode($1, "mult", $3); }
+          | Field_expr DIVIDE Expression { $$ = new CFilterFieldScalarOpExprNode($1, "div", $3); }
+          | Expression DIVIDE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "div", $3); }
+          | Field_expr POWER Expression  { $$ = new CFilterFieldScalarOpExprNode($1, "pow", $3); }
+          | ID LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS { $$ = new CFilterUnaryOpExprNode(*$1, $3); delete $1; }
           ;
 %%
 
 extern "C"
 {
-  int yyerror(const char *s) 
+  int yyerror(const char *s)
   {
-    ERROR("int yyerror(const char *s)", <<"Parsing error :"<<s<<endl) ; 
+    ERROR("int yyerror(const char *s)", << "Parsing error: " << s << endl);
   }
 }
 
 namespace xios
 {
-  CSimpleNodeExpr* parseExpr(const string& strExpr)
+  IFilterExprNode* parseExpr(const string& strExpr)
   {
-    globalInputText=strExpr ;
-    globalReadOffset=0 ;
+    globalInputText = strExpr;
+    globalReadOffset = 0;
     yyparse();
-    return  parsed ;
+    return parsed;
   }
 }
 

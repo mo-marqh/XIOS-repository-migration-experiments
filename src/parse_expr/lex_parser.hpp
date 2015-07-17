@@ -4,7 +4,7 @@
 #include <string>
 namespace xios
 {
-  CSimpleNodeExpr* parseExpr(const std::string& strExpr) ;
+  IFilterExprNode* parseExpr(const std::string& strExpr);
 }
 
 #endif

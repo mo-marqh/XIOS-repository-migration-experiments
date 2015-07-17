@@ -18,6 +18,8 @@
 #include "store_filter.hpp"
 #include "file_writer_filter.hpp"
 #include "pass_through_filter.hpp"
+#include "filter_expr_node.hpp"
+#include "lex_parser.hpp"
 
 namespace xios{
 
@@ -773,8 +775,14 @@ namespace xios{
      // Start by building a filter which can provide the field's instant data
      if (!instantDataFilter)
      {
+       // Check if we have an expression to parse
+       if (!content.empty())
+       {
+         boost::scoped_ptr<IFilterExprNode> expr(parseExpr(content + '\0'));
+         instantDataFilter = expr->reduce(gc, *this);
+       }
        // Check if we have a reference on another field
-       if (!field_ref.isEmpty())
+       else if (!field_ref.isEmpty())
        {
          boost::shared_ptr<CPassThroughFilter> passThroughFilter(new CPassThroughFilter(gc));
          instantDataFilter = passThroughFilter;
@@ -804,6 +812,27 @@ namespace xios{
          instantDataFilter->connectOutput(fileWriterFilter, 0);
        }
      }
+   }
+
+   /*!
+    * Returns the source filter to handle a self reference in the field's expression.
+    * If the needed source filter does not exist, it is created, otherwise it is reused.
+    * This method should only be called when building the filter graph corresponding
+    * to the field's expression.
+    *
+    * \param gc the garbage collector to use
+    * \return the output pin corresponding to a self reference
+    */
+   boost::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
+   {
+     if (instantDataFilter || content.empty())
+       ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
+             "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
+
+     if (!clientSourceFilter)
+       clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+
+     return clientSourceFilter;
    }
 
    //----------------------------------------------------------------
@@ -1158,7 +1187,7 @@ namespace xios{
   {
     if (content.size() > 0)
     {
-      CSimpleNodeExpr* simpleExpr = parseExpr(content+'\0');
+      CSimpleNodeExpr* simpleExpr;// = parseExpr(content+'\0');
       expression = CFieldNode::newNode(simpleExpr);
       delete simpleExpr;
       set<string> instantFieldIds;

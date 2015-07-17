@@ -132,6 +132,7 @@ namespace xios {
          CGrid* getGridRefOfBaseReference();
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+         boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
 
 //         virtual void fromBinary(StdIStream & is);
 

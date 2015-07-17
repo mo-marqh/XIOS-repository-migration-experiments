@@ -6,62 +6,60 @@ extern "C"
   int yylex(void);
 }
 #undef  YY_INPUT
-#define YY_INPUT(b,r,s) readInputForLexer(b,&r,s)
+#define YY_INPUT(b, r, s) readInputForLexer(b, &r, s)
 #include <string>
 
-int readInputForLexer( char *buffer, int *numBytesRead, int maxBytesToRead ) ;
+int readInputForLexer(char* buffer, size_t* numBytesRead, size_t maxBytesToRead);
 
-
-#include "simple_node_expr.hpp"
+#include "filter_expr_node.hpp"
 #include "yacc_parser.hpp"
 
 %}
 
-white  [ \t]+
+white    [ \t]+
 
-digit  [0-9]
+digit    [0-9]
 integer  {digit}+
 exponant [eE][+-]?{integer}
-real  {integer}("."{integer})?{exponant}?
-id              [a-zA-Z][a-zA-Z0-9_]*
-average         @{id}
-var             \${id}
+real     {integer}("."{integer})?{exponant}?
+id       [a-zA-Z][a-zA-Z0-9_]*
+average  @{id}
+var      \${id}
+
 %%
 
-{white}  { /* We ignore white characters */ }
+{white}   { /* We ignore white characters */ }
 
-{real}  {
-          yylval.str=new std::string(yytext);
-          return NUMBER ;
-        }
+{real}    {
+            yylval.str = new std::string(yytext);
+            return NUMBER;
+          }
 
-{average}       {
-                  yylval.str=new std::string(yytext+1) ;
-                  return AVERAGE ;
-                }
+{average} {
+            yylval.str = new std::string(yytext + 1);
+            return AVERAGE;
+          }
 
-{var}           {
-                  yylval.str=new std::string(yytext+1) ;
-                  return VAR ;
-                }
+{var}     {
+            yylval.str = new std::string(yytext + 1);
+            return VAR;
+          }
 
-{id}            {
-                   yylval.str=new std::string(yytext) ;
-                   return ID ;
-                }                   
+{id}      {
+            yylval.str = new std::string(yytext);
+            return ID;
+          }                   
                  
 
-"+"  return(PLUS);
-"-"  return(MINUS);
+"+"  return PLUS;
+"-"  return MINUS;
 
-"*"  return(TIMES);
-"/"  return(DIVIDE);
+"*"  return TIMES;
+"/"  return DIVIDE;
 
-"^"  return(POWER);
+"^"  return POWER;
 
-"("  return(LEFT_PARENTHESIS);
-")"  return(RIGHT_PARENTHESIS);
+"("  return LEFT_PARENTHESIS;
+")"  return RIGHT_PARENTHESIS;
 
-"\0"  {
-       return(END);
-      }
+"\0" return END;
