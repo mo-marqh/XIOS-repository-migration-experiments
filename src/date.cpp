@@ -102,18 +102,17 @@ namespace xios
         const CCalendar& c = getRelCalendar();
 
         // Todo : Tester si la date courante est supérieure à la date initiale.
-        Time retvalue = getSecondOfYear() - c.getTimeOrigin().getSecondOfYear();
+        Time t = getSecondOfYear() - c.getTimeOrigin().getSecondOfYear();
 
         if (c.hasLeapYear())
         {
-          for (CDate _d(c.getTimeOrigin()); _d.getYear() < getYear(); _d.setYear(_d.getYear() + 1))
-            retvalue += c.getYearTotalLength(_d);
+          for (CDate d(c.getTimeOrigin()); d.getYear() < getYear(); d.setYear(d.getYear() + 1))
+            t += c.getYearTotalLength(d);
         }
         else
-          retvalue += (getYear() - c.getTimeOrigin().getYear()) * c.getYearTotalLength(*this);
+          t += Time(getYear() - c.getTimeOrigin().getYear()) * c.getYearTotalLength(*this);
 
-
-        return retvalue;
+        return t;
       }
 
       //----------------------------------------------------------------
