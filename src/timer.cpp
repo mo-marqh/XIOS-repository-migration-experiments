@@ -6,13 +6,11 @@
 
 namespace xios
 {
-  using namespace std;
- 
-  map<string,CTimer*> CTimer::allTimer ;
+  std::map<std::string,CTimer> CTimer::allTimer;
   
-  CTimer::CTimer(const string& name_) : name(name_) 
+  CTimer::CTimer(const std::string& name_) : name(name_) 
   { 
-    reset() ;
+    reset();
   }
 
   double CTimer::getTime(void)
@@ -24,38 +22,38 @@ namespace xios
   {
     if (!suspended) 
     {
-      traceEnd(name) ;
-      cumulatedTime+=getTime()-lastTime ;
+      traceEnd(name);
+      cumulatedTime += getTime() - lastTime;
     }
-    suspended=true ;
+    suspended = true;
   }
   
   void CTimer::resume(void)
   {
     if (suspended) 
     {
-      lastTime=getTime() ;
-      traceBegin(name) ;
+      lastTime = getTime();
+      traceBegin(name);
     }
-    suspended=false ;
+    suspended = false;
   }
   
   void CTimer::reset(void)
   {
-    cumulatedTime=0. ;
-    suspended=true ;
+    cumulatedTime = 0.;
+    suspended = true;
   }
   
   double CTimer::getCumulatedTime(void)
   {
-    return cumulatedTime ;
+    return cumulatedTime;
   }
   
-  CTimer& CTimer::get(const string name)
+  CTimer& CTimer::get(const std::string name)
   {
-    map<string,CTimer*>::iterator it ;
-    it=allTimer.find(name) ;
-    if (it==allTimer.end()) it=allTimer.insert(pair<string,CTimer*>(name,new CTimer(name))).first ;
-    return *(it->second) ;
+    std::map<std::string,CTimer>::iterator it = allTimer.find(name);
+    if (it == allTimer.end())
+      it = allTimer.insert(std::make_pair(name, CTimer(name))).first;
+    return it->second;
   }
 }
