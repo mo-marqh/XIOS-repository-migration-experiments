@@ -64,18 +64,18 @@ namespace xios {
          {
            EVENT_ID_UPDATE_DATA, EVENT_ID_READ_DATA, EVENT_ID_READ_DATA_READY,
            EVENT_ID_ADD_VARIABLE, EVENT_ID_ADD_VARIABLE_GROUP
-         } ;
+         };
 
          /// Constructeurs ///
          CField(void);
-         explicit CField(const StdString & id);
-         CField(const CField & field);       // Not implemented yet.
-         CField(const CField * const field); // Not implemented yet.
+         explicit CField(const StdString& id);
+         CField(const CField& field);       // Not implemented yet.
+         CField(const CField* const field); // Not implemented yet.
 
          /// Accesseurs ///
 
-         CGrid* getRelGrid(void) const ;
-         CFile* getRelFile(void) const ;
+         CGrid* getRelGrid(void) const;
+         CFile* getRelFile(void) const;
 
          func::CFunctor::ETimeType getOperationTimeType() const;
 
@@ -90,14 +90,14 @@ namespace xios {
          /// Mutateur ///
          void setRelFile(CFile* _file);
          void incrementNStep(void);
-         void resetNStep() ;
+         void resetNStep();
          void resetNStepMax();
 
          std::map<int, StdSize> getGridDataSize();
 
        public :
          bool isActive(void) const;
-         bool hasOutputFile ;
+         bool hasOutputFile;
 
          /// Traitements ///
          void solveGridReference(void);
@@ -111,7 +111,7 @@ namespace xios {
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
-//         virtual void fromBinary(StdIStream & is);
+//         virtual void fromBinary(StdIStream& is);
 
          /// Destructeur ///
          virtual ~CField(void);
@@ -122,12 +122,12 @@ namespace xios {
 
          static ENodeType GetType(void);
 
-        template <int N> void setData(const CArray<double, N>& _data) ;
-        static bool dispatchEvent(CEventServer& event) ;
+        template <int N> void setData(const CArray<double, N>& _data);
+        static bool dispatchEvent(CEventServer& event);
         void sendUpdateData(const CArray<double,1>& data);
-        static void recvUpdateData(CEventServer& event) ;
-        void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers) ;
-        void writeField(void) ;
+        static void recvUpdateData(CEventServer& event);
+        void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
+        void writeField(void);
         void sendReadDataRequest(void);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
@@ -135,30 +135,30 @@ namespace xios {
         bool readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
-        void outputField(CArray<double,3>& fieldOut) ;
-        void outputField(CArray<double,2>& fieldOut) ;
-        void outputField(CArray<double,1>& fieldOut) ;
+        void outputField(CArray<double,3>& fieldOut);
+        void outputField(CArray<double,2>& fieldOut);
+        void outputField(CArray<double,1>& fieldOut);
         void inputField(CArray<double,3>& fieldOut);
         void inputField(CArray<double,2>& fieldOut);
         void inputField(CArray<double,1>& fieldOut);
-        void scaleFactorAddOffset(double scaleFactor, double addOffset) ;
+        void scaleFactorAddOffset(double scaleFactor, double addOffset);
         void invertScaleFactorAddOffset(double scaleFactor, double addOffset);
-        void parse(xml::CXMLNode & node) ;
+        void parse(xml::CXMLNode& node);
 
         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
         void setVirtualVariableGroup(void);
         CVariableGroup* getVirtualVariableGroup(void) const;
         vector<CVariable*> getAllVariables(void) const;
-        virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
+        virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
 
-        CVariable* addVariable(const string& id="") ;
-        CVariableGroup* addVariableGroup(const string& id="") ;
-        void sendAddVariable(const string& id="") ;
-        void sendAddVariableGroup(const string& id="") ;
-        static void recvAddVariable(CEventServer& event) ;
-        void recvAddVariable(CBufferIn& buffer) ;
-        static void recvAddVariableGroup(CEventServer& event) ;
-        void recvAddVariableGroup(CBufferIn& buffer) ;
+        CVariable* addVariable(const string& id = "");
+        CVariableGroup* addVariableGroup(const string& id = "");
+        void sendAddVariable(const string& id = "");
+        void sendAddVariableGroup(const string& id = "");
+        static void recvAddVariable(CEventServer& event);
+        void recvAddVariable(CBufferIn& buffer);
+        static void recvAddVariableGroup(CEventServer& event);
+        void recvAddVariableGroup(CBufferIn& buffer);
         void sendAddAllVariables();
 
 
@@ -166,22 +166,22 @@ namespace xios {
 
       public :
          /// Propriétés privées ///
-         CVariableGroup* vVariableGroup ;
+         CVariableGroup* vVariableGroup;
 
-         CGrid*  grid ;
+         CGrid*  grid;
          CFile*  file;
 
          CDuration freq_operation_srv, freq_write_srv;
 
          StdSize nstep, nstepMax;
          bool isEOF;
-         boost::shared_ptr<CDate> lastlast_Write_srv, last_Write_srv, last_operation_srv;
+         CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
          CDate lastDataRequestedFromServer;
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
-         map<int, CArray<double,1>* > data_srv ;
-         string content ;
+         map<int, CArray<double,1> > data_srv;
+         string content;
 
          bool areAllReferenceSolved;
          std::pair<StdString,StdString> domAxisIds_;

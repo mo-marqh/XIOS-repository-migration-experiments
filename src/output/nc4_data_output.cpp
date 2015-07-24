@@ -1153,15 +1153,15 @@ namespace xios
 
         if (wtime)
         {
-          time_counter(0)= (Time(*field->last_Write_srv) + Time(*field->lastlast_Write_srv)) / 2;
+          time_counter(0)= (Time(field->last_Write_srv) + Time(field->lastlast_Write_srv)) / 2;
           if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data(0) = Time(*field->last_Write_srv);
+            time_data(0) = Time(field->last_Write_srv);
           else if (field->getOperationTimeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
 
-          time_counter_bound(0) = Time(*field->lastlast_Write_srv);
-          time_counter_bound(1) = Time(*field->last_Write_srv);
+          time_counter_bound(0) = Time(field->lastlast_Write_srv);
+          time_counter_bound(1) = Time(field->last_Write_srv);
           if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data_bound(0) = time_data_bound(1) = Time(*field->last_Write_srv);
+            time_data_bound(0) = time_data_bound(1) = Time(field->last_Write_srv);
           else if (field->getOperationTimeType() == func::CFunctor::centered)
           {
             time_data_bound(0) = time_counter_bound(0);

@@ -24,16 +24,16 @@ namespace xios {
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
    {
-     setVirtualFieldGroup() ;
-     setVirtualVariableGroup() ;
+     setVirtualFieldGroup();
+     setVirtualVariableGroup();
    }
 
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
     {
-      setVirtualFieldGroup() ;
-      setVirtualVariableGroup() ;
+      setVirtualFieldGroup();
+      setVirtualVariableGroup();
     }
 
    CFile::~CFile(void)
@@ -128,7 +128,7 @@ namespace xios {
 
       std::vector<CField*> newEnabledFields;
 
-      for ( it = this->enabledFields.begin() ; it != this->enabledFields.end(); it++ )
+      for ( it = this->enabledFields.begin(); it != this->enabledFields.end(); it++ )
       {
          if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est défini ...
          {
@@ -137,25 +137,25 @@ namespace xios {
          }
          else // Si l'attribut 'enabled' n'est pas défini ...
          {
-            if (!default_enabled) continue ;
+            if (!default_enabled) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
 
          if (!(*it)->level.isEmpty()) // Si l'attribut 'level' est défini ...
          {
-            if ((*it)->level.getValue() > _outputlevel) continue ;
+            if ((*it)->level.getValue() > _outputlevel) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
          else // Si l'attribut 'level' n'est pas défini ...
          {
-            if (default_level > _outputlevel) continue ;
+            if (default_level > _outputlevel) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
 
-//         CField* field_tmp=(*it).get() ;
-//         shared_ptr<CField> sptfield=*it ;
-//         field_tmp->refObject.push_back(sptfield) ;
-         newEnabledFields.push_back(*it) ;
+//         CField* field_tmp=(*it).get();
+//         shared_ptr<CField> sptfield=*it;
+//         field_tmp->refObject.push_back(sptfield);
+         newEnabledFields.push_back(*it);
          // Le champ est finalement actif, on y ajoute sa propre reference.
 //         (*it)->refObject.push_back(*it);
          // Le champ est finalement actif, on y ajoute la référence au champ de base.
@@ -163,7 +163,7 @@ namespace xios {
 //         (*it)->baseRefObject->refObject.push_back(*it);
          // A faire, ajouter les references intermediaires...
       }
-      enabledFields=newEnabledFields ;
+      enabledFields = newEnabledFields;
 
       return (this->enabledFields);
    }
@@ -197,31 +197,31 @@ namespace xios {
    //----------------------------------------------------------------
    bool CFile::isSyncTime(void)
    {
-     CContext* context = CContext::getCurrent() ;
-     const CDate& currentDate = context->calendar->getCurrentDate() ;
+     CContext* context = CContext::getCurrent();
+     const CDate& currentDate = context->calendar->getCurrentDate();
      if (!sync_freq.isEmpty())
      {
-       if (*lastSync + sync_freq.getValue() < currentDate)
+       if (lastSync + sync_freq.getValue() < currentDate)
        {
-         *lastSync=currentDate ;
-         return true ;
+         lastSync = currentDate;
+         return true;
         }
       }
-      return false ;
+      return false;
     }
 
    //! Initialize a file in order to write into it
    void CFile::initFile(void)
    {
-      CContext* context = CContext::getCurrent() ;
-      const CDate& currentDate = context->calendar->getCurrentDate() ;
-      CContextServer* server=context->server ;
+      CContext* context = CContext::getCurrent();
+      const CDate& currentDate = context->calendar->getCurrentDate();
+      CContextServer* server = context->server;
 
-      lastSync=new CDate(currentDate) ;
-      lastSplit=new CDate(currentDate) ;
-      isOpen=false ;
+      lastSync  = currentDate;
+      lastSplit = currentDate;
+      isOpen = false;
 
-      allDomainEmpty=true ;
+      allDomainEmpty = true;
 
       set<CAxis*> setAxis;
       set<CDomain*> setDomains;
@@ -242,11 +242,9 @@ namespace xios {
       nbDomains = setDomains.size();
 
       // create sub communicator for file
-      int color=allDomainEmpty?0:1 ;
-      MPI_Comm_split(server->intraComm,color,server->intraCommRank,&fileComm) ;
-      if (allDomainEmpty) MPI_Comm_free(&fileComm) ;
-      //
-
+      int color = allDomainEmpty ? 0 : 1;
+      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
+      if (allDomainEmpty) MPI_Comm_free(&fileComm);
     }
 
     //! Verify state of a file
@@ -272,18 +270,18 @@ namespace xios {
     */
    bool CFile::checkSync(void)
    {
-     CContext* context = CContext::getCurrent() ;
-     const CDate& currentDate = context->calendar->getCurrentDate() ;
+     CContext* context = CContext::getCurrent();
+     const CDate& currentDate = context->calendar->getCurrentDate();
      if (!sync_freq.isEmpty())
      {
-       if (*lastSync + sync_freq.getValue() <= currentDate)
+       if (lastSync + sync_freq.getValue() <= currentDate)
        {
-         *lastSync=currentDate ;
-         data_out->syncFile() ;
-         return true ;
+         lastSync = currentDate;
+         data_out->syncFile();
+         return true;
         }
       }
-      return false ;
+      return false;
     }
 
     /*!
@@ -294,13 +292,13 @@ namespace xios {
     */
     bool CFile::checkSplit(void)
     {
-      CContext* context = CContext::getCurrent() ;
-      const CDate& currentDate = context->calendar->getCurrentDate() ;
+      CContext* context = CContext::getCurrent();
+      const CDate& currentDate = context->calendar->getCurrentDate();
       if (!split_freq.isEmpty())
       {
-        if (currentDate > *lastSplit + split_freq.getValue())
+        if (currentDate > lastSplit + split_freq.getValue())
         {
-          *lastSplit = *lastSplit + split_freq.getValue();
+          lastSplit = lastSplit + split_freq.getValue();
           std::vector<CField*>::iterator it, end = this->enabledFields.end();
           for (it = this->enabledFields.begin(); it != end; it++)
           {
@@ -308,13 +306,13 @@ namespace xios {
             (*it)->resetNStepMax();
           }
           if (mode.isEmpty() || mode.getValue() == mode_attr::write)
-            createHeader() ;
+            createHeader();
           else
             openInReadMode();
-          return true ;
+          return true;
         }
       }
-      return false ;
+      return false;
     }
 
    /*!
@@ -323,8 +321,8 @@ namespace xios {
    */
    void CFile::createHeader(void)
    {
-      CContext* context = CContext::getCurrent() ;
-      CContextServer* server=context->server ;
+      CContext* context = CContext::getCurrent();
+      CContextServer* server = context->server;
 
       if (!allDomainEmpty)
       {
@@ -335,7 +333,7 @@ namespace xios {
 
          if (!split_freq.isEmpty())
          {
-           string splitFormat ;
+           string splitFormat;
            if (split_freq_format.isEmpty())
            {
              if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
@@ -345,45 +343,45 @@ namespace xios {
              else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
              else splitFormat = "%y";
            }
-           else splitFormat=split_freq_format ;
-           oss << "_" << lastSplit->getStr(splitFormat)
-               << "-" << (*lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
+           else splitFormat = split_freq_format;
+           oss << "_" << lastSplit.getStr(splitFormat)
+               << "-" << (lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
          }
 
         bool append = !this->append.isEmpty() && this->append.getValue();
 
          bool useClassicFormat = !format.isEmpty() && format == format_attr::netcdf4_classic;
 
-         bool multifile=true ;
+         bool multifile = true;
          if (!type.isEmpty())
          {
-           if (type==type_attr::one_file) multifile=false ;
-           else if (type==type_attr::multiple_file) multifile=true ;
+           if (type == type_attr::one_file) multifile = false;
+           else if (type == type_attr::multiple_file) multifile = true;
 
          }
 #ifndef USING_NETCDF_PAR
          if (!multifile)
          {
-            info(0)<<"!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : "<<filename<<" ..."<<endl ;
-            multifile=true ;
+            info(0) << "!!! Warning -> Using non parallel version of netcdf, switching in multiple_file mode for file : " << filename << " ..." << endl;
+            multifile = true;
           }
 #endif
          if (multifile)
          {
-            int commSize, commRank ;
-            MPI_Comm_size(fileComm,&commSize) ;
-            MPI_Comm_rank(fileComm,&commRank) ;
+            int commSize, commRank;
+            MPI_Comm_size(fileComm, &commSize);
+            MPI_Comm_rank(fileComm, &commRank);
 
             if (server->intraCommSize > 1)
             {
-              oss << "_"  ;
-              int width=0 ; int n=commSize-1 ;
-              while(n != 0) { n=n/10 ; width++ ;}
+              oss << "_" ;
+              int width=0; int n = commSize-1;
+              while (n != 0) { n = n / 10; width++;}
               if (!min_digits.isEmpty())
-                if (width<min_digits) width=min_digits ;
-              oss.width(width) ;
-              oss.fill('0') ;
-              oss<<right<< commRank;
+                if (width < min_digits) width = min_digits;
+              oss.width(width);
+              oss.fill('0');
+              oss << right << commRank;
             }
          }
          oss << ".nc";
@@ -415,7 +413,7 @@ namespace xios {
             this->data_out->writeField(field);
           }
 
-          vector<CVariable*> listVars = getAllVariables() ;
+          vector<CVariable*> listVars = getAllVariables();
           for (vector<CVariable*>::iterator it = listVars.begin(); it != listVars.end(); it++)
             this->data_out->writeAttribute(*it);
 
@@ -430,7 +428,7 @@ namespace xios {
   void CFile::openInReadMode(void)
   {
     CContext* context = CContext::getCurrent();
-    CContextServer* server=context->server;
+    CContextServer* server = context->server;
 
     if (!allDomainEmpty)
     {
@@ -451,9 +449,9 @@ namespace xios {
           else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
           else splitFormat = "%y";
         }
-        else splitFormat=split_freq_format;
-        oss << "_" << lastSplit->getStr(splitFormat)
-        << "-" << (*lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
+        else splitFormat = split_freq_format;
+        oss << "_" << lastSplit.getStr(splitFormat)
+        << "-" << (lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
       }
 
       bool multifile = true;
@@ -477,7 +475,7 @@ namespace xios {
 
         if (server->intraCommSize > 1)
         {
-          oss << "_" ;
+          oss << "_";
           int width = 0, n = commSize - 1;
           while (n != 0) { n = n / 10; width++; }
           if (!min_digits.isEmpty() && width < min_digits)
@@ -501,8 +499,6 @@ namespace xios {
    //! Close file
    void CFile::close(void)
    {
-     delete lastSync ;
-     delete lastSplit ;
      if (!allDomainEmpty)
        if (isOpen)
        {
@@ -511,7 +507,7 @@ namespace xios {
          else
           this->data_in->closeFile();
        }
-      if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm) ;
+      if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
    }
    //----------------------------------------------------------------
 
@@ -529,7 +525,7 @@ namespace xios {
         {
            if (node.getElementName()=="field" || node.getElementName()=="field_group") this->getVirtualFieldGroup()->parseChild(node);
            else if (node.getElementName()=="variable" || node.getElementName()=="variable_group") this->getVirtualVariableGroup()->parseChild(node);
-        } while (node.goToNextElement()) ;
+        } while (node.goToNextElement());
         node.goToParentElement();
       }
 
@@ -648,7 +644,7 @@ namespace xios {
    */
    CField* CFile::addField(const string& id)
    {
-     return vFieldGroup->createChild(id) ;
+     return vFieldGroup->createChild(id);
    }
 
    /*!
@@ -660,7 +656,7 @@ namespace xios {
    */
    CFieldGroup* CFile::addFieldGroup(const string& id)
    {
-     return vFieldGroup->createChildGroup(id) ;
+     return vFieldGroup->createChildGroup(id);
    }
 
    /*!
@@ -675,7 +671,7 @@ namespace xios {
    */
    CVariable* CFile::addVariable(const string& id)
    {
-     return vVariableGroup->createChild(id) ;
+     return vVariableGroup->createChild(id);
    }
 
    /*!
@@ -687,7 +683,7 @@ namespace xios {
    */
    CVariableGroup* CFile::addVariableGroup(const string& id)
    {
-     return vVariableGroup->createChildGroup(id) ;
+     return vVariableGroup->createChildGroup(id);
    }
 
    /*!
@@ -696,24 +692,24 @@ namespace xios {
    */
    void CFile::sendAddField(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent();
 
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg << this->getId();
+         msg << id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
 
    }
@@ -724,23 +720,23 @@ namespace xios {
    */
    void CFile::sendAddFieldGroup(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent();
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg << this->getId();
+         msg << id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
 
    }
@@ -752,10 +748,10 @@ namespace xios {
    void CFile::recvAddField(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddField(*buffer) ;
+      *buffer>>id;
+      get(id)->recvAddField(*buffer);
    }
 
    /*!
@@ -764,9 +760,9 @@ namespace xios {
    */
    void CFile::recvAddField(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addField(id) ;
+      string id;
+      buffer>>id;
+      addField(id);
    }
 
    /*!
@@ -776,10 +772,10 @@ namespace xios {
    void CFile::recvAddFieldGroup(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddFieldGroup(*buffer) ;
+      *buffer>>id;
+      get(id)->recvAddFieldGroup(*buffer);
    }
 
    /*!
@@ -788,9 +784,9 @@ namespace xios {
    */
    void CFile::recvAddFieldGroup(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addFieldGroup(id) ;
+      string id;
+      buffer>>id;
+      addFieldGroup(id);
    }
 
    /*!
@@ -827,24 +823,24 @@ namespace xios {
    */
    void CFile::sendAddVariable(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent();
 
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg << this->getId();
+         msg << id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
 
    }
@@ -855,23 +851,23 @@ namespace xios {
    */
    void CFile::sendAddVariableGroup(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context = CContext::getCurrent();
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg << this->getId();
+         msg << id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
 
    }
@@ -883,10 +879,10 @@ namespace xios {
    void CFile::recvAddVariable(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddVariable(*buffer) ;
+      *buffer>>id;
+      get(id)->recvAddVariable(*buffer);
    }
 
    /*!
@@ -895,9 +891,9 @@ namespace xios {
    */
    void CFile::recvAddVariable(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addVariable(id) ;
+      string id;
+      buffer>>id;
+      addVariable(id);
    }
 
    /*!
@@ -907,10 +903,10 @@ namespace xios {
    void CFile::recvAddVariableGroup(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddVariableGroup(*buffer) ;
+      *buffer>>id;
+      get(id)->recvAddVariableGroup(*buffer);
    }
 
    /*!
@@ -919,9 +915,9 @@ namespace xios {
    */
    void CFile::recvAddVariableGroup(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addVariableGroup(id) ;
+      string id;
+      buffer>>id;
+      addVariableGroup(id);
    }
 
    /*!
@@ -954,33 +950,33 @@ namespace xios {
    */
    bool CFile::dispatchEvent(CEventServer& event)
    {
-      if (SuperClass::dispatchEvent(event)) return true ;
+      if (SuperClass::dispatchEvent(event)) return true;
       else
       {
         switch(event.type)
         {
            case EVENT_ID_ADD_FIELD :
-             recvAddField(event) ;
-             return true ;
-             break ;
+             recvAddField(event);
+             return true;
+             break;
 
            case EVENT_ID_ADD_FIELD_GROUP :
-             recvAddFieldGroup(event) ;
-             return true ;
-             break ;
+             recvAddFieldGroup(event);
+             return true;
+             break;
 
             case EVENT_ID_ADD_VARIABLE :
-             recvAddVariable(event) ;
-             return true ;
-             break ;
+             recvAddVariable(event);
+             return true;
+             break;
 
            case EVENT_ID_ADD_VARIABLE_GROUP :
-             recvAddVariableGroup(event) ;
-             return true ;
-             break ;
+             recvAddVariableGroup(event);
+             return true;
+             break;
            default :
-              ERROR("bool CFile::dispatchEvent(CEventServer& event)", <<"Unknown Event") ;
-           return false ;
+              ERROR("bool CFile::dispatchEvent(CEventServer& event)", << "Unknown Event");
+           return false;
         }
       }
    }
