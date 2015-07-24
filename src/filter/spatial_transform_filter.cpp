@@ -71,53 +71,53 @@ namespace xios
   {
     CContextClient* client = CContext::getCurrent()->client;
 
-    const std::map<int, CArray<int,1>* >& localIndexToSend = gridTransformation->getLocalIndexToSendFromGridSource();
+    const std::map<int, CArray<int,1> >& localIndexToSend = gridTransformation->getLocalIndexToSendFromGridSource();
     const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
 
     dataDest = 0.0;
 
     // Sending data from field sources to do transformations
-    std::map<int, CArray<int,1>* >::const_iterator itbSend = localIndexToSend.begin(), itSend,
-                                                   iteSend = localIndexToSend.end();
+    std::map<int, CArray<int,1> >::const_iterator itbSend = localIndexToSend.begin(), itSend,
+                                                  iteSend = localIndexToSend.end();
     int sendBuffSize = 0;
-    for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize = (sendBuffSize < (itSend->second)->numElements())
-                                                                     ? (itSend->second)->numElements(): sendBuffSize;
+    for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize = (sendBuffSize < itSend->second.numElements())
+                                                                     ? itSend->second.numElements(): sendBuffSize;
     double* sendBuff;
     if (0 != sendBuffSize) sendBuff = new double[sendBuffSize];
     for (itSend = itbSend; itSend != iteSend; ++itSend)
     {
       int destRank = itSend->first;
-      CArray<int,1>* localIndex_p = itSend->second;
-      int countSize = localIndex_p->numElements();
+      const CArray<int,1>& localIndex_p = itSend->second;
+      int countSize = localIndex_p.numElements();
       for (int idx = 0; idx < countSize; ++idx)
       {
-        sendBuff[idx] = dataSrc((*localIndex_p)(idx));
+        sendBuff[idx] = dataSrc(localIndex_p(idx));
       }
       MPI_Send(sendBuff, countSize, MPI_DOUBLE, destRank, 12, client->intraComm);
     }
 
     // Receiving data on destination fields
     std::map<int,std::vector<std::vector<std::pair<int,double> > > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
-                                                            iteRecv = localIndexToReceive.end();
+                                                                                     iteRecv = localIndexToReceive.end();
     int recvBuffSize = 0;
-    for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < (itRecv->second).size())
-                                                                     ? (itRecv->second).size() : recvBuffSize;
+    for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < itRecv->second.size())
+                                                                     ? itRecv->second.size() : recvBuffSize;
     double* recvBuff;
     if (0 != recvBuffSize) recvBuff = new double[recvBuffSize];
     for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
     {
       MPI_Status status;
       int srcRank = itRecv->first;
-      int countSize = (itRecv->second).size();
+      int countSize = itRecv->second.size();
       MPI_Recv(recvBuff, recvBuffSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &status);
       for (int idx = 0; idx < countSize; ++idx)
       {
-        const std::vector<std::pair<int,double> >& localIndex_p = (itRecv->second)[idx];
+        const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second[idx];
         int numIndex = localIndex_p.size();
         for (int i = 0; i < numIndex; ++i)
         {
-//        if ((localIndex_p)[i].first >= dataDest.numElements() )
-          dataDest((localIndex_p)[i].first) += recvBuff[idx] * ((localIndex_p)[i].second);
+//        if (localIndex_p[i].first >= dataDest.numElements())
+          dataDest(localIndex_p[i].first) += recvBuff[idx] * localIndex_p[i].second;
         }
       }
     }

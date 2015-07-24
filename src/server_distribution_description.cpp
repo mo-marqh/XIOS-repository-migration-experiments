@@ -17,10 +17,7 @@ CServerDistributionDescription::CServerDistributionDescription(const std::vector
 }
 
 CServerDistributionDescription::~CServerDistributionDescription()
-{
-  if (!vecGlobalIndex_.empty())
-    for (int i = 0; i < vecGlobalIndex_.size(); ++i) delete vecGlobalIndex_[i];
-}
+{ /* Nothing to do */ }
 
 /*!
   Compute pre-defined global index distribution of server(s).
@@ -50,7 +47,7 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
     {
       size_t ssize = 1, idx = 0;
       for (int j = 0; j < dim; ++j) ssize *= dimensionSizes_[idxServer][j];
-      vecGlobalIndex_[idxServer] = new CArray<size_t,1>(ssize);
+      vecGlobalIndex_[idxServer].resize(ssize);
 
       std::vector<int> idxLoop(dim,0);
 
@@ -78,9 +75,9 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
           for (int k = 1; k < dim; ++k)
           {
             mulDim *= nGlobal_[k-1];
-            globalIndex += (currentIndex[k])*mulDim;
+            globalIndex += currentIndex[k] * mulDim;
           }
-          (*vecGlobalIndex_[idxServer])(idx) = globalIndex;
+          vecGlobalIndex_[idxServer](idx) = globalIndex;
           ++idx;
         }
         idxLoop[0] += innerLoopSize;
@@ -240,7 +237,7 @@ std::vector<std::vector<int> > CServerDistributionDescription::getServerIndexBeg
   Get global index on distributed server
   \return global index on server(s)
 */
-const std::vector<CArray<size_t,1>* >& CServerDistributionDescription::getGlobalIndex() const
+const std::vector<CArray<size_t,1> >& CServerDistributionDescription::getGlobalIndex() const
 {
   return vecGlobalIndex_;
 }

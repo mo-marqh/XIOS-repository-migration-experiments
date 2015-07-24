@@ -23,7 +23,7 @@ class CDistribution
 {
   public:
     /** Default constructor */
-    CDistribution(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
+    CDistribution(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
 
     /** Default destructor */
     virtual ~CDistribution();
@@ -36,7 +36,7 @@ class CDistribution
   protected:
     virtual void createGlobalIndex() = 0;
   protected:
-    CArray<size_t,1>* globalIndex_;
+    CArray<size_t,1> globalIndex_;
     int dims_;
     int rank_;
 };

@@ -42,7 +42,7 @@ class CServerDistributionDescription
 
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
-    const std::vector<CArray<size_t,1>* >& getGlobalIndex() const;
+    const std::vector<CArray<size_t,1> >& getGlobalIndex() const;
     const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
 
   protected:
@@ -55,7 +55,7 @@ class CServerDistributionDescription
     std::vector<int> nGlobal_; //!< Global size of each dimension
 
     //!< General case, index describes distribution of each server (rarely use)
-    std::vector<CArray<size_t,1>* > vecGlobalIndex_;
+    std::vector<CArray<size_t,1> > vecGlobalIndex_;
 
     //!< In case we need only global index of one server with specific rank
     boost::unordered_map<size_t,int> globalIndex_;

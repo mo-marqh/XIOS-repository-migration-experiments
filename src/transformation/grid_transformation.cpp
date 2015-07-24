@@ -71,17 +71,17 @@ for each transformation, we need to make sure that the current "temporary source
 void CGridTransformation::initializeMappingOfOriginalGridSource()
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
+  CContextClient* client = context->client;
 
   CDistributionClient distribution(client->clientRank, originalGridSource_);
   const CArray<size_t,1>& globalIndexGridDestSendToServer = distribution.getGlobalDataIndexSendToServer();
 
-  globalIndexOfCurrentGridSource_   = new CArray<size_t,1>(globalIndexGridDestSendToServer.numElements());
-  globalIndexOfOriginalGridSource_  = new CArray<size_t,1>(globalIndexGridDestSendToServer.numElements());
-  weightOfGlobalIndexOfOriginalGridSource_  = new CArray<double,1>(globalIndexGridDestSendToServer.numElements());
-  *globalIndexOfCurrentGridSource_  = globalIndexGridDestSendToServer;
-  *globalIndexOfOriginalGridSource_ = globalIndexGridDestSendToServer;
-  *weightOfGlobalIndexOfOriginalGridSource_ = 1.0;
+  globalIndexOfCurrentGridSource_.resize(globalIndexGridDestSendToServer.numElements());
+  globalIndexOfOriginalGridSource_.resize(globalIndexGridDestSendToServer.numElements());
+  weightOfGlobalIndexOfOriginalGridSource_.resize(globalIndexGridDestSendToServer.numElements());
+  globalIndexOfCurrentGridSource_  = globalIndexGridDestSendToServer;
+  globalIndexOfOriginalGridSource_ = globalIndexGridDestSendToServer;
+  weightOfGlobalIndexOfOriginalGridSource_ = 1.0;
 }
 
 CGridTransformation::~CGridTransformation()
@@ -89,15 +89,6 @@ CGridTransformation::~CGridTransformation()
   std::list<CGenericAlgorithmTransformation*>::const_iterator itb = algoTransformation_.begin(), it,
                                                               ite = algoTransformation_.end();
   for (it = itb; it != ite; ++it) delete (*it);
-
-  std::map<int, CArray<int,1>* >::const_iterator itMap, iteMap;
-  itMap = localIndexToSendFromGridSource_.begin();
-  iteMap = localIndexToSendFromGridSource_.end();
-  for (; itMap != iteMap; ++itMap) delete (itMap->second);
-
-  if (0 != globalIndexOfCurrentGridSource_) delete globalIndexOfCurrentGridSource_;
-  if (0 != globalIndexOfOriginalGridSource_) delete globalIndexOfOriginalGridSource_;
-  if (0 != weightOfGlobalIndexOfOriginalGridSource_) delete weightOfGlobalIndexOfOriginalGridSource_;
 }
 
 /*!
@@ -343,7 +334,7 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
 void CGridTransformation::computeAll()
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
+  CContextClient* client = context->client;
 
   ListAlgoType::const_iterator itb = listAlgos_.begin(),
                                ite = listAlgos_.end(), it;
@@ -393,7 +384,7 @@ void CGridTransformation::computeAll()
 void CGridTransformation::updateFinalGridDestination()
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
+  CContextClient* client = context->client;
 
   //First of all, retrieve info of local mask of grid destination
   CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
@@ -405,39 +396,37 @@ void CGridTransformation::updateFinalGridDestination()
   iteArr = globalIndexOnClientDest.end();
 
   // Then find out which index became invalid (become masked after being applied the algorithms, or demande some masked points from grid source)
-  int num = globalIndexOfOriginalGridSource_->numElements();
+  int num = globalIndexOfOriginalGridSource_.numElements();
   const size_t sfmax = NumTraits<unsigned long>::sfmax();
   int maskIndexNum = 0;
   for (int idx = 0; idx < num; ++idx)
   {
-    if (sfmax == (*globalIndexOfOriginalGridSource_)(idx))
+    if (sfmax == globalIndexOfOriginalGridSource_(idx))
     {
-      size_t maskedGlobalIndex = (*globalIndexOfCurrentGridSource_)(idx);
+      size_t maskedGlobalIndex = globalIndexOfCurrentGridSource_(idx);
       itArr = std::find(itbArr, iteArr, maskedGlobalIndex);
       if (iteArr != itArr) ++maskIndexNum;
     }
   }
 
-  CArray<int,1>* maskIndexToModify = new CArray<int,1>(maskIndexNum);
+  CArray<int,1> maskIndexToModify(maskIndexNum);
   maskIndexNum = 0;
   for (int idx = 0; idx < num; ++idx)
   {
-    if (sfmax == (*globalIndexOfOriginalGridSource_)(idx))
+    if (sfmax == globalIndexOfOriginalGridSource_(idx))
     {
-      size_t maskedGlobalIndex = (*globalIndexOfCurrentGridSource_)(idx);
+      size_t maskedGlobalIndex = globalIndexOfCurrentGridSource_(idx);
       itArr = std::find(itbArr, iteArr, maskedGlobalIndex);
       if (iteArr != itArr)
       {
         int localIdx = std::distance(itbArr, itArr);
-        (*maskIndexToModify)(maskIndexNum) = (localMaskIndexOnClientDest)(localIdx);
+        maskIndexToModify(maskIndexNum) = localMaskIndexOnClientDest(localIdx);
         ++maskIndexNum;
       }
     }
   }
 
-  gridDestination_->modifyMask(*maskIndexToModify);
-
-  delete maskIndexToModify;
+  gridDestination_->modifyMask(maskIndexToModify);
 }
 
 /*!
@@ -448,7 +437,7 @@ the final grid destination
 void CGridTransformation::computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource)
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
+  CContextClient* client = context->client;
 
   CTransformationMapping transformationMap(gridDestination_, gridSource_);
 
@@ -461,8 +450,8 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
  // Sending global index of original grid source
   std::map<int,std::vector<size_t> >::const_iterator itbSend = globalIndexToSend.begin(), itSend,
                                                      iteSend = globalIndexToSend.end();
-  CArray<size_t,1>::const_iterator itbArr = globalIndexOfCurrentGridSource_->begin(), itArr,
-                                   iteArr = globalIndexOfCurrentGridSource_->end();
+  CArray<size_t,1>::const_iterator itbArr = globalIndexOfCurrentGridSource_.begin(), itArr,
+                                   iteArr = globalIndexOfCurrentGridSource_.end();
  int sendBuffSize = 0;
  for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize += (itSend->second).size();
 
@@ -485,7 +474,7 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
      if (iteArr != itArr)
      {
        int index = std::distance(itbArr, itArr);
-       sendBuff[idx+currentBuffPosition] = (*globalIndexOfOriginalGridSource_)(index);
+       sendBuff[idx+currentBuffPosition] = globalIndexOfOriginalGridSource_(index);
      }
    }
    currentSendBuff = sendBuff + currentBuffPosition;
@@ -524,14 +513,11 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
    }
  }
 
- if (globalIndexOfCurrentGridSource_->numElements()  != nbCurrentGridSource)
+ if (globalIndexOfCurrentGridSource_.numElements() != nbCurrentGridSource)
  {
-   delete globalIndexOfCurrentGridSource_;
-   globalIndexOfCurrentGridSource_ = new CArray<size_t,1>(nbCurrentGridSource);
-   delete globalIndexOfOriginalGridSource_;
-   globalIndexOfOriginalGridSource_ = new CArray<size_t,1>(nbCurrentGridSource);
-   delete weightOfGlobalIndexOfOriginalGridSource_;
-   weightOfGlobalIndexOfOriginalGridSource_ = new CArray<double,1>(nbCurrentGridSource);
+   globalIndexOfCurrentGridSource_.resize(nbCurrentGridSource);
+   globalIndexOfOriginalGridSource_.resize(nbCurrentGridSource);
+   weightOfGlobalIndexOfOriginalGridSource_.resize(nbCurrentGridSource);
  }
 
  int k = 0;
@@ -544,9 +530,9 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
      int ssize = (itRecv->second)[idx].size();
      for (int i = 0; i < ssize; ++i)
      {
-       (*globalIndexOfCurrentGridSource_)(k) = ((itRecv->second)[idx][i]).first;
-       (*weightOfGlobalIndexOfOriginalGridSource_)(k) = ((itRecv->second)[idx][i]).second;
-       (*globalIndexOfOriginalGridSource_)(k) = *currentRecvBuff;
+       globalIndexOfCurrentGridSource_(k) = ((itRecv->second)[idx][i]).first;
+       weightOfGlobalIndexOfOriginalGridSource_(k) = ((itRecv->second)[idx][i]).second;
+       globalIndexOfOriginalGridSource_(k) = *currentRecvBuff;
        ++k;
      }
    }
@@ -568,17 +554,17 @@ of two grids. Then local index mapping between data on each grid will be found o
 void CGridTransformation::computeFinalTransformationMapping()
 {
   CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
+  CContextClient* client = context->client;
 
   CTransformationMapping transformationMap(gridDestination_, originalGridSource_);
 
   std::map<size_t, std::vector<std::pair<size_t,double> > > globaIndexWeightFromDestToSource;
-  int nb = globalIndexOfCurrentGridSource_->numElements();
+  int nb = globalIndexOfCurrentGridSource_.numElements();
   const size_t sfmax = NumTraits<unsigned long>::sfmax();
   for (int idx = 0; idx < nb; ++idx)
   {
-    if (sfmax != (*globalIndexOfOriginalGridSource_)(idx))
-      globaIndexWeightFromDestToSource[(*globalIndexOfCurrentGridSource_)(idx)].push_back(make_pair((*globalIndexOfOriginalGridSource_)(idx),(*weightOfGlobalIndexOfOriginalGridSource_)(idx))) ;
+    if (sfmax != globalIndexOfOriginalGridSource_(idx))
+      globaIndexWeightFromDestToSource[globalIndexOfCurrentGridSource_(idx)].push_back(make_pair(globalIndexOfOriginalGridSource_(idx), weightOfGlobalIndexOfOriginalGridSource_(idx))) ;
   }
 
   // Then compute transformation mapping among clients
@@ -637,17 +623,16 @@ void CGridTransformation::computeFinalTransformationMapping()
   iteArr = globalIndexOnClientSrc.end();
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
-    CArray<int,1>* ptr = new CArray<int,1>((itMap->second).size());
-    localIndexToSendFromGridSource_[itMap->first] = ptr;
     int destRank = itMap->first;
-    int vecSize = (itMap->second).size();
+    int vecSize = itMap->second.size();
+    localIndexToSendFromGridSource_[destRank].resize(vecSize);
     for (int idx = 0; idx < vecSize; ++idx)
     {
-      itArr = std::find(itbArr, iteArr, (itMap->second)[idx]);
+      itArr = std::find(itbArr, iteArr, itMap->second[idx]);
       if (iteArr != itArr)
       {
         int localIdx = std::distance(itbArr, itArr);
-        (*localIndexToSendFromGridSource_[destRank])(idx) = (localIdx);
+        localIndexToSendFromGridSource_[destRank](idx) = localIdx;
       }
     }
   }
@@ -657,7 +642,7 @@ void CGridTransformation::computeFinalTransformationMapping()
   Local index of data which need sending from the grid source
   \return local index of data
 */
-const std::map<int, CArray<int,1>* >& CGridTransformation::getLocalIndexToSendFromGridSource() const
+const std::map<int, CArray<int,1> >& CGridTransformation::getLocalIndexToSendFromGridSource() const
 {
   return localIndexToSendFromGridSource_;
 }

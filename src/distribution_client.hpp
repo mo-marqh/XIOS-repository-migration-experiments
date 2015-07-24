@@ -29,7 +29,7 @@ class CDistributionClient : public CDistribution
 {
   public:
     /** Default constructor */
-    CDistributionClient(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
+    CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
     CDistributionClient(int rank, CGrid* grid);
 
     /** Default destructor */
@@ -71,10 +71,10 @@ class CDistributionClient : public CDistribution
 
   private:
     //!< LocalData index on client
-    CArray<size_t,1>* globalDataSendToServer_;
-    CArray<int,1>* localDataIndex_;
-    CArray<int,1>* localDataIndexSendToServer_;
-    CArray<int,1>* localMaskIndex_;
+    CArray<size_t,1> globalDataSendToServer_;
+    CArray<int,1> localDataIndex_;
+    CArray<int,1> localDataIndexSendToServer_;
+    CArray<int,1> localMaskIndex_;
 
   private:
     /*! Domains and axis are considered elements.

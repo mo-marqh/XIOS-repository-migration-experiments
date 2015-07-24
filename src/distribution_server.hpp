@@ -22,7 +22,7 @@ class CDistributionServer : public CDistribution
 {
   public:
     /** Default constructor */
-    CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex = 0);
+    CDistributionServer(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
     CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,
                         const std::vector<int>& nZoomSizeServer, const std::vector<int>& nGlobal);
     CDistributionServer(int rank, const std::vector<int>& nZoomBeginServer,

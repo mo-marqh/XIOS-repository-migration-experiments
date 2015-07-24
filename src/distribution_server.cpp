@@ -10,7 +10,7 @@
 
 namespace xios {
 
-CDistributionServer::CDistributionServer(int rank, int dims, CArray<size_t,1>* globalIndex)
+CDistributionServer::CDistributionServer(int rank, int dims, const CArray<size_t,1>& globalIndex)
   : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_()
 {
 }
@@ -47,7 +47,7 @@ void CDistributionServer::createGlobalIndex()
   size_t idx = 0, ssize = 1;
   for (int i = 0; i < nZoomSize_.size(); ++i) ssize *= nZoomSize_[i];
 
-  this->globalIndex_ = new CArray<size_t,1>(ssize);
+  this->globalIndex_.resize(ssize);
   std::vector<int> idxLoop(this->getDims(),0);
   std::vector<int> currentIndex(this->getDims());
   int innerLoopSize = nZoomSize_[0];
@@ -76,7 +76,7 @@ void CDistributionServer::createGlobalIndex()
         mulDim *= nGlobal_[k-1];
         globalIndex += (currentIndex[k])*mulDim;
       }
-      (*this->globalIndex_)(idx) = globalIndex;
+      this->globalIndex_(idx) = globalIndex;
       ++idx;
     }
     idxLoop[0] += innerLoopSize;
@@ -90,8 +90,8 @@ void CDistributionServer::createGlobalIndex()
 */
 CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& globalIndex)
 {
-  CArray<size_t,1>::const_iterator itBegin = (this->globalIndex_)->begin(),
-                                   itEnd   = (this->globalIndex_)->end(), it;
+  CArray<size_t,1>::const_iterator itBegin = this->globalIndex_.begin(),
+                                   itEnd   = this->globalIndex_.end(), it;
 
   int ssize = globalIndex.numElements(), idx = 0;
   CArray<size_t,1> localIndex(ssize);
@@ -116,8 +116,8 @@ CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& 
 */
 void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
 {
-  CArray<size_t,1>::const_iterator itBegin = (this->globalIndex_)->begin(),
-                                   itEnd   = (this->globalIndex_)->end(), it;
+  CArray<size_t,1>::const_iterator itBegin = this->globalIndex_.begin(),
+                                   itEnd   = this->globalIndex_.end(), it;
 
   int ssize = globalIndex.numElements(), idx = 0;
   CArray<size_t,1> localIndex(ssize);

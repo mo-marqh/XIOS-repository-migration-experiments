@@ -39,7 +39,7 @@ public:
 
   void computeAll();
 
-  const std::map<int, CArray<int,1>* >& getLocalIndexToSendFromGridSource() const;
+  const std::map<int, CArray<int,1> >& getLocalIndexToSendFromGridSource() const;
   const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
   CGrid* getGridSource() {return gridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
@@ -89,7 +89,7 @@ private:
   std::map<size_t, std::set<size_t> > globaIndexMapFromDestToSource_;
 
   //! Local index of data to send from grid source
-  std::map<int, CArray<int,1>* > localIndexToSendFromGridSource_;
+  std::map<int, CArray<int,1> > localIndexToSendFromGridSource_;
 
   //! Local index of data to receive on grid destination
   std::map<int,std::vector<std::vector<std::pair<int,double> > > > localIndexToReceiveOnGridDest_;
@@ -98,9 +98,9 @@ private:
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
 
   //! (Grid) Global index of grid source
-  CArray<size_t,1>* globalIndexOfCurrentGridSource_;
-  CArray<size_t,1>* globalIndexOfOriginalGridSource_;
-  CArray<double,1>* weightOfGlobalIndexOfOriginalGridSource_;
+  CArray<size_t,1> globalIndexOfCurrentGridSource_;
+  CArray<size_t,1> globalIndexOfOriginalGridSource_;
+  CArray<double,1> weightOfGlobalIndexOfOriginalGridSource_;
 };
 
 }
