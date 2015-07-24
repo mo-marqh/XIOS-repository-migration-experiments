@@ -339,6 +339,9 @@ PROGRAM test_xios_interface
     CALL xios_set_current_context(ctx_hdl)
     CALL xios_context_finalize()
 
+    DEALLOCATE(lon, lat, field_A_atm, lonvalue)
+    DEALLOCATE(kindex, field_A_srf)
+
 !!! Fin de XIOS
 
     CALL xios_finalize()

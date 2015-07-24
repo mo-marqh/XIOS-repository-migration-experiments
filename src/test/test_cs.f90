@@ -140,6 +140,10 @@ END PROGRAM test_cs
     ENDDO
 
     CALL xios_context_finalize()
+
+    DEALLOCATE(lon, lat, field_A, lonvalue)
+    DEALLOCATE(mask)
+
     CALL xios_finalize()
 
   END SUBROUTINE client

@@ -129,6 +129,9 @@ PROGRAM test_client
   ENDDO
 
   CALL xios_context_finalize()
+
+  DEALLOCATE(lon, lat, field_A, lonvalue)
+
   CALL xios_finalize()
 
   CALL MPI_FINALIZE(ierr)

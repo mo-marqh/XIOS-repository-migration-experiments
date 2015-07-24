@@ -219,6 +219,24 @@ PROGRAM test_unstruct_complete
     ENDDO
 
     CALL xios_context_finalize()
+
+  DEALLOCATE(lon_glo)
+  DEALLOCATE(lat_glo)
+  DEALLOCATE(bounds_lon_glo)
+  DEALLOCATE(bounds_lat_glo)
+  DEALLOCATE(i_index_glo)
+  DEALLOCATE(field_A_glo)
+  DEALLOCATE(mask_glo)
+  DEALLOCATE(i_index)
+  DEALLOCATE(lon)
+  DEALLOCATE(lat)
+  DEALLOCATE(bounds_lon)
+  DEALLOCATE(bounds_lat)
+  DEALLOCATE(field_A_srf)
+  DEALLOCATE(mask)
+  DEALLOCATE(field_A_compressed
+  DEALLOCATE(data_i_index)
+
     CALL xios_finalize()
 
   END PROGRAM test_unstruct_complete

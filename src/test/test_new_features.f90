@@ -170,6 +170,13 @@ PROGRAM test_new_features
   ENDDO
 
   CALL xios_context_finalize()
+
+  DEALLOCATE(field_A, field_Two_Axis, field_Axis, field_All_Axis, &
+             lon, lat, lonvalue, &
+             lvaln, lval_ni, lval_nj, lvalnInterp)
+
+  DEALLOCATE(mask)
+
   CALL xios_finalize()
 
   CALL MPI_FINALIZE(ierr)
