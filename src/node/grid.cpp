@@ -47,6 +47,7 @@ namespace xios {
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
     if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
+    if (0 != clientServerMap_) delete clientServerMap_;
     if (0 != transformations_) delete transformations_;
    }
 
