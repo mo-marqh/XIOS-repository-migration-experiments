@@ -144,6 +144,8 @@ END PROGRAM test_cs
     DEALLOCATE(lon, lat, field_A, lonvalue)
     DEALLOCATE(mask)
 
+    CALL MPI_COMM_FREE(comm, ierr)
+
     CALL xios_finalize()
 
   END SUBROUTINE client

@@ -15,6 +15,7 @@ namespace xios
 
         static MPI_Comm intraComm;
         static MPI_Comm interComm;
+        static std::list<MPI_Comm> contextInterComms;
         static int serverLeader;
         static bool is_MPI_Initialized ;
 

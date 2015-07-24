@@ -344,6 +344,8 @@ PROGRAM test_xios_interface
 
 !!! Fin de XIOS
 
+    CALL MPI_COMM_FREE(comm, ierr)
+
     CALL xios_finalize()
 
     CALL MPI_FINALIZE(ierr)

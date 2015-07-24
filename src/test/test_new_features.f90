@@ -177,6 +177,8 @@ PROGRAM test_new_features
 
   DEALLOCATE(mask)
 
+  CALL MPI_COMM_FREE(comm, ierr)
+
   CALL xios_finalize()
 
   CALL MPI_FINALIZE(ierr)

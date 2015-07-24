@@ -132,6 +132,8 @@ PROGRAM test_client
 
   DEALLOCATE(lon, lat, field_A, lonvalue)
 
+  CALL MPI_COMM_FREE(comm, ierr)
+
   CALL xios_finalize()
 
   CALL MPI_FINALIZE(ierr)

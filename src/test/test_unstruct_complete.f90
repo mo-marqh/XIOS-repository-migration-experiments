@@ -237,7 +237,9 @@ PROGRAM test_unstruct_complete
   DEALLOCATE(field_A_compressed
   DEALLOCATE(data_i_index)
 
-    CALL xios_finalize()
+  CALL MPI_COMM_FREE(comm, ierr)
+
+  CALL xios_finalize()
 
   END PROGRAM test_unstruct_complete
 

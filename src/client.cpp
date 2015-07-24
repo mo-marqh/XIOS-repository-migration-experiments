@@ -16,6 +16,7 @@ namespace xios
 
     MPI_Comm CClient::intraComm ;
     MPI_Comm CClient::interComm ;
+    std::list<MPI_Comm> CClient::contextInterComms;
     int CClient::serverLeader ;
     bool CClient::is_MPI_Initialized ;
     int CClient::rank = INVALID_RANK;
@@ -127,9 +128,10 @@ namespace xios
         if (localComm == MPI_COMM_NULL)
         {
           if (!is_MPI_Initialized) oasis_init(codeId) ;
-          oasis_get_localcomm(intraComm) ;
+          oasis_get_localcomm(localComm) ;
         }
-        else MPI_Comm_dup(localComm,&intraComm) ;
+        MPI_Comm_dup(localComm,&intraComm) ;
+
         CTimer::get("XIOS").resume() ;
         CTimer::get("XIOS init").resume() ;
 
@@ -190,6 +192,9 @@ namespace xios
         MPI_Barrier(inter) ;
 
         context->initClient(contextComm,contextInterComm) ;
+
+        contextInterComms.push_back(contextInterComm);
+        MPI_Comm_free(&inter);
       }
       else
       {
@@ -205,7 +210,8 @@ namespace xios
 
         // Finally, we should return current context to context client
         CContext::setCurrent(id);
-//        context->initServer(contextComm,contextInterComm) ;
+
+        contextInterComms.push_back(contextInterComm);
       }
     }
 
@@ -222,8 +228,13 @@ namespace xios
         }
       }
 
-     CTimer::get("XIOS finalize").suspend() ;
-     CTimer::get("XIOS").suspend() ;
+      for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
+        MPI_Comm_free(&(*it));
+      MPI_Comm_free(&interComm);
+      MPI_Comm_free(&intraComm);
+
+      CTimer::get("XIOS finalize").suspend() ;
+      CTimer::get("XIOS").suspend() ;
 
       if (!is_MPI_Initialized)
       {

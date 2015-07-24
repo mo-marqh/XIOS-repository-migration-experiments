@@ -17,6 +17,7 @@ namespace xios
 {
     MPI_Comm CServer::intraComm ;
     list<MPI_Comm> CServer::interComm ;
+    std::list<MPI_Comm> CServer::contextInterComms;
     bool CServer::isRoot ;
     int CServer::rank = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
@@ -109,7 +110,10 @@ namespace xios
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
         CTimer::get("XIOS").resume() ;
-        oasis_get_localcomm(intraComm) ;
+        MPI_Comm localComm;
+        oasis_get_localcomm(localComm);
+        MPI_Comm_dup(localComm, &intraComm);
+
         MPI_Comm_rank(intraComm,&rank) ;
         MPI_Comm_size(intraComm,&size) ;
         string codesId=CXios::getin<string>("oasis_codes_id") ;
@@ -143,9 +147,15 @@ namespace xios
     void CServer::finalize(void)
     {
       CTimer::get("XIOS").suspend() ;
-      
+
       delete eventScheduler ;
-      
+
+      for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
+        MPI_Comm_free(&(*it));
+      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
+        MPI_Comm_free(&(*it));
+      MPI_Comm_free(&intraComm);
+
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
@@ -197,6 +207,7 @@ namespace xios
            {
               MPI_Recv(&msg,1,MPI_INT,0,0,*it,&status) ;
               info(20)<<" CServer : Receive client finalize"<<endl ;
+              MPI_Comm_free(&(*it));
               interComm.erase(it) ;
               break ;
             }
@@ -360,28 +371,31 @@ namespace xios
 
 
 
-     void CServer::registerContext(void* buff,int count, int leaderRank)
+     void CServer::registerContext(void* buff, int count, int leaderRank)
      {
-
        string contextId;
-       CBufferIn buffer(buff,count) ;
+       CBufferIn buffer(buff, count);
+       buffer >> contextId;
 
-       buffer>>contextId ;
-       MPI_Comm contextIntercomm ;
-       MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextIntercomm) ;
+       info(20)<<"CServer : Register new Context : "<<contextId<<endl;
 
-       info(20)<<"CServer : Register new Context : "<<contextId<<endl  ;
-       MPI_Comm inter ;
-       MPI_Intercomm_merge(contextIntercomm,1,&inter) ;
-       MPI_Barrier(inter) ;
        if (contextList.find(contextId)!=contextList.end())
         ERROR("void CServer::registerContext(void* buff,int count, int leaderRank)",
-              <<"Context has already been registred") ;
+              << "Context has already been registred");
 
-      CContext* context=CContext::create(contextId) ;
-      contextList[contextId]=context ;
-      context->initServer(intraComm,contextIntercomm) ;
+       MPI_Comm contextIntercomm;
+       MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextIntercomm);
 
+       MPI_Comm inter;
+       MPI_Intercomm_merge(contextIntercomm,1,&inter);
+       MPI_Barrier(inter);
+
+       CContext* context=CContext::create(contextId);
+       contextList[contextId]=context;
+       context->initServer(intraComm,contextIntercomm);
+
+       contextInterComms.push_back(contextIntercomm);
+       MPI_Comm_free(&inter);
      }
 
 

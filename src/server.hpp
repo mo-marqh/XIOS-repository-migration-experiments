@@ -24,6 +24,7 @@ namespace xios
 
         static MPI_Comm intraComm;
         static list<MPI_Comm> interComm;
+        static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
 
         struct contextMessage

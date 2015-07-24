@@ -247,7 +247,9 @@ namespace xios {
      else
      {
        MPI_Comm_dup(intraComm, &intraCommServer);
+       comms.push_back(intraCommServer);
        MPI_Comm_dup(interComm, &interCommServer);
+       comms.push_back(interCommServer);
      }
      server = new CContextServer(this,intraCommServer,interCommServer);
    }
@@ -302,7 +304,9 @@ namespace xios {
      else
      {
        MPI_Comm_dup(intraComm, &intraCommClient);
+       comms.push_back(intraCommClient);
        MPI_Comm_dup(interComm, &interCommClient);
+       comms.push_back(interCommClient);
      }
      client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
    }
@@ -337,6 +341,10 @@ namespace xios {
         {
           closeAllFile();
         }
+
+        for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+          MPI_Comm_free(&(*it));
+        comms.clear();
       }
    }
 

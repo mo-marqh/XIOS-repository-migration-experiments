@@ -218,7 +218,7 @@ namespace xios {
          std::map<int, StdSize> dataSize_;
          StdString idServer_;
          CGarbageCollector garbageCollector;
-
+         std::list<MPI_Comm> comms; //!< Communicators allocated internally
 
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;
