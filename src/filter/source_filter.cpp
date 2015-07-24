@@ -46,7 +46,7 @@ namespace xios
     std::map<int, CArray<double, 1> >::const_iterator it, itEnd = data.end();
     for (it = data.begin(); it != itEnd; it++)
     {
-      CArray<int,1>& index = *grid->storeIndex_toSrv[it->first];
+      CArray<int,1>& index = grid->storeIndex_toSrv[it->first];
 
       for (int n = 0; n < index.numElements(); n++)
         packet->data(index(n)) = it->second(n);

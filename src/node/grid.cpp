@@ -20,7 +20,7 @@ namespace xios {
 
    CGrid::CGrid(void)
       : CObjectTemplate<CGrid>(), CGridAttributes()
-      , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
+      , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
       , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
       , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
@@ -30,9 +30,9 @@ namespace xios {
      setVirtualAxisGroup();
    }
 
-   CGrid::CGrid(const StdString & id)
+   CGrid::CGrid(const StdString& id)
       : CObjectTemplate<CGrid>(id), CGridAttributes()
-      , isChecked(false), isDomainAxisChecked(false), storeIndex(1)
+      , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
       , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
       , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
@@ -44,11 +44,6 @@ namespace xios {
 
    CGrid::~CGrid(void)
    {
-    deque< CArray<int, 1>* >::iterator it ;
-
-    for(deque< CArray<int,1>* >::iterator it=storeIndex.begin(); it!=storeIndex.end();it++)  delete *it ;
-    for(map<int,CArray<size_t,1>* >::iterator it=outIndexFromClient.begin();it!=outIndexFromClient.end();++it) delete (it->second);
-
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
     if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
@@ -57,115 +52,19 @@ namespace xios {
 
    ///---------------------------------------------------------------
 
-   StdString CGrid::GetName(void)    { return (StdString("grid")); }
-   StdString CGrid::GetDefName(void) { return (CGrid::GetName()); }
-   ENodeType CGrid::GetType(void)    { return (eGrid); }
-
-   //----------------------------------------------------------------
-
-   const std::deque< CArray<int,1>* > & CGrid::getStoreIndex(void) const
-   {
-      return (this->storeIndex );
-   }
-
-   //---------------------------------------------------------------
-//
-//   const std::deque< CArray<int,1>* > & CGrid::getOutIIndex(void)  const
-//   {
-//      return (this->out_i_index );
-//   }
-//
-//   //---------------------------------------------------------------
-//
-//   const std::deque< CArray<int,1>* > & CGrid::getOutJIndex(void)  const
-//   {
-//      return (this->out_j_index );
-//   }
-//
-//   //---------------------------------------------------------------
-//
-//   const std::deque< CArray<int,1>* > & CGrid::getOutLIndex(void)  const
-//   {
-//      return (this->out_l_index );
-//   }
-//
-//   //---------------------------------------------------------------
-//
-//   const CAxis*   CGrid::getRelAxis  (void) const
-//   {
-//      return (this->axis );
-//   }
-
-//   //---------------------------------------------------------------
-//
-//   const CDomain* CGrid::getRelDomain(void) const
-//   {
-//      return (this->domain );
-//   }
-
-   //---------------------------------------------------------------
-
-//   bool CGrid::hasAxis(void) const
-//   {
-//      return (this->withAxis);
-//   }
+   StdString CGrid::GetName(void)    { return StdString("grid"); }
+   StdString CGrid::GetDefName(void) { return CGrid::GetName(); }
+   ENodeType CGrid::GetType(void)    { return eGrid; }
 
    //---------------------------------------------------------------
 
    StdSize CGrid::getDimension(void) const
    {
-      return (globalDim_.size());
+      return globalDim_.size();
    }
 
    //---------------------------------------------------------------
 
-/*
-   std::vector<StdSize> CGrid::getLocalShape(void) const
-   {
-      std::vector<StdSize> retvalue;
-      retvalue.push_back(domain->zoom_ni_loc.getValue());
-      retvalue.push_back(domain->zoom_nj_loc.getValue());
-      if (this->withAxis)
-         retvalue.push_back(this->axis->zoom_size.getValue());
-      return (retvalue);
-   }
-*/
-   //---------------------------------------------------------------
-
-/*
-   StdSize CGrid::getLocalSize(void) const
-   {
-      StdSize retvalue = 1;
-      std::vector<StdSize> shape_ = this->getLocalShape();
-      for (StdSize s = 0; s < shape_.size(); s++)
-         retvalue *= shape_[s];
-      return (retvalue);
-   }
-*/
-   //---------------------------------------------------------------
-/*
-   std::vector<StdSize> CGrid::getGlobalShape(void) const
-   {
-      std::vector<StdSize> retvalue;
-      retvalue.push_back(domain->ni.getValue());
-      retvalue.push_back(domain->nj.getValue());
-      if (this->withAxis)
-         retvalue.push_back(this->axis->size.getValue());
-      return (retvalue);
-   }
-*/
-   //---------------------------------------------------------------
-
-/*
-   StdSize CGrid::getGlobalSize(void) const
-   {
-      StdSize retvalue = 1;
-      std::vector<StdSize> shape_ = this->getGlobalShape();
-      for (StdSize s = 0; s < shape_.size(); s++)
-         retvalue *= shape_[s];
-      return (retvalue);
-   }
-*/
    StdSize CGrid::getDataSize(void) const
    {
      StdSize retvalue = 1;
@@ -227,8 +126,8 @@ namespace xios {
 
    void CGrid::checkMaskIndex(bool doSendingIndex)
    {
-     CContext* context = CContext::getCurrent() ;
-     CContextClient* client=context->client ;
+     CContext* context = CContext::getCurrent();
+     CContextClient* client=context->client;
 
      if (isScalarGrid())
      {
@@ -252,9 +151,8 @@ namespace xios {
 
      if (context->hasClient)
      {
-        checkMask() ;
-        this->computeIndex() ;
-        this->storeIndex.push_front(new CArray<int,1>() );
+        checkMask();
+        this->computeIndex();
      }
      this->isChecked = true;
    }
@@ -381,8 +279,8 @@ namespace xios {
 
    void CGrid::computeIndex(void)
    {
-     CContext* context = CContext::getCurrent() ;
-     CContextClient* client=context->client ;
+     CContext* context = CContext::getCurrent();
+     CContextClient* client = context->client;
 
      // First of all, compute distribution on client side
      clientDistribution_ = new CDistributionClient(client->clientRank, this);
@@ -476,7 +374,7 @@ namespace xios {
       CArray<bool,1> axisDomainOrder;
       CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
 
-      return (grid);
+      return grid;
    }
 
    CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
@@ -486,18 +384,18 @@ namespace xios {
       CArray<bool,1> axisDomainOrder;
       CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
 
-      return (grid);
+      return grid;
    }
 
    CGrid* CGrid::createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, CArray<bool,1> axisDomainOrder)
    {
       StdString new_id = StdString("__");
       if (!domains.empty()) for (int i = 0; i < domains.size(); ++i) new_id += domains[i]->getId() + StdString("_");
-      if (!axis.empty()) for (int i = 0; i < axis.size(); ++i) new_id += axis[i]->getId() + StdString("_") ;
+      if (!axis.empty()) for (int i = 0; i < axis.size(); ++i) new_id += axis[i]->getId() + StdString("_");
       if (domains.empty() && axis.empty()) new_id += StdString("scalar_grid");
       new_id += StdString("_");
 
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id) ;
+      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id);
       grid->setDomainList(domains);
       grid->setAxisList(axis);
 
@@ -520,57 +418,54 @@ namespace xios {
 
       grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
 
-      return (grid);
+      return grid;
    }
 
    CDomainGroup* CGrid::getVirtualDomainGroup() const
    {
-     return (this->vDomainGroup_);
+     return this->vDomainGroup_;
    }
 
    CAxisGroup* CGrid::getVirtualAxisGroup() const
    {
-     return (this->vAxisGroup_);
+     return this->vAxisGroup_;
    }
 
    void CGrid::outputField(int rank, const CArray<double, 1>& stored, double* field)
    {
-     CArray<size_t,1>& out_i=*outIndexFromClient[rank];
+     const CArray<size_t,1>& out_i = outIndexFromClient[rank];
      StdSize numElements = stored.numElements();
      for (StdSize n = 0; n < numElements; ++n)
      {
-       *(field+out_i(n)) = stored(n);
+       field[out_i(n)] = stored(n);
      }
    }
 
    void CGrid::inputField(int rank, const double* const field, CArray<double,1>& stored)
    {
-     CArray<size_t,1>& out_i = *outIndexFromClient[rank];
+     const CArray<size_t,1>& out_i = outIndexFromClient[rank];
      StdSize numElements = stored.numElements();
      for (StdSize n = 0; n < numElements; ++n)
      {
-       stored(n) = *(field+out_i(n));
+       stored(n) = field[out_i(n)];
      }
    }
 
    //----------------------------------------------------------------
 
-
-   void CGrid::storeField_arr
-      (const double * const data, CArray<double, 1>& stored) const
+   void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
    {
-      const StdSize size = storeIndex_client.numElements() ;
+      const StdSize size = storeIndex_client.numElements();
 
-      stored.resize(size) ;
-      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)] ;
+      stored.resize(size);
+      for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
    }
 
-   void CGrid::restoreField_arr
-      (const CArray<double, 1>& stored, double * const data) const
+   void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) const
    {
-      const StdSize size = storeIndex_client.numElements() ;
+      const StdSize size = storeIndex_client.numElements();
 
-      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i) ;
+      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
    }
 
   void CGrid::computeIndexScalarGrid()
@@ -590,50 +485,51 @@ namespace xios {
 
   void CGrid::sendIndexScalarGrid()
   {
-    CContext* context = CContext::getCurrent() ;
-    CContextClient* client=context->client ;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
 
-    CEventClient event(getType(),EVENT_ID_INDEX);
-    list<shared_ptr<CMessage> > list_msg ;
-    list< CArray<size_t,1>* > listOutIndex;
+    CEventClient event(getType(), EVENT_ID_INDEX);
+    list<CMessage> listMsg;
+    list<CArray<size_t,1> > listOutIndex;
+
     if (0 == client->clientRank)
     {
       for (int rank = 0; rank < client->serverSize; ++rank)
       {
         int nb = 1;
-        CArray<size_t, 1> outGlobalIndexOnServer(nb);
-        CArray<int, 1> outLocalIndexToServer(nb);
+        storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
+        listOutIndex.push_back(CArray<size_t,1>(nb));
+
+        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
         for (int k = 0; k < nb; ++k)
         {
           outGlobalIndexOnServer(k) = 0;
           outLocalIndexToServer(k)  = 0;
         }
 
-        storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
-        listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+        listMsg.push_back(CMessage());
+        listMsg.back() << getId( )<< isDataDistributed_ << listOutIndex.back();
 
-        list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-        *list_msg.back()<<getId()<<isDataDistributed_<<*listOutIndex.back();
-
-        event.push(rank, 1, *list_msg.back());
+        event.push(rank, 1, listMsg.back());
       }
+
       client->sendEvent(event);
     }
     else
       client->sendEvent(event);
-
-    for(list<CArray<size_t,1>* >::iterator it=listOutIndex.begin();it!=listOutIndex.end();++it) delete *it ;
   }
 
   void CGrid::sendIndex(void)
   {
-    CContext* context = CContext::getCurrent() ;
-    CContextClient* client=context->client ;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
 
-    CEventClient event(getType(),EVENT_ID_INDEX) ;
-    int rank ;
-    list<shared_ptr<CMessage> > list_msg ;
-    list< CArray<size_t,1>* > listOutIndex;
+    CEventClient event(getType(), EVENT_ID_INDEX);
+    int rank;
+    list<CMessage> listMsg;
+    list<CArray<size_t,1> > listOutIndex;
     const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
     const CArray<int,1>& localIndexSendToServer = clientDistribution_->getLocalDataIndexSendToServer();
     const CArray<size_t,1>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
@@ -642,18 +538,20 @@ namespace xios {
     {
       if (0 == client->clientRank)
       {
-        CArray<size_t, 1> outGlobalIndexOnServer = globalIndexSendToServer;
-        CArray<int,1> outLocalIndexToServer = localIndexSendToServer;
+        const CArray<size_t, 1>& outGlobalIndexOnServer = globalIndexSendToServer;
+        const CArray<int,1>& outLocalIndexToServer = localIndexSendToServer;
+
         for (rank = 0; rank < client->serverSize; ++rank)
         {
-          storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer)));
-          listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+          storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+          listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
-          list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-          *list_msg.back()<<getId()<<isDataDistributed_<<*listOutIndex.back();
+          listMsg.push_back(CMessage());
+          listMsg.back() << getId() << isDataDistributed_ << listOutIndex.back();
 
-          event.push(rank, 1, *list_msg.back());
+          event.push(rank, 1, listMsg.back());
         }
+
         client->sendEvent(event);
       }
       else
@@ -668,6 +566,7 @@ namespace xios {
       int nbGlobalIndex = globalIndexSendToServer.numElements();
       std::map<int,std::vector<int> >localIndexTmp;
       std::map<int,std::vector<size_t> > globalIndexTmp;
+
       for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
       {
         int serverRank = itGlobalMap->first;
@@ -690,27 +589,26 @@ namespace xios {
         if (globalIndexTmp.end() != globalIndexTmp.find(rank))
           nb = globalIndexTmp[rank].size();
 
-        CArray<size_t, 1> outGlobalIndexOnServer(nb);
-        CArray<int, 1> outLocalIndexToServer(nb);
+        storeIndex_toSrv.insert(make_pair(rank, CArray<int,1>(nb)));
+        listOutIndex.push_back(CArray<size_t,1>(nb));
+
+        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
         for (int k = 0; k < nb; ++k)
         {
           outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
           outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
         }
 
-        storeIndex_toSrv.insert( pair<int,CArray<int,1>* >(rank,new CArray<int,1>(outLocalIndexToServer) ));
-        listOutIndex.push_back(new CArray<size_t,1>(outGlobalIndexOnServer));
+        listMsg.push_back(CMessage());
+        listMsg.back() << getId() << isDataDistributed_ << listOutIndex.back();
 
-        list_msg.push_back(shared_ptr<CMessage>(new CMessage));
-        *list_msg.back()<<getId()<<isDataDistributed_<<*listOutIndex.back();
-
-        event.push(rank, nbSenders[rank], *list_msg.back());
+        event.push(rank, nbSenders[rank], listMsg.back());
       }
 
       client->sendEvent(event);
     }
-
-    for(list<CArray<size_t,1>* >::iterator it=listOutIndex.begin();it!=listOutIndex.end();++it) delete *it ;
   }
 
   void CGrid::recvIndex(CEventServer& event)
@@ -720,14 +618,14 @@ namespace xios {
     vector<CBufferIn*> buffers;
 
     list<CEventServer::SSubEvent>::iterator it;
-    for (it=event.subEvents.begin();it!=event.subEvents.end();++it)
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       ranks.push_back(it->rank);
       CBufferIn* buffer = it->buffer;
       *buffer >> gridId;
       buffers.push_back(buffer);
     }
-    get(gridId)->recvIndex(ranks, buffers) ;
+    get(gridId)->recvIndex(ranks, buffers);
   }
 
   void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
@@ -767,25 +665,18 @@ namespace xios {
   /*!
     Verify whether one server need to write data
     There are some cases on which one server has nodata to write. For example, when we
-  just only want to zoom on a domain.
+    just only want to zoom on a domain.
   */
   bool CGrid::doGridHaveDataToWrite()
   {
-//    size_t ssize = 0;
-//    for (map<int, CArray<size_t, 1>* >::const_iterator it = outIndexFromClient.begin();
-//                                                       it != outIndexFromClient.end(); ++it)
-//    {
-//      ssize += (it->second)->numElements();
-//    }
-//    return (0 != ssize);
      return (0 != writtenDataSize_);
   }
 
   /*!
     Return size of data which is written on each server
     Whatever dimension of a grid, data which are written on server must be presented as
-  an one dimension array.
-  \return size of data written on server
+    an one dimension array.
+    \return size of data written on server
   */
   size_t CGrid::getWrittenDataSize() const
   {
@@ -827,7 +718,7 @@ namespace xios {
         writtenDataSize_ = 1;
         CArray<size_t,1> outIndex;
         buffer >> outIndex;
-        outIndexFromClient.insert(std::pair<int, CArray<size_t,1>* >(rank, new CArray<size_t,1>(outIndex)));
+        outIndexFromClient.insert(std::make_pair(rank, outIndex));
         std::vector<int> nZoomBegin(1,0), nZoomSize(1,1), nGlob(1,1), nZoomBeginGlobal(1,0);
         serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
                                                       nZoomBeginGlobal, nGlob);
@@ -898,7 +789,7 @@ namespace xios {
       }
       writtenDataSize_ += dataSize;
 
-      outIndexFromClient.insert(std::pair<int, CArray<size_t,1>* >(rank, new CArray<size_t,1>(outIndex)));
+      outIndexFromClient.insert(std::make_pair(rank, outIndex));
       connectedDataSize_[rank] = outIndex.numElements();
     }
 
@@ -915,65 +806,43 @@ namespace xios {
   bool CGrid::dispatchEvent(CEventServer& event)
   {
 
-    if (SuperClass::dispatchEvent(event)) return true ;
+    if (SuperClass::dispatchEvent(event)) return true;
     else
     {
       switch(event.type)
       {
         case EVENT_ID_INDEX :
-          recvIndex(event) ;
-          return true ;
-          break ;
+          recvIndex(event);
+          return true;
+          break;
 
          case EVENT_ID_ADD_DOMAIN :
-           recvAddDomain(event) ;
-           return true ;
-           break ;
+           recvAddDomain(event);
+           return true;
+           break;
 
          case EVENT_ID_ADD_AXIS :
-           recvAddAxis(event) ;
-           return true ;
-           break ;
+           recvAddAxis(event);
+           return true;
+           break;
         default :
           ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
-                <<"Unknown Event") ;
-          return false ;
+                << "Unknown Event");
+          return false;
       }
     }
   }
 
-   void CGrid::inputFieldServer(const std::deque< CArray<double, 1>* > storedClient, CArray<double, 1>&  storedServer) const
-   {
-      if ((this->storeIndex.size()-1 ) != storedClient.size())
-         ERROR("void CGrid::inputFieldServer(const std::deque< CArray<double, 1>* > storedClient, CArray<double, 1>&  storedServer) const",
-                << "[ Expected received field = " << (this->storeIndex.size()-1) << ", "
-                << "[ received fiedl = "    << storedClient.size() << "] "
-                << "Data from clients are missing!") ;
-      storedServer.resize(storeIndex[0]->numElements());
-
-      for (StdSize i = 0, n = 0; i < storedClient.size(); i++)
-         for (StdSize j = 0; j < storedClient[i]->numElements(); j++)
-            storedServer(n++) = (*storedClient[i])(j);
-   }
-
-   void CGrid::outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut)
-   {
-     CArray<int,1>& index = *storeIndex_toSrv[rank] ;
-     int nb=index.numElements() ;
-     fieldOut.resize(nb) ;
-
-     for(int k=0;k<nb;k++) fieldOut(k)=fieldIn(index(k)) ;
-    }
    ///---------------------------------------------------------------
 
    CDomain* CGrid::addDomain(const std::string& id)
    {
-     return vDomainGroup_->createChild(id) ;
+     return vDomainGroup_->createChild(id);
    }
 
    CAxis* CGrid::addAxis(const std::string& id)
    {
-     return vAxisGroup_->createChild(id) ;
+     return vAxisGroup_->createChild(id);
    }
 
    //! Change virtual field group to a new one
@@ -1007,24 +876,24 @@ namespace xios {
    */
    void CGrid::sendAddDomain(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent();
 
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client=context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_DOMAIN) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_DOMAIN);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg<<this->getId();
+         msg<<id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
    }
 
@@ -1034,24 +903,24 @@ namespace xios {
    */
    void CGrid::sendAddAxis(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
+    CContext* context=CContext::getCurrent();
 
     if (! context->hasServer )
     {
-       CContextClient* client=context->client ;
+       CContextClient* client=context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_AXIS) ;
+       CEventClient event(this->getType(),EVENT_ID_ADD_AXIS);
        if (client->isServerLeader())
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
+         CMessage msg;
+         msg<<this->getId();
+         msg<<id;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         client->sendEvent(event);
        }
-       else client->sendEvent(event) ;
+       else client->sendEvent(event);
     }
    }
 
@@ -1062,10 +931,10 @@ namespace xios {
    void CGrid::recvAddDomain(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddDomain(*buffer) ;
+      *buffer >> id;
+      get(id)->recvAddDomain(*buffer);
    }
 
    /*!
@@ -1074,9 +943,9 @@ namespace xios {
    */
    void CGrid::recvAddDomain(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addDomain(id) ;
+      string id;
+      buffer >> id;
+      addDomain(id);
    }
 
    /*!
@@ -1086,10 +955,10 @@ namespace xios {
    void CGrid::recvAddAxis(CEventServer& event)
    {
 
-      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id ;
-      get(id)->recvAddAxis(*buffer) ;
+      *buffer >> id;
+      get(id)->recvAddAxis(*buffer);
    }
 
    /*!
@@ -1098,9 +967,9 @@ namespace xios {
    */
    void CGrid::recvAddAxis(CBufferIn& buffer)
    {
-      string id ;
-      buffer>>id ;
-      addAxis(id) ;
+      string id;
+      buffer >> id;
+      addAxis(id);
    }
 
   /*!
@@ -1168,8 +1037,8 @@ namespace xios {
     {
       ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
            << "Two grids have different dimension size"
-           << "Dimension of grid destination " <<this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Dimension of grid source " <<transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+           << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+           << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
     }
     else
     {
@@ -1177,7 +1046,7 @@ namespace xios {
       for (int i = 0; i < ssize; ++i)
         if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
           ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-                << "Grids " <<this->getId() <<" and " << transformGridSrc->getId()
+                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
                 << " don't have elements in the same order");
     }
 
@@ -1228,7 +1097,7 @@ namespace xios {
     {
       int sizeDom = domList.size();
       domList_.resize(sizeDom);
-      for (int i = 0 ; i < sizeDom; ++i)
+      for (int i = 0; i < sizeDom; ++i)
       {
         domList_[i] = domList[i]->getId();
       }
@@ -1301,7 +1170,7 @@ namespace xios {
     }
   }
 
-  void CGrid::parse(xml::CXMLNode & node)
+  void CGrid::parse(xml::CXMLNode& node)
   {
     SuperClass::parse(node);
 
@@ -1322,7 +1191,7 @@ namespace xios {
           order.push_back(false);
           this->getVirtualAxisGroup()->parseChild(node);
         }
-      } while (node.goToNextElement()) ;
+      } while (node.goToNextElement());
       node.goToParentElement();
     }
 
@@ -1339,5 +1208,4 @@ namespace xios {
     setDomainList();
     setAxisList();
    }
-
 } // namespace xios

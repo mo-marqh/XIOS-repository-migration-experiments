@@ -129,7 +129,7 @@ namespace xios{
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
-    map<int, CArray<int,1>* >::iterator it;
+    map<int, CArray<int,1> >::iterator it;
     list<CMessage> list_msg;
     list<CArray<double,1> > list_data;
 
@@ -139,8 +139,8 @@ namespace xios{
        {
           for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
           {
-            int rank = (*it).first;
-            CArray<int,1>& index = *(it->second);
+            int rank = it->first;
+            CArray<int,1>& index = it->second;
 
             list_msg.push_back(CMessage());
             list_data.push_back(CArray<double,1>(index.numElements()));
@@ -158,8 +158,8 @@ namespace xios{
     {
       for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
       {
-        int rank = (*it).first;
-        CArray<int,1>& index = *(it->second);
+        int rank = it->first;
+        CArray<int,1>& index = it->second;
 
         list_msg.push_back(CMessage());
         list_data.push_back(CArray<double,1>(index.numElements()));
@@ -199,11 +199,10 @@ namespace xios{
   {
     if (data_srv.empty())
     {
-      for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+      for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
       {
         int rank = it->first;
-        CArray<double,1> data_tmp(it->second->numElements());
-        data_srv.insert( pair<int, CArray<double,1>* >(rank, new CArray<double,1>(data_tmp)));
+        data_srv.insert( pair<int, CArray<double,1>* >(rank, new CArray<double,1>(it->second.numElements())));
         foperation_srv.insert(pair<int,boost::shared_ptr<func::CFunctor> >(rank,boost::shared_ptr<func::CFunctor>(new func::CInstant(*data_srv[rank]))));
       }
     }
@@ -328,8 +327,8 @@ namespace xios{
       {
         if (data_srv.empty())
         {
-          for (map<int, CArray<size_t, 1>* >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-            data_srv.insert(pair<int, CArray<double,1>*>(it->first, new CArray<double,1>(it->second->numElements())));
+          for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+            data_srv.insert(pair<int, CArray<double,1>*>(it->first, new CArray<double,1>(it->second.numElements())));
         }
 
         getRelFile()->checkFile();

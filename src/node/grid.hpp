@@ -58,7 +58,7 @@ namespace xios {
          enum EEventId
          {
            EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS
-         } ;
+         };
 
          enum EElementType
          {
@@ -67,9 +67,9 @@ namespace xios {
 
          /// Constructeurs ///
          CGrid(void);
-         explicit CGrid(const StdString & id);
-         CGrid(const CGrid & grid);       // Not implemented yet.
-         CGrid(const CGrid * const grid); // Not implemented yet.
+         explicit CGrid(const StdString& id);
+         CGrid(const CGrid& grid);       // Not implemented yet.
+         CGrid(const CGrid* const grid); // Not implemented yet.
 
          /// Traitements ///
 //         void solveReference(void);
@@ -78,8 +78,8 @@ namespace xios {
 
          void checkMaskIndex(bool doCalculateIndex);
 
- //        virtual void toBinary  (StdOStream & os) const;
-//         virtual void fromBinary(StdIStream & is);
+ //        virtual void toBinary  (StdOStream& os) const;
+//         virtual void fromBinary(StdIStream& is);
 
          /// Tests ///
          bool hasAxis(void) const;
@@ -87,21 +87,9 @@ namespace xios {
       public :
 
          /// Accesseurs ///
-         const std::deque< CArray<int, 1>* > & getStoreIndex(void) const;
-         const std::deque< CArray<int, 1>* > & getOutIIndex(void)  const;
-         const std::deque< CArray<int, 1>* > & getOutJIndex(void)  const;
-         const std::deque< CArray<int, 1>* > & getOutLIndex(void)  const;
-
-         const CAxis*   getRelAxis  (void) const;
-         const CDomain* getRelDomain(void) const;
-
          StdSize getDimension(void) const;
 
-//         StdSize getLocalSize(void) const;
-//         StdSize getGlobalSize(void) const;
          StdSize  getDataSize(void) const;
-//         std::vector<StdSize> getLocalShape(void) const;
-//         std::vector<StdSize> getGlobalShape(void) const;
 
          /// Entrées-sorties de champs ///
          template <int n>
@@ -109,13 +97,10 @@ namespace xios {
          template <int n>
          void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;
 
-         void inputFieldServer(const std::deque< CArray<double, 1>* > storedClient,
-                               CArray<double, 1>&  storedServer) const;
-
          void outputField(int rank, const CArray<double,1>& stored, double* field);
          void inputField(int rank, const double* const field, CArray<double,1>& stored);
 
-         virtual void parse(xml::CXMLNode & node);
+         virtual void parse(xml::CXMLNode& node);
 
          /// Destructeur ///
          virtual ~CGrid(void);
@@ -136,8 +121,8 @@ namespace xios {
       public :
 
          /// Entrées-sorties de champs (interne) ///
-         void storeField_arr(const double * const data, CArray<double,1>& stored) const;
-         void restoreField_arr(const CArray<double,1>& stored, double * const data) const;
+         void storeField_arr(const double* const data, CArray<double,1>& stored) const;
+         void restoreField_arr(const CArray<double,1>& stored, double* const data) const;
 
          /// Traitements protégés ///
          void computeIndexServer(void);
@@ -154,16 +139,15 @@ namespace xios {
          void sendAllDomains();
          void sendAllAxis();
 
-         static void recvAddDomain(CEventServer& event) ;
-         void recvAddDomain(CBufferIn& buffer) ;
-         static void recvAddAxis(CEventServer& event) ;
-         void recvAddAxis(CBufferIn& buffer) ;
+         static void recvAddDomain(CEventServer& event);
+         void recvAddDomain(CBufferIn& buffer);
+         static void recvAddAxis(CEventServer& event);
+         void recvAddAxis(CBufferIn& buffer);
 
-         static bool dispatchEvent(CEventServer& event) ;
-         void outputFieldToServer(CArray<double,1>& fieldIn, int rank, CArray<double,1>& fieldOut) ;
-         static void recvIndex(CEventServer& event) ;
-         void recvIndex(vector<int> ranks, vector<CBufferIn*> buffers) ;
-         void sendIndex(void) ;
+         static bool dispatchEvent(CEventServer& event);
+         static void recvIndex(CEventServer& event);
+         void recvIndex(vector<int> ranks, vector<CBufferIn*> buffers);
+         void sendIndex(void);
          void sendIndexScalarGrid();
 
          void computeDomConServer();
@@ -197,14 +181,13 @@ namespace xios {
          bool isDomainAxisChecked;
          bool isIndexSent;
 
-         std::deque< CArray<int, 1>* > storeIndex ;
-        CArray<int, 1>  storeIndex_client ;
+         CArray<int, 1> storeIndex_client;
 
-         map<int, CArray<int, 1>* >  storeIndex_toSrv ;
-         map<int,int> nbSenders ;
+         map<int, CArray<int, 1> > storeIndex_toSrv;
+         map<int,int> nbSenders;
 
-         map<int, CArray<size_t, 1>* > outIndexFromClient;
-         void checkMask(void) ;
+         map<int, CArray<size_t, 1> > outIndexFromClient;
+         void checkMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
 
       private:
@@ -253,8 +236,6 @@ namespace xios {
         std::vector<int> connectedServerRank_;
         bool isDataDistributed_;
 
-
-//        std::vector<ETransformationType> transformations_;
         bool isTransformed_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
@@ -270,7 +251,7 @@ namespace xios {
                 << "[ Awaiting size of the data = " << this->getDataSize()       << ", "
                 << "Received data size = "      << field.numElements() << " ] "
                 << "The array of data has not the good size !")
-      this->storeField_arr(field.dataFirst(), stored) ;
+      this->storeField_arr(field.dataFirst(), stored);
    }
 
    template <int n>
@@ -292,7 +273,7 @@ namespace xios {
    {
      int idx = 0;
      int numElement = axisDomainOrder.numElements();
-     int dim = domainMasks.size()*2 + axisMasks.size();
+     int dim = domainMasks.size() * 2 + axisMasks.size();
 
      std::vector<int> idxLoop(dim,0), indexMap(numElement), eachDimSize(dim);
      std::vector<int> currentIndex(dim);
