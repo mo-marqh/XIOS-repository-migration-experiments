@@ -297,20 +297,18 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_group_ref
 
 
-    SUBROUTINE cxios_set_domaingroup_i_index(domaingroup_hdl, i_index, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_i_index(domaingroup_hdl, i_index, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
     END SUBROUTINE cxios_set_domaingroup_i_index
 
-    SUBROUTINE cxios_get_domaingroup_i_index(domaingroup_hdl, i_index, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_i_index(domaingroup_hdl, i_index, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
     END SUBROUTINE cxios_get_domaingroup_i_index
 
     FUNCTION cxios_is_defined_domaingroup_i_index(domaingroup_hdl) BIND(C)
@@ -339,39 +337,18 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_ibegin
 
 
-    SUBROUTINE cxios_set_domaingroup_iend(domaingroup_hdl, iend) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: iend
-    END SUBROUTINE cxios_set_domaingroup_iend
-
-    SUBROUTINE cxios_get_domaingroup_iend(domaingroup_hdl, iend) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: iend
-    END SUBROUTINE cxios_get_domaingroup_iend
-
-    FUNCTION cxios_is_defined_domaingroup_iend(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_iend
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_iend
-
-
-    SUBROUTINE cxios_set_domaingroup_j_index(domaingroup_hdl, j_index, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_j_index(domaingroup_hdl, j_index, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
     END SUBROUTINE cxios_set_domaingroup_j_index
 
-    SUBROUTINE cxios_get_domaingroup_j_index(domaingroup_hdl, j_index, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_j_index(domaingroup_hdl, j_index, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
       INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
     END SUBROUTINE cxios_get_domaingroup_j_index
 
     FUNCTION cxios_is_defined_domaingroup_j_index(domaingroup_hdl) BIND(C)
@@ -398,25 +375,6 @@ MODULE domaingroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_jbegin
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
     END FUNCTION cxios_is_defined_domaingroup_jbegin
-
-
-    SUBROUTINE cxios_set_domaingroup_jend(domaingroup_hdl, jend) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: jend
-    END SUBROUTINE cxios_set_domaingroup_jend
-
-    SUBROUTINE cxios_get_domaingroup_jend(domaingroup_hdl, jend) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: jend
-    END SUBROUTINE cxios_get_domaingroup_jend
-
-    FUNCTION cxios_is_defined_domaingroup_jend(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_jend
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_jend
 
 
     SUBROUTINE cxios_set_domaingroup_latvalue(domaingroup_hdl, latvalue, extent1) BIND(C)
@@ -661,158 +619,6 @@ MODULE domaingroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_type
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
     END FUNCTION cxios_is_defined_domaingroup_type
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_ibegin(domaingroup_hdl, zoom_ibegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ibegin
-    END SUBROUTINE cxios_set_domaingroup_zoom_ibegin
-
-    SUBROUTINE cxios_get_domaingroup_zoom_ibegin(domaingroup_hdl, zoom_ibegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ibegin
-    END SUBROUTINE cxios_get_domaingroup_zoom_ibegin
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_ibegin(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_ibegin
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_ibegin
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_ibegin_loc(domaingroup_hdl, zoom_ibegin_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ibegin_loc
-    END SUBROUTINE cxios_set_domaingroup_zoom_ibegin_loc
-
-    SUBROUTINE cxios_get_domaingroup_zoom_ibegin_loc(domaingroup_hdl, zoom_ibegin_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ibegin_loc
-    END SUBROUTINE cxios_get_domaingroup_zoom_ibegin_loc
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_ibegin_loc(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_ibegin_loc
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_ibegin_loc
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_jbegin(domaingroup_hdl, zoom_jbegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_jbegin
-    END SUBROUTINE cxios_set_domaingroup_zoom_jbegin
-
-    SUBROUTINE cxios_get_domaingroup_zoom_jbegin(domaingroup_hdl, zoom_jbegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_jbegin
-    END SUBROUTINE cxios_get_domaingroup_zoom_jbegin
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_jbegin(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_jbegin
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_jbegin
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_jbegin_loc(domaingroup_hdl, zoom_jbegin_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_jbegin_loc
-    END SUBROUTINE cxios_set_domaingroup_zoom_jbegin_loc
-
-    SUBROUTINE cxios_get_domaingroup_zoom_jbegin_loc(domaingroup_hdl, zoom_jbegin_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_jbegin_loc
-    END SUBROUTINE cxios_get_domaingroup_zoom_jbegin_loc
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_jbegin_loc(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_jbegin_loc
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_jbegin_loc
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_ni(domaingroup_hdl, zoom_ni) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ni
-    END SUBROUTINE cxios_set_domaingroup_zoom_ni
-
-    SUBROUTINE cxios_get_domaingroup_zoom_ni(domaingroup_hdl, zoom_ni) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ni
-    END SUBROUTINE cxios_get_domaingroup_zoom_ni
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_ni(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_ni
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_ni
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_ni_loc(domaingroup_hdl, zoom_ni_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ni_loc
-    END SUBROUTINE cxios_set_domaingroup_zoom_ni_loc
-
-    SUBROUTINE cxios_get_domaingroup_zoom_ni_loc(domaingroup_hdl, zoom_ni_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ni_loc
-    END SUBROUTINE cxios_get_domaingroup_zoom_ni_loc
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_ni_loc(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_ni_loc
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_ni_loc
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_nj(domaingroup_hdl, zoom_nj) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_nj
-    END SUBROUTINE cxios_set_domaingroup_zoom_nj
-
-    SUBROUTINE cxios_get_domaingroup_zoom_nj(domaingroup_hdl, zoom_nj) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_nj
-    END SUBROUTINE cxios_get_domaingroup_zoom_nj
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_nj(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_nj
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_nj
-
-
-    SUBROUTINE cxios_set_domaingroup_zoom_nj_loc(domaingroup_hdl, zoom_nj_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_nj_loc
-    END SUBROUTINE cxios_set_domaingroup_zoom_nj_loc
-
-    SUBROUTINE cxios_get_domaingroup_zoom_nj_loc(domaingroup_hdl, zoom_nj_loc) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-      INTEGER (KIND=C_INT)             :: zoom_nj_loc
-    END SUBROUTINE cxios_get_domaingroup_zoom_nj_loc
-
-    FUNCTION cxios_is_defined_domaingroup_zoom_nj_loc(domaingroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_zoom_nj_loc
-      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_zoom_nj_loc
 
   END INTERFACE
 

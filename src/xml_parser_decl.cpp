@@ -1,15 +1,6 @@
 #include "xml_parser_impl.hpp"
 #include "group_template.hpp"
-#include "context.hpp"
-#include "axis.hpp"
-#include "domain.hpp"
-#include "field.hpp"
-#include "file.hpp"
-#include "variable.hpp"
-#include "inverse_axis.hpp"
-#include "zoom_axis.hpp"
-#include "interpolate_axis.hpp"
-#include "zoom_domain.hpp"
+#include "node_type.hpp"
 
 namespace xios
 {
@@ -31,5 +22,6 @@ namespace xios
     macro( ZoomAxis )
     macro( InterpolateAxis )
     macro( ZoomDomain )
+    macro( InterpolateFromFileDomain )
   }
 }

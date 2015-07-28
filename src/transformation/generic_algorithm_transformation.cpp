@@ -51,7 +51,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                    globalIndexDestGrid,
                                                    globalIndexSrcGrid);
     size_t globalIndexSize = globalIndexDestGrid.numElements();
-    std::vector<double> currentVecWeight = itTransWeight->second;
+    const std::vector<double>& currentVecWeight = itTransWeight->second;
     for (size_t idx = 0; idx < globalIndexSize; ++idx)
     {
       size_t globalIndex = globalIndexDestGrid(idx);

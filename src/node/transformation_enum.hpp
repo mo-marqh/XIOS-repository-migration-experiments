@@ -9,7 +9,8 @@ namespace xios
         TRANS_ZOOM_AXIS,
         TRANS_INVERSE_AXIS,
         TRANS_INTERPOLATE_AXIS,
-        TRANS_ZOOM_DOMAIN
+        TRANS_ZOOM_DOMAIN,
+        TRANS_INTERPOLATE_DOMAIN_FROM_FILE
       } ETranformationType;
 
 } // namespace xios

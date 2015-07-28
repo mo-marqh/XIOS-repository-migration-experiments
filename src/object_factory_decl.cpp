@@ -27,6 +27,7 @@ namespace xios
   macro(CZoomAxis)
   macro(CInterpolateAxis)
   macro(CZoomDomain)
+  macro(CInterpolateFromFileDomain)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -39,4 +40,5 @@ namespace xios
   macro(CZoomAxisGroup)
   macro(CInterpolateAxisGroup)
   macro(CZoomDomainGroup)
+  macro(CInterpolateFromFileDomainGroup)
 }

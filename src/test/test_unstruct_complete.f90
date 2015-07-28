@@ -198,19 +198,17 @@ PROGRAM test_unstruct_complete
   CALL xios_get_handle("surface",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
-  CALL xios_define_calendar(type="Julian", &
-                            start_date=xios_date(2012, 03, 01, 15, 00, 00), &
-                            time_origin=xios_date(2012, 02, 29, 15, 00, 00))
-
   CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval) ;
-  CALL xios_set_domain_attr("domain_srf",ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=RESHAPE(i_index,(/ncell,1/) ))
+!  CALL xios_set_domain_attr("domain_srf",ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=RESHAPE(i_index,(/ncell,1/) ))
+  CALL xios_set_domain_attr("domain_srf",ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=i_index)
   CALL xios_set_domain_attr("domain_srf",data_dim=1, data_ni=data_n_index, data_n_index=data_n_index, data_i_index=data_i_index, type='unstructured')
   CALL xios_set_domain_attr("domain_srf",lonvalue=lon,latvalue=lat)
   CALL xios_set_domain_attr("domain_srf", nvertex=4, bounds_lon=bounds_lon, bounds_lat=bounds_lat )
+!  CALL xios_set_domain_attr("domain_srf", mask=RESHAPE(mask,(/ncell,1/) ))
 
 
   dtime%second=3600
-  CALL xios_set_context_attr("surface", timestep=dtime)
+  CALL xios_set_timestep(dtime)
   CALL xios_close_context_definition()
 
    DO ts=1,24*10

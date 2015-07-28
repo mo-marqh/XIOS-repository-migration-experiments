@@ -299,10 +299,10 @@ namespace xios {
     indexEnd = indexBegin + range - 1;
 
     CServerDistributionDescription serverDescription(nGlobDomain);
-    serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd));
-    CClientServerMappingDistributed clientServerMap(serverDescription.getGlobalIndexRange(), client->intraComm);
-    clientServerMap.computeServerIndexMapping(globalIndexAxis);
-    const std::map<int, std::vector<size_t> >& globalIndexAxisOnServer = clientServerMap.getGlobalIndexOnServer();
+    serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
+    CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+    clientServerMap->computeServerIndexMapping(globalIndexAxis);
+    const std::map<int, std::vector<size_t> >& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();
 
     std::map<int, std::vector<size_t> >::const_iterator it = globalIndexAxisOnServer.begin(),
                                                        ite = globalIndexAxisOnServer.end();
@@ -335,8 +335,8 @@ namespace xios {
       for (it = indSrv_.begin(); it != indSrv_.end(); ++it)
         connectedServerRank_.push_back(it->first);
     }
-    nbConnectedClients_ = clientServerMap.computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
-
+    nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
+    delete clientServerMap;
   }
 
   void CAxis::sendNonDistributedValue()

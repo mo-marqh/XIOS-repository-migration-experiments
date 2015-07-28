@@ -28,4 +28,5 @@ namespace xios
   macro(CZoomAxisGroup)
   macro(CInterpolateAxisGroup)
   macro(CZoomDomainGroup)
+  macro(CInterpolateFromFileDomainGroup)
 }

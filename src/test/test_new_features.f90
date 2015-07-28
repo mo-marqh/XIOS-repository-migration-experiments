@@ -14,9 +14,9 @@ PROGRAM test_new_features
   TYPE(xios_date) :: date
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=5
-  INTEGER,PARAMETER :: nj_glo=5
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: ni_glo=10
+  INTEGER,PARAMETER :: nj_glo=10
+  INTEGER,PARAMETER :: llm=2
   INTEGER,PARAMETER :: llmInterPolated=5
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1
   TYPE(xios_field) :: field_hdl
@@ -28,8 +28,11 @@ PROGRAM test_new_features
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , &
-                                  field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:), lvalnInterp(:)
-  INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd, axisterpBegin, nAxisinterp, axisinterpEnd
+                                  field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:), lvalnInterp(:), &
+                                  lontransformed(:,:), lattransformed(:,:), lon_glotransformed(:,:), lat_glotransformed(:,:)
+  INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
+  INTEGER :: axisterpBegin, nAxisinterp, axisinterpEnd
+  INTEGER :: niDomInterp,ibeginDomInterp,iendDomInterp,njDomInterp,jbeginDomInterp,jendDomInterp, niDomGlo, njDomGlo
   INTEGER :: i,j,l,ts,n
 
 !!! MPI Initialization
@@ -73,9 +76,24 @@ PROGRAM test_new_features
   axisterpBegin = 0
   CALL Distribute_index(axisterpBegin, axisinterpEnd, nAxisinterp, llmInterPolated, rank, size)
 
+  niDomGlo = ni_glo - 4
+  njDomGlo = nj_glo - 4
+  ALLOCATE(lon_glotransformed(niDomGlo,njDomGlo), lat_glotransformed(niDomGlo,njDomGlo))
+  DO j=1,njDomGlo
+    DO i=1,niDomGlo
+      lon_glotransformed(i,j)=(i-1)+(j-1)*niDomGlo
+      lat_glotransformed(i,j)=1000+(i-1)+(j-1)*niDomGlo
+    ENDDO
+  ENDDO
+
+  niDomInterp = niDomGlo; ibeginDomInterp = 0
+  jbeginDomInterp = 0
+  CALL Distribute_index(jbeginDomInterp, jendDomInterp, njDomInterp, njDomGlo, rank, size)
+
   ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
           lon(ni,nj),lat(ni,nj), lonvalue(ni*nj), &
-          lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp))
+          lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp), &
+          lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp))
 
   ALLOCATE(mask(nj))
   DO i = 1, nj
@@ -87,6 +105,8 @@ PROGRAM test_new_features
   ENDDO
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
+  lontransformed(:,:) = lon_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
+  lattransformed(:,:) = lat_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_Axis(1:nAxis)  = field_A_glo(1,1,axisBegin+1:axisEnd+1)
   field_Two_Axis(:,1:nj)  = field_A_glo(:,jbegin+1:jend+1,1)
@@ -108,12 +128,14 @@ PROGRAM test_new_features
   CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj, mask=mask)
   CALL xios_set_axis_attr("axis_C", size=llm, value=lval)
   CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lvaln)
-!  CALL xios_set_axis_attr("axis_D", size=llm, value=lval)
   CALL xios_set_axis_attr("axis_G", size=llmInterPolated, value=lvalnInterp, ibegin=axisterpBegin, ni=nAxisinterp)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
-!  CALL xios_set_domain_attr("domain_A",zoom_ibegin=40, zoom_ni=20, zoom_jbegin=40, zoom_nj=10)
+
+  CALL xios_set_domain_attr("domain_A_transformed",ni_glo=niDomGlo, nj_glo=njDomGlo, ibegin=ibeginDomInterp, ni=niDomInterp,jbegin=jbeginDomInterp,nj=njDomInterp)
+  CALL xios_set_domain_attr("domain_A_transformed",lonvalue=RESHAPE(lontransformed,(/niDomInterp*njDomInterp/)),latvalue=RESHAPE(lattransformed,(/niDomInterp*njDomInterp/)))
+
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
 !  CALL xios_get_handle("field_definition",fieldgroup_hdl)

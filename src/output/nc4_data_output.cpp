@@ -456,7 +456,7 @@ namespace xios
                  latid = StdString("lat").append(appendDomid);
                  dim0.push_back(dimXid);
 
-                 SuperClassWriter::addDimension(dimXid, domain->zoom_nj_srv);
+                 SuperClassWriter::addDimension(dimXid, domain->zoom_ni_srv);
                  SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                  SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
 

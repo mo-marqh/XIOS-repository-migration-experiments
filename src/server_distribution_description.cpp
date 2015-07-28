@@ -2,12 +2,13 @@
    \file server_distribution_description.hpp
    \author Ha NGUYEN
    \since 04 Jan 2015
-   \date 09 Mars 2015
+   \date 24 Jul 2015
 
    \brief Description of index distribution on server(s).
  */
 
 #include "server_distribution_description.hpp"
+#include "exception.hpp"
 
 namespace xios
 {
@@ -26,12 +27,13 @@ CServerDistributionDescription::~CServerDistributionDescription()
   \param [in] serType type of server distribution. For now, we can distribute server by band or plan
 */
 void CServerDistributionDescription::computeServerDistribution(int nServer,
+                                                               int positionDimensionDistributed,
                                                                bool doComputeGlobalIndex,
                                                                ServerDistributionType serType)
 {
   switch (serType) {
     case BAND_DISTRIBUTION:
-      computeBandDistribution(nServer);
+      computeBandDistribution(nServer, positionDimensionDistributed);
       break;
     default:
       break;
@@ -94,12 +96,13 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
   \param [in] serType type of server distribution. For now, we can distribute server by band or plan
 */
 void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer,
-                                        const std::pair<size_t, size_t>& indexBeginEnd,
-                                        ServerDistributionType distributionType)
+                                                                     const std::pair<size_t, size_t>& indexBeginEnd,
+                                                                     int positionDimensionDistributed,
+                                                                     ServerDistributionType distributionType)
 {
   switch (distributionType) {
     case BAND_DISTRIBUTION:
-      computeBandDistribution(nServer);
+      computeBandDistribution(nServer, positionDimensionDistributed);
       break;
     default:
       break;
@@ -160,9 +163,15 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer
   Compute global index of servers with band distribution
   \param [in] nServer number of server
 */
-void CServerDistributionDescription::computeBandDistribution(int nServer)
+void CServerDistributionDescription::computeBandDistribution(int nServer, int positionDimensionDistributed)
 {
   int dim = nGlobal_.size();
+  if (positionDimensionDistributed > dim)
+    ERROR("CServerDistributionDescription::computeBandDistribution(int nServer, int positionDimensionDistributed)",
+          << "Position of distributed dimension is invalid" << std::endl
+          << "Position of distributed dimension is " << positionDimensionDistributed
+          << "Dimension " << dim)
+
   indexBegin_.resize(nServer);
   dimensionSizes_.resize(nServer);
 
@@ -177,8 +186,8 @@ void CServerDistributionDescription::computeBandDistribution(int nServer)
   std::vector<int> njRangeBegin(nServer,0);
   std::vector<int> njRangeEnd(nServer,0);
 
-  if (1<dim) nGlobTemp = nGlobal_[1];
-  else nGlobTemp = nGlobal_[0];
+  int positionDistributed = (1<dim) ? positionDimensionDistributed : 0;
+  nGlobTemp = nGlobal_[positionDistributed];
 
   for (int i = 0; i < nServer; ++i)
   {
@@ -193,7 +202,7 @@ void CServerDistributionDescription::computeBandDistribution(int nServer)
   {
     for (int j = 0; j < dim; ++j)
     {
-      if (1 != j)
+      if (positionDistributed != j)
       {
         if (1 == dim)
         {

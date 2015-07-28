@@ -22,7 +22,8 @@ namespace xios
          eInverseAxis,
          eZoomAxis,
          eInterpolateAxis,
-         eZoomDomain
+         eZoomDomain,
+         eInterpolateFromFileDomain
 
       } ENodeType;
 

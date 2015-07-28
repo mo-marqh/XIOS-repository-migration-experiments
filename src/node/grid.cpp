@@ -12,6 +12,7 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include "array_new.hpp"
+#include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 
 namespace xios {
@@ -22,9 +23,9 @@ namespace xios {
       : CObjectTemplate<CGrid>(), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
+      , serverDistribution_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
       , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_()
+      , axisPositionInGrid_(), positionDimensionDistributed_(1)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -34,9 +35,9 @@ namespace xios {
       : CObjectTemplate<CGrid>(id), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
       , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), serverDistributionDescription_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
+      , serverDistribution_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
       , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_()
+      , axisPositionInGrid_(), positionDimensionDistributed_(1)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -46,7 +47,6 @@ namespace xios {
    {
     if (0 != clientDistribution_) delete clientDistribution_;
     if (0 != serverDistribution_) delete serverDistribution_;
-    if (0 != serverDistributionDescription_) delete serverDistributionDescription_;
     if (0 != clientServerMap_) delete clientServerMap_;
     if (0 != transformations_) delete transformations_;
    }
@@ -57,7 +57,6 @@ namespace xios {
    StdString CGrid::GetDefName(void) { return CGrid::GetName(); }
    ENodeType CGrid::GetType(void)    { return eGrid; }
 
-   //---------------------------------------------------------------
 
    StdSize CGrid::getDimension(void) const
    {
@@ -111,9 +110,41 @@ namespace xios {
        }
      }
 
+     // In some cases in which domain is masked, we need to count for connected server for longitude and latitude
+     std::vector<CDomain*> domListP = this->getDomains();
+     if (!domListP.empty())
+     {
+       for (int i = 0; i < domListP.size(); ++i)
+       {
+         const std::map<int, vector<size_t> >& indexDomainServer = domListP[i]->getIndexServer();
+         std::map<int, vector<size_t> >::const_iterator itDom = indexDomainServer.begin(), iteDom = indexDomainServer.end();
+         for (; itDom != iteDom; ++itDom)
+         {
+           if (ret.end() == ret.find(itDom->first))
+           {
+              retVal = (itDom->second).size();
+              retVal *= secureFactor;
+              ret.insert(std::make_pair<int,StdSize>(itDom->first, retVal));
+           }
+         }
+       }
+     }
+
      return ret;
    }
 
+   void CGrid::checkAttributesAfterTransformation()
+   {
+     setDomainList();
+     std::vector<CDomain*> domListP = this->getDomains();
+     if (!domListP.empty())
+     {
+       for (int i = 0; i < domListP.size(); ++i)
+       {
+         domListP[i]->checkAttributesOnClientAfterTransformation();
+       }
+     }
+   }
 
    void CGrid::solveDomainAxisRef(bool areAttributesChecked)
    {
@@ -121,7 +152,7 @@ namespace xios {
 
      this->solveAxisRef(areAttributesChecked);
      this->solveDomainRef(areAttributesChecked);
-
+     computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
      this->isDomainAxisChecked = areAttributesChecked;
    }
 
@@ -152,7 +183,8 @@ namespace xios {
 
      if (context->hasClient)
      {
-        checkMask();
+        this->checkAttributesAfterTransformation();
+        this->checkMask();
         this->computeIndex();
      }
      this->isChecked = true;
@@ -228,7 +260,6 @@ namespace xios {
       std::vector<CDomain*> domListP = this->getDomains();
       if (!domListP.empty())
       {
-        computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
         for (int i = 0; i < domListP.size(); ++i)
         {
           if (sendAtt) domListP[i]->sendCheckedAttributes();
@@ -257,7 +288,6 @@ namespace xios {
           else idx += 2;
         }
 
-        computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
         for (int i = 0; i < axisListP.size(); ++i)
         {
           if (sendAtt)
@@ -266,7 +296,6 @@ namespace xios {
             axisListP[i]->checkAttributesOnClient(globalDim_,axisPositionInGrid_[i]);
           ++idx;
         }
-
       }
    }
 
@@ -274,7 +303,6 @@ namespace xios {
    {
      return axisPositionInGrid_;
    }
-
 
    //---------------------------------------------------------------
 
@@ -316,20 +344,19 @@ namespace xios {
      indexEnd = indexBegin + range - 1;
 
      // Then compute distribution on server side
-     serverDistributionDescription_ = new CServerDistributionDescription(clientDistribution_->getNGlob());
-     serverDistributionDescription_->computeServerDistribution(client->serverSize, true);
-     serverDistributionDescription_->computeServerGlobalIndexInRange(client->serverSize,
-                                                                     std::make_pair<size_t,size_t>(indexBegin, indexEnd));
+     CServerDistributionDescription serverDistributionDescription(globalDim_);
+     serverDistributionDescription.computeServerGlobalIndexInRange(client->serverSize,
+                                                                   std::make_pair<size_t,size_t>(indexBegin, indexEnd),
+                                                                   positionDimensionDistributed_);
 
      // Finally, compute index mapping between client(s) and server(s)
-     clientServerMap_ = new CClientServerMappingDistributed(serverDistributionDescription_->getGlobalIndexRange(),
+     clientServerMap_ = new CClientServerMappingDistributed(serverDistributionDescription.getGlobalIndexRange(),
                                                             client->intraComm,
                                                             clientDistribution_->isDataDistributed());
 
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
      const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
      const CArray<size_t,1>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
-
      std::map<int, std::vector<size_t> >::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
      itbGlobalMap = itGlobalMap = globalIndexOnServer.begin();
      iteGlobalMap = globalIndexOnServer.end();
@@ -639,8 +666,18 @@ namespace xios {
     {
       if (axisDomainOrder(i))
       {
+        if (!(domains[idxDomain]->type.isEmpty()) && (domains[idxDomain]->type==CDomain::type_attr::unstructured))
+        {
+          positionDimensionDistributed_ = idx;
+        }
+        else
+        {
+          positionDimensionDistributed_ = idx +1;
+        }
+
         globalDim_[idx]   = domains[idxDomain]->ni_glo.getValue();
         globalDim_[idx+1] = domains[idxDomain]->nj_glo.getValue();
+
         ++idxDomain;
         idx += 2;
       }

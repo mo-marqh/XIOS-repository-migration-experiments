@@ -10,26 +10,30 @@
      <field id="field_Axis"  operation="average" freq_op="3600s" grid_ref="grid_Axis" />
      <field id="field_Two_Axis"  operation="average" freq_op="3600s" grid_ref="grid_Two_Axis" />
      <field id="field_All_Axis" operation="average" freq_op="3600s" grid_ref="grid_All_Axis" />
-     <field id="field_Axis_transformed"  operation="average" freq_op="3600s" field_ref="field_Two_Axis" grid_ref="grid_Axis_tranformed" />
+     <field id="field_Axis_transformed"  operation="average" freq_op="3600s" field_ref="field_A" grid_ref="grid_Axis_tranformed" />
      <field id="field_Axis_transformed_Interpolated"  operation="average" freq_op="3600s" field_ref="field_Axis" grid_ref="grid_Axis_tranformed_Interpolated" />
+     <field id="field_Domain_transformed_Interpolated"  operation="average" freq_op="3600s" field_ref="field_A" grid_ref="grid_Domain_tranformed_Interpolated" />
      <field id="field_Scalar" operation="average" freq_op="3600s" grid_ref="ScalarGrid" />
    </field_definition>
 
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output" type="one_file">
-        <field field_ref="field_A" />
+<!--        <field field_ref="field_A" />-->
      </file>
      <file id="output_Axis" name="output_Axis" type="one_file">
-        <field field_ref="field_Axis" />
+<!--        <field field_ref="field_Axis" />-->
      </file>
      <file id="output_All_Axis" name="output_All_Axis" type="one_file">
-        <field field_ref="field_All_Axis" />
+<!--        <field field_ref="field_All_Axis" />-->
      </file>
      <file id="output_Axis_transformed" name="output_Axis_transformed" type="one_file">
-        <field field_ref="field_Axis_transformed" />
+<!--        <field field_ref="field_Axis_transformed" />-->
      </file>
      <file id="output_Axis_transformed_interpolated" name="output_Axis_transformed_interpolated">
-        <field field_ref="field_Axis_transformed_Interpolated" />
+<!--        <field field_ref="field_Axis_transformed_Interpolated" />-->
+     </file>
+     <file id="output_Domain_transformed_interpolated" name="output_Domain_transformed_interpolated">
+        <field field_ref="field_Domain_transformed_Interpolated" />
      </file>
      <file id="output_Scalar" name="output_Scalar" type="one_file">
 <!--        <field field_ref="field_Scalar" />-->
@@ -53,16 +57,20 @@
        <interpolate_axis type="polynomial" order="3"/>
      </axis>
      <axis id="axis_H" axis_ref="axis_C">
-       <inverse_axis />
-       <zoom_axis zoom_begin="0" zoom_size="1" />
+<!--       <inverse_axis />-->
+<!--       <zoom_axis zoom_begin="0" zoom_size="1" />-->
      </axis>
    </axis_definition>
 
    <domain_definition>
      <domain id="domain_A" />
      <domain id="domain_A_zoom" domain_ref="domain_A">
-       <zoom_domain zoom_ibegin="1" zoom_ni="3" zoom_jbegin="0" zoom_nj="4"/>
-       <zoom_domain zoom_ibegin="0" zoom_ni="2" zoom_jbegin="0" zoom_nj="2"/>
+<!--       <zoom_domain zoom_ibegin="1" zoom_ni="3" zoom_jbegin="0" zoom_nj="2"/>-->
+       <zoom_domain zoom_ibegin="39" zoom_ni="20" zoom_jbegin="39" zoom_nj="20"/>
+<!--       <zoom_domain zoom_ibegin="0" zoom_ni="2" zoom_jbegin="0" zoom_nj="2"/>-->
+     </domain>
+     <domain id="domain_A_transformed" domain_ref="domain_A">
+       <interpolate_from_file_domain file="" />
      </domain>
    </domain_definition>
 
@@ -86,10 +94,14 @@
        </grid>
        <grid id="grid_Axis_tranformed">
 <!--         <domain domain_ref="domain_A" />-->
-<!--         <domain domain_ref="domain_A_zoom" />-->
-<!--         <axis axis_ref="axis_H" />-->
-         <axis axis_ref="axis_E" />
-         <axis axis_ref="axis_F" />
+         <domain domain_ref="domain_A_zoom" />
+         <axis axis_ref="axis_H" />
+<!--         <axis axis_ref="axis_E" />-->
+<!--         <axis axis_ref="axis_F" />-->
+       </grid>
+       <grid id="grid_Domain_tranformed_Interpolated">
+         <domain domain_ref="domain_A_transformed" />
+         <axis axis_ref="axis_H" />
        </grid>
        <grid id="grid_Axis_tranformed_Interpolated">
          <axis axis_ref="axis_G" />

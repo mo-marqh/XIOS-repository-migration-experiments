@@ -84,8 +84,8 @@ void CDistributionClient::readDomainIndex(const std::vector<CDomain*>& domList)
     nIndexDomain_[k].resize(2);
     int ni = domList[k]->ni;
     int nj = domList[k]->nj;
-    nIndexDomain_[k][0].resize(ni,nj);
-    nIndexDomain_[k][1].resize(ni,nj);
+    nIndexDomain_[k][0].resize(ni*nj);
+    nIndexDomain_[k][1].resize(ni*nj);
     nIndexDomain_[k][0] = domList[k]->i_index;
     nIndexDomain_[k][1] = domList[k]->j_index;
   }

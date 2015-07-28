@@ -1,17 +1,6 @@
 #include "object_template_impl.hpp"
 #include "xios_spl.hpp"
-#include "field.hpp"
-#include "context.hpp"
-#include "file.hpp"
-#include "domain.hpp"
-#include "grid.hpp"
-#include "axis.hpp"
-#include "variable.hpp"
-#include "transformation.hpp"
-#include "inverse_axis.hpp"
-#include "zoom_axis.hpp"
-#include "interpolate_axis.hpp"
-#include "zoom_domain.hpp"
+#include "node_type.hpp"
 
 namespace xios
 {
@@ -27,6 +16,7 @@ namespace xios
   template class CObjectTemplate<CZoomAxis>;
   template class CObjectTemplate<CInterpolateAxis>;
   template class CObjectTemplate<CZoomDomain>;
+  template class CObjectTemplate<CInterpolateFromFileDomain>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -39,4 +29,5 @@ namespace xios
   template class CObjectTemplate<CZoomAxisGroup>;
   template class CObjectTemplate<CInterpolateAxisGroup>;
   template class CObjectTemplate<CZoomDomainGroup>;
+  template class CObjectTemplate<CInterpolateFromFileDomainGroup>;
 }

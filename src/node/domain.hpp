@@ -67,6 +67,7 @@ namespace xios {
          void checkAttributes(void);
 
          void checkAttributesOnClient();
+         void checkAttributesOnClientAfterTransformation();
 
          void sendCheckedAttributes();
 
@@ -99,7 +100,7 @@ namespace xios {
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
-         bool hasZoom(void) const;
+//         bool hasZoom(void) const;
          bool isEmpty(void) const;
          bool isDistributed(void) const;
 
@@ -164,7 +165,7 @@ namespace xios {
          static StdString GetDefName(void);
 
          static ENodeType GetType(void);
-
+         const std::map<int, vector<size_t> >& getIndexServer() const;
          CArray<int, 2> local_mask;
          bool isCurvilinear ;
          bool hasBounds ;
@@ -172,17 +173,23 @@ namespace xios {
       private:
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
+         void computeNGlobDomain();
 
        private :
          bool isChecked;
          std::set<StdString> relFiles;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
+         bool isClientAfterTransformationChecked;
          std::map<int, CArray<int,1> > indiSrv, indjSrv;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          std::vector<int> connectedServerRank_;
          bool isDistributed_;
          TransMapTypes transformationMap_;
+         std::vector<int> nGlobDomain_;
+         bool isUnstructed_;
+         CArray<bool,1> maskInter_;
+
 
          DECLARE_REF_FUNC(Domain,domain)
 

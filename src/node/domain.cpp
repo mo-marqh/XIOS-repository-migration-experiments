@@ -16,6 +16,7 @@
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "zoom_domain.hpp"
+#include "interpolate_from_file_domain.hpp"
 
 namespace xios {
 
@@ -24,15 +25,17 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false)
-      , global_zoom_ibegin(0), global_zoom_ni(0), global_zoom_jbegin(0), global_zoom_nj(0)
+      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
+      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0), maskInter_()
+      , isClientAfterTransformationChecked(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false)
-      , global_zoom_ibegin(0), global_zoom_ni(0), global_zoom_jbegin(0), global_zoom_nj(0)
+      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
+      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0), maskInter_()
+      , isClientAfterTransformationChecked(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -58,15 +61,6 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
-   bool CDomain::hasZoom(void) const
-   {
-      return ((this->zoom_ni.getValue() != this->ni_glo.getValue()) &&
-              (this->zoom_nj.getValue() != this->nj_glo.getValue()));
-   }
-
-   //----------------------------------------------------------------
-
    bool CDomain::isEmpty(void) const
    {
       return ((this->zoom_ni_srv == 0) ||
@@ -74,21 +68,18 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
    bool CDomain::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
 
    //----------------------------------------------------------------
-
    bool CDomain::isDistributed(void) const
    {
       return isDistributed_;
    }
 
    //----------------------------------------------------------------
-
    void CDomain::addRelFile(const StdString & filename)
    {
       this->relFiles.insert(filename);
@@ -112,33 +103,41 @@ namespace xios {
                << "The global domain is badly defined,"
                << " check the \'ni_glo\'  value !")
          }
-         nj_glo=ni_glo ;
-         ni_glo=1 ;
-         if (!ni.isEmpty()) nj=ni ;
-         if (!ibegin.isEmpty()) jbegin=ibegin ;
-         if (!iend.isEmpty()) jend=iend ;
-         if (!i_index.isEmpty())
-         {
-          j_index.resize(1,nj) ;
-          for(int i=0;i<ni;i++) j_index(0,i)=i_index(i,0) ;
-          i_index.resize(1,nj) ;
-          for(int j=0;j<nj;j++) i_index(0,j)=0 ;
-         }
+         isUnstructed_ = true;
+         nj_glo = 1;
+         nj = 1;
+         jbegin = 0;
+         if (ni.isEmpty()) ni = i_index.numElements();
+         j_index.resize(ni);
+         for(int i=0;i<ni;++i) j_index(i)=0;
 
-         if (!mask.isEmpty())
-         {
-          CArray<int,2> mask_tmp(nj,1) ;
-          mask_tmp = mask ;
-          mask.resize(1,nj) ;
-          for(int j=0;j<nj;j++) mask(0,j)=mask_tmp(j,0) ;
-         }
+//         nj_glo=ni_glo ;
+//         ni_glo=1 ;
+//         if (!ni.isEmpty()) nj=ni ;
+//         if (!ibegin.isEmpty()) jbegin=ibegin ;
+//         if (!iend.isEmpty()) jend=iend ;
+//         if (!i_index.isEmpty())
+//         {
+//          j_index.resize(1,nj) ;
+//          for(int i=0;i<ni;i++) j_index(0,i)=i_index(i,0) ;
+//          i_index.resize(1,nj) ;
+//          for(int j=0;j<nj;j++) i_index(0,j)=0 ;
+//         }
+//
+//         if (!mask.isEmpty())
+//         {
+//          CArray<int,2> mask_tmp(nj,1);
+//          mask_tmp = mask ;
+//          mask.resize(1,nj) ;
+//          for(int j=0;j<nj;j++) mask(0,j)=mask_tmp(j,0) ;
+//         }
 
          if (!area.isEmpty())
            area.transposeSelf(1, 0);
 
-         ni=1 ;
-         ibegin=0 ;
-         iend=0 ;
+//         ni=1 ;
+//         ibegin=0 ;
+//         iend=0 ;
 
       }
       else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
@@ -150,140 +149,139 @@ namespace xios {
                << " check the \'ni_glo\' et \'nj_glo\' values !")
       }
 
-      isDistributed_ = !ibegin.isEmpty() || !iend.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !jend.isEmpty() || !nj.isEmpty();
+      isDistributed_ = !ibegin.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !nj.isEmpty();
 
       checkLocalIDomain();
       checkLocalJDomain();
 
-      ibegin_client = ibegin; iend_client = iend; ni_client = ni;
-      jbegin_client = jbegin; jend_client = jend; nj_client = nj;
+      ibegin_client = ibegin; ni_client = ni; iend_client = ibegin + ni - 1;
+      jbegin_client = jbegin; nj_client = nj; jend_client = jbegin + nj - 1;
 
       if (i_index.isEmpty())
       {
-        i_index.resize(ni,nj);
-        for (int j = 0; j < nj; j++)
-          for (int i = 0; i < ni; i++) i_index(i,j) = i;
+        i_index.resize(ni*nj);
+        for (int j = 0; j < nj; ++j)
+          for (int i = 0; i < ni; ++i) i_index(i+j*ni) = i+ibegin;
       }
 
       if (j_index.isEmpty())
       {
-        j_index.resize(ni,nj);
-        for (int j = 0; j < nj; j++)
-          for (int i = 0; i < ni; i++) j_index(i,j) = j;
+        j_index.resize(ni*nj);
+        for (int j = 0; j < nj; ++j)
+          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
       }
+      computeNGlobDomain();
    }
 
    //----------------------------------------------------------------
 
    void CDomain::checkLocalIDomain(void)
    {
-      if (!ni.isEmpty() && !ibegin.isEmpty() && iend.isEmpty())
-        iend.setValue(ibegin.getValue() + ni.getValue() - 1);
-      else if (!ni.isEmpty() && !iend.isEmpty() && ibegin.isEmpty())
-        ibegin.setValue(iend.getValue() - ni.getValue()  + 1);
-      else if (!ibegin.isEmpty() && !iend.isEmpty() && ni.isEmpty())
-        ni.setValue(iend.getValue() - ibegin.getValue() + 1);
-      else if (!ibegin.isEmpty() && !iend.isEmpty() && !ni.isEmpty())
-      {
-        if (iend.getValue() != ibegin.getValue() + ni.getValue() - 1)
-          ERROR("CDomain::checkLocalIDomain(void)",
-                << "[ Id = " << this->getId() << " ] "
-                << "The local domain is wrongly defined,"
-                << " iend is different from (ibegin + ni - 1)");
-      }
-      else if (ibegin.isEmpty() && iend.isEmpty() && ni.isEmpty())
+      if (ibegin.isEmpty() && ni.isEmpty())
       {
         ibegin = 0;
-        iend = ni_glo - 1;
         ni = ni_glo;
       }
-      else
+      else if (!i_index.isEmpty())
       {
-        ERROR("CDomain::checkLocalIDomain(void)",
-              << "[ Id = " << this->getId() << " ] "
-              << "The local domain is wrongly defined,"
-              << " defining just one attribute among 'ibegin', 'iend' or 'ni' is invalid");
+        ibegin = i_index(0);
       }
 
-      if (ni.getValue() < 0 || ibegin.getValue() > iend.getValue() ||
-          ibegin.getValue() < 0 || iend.getValue() > (ni_glo.getValue() - 1))
+      if (ni.getValue() < 0 || ibegin.getValue() < 0 ||
+         (ibegin.getValue() + ni.getValue()) > ni_glo.getValue())
       {
         ERROR("CDomain::checkLocalIDomain(void)",
               << "[ Id = " << this->getId() << " ] "
               << "The local domain is wrongly defined,"
-              << " check the attributes 'ni_glo', 'ni', 'ibegin' and 'iend'");
+              << " check the attributes 'ni_glo', 'ni' and 'ibegin'");
       }
    }
 
    //----------------------------------------------------------------
-
    void CDomain::checkLocalJDomain(void)
    {
-      if (!nj.isEmpty() && !jbegin.isEmpty() && jend.isEmpty())
-        jend.setValue(jbegin.getValue() + nj.getValue() - 1);
-      else if (!nj.isEmpty() && !jend.isEmpty() && jbegin.isEmpty())
-        jbegin.setValue(jend.getValue() - nj.getValue() + 1);
-      else if (!jbegin.isEmpty() && !jend.isEmpty() && nj.isEmpty())
-        nj.setValue(jend.getValue() - jbegin.getValue() + 1);
-      else if (!jbegin.isEmpty() && !jend.isEmpty() && !nj.isEmpty())
-      {
-        if (jend.getValue() != jbegin.getValue() + nj.getValue() - 1)
-          ERROR("CDomain::checkLocalJDomain(void)",
-                << "[ Id = " << this->getId() << " ] "
-                << "The local domain is wrongly defined,"
-                << " jend is different from (jbegin + nj - 1)");
-      }
-      else if (jbegin.isEmpty() && jend.isEmpty() && nj.isEmpty())
-      {
-        jbegin = 0;
-        jend = nj_glo - 1;
-        nj = nj_glo;
-      }
-      else
-      {
-        ERROR("CDomain::checkLocalJDomain(void)",
-              << "[ Id = " << this->getId() << " ] "
-              << "The local domain is wrongly defined,"
-              << " defining just one attribute among 'jbegin', 'jend' or 'nj' is invalid");
-      }
+     if (jbegin.isEmpty() && nj.isEmpty())
+     {
+       jbegin = 0;
+       nj = nj_glo;
+     }
+     else if (!j_index.isEmpty())
+     {
+       jbegin = j_index(0);
+     }
 
-      if (nj.getValue() < 0 || jbegin.getValue() > jend.getValue() ||
-          jbegin.getValue() < 0 || jend.getValue() > (nj_glo.getValue() - 1))
+      if (nj.getValue() < 0 || jbegin.getValue() < 0 ||
+         (jbegin.getValue() + nj.getValue()) > nj_glo.getValue())
       {
         ERROR("CDomain::checkLocalJDomain(void)",
               << "[ Id = " << this->getId() << " ] "
               << "The local domain is wrongly defined,"
-              << " check the attributes 'nj_glo', 'nj', 'jbegin' and 'jend'");
+              << " check the attributes 'nj_glo', 'nj' and 'jbegin'");
       }
    }
 
    //----------------------------------------------------------------
-
    void CDomain::checkMask(void)
    {
       using namespace std;
 
       int ibegin_mask = 0,
           jbegin_mask = 0,
-          iend_mask = iend.getValue() - ibegin.getValue(),
-          jend_mask = jend.getValue() - jbegin.getValue();
+          iend_mask = ibegin.getValue() + ni.getValue() - 1,
+          jend_mask = jbegin.getValue() + nj.getValue() - 1;
 
-      if (!zoom_ibegin.isEmpty())
+      if (!mask_1D.isEmpty() && !mask_2D.isEmpty())
+        ERROR("CDomain::checkMask(void)",
+             <<"Only one mask is used but both mask_1D and mask_2D are defined! "<<endl
+             <<"Define only one mask: mask_1D or mask_2D ");
+
+      if (!mask_1D.isEmpty() && mask_2D.isEmpty())
       {
-         int zoom_iend = zoom_ibegin.getValue() + zoom_ni.getValue() - 1;
-         int zoom_jend = zoom_jbegin.getValue() + zoom_nj.getValue() - 1;
-
-         ibegin_mask = max (ibegin.getValue(), zoom_ibegin.getValue());
-         jbegin_mask = max (jbegin.getValue(), zoom_jbegin.getValue());
-         iend_mask   = min (iend.getValue(), zoom_iend);
-         jend_mask   = min (jend.getValue(), zoom_jend);
-
-         ibegin_mask -= ibegin.getValue();
-         jbegin_mask -= jbegin.getValue();
-         iend_mask   -= ibegin.getValue();
-         jend_mask   -= jbegin.getValue();
+        if (mask_1D.numElements() != i_index.numElements())
+          ERROR("CDomain::checkMask(void)",
+                <<"the mask_1D has not the same size than the local domain"<<endl
+                <<"Local size is "<<i_index.numElements()<<endl
+                <<"Mask size is "<<mask_1D.numElements());
       }
 
+      if (mask_1D.isEmpty() && !mask_2D.isEmpty())
+      {
+         if ((mask_2D.extent(0) != ni) ||
+             (mask_2D.extent(1) != nj))
+            ERROR("CDomain::checkMask(void)",
+                  <<"the mask has not the same size than the local domain"<<endl
+                  <<"Local size is "<<ni<<"x"<<nj<<endl
+                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));
+      }
+
+      if (!mask_1D.isEmpty())
+      {
+        maskInter_.resize(mask_1D.numElements());
+        maskInter_ = mask_1D;
+      }
+      else if (!mask_2D.isEmpty())
+      {
+        maskInter_.resize(mask_2D.extent(0) * mask_2D.extent(0));
+        for (int j = 0; j < nj; ++j)
+          for (int i = 0; i < ni; ++i) maskInter_(i+j*ni) = mask_2D(i,j);
+      }
+      else
+      {
+        maskInter_.resize(i_index.numElements());
+        for (int i = 0; i < i_index.numElements(); ++i) maskInter_(i) = true;
+      }
+
+      if (!mask.isEmpty())
+      {
+        maskInter_.resize(mask.extent(0) * mask.extent(1));
+        for (int j = 0; j < nj; ++j)
+          for (int i = 0; i < ni; ++i) maskInter_(i+j*ni) = mask(i,j);
+      }
+      else
+      {
+        maskInter_.resize(ni*nj);
+        for (int i = 0; i < maskInter_.numElements(); ++i) maskInter_(i) = true;
+      }
 
       if (!mask.isEmpty())
       {
@@ -293,15 +291,15 @@ namespace xios {
                   <<"the mask has not the same size than the local domain"<<endl
                    <<"Local size is "<<ni<<"x"<<nj<<endl
                   <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));
-         for (int i = 0; i < ni; i++)
-         {
-            for (int j = 0; j < nj; j++)
-            {
-               if (i < ibegin_mask && i > iend_mask &&
-                   j < jbegin_mask && j > jend_mask )
-                     mask(i,j) = false;
-            }
-         }
+//         for (int i = 0; i < ni; i++)
+//         {
+//            for (int j = 0; j < nj; j++)
+//            {
+//               if (i < ibegin_mask && i > iend_mask &&
+//                   j < jbegin_mask && j > jend_mask )
+//                     mask(i,j) = false;
+//            }
+//         }
       }
       else // (!mask.hasValue())
       { // Si aucun masque n'est défini,
@@ -519,35 +517,6 @@ namespace xios {
 
    void CDomain::checkZoom(void)
    {
-      // Résolution et vérification des données globales de zoom.
-      if (!this->zoom_ni.isEmpty() || !this->zoom_nj.isEmpty() ||
-          !this->zoom_ibegin.isEmpty() || !this->zoom_jbegin.isEmpty())
-      {
-         if (this->zoom_ni.isEmpty()     || this->zoom_nj.isEmpty() ||
-             this->zoom_ibegin.isEmpty() || this->zoom_jbegin.isEmpty())
-         {
-            ERROR("CDomain::checkZoom(void)",
-                  <<"if one of zoom attributes is defined then all zoom attributes must be defined") ;
-         }
-         else
-         {
-            int zoom_iend = zoom_ibegin + zoom_ni - 1;
-            int zoom_jend = zoom_jbegin + zoom_nj - 1;
-
-            if (zoom_ibegin < 0  || zoom_jbegin < 0 || zoom_iend > (ni_glo-1) || zoom_jend > (nj_glo-1))
-               ERROR("CDomain::checkZoom(void)",
-                     << "Zoom is wrongly defined,"
-                     << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_jbegin") ;
-         }
-      }
-      else
-      {
-         zoom_ni = ni_glo;
-         zoom_nj = nj_glo;
-         zoom_ibegin = 0;
-         zoom_jbegin = 0;
-      }
-
       // compute client zoom indices
       // compute client zoom indices
       if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
@@ -593,6 +562,40 @@ namespace xios {
      }
    }
 
+//   void CDomain::checkAttributesOnClientBeforeTransformation()
+//   {
+//      if (this->isClientBeforeTransformationChecked) return;
+//      CContext* context=CContext::getCurrent();
+//
+//      this->checkDomain();
+//      this->checkBounds();
+//      this->checkArea();
+//
+//      if (context->hasClient)
+//      {
+//        this->checkDomainData();
+//        this->checkCompression();
+//      }
+//
+//      this->isClientBeforeTransformationChecked = true;
+//   }
+
+   void CDomain::checkAttributesOnClientAfterTransformation()
+   {
+     CContext* context=CContext::getCurrent() ;
+
+     this->checkZoom();
+     if (this->isClientAfterTransformationChecked) return;
+     if (context->hasClient)
+     {
+       this->checkMask();
+       this->computeConnectedServer();
+       this->completeLonLatClient();
+     }
+
+     this->isClientAfterTransformationChecked = true;
+   }
+
    //----------------------------------------------------------------
    // Divide function checkAttributes into 2 seperate ones
    // This function only checks all attributes of current domain
@@ -624,14 +627,15 @@ namespace xios {
    void CDomain::sendCheckedAttributes()
    {
      if (!this->isClientChecked) checkAttributesOnClient();
+     if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation();
      CContext* context=CContext::getCurrent() ;
 
      this->checkZoom();
      if (this->isChecked) return;
      if (context->hasClient)
      {
-       this->computeConnectedServer();
-       this->completeLonLatClient();
+//       this->computeConnectedServer();
+//       this->completeLonLatClient();
 
        sendServerAttribut() ;
        sendLonLatArea() ;
@@ -675,16 +679,15 @@ namespace xios {
 
   void CDomain::sendServerAttribut(void)
   {
-    std::vector<int> nGlobDomain(2);
-    nGlobDomain[0] = ni_glo.getValue();
-    nGlobDomain[1] = nj_glo.getValue();
-    CServerDistributionDescription serverDescription(nGlobDomain);
+    CServerDistributionDescription serverDescription(nGlobDomain_);
 
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
 
-    serverDescription.computeServerDistribution(nbServer);
+    if (isUnstructed_) serverDescription.computeServerDistribution(nbServer,0);
+    else serverDescription.computeServerDistribution(nbServer,1);
+
     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
@@ -717,63 +720,67 @@ namespace xios {
     else client->sendEvent(event);
   }
 
+  void CDomain::computeNGlobDomain()
+  {
+    nGlobDomain_.resize(2);
+    nGlobDomain_[0] = ni_glo.getValue();
+    nGlobDomain_[1] = nj_glo.getValue();
+  }
+
   void CDomain::computeConnectedServer(void)
   {
-    ibegin_client=ibegin ; iend_client=iend ; ni_client=ni ;
-    jbegin_client=jbegin ; jend_client=jend ; nj_client=nj ;
+    ibegin_client=ibegin; ni_client=ni; iend_client=ibegin_client + ni_client - 1;
+    jbegin_client=jbegin; nj_client=nj; jend_client=jbegin_client + nj_client - 1;
 
     CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize;
     bool doComputeGlobalIndexServer = true;
 
-    int i,j,i_ind,j_ind ;
+    int i,j,i_ind,j_ind, nbIndex;
     int zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
     int zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
 
     // Precompute number of index
     int globalIndexCountZoom = 0;
-    for(j=0;j<nj;j++)
-      for(i=0;i<ni;i++)
-      {
-        i_ind=ibegin+i_index(i,j) ;
-        j_ind=jbegin+j_index(i,j) ;
+    nbIndex = i_index.numElements();
+    for (i = 0; i < nbIndex; ++i)
+    {
+      i_ind=i_index(i);
+      j_ind=j_index(i);
 
-        if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
-        {
-          ++globalIndexCountZoom;
-        }
+      if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
+      {
+        ++globalIndexCountZoom;
       }
+    }
 
     // Fill in index
     CArray<size_t,1> globalIndexDomainZoom(globalIndexCountZoom);
-    CArray<size_t,1> globalIndexDomain(ni*nj);
+    CArray<size_t,1> localIndexDomainZoom(globalIndexCountZoom);
+    CArray<size_t,1> globalIndexDomain(nbIndex);
     size_t globalIndex;
     int globalIndexCount = 0;
     globalIndexCountZoom = 0;
 
-    for(j=0;j<nj;j++)
-      for(i=0;i<ni;i++)
+    for (i = 0; i < nbIndex; ++i)
+    {
+      i_ind=i_index(i);
+      j_ind=j_index(i);
+      globalIndex = i_ind + j_ind * ni_glo;
+      globalIndexDomain(globalIndexCount) = globalIndex;
+      ++globalIndexCount;
+      if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
       {
-        i_ind=ibegin+i_index(i,j) ;
-        j_ind=jbegin+j_index(i,j) ;
-
-        globalIndex = i_ind + j_ind * ni_glo;
-        globalIndexDomain(globalIndexCount) = globalIndex;
-        ++globalIndexCount;
-        if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
-        {
-          globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
-          ++globalIndexCountZoom;
-        }
+        globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
+        localIndexDomainZoom(globalIndexCountZoom) = i;
+        ++globalIndexCountZoom;
       }
+    }
 
-     std::vector<int> nGlobDomain(2);
-     nGlobDomain[0] = ni_glo.getValue();
-     nGlobDomain[1] = nj_glo.getValue();
      size_t globalSizeIndex = 1, indexBegin, indexEnd;
      int range, clientSize = client->clientSize;
-     for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
+     for (int i = 0; i < nGlobDomain_.size(); ++i) globalSizeIndex *= nGlobDomain_[i];
      indexBegin = 0;
      for (int i = 0; i < clientSize; ++i)
      {
@@ -784,8 +791,10 @@ namespace xios {
      }
      indexEnd = indexBegin + range - 1;
 
-    CServerDistributionDescription serverDescription(nGlobDomain);
-    serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd));
+    CServerDistributionDescription serverDescription(nGlobDomain_);
+    if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
+    else serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 1);
+
     CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
                                                                                 client->intraComm);
     clientServerMap->computeServerIndexMapping(globalIndexDomain);
@@ -804,7 +813,7 @@ namespace xios {
       {
         if (iteVec != std::find(itbVec, iteVec, globalIndexDomainZoom(i)))
         {
-          indSrv_[rank].push_back(globalIndexDomainZoom(i));
+          indSrv_[rank].push_back(localIndexDomainZoom(i));
         }
       }
     }
@@ -823,6 +832,11 @@ namespace xios {
     nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
 
     delete clientServerMap;
+  }
+
+  const std::map<int, vector<size_t> >& CDomain::getIndexServer() const
+  {
+    return indSrv_;
   }
 
   void CDomain::sendLonLatArea(void)
@@ -870,13 +884,14 @@ namespace xios {
       CArray<int,1>& indj = list_indj.back();
       CArray<double,1>& lon = list_lon.back();
       CArray<double,1>& lat = list_lat.back();
-
+      const std::vector<size_t>& temp = it->second;
       for (n = 0; n < nbData; ++n)
       {
         idx = static_cast<int>(it->second[n]);
-        i = idx % ni_glo;
-        j = idx / ni_glo;
-        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
+        i = i_index(idx);
+        j = j_index(idx);
+        ind = n;
+//        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
 
         lon(n) = lonvalue(ind);
         lat(n) = latvalue(ind);
@@ -893,8 +908,8 @@ namespace xios {
           }
         }
 
-        indi(n) = ibegin + i_index(i - ibegin, j - jbegin);
-        indj(n) = jbegin + j_index(i - ibegin, j - jbegin);
+        indi(n) = i;
+        indj(n) = j;
 
         if (hasArea)
           list_area.back()(n) = area(i - ibegin, j - jbegin);
@@ -1191,12 +1206,20 @@ namespace xios {
     {
       StdString zoomDomainDefRoot("zoom_domain_definition");
       StdString zoom("zoom_domain");
+      StdString interpFromFileDomainDefRoot("interpolate_from_file_domain_definition");
+      StdString interpFromFile("interpolate_from_file_domain");
       do
       {
         if (node.getElementName() == zoom) {
           CZoomDomain* tmp = (CZoomDomainGroup::get(zoomDomainDefRoot))->createChild();
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_ZOOM_DOMAIN,tmp));
+        }
+        else if (node.getElementName() == interpFromFile)
+        {
+          CInterpolateFromFileDomain* tmp = (CInterpolateFromFileDomainGroup::get(interpFromFileDomainDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN_FROM_FILE,tmp));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

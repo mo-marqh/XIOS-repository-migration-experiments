@@ -171,7 +171,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
         mulDim = 1;
         for (int k = 1; k < globalDim; ++k)
         {
-          mulDim *= gridDestGlobalDim[k-1];
+          mulDim *= gridSrcGlobalDim[k-1];
           globIndex += (currentIndex[k])*mulDim;
         }
         (globalIndexSrcGrid[realGlobalIndex])[i] = globIndex;

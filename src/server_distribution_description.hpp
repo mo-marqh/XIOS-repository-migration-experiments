@@ -2,7 +2,7 @@
    \file server_distribution_description.hpp
    \author Ha NGUYEN
    \since 04 Jan 2015
-   \date 09 Feb 2015
+   \date 24 Jul 2015
 
    \brief Description of index distribution on server(s).
  */
@@ -33,11 +33,13 @@ class CServerDistributionDescription
     /** Default destructor */
     virtual ~CServerDistributionDescription();
 
-    void computeServerDistribution(int nServer, bool doComputeGlobalIndex = false,
+    void computeServerDistribution(int nServer, int positionDimensionDistributed = 1,
+                                   bool doComputeGlobalIndex = false,
                                    ServerDistributionType type = BAND_DISTRIBUTION);
 
     void computeServerGlobalIndexInRange(int nServer,
                                          const std::pair<size_t, size_t>& indexBeginEnd,
+                                         int positionDimensionDistributed = 1,
                                          ServerDistributionType = BAND_DISTRIBUTION);
 
     std::vector<std::vector<int> > getServerIndexBegin() const;
@@ -46,7 +48,7 @@ class CServerDistributionDescription
     const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
 
   protected:
-    void computeBandDistribution(int nServer);
+    void computeBandDistribution(int nServer, int positionDimensionDistributed = 1);
     void computePlanDistribution(int nServer);
 
   private:

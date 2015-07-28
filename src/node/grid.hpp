@@ -12,7 +12,6 @@
 #include "attribute_array.hpp"
 #include "distribution_client.hpp"
 #include "distribution_server.hpp"
-#include "server_distribution_description.hpp"
 #include "client_server_mapping.hpp"
 #include "utils.hpp"
 #include "transformation_enum.hpp"
@@ -217,6 +216,8 @@ namespace xios {
         CAxisGroup* getVirtualAxisGroup() const;
         CDomainGroup* getVirtualDomainGroup() const;
 
+        void checkAttributesAfterTransformation();
+
 
         void setTransformationAlgorithms();
 
@@ -229,12 +230,12 @@ namespace xios {
 
         CDistributionClient* clientDistribution_;
         CDistributionServer* serverDistribution_;
-        CServerDistributionDescription* serverDistributionDescription_;
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
         std::map<int,size_t> connectedDataSize_;
         std::vector<int> connectedServerRank_;
         bool isDataDistributed_;
+        int positionDimensionDistributed_;
 
         bool isTransformed_;
         std::vector<int> axisPositionInGrid_;

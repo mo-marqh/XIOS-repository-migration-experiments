@@ -88,7 +88,7 @@ class CDistributionClient : public CDistribution
     std::vector<int> nBeginGlobal_; //!< Begin index of each dimension (e.x: ibegin, jbegin, ...)
     std::vector<int> nZoomBegin_; //!< Begin index of zoom of each dimension
     std::vector<int> nZoomEnd_; //!< End index of zoom of each dimension
-    std::vector<std::vector<CArray<int,2> > > nIndexDomain_; //!< Local index of each domain dimension (e.x: i_index, j_index)
+    std::vector<std::vector<CArray<int,1> > > nIndexDomain_; //!< Local index of each domain dimension (e.x: i_index, j_index)
     std::vector<CArray<int,1> > nIndexAxis_;
 
     // Data_n_index of domain or axis (For now, axis uses its size as data_n_index

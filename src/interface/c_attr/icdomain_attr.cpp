@@ -332,18 +332,18 @@ extern "C"
   }
 
 
-  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1, int extent2)
+  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,2> tmp(i_index, shape(extent1, extent2), neverDeleteData);
+    CArray<int,1> tmp(i_index, shape(extent1), neverDeleteData);
     domain_hdl->i_index.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1, int extent2)
+  void cxios_get_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,2> tmp(i_index, shape(extent1, extent2), neverDeleteData);
+    CArray<int,1> tmp(i_index, shape(extent1), neverDeleteData);
     tmp=domain_hdl->i_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -380,41 +380,18 @@ extern "C"
   }
 
 
-  void cxios_set_domain_iend(domain_Ptr domain_hdl, int iend)
+  void cxios_set_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1)
   {
     CTimer::get("XIOS").resume();
-    domain_hdl->iend.setValue(iend);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_iend(domain_Ptr domain_hdl, int* iend)
-  {
-    CTimer::get("XIOS").resume();
-    *iend = domain_hdl->iend.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_iend(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->iend.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1, int extent2)
-  {
-    CTimer::get("XIOS").resume();
-    CArray<int,2> tmp(j_index, shape(extent1, extent2), neverDeleteData);
+    CArray<int,1> tmp(j_index, shape(extent1), neverDeleteData);
     domain_hdl->j_index.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1, int extent2)
+  void cxios_get_domain_j_index(domain_Ptr domain_hdl, int* j_index, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,2> tmp(j_index, shape(extent1, extent2), neverDeleteData);
+    CArray<int,1> tmp(j_index, shape(extent1), neverDeleteData);
     tmp=domain_hdl->j_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -446,29 +423,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domain_hdl->jbegin.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_jend(domain_Ptr domain_hdl, int jend)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->jend.setValue(jend);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_jend(domain_Ptr domain_hdl, int* jend)
-  {
-    CTimer::get("XIOS").resume();
-    *jend = domain_hdl->jend.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_jend(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->jend.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -763,190 +717,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domain_hdl->type.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_ibegin(domain_Ptr domain_hdl, int zoom_ibegin)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_ibegin.setValue(zoom_ibegin);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_ibegin(domain_Ptr domain_hdl, int* zoom_ibegin)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_ibegin = domain_hdl->zoom_ibegin.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_ibegin(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_ibegin.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_ibegin_loc(domain_Ptr domain_hdl, int zoom_ibegin_loc)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_ibegin_loc.setValue(zoom_ibegin_loc);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_ibegin_loc(domain_Ptr domain_hdl, int* zoom_ibegin_loc)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_ibegin_loc = domain_hdl->zoom_ibegin_loc.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_ibegin_loc(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_ibegin_loc.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_jbegin(domain_Ptr domain_hdl, int zoom_jbegin)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_jbegin.setValue(zoom_jbegin);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_jbegin(domain_Ptr domain_hdl, int* zoom_jbegin)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_jbegin = domain_hdl->zoom_jbegin.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_jbegin(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_jbegin.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_jbegin_loc(domain_Ptr domain_hdl, int zoom_jbegin_loc)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_jbegin_loc.setValue(zoom_jbegin_loc);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_jbegin_loc(domain_Ptr domain_hdl, int* zoom_jbegin_loc)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_jbegin_loc = domain_hdl->zoom_jbegin_loc.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_jbegin_loc(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_jbegin_loc.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_ni(domain_Ptr domain_hdl, int zoom_ni)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_ni.setValue(zoom_ni);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_ni(domain_Ptr domain_hdl, int* zoom_ni)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_ni = domain_hdl->zoom_ni.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_ni(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_ni.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_ni_loc(domain_Ptr domain_hdl, int zoom_ni_loc)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_ni_loc.setValue(zoom_ni_loc);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_ni_loc(domain_Ptr domain_hdl, int* zoom_ni_loc)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_ni_loc = domain_hdl->zoom_ni_loc.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_ni_loc(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_ni_loc.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_nj(domain_Ptr domain_hdl, int zoom_nj)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_nj.setValue(zoom_nj);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_nj(domain_Ptr domain_hdl, int* zoom_nj)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_nj = domain_hdl->zoom_nj.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_nj(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_nj.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_domain_zoom_nj_loc(domain_Ptr domain_hdl, int zoom_nj_loc)
-  {
-    CTimer::get("XIOS").resume();
-    domain_hdl->zoom_nj_loc.setValue(zoom_nj_loc);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domain_zoom_nj_loc(domain_Ptr domain_hdl, int* zoom_nj_loc)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_nj_loc = domain_hdl->zoom_nj_loc.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domain_zoom_nj_loc(domain_Ptr domain_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domain_hdl->zoom_nj_loc.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
