@@ -232,7 +232,7 @@ PROGRAM test_unstruct_complete
   DEALLOCATE(bounds_lat)
   DEALLOCATE(field_A_srf)
   DEALLOCATE(mask)
-  DEALLOCATE(field_A_compressed
+  DEALLOCATE(field_A_compressed)
   DEALLOCATE(data_i_index)
 
   CALL MPI_COMM_FREE(comm, ierr)

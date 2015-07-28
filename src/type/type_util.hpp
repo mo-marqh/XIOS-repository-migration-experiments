@@ -27,6 +27,7 @@ namespace xios
     class CInterpolateAxisGroup;
     class CZoomDomain;
     class CZoomDomainGroup;
+    class CInterpolateFromFileDomain;
     class CInterpolateFromFileDomainGroup;
 
   template <typename T> inline string getStrType(void);
