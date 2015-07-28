@@ -133,8 +133,10 @@ PROGRAM test_new_features
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
 
-  CALL xios_set_domain_attr("domain_A_transformed",ni_glo=niDomGlo, nj_glo=njDomGlo, ibegin=ibeginDomInterp, ni=niDomInterp,jbegin=jbeginDomInterp,nj=njDomInterp)
-  CALL xios_set_domain_attr("domain_A_transformed",lonvalue=RESHAPE(lontransformed,(/niDomInterp*njDomInterp/)),latvalue=RESHAPE(lattransformed,(/niDomInterp*njDomInterp/)))
+  CALL xios_set_domain_attr("domain_A_transformed", ni_glo=niDomGlo, nj_glo=njDomGlo, &
+                                                    ibegin=ibeginDomInterp, ni=niDomInterp, jbegin=jbeginDomInterp, nj=njDomInterp)
+  CALL xios_set_domain_attr("domain_A_transformed", lonvalue=RESHAPE(lontransformed,(/niDomInterp*njDomInterp/)), &
+                                                    latvalue=RESHAPE(lattransformed,(/niDomInterp*njDomInterp/)))
 
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
