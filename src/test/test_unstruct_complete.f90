@@ -189,7 +189,7 @@ PROGRAM test_unstruct_complete
   DO ind=1,ncell
     IF (mask(ind)) THEN
       data_n_index=data_n_index+1
-      data_i_index(data_n_index)=ind
+      data_i_index(data_n_index)=ind-1
       field_A_compressed(data_n_index,:)=field_A_srf(ind,:)
     ENDIF
   ENDDO
@@ -199,13 +199,12 @@ PROGRAM test_unstruct_complete
   CALL xios_set_current_context(ctx_hdl)
 
   CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval) ;
-!  CALL xios_set_domain_attr("domain_srf",ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=RESHAPE(i_index,(/ncell,1/) ))
   CALL xios_set_domain_attr("domain_srf", ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=i_index)
   CALL xios_set_domain_attr("domain_srf", type='unstructured', data_dim=1, data_ni=data_n_index, &
                                           data_n_index=data_n_index, data_i_index=data_i_index)
   CALL xios_set_domain_attr("domain_srf", lonvalue=lon, latvalue=lat)
   CALL xios_set_domain_attr("domain_srf", nvertex=4, bounds_lon=bounds_lon, bounds_lat=bounds_lat)
-!  CALL xios_set_domain_attr("domain_srf", mask=RESHAPE(mask,(/ncell,1/) ))
+
 
 
   dtime%second=3600

@@ -14,6 +14,8 @@
 #include "array_new.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
+#include "distribution_client.hpp"
+#include "grid_transformation.hpp"
 
 namespace xios {
 

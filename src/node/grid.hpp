@@ -10,12 +10,10 @@
 #include "axis.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
-#include "distribution_client.hpp"
 #include "distribution_server.hpp"
 #include "client_server_mapping.hpp"
 #include "utils.hpp"
 #include "transformation_enum.hpp"
-#include "grid_transformation.hpp"
 
 namespace xios {
 

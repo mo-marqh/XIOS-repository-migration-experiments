@@ -12,6 +12,7 @@
 #include "context_client.hpp"
 #include "distribution_client.hpp"
 #include "client_server_mapping_distributed.hpp"
+#include "netcdf.hpp"
 
 namespace xios {
 
@@ -33,9 +34,9 @@ void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
 
   std::string filename = interpDomain_->file.getValue();
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
-//  readInterpolationInfo(filename, interpMapValue);
+  readInterpolationInfo(filename, interpMapValue);
 
-  randomizeInterpolationInfo(interpMapValue);
+  //randomizeInterpolationInfo(interpMapValue);
   boost::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();
   int nj = domainDest_->nj.getValue();
@@ -231,7 +232,53 @@ void CDomainAlgorithmInterpolateFromFile::randomizeInterpolationInfo(std::map<in
 void CDomainAlgorithmInterpolateFromFile::readInterpolationInfo(std::string& filename,
                                                                 std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 {
+  int ncid ;
+  int weightDimId ;
+  size_t nbWeightGlo ;
 
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int clientSize = client->clientSize;
+  
+  nc_open(filename.c_str(),NC_NOWRITE, &ncid) ;
+  nc_inq_dimid(ncid,"n_weight",&weightDimId) ;
+  nc_inq_dimlen(ncid,weightDimId,&nbWeightGlo) ;
+
+  size_t nbWeight ;
+  size_t start ;
+  size_t div = nbWeightGlo/clientSize ;
+  size_t mod = nbWeightGlo%clientSize ;
+  if (clientRank < mod)
+  {
+    nbWeight=div+1 ;
+    start=clientRank*(div+1) ;
+  }
+  else
+  {
+    nbWeight=div ;
+    start= mod * (div+1) + (clientRank-mod) * div ;
+  }
+  
+  
+
+  double* weight=new double[nbWeight] ;
+  int weightId ;
+  nc_inq_varid (ncid, "weight", &weightId) ;
+  nc_get_vara_double(ncid, weightId, &start, &nbWeight, weight) ;
+
+  long* srcIndex=new long[nbWeight] ; 
+  int srcIndexId ;
+  nc_inq_varid (ncid, "src_idx", &srcIndexId) ;
+  nc_get_vara_long(ncid, srcIndexId, &start, &nbWeight, srcIndex) ;
+
+  long* dstIndex=new long[nbWeight] ; 
+  int dstIndexId ;
+  nc_inq_varid (ncid, "dst_idx", &dstIndexId) ;
+  nc_get_vara_long(ncid, dstIndexId, &start, &nbWeight, dstIndex) ;
+        
+  for(size_t ind=0; ind<nbWeight;++ind)
+    interpMapValue[dstIndex[ind]].push_back(make_pair(srcIndex[ind],weight[ind]));
 }
 
 }

@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<simulation>
+
+ <context id="test">
+   <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-28 15:00:00 + 1d" />
+
+
+   <field_definition level="1" >
+     <field id="src_field"  operation="instant" grid_ref="src_grid"/>
+     <field id="dst_field"  operation="instant" field_ref="src_field" grid_ref="dst_grid"/>
+   </field_definition>
+
+
+   <file_definition type="multiple_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
+     <file id="output" name="output">
+        <field field_ref="src_field" name="field" />
+     </file>
+     <file id="output_dst" name="output_dst">
+        <field field_ref="dst_field" name="field" />
+     </file>
+   </file_definition>
+
+
+   <axis_definition>
+   </axis_definition>
+
+   <domain_definition>
+     <domain id="src_domain" />
+     <domain id="dst_domain" >
+       <interpolate_from_file_domain file="weight.nc" />
+     </domain>
+   </domain_definition>
+
+   <grid_definition>
+     <grid id="dst_grid">
+       <domain domain_ref="dst_domain" />
+     </grid>
+     <grid id="src_grid">
+       <domain domain_ref="src_domain" />
+     </grid>
+   </grid_definition>
+  </context>
+
+
+  <context id="xios">
+      <variable_definition>
+        <variable_group id="buffer">
+            <variable id="optimal_buffer_size" type="string">performance</variable>
+            <variable id="buffer_factor_size" type="double">30.0</variable>
+         </variable_group>
+
+        <variable_group id="parameters" >
+          <variable id="using_server" type="bool">true</variable>
+          <variable id="info_level" type="int">50</variable>
+          <variable id="print_file" type="bool">true</variable>
+        </variable_group>
+      </variable_definition>
+  </context>
+
+</simulation>
+

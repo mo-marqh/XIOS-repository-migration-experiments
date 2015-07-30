@@ -195,7 +195,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomBegin_.at((indexMap_[idx]+1)) = domList[domIndex]->global_zoom_jbegin;
       nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
-      dataBegin_.at(indexMap_[idx]+1) = (2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
+      dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue(); //(2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
       dataIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->data_j_index.numElements());
       dataIndex_.at(indexMap_[idx]+1) = domList[domIndex]->data_j_index;
 
@@ -211,7 +211,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       dataIndex_.at(indexMap_[idx]).resize(domList[domIndex]->data_i_index.numElements());
       dataIndex_.at(indexMap_[idx]) = domList[domIndex]->data_i_index;
 
-      dataNIndex_.at(idx) = domList[domIndex]->data_n_index.getValue();
+      dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
       dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
 
       isDataDistributed_ |= domList[domIndex]->isDistributed();
@@ -616,13 +616,20 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
                                         const int& dataIBegin, const int& dataJBegin,
                                         const int& dataDim, const int& ni, int& j)
 {
+//  int tempI = dataIIndex + dataIBegin,
+//      tempJ = (1 == dataDim) ? -1
+//                             : (dataJIndex + dataJBegin);
+//  int i = (dataDim == 1) ? (tempI - 1) % ni
+//                     : (tempI - 1) ;
+//  j = (dataDim == 1) ? (tempI - 1) / ni
+//                     : (tempJ - 1) ;
+
   int tempI = dataIIndex + dataIBegin,
-      tempJ = (1 == dataDim) ? -1
-                             : (dataJIndex + dataJBegin);
-  int i = (dataDim == 1) ? (tempI - 1) % ni
-                     : (tempI - 1) ;
-  j = (dataDim == 1) ? (tempI - 1) / ni
-                     : (tempJ - 1) ;
+      tempJ = (dataJIndex + dataJBegin);
+  int i = (dataDim == 1) ? (tempI) % ni
+                         : (tempI) ;
+  j = (dataDim == 1) ? (tempI) / ni
+                     : (tempJ) ;
 
   return i;
 }

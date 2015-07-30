@@ -16,6 +16,7 @@
 #include "context_client.hpp"
 #include "transformation_mapping.hpp"
 #include "axis_algorithm_transformation.hpp"
+#include "distribution_client.hpp"
 
 namespace xios {
 CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)

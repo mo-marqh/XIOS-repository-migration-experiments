@@ -134,11 +134,6 @@ namespace xios {
 
          if (!area.isEmpty())
            area.transposeSelf(1, 0);
-
-//         ni=1 ;
-//         ibegin=0 ;
-//         iend=0 ;
-
       }
       else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
           (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
@@ -331,13 +326,14 @@ namespace xios {
       }
       else if (data_dim.isEmpty())
       {
-         ERROR("CDomain::checkAttributes(void)",
-               << "Data dimension undefined !") ;
+        data_dim.setValue(1);
+//         ERROR("CDomain::checkAttributes(void)",
+//               << "Data dimension undefined !") ;
       }
 
       if (data_ibegin.isEmpty())
          data_ibegin.setValue(0) ;
-      if (data_jbegin.isEmpty() && (data_dim.getValue() == 2))
+      if (data_jbegin.isEmpty())
          data_jbegin.setValue(0) ;
 
       if (!data_ni.isEmpty() && (data_ni.getValue() <= 0))
@@ -352,16 +348,16 @@ namespace xios {
                            : ni.getValue());
       }
 
-      if (data_dim.getValue() == 2)
+      if (!data_nj.isEmpty() && (data_nj.getValue() <= 0) )
       {
-         if (!data_nj.isEmpty() && (data_nj.getValue() <= 0) )
-         {
-            ERROR("CDomain::checkAttributes(void)",
-                  << "Data dimension is negative (data_nj).") ;
-         }
-         else if (data_nj.isEmpty())
-            data_nj.setValue(nj.getValue()) ;
+         ERROR("CDomain::checkAttributes(void)",
+               << "Data dimension is negative (data_nj).") ;
       }
+
+      if (data_nj.isEmpty())
+         data_nj.setValue((data_dim.getValue() == 1)
+                   ? (ni.getValue() * nj.getValue())
+                   : nj.getValue());
 
    }
 
@@ -371,46 +367,60 @@ namespace xios {
    {
       if (!data_i_index.isEmpty())
       {
-         int ssize = data_i_index.numElements();
-         if (!data_n_index.isEmpty() &&
-            (data_n_index.getValue() != ssize))
-         {
-            ERROR("CDomain::checkAttributes(void)",
-                  <<"Dimension data_i_index incompatible with data_n_index.") ;
-         }
-         else if (data_n_index.isEmpty())
-            data_n_index.setValue(ssize) ;
+//         int ssize = data_i_index.numElements();
+//         if (!data_n_index.isEmpty() &&
+//            (data_n_index.getValue() != ssize))
+//         {
+//            ERROR("CDomain::checkAttributes(void)",
+//                  <<"Dimension data_i_index incompatible with data_n_index.") ;
+//         }
+//         else if (data_n_index.isEmpty())
+//            data_n_index.setValue(ssize) ;
+          if (!data_j_index.isEmpty() &&
+             (data_j_index.numElements() != data_i_index.numElements()))
+          {
+             ERROR("CDomain::checkAttributes(void)",
+                   <<"Dimension data_j_index incompatible with data_i_index.") ;
+          }
 
-         if (data_dim.getValue() == 2)
+         if (2 == data_dim.getValue())
          {
-            if (!data_j_index.isEmpty() &&
-               (data_j_index.numElements() != data_i_index.numElements()))
-            {
-               ERROR("CDomain::checkAttributes(void)",
-                     <<"Dimension data_j_index incompatible with data_i_index.") ;
-            }
-            else if (data_j_index.isEmpty())
+            if (data_j_index.isEmpty())
             {
                ERROR("CDomain::checkAttributes(void)",
                      <<"data_j_index must be defined !") ;
             }
          }
+         else // (1 == data_dim.getValue())
+         {
+            if (data_j_index.isEmpty())
+            {
+              const int dni = data_ni.getValue();
+              data_j_index.resize(dni);
+              for (int j = 0; j < dni; ++j) data_j_index(j) = 0;
+            }
+
+         }
       }
       else
       {
-         if (!data_n_index.isEmpty() ||
-            ((data_dim.getValue() == 2) && (!data_j_index.isEmpty())))
+//         if (!data_n_index.isEmpty() ||
+//            ((data_dim.getValue() == 2) && (!data_j_index.isEmpty())))
+//            ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
+         if ((data_dim.getValue() == 2) && (!data_j_index.isEmpty()))
             ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
-      }
 
-      if (data_n_index.isEmpty())
-      { // -> bloc re-vérifié OK
-         if (data_dim.getValue() == 1)
+         if (1 == data_dim.getValue())
          {
             const int dni = data_ni.getValue();
             data_i_index.resize(dni) ;
+            data_j_index.resize(dni) ;
             data_n_index.setValue(dni);
-            for (int i = 0; i < dni; i++) data_i_index(i) = i+1 ;
+            for (int i = 0; i < dni; ++i)
+            {
+              data_i_index(i) = i;
+              data_j_index(i) = 0;
+            }
          }
          else   // (data_dim == 2)
          {
@@ -420,16 +430,44 @@ namespace xios {
 
             data_n_index.setValue(dni);
 
-            for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
+            for(int count = 0, j = 0; j  < data_nj.getValue(); ++j)
             {
-               for(int i = 0; i < data_ni.getValue(); i++, count++)
+               for(int i = 0; i < data_ni.getValue(); ++i, ++count)
                {
-                  data_i_index(count) = i+1 ;
-                  data_j_index(count) = j+1 ;
+                  data_i_index(count) = i;
+                  data_j_index(count) = j;
                }
             }
          }
       }
+
+//      if (data_n_index.isEmpty())
+//      { // -> bloc re-vérifié OK
+//         if (data_dim.getValue() == 1)
+//         {
+//            const int dni = data_ni.getValue();
+//            data_i_index.resize(dni) ;
+//            data_n_index.setValue(dni);
+//            for (int i = 0; i < dni; i++) data_i_index(i) = i+1 ;
+//         }
+//         else   // (data_dim == 2)
+//         {
+//            const int dni = data_ni.getValue() * data_nj.getValue();
+//            data_i_index.resize(dni) ;
+//            data_j_index.resize(dni) ;
+//
+//            data_n_index.setValue(dni);
+//
+//            for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
+//            {
+//               for(int i = 0; i < data_ni.getValue(); i++, count++)
+//               {
+//                  data_i_index(count) = i+1 ;
+//                  data_j_index(count) = j+1 ;
+//               }
+//            }
+//         }
+//      }
    }
 
    //----------------------------------------------------------------
