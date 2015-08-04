@@ -1,6 +1,6 @@
 NETCDF_INCDIR="-I/smplocal/pub/NetCDF/4.1.3/mpi/include"
 NETCDF_LIBDIR="-L/smplocal/pub/NetCDF/4.1.3/mpi/lib"
-NETCDF_LIB="-lnetcdf"
+NETCDF_LIB="-lnetcdff -lnetcdf"
 
 MPI_INCDIR=""
 MPI_LIBDIR=""
