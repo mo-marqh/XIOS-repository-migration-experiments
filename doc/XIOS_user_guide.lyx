@@ -1213,5 +1213,35 @@ For more detailed about the calendar attributes and operations, see the
  XIOS reference guide.
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "inputs/user/Grid.lyx"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "inputs/user/Domain.lyx"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "inputs/user/Axis.lyx"
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
