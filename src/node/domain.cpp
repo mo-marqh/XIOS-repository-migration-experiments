@@ -831,16 +831,22 @@ namespace xios {
 
     std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(),
                                                        ite = globalIndexDomainOnServer.end();
+    typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
+    std::vector<int>::iterator itVec;
+
     indSrv_.clear();
     for (; it != ite; ++it)
     {
       int rank = it->first;
-      std::vector<size_t>::const_iterator itbVec  = (it->second).begin(),
-                                           iteVec = (it->second).end();
+      int indexSize = it->second.size();
+      std::vector<int> permutIndex(indexSize);
+      XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
+      XIOSAlgorithms::sortWithIndex<size_t>(it->second, permutIndex);
+      BinarySearch binSearch(it->second);
       int nb = globalIndexDomainZoom.numElements();
       for (int i = 0; i < nb; ++i)
       {
-        if (iteVec != std::find(itbVec, iteVec, globalIndexDomainZoom(i)))
+        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexDomainZoom(i), itVec))
         {
           indSrv_[rank].push_back(localIndexDomainZoom(i));
         }

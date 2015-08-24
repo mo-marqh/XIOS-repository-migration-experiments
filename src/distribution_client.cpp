@@ -17,6 +17,7 @@ CDistributionClient::CDistributionClient(int rank, int dims, const CArray<size_t
    , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
    , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
+   , globalDataSendToServer_(), localDataIndexSendToServer_(), localDataIndex_(), localMaskIndex_()
 {
 }
 
@@ -27,6 +28,7 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
    , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
+   , globalDataSendToServer_(), localDataIndexSendToServer_(), localDataIndex_(), localMaskIndex_()
 {
   readDistributionInfo(grid);
   createGlobalIndex();
@@ -567,7 +569,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
           isCurrentIndexAxisDataCorrect &&
           gridMask_(gridMaskIndex))
       {
-        localDataIndex_(indexLocalDataOnClientCount) = countLocalData;
+        localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
 
         bool isIndexOnServer = true;
         for (int j = 0; j < this->dims_; ++j)
@@ -583,9 +585,9 @@ void CDistributionClient::createGlobalIndexSendToServer()
             mulDim *= nGlob_[k-1];
             globalIndex += (currentIndex[k] + nBeginGlobal_[k])*mulDim;
           }
-          globalDataSendToServer_(indexSend2ServerCount) = globalIndex;
-          localDataIndexSendToServer_(indexSend2ServerCount) = indexLocalDataOnClientCount;
-          localMaskIndex_(indexSend2ServerCount) = gridMaskIndex;
+          globalDataSendToServer_[indexSend2ServerCount] = globalIndex;
+          localDataIndexSendToServer_[indexSend2ServerCount] = indexLocalDataOnClientCount;
+          localMaskIndex_[indexSend2ServerCount] = gridMaskIndex;
           ++indexSend2ServerCount;
         }
         ++indexLocalDataOnClientCount;
@@ -638,7 +640,7 @@ int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin
    return ((tempI)%ni);
 }
 
-const CArray<size_t,1>& CDistributionClient::getGlobalDataIndexSendToServer() const
+const std::vector<size_t>& CDistributionClient::getGlobalDataIndexSendToServer() const
 {
   return globalDataSendToServer_;
 }
@@ -646,7 +648,7 @@ const CArray<size_t,1>& CDistributionClient::getGlobalDataIndexSendToServer() co
 /*!
   Return local data index of client
 */
-const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
+const std::vector<int>& CDistributionClient::getLocalDataIndexOnClient() const
 {
   return localDataIndex_;
 }
@@ -654,7 +656,7 @@ const CArray<int,1>& CDistributionClient::getLocalDataIndexOnClient() const
 /*!
   Return local mask index of client
 */
-const CArray<int,1>& CDistributionClient::getLocalMaskIndexOnClient() const
+const std::vector<int>& CDistributionClient::getLocalMaskIndexOnClient() const
 {
   return localMaskIndex_;
 }
@@ -662,7 +664,7 @@ const CArray<int,1>& CDistributionClient::getLocalMaskIndexOnClient() const
 /*!
   Return local data index on client which are sent to servers
 */
-const CArray<int,1>& CDistributionClient::getLocalDataIndexSendToServer() const
+const std::vector<int>& CDistributionClient::getLocalDataIndexSendToServer() const
 {
   return localDataIndexSendToServer_;
 }

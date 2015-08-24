@@ -98,8 +98,8 @@ private:
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
 
   //! (Grid) Global index of grid source
-  CArray<size_t,1> globalIndexOfCurrentGridSource_;
-  CArray<size_t,1> globalIndexOfOriginalGridSource_;
+  std::vector<size_t> globalIndexOfCurrentGridSource_;
+  std::vector<size_t> globalIndexOfOriginalGridSource_;
   CArray<double,1> weightOfGlobalIndexOfOriginalGridSource_;
 };
 

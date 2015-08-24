@@ -31,7 +31,7 @@ void CDomainAlgorithmTransformation::computeIndexSourceMapping()
   \param[in] domainPositionInGrid position of the domain in the grid
   \param[in] gridDestGlobalDim dimension size of destination grid (it should share the same size for all dimension, maybe except the domain on which transformation is performed)
   \param[in] gridSrcGlobalDim dimension size of source grid (it should share the same size for all dimension, maybe except the domain on which transformation is performed)
-  \param[in] globalIndexGridDestSendToServer global index of destination grid which are to be sent to server(s)
+  \param[in] globalIndexGridDestSendToServer global index of destination grid which are to be sent to server(s), this array is already acsending sorted
   \param[in/out] globalIndexDestGrid array of global index (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
   \param[in/out] globalIndexSrcGrid array of global index of source grid (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
 */
@@ -40,7 +40,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
                                                                           int domainPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const std::vector<int>& gridSrcGlobalDim,
-                                                                          const CArray<size_t,1>& globalIndexGridDestSendToServer,
+                                                                          const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                                           CArray<size_t,1>& globalIndexDestGrid,
                                                                           std::vector<std::vector<size_t> >& globalIndexSrcGrid)
 {
@@ -77,8 +77,8 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
 
   for (int i = 0; i< numElement; ++i) ssize *= gridDomainGlobalDim[i];
 
-  CArray<size_t,1>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
-                                   iteArr = globalIndexGridDestSendToServer.end();
+  std::vector<size_t>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
+                                      iteArr = globalIndexGridDestSendToServer.end();
   idx = 0;
   while (idx < ssize)
   {
@@ -110,8 +110,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    itArr = std::find(itbArr, iteArr, globIndex);
-    if (iteArr != itArr) ++realGlobalIndexSize;
+    if (std::binary_search(itbArr, iteArr, globIndex)) ++realGlobalIndexSize;
     ++idxLoop[0];
     ++idx;
   }
@@ -157,8 +156,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    itArr = std::find(itbArr, iteArr, globIndex);
-    if (iteArr != itArr)
+    if (std::binary_search(itbArr, iteArr, globIndex))
     {
       globalIndexDestGrid(realGlobalIndex) = globIndex;
       for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)

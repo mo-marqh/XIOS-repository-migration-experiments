@@ -221,20 +221,104 @@ struct NumTraits<double>
   }
 };
 
-template<class T>
-class sorter
+template<typename T>
+class CArrayStorage
 {
-  const std::vector<T>& values;
 public:
-  sorter(const std::vector<T> &v) : values(v) {}
-  bool operator()(int a, int b) { return values[a] < values[b]; }
+  typedef CArray<T,1> StorageType;
+
+public:
+  CArrayStorage(const CArray<T,1>& arr) : values(arr) {}
+
+protected:
+  const T& atIndex(int idx) const { return values(idx); }
+  const StorageType& values;
 };
 
-template<class T>
-void order(const std::vector<T>& values, std::vector<int>& rv)
+template<typename T>
+class CVectorStorage
 {
-  std::sort(rv.begin(), rv.end(), sorter<T>(values));
-}
+public:
+  typedef std::vector<T> StorageType;
+
+public:
+  CVectorStorage(const std::vector<T>& vec) : values(vec) {}
+
+protected:
+  const T& atIndex(int idx) const { return values[idx]; }
+  const StorageType& values;
+};
+
+
+template<
+  typename T,
+  template <class> class StoragePolicy = CVectorStorage
+  >
+class XIOSComparatorWithIndex :
+  public StoragePolicy<T>
+{
+public:
+  typedef typename  StoragePolicy<T>::StorageType StorageType;
+
+public:
+  XIOSComparatorWithIndex(const StorageType& v) : StoragePolicy<T>(v) {}
+  bool operator()(int a, int b) { return this->atIndex(a) < this->atIndex(b); }
+};
+
+template<
+  typename T,
+  template <class> class StoragePolicy = CVectorStorage
+  >
+class XIOSLowerBoundWithIndex :
+  public StoragePolicy<T>
+{
+public:
+  typedef typename  StoragePolicy<T>::StorageType StorageType;
+
+public:
+  XIOSLowerBoundWithIndex(const StorageType &v) : StoragePolicy<T>(v) {}
+  bool operator()(const int a, const T& b) { return this->atIndex(a) < b; }
+};
+
+template<
+  typename T,
+  template <class> class StoragePolicy = CVectorStorage
+  >
+class XIOSBinarySearchWithIndex :
+  public StoragePolicy<T>
+{
+public:
+  typedef typename  StoragePolicy<T>::StorageType StorageType;
+
+public:
+  XIOSBinarySearchWithIndex(const StorageType& v) : StoragePolicy<T>(v) {}
+
+  template<typename ForwardIterator>
+  bool search(ForwardIterator first, ForwardIterator last, const T& val, ForwardIterator& position)
+  {
+    first = std::lower_bound(first, last, val, XIOSLowerBoundWithIndex<T, StoragePolicy>(this->values));
+    position = first;
+    return (first!=last && !(val<this->atIndex(*first)));
+  }
+};
+
+
+struct XIOSAlgorithms
+{
+public:
+  template<typename T, template <class> class StoragePolicy = CVectorStorage>
+  static void sortWithIndex(const typename StoragePolicy<T>::StorageType& values, std::vector<int>& rv)
+  {
+    std::sort(rv.begin(), rv.end(), XIOSComparatorWithIndex<T, StoragePolicy>(values));
+  }
+
+  //! Fill in an vector with index begin at 0
+  static void fillInIndex(int nbIndex, std::vector<int>& rvIndex)
+  {
+    if ((0 < nbIndex) && (nbIndex != rvIndex.size())) rvIndex.resize(nbIndex);
+    for (int idx = 0; idx < nbIndex; ++idx) rvIndex[idx] = idx;
+  }
+};
 
 }
 

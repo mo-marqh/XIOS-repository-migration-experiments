@@ -7,6 +7,7 @@
    \brief Index distribution on server side.
  */
 #include "distribution_server.hpp"
+#include "utils.hpp"
 
 namespace xios {
 
@@ -90,19 +91,23 @@ void CDistributionServer::createGlobalIndex()
 */
 CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& globalIndex)
 {
-  CArray<size_t,1>::const_iterator itBegin = this->globalIndex_.begin(),
-                                   itEnd   = this->globalIndex_.end(), it;
+  int ssize = globalIndex.numElements();
+  int nbGlobalIndex = this->globalIndex_.numElements();
 
-  int ssize = globalIndex.numElements(), idx = 0;
+  std::vector<int>::iterator it;
+  std::vector<int> permutIndex(nbGlobalIndex);
+  XIOSAlgorithms::fillInIndex(nbGlobalIndex, permutIndex);
+  XIOSAlgorithms::sortWithIndex<size_t, CArrayStorage>(this->globalIndex_, permutIndex);
+  typedef XIOSBinarySearchWithIndex<size_t, CArrayStorage> BinarySearch;
+  BinarySearch binarySearch(this->globalIndex_);
+
   CArray<size_t,1> localIndex(ssize);
-  it = itBegin;
+  int idx = 0;
   for (int i = 0; i < ssize; ++i)
   {
-    it = std::find(itBegin, itEnd, globalIndex(i));
-//    it = std::lower_bound(it, itEnd, globalIndex(i));
-    if (itEnd != it)
+    if (binarySearch.search(permutIndex.begin(), permutIndex.end(), globalIndex(i), it))
     {
-      localIndex(idx) = std::distance(itBegin, it);
+      localIndex(idx) = *it;
       ++idx;
     }
   }
@@ -116,19 +121,23 @@ CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& 
 */
 void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
 {
-  CArray<size_t,1>::const_iterator itBegin = this->globalIndex_.begin(),
-                                   itEnd   = this->globalIndex_.end(), it;
+  int ssize = globalIndex.numElements();
+  int nbGlobalIndex = this->globalIndex_.numElements();
 
-  int ssize = globalIndex.numElements(), idx = 0;
+  std::vector<int>::iterator it;
+  std::vector<int> permutIndex(nbGlobalIndex);
+  XIOSAlgorithms::fillInIndex(nbGlobalIndex, permutIndex);
+  XIOSAlgorithms::sortWithIndex<size_t, CArrayStorage>(this->globalIndex_, permutIndex);
+  typedef XIOSBinarySearchWithIndex<size_t, CArrayStorage> BinarySearch;
+  BinarySearch binarySearch(this->globalIndex_);
+
   CArray<size_t,1> localIndex(ssize);
-  it = itBegin;
+  int idx = 0;
   for (int i = 0; i < ssize; ++i)
   {
-    it = std::find(itBegin, itEnd, globalIndex(i));
-//    it = std::lower_bound(it, itEnd, globalIndex(i));
-    if (itEnd != it)
+    if (binarySearch.search(permutIndex.begin(), permutIndex.end(), globalIndex(i), it))
     {
-      localIndex(idx) = std::distance(itBegin, it);
+      localIndex(idx) = *it;
       ++idx;
     }
   }

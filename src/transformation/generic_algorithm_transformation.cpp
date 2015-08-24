@@ -28,7 +28,7 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
 void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositionInGrid,
                                                              const std::vector<int>& gridDestGlobalDim,
                                                              const std::vector<int>& gridSrcGlobalDim,
-                                                             const CArray<size_t,1>& globalIndexGridDestSendToServer,
+                                                             const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                              std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
   std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_.begin(),
@@ -39,7 +39,8 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   std::vector<int>::const_iterator itbVec, itVec, iteVec;
   std::vector<std::vector<size_t> > globalIndexSrcGrid;
   CArray<size_t,1> globalIndexDestGrid;
-
+  std::vector<size_t> vecGlobalIndexGridSendToServer(globalIndexGridDestSendToServer.begin(), globalIndexGridDestSendToServer.end());
+  std::sort(vecGlobalIndexGridSendToServer.begin(), vecGlobalIndexGridSendToServer.end());
   for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
   {
     this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
@@ -47,7 +48,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                    elementPositionInGrid,
                                                    gridDestGlobalDim,
                                                    gridSrcGlobalDim,
-                                                   globalIndexGridDestSendToServer,
+                                                   vecGlobalIndexGridSendToServer,
                                                    globalIndexDestGrid,
                                                    globalIndexSrcGrid);
     size_t globalIndexSize = globalIndexDestGrid.numElements();

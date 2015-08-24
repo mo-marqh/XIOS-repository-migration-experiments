@@ -49,7 +49,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping()
   std::vector<int> indexVec(srcSize);
 
   retrieveAllAxisValue(recvBuff, indexVec);
-  order<double>(recvBuff, indexVec);
+  XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
   computeInterpolantPoint(recvBuff, indexVec);
 }
 

@@ -24,12 +24,12 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
 
   CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
 
-  const CArray<size_t,1>& globalIndexGridSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
+  const std::vector<size_t>& globalIndexGridSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
   boost::unordered_map<size_t,int> globalIndexOfServer;
-  int globalIndexSize = globalIndexGridSrc.numElements();
+  int globalIndexSize = globalIndexGridSrc.size();
   for (int idx = 0; idx < globalIndexSize; ++idx)
   {
-    globalIndexOfServer[globalIndexGridSrc(idx)] = clientRank;
+    globalIndexOfServer[globalIndexGridSrc[idx]] = clientRank;
   }
 
   gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfServer,

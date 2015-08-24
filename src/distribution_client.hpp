@@ -35,10 +35,10 @@ class CDistributionClient : public CDistribution
     /** Default destructor */
     virtual ~CDistributionClient();
 
-    virtual const CArray<int,1>& getLocalDataIndexOnClient() const;
-    virtual const CArray<int,1>& getLocalDataIndexSendToServer() const;
-    const CArray<size_t,1>& getGlobalDataIndexSendToServer() const;
-    const CArray<int,1>& getLocalMaskIndexOnClient() const;
+    virtual const std::vector<int>& getLocalDataIndexOnClient() const;
+    virtual const std::vector<int>& getLocalDataIndexSendToServer() const;
+    const std::vector<size_t>& getGlobalDataIndexSendToServer() const;
+    const std::vector<int>& getLocalMaskIndexOnClient() const;
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
@@ -71,10 +71,10 @@ class CDistributionClient : public CDistribution
 
   private:
     //!< LocalData index on client
-    CArray<size_t,1> globalDataSendToServer_;
-    CArray<int,1> localDataIndex_;
-    CArray<int,1> localDataIndexSendToServer_;
-    CArray<int,1> localMaskIndex_;
+    std::vector<size_t> globalDataSendToServer_;
+    std::vector<int> localDataIndex_;
+    std::vector<int> localDataIndexSendToServer_;
+    std::vector<int> localMaskIndex_;
 
   private:
     /*! Domains and axis are considered elements.
