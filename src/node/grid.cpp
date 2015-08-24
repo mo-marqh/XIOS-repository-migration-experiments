@@ -199,8 +199,8 @@ namespace xios {
       std::vector<CAxis*> axisP = this->getAxis();
       int dim = domainP.size() * 2 + axisP.size();
 
-      std::vector<CArray<bool,2>* > domainMasks(domainP.size());
-      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask);
+      std::vector<CArray<bool,1>* > domainMasks(domainP.size());
+      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask_1d);
       std::vector<CArray<bool,1>* > axisMasks(axisP.size());
       for (int i = 0; i < axisMasks.size(); ++i) axisMasks[i] = &(axisP[i]->mask);
 

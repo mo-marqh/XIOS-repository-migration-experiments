@@ -26,16 +26,18 @@ namespace xios {
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
-      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0), maskInter_()
+      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false)
+      , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
-      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0), maskInter_()
+      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false)
+      , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -94,81 +96,68 @@ namespace xios {
 
    void CDomain::checkDomain(void)
    {
-      if (!type.isEmpty() && type==type_attr::unstructured)
-      {
-         if (ni_glo.isEmpty() || ni_glo <= 0 )
-         {
-            ERROR("CDomain::checkAttributes(void)",
-               << "[ Id = " << this->getId() << " ] "
-               << "The global domain is badly defined,"
-               << " check the \'ni_glo\'  value !")
-         }
-         isUnstructed_ = true;
-         nj_glo = 1;
-         nj = 1;
-         jbegin = 0;
-         if (ni.isEmpty()) ni = i_index.numElements();
-         j_index.resize(ni);
-         for(int i=0;i<ni;++i) j_index(i)=0;
+     if (type.isEmpty())
+     {
+       ERROR("CDomain::checkDomain(void)",
+             << "[ Id = " << this->getId() << " ] "
+             << "The domain type is not defined,"
+             << " check the 'type'  value !")
+     }
 
-//         nj_glo=ni_glo ;
-//         ni_glo=1 ;
-//         if (!ni.isEmpty()) nj=ni ;
-//         if (!ibegin.isEmpty()) jbegin=ibegin ;
-//         if (!iend.isEmpty()) jend=iend ;
-//         if (!i_index.isEmpty())
-//         {
-//          j_index.resize(1,nj) ;
-//          for(int i=0;i<ni;i++) j_index(0,i)=i_index(i,0) ;
-//          i_index.resize(1,nj) ;
-//          for(int j=0;j<nj;j++) i_index(0,j)=0 ;
-//         }
-//
-//         if (!mask.isEmpty())
-//         {
-//          CArray<int,2> mask_tmp(nj,1);
-//          mask_tmp = mask ;
-//          mask.resize(1,nj) ;
-//          for(int j=0;j<nj;j++) mask(0,j)=mask_tmp(j,0) ;
-//         }
+     if (type==type_attr::unstructured)
+     {
+        if (ni_glo.isEmpty() || ni_glo <= 0 )
+        {
+           ERROR("CDomain::checkAttributes(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The global domain is badly defined,"
+              << " check the \'ni_glo\'  value !")
+        }
+        isUnstructed_ = true;
+        nj_glo = 1;
+        nj = 1;
+        jbegin = 0;
+        if (ni.isEmpty()) ni = i_index.numElements();
+        j_index.resize(ni);
+        for(int i=0;i<ni;++i) j_index(i)=0;
 
-         if (!area.isEmpty())
-           area.transposeSelf(1, 0);
-      }
-      else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
-          (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
-      {
-         ERROR("CDomain::checkAttributes(void)",
-               << "[ Id = " << this->getId() << " ] "
-               << "The global domain is badly defined,"
-               << " check the \'ni_glo\' et \'nj_glo\' values !")
-      }
+        if (!area.isEmpty())
+          area.transposeSelf(1, 0);
+     }
+     else if ((ni_glo.isEmpty() || ni_glo.getValue() <= 0 ) ||
+         (nj_glo.isEmpty() || nj_glo.getValue() <= 0 ))
+     {
+        ERROR("CDomain::checkAttributes(void)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The global domain is badly defined,"
+              << " check the \'ni_glo\' et \'nj_glo\' values !")
+     }
 
-      isDistributed_ = !ibegin.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !nj.isEmpty();
+     isDistributed_ = !ibegin.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !nj.isEmpty();
 
-      checkLocalIDomain();
-      checkLocalJDomain();
+     checkLocalIDomain();
+     checkLocalJDomain();
 
-      ibegin_client = ibegin; ni_client = ni; iend_client = ibegin + ni - 1;
-      jbegin_client = jbegin; nj_client = nj; jend_client = jbegin + nj - 1;
+     ibegin_client = ibegin; ni_client = ni; iend_client = ibegin + ni - 1;
+     jbegin_client = jbegin; nj_client = nj; jend_client = jbegin + nj - 1;
 
-      if (i_index.isEmpty())
-      {
-        i_index.resize(ni*nj);
-        for (int j = 0; j < nj; ++j)
-          for (int i = 0; i < ni; ++i) i_index(i+j*ni) = i+ibegin;
-      }
+     if (i_index.isEmpty())
+     {
+       i_index.resize(ni*nj);
+       for (int j = 0; j < nj; ++j)
+         for (int i = 0; i < ni; ++i) i_index(i+j*ni) = i+ibegin;
+     }
 
-      if (j_index.isEmpty())
-      {
-        j_index.resize(ni*nj);
-        for (int j = 0; j < nj; ++j)
-          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
-      }
-      computeNGlobDomain();
+     if (j_index.isEmpty())
+     {
+       j_index.resize(ni*nj);
+       for (int j = 0; j < nj; ++j)
+         for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
+     }
+     computeNGlobDomain();
 
-      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
-      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
+     if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
+     if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
    }
 
    //----------------------------------------------------------------
@@ -228,97 +217,45 @@ namespace xios {
           iend_mask = ibegin.getValue() + ni.getValue() - 1,
           jend_mask = jbegin.getValue() + nj.getValue() - 1;
 
-      if (!mask_1D.isEmpty() && !mask_2D.isEmpty())
+      if (!mask_1d.isEmpty() && !mask_2d.isEmpty())
         ERROR("CDomain::checkMask(void)",
-             <<"Only one mask is used but both mask_1D and mask_2D are defined! "<<endl
-             <<"Define only one mask: mask_1D or mask_2D ");
+             <<"Only one mask is used but both mask_1d and mask_2d are defined! "<<endl
+             <<"Define only one mask: mask_1d or mask_2d ");
 
-      if (!mask_1D.isEmpty() && mask_2D.isEmpty())
+      if (!mask_1d.isEmpty() && mask_2d.isEmpty())
       {
-        if (mask_1D.numElements() != i_index.numElements())
+        if (mask_1d.numElements() != i_index.numElements())
           ERROR("CDomain::checkMask(void)",
-                <<"the mask_1D has not the same size than the local domain"<<endl
+                <<"the mask_1d has not the same size as the local domain"<<endl
                 <<"Local size is "<<i_index.numElements()<<endl
-                <<"Mask size is "<<mask_1D.numElements());
+                <<"Mask size is "<<mask_1d.numElements());
       }
 
-      if (mask_1D.isEmpty() && !mask_2D.isEmpty())
+      if (mask_1d.isEmpty() && !mask_2d.isEmpty())
       {
-         if ((mask_2D.extent(0) != ni) ||
-             (mask_2D.extent(1) != nj))
+         if ((mask_2d.extent(0) != ni) ||
+             (mask_2d.extent(1) != nj))
             ERROR("CDomain::checkMask(void)",
-                  <<"the mask has not the same size than the local domain"<<endl
+                  <<"the mask has not the same size as the local domain"<<endl
                   <<"Local size is "<<ni<<"x"<<nj<<endl
-                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));
+                  <<"Mask size is "<<mask_2d.extent(0)<<"x"<<mask_2d.extent(1));
       }
 
-      if (!mask_1D.isEmpty())
+      if (!mask_2d.isEmpty())
       {
-        maskInter_.resize(mask_1D.numElements());
-        maskInter_ = mask_1D;
-      }
-      else if (!mask_2D.isEmpty())
-      {
-        maskInter_.resize(mask_2D.extent(0) * mask_2D.extent(0));
+        mask_1d.resize(mask_2d.extent(0) * mask_2d.extent(1));
         for (int j = 0; j < nj; ++j)
-          for (int i = 0; i < ni; ++i) maskInter_(i+j*ni) = mask_2D(i,j);
+          for (int i = 0; i < ni; ++i) mask_1d(i+j*ni) = mask_2d(i,j);
       }
       else
       {
-        maskInter_.resize(i_index.numElements());
-        for (int i = 0; i < i_index.numElements(); ++i) maskInter_(i) = true;
-      }
-
-      if (!mask.isEmpty())
-      {
-        maskInter_.resize(mask.extent(0) * mask.extent(1));
-        for (int j = 0; j < nj; ++j)
-          for (int i = 0; i < ni; ++i) maskInter_(i+j*ni) = mask(i,j);
-      }
-      else
-      {
-        maskInter_.resize(ni*nj);
-        for (int i = 0; i < maskInter_.numElements(); ++i) maskInter_(i) = true;
-      }
-
-      if (!mask.isEmpty())
-      {
-         if ((mask.extent(0) != ni) ||
-             (mask.extent(1) != nj))
-            ERROR("CDomain::checkAttributes(void)",
-                  <<"the mask has not the same size than the local domain"<<endl
-                   <<"Local size is "<<ni<<"x"<<nj<<endl
-                  <<"Mask size is "<<mask.extent(0)<<"x"<<mask.extent(1));
-//         for (int i = 0; i < ni; i++)
-//         {
-//            for (int j = 0; j < nj; j++)
-//            {
-//               if (i < ibegin_mask && i > iend_mask &&
-//                   j < jbegin_mask && j > jend_mask )
-//                     mask(i,j) = false;
-//            }
-//         }
-      }
-      else // (!mask.hasValue())
-      { // Si aucun masque n'est défini,
-        // on en crée un nouveau qui valide l'intégralité du domaine.
-         mask.resize(ni,nj) ;
-         for (int i = 0; i < ni.getValue(); i++)
-         {
-            for (int j = 0; j < nj.getValue(); j++)
-            {
-               if (i >= ibegin_mask && i <= iend_mask &&
-                   j >= jbegin_mask && j <= jend_mask )
-                     mask(i,j) = true;
-               else  mask(i,j) = false;
-            }
-         }
+        mask_1d.resize(i_index.numElements());
+        for (int i = 0; i < i_index.numElements(); ++i) mask_1d(i) = true;
       }
    }
 
 
    //----------------------------------------------------------------
-
    void CDomain::checkDomainData(void)
    {
       if (!data_dim.isEmpty() &&
@@ -330,8 +267,6 @@ namespace xios {
       else if (data_dim.isEmpty())
       {
         data_dim.setValue(1);
-//         ERROR("CDomain::checkAttributes(void)",
-//               << "Data dimension undefined !") ;
       }
 
       if (data_ibegin.isEmpty())
@@ -365,51 +300,37 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
    void CDomain::checkCompression(void)
    {
       if (!data_i_index.isEmpty())
       {
-//         int ssize = data_i_index.numElements();
-//         if (!data_n_index.isEmpty() &&
-//            (data_n_index.getValue() != ssize))
-//         {
-//            ERROR("CDomain::checkAttributes(void)",
-//                  <<"Dimension data_i_index incompatible with data_n_index.") ;
-//         }
-//         else if (data_n_index.isEmpty())
-//            data_n_index.setValue(ssize) ;
-          if (!data_j_index.isEmpty() &&
-             (data_j_index.numElements() != data_i_index.numElements()))
+        if (!data_j_index.isEmpty() &&
+           (data_j_index.numElements() != data_i_index.numElements()))
+        {
+           ERROR("CDomain::checkAttributes(void)",
+                 <<"Dimension data_j_index incompatible with data_i_index.") ;
+        }
+
+       if (2 == data_dim.getValue())
+       {
+          if (data_j_index.isEmpty())
           {
              ERROR("CDomain::checkAttributes(void)",
-                   <<"Dimension data_j_index incompatible with data_i_index.") ;
+                   <<"data_j_index must be defined !") ;
           }
-
-         if (2 == data_dim.getValue())
-         {
-            if (data_j_index.isEmpty())
-            {
-               ERROR("CDomain::checkAttributes(void)",
-                     <<"data_j_index must be defined !") ;
-            }
-         }
-         else // (1 == data_dim.getValue())
-         {
-            if (data_j_index.isEmpty())
-            {
-              const int dni = data_ni.getValue();
-              data_j_index.resize(dni);
-              for (int j = 0; j < dni; ++j) data_j_index(j) = 0;
-            }
-
-         }
+       }
+       else // (1 == data_dim.getValue())
+       {
+          if (data_j_index.isEmpty())
+          {
+            const int dni = data_ni.getValue();
+            data_j_index.resize(dni);
+            for (int j = 0; j < dni; ++j) data_j_index(j) = 0;
+          }
+       }
       }
       else
       {
-//         if (!data_n_index.isEmpty() ||
-//            ((data_dim.getValue() == 2) && (!data_j_index.isEmpty())))
-//            ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
          if ((data_dim.getValue() == 2) && (!data_j_index.isEmpty()))
             ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
 
@@ -443,114 +364,294 @@ namespace xios {
             }
          }
       }
+   }
 
-//      if (data_n_index.isEmpty())
-//      { // -> bloc re-vérifié OK
-//         if (data_dim.getValue() == 1)
-//         {
-//            const int dni = data_ni.getValue();
-//            data_i_index.resize(dni) ;
-//            data_n_index.setValue(dni);
-//            for (int i = 0; i < dni; i++) data_i_index(i) = i+1 ;
-//         }
-//         else   // (data_dim == 2)
-//         {
-//            const int dni = data_ni.getValue() * data_nj.getValue();
-//            data_i_index.resize(dni) ;
-//            data_j_index.resize(dni) ;
-//
-//            data_n_index.setValue(dni);
-//
-//            for(int count = 0, j = 0; j  < data_nj.getValue(); j++)
-//            {
-//               for(int i = 0; i < data_ni.getValue(); i++, count++)
-//               {
-//                  data_i_index(count) = i+1 ;
-//                  data_j_index(count) = j+1 ;
-//               }
-//            }
-//         }
-//      }
+   void CDomain::completeLonClient()
+   {
+     int i,j,k ;
+     CArray<double,1> lonvalue_temp(ni*nj) ;
+     CArray<double,2> bounds_lon_temp(nvertex,ni*nj);
+
+     if (!lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
+       ERROR("CDomain::completeLonLatClient(void)",
+            <<"Only one longitude value can be used but both lonvalue_1d and lonvalue_2d are defined! "<<endl
+            <<"Define only one longitude value: lonvalue_1d or lonvalue_2d ");
+
+     if (!lonvalue_1d.isEmpty() && lonvalue_2d.isEmpty())
+     {
+       if (lonvalue_1d.numElements() != i_index.numElements())
+         ERROR("CDomain::completeLonLatClient(void)",
+               <<"lonvalue_1d has not the same size as the local domain"<<endl
+               <<"Local size is "<<i_index.numElements()<<endl
+               <<"lonvalue_1d size is "<<lonvalue_1d.numElements());
+     }
+
+     if (lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
+     {
+        if ((lonvalue_2d.extent(0) != ni) ||
+            (lonvalue_2d.extent(1) != nj))
+           ERROR("CDomain::completeLonLatClient(void)",
+                 <<"the lonvalue has not the same size as the local domain"<<endl
+                 <<"Local size is "<<ni<<"x"<<nj<<endl
+                 <<"Lonvalue size is "<<lonvalue_2d.extent(0)<<"x"<<lonvalue_2d.extent(1));
+     }
+
+     if (!lonvalue_2d.isEmpty())
+     {
+        for (j = 0; j < nj; ++j)
+          for (i = 0; i < ni; ++i)
+          {
+            lonvalue_temp(i+j*ni) = lonvalue_2d(i,j);
+            if (hasBounds)
+            {
+              k=j*ni+i;
+              for(int n=0;n<nvertex;++n) bounds_lon_temp(n,k) = bounds_lon_2d(n,i,j);
+            }
+          }
+     }
+
+     if (!lonvalue_1d.isEmpty())
+     {
+       if (type_attr::rectilinear == type)
+       {
+         if (ni == lonvalue_1d.numElements())
+         {
+           for(j=0;j<nj;++j)
+             for(i=0;i<ni;++i)
+             {
+               k=j*ni+i;
+               lonvalue_temp(k) = lonvalue_1d(i);
+               if (hasBounds)
+               {
+                 for(int n=0;n<nvertex;++n) bounds_lon_temp(n,k) = bounds_lon_1d(n,i);
+               }
+             }
+          }
+          else
+            ERROR("CDomain::completeLonClient(void)",
+                 <<"The lonvalue_1d has not the same size as the local domain"<<endl
+                 <<"Local size is "<<ni<<endl
+                 <<"Lonvalue_1d size is "<<lonvalue_1d.numElements());
+       }
+       else if (type==type_attr::curvilinear || type==type_attr::unstructured)
+       {
+         lonvalue_temp=lonvalue_1d;
+         if (hasBounds)
+         {
+           bounds_lon_temp=bounds_lon_1d;
+         }
+       }
+     }
+
+     StdSize dm = zoom_ni_client * zoom_nj_client;
+
+      // Make sure that this attribute is non-empty for every client.
+     if (0 != dm)
+     {
+       lonvalue_client.resize(dm);
+       if (hasBounds) bounds_lon_client.resize(nvertex, dm);
+     }
+
+
+     for (i = 0; i < zoom_ni_client; ++i)
+     {
+       for (j = 0; j < zoom_nj_client; ++j)
+       {
+         lonvalue_client(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+         if (hasBounds)
+         {
+           for(int n=0;n<nvertex;n++)
+           {
+             bounds_lon_client(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+           }
+         }
+       }
+     }
+   }
+
+   void CDomain::completeLatClient()
+   {
+     int i,j,k;
+     CArray<double,1> latvalue_temp(ni*nj) ;
+     CArray<double,2> bounds_lat_temp(nvertex,ni*nj);
+
+     if (!latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
+       ERROR("CDomain::completeLonLatClient(void)",
+            <<"Only one longitude value can be used but both latvalue_1d and latvalue_2d are defined! "<<endl
+            <<"Define only one longitude value: latvalue_1d or latvalue_2d ");
+
+     if (!latvalue_1d.isEmpty() && latvalue_2d.isEmpty())
+     {
+       if (latvalue_1d.numElements() != i_index.numElements())
+         ERROR("CDomain::completeLonLatClient(void)",
+               <<"the latvalue_1d has not the same size as the local domain"<<endl
+               <<"Local size is "<<i_index.numElements()<<endl
+               <<"Mask size is "<<latvalue_1d.numElements());
+     }
+
+     if (latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
+     {
+        if ((latvalue_2d.extent(0) != ni) ||
+            (latvalue_2d.extent(1) != nj))
+           ERROR("CDomain::completeLonLatClient(void)",
+                 <<"the mask has not the same size as the local domain"<<endl
+                 <<"Local size is "<<ni<<"x"<<nj<<endl
+                 <<"Mask size is "<<latvalue_2d.extent(0)<<"x"<<latvalue_2d.extent(1));
+     }
+
+     if (!latvalue_2d.isEmpty())
+     {
+        for (j = 0; j < nj; ++j)
+          for (i = 0; i < ni; ++i)
+          {
+            latvalue_temp(i+j*ni) = latvalue_2d(i,j);
+            if (hasBounds)
+            {
+              k=j*ni+i;
+              for(int n=0;n<nvertex;n++) bounds_lat_temp(n,k) = bounds_lat_2d(n,i,j);
+            }
+          }
+     }
+
+     if (!latvalue_1d.isEmpty())
+     {
+       if (type_attr::rectilinear == type)
+       {
+
+         if (nj == latvalue_1d.numElements())
+         {
+           for(j=0;j<nj;++j)
+             for(i=0;i<ni;++i)
+             {
+               k=j*ni+i;
+               latvalue_temp(k) = latvalue_1d(j);
+               if (hasBounds)
+               {
+                 for(int n=0;n<nvertex;n++) bounds_lat_temp(n,k) = bounds_lat_1d(n,j);
+               }
+             }
+          }
+          else
+            ERROR("CDomain::completeLonClient(void)",
+                 <<"The latvalue_1d has not the same size as the local domain"<<endl
+                 <<"Local size is "<<nj<<endl
+                 <<"Latvalue_1d size is "<<latvalue_1d.numElements());
+       }
+       else if (type==type_attr::curvilinear || type==type_attr::unstructured)
+       {
+         latvalue_temp=latvalue_1d;
+         if (hasBounds)
+         {
+           bounds_lat_temp=bounds_lat_1d;
+         }
+       }
+     }
+
+     StdSize dm = zoom_ni_client * zoom_nj_client;
+
+      // Make sure that this attribute is non-empty for every client.
+     if (0 != dm)
+     {
+       latvalue_client.resize(dm);
+       if (hasBounds) bounds_lat_client.resize(nvertex,dm);
+     }
+
+     for (i = 0; i < zoom_ni_client; i++)
+     {
+       for (j = 0; j < zoom_nj_client; j++)
+       {
+         latvalue_client(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+         if (hasBounds)
+         {
+           for(int n=0;n<nvertex;n++)
+           {
+             bounds_lat_client(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+           }
+         }
+       }
+     }
    }
 
    //----------------------------------------------------------------
 
    void CDomain::completeLonLatClient(void)
    {
-      int i,j,k ;
-      CArray<double,1> lonvalue_temp(ni*nj) ;
-      CArray<double,1> latvalue_temp(ni*nj) ;
-      CArray<double,2> bounds_lon_temp(nvertex,ni*nj) ;
-      CArray<double,2> bounds_lat_temp(nvertex,ni*nj) ;
-
-      if (type.isEmpty())
-      {
-        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj )
-        {
-          type.setValue(type_attr::curvilinear) ;
-          isCurvilinear=true ;
-        }
-        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj )
-        {
-          type.setValue(type_attr::regular) ;
-          isCurvilinear=false ;
-        }
-        else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
-                                                              <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
-                                                              <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
-      }
-      if (type==type_attr::curvilinear || type==type_attr::unstructured)
-      {
-        lonvalue_temp=lonvalue ;
-        latvalue_temp=latvalue ;
-        if (hasBounds) bounds_lon_temp=bounds_lon ;
-        if (hasBounds) bounds_lat_temp=bounds_lat ;
-      }
-      else
-      {
-        for(j=0;j<nj;j++)
-          for(i=0;i<ni;i++)
-          {
-            k=j*ni+i ;
-            lonvalue_temp(k)=lonvalue(i) ;
-            latvalue_temp(k)=latvalue(j) ;
-            if (hasBounds)
-            {
-              for(int n=0;n<nvertex;n++)
-              {
-                bounds_lon_temp(n,k)=bounds_lon(n,i) ;
-                bounds_lat_temp(n,k)=bounds_lat(n,j) ;
-              }
-            }
-          }
-      }
-
-      StdSize dm = zoom_ni_client * zoom_nj_client;
-
-      // Make sure that this attribute is non-empty for every client.
-      if (0 != dm)
-      {
-        lonvalue.resize(dm);
-        latvalue.resize(dm);
-      }
-
-
-      for (int i = 0; i < zoom_ni_client; i++)
-      {
-        for (int j = 0; j < zoom_nj_client; j++)
-        {
-          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client - jbegin)*ni );
-          if (hasBounds)
-          {
-            for(int n=0;n<nvertex;n++)
-            {
-              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-              bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client -jbegin)*ni );
-            }
-          }
-        }
-      }
+     completeLonClient();
+     completeLatClient();
+//      int i,j,k ;
+//      CArray<double,1> lonvalue_temp(ni*nj) ;
+//      CArray<double,1> latvalue_temp(ni*nj) ;
+//      CArray<double,2> bounds_lon_temp(nvertex,ni*nj);
+//      CArray<double,2> bounds_lat_temp(nvertex,ni*nj);
+//
+//      if (type.isEmpty())
+//      {
+//        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj )
+//        {
+//          type.setValue(type_attr::curvilinear) ;
+//          isCurvilinear=true ;
+//        }
+//        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj )
+//        {
+//          type.setValue(type_attr::regular) ;
+//          isCurvilinear=false ;
+//        }
+//        else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
+//                                                              <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
+//                                                              <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
+//      }
+//      if (type==type_attr::curvilinear || type==type_attr::unstructured)
+//      {
+//        lonvalue_temp=lonvalue ;
+//        latvalue_temp=latvalue ;
+//        if (hasBounds) bounds_lon_temp=bounds_lon ;
+//        if (hasBounds) bounds_lat_temp=bounds_lat ;
+//      }checkBounds
+//      else
+//      {
+//        for(j=0;j<nj;j++)
+//          for(i=0;i<ni;i++)
+//          {
+//            k=j*ni+i ;
+//            lonvalue_temp(k)=lonvalue(i) ;
+//            latvalue_temp(k)=latvalue(j) ;
+//            if (hasBounds)
+//            {
+//              for(int n=0;n<nvertex;n++)
+//              {
+//                bounds_lon_temp(n,k)=bounds_lon(n,i) ;
+//                bounds_lat_temp(n,k)=bounds_lat(n,j) ;
+//              }
+//            }
+//          }
+//      }
+//
+//      StdSize dm = zoom_ni_client * zoom_nj_client;
+//
+//      // Make sure that this attribute is non-empty for every client.
+//      if (0 != dm)
+//      {
+//        lonvalue.resize(dm);
+//        latvalue.resize(dm);
+//      }
+//
+//
+//      for (int i = 0; i < zoom_ni_client; i++)
+//      {
+//        for (int j = 0; j < zoom_nj_client; j++)
+//        {
+//          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+//          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client - jbegin)*ni );
+//          if (hasBounds)
+//          {
+//            for(int n=0;n<nvertex;n++)
+//            {
+//              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
+//              bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client -jbegin)*ni );
+//            }
+//          }
+//        }
+//      }
     }
 
 
@@ -558,11 +659,6 @@ namespace xios {
 
    void CDomain::checkZoom(void)
    {
-      // compute client zoom indices
-      // compute client zoom indices
-//      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
-//      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
-
       int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
       zoom_ibegin_client = ibegin_client > global_zoom_ibegin ? ibegin_client : global_zoom_ibegin ;
       zoom_iend_client = iend_client < global_zoom_iend ? iend_client : global_zoom_iend ;
@@ -579,8 +675,71 @@ namespace xios {
 
    void CDomain::checkBounds(void)
    {
-     if (!nvertex.isEmpty() && !bounds_lon.isEmpty() && !bounds_lat.isEmpty())
+     if (!nvertex.isEmpty() && (0 != nvertex.getValue()))
      {
+       if (!bounds_lon_1d.isEmpty() && !bounds_lon_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+              <<"Only one longitude boundary value can be used but both bounds_lon_1d and bounds_lon_2d are defined! "<<endl
+              <<"Define only one longitude boundary value: lonvalue_1d or bounds_lon_2d ");
+
+       if (!bounds_lat_1d.isEmpty() && !bounds_lat_2d.isEmpty())
+         ERROR("CDomain::checkBounds(void)",
+              <<"Only one latitude boundary value can be used but both bounds_lat_1d and bounds_lat_2d are defined! "<<endl
+              <<"Define only one latitude boundary value: bounds_lat_1d or bounds_lat_2d ");
+
+       if ((!bounds_lon_1d.isEmpty() && bounds_lat_1d.isEmpty()) || (bounds_lon_1d.isEmpty() && !bounds_lat_1d.isEmpty()))
+       {
+         ERROR("CDomain::checkBounds(void)",
+           <<"Only bounds_lon_1d or bounds_lat_1d is defined "<<endl
+           <<"Both must be defined ");
+       }
+
+       if ((!bounds_lon_2d.isEmpty() && bounds_lat_2d.isEmpty()) || (bounds_lon_2d.isEmpty() && !bounds_lat_2d.isEmpty()))
+       {
+         ERROR("CDomain::checkBounds(void)",
+           <<"Only bounds_lon_2d or bounds_lat_2d is defined "<<endl
+           <<"Both must be defined ");
+       }
+
+       if (!bounds_lon_1d.isEmpty() && (nvertex.getValue() != bounds_lon_1d.extent(0)))
+          ERROR("CDomain::checkBounds(void)",
+                <<"Only bounds_lon_1d and nvertex are not compatible"<<endl
+                <<"bounds_lon_1d dimension is " << bounds_lon_1d.extent(1)
+                <<"but nvertex is " << nvertex.getValue());
+
+       if (!bounds_lon_2d.isEmpty() && (nvertex.getValue() != bounds_lon_2d.extent(0)))
+          ERROR("CDomain::checkBounds(void)",
+                <<"Only bounds_lon_2d and nvertex are not compatible"<<endl
+                <<"bounds_lon_2d dimension is " << bounds_lon_1d.extent(2)
+                <<"but nvertex is " << nvertex.getValue());
+
+       if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
+           ERROR("CDomain::checkBounds(void)",
+                <<"Both bounds_lon_1d and lonvalue_1d must be defined"<<endl);
+
+       if (!bounds_lon_2d.isEmpty() && lonvalue_2d.isEmpty())
+           ERROR("CDomain::checkBounds(void)",
+                <<"Both bounds_lon_1d and lonvalue_1d must be defined"<<endl);
+
+       if (!bounds_lat_1d.isEmpty() && (nvertex.getValue() != bounds_lat_1d.extent(0)))
+          ERROR("CDomain::checkBounds(void)",
+                <<"Only bounds_lat_1d and nvertex are not compatible"<<endl
+                <<"bounds_lat_1d dimension is " << bounds_lat_1d.extent(1)
+                <<"but nvertex is " << nvertex.getValue());
+
+       if (!bounds_lat_2d.isEmpty() && (nvertex.getValue() != bounds_lat_2d.extent(0)))
+          ERROR("CDomain::checkBounds(void)",
+                <<"Only bounds_lat_2d and nvertex are not compatible"<<endl
+                <<"bounds_lat_2d dimension is " << bounds_lat_1d.extent(2)
+                <<"but nvertex is " << nvertex.getValue());
+
+       if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
+           ERROR("CDomain::checkBounds(void)",
+                <<"Both bounds_lat_1d and latvalue_1d must be defined"<<endl);
+
+       if (!bounds_lat_2d.isEmpty() && latvalue_2d.isEmpty())
+           ERROR("CDomain::checkBounds(void)",
+                <<"Both bounds_lat_1d and latvalue_1d must be defined"<<endl);
        hasBounds=true ;
      }
      else
@@ -603,24 +762,6 @@ namespace xios {
      }
    }
 
-//   void CDomain::checkAttributesOnClientBeforeTransformation()
-//   {
-//      if (this->isClientBeforeTransformationChecked) return;
-//      CContext* context=CContext::getCurrent();
-//
-//      this->checkDomain();
-//      this->checkBounds();
-//      this->checkArea();
-//
-//      if (context->hasClient)
-//      {
-//        this->checkDomainData();
-//        this->checkCompression();
-//      }
-//
-//      this->isClientBeforeTransformationChecked = true;
-//   }
-
    void CDomain::checkAttributesOnClientAfterTransformation()
    {
      CContext* context=CContext::getCurrent() ;
@@ -638,7 +779,7 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-   // Divide function checkAttributes into 2 seperate ones
+   // Divide function checkAttributes into 2 seperate onescheckBounds
    // This function only checks all attributes of current domain
    void CDomain::checkAttributesOnClient()
    {
@@ -657,8 +798,6 @@ namespace xios {
       }
       else
       { // Côté serveur uniquement
-//         if (!this->isEmpty())
-// ne sert plus //   this->completeLonLatServer();
       }
 
       this->isClientChecked = true;
@@ -675,9 +814,6 @@ namespace xios {
      if (this->isChecked) return;
      if (context->hasClient)
      {
-//       this->computeConnectedServer();
-//       this->completeLonLatClient();
-
        sendServerAttribut() ;
        sendLonLatArea() ;
      }
@@ -704,8 +840,6 @@ namespace xios {
       }
       else
       { // Côté serveur uniquement
-//         if (!this->isEmpty())
-// ne sert plus //   this->completeLonLatServer();
       }
 
       if (context->hasClient)
@@ -931,11 +1065,10 @@ namespace xios {
         idx = static_cast<int>(it->second[n]);
         i = i_index(idx);
         j = j_index(idx);
-        ind = n;
-//        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
+        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
 
-        lon(n) = lonvalue(ind);
-        lat(n) = latvalue(ind);
+        lon(n) = lonvalue_client(ind);
+        lat(n) = latvalue_client(ind);
 
         if (hasBounds)
         {
@@ -944,8 +1077,8 @@ namespace xios {
 
           for (nv = 0; nv < nvertex; nv++)
           {
-            boundslon(nv, n) = bounds_lon(nv, ind);
-            boundslat(nv, n) = bounds_lat(nv, ind);
+            boundslon(nv, n) = bounds_lon_client(nv, ind);
+            boundslat(nv, n) = bounds_lat_client(nv, ind);
           }
         }
 

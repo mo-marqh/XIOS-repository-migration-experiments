@@ -190,7 +190,7 @@ namespace xios {
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
-                          const std::vector<CArray<bool,2>* >& domainMasks,
+                          const std::vector<CArray<bool,1>* >& domainMasks,
                           const std::vector<CArray<bool,1>* >& axisMasks,
                           const CArray<bool,1>& axisDomainOrder);
         template<int N>
@@ -266,13 +266,14 @@ namespace xios {
 
    template<int N>
    void CGrid::checkGridMask(CArray<bool,N>& gridMask,
-                             const std::vector<CArray<bool,2>* >& domainMasks,
+                             const std::vector<CArray<bool,1>* >& domainMasks,
                              const std::vector<CArray<bool,1>* >& axisMasks,
                              const CArray<bool,1>& axisDomainOrder)
    {
      int idx = 0;
      int numElement = axisDomainOrder.numElements();
      int dim = domainMasks.size() * 2 + axisMasks.size();
+     std::vector<CDomain*> domainP = this->getDomains();
 
      std::vector<int> idxLoop(dim,0), indexMap(numElement), eachDimSize(dim);
      std::vector<int> currentIndex(dim);
@@ -281,8 +282,8 @@ namespace xios {
     {
       indexMap[i] = idx;
       if (true == axisDomainOrder(i)) {
-          eachDimSize[indexMap[i]]   = domainMasks[idxDomain]->extent(0);
-          eachDimSize[indexMap[i]+1] = domainMasks[idxDomain]->extent(1);
+          eachDimSize[indexMap[i]]   = domainP[idxDomain]->ni;
+          eachDimSize[indexMap[i]+1] = domainP[idxDomain]->nj;
           idx += 2; ++idxDomain;
       }
       else {
@@ -327,8 +328,7 @@ namespace xios {
       {
         if (axisDomainOrder(i))
         {
-          maskValue = maskValue && (*domainMasks[idxDomain])(idxLoop[indexMap[i]],
-                                                          idxLoop[indexMap[i]+1]);
+          maskValue = maskValue && (*domainMasks[idxDomain])(idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]]);
           ++idxDomain;
         }
         else

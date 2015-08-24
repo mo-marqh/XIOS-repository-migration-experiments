@@ -32,50 +32,100 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_area
 
 
-    SUBROUTINE cxios_set_domaingroup_bounds_lat(domaingroup_hdl, bounds_lat, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_bounds_lat_1d(domaingroup_hdl, bounds_lat_1d, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_set_domaingroup_bounds_lat
+    END SUBROUTINE cxios_set_domaingroup_bounds_lat_1d
 
-    SUBROUTINE cxios_get_domaingroup_bounds_lat(domaingroup_hdl, bounds_lat, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_bounds_lat_1d(domaingroup_hdl, bounds_lat_1d, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_get_domaingroup_bounds_lat
+    END SUBROUTINE cxios_get_domaingroup_bounds_lat_1d
 
-    FUNCTION cxios_is_defined_domaingroup_bounds_lat(domaingroup_hdl) BIND(C)
+    FUNCTION cxios_is_defined_domaingroup_bounds_lat_1d(domaingroup_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lat
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lat_1d
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_bounds_lat
+    END FUNCTION cxios_is_defined_domaingroup_bounds_lat_1d
 
 
-    SUBROUTINE cxios_set_domaingroup_bounds_lon(domaingroup_hdl, bounds_lon, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_bounds_lat_2d(domaingroup_hdl, bounds_lat_2d, extent1, extent2, extent3) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_2d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_set_domaingroup_bounds_lon
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_set_domaingroup_bounds_lat_2d
 
-    SUBROUTINE cxios_get_domaingroup_bounds_lon(domaingroup_hdl, bounds_lon, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_bounds_lat_2d(domaingroup_hdl, bounds_lat_2d, extent1, extent2, extent3) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_2d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_get_domaingroup_bounds_lon
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_get_domaingroup_bounds_lat_2d
 
-    FUNCTION cxios_is_defined_domaingroup_bounds_lon(domaingroup_hdl) BIND(C)
+    FUNCTION cxios_is_defined_domaingroup_bounds_lat_2d(domaingroup_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lon
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lat_2d
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_bounds_lon
+    END FUNCTION cxios_is_defined_domaingroup_bounds_lat_2d
+
+
+    SUBROUTINE cxios_set_domaingroup_bounds_lon_1d(domaingroup_hdl, bounds_lon_1d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_1d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_bounds_lon_1d
+
+    SUBROUTINE cxios_get_domaingroup_bounds_lon_1d(domaingroup_hdl, bounds_lon_1d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_1d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_bounds_lon_1d
+
+    FUNCTION cxios_is_defined_domaingroup_bounds_lon_1d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lon_1d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_bounds_lon_1d
+
+
+    SUBROUTINE cxios_set_domaingroup_bounds_lon_2d(domaingroup_hdl, bounds_lon_2d, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_set_domaingroup_bounds_lon_2d
+
+    SUBROUTINE cxios_get_domaingroup_bounds_lon_2d(domaingroup_hdl, bounds_lon_2d, extent1, extent2, extent3) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), VALUE  :: extent3
+    END SUBROUTINE cxios_get_domaingroup_bounds_lon_2d
+
+    FUNCTION cxios_is_defined_domaingroup_bounds_lon_2d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_bounds_lon_2d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_bounds_lon_2d
 
 
     SUBROUTINE cxios_set_domaingroup_data_dim(domaingroup_hdl, data_dim) BIND(C)
@@ -377,25 +427,48 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_jbegin
 
 
-    SUBROUTINE cxios_set_domaingroup_latvalue(domaingroup_hdl, latvalue, extent1) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_latvalue_1d(domaingroup_hdl, latvalue_1d, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_set_domaingroup_latvalue
+    END SUBROUTINE cxios_set_domaingroup_latvalue_1d
 
-    SUBROUTINE cxios_get_domaingroup_latvalue(domaingroup_hdl, latvalue, extent1) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_latvalue_1d(domaingroup_hdl, latvalue_1d, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_get_domaingroup_latvalue
+    END SUBROUTINE cxios_get_domaingroup_latvalue_1d
 
-    FUNCTION cxios_is_defined_domaingroup_latvalue(domaingroup_hdl) BIND(C)
+    FUNCTION cxios_is_defined_domaingroup_latvalue_1d(domaingroup_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_latvalue
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_latvalue_1d
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_latvalue
+    END FUNCTION cxios_is_defined_domaingroup_latvalue_1d
+
+
+    SUBROUTINE cxios_set_domaingroup_latvalue_2d(domaingroup_hdl, latvalue_2d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_latvalue_2d
+
+    SUBROUTINE cxios_get_domaingroup_latvalue_2d(domaingroup_hdl, latvalue_2d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_latvalue_2d
+
+    FUNCTION cxios_is_defined_domaingroup_latvalue_2d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_latvalue_2d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_latvalue_2d
 
 
     SUBROUTINE cxios_set_domaingroup_long_name(domaingroup_hdl, long_name, long_name_size) BIND(C)
@@ -419,48 +492,92 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_long_name
 
 
-    SUBROUTINE cxios_set_domaingroup_lonvalue(domaingroup_hdl, lonvalue, extent1) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_lonvalue_1d(domaingroup_hdl, lonvalue_1d, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_set_domaingroup_lonvalue
+    END SUBROUTINE cxios_set_domaingroup_lonvalue_1d
 
-    SUBROUTINE cxios_get_domaingroup_lonvalue(domaingroup_hdl, lonvalue, extent1) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_lonvalue_1d(domaingroup_hdl, lonvalue_1d, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_1d
       INTEGER (kind = C_INT), VALUE  :: extent1
-    END SUBROUTINE cxios_get_domaingroup_lonvalue
+    END SUBROUTINE cxios_get_domaingroup_lonvalue_1d
 
-    FUNCTION cxios_is_defined_domaingroup_lonvalue(domaingroup_hdl) BIND(C)
+    FUNCTION cxios_is_defined_domaingroup_lonvalue_1d(domaingroup_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_lonvalue
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_lonvalue_1d
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_lonvalue
+    END FUNCTION cxios_is_defined_domaingroup_lonvalue_1d
 
 
-    SUBROUTINE cxios_set_domaingroup_mask(domaingroup_hdl, mask, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domaingroup_lonvalue_2d(domaingroup_hdl, lonvalue_2d, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_2d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_set_domaingroup_mask
+    END SUBROUTINE cxios_set_domaingroup_lonvalue_2d
 
-    SUBROUTINE cxios_get_domaingroup_mask(domaingroup_hdl, mask, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domaingroup_lonvalue_2d(domaingroup_hdl, lonvalue_2d, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_2d
       INTEGER (kind = C_INT), VALUE  :: extent1
       INTEGER (kind = C_INT), VALUE  :: extent2
-    END SUBROUTINE cxios_get_domaingroup_mask
+    END SUBROUTINE cxios_get_domaingroup_lonvalue_2d
 
-    FUNCTION cxios_is_defined_domaingroup_mask(domaingroup_hdl) BIND(C)
+    FUNCTION cxios_is_defined_domaingroup_lonvalue_2d(domaingroup_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_mask
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_lonvalue_2d
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
-    END FUNCTION cxios_is_defined_domaingroup_mask
+    END FUNCTION cxios_is_defined_domaingroup_lonvalue_2d
+
+
+    SUBROUTINE cxios_set_domaingroup_mask_1d(domaingroup_hdl, mask_1d, extent1) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+    END SUBROUTINE cxios_set_domaingroup_mask_1d
+
+    SUBROUTINE cxios_get_domaingroup_mask_1d(domaingroup_hdl, mask_1d, extent1) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+    END SUBROUTINE cxios_get_domaingroup_mask_1d
+
+    FUNCTION cxios_is_defined_domaingroup_mask_1d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_mask_1d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_mask_1d
+
+
+    SUBROUTINE cxios_set_domaingroup_mask_2d(domaingroup_hdl, mask_2d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_set_domaingroup_mask_2d
+
+    SUBROUTINE cxios_get_domaingroup_mask_2d(domaingroup_hdl, mask_2d, extent1, extent2) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: domaingroup_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
+      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), VALUE  :: extent2
+    END SUBROUTINE cxios_get_domaingroup_mask_2d
+
+    FUNCTION cxios_is_defined_domaingroup_mask_2d(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_mask_2d
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_mask_2d
 
 
     SUBROUTINE cxios_set_domaingroup_name(domaingroup_hdl, name, name_size) BIND(C)

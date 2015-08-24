@@ -13,7 +13,7 @@
 
    <file_definition type="multiple_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-        <field field_ref="src_field" name="field" />
+<!--        <field field_ref="src_field" name="field" />-->
      </file>
      <file id="output_dst" name="output_dst">
         <field field_ref="dst_field" name="field" />

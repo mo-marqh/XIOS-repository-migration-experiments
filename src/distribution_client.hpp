@@ -97,7 +97,7 @@ class CDistributionClient : public CDistribution
     std::vector<int> dataBegin_; //!< Data begin (data_ibegin, data_jbegin, etc)
     std::vector<CArray<int,1> > dataIndex_; //!< Data index
 
-    std::vector<CArray<bool,2> > domainMasks_; //!< Domain mask
+    std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
 
     std::vector<std::vector<int> > localDomainIndex_;

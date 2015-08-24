@@ -202,8 +202,8 @@ PROGRAM test_unstruct_complete
   CALL xios_set_domain_attr("domain_srf", ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=i_index)
   CALL xios_set_domain_attr("domain_srf", type='unstructured', data_dim=1, data_ni=data_n_index, &
                                           data_n_index=data_n_index, data_i_index=data_i_index)
-  CALL xios_set_domain_attr("domain_srf", lonvalue=lon, latvalue=lat)
-  CALL xios_set_domain_attr("domain_srf", nvertex=4, bounds_lon=bounds_lon, bounds_lat=bounds_lat)
+  CALL xios_set_domain_attr("domain_srf", lonvalue_1D=lon, latvalue_1D=lat)
+  CALL xios_set_domain_attr("domain_srf", nvertex=4, bounds_lon_1D=bounds_lon, bounds_lat_1D=bounds_lat)
 
 
 

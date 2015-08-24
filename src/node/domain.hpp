@@ -119,6 +119,8 @@ namespace xios {
 
          CArray<double, 1> lonvalue_srv, latvalue_srv ;
          CArray<double, 2> bounds_lon_srv, bounds_lat_srv ;
+         CArray<double, 1> lonvalue_client, latvalue_client;
+         CArray<double, 2> bounds_lon_client, bounds_lat_client;
          CArray<double, 1> area_srv;
 
 
@@ -133,8 +135,7 @@ namespace xios {
 
         int global_zoom_ibegin, global_zoom_ni;
         int global_zoom_jbegin, global_zoom_nj;
-//        vector<int> ib_srv, ie_srv, in_srv ;
-//        vector<int> jb_srv, je_srv, jn_srv ;
+//        CArray<bool,1> maskInter;
 
       public :
 
@@ -174,6 +175,8 @@ namespace xios {
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
+         void completeLonClient();
+         void completeLatClient();
 
        private :
          bool isChecked;
@@ -188,7 +191,7 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
-         CArray<bool,1> maskInter_;
+
 
 
          DECLARE_REF_FUNC(Domain,domain)

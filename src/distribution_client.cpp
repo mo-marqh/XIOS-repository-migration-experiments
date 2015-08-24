@@ -131,8 +131,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   domainMasks_.resize(domainNum_);
   for (int i = 0; i < domainNum_;++i)
   {
-    domainMasks_[i].resize(domList[i]->mask.extent(0), domList[i]->mask.extent(1));
-    domainMasks_[i] = domList[i]->mask;
+    domainMasks_[i].resize(domList[i]->mask_1d.numElements());
+    domainMasks_[i] = domList[i]->mask_1d;
   }
 
   axisMasks_.resize(axisNum_);
@@ -273,7 +273,7 @@ void CDistributionClient::createLocalDomainDataIndex()
 
         if ((iIdx >= nBeginLocal_[indexMap_[i]]) && (iIdx < nLocal_[indexMap_[i]]) &&
            (jIdx >= nBeginLocal_[indexMap_[i]+1]) && (jIdx < nLocal_[indexMap_[i]+1]) &&
-           (domainMasks_[idxDomain](iIdx, jIdx)))
+           (domainMasks_[idxDomain](iIdx + jIdx*nLocal_[indexMap_[i]])))
         {
           (localDomainIndex_[idxDomain]).push_back(iIdx);
           (localDomainIndex_[idxDomain*2+1]).push_back(jIdx);

@@ -42,51 +42,101 @@ extern "C"
   }
 
 
-  void cxios_set_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl, double* bounds_lat, int extent1, int extent2)
+  void cxios_set_domaingroup_bounds_lat_1d(domaingroup_Ptr domaingroup_hdl, double* bounds_lat_1d, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds_lat, shape(extent1, extent2), neverDeleteData);
-    domaingroup_hdl->bounds_lat.reference(tmp.copy());
+    CArray<double,2> tmp(bounds_lat_1d, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->bounds_lat_1d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl, double* bounds_lat, int extent1, int extent2)
+  void cxios_get_domaingroup_bounds_lat_1d(domaingroup_Ptr domaingroup_hdl, double* bounds_lat_1d, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds_lat, shape(extent1, extent2), neverDeleteData);
-    tmp=domaingroup_hdl->bounds_lat.getInheritedValue();
+    CArray<double,2> tmp(bounds_lat_1d, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->bounds_lat_1d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_domaingroup_bounds_lat(domaingroup_Ptr domaingroup_hdl)
+  bool cxios_is_defined_domaingroup_bounds_lat_1d(domaingroup_Ptr domaingroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->bounds_lat.hasInheritedValue();
+     bool isDefined = domaingroup_hdl->bounds_lat_1d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
 
 
-  void cxios_set_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl, double* bounds_lon, int extent1, int extent2)
+  void cxios_set_domaingroup_bounds_lat_2d(domaingroup_Ptr domaingroup_hdl, double* bounds_lat_2d, int extent1, int extent2, int extent3)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds_lon, shape(extent1, extent2), neverDeleteData);
-    domaingroup_hdl->bounds_lon.reference(tmp.copy());
+    CArray<double,3> tmp(bounds_lat_2d, shape(extent1, extent2, extent3), neverDeleteData);
+    domaingroup_hdl->bounds_lat_2d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl, double* bounds_lon, int extent1, int extent2)
+  void cxios_get_domaingroup_bounds_lat_2d(domaingroup_Ptr domaingroup_hdl, double* bounds_lat_2d, int extent1, int extent2, int extent3)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds_lon, shape(extent1, extent2), neverDeleteData);
-    tmp=domaingroup_hdl->bounds_lon.getInheritedValue();
+    CArray<double,3> tmp(bounds_lat_2d, shape(extent1, extent2, extent3), neverDeleteData);
+    tmp=domaingroup_hdl->bounds_lat_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_domaingroup_bounds_lon(domaingroup_Ptr domaingroup_hdl)
+  bool cxios_is_defined_domaingroup_bounds_lat_2d(domaingroup_Ptr domaingroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->bounds_lon.hasInheritedValue();
+     bool isDefined = domaingroup_hdl->bounds_lat_2d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_bounds_lon_1d(domaingroup_Ptr domaingroup_hdl, double* bounds_lon_1d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon_1d, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->bounds_lon_1d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_bounds_lon_1d(domaingroup_Ptr domaingroup_hdl, double* bounds_lon_1d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(bounds_lon_1d, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->bounds_lon_1d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_bounds_lon_1d(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->bounds_lon_1d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_bounds_lon_2d(domaingroup_Ptr domaingroup_hdl, double* bounds_lon_2d, int extent1, int extent2, int extent3)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,3> tmp(bounds_lon_2d, shape(extent1, extent2, extent3), neverDeleteData);
+    domaingroup_hdl->bounds_lon_2d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_bounds_lon_2d(domaingroup_Ptr domaingroup_hdl, double* bounds_lon_2d, int extent1, int extent2, int extent3)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,3> tmp(bounds_lon_2d, shape(extent1, extent2, extent3), neverDeleteData);
+    tmp=domaingroup_hdl->bounds_lon_2d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_bounds_lon_2d(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->bounds_lon_2d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -454,26 +504,51 @@ extern "C"
   }
 
 
-  void cxios_set_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl, double* latvalue, int extent1)
+  void cxios_set_domaingroup_latvalue_1d(domaingroup_Ptr domaingroup_hdl, double* latvalue_1d, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(latvalue, shape(extent1), neverDeleteData);
-    domaingroup_hdl->latvalue.reference(tmp.copy());
+    CArray<double,1> tmp(latvalue_1d, shape(extent1), neverDeleteData);
+    domaingroup_hdl->latvalue_1d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl, double* latvalue, int extent1)
+  void cxios_get_domaingroup_latvalue_1d(domaingroup_Ptr domaingroup_hdl, double* latvalue_1d, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(latvalue, shape(extent1), neverDeleteData);
-    tmp=domaingroup_hdl->latvalue.getInheritedValue();
+    CArray<double,1> tmp(latvalue_1d, shape(extent1), neverDeleteData);
+    tmp=domaingroup_hdl->latvalue_1d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_domaingroup_latvalue(domaingroup_Ptr domaingroup_hdl)
+  bool cxios_is_defined_domaingroup_latvalue_1d(domaingroup_Ptr domaingroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->latvalue.hasInheritedValue();
+     bool isDefined = domaingroup_hdl->latvalue_1d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_latvalue_2d(domaingroup_Ptr domaingroup_hdl, double* latvalue_2d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(latvalue_2d, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->latvalue_2d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_latvalue_2d(domaingroup_Ptr domaingroup_hdl, double* latvalue_2d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,2> tmp(latvalue_2d, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->latvalue_2d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_latvalue_2d(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->latvalue_2d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -505,51 +580,101 @@ extern "C"
   }
 
 
-  void cxios_set_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl, double* lonvalue, int extent1)
+  void cxios_set_domaingroup_lonvalue_1d(domaingroup_Ptr domaingroup_hdl, double* lonvalue_1d, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(lonvalue, shape(extent1), neverDeleteData);
-    domaingroup_hdl->lonvalue.reference(tmp.copy());
+    CArray<double,1> tmp(lonvalue_1d, shape(extent1), neverDeleteData);
+    domaingroup_hdl->lonvalue_1d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl, double* lonvalue, int extent1)
+  void cxios_get_domaingroup_lonvalue_1d(domaingroup_Ptr domaingroup_hdl, double* lonvalue_1d, int extent1)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(lonvalue, shape(extent1), neverDeleteData);
-    tmp=domaingroup_hdl->lonvalue.getInheritedValue();
+    CArray<double,1> tmp(lonvalue_1d, shape(extent1), neverDeleteData);
+    tmp=domaingroup_hdl->lonvalue_1d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_domaingroup_lonvalue(domaingroup_Ptr domaingroup_hdl)
+  bool cxios_is_defined_domaingroup_lonvalue_1d(domaingroup_Ptr domaingroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->lonvalue.hasInheritedValue();
+     bool isDefined = domaingroup_hdl->lonvalue_1d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
 
 
-  void cxios_set_domaingroup_mask(domaingroup_Ptr domaingroup_hdl, bool* mask, int extent1, int extent2)
+  void cxios_set_domaingroup_lonvalue_2d(domaingroup_Ptr domaingroup_hdl, double* lonvalue_2d, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask, shape(extent1, extent2), neverDeleteData);
-    domaingroup_hdl->mask.reference(tmp.copy());
+    CArray<double,2> tmp(lonvalue_2d, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->lonvalue_2d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_domaingroup_mask(domaingroup_Ptr domaingroup_hdl, bool* mask, int extent1, int extent2)
+  void cxios_get_domaingroup_lonvalue_2d(domaingroup_Ptr domaingroup_hdl, double* lonvalue_2d, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask, shape(extent1, extent2), neverDeleteData);
-    tmp=domaingroup_hdl->mask.getInheritedValue();
+    CArray<double,2> tmp(lonvalue_2d, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->lonvalue_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_domaingroup_mask(domaingroup_Ptr domaingroup_hdl)
+  bool cxios_is_defined_domaingroup_lonvalue_2d(domaingroup_Ptr domaingroup_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->mask.hasInheritedValue();
+     bool isDefined = domaingroup_hdl->lonvalue_2d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_mask_1d(domaingroup_Ptr domaingroup_hdl, bool* mask_1d, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask_1d, shape(extent1), neverDeleteData);
+    domaingroup_hdl->mask_1d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_mask_1d(domaingroup_Ptr domaingroup_hdl, bool* mask_1d, int extent1)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask_1d, shape(extent1), neverDeleteData);
+    tmp=domaingroup_hdl->mask_1d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_mask_1d(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->mask_1d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_mask_2d(domaingroup_Ptr domaingroup_hdl, bool* mask_2d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,2> tmp(mask_2d, shape(extent1, extent2), neverDeleteData);
+    domaingroup_hdl->mask_2d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_mask_2d(domaingroup_Ptr domaingroup_hdl, bool* mask_2d, int extent1, int extent2)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,2> tmp(mask_2d, shape(extent1, extent2), neverDeleteData);
+    tmp=domaingroup_hdl->mask_2d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_mask_2d(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->mask_2d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

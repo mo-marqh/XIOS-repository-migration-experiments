@@ -117,7 +117,7 @@ void CDomainAlgorithmZoom::updateDomainDestinationMask()
     {
       globalIndexMask = (j+jBeginMask) * niGlob + (i + iBeginMask);
       if (transMap.find(globalIndexMask) == ite)
-        (domainDest_->mask)(i,j) = false;
+        (domainDest_->mask_1d)(i+j*niMask) = false;
     }
   }
 }

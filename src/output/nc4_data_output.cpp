@@ -82,14 +82,14 @@ namespace xios
 
          StdString dimXid, dimYid ;
 
-         bool isRegularDomain = (domain->type == CDomain::type_attr::regular);
+         bool isRegularDomain = (domain->type == CDomain::type_attr::rectilinear);
          switch (domain->type)
          {
            case CDomain::type_attr::curvilinear :
              dimXid     = StdString("x").append(appendDomid);
              dimYid     = StdString("y").append(appendDomid);
              break ;
-           case CDomain::type_attr::regular :
+           case CDomain::type_attr::rectilinear :
              dimXid     = StdString("lon").append(appendDomid);
              dimYid     = StdString("lat").append(appendDomid);
              break;
@@ -129,7 +129,7 @@ namespace xios
                      lonid = StdString("nav_lon").append(appendDomid);
                      latid = StdString("nav_lat").append(appendDomid);
                      break ;
-                   case CDomain::type_attr::regular :
+                   case CDomain::type_attr::rectilinear :
                      lonid = StdString("lon").append(appendDomid);
                      latid = StdString("lat").append(appendDomid);
                      dim0.push_back(dimYid);
@@ -170,7 +170,7 @@ namespace xios
                      SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                      SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                      break ;
-                    case CDomain::type_attr::regular :
+                    case CDomain::type_attr::rectilinear :
                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
                       break ;
@@ -226,7 +226,7 @@ namespace xios
                      SuperClassWriter::writeData(domain->latvalue_srv, latid, isCollective, 0);
                      SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0);
                      break;
-                   case CDomain::type_attr::regular :
+                   case CDomain::type_attr::rectilinear :
                      CArray<double,1> lat = domain->latvalue_srv(Range(fromStart,toEnd,domain->zoom_ni_srv)) ;
                      SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
                      CArray<double,1> lon=domain->lonvalue_srv(Range(0,domain->zoom_ni_srv-1)) ;
@@ -265,7 +265,7 @@ namespace xios
                      SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
                      break;
 
-                   case CDomain::type_attr::regular :
+                   case CDomain::type_attr::rectilinear :
                      dim0.push_back(dimYid);
                      dim1.push_back(dimXid);
                      lonid = StdString("lon").append(appendDomid);
@@ -330,7 +330,7 @@ namespace xios
                      SuperClassWriter::writeData(domain->lonvalue_srv, lonid, isCollective, 0,&start,&count);
                      break;
                    }
-                   case CDomain::type_attr::regular :
+                   case CDomain::type_attr::rectilinear :
                    {
                      std::vector<StdSize> start(1) ;
                      std::vector<StdSize> count(1) ;
@@ -771,7 +771,7 @@ namespace xios
                  dimCoordList.push_back(StdString("nav_lon").append(appendDomid));
                  dimCoordList.push_back(StdString("nav_lat").append(appendDomid));
                  break ;
-               case CDomain::type_attr::regular :
+               case CDomain::type_attr::rectilinear :
                  dimXid     = StdString("lon").append(appendDomid);
                  dimIdList.push_back(dimXid);
                  dimYid     = StdString("lat").append(appendDomid);

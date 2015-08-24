@@ -131,12 +131,12 @@ PROGRAM test_new_features
   CALL xios_set_axis_attr("axis_G", size=llmInterPolated, value=lvalnInterp, ibegin=axisterpBegin, ni=nAxisinterp)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
-  CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
+  CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)
 
   CALL xios_set_domain_attr("domain_A_transformed", ni_glo=niDomGlo, nj_glo=njDomGlo, &
                                                     ibegin=ibeginDomInterp, ni=niDomInterp, jbegin=jbeginDomInterp, nj=njDomInterp)
-  CALL xios_set_domain_attr("domain_A_transformed", lonvalue=RESHAPE(lontransformed,(/niDomInterp*njDomInterp/)), &
-                                                    latvalue=RESHAPE(lattransformed,(/niDomInterp*njDomInterp/)))
+  CALL xios_set_domain_attr("domain_A_transformed", lonvalue_2D=lontransformed, &
+                                                    latvalue_2D=lattransformed)
 
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
@@ -171,7 +171,7 @@ PROGRAM test_new_features
   PRINT *, "xios_date_convert_to_seconds(date - 2.5h) = ", xios_date_convert_to_seconds(date - 2.5 * xios_hour)
 
   ni=0 ; lonvalue(:)=0
-  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue=lonvalue)
+  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue_1D=lonvalue)
 
 !  print *,"ni",ni
 !  print *,"lonvalue",lonvalue ;
