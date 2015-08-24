@@ -175,7 +175,7 @@ PROGRAM test_complete
                             start_date=xios_date(2000, 01, 01, 00, 00, 00), &
                             time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
-  CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval) ;
+  CALL xios_set_axis_attr("axis_srf",size=llm ,value=lval)
   CALL xios_set_domain_attr("domain_srf",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj, type='curvilinear')
   CALL xios_set_domain_attr("domain_srf",data_dim=1, data_ibegin=0, data_ni=nb_pt)
   CALL xios_set_domain_attr("domain_srf",data_n_index=nb_pt, data_i_index=kindex)

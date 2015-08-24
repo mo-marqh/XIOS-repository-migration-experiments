@@ -25,7 +25,7 @@ PROGRAM test_client
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:) ;
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:,:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,l,ts,n
 
@@ -63,7 +63,7 @@ PROGRAM test_client
 
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni*nj))
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni,nj))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
@@ -78,8 +78,7 @@ PROGRAM test_client
   CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj,type='curvilinear')
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
-!  CALL xios_set_domain_attr("domain_A",lonvalue=RESHAPE(lon,(/ni*nj/)),latvalue=RESHAPE(lat,(/ni*nj/)))
-  CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)
+!  CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
   CALL xios_get_handle("field_definition",fieldgroup_hdl)
@@ -112,8 +111,8 @@ PROGRAM test_client
   PRINT *, "xios_date_convert_to_seconds(date) = ", xios_date_convert_to_seconds(date)
   PRINT *, "xios_date_convert_to_seconds(date - 2.5h) = ", xios_date_convert_to_seconds(date - 2.5 * xios_hour)
 
-  ni=0 ; lonvalue(:)=0; lon(:,:)=0
-  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue_2D=lon)
+  ni=0 ; lonvalue(:,:)=0;
+!  CALL xios_get_domain_attr("domain_A",ni=ni,lonvalue_2D=lon)
 
   print *,"ni",ni
   print *,"lonvalue",lon;

@@ -27,7 +27,7 @@ namespace xios {
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
-      , isClientAfterTransformationChecked(false)
+      , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
    { /* Ne rien faire de plus */ }
 
@@ -36,7 +36,7 @@ namespace xios {
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
-      , isClientAfterTransformationChecked(false)
+      , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
    { /* Ne rien faire de plus */ }
 
@@ -573,90 +573,14 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
    void CDomain::completeLonLatClient(void)
    {
      completeLonClient();
      completeLatClient();
-//      int i,j,k ;
-//      CArray<double,1> lonvalue_temp(ni*nj) ;
-//      CArray<double,1> latvalue_temp(ni*nj) ;
-//      CArray<double,2> bounds_lon_temp(nvertex,ni*nj);
-//      CArray<double,2> bounds_lat_temp(nvertex,ni*nj);
-//
-//      if (type.isEmpty())
-//      {
-//        if ( lonvalue.numElements() == ni*nj && latvalue.numElements() == ni*nj )
-//        {
-//          type.setValue(type_attr::curvilinear) ;
-//          isCurvilinear=true ;
-//        }
-//        else if ( lonvalue.numElements() == ni && latvalue.numElements() == nj )
-//        {
-//          type.setValue(type_attr::regular) ;
-//          isCurvilinear=false ;
-//        }
-//        else ERROR("void CDomain::completeLonLatClient(void)",<<"the grid is nor curvilinear, nor cartesian, because the size of longitude and latitude array is not coherent with the domain size"<<endl
-//                                                              <<"lonvalue size = " << lonvalue.numElements() << "different of ni or ni*nj"<<endl
-//                                                              <<"latvalue size = " << latvalue.numElements() << "different of nj or ni*nj" ) ;
-//      }
-//      if (type==type_attr::curvilinear || type==type_attr::unstructured)
-//      {
-//        lonvalue_temp=lonvalue ;
-//        latvalue_temp=latvalue ;
-//        if (hasBounds) bounds_lon_temp=bounds_lon ;
-//        if (hasBounds) bounds_lat_temp=bounds_lat ;
-//      }checkBounds
-//      else
-//      {
-//        for(j=0;j<nj;j++)
-//          for(i=0;i<ni;i++)
-//          {
-//            k=j*ni+i ;
-//            lonvalue_temp(k)=lonvalue(i) ;
-//            latvalue_temp(k)=latvalue(j) ;
-//            if (hasBounds)
-//            {
-//              for(int n=0;n<nvertex;n++)
-//              {
-//                bounds_lon_temp(n,k)=bounds_lon(n,i) ;
-//                bounds_lat_temp(n,k)=bounds_lat(n,j) ;
-//              }
-//            }
-//          }
-//      }
-//
-//      StdSize dm = zoom_ni_client * zoom_nj_client;
-//
-//      // Make sure that this attribute is non-empty for every client.
-//      if (0 != dm)
-//      {
-//        lonvalue.resize(dm);
-//        latvalue.resize(dm);
-//      }
-//
-//
-//      for (int i = 0; i < zoom_ni_client; i++)
-//      {
-//        for (int j = 0; j < zoom_nj_client; j++)
-//        {
-//          lonvalue(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-//          latvalue(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client - jbegin)*ni );
-//          if (hasBounds)
-//          {
-//            for(int n=0;n<nvertex;n++)
-//            {
-//              bounds_lon(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-//              bounds_lat(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin)+(j + zoom_jbegin_client -jbegin)*ni );
-//            }
-//          }
-//        }
-//      }
-    }
+   }
 
 
    //----------------------------------------------------------------
-
    void CDomain::checkZoom(void)
    {
       int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
@@ -762,6 +686,12 @@ namespace xios {
      }
    }
 
+   void CDomain::checkLonLat()
+   {
+     hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
+                 (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
+   }
+
    void CDomain::checkAttributesOnClientAfterTransformation()
    {
      CContext* context=CContext::getCurrent() ;
@@ -771,8 +701,8 @@ namespace xios {
      if (context->hasClient)
      {
        this->checkMask();
-       this->computeConnectedServer();
-       this->completeLonLatClient();
+       if (hasLonLat || hasArea) this->computeConnectedServer();
+       if (hasLonLat) this->completeLonLatClient();
      }
 
      this->isClientAfterTransformationChecked = true;
@@ -789,6 +719,7 @@ namespace xios {
       this->checkDomain();
       this->checkBounds();
       this->checkArea();
+      this->checkLonLat();
 
       if (context->hasClient)
       { // Côté client uniquement
@@ -814,8 +745,8 @@ namespace xios {
      if (this->isChecked) return;
      if (context->hasClient)
      {
-       sendServerAttribut() ;
-       sendLonLatArea() ;
+       sendServerAttribut();
+       if (hasLonLat || hasArea) sendLonLatArea();
      }
 
      this->isChecked = true;
@@ -828,6 +759,7 @@ namespace xios {
 
       this->checkDomain();
       this->checkZoom();
+      this->checkLonLat();
       this->checkBounds();
       this->checkArea();
 
@@ -1014,23 +946,16 @@ namespace xios {
     return indSrv_;
   }
 
-  void CDomain::sendLonLatArea(void)
+  void CDomain::sendIndex()
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
     CContextClient* client=context->client;
 
-    // send lon lat for each connected server
     CEventClient eventIndex(getType(), EVENT_ID_INDEX);
-    CEventClient eventLon(getType(), EVENT_ID_LON);
-    CEventClient eventLat(getType(), EVENT_ID_LAT);
-    CEventClient eventArea(getType(), EVENT_ID_AREA);
 
-    list<CMessage> list_msgsIndex, list_msgsLon, list_msgsLat, list_msgsArea;
+    list<CMessage> list_msgsIndex;
     list<CArray<int,1> > list_indi, list_indj;
-    list<CArray<double,1> > list_lon, list_lat;
-    list<CArray<double,2> > list_boundslon, list_boundslat;
-    list<CArray<double,1> > list_area;
 
     std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
     iteMap = indSrv_.end();
@@ -1044,6 +969,97 @@ namespace xios {
 
       list_indi.push_back(CArray<int,1>(nbData));
       list_indj.push_back(CArray<int,1>(nbData));
+
+      CArray<int,1>& indi = list_indi.back();
+      CArray<int,1>& indj = list_indj.back();
+      const std::vector<size_t>& temp = it->second;
+      for (n = 0; n < nbData; ++n)
+      {
+        idx = static_cast<int>(it->second[n]);
+        indi(n) = i_index(idx);
+        indj(n) = j_index(idx);
+      }
+
+      list_msgsIndex.push_back(CMessage());
+
+      list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
+      list_msgsIndex.back() << isCurvilinear;
+      list_msgsIndex.back() << list_indi.back() << list_indj.back();
+
+      eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
+    }
+
+    client->sendEvent(eventIndex);
+  }
+
+  void CDomain::sendArea()
+  {
+    if (!hasArea) return;
+
+    int ns, n, i, j, ind, nv, idx;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client=context->client;
+
+    // send area for each connected server
+    CEventClient eventArea(getType(), EVENT_ID_AREA);
+
+    list<CMessage> list_msgsArea;
+    list<CArray<double,1> > list_area;
+
+    std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_.end();
+    for (int k = 0; k < connectedServerRank_.size(); ++k)
+    {
+      int nbData = 0;
+      int rank = connectedServerRank_[k];
+      it = indSrv_.find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
+      list_area.push_back(CArray<double,1>(nbData));
+
+      const std::vector<size_t>& temp = it->second;
+      for (n = 0; n < nbData; ++n)
+      {
+        idx = static_cast<int>(it->second[n]);
+        i = i_index(idx);
+        j = j_index(idx);
+        if (hasArea)
+          list_area.back()(n) = area(i - ibegin, j - jbegin);
+      }
+
+      list_msgsArea.push_back(CMessage());
+      list_msgsArea.back() << this->getId() << list_area.back();
+      eventArea.push(rank, nbConnectedClients_[rank], list_msgsArea.back());
+    }
+    client->sendEvent(eventArea);
+  }
+
+  void CDomain::sendLonLat()
+  {
+    if (!hasLonLat) return;
+
+    int ns, n, i, j, ind, nv, idx;
+    CContext* context = CContext::getCurrent();
+    CContextClient* client=context->client;
+
+    // send lon lat for each connected server
+    CEventClient eventLon(getType(), EVENT_ID_LON);
+    CEventClient eventLat(getType(), EVENT_ID_LAT);
+
+    list<CMessage> list_msgsLon, list_msgsLat;
+    list<CArray<double,1> > list_lon, list_lat;
+    list<CArray<double,2> > list_boundslon, list_boundslat;
+
+    std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
+    iteMap = indSrv_.end();
+    for (int k = 0; k < connectedServerRank_.size(); ++k)
+    {
+      int nbData = 0;
+      int rank = connectedServerRank_[k];
+      it = indSrv_.find(rank);
+      if (iteMap != it)
+        nbData = it->second.size();
+
       list_lon.push_back(CArray<double,1>(nbData));
       list_lat.push_back(CArray<double,1>(nbData));
 
@@ -1052,11 +1068,7 @@ namespace xios {
         list_boundslon.push_back(CArray<double,2>(nvertex, nbData));
         list_boundslat.push_back(CArray<double,2>(nvertex, nbData));
       }
-      if (hasArea)
-        list_area.push_back(CArray<double,1>(nbData));
 
-      CArray<int,1>& indi = list_indi.back();
-      CArray<int,1>& indj = list_indj.back();
       CArray<double,1>& lon = list_lon.back();
       CArray<double,1>& lat = list_lat.back();
       const std::vector<size_t>& temp = it->second;
@@ -1081,19 +1093,7 @@ namespace xios {
             boundslat(nv, n) = bounds_lat_client(nv, ind);
           }
         }
-
-        indi(n) = i;
-        indj(n) = j;
-
-        if (hasArea)
-          list_area.back()(n) = area(i - ibegin, j - jbegin);
       }
-
-      list_msgsIndex.push_back(CMessage());
-
-      list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
-      list_msgsIndex.back() << isCurvilinear;
-      list_msgsIndex.back() << list_indi.back() << list_indj.back();
 
       list_msgsLon.push_back(CMessage());
       list_msgsLat.push_back(CMessage());
@@ -1107,23 +1107,20 @@ namespace xios {
         list_msgsLat.back() << list_boundslat.back();
       }
 
-      eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
       eventLon.push(rank, nbConnectedClients_[rank], list_msgsLon.back());
       eventLat.push(rank, nbConnectedClients_[rank], list_msgsLat.back());
-
-      if (hasArea)
-      {
-        list_msgsArea.push_back(CMessage());
-        list_msgsArea.back() << this->getId() << list_area.back();
-        eventArea.push(rank, nbConnectedClients_[rank], list_msgsArea.back());
-      }
     }
 
-    client->sendEvent(eventIndex);
     client->sendEvent(eventLon);
     client->sendEvent(eventLat);
-    if (hasArea)
-      client->sendEvent(eventArea);
+  }
+
+
+  void CDomain::sendLonLatArea(void)
+  {
+    sendIndex();
+    sendLonLat();
+    sendArea();
   }
 
   bool CDomain::dispatchEvent(CEventServer& event)

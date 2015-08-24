@@ -89,6 +89,7 @@ namespace xios {
          void checkZoom(void);
          void checkBounds(void);
          void checkArea(void);
+         void checkLonLat();
 
 
       public :
@@ -171,12 +172,17 @@ namespace xios {
          bool isCurvilinear ;
          bool hasBounds ;
          bool hasArea;
+         bool hasLonLat;
       private:
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
          void completeLonClient();
          void completeLatClient();
+
+         void sendIndex();
+         void sendArea();
+         void sendLonLat();
 
        private :
          bool isChecked;
