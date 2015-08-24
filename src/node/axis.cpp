@@ -75,33 +75,33 @@ namespace xios {
 
    void CAxis::checkAttributes(void)
    {
-      if (this->size.isEmpty())
+      if (this->n_glo.isEmpty())
          ERROR("CAxis::checkAttributes(void)",
-               << "Attribute <size> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be specified");
-      StdSize size = this->size.getValue();
+               << "Attribute <n_glo> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be specified");
+      StdSize size = this->n_glo.getValue();
 
-      isDistributed_ = !this->ibegin.isEmpty() || !this->ni.isEmpty();
+      isDistributed_ = !this->begin.isEmpty() || !this->n.isEmpty();
 
-      if (!this->ibegin.isEmpty())
+      if (!this->begin.isEmpty())
       {
-        StdSize ibegin = this->ibegin.getValue();
+        StdSize ibegin = this->begin.getValue();
         if ((ibegin < 0) || (ibegin > size-1))
           ERROR("CAxis::checkAttributes(void)",
                 << "Attribute <ibegin> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size-1");
       }
-      else this->ibegin.setValue(0);
+      else this->begin.setValue(0);
 
-      if (!this->ni.isEmpty())
+      if (!this->n.isEmpty())
       {
-        StdSize ni = this->ni.getValue();
+        StdSize ni = this->n.getValue();
         if ((ni < 0) || (ni > size))
           ERROR("CAxis::checkAttributes(void)",
                 << "Attribute <ni> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size");
       }
-      else this->ni.setValue(size);
+      else this->n.setValue(size);
 
       StdSize true_size = value.numElements();
-      if (this->ni.getValue() != true_size)
+      if (this->n.getValue() != true_size)
          ERROR("CAxis::checkAttributes(void)",
                << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
 
@@ -120,59 +120,38 @@ namespace xios {
               << "Data dimension is negative (data_n).");
       }
       else if (data_n.isEmpty())
-        data_n.setValue(ni.getValue());
+        data_n.setValue(n.getValue());
 
       if (data_index.isEmpty())
       {
         int dn = data_n.getValue();
         data_index.resize(dn);
-        for (int i = 0; i < dn; ++i) data_index(i) = (i+1);
+        for (int i = 0; i < dn; ++i) data_index(i) = i;
       }
    }
 
    void CAxis::checkZoom(void)
    {
-     if (0 == global_zoom_size) global_zoom_size = this->size.getValue();
+     if (0 == global_zoom_size) global_zoom_size = this->n_glo.getValue();
    }
 
    void CAxis::checkMask()
    {
-      int begin_mask = 0,
-          end_mask = ni.getValue()-1;
-
-      if (!zoom_begin.isEmpty())
-      {
-         int zoom_end = zoom_begin.getValue() + zoom_size.getValue() - 1;
-
-         begin_mask = std::max(ibegin.getValue(), zoom_begin.getValue());
-         end_mask   = std::min(ibegin.getValue() + ni.getValue()-1, zoom_end);
-
-         begin_mask -= ibegin.getValue();
-         end_mask   -= ibegin.getValue();
-      }
-
-
       if (!mask.isEmpty())
       {
-         if (mask.extent(0) != ni)
+         if (mask.extent(0) != n)
             ERROR("CAxis::checkMask(void)",
                   << "the mask has not the same size than the local axis" << endl
-                  << "Local size is " << ni << "x" << endl
+                  << "Local size is " << n << "x" << endl
                   << "Mask size is " << mask.extent(0) << "x");
-         for (int i = 0; i < ni; ++i)
-         {
-           if (i < begin_mask && i > end_mask)  mask(i) = false;
-         }
       }
       else // (!mask.hasValue())
       { // Si aucun masque n'est défini,
         // on en crée un nouveau qui valide l'intégralité du domaine.
-         mask.resize(ni);
-         for (int i = 0; i < ni.getValue(); ++i)
+         mask.resize(n);
+         for (int i = 0; i < n.getValue(); ++i)
          {
-               if (i >= begin_mask && i <= end_mask)
-                 mask(i) = true;
-               else  mask(i) = false;
+           mask(i) = true;
          }
       }
    }
@@ -181,10 +160,10 @@ namespace xios {
   {
     if (!bounds.isEmpty())
     {
-      if (bounds.extent(0) != ni || bounds.extent(1) != 2)
+      if (bounds.extent(0) != n || bounds.extent(1) != 2)
           ERROR("CAxis::checkAttributes(void)",
                 << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension axis size x 2" << endl
-                << "Axis size is " << ni << endl
+                << "Axis size is " << n << endl
                 << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1));
       hasBounds_ = true;
     }
@@ -254,7 +233,7 @@ namespace xios {
 
   void CAxis::sendValue()
   {
-     if (ni.getValue() == size.getValue())
+     if (n.getValue() == n_glo.getValue())
      {
        sendNonDistributedValue();
      }
@@ -271,9 +250,10 @@ namespace xios {
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
     int range, clientSize = client->clientSize;
+    size_t ni = this->n.getValue();
+    size_t ibegin = this->begin.getValue();
 
     CArray<size_t,1> globalIndexAxis(ni);
-    size_t ibegin = this->ibegin.getValue();
     int zoom_end = global_zoom_begin+global_zoom_size-1;
     std::vector<size_t> globalAxisZoom;
     for (size_t idx = 0; idx < ni; ++idx)
@@ -284,7 +264,7 @@ namespace xios {
     }
 
     std::vector<int> nGlobDomain(1);
-    nGlobDomain[0] = size.getValue();
+    nGlobDomain[0] = n_glo.getValue();
 
     size_t globalSizeIndex = 1, indexBegin, indexEnd;
     for (int i = 0; i < nGlobDomain.size(); ++i) globalSizeIndex *= nGlobDomain[i];
@@ -347,17 +327,17 @@ namespace xios {
 
     int zoom_end = global_zoom_begin+global_zoom_size-1;
     int nb =0;
-    for (size_t idx = 0; idx < ni; ++idx)
+    for (size_t idx = 0; idx < n; ++idx)
     {
-      size_t globalIndex = ibegin + idx;
+      size_t globalIndex = begin + idx;
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nb;
     }
 
     CArray<double,1> val(nb);
     nb = 0;
-    for (size_t idx = 0; idx < ni; ++idx)
+    for (size_t idx = 0; idx < n; ++idx)
     {
-      size_t globalIndex = ibegin + idx;
+      size_t globalIndex = begin + idx;
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
       {
         val(nb) = value(idx);
@@ -423,7 +403,7 @@ namespace xios {
       for (n = 0; n < nbData; ++n)
       {
         idx = static_cast<int>(it->second[n]);
-        ind = idx - ibegin;
+        ind = idx - begin;
 
         val(n) = value(ind);
         indi(n) = idx;
@@ -601,7 +581,7 @@ namespace xios {
       zoom_begin_srv = 0; zoom_end_srv = 0; zoom_size_srv = 0;
     }
 
-    if (size == ni)
+    if (n_glo == n)
     {
       zoom_begin_srv = global_zoom_begin;
       zoom_end_srv   = global_zoom_end; //zoom_end;

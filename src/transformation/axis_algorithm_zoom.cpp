@@ -18,11 +18,11 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
   zoomEnd_   = zoomAxis->zoom_end.getValue();
   zoomSize_  = zoomAxis->zoom_size.getValue();
 
-  if (zoomSize_ > axisSource->size.getValue())
+  if (zoomSize_ > axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)",
-           << "Zoom size is greater than size of axis source"
-           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->size.getValue()  << std::endl
+           << "Zoom size is greater than global size of axis source"
+           << "Global size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Zoom size is " << zoomSize_ );
   }
 
@@ -34,8 +34,8 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 */
 void CAxisAlgorithmZoom::computeIndexSourceMapping()
 {
-  StdSize niSource = axisSrc_->ni.getValue();
-  StdSize ibeginSource = axisSrc_->ibegin.getValue();
+  StdSize niSource = axisSrc_->n.getValue();
+  StdSize ibeginSource = axisSrc_->begin.getValue();
   StdSize iendSource = ibeginSource + niSource - 1;
 
   StdSize ibegin = std::max(ibeginSource, zoomBegin_);
@@ -72,7 +72,7 @@ correct index be extracted
 void CAxisAlgorithmZoom::updateAxisDestinationMask()
 {
   StdSize niMask = axisDest_->mask.numElements();
-  StdSize iBeginMask = axisDest_->ibegin.getValue();
+  StdSize iBeginMask = axisDest_->begin.getValue();
   StdSize globalIndexMask = 0;
   std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
   std::map<int, std::vector<int> >::const_iterator ite = (transMap).end();

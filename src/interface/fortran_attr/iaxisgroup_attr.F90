@@ -11,107 +11,97 @@ MODULE iaxisgroup_attr
 CONTAINS
 
   SUBROUTINE xios(set_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
+      INTEGER  , OPTIONAL, INTENT(IN) :: begin
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: bounds(:,:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
-      INTEGER  , OPTIONAL, INTENT(IN) :: ibegin
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: n
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
-      INTEGER  , OPTIONAL, INTENT(IN) :: ni
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
-      INTEGER  , OPTIONAL, INTENT(IN) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value(:)
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_begin
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_end
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size
 
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(set_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref
+      INTEGER  , OPTIONAL, INTENT(IN) :: begin
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: bounds(:,:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
-      INTEGER  , OPTIONAL, INTENT(IN) :: ibegin
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: n
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
-      INTEGER  , OPTIONAL, INTENT(IN) :: ni
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
-      INTEGER  , OPTIONAL, INTENT(IN) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value(:)
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_begin
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_end
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size
 
       CALL xios(set_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr_hdl)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, axis_ref_, bounds_, data_begin_, data_index_, data_n_, group_ref_, ibegin_  &
-    , long_name_, mask_, name_, ni_, positive_, size_, standard_name_, unit_, value_, zoom_begin_  &
-    , zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
+    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: axis_ref_
+      INTEGER  , OPTIONAL, INTENT(IN) :: begin_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: bounds_(:,:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_begin_
       INTEGER  , OPTIONAL, INTENT(IN) :: data_index_(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: data_n_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
-      INTEGER  , OPTIONAL, INTENT(IN) :: ibegin_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: long_name_
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:)
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_glo_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
-      INTEGER  , OPTIONAL, INTENT(IN) :: ni_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive_
-      INTEGER  , OPTIONAL, INTENT(IN) :: size_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value_(:)
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_begin_
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_end_
-      INTEGER  , OPTIONAL, INTENT(IN) :: zoom_size_
 
       IF (PRESENT(axis_ref_)) THEN
         CALL cxios_set_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
+
+      IF (PRESENT(begin_)) THEN
+        CALL cxios_set_axisgroup_begin(axisgroup_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
@@ -134,10 +124,6 @@ CONTAINS
         CALL cxios_set_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
-      IF (PRESENT(ibegin_)) THEN
-        CALL cxios_set_axisgroup_ibegin(axisgroup_hdl%daddr, ibegin_)
-      ENDIF
-
       IF (PRESENT(long_name_)) THEN
         CALL cxios_set_axisgroup_long_name(axisgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
@@ -148,20 +134,20 @@ CONTAINS
         CALL cxios_set_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, size(mask_,1))
       ENDIF
 
+      IF (PRESENT(n_)) THEN
+        CALL cxios_set_axisgroup_n(axisgroup_hdl%daddr, n_)
+      ENDIF
+
+      IF (PRESENT(n_glo_)) THEN
+        CALL cxios_set_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
+      ENDIF
+
       IF (PRESENT(name_)) THEN
         CALL cxios_set_axisgroup_name(axisgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
-      IF (PRESENT(ni_)) THEN
-        CALL cxios_set_axisgroup_ni(axisgroup_hdl%daddr, ni_)
-      ENDIF
-
       IF (PRESENT(positive_)) THEN
         CALL cxios_set_axisgroup_positive(axisgroup_hdl%daddr, positive_, len(positive_))
-      ENDIF
-
-      IF (PRESENT(size_)) THEN
-        CALL cxios_set_axisgroup_size(axisgroup_hdl%daddr, size_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
@@ -176,122 +162,100 @@ CONTAINS
         CALL cxios_set_axisgroup_value(axisgroup_hdl%daddr, value_, size(value_,1))
       ENDIF
 
-      IF (PRESENT(zoom_begin_)) THEN
-        CALL cxios_set_axisgroup_zoom_begin(axisgroup_hdl%daddr, zoom_begin_)
-      ENDIF
-
-      IF (PRESENT(zoom_end_)) THEN
-        CALL cxios_set_axisgroup_zoom_end(axisgroup_hdl%daddr, zoom_end_)
-      ENDIF
-
-      IF (PRESENT(zoom_size_)) THEN
-        CALL cxios_set_axisgroup_zoom_size(axisgroup_hdl%daddr, zoom_size_)
-      ENDIF
-
   END SUBROUTINE xios(set_axisgroup_attr_hdl_)
 
   SUBROUTINE xios(get_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
+      INTEGER  , OPTIONAL, INTENT(OUT) :: begin
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: bounds(:,:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ibegin
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ni
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
-      INTEGER  , OPTIONAL, INTENT(OUT) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value(:)
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_begin
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_end
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size
 
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(get_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref
+      INTEGER  , OPTIONAL, INTENT(OUT) :: begin
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: bounds(:,:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ibegin
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ni
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
-      INTEGER  , OPTIONAL, INTENT(OUT) :: size
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value(:)
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_begin
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_end
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size
 
       CALL xios(get_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr_hdl)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, axis_ref_, bounds_, data_begin_, data_index_, data_n_, group_ref_, ibegin_  &
-    , long_name_, mask_, name_, ni_, positive_, size_, standard_name_, unit_, value_, zoom_begin_  &
-    , zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
+    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: axis_ref_
+      INTEGER  , OPTIONAL, INTENT(OUT) :: begin_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: bounds_(:,:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_begin_
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_index_(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_n_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ibegin_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: long_name_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:)
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
-      INTEGER  , OPTIONAL, INTENT(OUT) :: ni_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive_
-      INTEGER  , OPTIONAL, INTENT(OUT) :: size_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value_(:)
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_begin_
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_end_
-      INTEGER  , OPTIONAL, INTENT(OUT) :: zoom_size_
 
       IF (PRESENT(axis_ref_)) THEN
         CALL cxios_get_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+      ENDIF
+
+      IF (PRESENT(begin_)) THEN
+        CALL cxios_get_axisgroup_begin(axisgroup_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
@@ -314,10 +278,6 @@ CONTAINS
         CALL cxios_get_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
-      IF (PRESENT(ibegin_)) THEN
-        CALL cxios_get_axisgroup_ibegin(axisgroup_hdl%daddr, ibegin_)
-      ENDIF
-
       IF (PRESENT(long_name_)) THEN
         CALL cxios_get_axisgroup_long_name(axisgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
@@ -328,20 +288,20 @@ CONTAINS
         mask_ = mask__tmp
       ENDIF
 
+      IF (PRESENT(n_)) THEN
+        CALL cxios_get_axisgroup_n(axisgroup_hdl%daddr, n_)
+      ENDIF
+
+      IF (PRESENT(n_glo_)) THEN
+        CALL cxios_get_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
+      ENDIF
+
       IF (PRESENT(name_)) THEN
         CALL cxios_get_axisgroup_name(axisgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
-      IF (PRESENT(ni_)) THEN
-        CALL cxios_get_axisgroup_ni(axisgroup_hdl%daddr, ni_)
-      ENDIF
-
       IF (PRESENT(positive_)) THEN
         CALL cxios_get_axisgroup_positive(axisgroup_hdl%daddr, positive_, len(positive_))
-      ENDIF
-
-      IF (PRESENT(size_)) THEN
-        CALL cxios_get_axisgroup_size(axisgroup_hdl%daddr, size_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
@@ -356,30 +316,19 @@ CONTAINS
         CALL cxios_get_axisgroup_value(axisgroup_hdl%daddr, value_, size(value_,1))
       ENDIF
 
-      IF (PRESENT(zoom_begin_)) THEN
-        CALL cxios_get_axisgroup_zoom_begin(axisgroup_hdl%daddr, zoom_begin_)
-      ENDIF
-
-      IF (PRESENT(zoom_end_)) THEN
-        CALL cxios_get_axisgroup_zoom_end(axisgroup_hdl%daddr, zoom_end_)
-      ENDIF
-
-      IF (PRESENT(zoom_size_)) THEN
-        CALL cxios_get_axisgroup_zoom_size(axisgroup_hdl%daddr, zoom_size_)
-      ENDIF
-
   END SUBROUTINE xios(get_axisgroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_axisgroup_attr)  &
-    ( axisgroup_id, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::axisgroup_id
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
       LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin
+      LOGICAL(KIND=C_BOOL) :: begin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: bounds
       LOGICAL(KIND=C_BOOL) :: bounds_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin
@@ -390,50 +339,42 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_n_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ibegin
-      LOGICAL(KIND=C_BOOL) :: ibegin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask
       LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo
+      LOGICAL(KIND=C_BOOL) :: n_glo_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ni
-      LOGICAL(KIND=C_BOOL) :: ni_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
       LOGICAL(KIND=C_BOOL) :: positive_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: size
-      LOGICAL(KIND=C_BOOL) :: size_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit
       LOGICAL(KIND=C_BOOL) :: unit_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: value
       LOGICAL(KIND=C_BOOL) :: value_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_begin
-      LOGICAL(KIND=C_BOOL) :: zoom_begin_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_end
-      LOGICAL(KIND=C_BOOL) :: zoom_end_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_size
-      LOGICAL(KIND=C_BOOL) :: zoom_size_tmp
 
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(is_defined_axisgroup_attr_hdl_)   &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl)  &
-    ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-    , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-     )
+    ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+    , mask, n, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref
       LOGICAL(KIND=C_BOOL) :: axis_ref_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin
+      LOGICAL(KIND=C_BOOL) :: begin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: bounds
       LOGICAL(KIND=C_BOOL) :: bounds_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin
@@ -444,49 +385,41 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_n_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ibegin
-      LOGICAL(KIND=C_BOOL) :: ibegin_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name
       LOGICAL(KIND=C_BOOL) :: long_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask
       LOGICAL(KIND=C_BOOL) :: mask_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo
+      LOGICAL(KIND=C_BOOL) :: n_glo_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ni
-      LOGICAL(KIND=C_BOOL) :: ni_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive
       LOGICAL(KIND=C_BOOL) :: positive_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: size
-      LOGICAL(KIND=C_BOOL) :: size_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit
       LOGICAL(KIND=C_BOOL) :: unit_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: value
       LOGICAL(KIND=C_BOOL) :: value_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_begin
-      LOGICAL(KIND=C_BOOL) :: zoom_begin_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_end
-      LOGICAL(KIND=C_BOOL) :: zoom_end_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_size
-      LOGICAL(KIND=C_BOOL) :: zoom_size_tmp
 
       CALL xios(is_defined_axisgroup_attr_hdl_)  &
-      ( axisgroup_hdl, axis_ref, bounds, data_begin, data_index, data_n, group_ref, ibegin, long_name  &
-      , mask, name, ni, positive, size, standard_name, unit, value, zoom_begin, zoom_end, zoom_size  &
-       )
+      ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
+      , mask, n, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl_)   &
-    ( axisgroup_hdl, axis_ref_, bounds_, data_begin_, data_index_, data_n_, group_ref_, ibegin_  &
-    , long_name_, mask_, name_, ni_, positive_, size_, standard_name_, unit_, value_, zoom_begin_  &
-    , zoom_end_, zoom_size_ )
+    ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
+    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
       LOGICAL, OPTIONAL, INTENT(OUT) :: axis_ref_
       LOGICAL(KIND=C_BOOL) :: axis_ref__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin_
+      LOGICAL(KIND=C_BOOL) :: begin__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: bounds_
       LOGICAL(KIND=C_BOOL) :: bounds__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_begin_
@@ -497,36 +430,33 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_n__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
       LOGICAL(KIND=C_BOOL) :: group_ref__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ibegin_
-      LOGICAL(KIND=C_BOOL) :: ibegin__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: long_name_
       LOGICAL(KIND=C_BOOL) :: long_name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_
       LOGICAL(KIND=C_BOOL) :: mask__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_
+      LOGICAL(KIND=C_BOOL) :: n__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo_
+      LOGICAL(KIND=C_BOOL) :: n_glo__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: ni_
-      LOGICAL(KIND=C_BOOL) :: ni__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: positive_
       LOGICAL(KIND=C_BOOL) :: positive__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: size_
-      LOGICAL(KIND=C_BOOL) :: size__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name_
       LOGICAL(KIND=C_BOOL) :: standard_name__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit_
       LOGICAL(KIND=C_BOOL) :: unit__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: value_
       LOGICAL(KIND=C_BOOL) :: value__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_begin_
-      LOGICAL(KIND=C_BOOL) :: zoom_begin__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_end_
-      LOGICAL(KIND=C_BOOL) :: zoom_end__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: zoom_size_
-      LOGICAL(KIND=C_BOOL) :: zoom_size__tmp
 
       IF (PRESENT(axis_ref_)) THEN
         axis_ref__tmp = cxios_is_defined_axisgroup_axis_ref(axisgroup_hdl%daddr)
         axis_ref_ = axis_ref__tmp
+      ENDIF
+
+      IF (PRESENT(begin_)) THEN
+        begin__tmp = cxios_is_defined_axisgroup_begin(axisgroup_hdl%daddr)
+        begin_ = begin__tmp
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
@@ -554,11 +484,6 @@ CONTAINS
         group_ref_ = group_ref__tmp
       ENDIF
 
-      IF (PRESENT(ibegin_)) THEN
-        ibegin__tmp = cxios_is_defined_axisgroup_ibegin(axisgroup_hdl%daddr)
-        ibegin_ = ibegin__tmp
-      ENDIF
-
       IF (PRESENT(long_name_)) THEN
         long_name__tmp = cxios_is_defined_axisgroup_long_name(axisgroup_hdl%daddr)
         long_name_ = long_name__tmp
@@ -569,24 +494,24 @@ CONTAINS
         mask_ = mask__tmp
       ENDIF
 
+      IF (PRESENT(n_)) THEN
+        n__tmp = cxios_is_defined_axisgroup_n(axisgroup_hdl%daddr)
+        n_ = n__tmp
+      ENDIF
+
+      IF (PRESENT(n_glo_)) THEN
+        n_glo__tmp = cxios_is_defined_axisgroup_n_glo(axisgroup_hdl%daddr)
+        n_glo_ = n_glo__tmp
+      ENDIF
+
       IF (PRESENT(name_)) THEN
         name__tmp = cxios_is_defined_axisgroup_name(axisgroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
-      IF (PRESENT(ni_)) THEN
-        ni__tmp = cxios_is_defined_axisgroup_ni(axisgroup_hdl%daddr)
-        ni_ = ni__tmp
-      ENDIF
-
       IF (PRESENT(positive_)) THEN
         positive__tmp = cxios_is_defined_axisgroup_positive(axisgroup_hdl%daddr)
         positive_ = positive__tmp
-      ENDIF
-
-      IF (PRESENT(size_)) THEN
-        size__tmp = cxios_is_defined_axisgroup_size(axisgroup_hdl%daddr)
-        size_ = size__tmp
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
@@ -602,21 +527,6 @@ CONTAINS
       IF (PRESENT(value_)) THEN
         value__tmp = cxios_is_defined_axisgroup_value(axisgroup_hdl%daddr)
         value_ = value__tmp
-      ENDIF
-
-      IF (PRESENT(zoom_begin_)) THEN
-        zoom_begin__tmp = cxios_is_defined_axisgroup_zoom_begin(axisgroup_hdl%daddr)
-        zoom_begin_ = zoom_begin__tmp
-      ENDIF
-
-      IF (PRESENT(zoom_end_)) THEN
-        zoom_end__tmp = cxios_is_defined_axisgroup_zoom_end(axisgroup_hdl%daddr)
-        zoom_end_ = zoom_end__tmp
-      ENDIF
-
-      IF (PRESENT(zoom_size_)) THEN
-        zoom_size__tmp = cxios_is_defined_axisgroup_zoom_size(axisgroup_hdl%daddr)
-        zoom_size_ = zoom_size__tmp
       ENDIF
 
   END SUBROUTINE xios(is_defined_axisgroup_attr_hdl_)

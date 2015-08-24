@@ -16,17 +16,17 @@ namespace xios {
 CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)
  : CAxisAlgorithmTransformation(axisDestination, axisSource)
 {
-  if (axisDestination->size.getValue() != axisSource->size.getValue())
+  if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)",
-           << "Two axis have different size"
-           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->size.getValue()  << std::endl
-           << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->size.getValue());
+           << "Two axis have different global size"
+           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
+           << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
 
   this->computeIndexSourceMapping();
-  int niSrc   = axisSrc_->ni.getValue();
-  int sizeSrc = axisSrc_->size.getValue();
+  int niSrc   = axisSrc_->n.getValue();
+  int sizeSrc = axisSrc_->n_glo.getValue();
   if (niSrc != sizeSrc) updateAxisValue();
   else
   {
@@ -59,8 +59,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
 
-  int niSrc     = axisSrc_->ni.getValue();
-  int ibeginSrc = axisSrc_->ibegin.getValue();
+  int niSrc     = axisSrc_->n.getValue();
+  int ibeginSrc = axisSrc_->begin.getValue();
 
   CTransformationMapping transformationMap(axisDest_, axisSrc_);
 
@@ -127,7 +127,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
    currentRecvBuffPosition += countSize;
  }
 
- int ibeginDest = axisDest_->ibegin.getValue();
+ int ibeginDest = axisDest_->begin.getValue();
  currentRecvBuff = recvBuff;
  for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
  {

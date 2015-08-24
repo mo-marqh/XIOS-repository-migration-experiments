@@ -76,9 +76,7 @@ namespace xios {
          TransMapTypes getAllTransformations();
 
       private :
-
          void checkDomain(void);
-
          void checkLocalIDomain(void);
          void checkLocalJDomain(void);
 
@@ -86,11 +84,9 @@ namespace xios {
          void checkDomainData(void);
          void checkCompression(void);
 
-         void checkZoom(void);
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-
 
       public :
 
@@ -106,11 +102,11 @@ namespace xios {
          bool isDistributed(void) const;
 
 
-         int ni_client,ibegin_client,iend_client ;
-         int zoom_ni_client,zoom_ibegin_client,zoom_iend_client ;
-
-         int nj_client,jbegin_client,jend_client ;
-         int zoom_nj_client,zoom_jbegin_client,zoom_jend_client ;
+//         int ni_client,ibegin_client,iend_client ;
+//         int zoom_ni_client,zoom_ibegin_client,zoom_iend_client ;
+//
+//         int nj_client,jbegin_client,jend_client ;
+//         int zoom_nj_client,zoom_jbegin_client,zoom_jend_client ;
 
          int ni_srv,ibegin_srv,iend_srv ;
          int zoom_ni_srv,zoom_ibegin_srv,zoom_iend_srv ;
@@ -132,14 +128,12 @@ namespace xios {
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
 
 
-        CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
+//        CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
 
         int global_zoom_ibegin, global_zoom_ni;
         int global_zoom_jbegin, global_zoom_nj;
-//        CArray<bool,1> maskInter;
 
       public :
-
          /// Mutateur ///
          void addRelFile(const StdString & filename);
          void completeLonLatClient(void);
@@ -177,8 +171,6 @@ namespace xios {
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
-         void completeLonClient();
-         void completeLatClient();
 
          void sendIndex();
          void sendArea();

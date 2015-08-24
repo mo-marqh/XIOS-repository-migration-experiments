@@ -685,7 +685,7 @@ namespace xios {
       }
       else
       {
-        globalDim_[idx] = axis[idxAxis]->size.getValue();
+        globalDim_[idx] = axis[idxAxis]->n_glo.getValue();
         ++idxAxis;
         ++idx;
       }
@@ -806,7 +806,7 @@ namespace xios {
             nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
             nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
             nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
-            nGlob[indexMap[i]] = axisList[axisId]->size;
+            nGlob[indexMap[i]] = axisList[axisId]->n_glo;
             ++axisId;
           }
         }

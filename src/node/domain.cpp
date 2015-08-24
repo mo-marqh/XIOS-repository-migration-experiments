@@ -138,9 +138,6 @@ namespace xios {
      checkLocalIDomain();
      checkLocalJDomain();
 
-     ibegin_client = ibegin; ni_client = ni; iend_client = ibegin + ni - 1;
-     jbegin_client = jbegin; nj_client = nj; jend_client = jbegin + nj - 1;
-
      if (i_index.isEmpty())
      {
        i_index.resize(ni*nj);
@@ -339,7 +336,7 @@ namespace xios {
             const int dni = data_ni.getValue();
             data_i_index.resize(dni) ;
             data_j_index.resize(dni) ;
-            data_n_index.setValue(dni);
+
             for (int i = 0; i < dni; ++i)
             {
               data_i_index(i) = i;
@@ -351,8 +348,6 @@ namespace xios {
             const int dni = data_ni.getValue() * data_nj.getValue();
             data_i_index.resize(dni) ;
             data_j_index.resize(dni) ;
-
-            data_n_index.setValue(dni);
 
             for(int count = 0, j = 0; j  < data_nj.getValue(); ++j)
             {
@@ -366,35 +361,14 @@ namespace xios {
       }
    }
 
-   void CDomain::completeLonClient()
+   //----------------------------------------------------------------
+   void CDomain::completeLonLatClient(void)
    {
      int i,j,k ;
      CArray<double,1> lonvalue_temp(ni*nj) ;
      CArray<double,2> bounds_lon_temp(nvertex,ni*nj);
-
-     if (!lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
-       ERROR("CDomain::completeLonLatClient(void)",
-            <<"Only one longitude value can be used but both lonvalue_1d and lonvalue_2d are defined! "<<endl
-            <<"Define only one longitude value: lonvalue_1d or lonvalue_2d ");
-
-     if (!lonvalue_1d.isEmpty() && lonvalue_2d.isEmpty())
-     {
-       if (lonvalue_1d.numElements() != i_index.numElements())
-         ERROR("CDomain::completeLonLatClient(void)",
-               <<"lonvalue_1d has not the same size as the local domain"<<endl
-               <<"Local size is "<<i_index.numElements()<<endl
-               <<"lonvalue_1d size is "<<lonvalue_1d.numElements());
-     }
-
-     if (lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
-     {
-        if ((lonvalue_2d.extent(0) != ni) ||
-            (lonvalue_2d.extent(1) != nj))
-           ERROR("CDomain::completeLonLatClient(void)",
-                 <<"the lonvalue has not the same size as the local domain"<<endl
-                 <<"Local size is "<<ni<<"x"<<nj<<endl
-                 <<"Lonvalue size is "<<lonvalue_2d.extent(0)<<"x"<<lonvalue_2d.extent(1));
-     }
+     CArray<double,1> latvalue_temp(ni*nj) ;
+     CArray<double,2> bounds_lat_temp(nvertex,ni*nj);
 
      if (!lonvalue_2d.isEmpty())
      {
@@ -402,10 +376,15 @@ namespace xios {
           for (i = 0; i < ni; ++i)
           {
             lonvalue_temp(i+j*ni) = lonvalue_2d(i,j);
+            latvalue_temp(i+j*ni) = latvalue_2d(i,j);
             if (hasBounds)
             {
               k=j*ni+i;
-              for(int n=0;n<nvertex;++n) bounds_lon_temp(n,k) = bounds_lon_2d(n,i,j);
+              for(int n=0;n<nvertex;++n)
+              {
+                bounds_lon_temp(n,k) = bounds_lon_2d(n,i,j);
+                bounds_lat_temp(n,k) = bounds_lat_2d(n,i,j);
+              }
             }
           }
      }
@@ -414,187 +393,93 @@ namespace xios {
      {
        if (type_attr::rectilinear == type)
        {
-         if (ni == lonvalue_1d.numElements())
+         if ((ni == lonvalue_1d.numElements()) && (nj == latvalue_1d.numElements()))
          {
            for(j=0;j<nj;++j)
              for(i=0;i<ni;++i)
              {
                k=j*ni+i;
                lonvalue_temp(k) = lonvalue_1d(i);
+               latvalue_temp(k) = latvalue_1d(j);
                if (hasBounds)
                {
-                 for(int n=0;n<nvertex;++n) bounds_lon_temp(n,k) = bounds_lon_1d(n,i);
+                 for(int n=0;n<nvertex;++n)
+                 {
+                   bounds_lon_temp(n,k) = bounds_lon_1d(n,i);
+                   bounds_lat_temp(n,k) = bounds_lat_1d(n,j);
+                 }
                }
              }
           }
           else
             ERROR("CDomain::completeLonClient(void)",
-                 <<"The lonvalue_1d has not the same size as the local domain"<<endl
-                 <<"Local size is "<<ni<<endl
-                 <<"Lonvalue_1d size is "<<lonvalue_1d.numElements());
+                 <<"lonvalue_1d and latvalue_1d has not the same size as the local domain"<<endl
+                 <<"Local size is "<<ni<<"x " << nj<< endl
+                 <<"lonvalue_1d size is "<<lonvalue_1d.numElements()
+                 <<"latvalue_1d size is "<<latvalue_1d.numElements());
        }
        else if (type==type_attr::curvilinear || type==type_attr::unstructured)
        {
          lonvalue_temp=lonvalue_1d;
-         if (hasBounds)
-         {
-           bounds_lon_temp=bounds_lon_1d;
-         }
-       }
-     }
-
-     StdSize dm = zoom_ni_client * zoom_nj_client;
-
-      // Make sure that this attribute is non-empty for every client.
-     if (0 != dm)
-     {
-       lonvalue_client.resize(dm);
-       if (hasBounds) bounds_lon_client.resize(nvertex, dm);
-     }
-
-
-     for (i = 0; i < zoom_ni_client; ++i)
-     {
-       for (j = 0; j < zoom_nj_client; ++j)
-       {
-         lonvalue_client(i + j * zoom_ni_client) = lonvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-         if (hasBounds)
-         {
-           for(int n=0;n<nvertex;n++)
-           {
-             bounds_lon_client(n,i + j * zoom_ni_client) = bounds_lon_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-           }
-         }
-       }
-     }
-   }
-
-   void CDomain::completeLatClient()
-   {
-     int i,j,k;
-     CArray<double,1> latvalue_temp(ni*nj) ;
-     CArray<double,2> bounds_lat_temp(nvertex,ni*nj);
-
-     if (!latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
-       ERROR("CDomain::completeLonLatClient(void)",
-            <<"Only one longitude value can be used but both latvalue_1d and latvalue_2d are defined! "<<endl
-            <<"Define only one longitude value: latvalue_1d or latvalue_2d ");
-
-     if (!latvalue_1d.isEmpty() && latvalue_2d.isEmpty())
-     {
-       if (latvalue_1d.numElements() != i_index.numElements())
-         ERROR("CDomain::completeLonLatClient(void)",
-               <<"the latvalue_1d has not the same size as the local domain"<<endl
-               <<"Local size is "<<i_index.numElements()<<endl
-               <<"Mask size is "<<latvalue_1d.numElements());
-     }
-
-     if (latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
-     {
-        if ((latvalue_2d.extent(0) != ni) ||
-            (latvalue_2d.extent(1) != nj))
-           ERROR("CDomain::completeLonLatClient(void)",
-                 <<"the mask has not the same size as the local domain"<<endl
-                 <<"Local size is "<<ni<<"x"<<nj<<endl
-                 <<"Mask size is "<<latvalue_2d.extent(0)<<"x"<<latvalue_2d.extent(1));
-     }
-
-     if (!latvalue_2d.isEmpty())
-     {
-        for (j = 0; j < nj; ++j)
-          for (i = 0; i < ni; ++i)
-          {
-            latvalue_temp(i+j*ni) = latvalue_2d(i,j);
-            if (hasBounds)
-            {
-              k=j*ni+i;
-              for(int n=0;n<nvertex;n++) bounds_lat_temp(n,k) = bounds_lat_2d(n,i,j);
-            }
-          }
-     }
-
-     if (!latvalue_1d.isEmpty())
-     {
-       if (type_attr::rectilinear == type)
-       {
-
-         if (nj == latvalue_1d.numElements())
-         {
-           for(j=0;j<nj;++j)
-             for(i=0;i<ni;++i)
-             {
-               k=j*ni+i;
-               latvalue_temp(k) = latvalue_1d(j);
-               if (hasBounds)
-               {
-                 for(int n=0;n<nvertex;n++) bounds_lat_temp(n,k) = bounds_lat_1d(n,j);
-               }
-             }
-          }
-          else
-            ERROR("CDomain::completeLonClient(void)",
-                 <<"The latvalue_1d has not the same size as the local domain"<<endl
-                 <<"Local size is "<<nj<<endl
-                 <<"Latvalue_1d size is "<<latvalue_1d.numElements());
-       }
-       else if (type==type_attr::curvilinear || type==type_attr::unstructured)
-       {
          latvalue_temp=latvalue_1d;
          if (hasBounds)
          {
+           bounds_lon_temp=bounds_lon_1d;
            bounds_lat_temp=bounds_lat_1d;
          }
        }
      }
 
-     StdSize dm = zoom_ni_client * zoom_nj_client;
+    int i_ind,j_ind;
+    int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1;
+    int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1;
+
+    int globalIndexCountZoom = 0;
+    int nbIndex = i_index.numElements();
+    for (i = 0; i < nbIndex; ++i)
+    {
+      i_ind=i_index(i);
+      j_ind=j_index(i);
+
+      if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
+      {
+        ++globalIndexCountZoom;
+      }
+    }
 
       // Make sure that this attribute is non-empty for every client.
-     if (0 != dm)
+     if (0 != globalIndexCountZoom)
      {
-       latvalue_client.resize(dm);
-       if (hasBounds) bounds_lat_client.resize(nvertex,dm);
-     }
-
-     for (i = 0; i < zoom_ni_client; i++)
-     {
-       for (j = 0; j < zoom_nj_client; j++)
+       lonvalue_client.resize(globalIndexCountZoom);
+       latvalue_client.resize(globalIndexCountZoom);
+       if (hasBounds)
        {
-         latvalue_client(i + j * zoom_ni_client) = latvalue_temp( (i + zoom_ibegin_client-ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-         if (hasBounds)
-         {
-           for(int n=0;n<nvertex;n++)
-           {
-             bounds_lat_client(n,i + j * zoom_ni_client) = bounds_lat_temp( n, (i + zoom_ibegin_client - ibegin) + (j + zoom_jbegin_client -jbegin)*ni );
-           }
-         }
+         bounds_lon_client.resize(nvertex,globalIndexCountZoom);
+         bounds_lat_client.resize(nvertex,globalIndexCountZoom);
        }
      }
-   }
 
-   //----------------------------------------------------------------
-   void CDomain::completeLonLatClient(void)
-   {
-     completeLonClient();
-     completeLatClient();
-   }
+     int nCountZoom = 0;
+     for (i = 0; i < nbIndex; ++i)
+     {
+       i_ind=i_index(i);
+       j_ind=j_index(i);
 
-
-   //----------------------------------------------------------------
-   void CDomain::checkZoom(void)
-   {
-      int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
-      zoom_ibegin_client = ibegin_client > global_zoom_ibegin ? ibegin_client : global_zoom_ibegin ;
-      zoom_iend_client = iend_client < global_zoom_iend ? iend_client : global_zoom_iend ;
-      zoom_ni_client=zoom_iend_client-zoom_ibegin_client+1 ;
-      if (zoom_ni_client<0) zoom_ni_client=0 ;
-
-
-      int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
-      zoom_jbegin_client = jbegin_client > global_zoom_jbegin ? jbegin_client : global_zoom_jbegin ;
-      zoom_jend_client = jend_client < global_zoom_jend ? jend_client : global_zoom_jend ;
-      zoom_nj_client=zoom_jend_client-zoom_jbegin_client+1 ;
-      if (zoom_nj_client<0) zoom_nj_client=0;
+       if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
+       {
+         lonvalue_client(nCountZoom) = lonvalue_temp(i);
+         latvalue_client(nCountZoom) = latvalue_temp(i);
+         if (hasBounds)
+         {
+           for (int n = 0; n < nvertex; ++n)
+           {
+             bounds_lon_client(n,nCountZoom) = bounds_lon_temp(n,i);
+             bounds_lat_client(n,nCountZoom) = bounds_lat_temp(n,i);
+           }
+         }
+         ++nCountZoom;
+       }
+     }
    }
 
    void CDomain::checkBounds(void)
@@ -690,13 +575,62 @@ namespace xios {
    {
      hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
                  (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
+     if (hasLonLat)
+     {
+       if (!lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
+         ERROR("CDomain::completeLonLatClient(void)",
+              <<"Only one longitude value can be used but both lonvalue_1d and lonvalue_2d are defined! "<<endl
+              <<"Define only one longitude value: lonvalue_1d or lonvalue_2d ");
+
+       if (!lonvalue_1d.isEmpty() && lonvalue_2d.isEmpty())
+       {
+         if (lonvalue_1d.numElements() != i_index.numElements())
+           ERROR("CDomain::completeLonLatClient(void)",
+                 <<"lonvalue_1d has not the same size as the local domain"<<endl
+                 <<"Local size is "<<i_index.numElements()<<endl
+                 <<"lonvalue_1d size is "<<lonvalue_1d.numElements());
+       }
+
+       if (lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
+       {
+          if ((lonvalue_2d.extent(0) != ni) ||
+              (lonvalue_2d.extent(1) != nj))
+             ERROR("CDomain::completeLonLatClient(void)",
+                   <<"the lonvalue has not the same size as the local domain"<<endl
+                   <<"Local size is "<<ni<<"x"<<nj<<endl
+                   <<"Lonvalue size is "<<lonvalue_2d.extent(0)<<"x"<<lonvalue_2d.extent(1));
+       }
+
+       if (!latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
+         ERROR("CDomain::completeLonLatClient(void)",
+              <<"Only one longitude value can be used but both latvalue_1d and latvalue_2d are defined! "<<endl
+              <<"Define only one longitude value: latvalue_1d or latvalue_2d ");
+
+       if (!latvalue_1d.isEmpty() && latvalue_2d.isEmpty())
+       {
+         if (latvalue_1d.numElements() != i_index.numElements())
+           ERROR("CDomain::completeLonLatClient(void)",
+                 <<"the latvalue_1d has not the same size as the local domain"<<endl
+                 <<"Local size is "<<i_index.numElements()<<endl
+                 <<"Mask size is "<<latvalue_1d.numElements());
+       }
+
+       if (latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
+       {
+          if ((latvalue_2d.extent(0) != ni) ||
+              (latvalue_2d.extent(1) != nj))
+             ERROR("CDomain::completeLonLatClient(void)",
+                   <<"the mask has not the same size as the local domain"<<endl
+                   <<"Local size is "<<ni<<"x"<<nj<<endl
+                   <<"Mask size is "<<latvalue_2d.extent(0)<<"x"<<latvalue_2d.extent(1));
+       }
+     }
    }
 
    void CDomain::checkAttributesOnClientAfterTransformation()
    {
      CContext* context=CContext::getCurrent() ;
 
-     this->checkZoom();
      if (this->isClientAfterTransformationChecked) return;
      if (context->hasClient)
      {
@@ -741,7 +675,6 @@ namespace xios {
      if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation();
      CContext* context=CContext::getCurrent() ;
 
-     this->checkZoom();
      if (this->isChecked) return;
      if (context->hasClient)
      {
@@ -758,7 +691,6 @@ namespace xios {
       CContext* context=CContext::getCurrent() ;
 
       this->checkDomain();
-      this->checkZoom();
       this->checkLonLat();
       this->checkBounds();
       this->checkArea();
@@ -768,7 +700,7 @@ namespace xios {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
-         this->completeLonLatClient();
+
       }
       else
       { // Côté serveur uniquement
@@ -776,9 +708,10 @@ namespace xios {
 
       if (context->hasClient)
       {
-        computeConnectedServer() ;
-        sendServerAttribut() ;
-        sendLonLatArea() ;
+        this->computeConnectedServer();
+        this->completeLonLatClient();
+        this->sendServerAttribut();
+        this->sendLonLatArea();
       }
 
       this->isChecked = true;
@@ -836,17 +769,14 @@ namespace xios {
 
   void CDomain::computeConnectedServer(void)
   {
-    ibegin_client=ibegin; ni_client=ni; iend_client=ibegin_client + ni_client - 1;
-    jbegin_client=jbegin; nj_client=nj; jend_client=jbegin_client + nj_client - 1;
-
     CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize;
     bool doComputeGlobalIndexServer = true;
 
     int i,j,i_ind,j_ind, nbIndex;
-    int zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
-    int zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
+    int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
+    int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
 
     // Precompute number of index
     int globalIndexCountZoom = 0;
@@ -856,7 +786,7 @@ namespace xios {
       i_ind=i_index(i);
       j_ind=j_index(i);
 
-      if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
+      if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
       {
         ++globalIndexCountZoom;
       }
@@ -877,7 +807,7 @@ namespace xios {
       globalIndex = i_ind + j_ind * ni_glo;
       globalIndexDomain(globalIndexCount) = globalIndex;
       ++globalIndexCount;
-      if (i_ind >= global_zoom_ibegin && i_ind <= zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= zoom_jend)
+      if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
       {
         globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
         localIndexDomainZoom(globalIndexCountZoom) = i;
@@ -1075,22 +1005,18 @@ namespace xios {
       for (n = 0; n < nbData; ++n)
       {
         idx = static_cast<int>(it->second[n]);
-        i = i_index(idx);
-        j = j_index(idx);
-        ind = (i - zoom_ibegin_client) + (j - zoom_jbegin_client) * zoom_ni_client;
-
-        lon(n) = lonvalue_client(ind);
-        lat(n) = latvalue_client(ind);
+        lon(n) = lonvalue_client(idx);
+        lat(n) = latvalue_client(idx);
 
         if (hasBounds)
         {
           CArray<double,2>& boundslon = list_boundslon.back();
           CArray<double,2>& boundslat = list_boundslat.back();
 
-          for (nv = 0; nv < nvertex; nv++)
+          for (nv = 0; nv < nvertex; ++nv)
           {
-            boundslon(nv, n) = bounds_lon_client(nv, ind);
-            boundslat(nv, n) = bounds_lat_client(nv, ind);
+            boundslon(nv, n) = bounds_lon_client(nv, idx);
+            boundslat(nv, n) = bounds_lat_client(nv, idx);
           }
         }
       }
@@ -1251,7 +1177,7 @@ namespace xios {
       lonvalue_srv(ind_srv) = lon(ind);
       if (hasBounds)
       {
-        for (int nv = 0; nv < nvertex; nv++)
+        for (int nv = 0; nv < nvertex; ++nv)
           bounds_lon_srv(nv, ind_srv) = boundslon(nv, ind);
       }
     }

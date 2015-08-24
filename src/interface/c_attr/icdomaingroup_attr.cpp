@@ -261,29 +261,6 @@ extern "C"
   }
 
 
-  void cxios_set_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int data_n_index)
-  {
-    CTimer::get("XIOS").resume();
-    domaingroup_hdl->data_n_index.setValue(data_n_index);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl, int* data_n_index)
-  {
-    CTimer::get("XIOS").resume();
-    *data_n_index = domaingroup_hdl->data_n_index.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_domaingroup_data_n_index(domaingroup_Ptr domaingroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = domaingroup_hdl->data_n_index.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
   void cxios_set_domaingroup_data_ni(domaingroup_Ptr domaingroup_hdl, int data_ni)
   {
     CTimer::get("XIOS").resume();

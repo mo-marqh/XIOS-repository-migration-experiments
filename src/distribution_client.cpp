@@ -98,7 +98,7 @@ void CDistributionClient::readAxisIndex(const std::vector<CAxis*>& axisList)
 
   for (int k = 0; k < axisSize; ++k)
   {
-    int n = axisList[k]->ni;
+    int n = axisList[k]->n;
     nIndexAxis_[k].resize(n);
     for (int i = 0; i < n; ++i)
       nIndexAxis_[k](i) = i;
@@ -220,10 +220,10 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
     }
     else // So it's an axis
     {
-      nLocal_.at(indexMap_[idx]) = axisList[axisIndex]->ni.getValue();
-      nGlob_.at(indexMap_[idx]) = axisList[axisIndex]->size.getValue();
+      nLocal_.at(indexMap_[idx]) = axisList[axisIndex]->n.getValue();
+      nGlob_.at(indexMap_[idx]) = axisList[axisIndex]->n_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]) = 0;
-      nBeginGlobal_.at(indexMap_[idx]) = axisList[axisIndex]->ibegin.getValue();
+      nBeginGlobal_.at(indexMap_[idx]) = axisList[axisIndex]->begin.getValue();
       nZoomBegin_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin;
       nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_size-1;
 
@@ -635,7 +635,7 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
 int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni)
 {
    int tempI = dataIndex + dataBegin;
-   return ((tempI-1)%ni);
+   return ((tempI)%ni);
 }
 
 const CArray<size_t,1>& CDistributionClient::getGlobalDataIndexSendToServer() const

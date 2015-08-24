@@ -30,6 +30,25 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_axis_ref
 
 
+    SUBROUTINE cxios_set_axis_begin(axis_hdl, begin) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: begin
+    END SUBROUTINE cxios_set_axis_begin
+
+    SUBROUTINE cxios_get_axis_begin(axis_hdl, begin) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: begin
+    END SUBROUTINE cxios_get_axis_begin
+
+    FUNCTION cxios_is_defined_axis_begin(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_begin
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_begin
+
+
     SUBROUTINE cxios_set_axis_bounds(axis_hdl, bounds, extent1, extent2) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axis_hdl
@@ -112,25 +131,6 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_data_n
 
 
-    SUBROUTINE cxios_set_axis_ibegin(axis_hdl, ibegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: ibegin
-    END SUBROUTINE cxios_set_axis_ibegin
-
-    SUBROUTINE cxios_get_axis_ibegin(axis_hdl, ibegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: ibegin
-    END SUBROUTINE cxios_get_axis_ibegin
-
-    FUNCTION cxios_is_defined_axis_ibegin(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_ibegin
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_ibegin
-
-
     SUBROUTINE cxios_set_axis_long_name(axis_hdl, long_name, long_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
@@ -173,6 +173,44 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_mask
 
 
+    SUBROUTINE cxios_set_axis_n(axis_hdl, n) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: n
+    END SUBROUTINE cxios_set_axis_n
+
+    SUBROUTINE cxios_get_axis_n(axis_hdl, n) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: n
+    END SUBROUTINE cxios_get_axis_n
+
+    FUNCTION cxios_is_defined_axis_n(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_n
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_n
+
+
+    SUBROUTINE cxios_set_axis_n_glo(axis_hdl, n_glo) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: n_glo
+    END SUBROUTINE cxios_set_axis_n_glo
+
+    SUBROUTINE cxios_get_axis_n_glo(axis_hdl, n_glo) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: n_glo
+    END SUBROUTINE cxios_get_axis_n_glo
+
+    FUNCTION cxios_is_defined_axis_n_glo(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_n_glo
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_n_glo
+
+
     SUBROUTINE cxios_set_axis_name(axis_hdl, name, name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
@@ -194,25 +232,6 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_name
 
 
-    SUBROUTINE cxios_set_axis_ni(axis_hdl, ni) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: ni
-    END SUBROUTINE cxios_set_axis_ni
-
-    SUBROUTINE cxios_get_axis_ni(axis_hdl, ni) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: ni
-    END SUBROUTINE cxios_get_axis_ni
-
-    FUNCTION cxios_is_defined_axis_ni(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_ni
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_ni
-
-
     SUBROUTINE cxios_set_axis_positive(axis_hdl, positive, positive_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
@@ -232,25 +251,6 @@ MODULE axis_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_positive
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
     END FUNCTION cxios_is_defined_axis_positive
-
-
-    SUBROUTINE cxios_set_axis_size(axis_hdl, size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: size
-    END SUBROUTINE cxios_set_axis_size
-
-    SUBROUTINE cxios_get_axis_size(axis_hdl, size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: size
-    END SUBROUTINE cxios_get_axis_size
-
-    FUNCTION cxios_is_defined_axis_size(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_size
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_size
 
 
     SUBROUTINE cxios_set_axis_standard_name(axis_hdl, standard_name, standard_name_size) BIND(C)
@@ -314,63 +314,6 @@ MODULE axis_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_value
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
     END FUNCTION cxios_is_defined_axis_value
-
-
-    SUBROUTINE cxios_set_axis_zoom_begin(axis_hdl, zoom_begin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_begin
-    END SUBROUTINE cxios_set_axis_zoom_begin
-
-    SUBROUTINE cxios_get_axis_zoom_begin(axis_hdl, zoom_begin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_begin
-    END SUBROUTINE cxios_get_axis_zoom_begin
-
-    FUNCTION cxios_is_defined_axis_zoom_begin(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_zoom_begin
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_zoom_begin
-
-
-    SUBROUTINE cxios_set_axis_zoom_end(axis_hdl, zoom_end) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_end
-    END SUBROUTINE cxios_set_axis_zoom_end
-
-    SUBROUTINE cxios_get_axis_zoom_end(axis_hdl, zoom_end) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_end
-    END SUBROUTINE cxios_get_axis_zoom_end
-
-    FUNCTION cxios_is_defined_axis_zoom_end(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_zoom_end
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_zoom_end
-
-
-    SUBROUTINE cxios_set_axis_zoom_size(axis_hdl, zoom_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_size
-    END SUBROUTINE cxios_set_axis_zoom_size
-
-    SUBROUTINE cxios_get_axis_zoom_size(axis_hdl, zoom_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_size
-    END SUBROUTINE cxios_get_axis_zoom_size
-
-    FUNCTION cxios_is_defined_axis_zoom_size(axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_zoom_size
-      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
-    END FUNCTION cxios_is_defined_axis_zoom_size
 
   END INTERFACE
 

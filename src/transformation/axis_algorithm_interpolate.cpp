@@ -19,11 +19,11 @@ CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAx
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
-  if (order_ >= axisSource->size.getValue())
+  if (order_ >= axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)",
-           << "Order of interpolation is greater than size of axis source"
-           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->size.getValue()  << std::endl
+           << "Order of interpolation is greater than global size of axis source"
+           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Order of interpolation is " << order_ );
   }
 
@@ -42,7 +42,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping()
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
 
-  int srcSize  = axisSrc_->size.getValue();
+  int srcSize  = axisSrc_->n_glo.getValue();
   int numValue = axisValue.numElements();
 
   std::vector<double> recvBuff(srcSize);
@@ -66,7 +66,7 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
   std::vector<int>::const_iterator itbVec = indexVec.begin(), itVec;
   const double sfmax = NumTraits<double>::sfmax();
 
-  int ibegin = axisDest_->ibegin.getValue();
+  int ibegin = axisDest_->begin.getValue();
   CArray<double,1>& axisDestValue = axisDest_->value;
   int numValue = axisDestValue.numElements();
   std::map<int, std::vector<std::pair<int,double> > > interpolatingIndexValues;
@@ -130,7 +130,7 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
   std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
   std::map<int, std::vector<std::pair<int,double> > >::const_iterator itb = interpolatingIndexValues.begin(), it,
                                                                       ite = interpolatingIndexValues.end();
-  int ibegin = axisDest_->ibegin.getValue();
+  int ibegin = axisDest_->begin.getValue();
   for (it = itb; it != ite; ++it)
   {
     int globalIndexDest = it->first;
@@ -168,7 +168,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(std::vector<double>& recvBu
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
 
-  int srcSize  = axisSrc_->size.getValue();
+  int srcSize  = axisSrc_->n_glo.getValue();
   int numValue = axisValue.numElements();
 
   if (srcSize == numValue)  // Only one client or axis not distributed
@@ -190,7 +190,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(std::vector<double>& recvBu
     int* sendIndexBuff = new int [numValue];
     int* recvIndexBuff = new int [srcSize];
 
-    int ibegin = axisSrc_->ibegin.getValue();
+    int ibegin = axisSrc_->begin.getValue();
     for (int idx = 0; idx < numValue; ++idx)
     {
       if (axisMask(idx))

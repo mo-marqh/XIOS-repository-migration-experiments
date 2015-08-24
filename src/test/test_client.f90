@@ -75,7 +75,7 @@ PROGRAM test_client
   CALL xios_get_calendar_type(calendar_type)
   PRINT *, "calendar_type = ", calendar_type
 
-  CALL xios_set_axis_attr("axis_A",size=llm ,value=lval) ;
+  CALL xios_set_axis_attr("axis_A",n_glo=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj,type='curvilinear')
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
 !  CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)

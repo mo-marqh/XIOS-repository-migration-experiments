@@ -124,11 +124,11 @@ PROGRAM test_new_features
   CALL xios_get_calendar_type(calendar_type)
   PRINT *, "calendar_type = ", calendar_type
 
-  CALL xios_set_axis_attr("axis_A", size=ni_glo, ibegin=ibegin, ni=ni, value=lval_ni)
-  CALL xios_set_axis_attr("axis_B", size=nj_glo, ibegin=jbegin, ni=nj, value=lval_nj, mask=mask)
-  CALL xios_set_axis_attr("axis_C", size=llm, value=lval)
-  CALL xios_set_axis_attr("axis_D", size=llm, ibegin=axisBegin, ni=nAxis, value=lvaln)
-  CALL xios_set_axis_attr("axis_G", size=llmInterPolated, value=lvalnInterp, ibegin=axisterpBegin, ni=nAxisinterp)
+  CALL xios_set_axis_attr("axis_A", n_glo=ni_glo, begin=ibegin, n=ni, value=lval_ni)
+  CALL xios_set_axis_attr("axis_B", n_glo=nj_glo, begin=jbegin, n=nj, value=lval_nj, mask=mask)
+  CALL xios_set_axis_attr("axis_C", n_glo=llm, value=lval)
+  CALL xios_set_axis_attr("axis_D", n_glo=llm, begin=axisBegin, n=nAxis, value=lvaln)
+  CALL xios_set_axis_attr("axis_G", n_glo=llmInterPolated, value=lvalnInterp, begin=axisterpBegin, n=nAxisinterp)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)

@@ -43,6 +43,29 @@ extern "C"
   }
 
 
+  void cxios_set_axisgroup_begin(axisgroup_Ptr axisgroup_hdl, int begin)
+  {
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->begin.setValue(begin);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_begin(axisgroup_Ptr axisgroup_hdl, int* begin)
+  {
+    CTimer::get("XIOS").resume();
+    *begin = axisgroup_hdl->begin.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_begin(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->begin.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl, double* bounds, int extent1, int extent2)
   {
     CTimer::get("XIOS").resume();
@@ -165,29 +188,6 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_ibegin(axisgroup_Ptr axisgroup_hdl, int ibegin)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->ibegin.setValue(ibegin);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_ibegin(axisgroup_Ptr axisgroup_hdl, int* ibegin)
-  {
-    CTimer::get("XIOS").resume();
-    *ibegin = axisgroup_hdl->ibegin.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_ibegin(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->ibegin.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
   void cxios_set_axisgroup_long_name(axisgroup_Ptr axisgroup_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
@@ -239,6 +239,52 @@ extern "C"
   }
 
 
+  void cxios_set_axisgroup_n(axisgroup_Ptr axisgroup_hdl, int n)
+  {
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->n.setValue(n);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_n(axisgroup_Ptr axisgroup_hdl, int* n)
+  {
+    CTimer::get("XIOS").resume();
+    *n = axisgroup_hdl->n.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_n(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->n.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_n_glo(axisgroup_Ptr axisgroup_hdl, int n_glo)
+  {
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->n_glo.setValue(n_glo);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_n_glo(axisgroup_Ptr axisgroup_hdl, int* n_glo)
+  {
+    CTimer::get("XIOS").resume();
+    *n_glo = axisgroup_hdl->n_glo.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_n_glo(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->n_glo.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axisgroup_name(axisgroup_Ptr axisgroup_hdl, const char * name, int name_size)
   {
     std::string name_str;
@@ -265,29 +311,6 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_ni(axisgroup_Ptr axisgroup_hdl, int ni)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->ni.setValue(ni);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_ni(axisgroup_Ptr axisgroup_hdl, int* ni)
-  {
-    CTimer::get("XIOS").resume();
-    *ni = axisgroup_hdl->ni.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_ni(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->ni.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
   void cxios_set_axisgroup_positive(axisgroup_Ptr axisgroup_hdl, const char * positive, int positive_size)
   {
     std::string positive_str;
@@ -309,29 +332,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axisgroup_hdl->positive.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_axisgroup_size(axisgroup_Ptr axisgroup_hdl, int size)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->size.setValue(size);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_size(axisgroup_Ptr axisgroup_hdl, int* size)
-  {
-    CTimer::get("XIOS").resume();
-    *size = axisgroup_hdl->size.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_size(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -409,75 +409,6 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axisgroup_hdl->value.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_axisgroup_zoom_begin(axisgroup_Ptr axisgroup_hdl, int zoom_begin)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->zoom_begin.setValue(zoom_begin);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_zoom_begin(axisgroup_Ptr axisgroup_hdl, int* zoom_begin)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_begin = axisgroup_hdl->zoom_begin.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_zoom_begin(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->zoom_begin.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_axisgroup_zoom_end(axisgroup_Ptr axisgroup_hdl, int zoom_end)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->zoom_end.setValue(zoom_end);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_zoom_end(axisgroup_Ptr axisgroup_hdl, int* zoom_end)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_end = axisgroup_hdl->zoom_end.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_zoom_end(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->zoom_end.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
-  void cxios_set_axisgroup_zoom_size(axisgroup_Ptr axisgroup_hdl, int zoom_size)
-  {
-    CTimer::get("XIOS").resume();
-    axisgroup_hdl->zoom_size.setValue(zoom_size);
-    CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_axisgroup_zoom_size(axisgroup_Ptr axisgroup_hdl, int* zoom_size)
-  {
-    CTimer::get("XIOS").resume();
-    *zoom_size = axisgroup_hdl->zoom_size.getInheritedValue();
-    CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_axisgroup_zoom_size(axisgroup_Ptr axisgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = axisgroup_hdl->zoom_size.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

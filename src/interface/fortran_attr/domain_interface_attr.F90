@@ -227,25 +227,6 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_data_jbegin
 
 
-    SUBROUTINE cxios_set_domain_data_n_index(domain_hdl, data_n_index) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: data_n_index
-    END SUBROUTINE cxios_set_domain_data_n_index
-
-    SUBROUTINE cxios_get_domain_data_n_index(domain_hdl, data_n_index) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-      INTEGER (KIND=C_INT)             :: data_n_index
-    END SUBROUTINE cxios_get_domain_data_n_index
-
-    FUNCTION cxios_is_defined_domain_data_n_index(domain_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_data_n_index
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-    END FUNCTION cxios_is_defined_domain_data_n_index
-
-
     SUBROUTINE cxios_set_domain_data_ni(domain_hdl, data_ni) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl

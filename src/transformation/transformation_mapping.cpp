@@ -44,8 +44,8 @@ CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
 
-  int niSrc     = source->ni.getValue();
-  int ibeginSrc = source->ibegin.getValue();
+  int niSrc     = source->n.getValue();
+  int ibeginSrc = source->begin.getValue();
 
   boost::unordered_map<size_t,int> globalIndexOfAxisSource;
   for (int idx = 0; idx < niSrc; ++idx)

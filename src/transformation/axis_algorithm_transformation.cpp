@@ -16,9 +16,9 @@ namespace xios {
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
  : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource)
 {
-  axisDestGlobalSize_ = axisDestination->size.getValue();
-  int niDest = axisDestination->ni.getValue();
-  int ibeginDest = axisDestination->ibegin.getValue();
+  axisDestGlobalSize_ = axisDestination->n_glo.getValue();
+  int niDest = axisDestination->n.getValue();
+  int ibeginDest = axisDestination->begin.getValue();
 
   for (int idx = 0; idx < niDest; ++idx)
     if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
