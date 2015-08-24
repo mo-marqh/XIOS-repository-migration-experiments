@@ -168,7 +168,7 @@ namespace xios {
       }
       else if (!i_index.isEmpty())
       {
-        ibegin = i_index(0);
+        if (ibegin.isEmpty()) ibegin = i_index(0);
       }
 
       if (ni.getValue() < 0 || ibegin.getValue() < 0 ||
@@ -191,7 +191,7 @@ namespace xios {
      }
      else if (!j_index.isEmpty())
      {
-       jbegin = j_index(0);
+       if (jbegin.isEmpty()) jbegin = j_index(0);
      }
 
       if (nj.getValue() < 0 || jbegin.getValue() < 0 ||
@@ -207,13 +207,6 @@ namespace xios {
    //----------------------------------------------------------------
    void CDomain::checkMask(void)
    {
-      using namespace std;
-
-      int ibegin_mask = 0,
-          jbegin_mask = 0,
-          iend_mask = ibegin.getValue() + ni.getValue() - 1,
-          jend_mask = jbegin.getValue() + nj.getValue() - 1;
-
       if (!mask_1d.isEmpty() && !mask_2d.isEmpty())
         ERROR("CDomain::checkMask(void)",
              <<"Only one mask is used but both mask_1d and mask_2d are defined! "<<endl
@@ -643,7 +636,7 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-   // Divide function checkAttributes into 2 seperate onescheckBounds
+   // Divide function checkAttributes into 2 seperate ones
    // This function only checks all attributes of current domain
    void CDomain::checkAttributesOnClient()
    {
@@ -681,7 +674,6 @@ namespace xios {
        sendServerAttribut();
        if (hasLonLat || hasArea) sendLonLatArea();
      }
-
      this->isChecked = true;
    }
 
@@ -876,6 +868,9 @@ namespace xios {
     return indSrv_;
   }
 
+  /*!
+    Send index from client to server(s)
+  */
   void CDomain::sendIndex()
   {
     int ns, n, i, j, ind, nv, idx;
@@ -922,6 +917,9 @@ namespace xios {
     client->sendEvent(eventIndex);
   }
 
+  /*!
+    Send area from client to server(s)
+  */
   void CDomain::sendArea()
   {
     if (!hasArea) return;
@@ -964,6 +962,11 @@ namespace xios {
     client->sendEvent(eventArea);
   }
 
+  /*!
+    Send longitude and latitude from client to servers
+    Each client send long and lat information to corresponding connected server(s).
+    Because longitude and latitude are optional, this function only called if latitude and longitude exist
+  */
   void CDomain::sendLonLat()
   {
     if (!hasLonLat) return;
@@ -1041,7 +1044,10 @@ namespace xios {
     client->sendEvent(eventLat);
   }
 
-
+  /*!
+    Send some optional information to server(s)
+    In the future, this function can be extended with more optional information to send
+  */
   void CDomain::sendLonLatArea(void)
   {
     sendIndex();
@@ -1084,6 +1090,10 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive attributes event from clients(s)
+    \param[in] event event contain info about rank and associated attributes
+  */
   void CDomain::recvServerAttribut(CEventServer& event)
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
@@ -1092,6 +1102,11 @@ namespace xios {
     get(domainId)->recvServerAttribut(*buffer) ;
   }
 
+  /*!
+    Receive attributes from client(s): zoom info and begin and n of each server
+    \param[in] rank rank of client source
+    \param[in] buffer message containing attributes info
+  */
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
     buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv
@@ -1129,6 +1144,10 @@ namespace xios {
       area_srv.resize(zoom_ni_srv * zoom_nj_srv);
   }
 
+  /*!
+    Receive index event from clients(s)
+    \param[in] event event contain info about rank and associated index
+  */
   void CDomain::recvIndex(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it;
@@ -1141,6 +1160,11 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive index information from client(s)
+    \param[in] rank rank of client source
+    \param[in] buffer message containing index info
+  */
   void CDomain::recvIndex(int rank, CBufferIn& buffer)
   {
     int type_int;
@@ -1148,6 +1172,10 @@ namespace xios {
     type.setValue((type_attr::t_enum)type_int); // probleme des type enum avec les buffers : ToFix
   }
 
+  /*!
+    Receive longitude event from clients(s)
+    \param[in] event event contain info about rank and associated longitude
+  */
   void CDomain::recvLon(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it;
@@ -1160,6 +1188,11 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive longitude information from client(s)
+    \param[in] rank rank of client source
+    \param[in] buffer message containing longitude info
+  */
   void CDomain::recvLon(int rank, CBufferIn& buffer)
   {
     CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
@@ -1183,6 +1216,10 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive latitude event from clients(s)
+    \param[in] event event contain info about rank and associated latitude
+  */
   void CDomain::recvLat(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it;
@@ -1195,6 +1232,11 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive latitude information from client(s)
+    \param[in] rank rank of client source
+    \param[in] buffer message containing latitude info
+  */
   void CDomain::recvLat(int rank, CBufferIn& buffer)
   {
     CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
@@ -1218,6 +1260,10 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive area event from clients(s)
+    \param[in] event event contain info about rank and associated area
+  */
   void CDomain::recvArea(CEventServer& event)
   {
     list<CEventServer::SSubEvent>::iterator it;
@@ -1230,6 +1276,11 @@ namespace xios {
     }
   }
 
+  /*!
+    Receive area information from client(s)
+    \param[in] rank rank of client source
+    \param[in] buffer message containing area info
+  */
   void CDomain::recvArea(int rank, CBufferIn& buffer)
   {
     CArray<int,1> &indi = indiSrv[rank], &indj = indjSrv[rank];
@@ -1246,16 +1297,28 @@ namespace xios {
     }
   }
 
+  /*!
+    Check whether a domain has transformation
+    \return true if domain has transformation
+  */
   bool CDomain::hasTransformation()
   {
     return (!transformationMap_.empty());
   }
 
+  /*!
+    Set transformation for current domain. It's the method to move transformation in hierarchy
+    \param [in] domTrans transformation on domain
+  */
   void CDomain::setTransformations(const TransMapTypes& domTrans)
   {
     transformationMap_ = domTrans;
   }
 
+  /*!
+    Get all transformation current domain has
+    \return all transformation
+  */
   CDomain::TransMapTypes CDomain::getAllTransformations(void)
   {
     return transformationMap_;
@@ -1275,6 +1338,9 @@ namespace xios {
     }
   }
 
+  /*!
+    A current domain will go up the hierarchy to find out the domain from which it has transformation
+  */
   void CDomain::solveInheritanceTransformation()
   {
     if (this->hasTransformation()) return;
@@ -1295,6 +1361,11 @@ namespace xios {
         refDomain[idx]->setTransformations(refer_ptr->getAllTransformations());
   }
 
+  /*!
+    Parse children nodes of a domain in xml file.
+    Whenver there is a new transformation, its type and name should be added into this function
+    \param node child node to process
+  */
   void CDomain::parse(xml::CXMLNode & node)
   {
     SuperClass::parse(node);

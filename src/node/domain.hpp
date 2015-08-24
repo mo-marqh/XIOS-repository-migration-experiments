@@ -75,38 +75,15 @@ namespace xios {
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
 
-      private :
-         void checkDomain(void);
-         void checkLocalIDomain(void);
-         void checkLocalJDomain(void);
-
-         void checkMask(void);
-         void checkDomainData(void);
-         void checkCompression(void);
-
-         void checkBounds(void);
-         void checkArea(void);
-         void checkLonLat();
-
       public :
-
-         /// Autres ///
-
          const std::set<StdString> & getRelFiles(void) const;
-
-
-         /// Test ///
          bool IsWritten(const StdString & filename) const;
-//         bool hasZoom(void) const;
          bool isEmpty(void) const;
          bool isDistributed(void) const;
 
 
-//         int ni_client,ibegin_client,iend_client ;
-//         int zoom_ni_client,zoom_ibegin_client,zoom_iend_client ;
-//
-//         int nj_client,jbegin_client,jend_client ;
-//         int zoom_nj_client,zoom_jbegin_client,zoom_jend_client ;
+         int global_zoom_ibegin, global_zoom_ni;
+         int global_zoom_jbegin, global_zoom_nj;
 
          int ni_srv,ibegin_srv,iend_srv ;
          int zoom_ni_srv,zoom_ibegin_srv,zoom_iend_srv ;
@@ -120,18 +97,11 @@ namespace xios {
          CArray<double, 2> bounds_lon_client, bounds_lat_client;
          CArray<double, 1> area_srv;
 
-
         vector<int> connectedServer ; // list of connected server
         vector<int> nbSenders ; // for each communication with a server, number of communicating client
         vector<int> nbDataSrv ; // size of data to send to each server
         vector< vector<int> > i_indSrv ; // for each server, i global index to send
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
-
-
-//        CArray<int,2> mapConnectedServer ;  // (ni,nj) => mapped to connected server number, -1 if no server is target
-
-        int global_zoom_ibegin, global_zoom_ni;
-        int global_zoom_jbegin, global_zoom_nj;
 
       public :
          /// Mutateur ///
@@ -168,6 +138,18 @@ namespace xios {
          bool hasArea;
          bool hasLonLat;
       private:
+         void checkDomain(void);
+         void checkLocalIDomain(void);
+         void checkLocalJDomain(void);
+
+         void checkMask(void);
+         void checkDomainData(void);
+         void checkCompression(void);
+
+         void checkBounds(void);
+         void checkArea(void);
+         void checkLonLat();
+
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
@@ -189,8 +171,6 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
-
-
 
          DECLARE_REF_FUNC(Domain,domain)
 

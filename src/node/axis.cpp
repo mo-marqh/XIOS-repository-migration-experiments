@@ -250,17 +250,30 @@ namespace xios {
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
     int range, clientSize = client->clientSize;
+
     size_t ni = this->n.getValue();
     size_t ibegin = this->begin.getValue();
+    size_t zoom_end = global_zoom_begin+global_zoom_size-1;
+    size_t nZoomCount = 0;
+    for (size_t idx = 0; idx < ni; ++idx)
+    {
+      size_t globalIndex = ibegin + idx;
+
+      if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nZoomCount;
+    }
 
     CArray<size_t,1> globalIndexAxis(ni);
-    int zoom_end = global_zoom_begin+global_zoom_size-1;
-    std::vector<size_t> globalAxisZoom;
+    std::vector<size_t> globalAxisZoom(nZoomCount);
+    nZoomCount = 0;
     for (size_t idx = 0; idx < ni; ++idx)
     {
       size_t globalIndex = ibegin + idx;
       globalIndexAxis(idx) = globalIndex;
-      if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) globalAxisZoom.push_back(globalIndex);
+      if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
+      {
+        globalAxisZoom[nZoomCount];
+        ++nZoomCount;
+      }
     }
 
     std::vector<int> nGlobDomain(1);
