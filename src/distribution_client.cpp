@@ -463,7 +463,6 @@ void CDistributionClient::createGlobalIndexSendToServer()
     idx += innerLoopSize;
   }
 
-
   // Now allocate these arrays
   globalDataSendToServer_.resize(indexSend2ServerCount);
   localDataIndex_.resize(indexLocalDataOnClientCount);
@@ -616,14 +615,6 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
                                         const int& dataIBegin, const int& dataJBegin,
                                         const int& dataDim, const int& ni, int& j)
 {
-//  int tempI = dataIIndex + dataIBegin,
-//      tempJ = (1 == dataDim) ? -1
-//                             : (dataJIndex + dataJBegin);
-//  int i = (dataDim == 1) ? (tempI - 1) % ni
-//                     : (tempI - 1) ;
-//  j = (dataDim == 1) ? (tempI - 1) / ni
-//                     : (tempJ - 1) ;
-
   int tempI = dataIIndex + dataIBegin,
       tempJ = (dataJIndex + dataJBegin);
   int i = (dataDim == 1) ? (tempI) % ni

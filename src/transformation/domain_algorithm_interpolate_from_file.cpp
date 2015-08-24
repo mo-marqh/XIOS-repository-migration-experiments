@@ -240,7 +240,7 @@ void CDomainAlgorithmInterpolateFromFile::readInterpolationInfo(std::string& fil
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
-  
+
   nc_open(filename.c_str(),NC_NOWRITE, &ncid) ;
   nc_inq_dimid(ncid,"n_weight",&weightDimId) ;
   nc_inq_dimlen(ncid,weightDimId,&nbWeightGlo) ;
@@ -259,26 +259,24 @@ void CDomainAlgorithmInterpolateFromFile::readInterpolationInfo(std::string& fil
     nbWeight=div ;
     start= mod * (div+1) + (clientRank-mod) * div ;
   }
-  
-  
 
   double* weight=new double[nbWeight] ;
   int weightId ;
   nc_inq_varid (ncid, "weight", &weightId) ;
   nc_get_vara_double(ncid, weightId, &start, &nbWeight, weight) ;
 
-  long* srcIndex=new long[nbWeight] ; 
+  long* srcIndex=new long[nbWeight] ;
   int srcIndexId ;
   nc_inq_varid (ncid, "src_idx", &srcIndexId) ;
   nc_get_vara_long(ncid, srcIndexId, &start, &nbWeight, srcIndex) ;
 
-  long* dstIndex=new long[nbWeight] ; 
+  long* dstIndex=new long[nbWeight] ;
   int dstIndexId ;
   nc_inq_varid (ncid, "dst_idx", &dstIndexId) ;
   nc_get_vara_long(ncid, dstIndexId, &start, &nbWeight, dstIndex) ;
-        
+
   for(size_t ind=0; ind<nbWeight;++ind)
-    interpMapValue[dstIndex[ind]].push_back(make_pair(srcIndex[ind],weight[ind]));
+    interpMapValue[dstIndex[ind]-1].push_back(make_pair(srcIndex[ind]-1,weight[ind]));
 }
 
 }

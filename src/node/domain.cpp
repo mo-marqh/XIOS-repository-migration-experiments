@@ -166,6 +166,9 @@ namespace xios {
           for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
       }
       computeNGlobDomain();
+
+      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
+      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
    }
 
    //----------------------------------------------------------------
@@ -557,8 +560,8 @@ namespace xios {
    {
       // compute client zoom indices
       // compute client zoom indices
-      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
-      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
+//      if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
+//      if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
 
       int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
       zoom_ibegin_client = ibegin_client > global_zoom_ibegin ? ibegin_client : global_zoom_ibegin ;

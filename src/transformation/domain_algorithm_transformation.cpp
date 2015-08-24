@@ -72,7 +72,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
     indexMap[idx] = i;
     ++idx;
   }
-  int iIndex = domainDestGlobalIndex % domainDestGlobalDim[1];
+  int iIndex = domainDestGlobalIndex % domainDestGlobalDim[0];
   int jIndex = domainDestGlobalIndex / domainDestGlobalDim[0];
 
   for (int i = 0; i< numElement; ++i) ssize *= gridDomainGlobalDim[i];
@@ -187,7 +187,7 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
 void CDomainAlgorithmTransformation::domainGlobalIndex(const int& index, const int& niGlob, const int& njGlob,
                                                        int& iIndex, int& jIndex)
 {
-   iIndex = index % njGlob;
+   iIndex = index % niGlob;
    jIndex = index / niGlob;
 }
 }
