@@ -236,8 +236,9 @@ namespace xios {
         mask_1d.resize(mask_2d.extent(0) * mask_2d.extent(1));
         for (int j = 0; j < nj; ++j)
           for (int i = 0; i < ni; ++i) mask_1d(i+j*ni) = mask_2d(i,j);
+        mask_2d.free();
       }
-      else
+      else if (mask_1d.isEmpty())
       {
         mask_1d.resize(i_index.numElements());
         for (int i = 0; i < i_index.numElements(); ++i) mask_1d(i) = true;
