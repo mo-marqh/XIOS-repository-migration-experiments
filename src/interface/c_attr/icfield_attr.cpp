@@ -312,6 +312,29 @@ extern "C"
   }
 
 
+  void cxios_set_field_indexed_output(field_Ptr field_hdl, bool indexed_output)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->indexed_output.setValue(indexed_output);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_indexed_output(field_Ptr field_hdl, bool* indexed_output)
+  {
+    CTimer::get("XIOS").resume();
+    *indexed_output = field_hdl->indexed_output.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_indexed_output(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->indexed_output.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_level(field_Ptr field_hdl, int level)
   {
     CTimer::get("XIOS").resume();

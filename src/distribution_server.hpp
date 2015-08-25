@@ -33,12 +33,13 @@ class CDistributionServer : public CDistribution
     /** Default destructor */
     virtual ~CDistributionServer();
 
-    std::vector<int> getZoomBeginGlobal() const;
-    std::vector<int> getZoomBeginServer() const;
-    std::vector<int> getZoomSizeServer() const;
+    const std::vector<int>& getZoomBeginGlobal() const;
+    const std::vector<int>& getZoomBeginServer() const;
+    const std::vector<int>& getZoomSizeServer() const;
 
     virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
+    virtual void computeGlobalIndex(CArray<int,1>& indexes) const;
 
   protected:
     virtual void createGlobalIndex();

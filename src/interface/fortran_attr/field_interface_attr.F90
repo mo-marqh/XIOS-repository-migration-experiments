@@ -230,6 +230,25 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_grid_ref
 
 
+    SUBROUTINE cxios_set_field_indexed_output(field_hdl, indexed_output) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: indexed_output
+    END SUBROUTINE cxios_set_field_indexed_output
+
+    SUBROUTINE cxios_get_field_indexed_output(field_hdl, indexed_output) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: indexed_output
+    END SUBROUTINE cxios_get_field_indexed_output
+
+    FUNCTION cxios_is_defined_field_indexed_output(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_indexed_output
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_indexed_output
+
+
     SUBROUTINE cxios_set_field_level(field_hdl, level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

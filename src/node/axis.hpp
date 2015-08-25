@@ -66,12 +66,20 @@ namespace xios {
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
 
+         const std::vector<int>& getIndexesToWrite(void) const;
+         int getNumberWrittenIndexes() const;
+         int getTotalNumberWrittenIndexes() const;
+         int getOffsetWrittenIndexes() const;
+
          /// Test ///
          bool IsWritten(const StdString & filename) const;
+         bool isWrittenCompressed(const StdString& filename) const;
          bool isDistributed(void) const;
+         bool isCompressible(void) const;
 
          /// Mutateur ///
          void addRelFile(const StdString & filename);
+         void addRelFileCompressed(const StdString& filename);
 
          /// Vérifications ///
          void checkAttributes(void);
@@ -96,6 +104,8 @@ namespace xios {
          void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
+         void checkEligibilityForCompressedOutput();
+
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
@@ -106,7 +116,8 @@ namespace xios {
         int global_zoom_begin, global_zoom_size;  // The real global zoom begin and zoom size after axis is transformed (zoomed)
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
-      private :
+
+      private:
          void checkData();
          void checkMask();
          void checkZoom();
@@ -127,14 +138,20 @@ namespace xios {
          void recvNonDistributedValue(int rank, CBufferIn& buffer);
 
          void setTransformations(const TransMapTypes&);
+
       private:
          bool isChecked;
          bool areClientAttributesChecked_;
-         std::set<StdString> relFiles;
+         std::set<StdString> relFiles, relFilesCompressed;
          TransMapTypes transformationMap_;
          bool isDistributed_;
+         //! True if and only if the data defined on the axis can be outputted in a compressed way
+         bool isCompressible_;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
+         std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         std::vector<int> indexesToWrite;
+         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;

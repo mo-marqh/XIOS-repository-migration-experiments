@@ -145,18 +145,31 @@ void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
   globalIndex = localIndex;
 }
 
+/*!
+  Transforms local indexes owned by the server into global indexes
+  \param [in/out] indexes on input, local indexes of the server,
+                          on output, the corresponding global indexes
+*/
+void CDistributionServer::computeGlobalIndex(CArray<int,1>& indexes) const
+{
+  for (int i = 0; i < indexes.numElements(); ++i)
+  {
+    indexes(i) = globalIndex_(indexes(i));
+  }
+}
 
-std::vector<int> CDistributionServer::getZoomBeginGlobal() const
+
+const std::vector<int>& CDistributionServer::getZoomBeginGlobal() const
 {
   return nZoomBeginGlobal_;
 }
 
-std::vector<int> CDistributionServer::getZoomBeginServer() const
+const std::vector<int>& CDistributionServer::getZoomBeginServer() const
 {
   return nZoomBegin_;
 }
 
-std::vector<int> CDistributionServer::getZoomSizeServer() const
+const std::vector<int>& CDistributionServer::getZoomSizeServer() const
 {
   return nZoomSize_;
 }

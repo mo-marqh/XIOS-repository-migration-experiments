@@ -7,12 +7,14 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "context_server.hpp"
 #include "xios_spl.hpp"
 #include "inverse_axis.hpp"
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
+#include "distribution_client.hpp"
 
 namespace xios {
 
@@ -21,7 +23,8 @@ namespace xios {
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
-      , isDistributed_(false), hasBounds_(false)
+      , isDistributed_(false), hasBounds_(false), isCompressible_(false)
+      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
    {
    }
@@ -29,7 +32,8 @@ namespace xios {
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
-      , isDistributed_(false), hasBounds_(false)
+      , isDistributed_(false), hasBounds_(false), isCompressible_(false)
+      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
    {
    }
@@ -49,14 +53,68 @@ namespace xios {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
 
+   bool CAxis::isWrittenCompressed(const StdString& filename) const
+   {
+      return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
+   }
+
    bool CAxis::isDistributed(void) const
    {
       return isDistributed_;
    }
 
+   /*!
+    * Test whether the data defined on the axis can be outputted in a compressed way.
+    * 
+    * \return true if and only if a mask was defined for this axis
+    */
+   bool CAxis::isCompressible(void) const
+   {
+      return isCompressible_;
+   }
+
    void CAxis::addRelFile(const StdString & filename)
    {
       this->relFiles.insert(filename);
+   }
+
+   void CAxis::addRelFileCompressed(const StdString& filename)
+   {
+      this->relFilesCompressed.insert(filename);
+   }
+
+   //----------------------------------------------------------------
+
+   const std::vector<int>& CAxis::getIndexesToWrite(void) const
+   {
+     return indexesToWrite;
+   }
+
+   /*!
+     Returns the number of indexes written by each server.
+     \return the number of indexes written by each server
+   */
+   int CAxis::getNumberWrittenIndexes() const
+   {
+     return numberWrittenIndexes_;
+   }
+
+   /*!
+     Returns the total number of indexes written by the servers.
+     \return the total number of indexes written by the servers
+   */
+   int CAxis::getTotalNumberWrittenIndexes() const
+   {
+     return totalNumberWrittenIndexes_;
+   }
+
+   /*!
+     Returns the offset of indexes written by each server.
+     \return the offset of indexes written by each server
+   */
+   int CAxis::getOffsetWrittenIndexes() const
+   {
+     return offsetWrittenIndexes_;
    }
 
    //----------------------------------------------------------------
@@ -170,6 +228,11 @@ namespace xios {
     else hasBounds_ = false;
   }
 
+  void CAxis::checkEligibilityForCompressedOutput()
+  {
+    // We don't check if the mask is valid here, just if a mask has been defined at this point.
+    isCompressible_ = !mask.isEmpty();
+  }
 
   bool CAxis::dispatchEvent(CEventServer& event)
    {
@@ -276,6 +339,22 @@ namespace xios {
       }
     }
 
+    std::set<int> writtenInd;
+    if (isCompressible_)
+    {
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
+
+        if (ind >= 0 && ind < ni && mask(ind))
+        {
+          ind += ibegin;
+          if (ind >= global_zoom_begin && ind <= zoom_end)
+            writtenInd.insert(ind);
+        }
+      }
+    }
+
     std::vector<int> nGlobDomain(1);
     nGlobDomain[0] = n_glo.getValue();
 
@@ -302,6 +381,7 @@ namespace xios {
     std::vector<size_t>::const_iterator itbVec = (globalAxisZoom).begin(),
                                         iteVec = (globalAxisZoom).end();
     indSrv_.clear();
+    indWrittenSrv_.clear();
     for (; it != ite; ++it)
     {
       int rank = it->first;
@@ -313,6 +393,11 @@ namespace xios {
         if (std::binary_search(itbVec, iteVec, globalIndexTmp[i]))
         {
           indSrv_[rank].push_back(globalIndexTmp[i]);
+        }
+
+        if (writtenInd.count(globalIndexTmp[i]))
+        {
+          indWrittenSrv_[rank].push_back(globalIndexTmp[i]);
         }
       }
     }
@@ -336,14 +421,30 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
-    CEventClient event(getType(),EVENT_ID_NON_DISTRIBUTED_VALUE);
+    CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_VALUE);
 
-    int zoom_end = global_zoom_begin+global_zoom_size-1;
-    int nb =0;
+    int zoom_end = global_zoom_begin + global_zoom_size - 1;
+    int nb = 0;
     for (size_t idx = 0; idx < n; ++idx)
     {
       size_t globalIndex = begin + idx;
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nb;
+    }
+
+    int nbWritten = 0;
+    if (isCompressible_)
+    {
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, n);
+
+        if (ind >= 0 && ind < n && mask(ind))
+        {
+          ind += begin;
+          if (ind >= global_zoom_begin && ind <= zoom_end)
+            ++nbWritten;
+        }
+      }
     }
 
     CArray<double,1> val(nb);
@@ -358,6 +459,26 @@ namespace xios {
       }
     }
 
+    CArray<int, 1> writtenInd(nbWritten);
+    nbWritten = 0;
+    if (isCompressible_)
+    {
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, n);
+
+        if (ind >= 0 && ind < n && mask(ind))
+        {
+          ind += begin;
+          if (ind >= global_zoom_begin && ind <= zoom_end)
+          {
+            writtenInd(nbWritten) = ind;
+            ++nbWritten;
+          }
+        }
+      }
+    }
+
     if (client->isServerLeader())
     {
       std::list<CMessage> msgs;
@@ -365,12 +486,13 @@ namespace xios {
       const std::list<int>& ranks = client->getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
-        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
         msg << this->getId();
         msg << val;
-        event.push(*itRank,1,msg);
+        if (isCompressible_)
+          msg << writtenInd;
+        event.push(*itRank, 1, msg);
       }
       client->sendEvent(event);
     }
@@ -389,6 +511,7 @@ namespace xios {
 
     list<CMessage> list_msgsIndex, list_msgsVal;
     list<CArray<int,1> > list_indi;
+    list<CArray<int,1> > list_writtenInd;
     list<CArray<double,1> > list_val;
     list<CArray<double,2> > list_bounds;
 
@@ -432,6 +555,18 @@ namespace xios {
       list_msgsIndex.push_back(CMessage());
       list_msgsIndex.back() << this->getId() << list_indi.back();
 
+      if (isCompressible_)
+      {
+        std::vector<int>& writtenIndSrc = indWrittenSrv_[rank];
+        list_writtenInd.push_back(CArray<int,1>(writtenIndSrc.size()));
+        CArray<int,1>& writtenInd = list_writtenInd.back();
+
+        for (n = 0; n < writtenInd.numElements(); ++n)
+          writtenInd(n) = writtenIndSrc[n];
+
+        list_msgsIndex.back() << writtenInd;
+      }
+
       list_msgsVal.push_back(CMessage());
       list_msgsVal.back() << this->getId() << list_val.back();
 
@@ -450,19 +585,42 @@ namespace xios {
 
   void CAxis::recvIndex(CEventServer& event)
   {
+    CAxis* axis;
+
     list<CEventServer::SSubEvent>::iterator it;
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       CBufferIn* buffer = it->buffer;
-      string domainId;
-      *buffer >> domainId;
-      get(domainId)->recvIndex(it->rank, *buffer);
+      string axisId;
+      *buffer >> axisId;
+      axis = get(axisId);
+      axis->recvIndex(it->rank, *buffer);
+    }
+
+    if (axis->isCompressible_)
+    {
+      std::sort(axis->indexesToWrite.begin(), axis->indexesToWrite.end());
+
+      CContextServer* server = CContext::getCurrent()->server;
+      axis->numberWrittenIndexes_ = axis->indexesToWrite.size();
+      MPI_Allreduce(&axis->numberWrittenIndexes_, &axis->totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      MPI_Scan(&axis->numberWrittenIndexes_, &axis->offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      axis->offsetWrittenIndexes_ -= axis->numberWrittenIndexes_;
     }
   }
 
   void CAxis::recvIndex(int rank, CBufferIn& buffer)
   {
     buffer >> indiSrv_[rank];
+
+    if (isCompressible_)
+    {
+      CArray<int, 1> writtenIndexes;
+      buffer >> writtenIndexes;
+      indexesToWrite.reserve(indexesToWrite.size() + writtenIndexes.numElements());
+      for (int i = 0; i < writtenIndexes.numElements(); ++i)
+        indexesToWrite.push_back(writtenIndexes(i));
+    }
   }
 
   void CAxis::recvDistributedValue(CEventServer& event)
@@ -471,9 +629,9 @@ namespace xios {
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       CBufferIn* buffer = it->buffer;
-      string domainId;
-      *buffer >> domainId;
-      get(domainId)->recvDistributedValue(it->rank, *buffer);
+      string axisId;
+      *buffer >> axisId;
+      get(axisId)->recvDistributedValue(it->rank, *buffer);
     }
   }
 
@@ -502,13 +660,24 @@ namespace xios {
 
    void CAxis::recvNonDistributedValue(CEventServer& event)
   {
+    CAxis* axis;
+
     list<CEventServer::SSubEvent>::iterator it;
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       CBufferIn* buffer = it->buffer;
-      string domainId;
-      *buffer >> domainId;
-      get(domainId)->recvNonDistributedValue(it->rank, *buffer);
+      string axisId;
+      *buffer >> axisId;
+      axis = get(axisId);
+      axis->recvNonDistributedValue(it->rank, *buffer);
+    }
+
+    if (axis->isCompressible_)
+    {
+      std::sort(axis->indexesToWrite.begin(), axis->indexesToWrite.end());
+
+      axis->numberWrittenIndexes_ = axis->totalNumberWrittenIndexes_ = axis->indexesToWrite.size();
+      axis->offsetWrittenIndexes_ = 0;
     }
   }
 
@@ -525,6 +694,15 @@ namespace xios {
         bound_srv(0,ind) = bounds(0,ind);
         bound_srv(1,ind) = bounds(1,ind);
       }
+    }
+
+    if (isCompressible_)
+    {
+      CArray<int, 1> writtenIndexes;
+      buffer >> writtenIndexes;
+      indexesToWrite.reserve(indexesToWrite.size() + writtenIndexes.numElements());
+      for (int i = 0; i < writtenIndexes.numElements(); ++i)
+        indexesToWrite.push_back(writtenIndexes(i));
     }
   }
 
@@ -560,6 +738,7 @@ namespace xios {
         msg << this->getId();
         msg << ni << begin << end;
         msg << global_zoom_begin << global_zoom_size;
+        msg << isCompressible_;
 
         event.push(*itRank,1,msg);
       }
@@ -580,7 +759,9 @@ namespace xios {
   {
     int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_size_tmp;
 
-    buffer>>ni_srv>>begin_srv>>end_srv>>global_zoom_begin_tmp>>global_zoom_size_tmp;
+    buffer >> ni_srv >> begin_srv >> end_srv;
+    buffer >> global_zoom_begin_tmp >> global_zoom_size_tmp;
+    buffer >> isCompressible_;
     global_zoom_begin = global_zoom_begin_tmp;
     global_zoom_size  = global_zoom_size_tmp;
     int global_zoom_end = global_zoom_begin + global_zoom_size - 1;

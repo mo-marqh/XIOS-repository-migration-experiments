@@ -47,7 +47,7 @@ namespace xios {
          typedef CObjectTemplate<CGrid>   SuperClass;
          typedef CGridAttributes SuperClassAttribute;
 
-      public :
+      public:
 
          typedef CGridAttributes RelAttributes;
          typedef CGridGroup      RelGroup;
@@ -71,6 +71,8 @@ namespace xios {
          /// Traitements ///
 //         void solveReference(void);
 
+         void checkEligibilityForCompressedOutput();
+
          void solveDomainAxisRef(bool areAttributesChecked);
 
          void checkMaskIndex(bool doCalculateIndex);
@@ -78,10 +80,13 @@ namespace xios {
  //        virtual void toBinary  (StdOStream& os) const;
 //         virtual void fromBinary(StdIStream& is);
 
-         /// Tests ///
-         bool hasAxis(void) const;
+         void addRelFileCompressed(const StdString& filename);
 
-      public :
+         /// Tests ///
+         bool isCompressible(void) const;
+         bool isWrittenCompressed(const StdString& filename) const;
+
+      public:
 
          /// Accesseurs ///
          StdSize getDimension(void) const;
@@ -97,12 +102,14 @@ namespace xios {
          void outputField(int rank, const CArray<double,1>& stored, double* field);
          void inputField(int rank, const double* const field, CArray<double,1>& stored);
 
+         void outputCompressedField(int rank, const CArray<double,1>& stored, double* field);
+
          virtual void parse(xml::CXMLNode& node);
 
          /// Destructeur ///
          virtual ~CGrid(void);
 
-      public :
+      public:
 
          /// Accesseurs statiques ///
          static StdString GetName(void);
@@ -115,7 +122,7 @@ namespace xios {
          static CGrid* createGrid(CDomain* domain, CAxis* axis);
          static CGrid* createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, CArray<bool,1> axisDomainOrder = CArray<bool,1>());
 
-      public :
+      public:
 
          /// Entrées-sorties de champs (interne) ///
          void storeField_arr(const double* const data, CArray<double,1>& stored) const;
@@ -125,6 +132,7 @@ namespace xios {
          void computeIndexServer(void);
          void computeIndex(void);
          void computeIndexScalarGrid();
+         void computeCompressedIndex();
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
@@ -162,6 +170,9 @@ namespace xios {
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed();
          size_t getWrittenDataSize() const;
+         int getNumberWrittenIndexes() const;
+         int getTotalNumberWrittenIndexes() const;
+         int getOffsetWrittenIndexes() const;
 
          const CDistributionServer* getDistributionServer() const;
          const CDistributionClient* getDistributionClient() const;
@@ -183,7 +194,7 @@ namespace xios {
          map<int, CArray<int, 1> > storeIndex_toSrv;
          map<int,int> nbSenders;
 
-         map<int, CArray<size_t, 1> > outIndexFromClient;
+         map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;
          void checkMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
 
@@ -220,6 +231,7 @@ namespace xios {
         void setTransformationAlgorithms();
 
         std::vector<int> globalDim_;
+
       private:
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
@@ -230,10 +242,14 @@ namespace xios {
         CDistributionServer* serverDistribution_;
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
+        int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
         std::map<int,size_t> connectedDataSize_;
         std::vector<int> connectedServerRank_;
         bool isDataDistributed_;
         int positionDimensionDistributed_;
+         //! True if and only if the data defined on the grid can be outputted in a compressed way
+        bool isCompressible_;
+        std::set<std::string> relFilesCompressed;
 
         bool isTransformed_;
         std::vector<int> axisPositionInGrid_;

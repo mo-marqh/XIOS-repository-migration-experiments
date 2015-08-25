@@ -19,9 +19,9 @@ namespace xios
             typedef enum { ONE_FILE = 0, MULTI_GROUP, MULTI_FILE } EDataOutputType;
 
             /// Ecriture ///
-            void writeFile     (CFile*  file);
-            void writeAttribute(CVariable*  var);
-            void syncFile     (void);
+            void writeFile     (CFile*     file);
+            void writeAttribute(CVariable* var);
+            void syncFile      (void);
             void closeFile     (void);
             void writeField    (CField* field);
             void writeFieldGrid(CField* field);
@@ -39,23 +39,23 @@ namespace xios
          protected:
 
             /// Ecriture ///
-            void writeGrid(CGrid* grid);
-            void writeGrid(CDomain* domain,
-                           CAxis*   axis);
+            void writeGrid(CGrid* grid, bool allowCompressedOutput = false);
+            void writeGrid(CDomain* domain, CAxis* axis);
             void writeGrid(CDomain* domain);
             void writeGrid(std::vector<CDomain*> domain, std::vector<CAxis*> axis);
 
-            virtual void writeFile_       (CFile*     file)   = 0;
-            virtual void writeAttribute_(CVariable*  var) = 0 ;
-            virtual void closeFile_       (void)                                            = 0;
-            virtual void syncFile_       (void)                                            = 0;
-            virtual void writeField_      (CField*    field)  = 0;
-            virtual void writeFieldData_  (CField*    field)  = 0;
-            virtual void writeDomain_     (CDomain*   domain) = 0;
-            virtual void writeTimeDimension_ (void) = 0;
-            virtual void writeAxis_       (CAxis*     axis)   = 0;
-            virtual void writeTimeAxis_   (CField*    field,
-                                           const shared_ptr<CCalendar> cal)    = 0;
+            virtual void writeFile_     (CFile*      file)   = 0;
+            virtual void writeAttribute_(CVariable*  var)    = 0;
+            virtual void closeFile_     (void)               = 0;
+            virtual void syncFile_      (void)               = 0;
+            virtual void writeField_    (CField*     field)  = 0;
+            virtual void writeFieldData_(CField*     field)  = 0;
+            virtual void writeDomain_   (CDomain*    domain) = 0;
+            virtual void writeAxis_     (CAxis*      axis)   = 0;
+            virtual void writeGridCompressed_(CGrid* grid)   = 0;
+            virtual void writeTimeDimension_(void)           = 0;
+            virtual void writeTimeAxis_ (CField*     field,
+                                         const shared_ptr<CCalendar> cal) = 0;
 
             /// Propriétés protégées ///
             EDataOutputType type;

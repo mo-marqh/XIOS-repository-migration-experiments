@@ -12,11 +12,15 @@
 #include "type.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "context_server.hpp"
 #include "array_new.hpp"
+#include "distribution_client.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "zoom_domain.hpp"
 #include "interpolate_from_file_domain.hpp"
+
+#include <algorithm>
 
 namespace xios {
 
@@ -25,7 +29,7 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
@@ -34,7 +38,7 @@ namespace xios {
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isUnstructed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
@@ -63,6 +67,41 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
+
+   const std::vector<int>& CDomain::getIndexesToWrite(void) const
+   {
+     return indexesToWrite;
+   }
+
+   /*!
+     Returns the number of indexes written by each server.
+     \return the number of indexes written by each server
+   */
+   int CDomain::getNumberWrittenIndexes() const
+   {
+     return numberWrittenIndexes_;
+   }
+
+   /*!
+     Returns the total number of indexes written by the servers.
+     \return the total number of indexes written by the servers
+   */
+   int CDomain::getTotalNumberWrittenIndexes() const
+   {
+     return totalNumberWrittenIndexes_;
+   }
+
+   /*!
+     Returns the offset of indexes written by each server.
+     \return the offset of indexes written by each server
+   */
+   int CDomain::getOffsetWrittenIndexes() const
+   {
+     return offsetWrittenIndexes_;
+   }
+
+   //----------------------------------------------------------------
+
    bool CDomain::isEmpty(void) const
    {
       return ((this->zoom_ni_srv == 0) ||
@@ -70,21 +109,46 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
+
    bool CDomain::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
 
+   bool CDomain::isWrittenCompressed(const StdString& filename) const
+   {
+      return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
+   }
+
    //----------------------------------------------------------------
+
    bool CDomain::isDistributed(void) const
    {
       return isDistributed_;
    }
 
    //----------------------------------------------------------------
+
+   /*!
+    * Test whether the data defined on the domain can be outputted in a compressed way.
+    * 
+    * \return true if and only if a mask was defined for this domain
+    */
+   bool CDomain::isCompressible(void) const
+   {
+      return isCompressible_;
+   }
+
+   //----------------------------------------------------------------
+
    void CDomain::addRelFile(const StdString & filename)
    {
       this->relFiles.insert(filename);
+   }
+
+   void CDomain::addRelFileCompressed(const StdString& filename)
+   {
+      this->relFilesCompressed.insert(filename);
    }
 
 
@@ -245,8 +309,8 @@ namespace xios {
       }
    }
 
-
    //----------------------------------------------------------------
+
    void CDomain::checkDomainData(void)
    {
       if (!data_dim.isEmpty() &&
@@ -356,6 +420,15 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
+
+   void CDomain::checkEligibilityForCompressedOutput(void)
+   {
+     // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
+     isCompressible_ = !mask_1d.isEmpty() || !mask_2d.isEmpty() || !data_i_index.isEmpty();
+   }
+
+   //----------------------------------------------------------------
+
    void CDomain::completeLonLatClient(void)
    {
      int i,j,k ;
@@ -745,6 +818,7 @@ namespace xios {
         msg << this->getId() ;
         msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
         msg << global_zoom_ni << global_zoom_ibegin << global_zoom_nj << global_zoom_jbegin;
+        msg << isCompressible_;
 
         event.push(*itRank,1,msg);
       }
@@ -785,6 +859,24 @@ namespace xios {
       }
     }
 
+    int globalIndexWrittenCount = 0;
+    if (isCompressible_)
+    {
+      for (i = 0; i < data_i_index.numElements(); ++i)
+      {
+        i_ind = CDistributionClient::getDomainIndex(data_i_index(i), data_j_index(i),
+                                                    data_ibegin, data_jbegin, data_dim, ni,
+                                                    j_ind);
+        if (i_ind >= 0 && i_ind < ni && j_ind >= 0 && j_ind < nj && mask_1d(i_ind + j_ind * ni))
+        {
+          i_ind += ibegin;
+          j_ind += jbegin;
+          if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
+            ++globalIndexWrittenCount;
+        }
+      }
+    }
+
     // Fill in index
     CArray<size_t,1> globalIndexDomainZoom(globalIndexCountZoom);
     CArray<size_t,1> localIndexDomainZoom(globalIndexCountZoom);
@@ -808,18 +900,40 @@ namespace xios {
       }
     }
 
-     size_t globalSizeIndex = 1, indexBegin, indexEnd;
-     int range, clientSize = client->clientSize;
-     for (int i = 0; i < nGlobDomain_.size(); ++i) globalSizeIndex *= nGlobDomain_[i];
-     indexBegin = 0;
-     for (int i = 0; i < clientSize; ++i)
-     {
-       range = globalSizeIndex / clientSize;
-       if (i < (globalSizeIndex%clientSize)) ++range;
-       if (i == client->clientRank) break;
-       indexBegin += range;
-     }
-     indexEnd = indexBegin + range - 1;
+    CArray<int,1> globalIndexWrittenDomain(globalIndexWrittenCount);
+    if (isCompressible_)
+    {
+      globalIndexWrittenCount = 0;
+      for (i = 0; i < data_i_index.numElements(); ++i)
+      {
+        i_ind = CDistributionClient::getDomainIndex(data_i_index(i), data_j_index(i),
+                                                    data_ibegin, data_jbegin, data_dim, ni,
+                                                    j_ind);
+        if (i_ind >= 0 && i_ind < ni && j_ind >= 0 && j_ind < nj && mask_1d(i_ind + j_ind * ni))
+        {
+          i_ind += ibegin;
+          j_ind += jbegin;
+          if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
+          {
+            globalIndexWrittenDomain(globalIndexWrittenCount) = i_ind + j_ind * ni_glo;
+            ++globalIndexWrittenCount;
+          }
+        }
+      }
+    }
+
+    size_t globalSizeIndex = 1, indexBegin, indexEnd;
+    int range, clientSize = client->clientSize;
+    for (int i = 0; i < nGlobDomain_.size(); ++i) globalSizeIndex *= nGlobDomain_[i];
+    indexBegin = 0;
+    for (int i = 0; i < clientSize; ++i)
+    {
+      range = globalSizeIndex / clientSize;
+      if (i < (globalSizeIndex%clientSize)) ++range;
+      if (i == client->clientRank) break;
+      indexBegin += range;
+    }
+    indexEnd = indexBegin + range - 1;
 
     CServerDistributionDescription serverDescription(nGlobDomain_);
     if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
@@ -836,6 +950,7 @@ namespace xios {
     std::vector<int>::iterator itVec;
 
     indSrv_.clear();
+    indWrittenSrv_.clear();
     for (; it != ite; ++it)
     {
       int rank = it->first;
@@ -850,6 +965,13 @@ namespace xios {
         if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexDomainZoom(i), itVec))
         {
           indSrv_[rank].push_back(localIndexDomainZoom(i));
+        }
+      }
+      for (int i = 0; i < globalIndexWrittenDomain.numElements(); ++i)
+      {
+        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexWrittenDomain(i), itVec))
+        {
+          indWrittenSrv_[rank].push_back(globalIndexWrittenDomain(i));
         }
       }
     }
@@ -887,7 +1009,7 @@ namespace xios {
     CEventClient eventIndex(getType(), EVENT_ID_INDEX);
 
     list<CMessage> list_msgsIndex;
-    list<CArray<int,1> > list_indi, list_indj;
+    list<CArray<int,1> > list_indi, list_indj, list_writtenInd;
 
     std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
     iteMap = indSrv_.end();
@@ -917,6 +1039,18 @@ namespace xios {
       list_msgsIndex.back() << this->getId() << (int)type; // enum ne fonctionne pour les message => ToFix
       list_msgsIndex.back() << isCurvilinear;
       list_msgsIndex.back() << list_indi.back() << list_indj.back();
+
+      if (isCompressible_)
+      {
+        std::vector<int>& writtenIndSrc = indWrittenSrv_[rank];
+        list_writtenInd.push_back(CArray<int,1>(writtenIndSrc.size()));
+        CArray<int,1>& writtenInd = list_writtenInd.back();
+
+        for (n = 0; n < writtenInd.numElements(); ++n)
+          writtenInd(n) = writtenIndSrc[n];
+
+        list_msgsIndex.back() << writtenInd;
+      }
 
       eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
     }
@@ -1117,7 +1251,8 @@ namespace xios {
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
     buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv
-           >> global_zoom_ni >> global_zoom_ibegin >> global_zoom_nj >> global_zoom_jbegin;
+           >> global_zoom_ni >> global_zoom_ibegin >> global_zoom_nj >> global_zoom_jbegin
+           >> isCompressible_;
 
     int zoom_iend = global_zoom_ibegin + global_zoom_ni - 1;
     int zoom_jend = global_zoom_jbegin + global_zoom_nj - 1;
@@ -1157,13 +1292,27 @@ namespace xios {
   */
   void CDomain::recvIndex(CEventServer& event)
   {
+    CDomain* domain;
+
     list<CEventServer::SSubEvent>::iterator it;
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       CBufferIn* buffer = it->buffer;
       string domainId;
       *buffer >> domainId;
-      get(domainId)->recvIndex(it->rank, *buffer);
+      domain = get(domainId);
+      domain->recvIndex(it->rank, *buffer);
+    }
+
+    if (domain->isCompressible_)
+    {
+      std::sort(domain->indexesToWrite.begin(), domain->indexesToWrite.end());
+
+      CContextServer* server = CContext::getCurrent()->server;
+      domain->numberWrittenIndexes_ = domain->indexesToWrite.size();
+      MPI_Allreduce(&domain->numberWrittenIndexes_, &domain->totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      MPI_Scan(&domain->numberWrittenIndexes_, &domain->offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      domain->offsetWrittenIndexes_ -= domain->numberWrittenIndexes_;
     }
   }
 
@@ -1177,6 +1326,15 @@ namespace xios {
     int type_int;
     buffer >> type_int >> isCurvilinear >> indiSrv[rank] >> indjSrv[rank];
     type.setValue((type_attr::t_enum)type_int); // probleme des type enum avec les buffers : ToFix
+
+    if (isCompressible_)
+    {
+      CArray<int, 1> writtenIndexes;
+      buffer >> writtenIndexes;
+      indexesToWrite.reserve(indexesToWrite.size() + writtenIndexes.numElements());
+      for (int i = 0; i < writtenIndexes.numElements(); ++i)
+        indexesToWrite.push_back(writtenIndexes(i));
+    }
   }
 
   /*!

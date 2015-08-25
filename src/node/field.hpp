@@ -99,6 +99,9 @@ namespace xios {
          bool isActive(void) const;
          bool hasOutputFile;
 
+         bool getUseCompressedOutput() const;
+         void setUseCompressedOutput();
+
          /// Traitements ///
          void solveGridReference(void);
          void solveServerOperation(void);
@@ -141,6 +144,7 @@ namespace xios {
         void inputField(CArray<double,3>& fieldOut);
         void inputField(CArray<double,2>& fieldOut);
         void inputField(CArray<double,1>& fieldOut);
+        void outputCompressedField(CArray<double, 1>& fieldOut);
         void scaleFactorAddOffset(double scaleFactor, double addOffset);
         void invertScaleFactorAddOffset(double scaleFactor, double addOffset);
         void parse(xml::CXMLNode& node);
@@ -186,6 +190,7 @@ namespace xios {
          bool areAllReferenceSolved;
          std::pair<StdString,StdString> domAxisIds_;
          bool isReadDataRequestPending;
+         bool useCompressedOutput;
 
          DECLARE_REF_FUNC(Field,field)
 

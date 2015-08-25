@@ -13,23 +13,12 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeGrid(CGrid* grid)
+      void CDataOutput::writeGrid(CGrid* grid, bool allowCompressedOutput /*= false*/)
       {
-//         if (grid->domain_ref.isEmpty())
-//            ERROR("CDataOutput::writeGrid(grid)",
-//                   << " domain is not defined !");
-//
-//         if (grid->axis_ref.isEmpty())
-//         {
-//            this->writeGrid(CDomain::get(grid->domain_ref.getValue()));
-//         }
-//         else
-//         {
-//            this->writeGrid(CDomain::get(grid->domain_ref.getValue()),
-//                            CAxis::get(grid->axis_ref.getValue()));
-//         }
-//        this->writeGrid(grid->domain, grid->axis);
         this->writeGrid(grid->getDomains(), grid->getAxis());
+
+        if (allowCompressedOutput)
+          writeGridCompressed_(grid);
       }
 
       //----------------------------------------------------------------
@@ -56,7 +45,7 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeGrid(CDomain* domain,CAxis* axis)
+      void CDataOutput::writeGrid(CDomain* domain, CAxis* axis)
       {
          this->writeDomain_(domain);
          this->writeAxis_(axis);
@@ -97,7 +86,8 @@ namespace xios
 
       void CDataOutput::writeFieldGrid(CField* field)
       {
-         this->writeGrid(field->getRelGrid());
+         this->writeGrid(field->getRelGrid(),
+                         !field->indexed_output.isEmpty() && field->indexed_output);
       }
 
       //----------------------------------------------------------------

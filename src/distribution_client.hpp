@@ -45,6 +45,11 @@ class CDistributionClient : public CDistribution
 
     bool isDataDistributed() { return isDataDistributed_; }
 
+    static int getDomainIndex(const int& dataIIndex, const int& dataJIndex,
+                                     const int& dataIBegin, const int& dataJBegin,
+                                     const int& dataDim, const int& ni, int& j);
+    static int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
+
   protected:
     void createGlobalIndex();
     void createGlobalIndexSendToServer();
@@ -60,11 +65,6 @@ class CDistributionClient : public CDistribution
 
     //! Create local index of an axis
     void createLocalAxisDataIndex();
-
-    inline int getDomainIndex(const int& dataIIndex, const int& dataJIndex,
-                              const int& dataIBegin, const int& dataJBegin,
-                              const int& dataDim, const int& ni, int& j);
-    inline int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
 
     template<int N>
     void readGridMaskInfo(const CArray<bool,N>& gridMask);

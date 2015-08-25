@@ -40,18 +40,19 @@ namespace xios
          protected :
 
             /// Ecriture ///
-            virtual void writeDomain_    (CDomain* domain);
-            virtual void writeAxis_      (CAxis* axis);
+            virtual void writeDomain_   (CDomain* domain);
+            virtual void writeAxis_     (CAxis* axis);
+            virtual void writeGridCompressed_(CGrid* grid);
             virtual void writeTimeDimension_(void);
-            virtual void writeField_     (CField* field);
-            virtual void writeAttribute_ (CVariable* var);
-            virtual void writeAttribute_ (CVariable* var, const string& fieldId);
-            virtual void writeFieldData_ (CField* field);
-            virtual void writeFile_      (CFile* file);
-            virtual void closeFile_      (void);
+            virtual void writeField_    (CField* field);
+            virtual void writeAttribute_(CVariable* var);
+            virtual void writeAttribute_(CVariable* var, const string& fieldId);
+            virtual void writeFieldData_(CField* field);
+            virtual void writeFile_     (CFile* file);
+            virtual void closeFile_     (void);
             virtual void syncFile_      (void);
-            virtual void writeTimeAxis_  (CField* field,
-                                          const boost::shared_ptr<CCalendar> cal);
+            virtual void writeTimeAxis_ (CField* field,
+                                         const boost::shared_ptr<CCalendar> cal);
 
          protected :
             void writeUnstructuredDomain (CDomain* domain);

@@ -34,6 +34,7 @@ namespace xios{
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
       , domAxisIds_("", ""), areAllReferenceSolved(false)
+      , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
 
@@ -44,6 +45,7 @@ namespace xios{
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
       , domAxisIds_("", ""), areAllReferenceSolved(false)
+      , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
 
@@ -458,6 +460,18 @@ namespace xios{
 
    //----------------------------------------------------------------
 
+   bool CField::getUseCompressedOutput() const
+   {
+     return useCompressedOutput;
+   }
+
+   void CField::setUseCompressedOutput()
+   {
+     useCompressedOutput = true;
+   }
+
+   //----------------------------------------------------------------
+
    boost::shared_ptr<COutputPin> CField::getInstantDataFilter()
    {
      return instantDataFilter;
@@ -813,7 +827,7 @@ namespace xios{
       map<int, CArray<double,1> >::iterator it;
       for(it=data_srv.begin();it!=data_srv.end();it++)
       {
-         grid->outputField(it->first, it->second, fieldOut.dataFirst()) ;
+         grid->outputField(it->first, it->second, fieldOut.dataFirst());
       }
    }
 
@@ -823,7 +837,7 @@ namespace xios{
 
       for (it = data_srv.begin(); it != data_srv.end(); it++)
       {
-         grid->outputField(it->first, it->second, fieldOut.dataFirst()) ;
+         grid->outputField(it->first, it->second, fieldOut.dataFirst());
       }
    }
 
@@ -851,6 +865,16 @@ namespace xios{
       for (it = data_srv.begin(); it != data_srv.end(); it++)
       {
          grid->inputField(it->first, fieldOut.dataFirst(), it->second);
+      }
+   }
+
+   void CField::outputCompressedField(CArray<double,1>& fieldOut)
+   {
+      map<int, CArray<double,1> >::iterator it;
+
+      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+         grid->outputCompressedField(it->first, it->second, fieldOut.dataFirst());
       }
    }
 

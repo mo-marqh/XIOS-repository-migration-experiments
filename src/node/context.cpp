@@ -745,6 +745,10 @@ namespace xios {
       // Find all inheritance in xml structure
       this->solveAllInheritance();
 
+      // Check if some axis, domains or grids are eligible to for compressed indexed output.
+      // Warning: This must be done after solving the inheritance and before the rest of post-processing
+      checkAxisDomainsGridsEligibilityForCompressedOutput();
+
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
       this->findEnabledReadModeFiles();
@@ -848,6 +852,24 @@ namespace xios {
      {
        this->enabledFiles[i]->sendEnabledFields();
      }
+   }
+
+   //! Client side: Check if the defined axis, domains and grids are eligible for compressed indexed output
+   void CContext::checkAxisDomainsGridsEligibilityForCompressedOutput()
+   {
+     if (!hasClient) return;
+
+     const vector<CAxis*> allAxis = CAxis::getAll();
+     for (vector<CAxis*>::const_iterator it = allAxis.begin(); it != allAxis.end(); it++)
+       (*it)->checkEligibilityForCompressedOutput();
+
+     const vector<CDomain*> allDomains = CDomain::getAll();
+     for (vector<CDomain*>::const_iterator it = allDomains.begin(); it != allDomains.end(); it++)
+       (*it)->checkEligibilityForCompressedOutput();
+
+     const vector<CGrid*> allGrids = CGrid::getAll();
+     for (vector<CGrid*>::const_iterator it = allGrids.begin(); it != allGrids.end(); it++)
+       (*it)->checkEligibilityForCompressedOutput();
    }
 
    //! Client side: Send information of reference grid of active fields

@@ -46,7 +46,7 @@ namespace xios {
          typedef CObjectTemplate<CDomain>   SuperClass;
          typedef CDomainAttributes SuperClassAttribute;
 
-      public :
+      public:
 
          typedef CDomainAttributes RelAttributes;
          typedef CDomainGroup      RelGroup;
@@ -69,18 +69,27 @@ namespace xios {
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation();
 
+         void checkEligibilityForCompressedOutput(void);
+
          void sendCheckedAttributes();
 
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
 
-      public :
+      public:
          const std::set<StdString> & getRelFiles(void) const;
          bool IsWritten(const StdString & filename) const;
+         bool isWrittenCompressed(const StdString& filename) const;
+
+         const std::vector<int>& getIndexesToWrite(void) const;
+         int getNumberWrittenIndexes() const;
+         int getTotalNumberWrittenIndexes() const;
+         int getOffsetWrittenIndexes() const;
+
          bool isEmpty(void) const;
          bool isDistributed(void) const;
-
+         bool isCompressible(void) const;
 
          int global_zoom_ibegin, global_zoom_ni;
          int global_zoom_jbegin, global_zoom_nj;
@@ -103,9 +112,10 @@ namespace xios {
         vector< vector<int> > i_indSrv ; // for each server, i global index to send
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
 
-      public :
+      public:
          /// Mutateur ///
          void addRelFile(const StdString & filename);
+         void addRelFileCompressed(const StdString& filename);
          void completeLonLatClient(void);
          void sendServerAttribut(void) ;
          void sendLonLatArea(void);
@@ -158,16 +168,21 @@ namespace xios {
          void sendArea();
          void sendLonLat();
 
-       private :
+       private:
          bool isChecked;
-         std::set<StdString> relFiles;
+         std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
          std::map<int, CArray<int,1> > indiSrv, indjSrv;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
          std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
+         std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         std::vector<int> indexesToWrite;
+         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::vector<int> connectedServerRank_;
          bool isDistributed_;
+         //! True if and only if the data defined on the domain can be outputted in a compressed way
+         bool isCompressible_;
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;

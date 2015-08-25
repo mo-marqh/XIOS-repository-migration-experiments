@@ -338,6 +338,29 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_indexed_output(fieldgroup_Ptr fieldgroup_hdl, bool indexed_output)
+  {
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->indexed_output.setValue(indexed_output);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_indexed_output(fieldgroup_Ptr fieldgroup_hdl, bool* indexed_output)
+  {
+    CTimer::get("XIOS").resume();
+    *indexed_output = fieldgroup_hdl->indexed_output.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_indexed_output(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->indexed_output.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_level(fieldgroup_Ptr fieldgroup_hdl, int level)
   {
     CTimer::get("XIOS").resume();

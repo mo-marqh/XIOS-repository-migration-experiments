@@ -8,9 +8,10 @@ namespace xios
                                                const std::vector<StdSize> * start, \
                                                const std::vector<StdSize> * count) ;
  
-  macro(double,1)
-  macro(double,2)
-  macro(double,3)                                              
+  macro(int, 1)
+  macro(double, 1)
+  macro(double, 2)
+  macro(double, 3)
  
   template void CONetCDF4::setDefaultValue<double>(const StdString & varname, const double* value) ;
   template void CONetCDF4::setDefaultValue<float>(const StdString & varname, const float* value) ;

@@ -24,9 +24,11 @@ namespace xios {
    CGrid::CGrid(void)
       : CObjectTemplate<CGrid>(), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
-      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
+      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+      , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
+      , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1)
    {
      setVirtualDomainGroup();
@@ -36,9 +38,11 @@ namespace xios {
    CGrid::CGrid(const StdString& id)
       : CObjectTemplate<CGrid>(id), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
-      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false), clientDistribution_(0), isIndexSent(false)
-      , serverDistribution_(0), clientServerMap_(0), writtenDataSize_(0), globalDim_()
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), transformations_(0), isTransformed_(false)
+      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+      , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
+      , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1)
    {
      setVirtualDomainGroup();
@@ -148,6 +152,32 @@ namespace xios {
      }
    }
 
+   //---------------------------------------------------------------
+
+   /*!
+    * Test whether the data defined on the grid can be outputted in a compressed way.
+    * 
+    * \return true if and only if a mask was defined for this grid
+    */
+   bool CGrid::isCompressible(void) const
+   {
+      return isCompressible_;
+   }
+
+   //---------------------------------------------------------------
+
+   void CGrid::addRelFileCompressed(const StdString& filename)
+   {
+      this->relFilesCompressed.insert(filename);
+   }
+
+   bool CGrid::isWrittenCompressed(const StdString& filename) const
+   {
+      return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
+   }
+
+   //---------------------------------------------------------------
+
    void CGrid::solveDomainAxisRef(bool areAttributesChecked)
    {
      if (this->isDomainAxisChecked) return;
@@ -156,6 +186,12 @@ namespace xios {
      this->solveDomainRef(areAttributesChecked);
      computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
      this->isDomainAxisChecked = areAttributesChecked;
+   }
+
+   void CGrid::checkEligibilityForCompressedOutput()
+   {
+     // We don't check if the mask is valid here, just if a mask has been defined at this point.
+     isCompressible_ = !mask1.isEmpty() || !mask2.isEmpty() || !mask3.isEmpty();
    }
 
    void CGrid::checkMaskIndex(bool doSendingIndex)
@@ -487,6 +523,16 @@ namespace xios {
      }
    }
 
+   void CGrid::outputCompressedField(int rank, const CArray<double,1>& stored, double* field)
+   {
+     const CArray<size_t,1>& out_i = compressedOutIndexFromClient[rank];
+     StdSize numElements = stored.numElements();
+     for (StdSize n = 0; n < numElements; ++n)
+     {
+       field[out_i(n)] = stored(n);
+     }
+   }
+
    //----------------------------------------------------------------
 
    void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
@@ -519,6 +565,40 @@ namespace xios {
     isDataDistributed_ = false;
   }
 
+  void CGrid::computeCompressedIndex()
+  {
+    compressedOutIndexFromClient = outIndexFromClient;
+
+    std::map<size_t, size_t> indexes;
+
+    {
+      std::map<int, CArray<size_t,1> >::const_iterator it = compressedOutIndexFromClient.begin();
+      std::map<int, CArray<size_t,1> >::const_iterator itEnd = compressedOutIndexFromClient.end();
+      for (; it != itEnd; ++it)
+      {
+        for (int i = 0; i < it->second.numElements(); ++i)
+          indexes.insert(std::make_pair(it->second(i), 0));
+      }
+    }
+
+    {
+      std::map<size_t, size_t>::iterator it = indexes.begin();
+      std::map<size_t, size_t>::iterator itEnd = indexes.end();
+      for (size_t i = 0; it != itEnd; ++it, ++i)
+        it->second = i;
+    }
+
+    {
+      std::map<int, CArray<size_t,1> >::iterator it = compressedOutIndexFromClient.begin();
+      std::map<int, CArray<size_t,1> >::iterator itEnd = compressedOutIndexFromClient.end();
+      for (; it != itEnd; ++it)
+      {
+        for (int i = 0; i < it->second.numElements(); ++i)
+          it->second(i) = indexes[it->second(i)];
+      }
+    }
+  }
+
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
@@ -546,7 +626,7 @@ namespace xios {
         }
 
         listMsg.push_back(CMessage());
-        listMsg.back() << getId( )<< isDataDistributed_ << listOutIndex.back();
+        listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
         event.push(rank, 1, listMsg.back());
       }
@@ -588,7 +668,7 @@ namespace xios {
           listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
           listMsg.push_back(CMessage());
-          listMsg.back() << getId() << isDataDistributed_ << listOutIndex.back();
+          listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
           event.push(rank, 1, listMsg.back());
         }
@@ -649,7 +729,7 @@ namespace xios {
         }
 
         listMsg.push_back(CMessage());
-        listMsg.back() << getId() << isDataDistributed_ << listOutIndex.back();
+        listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
         event.push(rank, nbSenders[rank], listMsg.back());
       }
@@ -740,6 +820,33 @@ namespace xios {
     return writtenDataSize_;
   }
 
+  /*!
+    Returns the number of indexes written by each server.
+    \return the number of indexes written by each server
+  */
+  int CGrid::getNumberWrittenIndexes() const
+  {
+    return numberWrittenIndexes_;
+  }
+
+  /*!
+    Returns the total number of indexes written by the servers.
+    \return the total number of indexes written by the servers
+  */
+  int CGrid::getTotalNumberWrittenIndexes() const
+  {
+    return totalNumberWrittenIndexes_;
+  }
+
+  /*!
+    Returns the offset of indexes written by each server.
+    \return the offset of indexes written by each server
+  */
+  int CGrid::getOffsetWrittenIndexes() const
+  {
+    return offsetWrittenIndexes_;
+  }
+
   const CDistributionServer* CGrid::getDistributionServer() const
   {
     return serverDistribution_;
@@ -761,18 +868,19 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
+    numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
 
     for (int n = 0; n < ranks.size(); n++)
     {
       int rank = ranks[n];
       CBufferIn& buffer = *buffers[n];
 
-      buffer >> isDataDistributed_;
+      buffer >> isDataDistributed_ >> isCompressible_;
       size_t dataSize = 0;
 
       if (isScalarGrid())
       {
-        writtenDataSize_ = 1;
+        writtenDataSize_ = numberWrittenIndexes_ = totalNumberWrittenIndexes_ = 1;
         CArray<size_t,1> outIndex;
         buffer >> outIndex;
         outIndexFromClient.insert(std::make_pair(rank, outIndex));
@@ -848,7 +956,17 @@ namespace xios {
 
       outIndexFromClient.insert(std::make_pair(rank, outIndex));
       connectedDataSize_[rank] = outIndex.numElements();
+      numberWrittenIndexes_ += outIndex.numElements();
     }
+
+    if (isDataDistributed_)
+    {
+      MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      offsetWrittenIndexes_ -= numberWrittenIndexes_;
+    }
+    else
+      totalNumberWrittenIndexes_ = numberWrittenIndexes_;
 
     nbSenders = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
   }
