@@ -841,7 +841,7 @@ namespace xios {
       int indexSize = it->second.size();
       std::vector<int> permutIndex(indexSize);
       XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-      XIOSAlgorithms::sortWithIndex<size_t>(it->second, permutIndex);
+      XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(it->second, permutIndex);
       BinarySearch binSearch(it->second);
       int nb = globalIndexDomainZoom.numElements();
       for (int i = 0; i < nb; ++i)

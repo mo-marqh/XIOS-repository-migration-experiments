@@ -471,7 +471,7 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
  std::vector<int> permutIndex(globalIndexOfCurrentGridSource_.size());
  typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
  XIOSAlgorithms::fillInIndex(globalIndexOfCurrentGridSource_.size(), permutIndex);
- XIOSAlgorithms::sortWithIndex<size_t>(globalIndexOfCurrentGridSource_, permutIndex);
+ XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexOfCurrentGridSource_, permutIndex);
  BinarySearch searchCurrentSrc(globalIndexOfCurrentGridSource_);
  std::vector<int>::iterator itbIndex = permutIndex.begin(), itIndex,
                             iteIndex = permutIndex.end();
@@ -602,7 +602,7 @@ void CGridTransformation::computeFinalTransformationMapping()
 
   // Find out local index on grid destination (received)
   XIOSAlgorithms::fillInIndex(globalIndexOnClientDest.size(), permutIndex);
-  XIOSAlgorithms::sortWithIndex<size_t>(globalIndexOnClientDest, permutIndex);
+  XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexOnClientDest, permutIndex);
   itbIndex = permutIndex.begin();
   iteIndex = permutIndex.end();
   BinarySearch searchClientDest(globalIndexOnClientDest);
@@ -632,7 +632,7 @@ void CGridTransformation::computeFinalTransformationMapping()
   // Find out local index on grid source (to send)
   std::map<int,std::vector<size_t> >::const_iterator itbMap, itMap, iteMap;
   XIOSAlgorithms::fillInIndex(globalIndexOnClientSrc.size(), permutIndex);
-  XIOSAlgorithms::sortWithIndex<size_t>(globalIndexOnClientSrc, permutIndex);
+  XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexOnClientSrc, permutIndex);
   itbIndex = permutIndex.begin();
   iteIndex = permutIndex.end();
   BinarySearch searchClientSrc(globalIndexOnClientSrc);

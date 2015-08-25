@@ -306,7 +306,7 @@ public:
 struct XIOSAlgorithms
 {
 public:
-  template<typename T, template <class> class StoragePolicy = CVectorStorage>
+  template<typename T, template <class> class StoragePolicy>
   static void sortWithIndex(const typename StoragePolicy<T>::StorageType& values, std::vector<int>& rv)
   {
     std::sort(rv.begin(), rv.end(), XIOSComparatorWithIndex<T, StoragePolicy>(values));

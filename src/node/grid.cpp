@@ -373,7 +373,7 @@ namespace xios {
        int indexSize = itGlobalMap->second.size();
        std::vector<int> permutIndex(indexSize);
        XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-       XIOSAlgorithms::sortWithIndex<size_t>(itGlobalMap->second, permutIndex);
+       XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(itGlobalMap->second, permutIndex);
        BinarySearch binSearch(itGlobalMap->second);
        for (int i = 0; i < nbGlobalIndex; ++i)
        {
@@ -616,7 +616,7 @@ namespace xios {
         int indexSize = itGlobalMap->second.size();
         std::vector<int> permutIndex(indexSize);
         XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-        XIOSAlgorithms::sortWithIndex<size_t>(itGlobalMap->second, permutIndex);
+        XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(itGlobalMap->second, permutIndex);
         BinarySearch binSearch(itGlobalMap->second);
 
         for (int i = 0; i < nbGlobalIndex; ++i)
