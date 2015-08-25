@@ -17,18 +17,18 @@ extern "C"
 {
   typedef xios::CGridGroup* gridgroup_Ptr;
 
-  void cxios_set_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int extent1)
+  void cxios_set_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
     gridgroup_hdl->axis_domain_order.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int extent1)
+  void cxios_get_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
     tmp=gridgroup_hdl->axis_domain_order.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -94,18 +94,18 @@ extern "C"
   }
 
 
-  void cxios_set_gridgroup_mask1(gridgroup_Ptr gridgroup_hdl, bool* mask1, int extent1)
+  void cxios_set_gridgroup_mask1(gridgroup_Ptr gridgroup_hdl, bool* mask1, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
     gridgroup_hdl->mask1.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_gridgroup_mask1(gridgroup_Ptr gridgroup_hdl, bool* mask1, int extent1)
+  void cxios_get_gridgroup_mask1(gridgroup_Ptr gridgroup_hdl, bool* mask1, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
     tmp=gridgroup_hdl->mask1.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -119,18 +119,18 @@ extern "C"
   }
 
 
-  void cxios_set_gridgroup_mask2(gridgroup_Ptr gridgroup_hdl, bool* mask2, int extent1, int extent2)
+  void cxios_set_gridgroup_mask2(gridgroup_Ptr gridgroup_hdl, bool* mask2, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent1, extent2), neverDeleteData);
+    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
     gridgroup_hdl->mask2.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_gridgroup_mask2(gridgroup_Ptr gridgroup_hdl, bool* mask2, int extent1, int extent2)
+  void cxios_get_gridgroup_mask2(gridgroup_Ptr gridgroup_hdl, bool* mask2, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent1, extent2), neverDeleteData);
+    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
     tmp=gridgroup_hdl->mask2.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -144,18 +144,18 @@ extern "C"
   }
 
 
-  void cxios_set_gridgroup_mask3(gridgroup_Ptr gridgroup_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  void cxios_set_gridgroup_mask3(gridgroup_Ptr gridgroup_hdl, bool* mask3, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent1, extent2, extent3), neverDeleteData);
+    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     gridgroup_hdl->mask3.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_gridgroup_mask3(gridgroup_Ptr gridgroup_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  void cxios_get_gridgroup_mask3(gridgroup_Ptr gridgroup_hdl, bool* mask3, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent1, extent2, extent3), neverDeleteData);
+    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     tmp=gridgroup_hdl->mask3.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }

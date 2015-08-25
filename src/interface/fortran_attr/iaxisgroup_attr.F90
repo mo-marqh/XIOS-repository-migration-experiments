@@ -105,7 +105,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
-        CALL cxios_set_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, size(bounds_,1), size(bounds_,2))
+        CALL cxios_set_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
@@ -113,7 +113,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(data_index_)) THEN
-        CALL cxios_set_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, size(data_index_,1))
+        CALL cxios_set_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
       ENDIF
 
       IF (PRESENT(data_n_)) THEN
@@ -129,9 +129,9 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(mask_)) THEN
-        ALLOCATE(mask__tmp(size(mask_,1)))
+        ALLOCATE(mask__tmp(SIZE(mask_,1)))
         mask__tmp = mask_
-        CALL cxios_set_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, size(mask_,1))
+        CALL cxios_set_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
       ENDIF
 
       IF (PRESENT(n_)) THEN
@@ -159,7 +159,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_set_axisgroup_value(axisgroup_hdl%daddr, value_, size(value_,1))
+        CALL cxios_set_axisgroup_value(axisgroup_hdl%daddr, value_, SHAPE(value_))
       ENDIF
 
   END SUBROUTINE xios(set_axisgroup_attr_hdl_)
@@ -259,7 +259,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
-        CALL cxios_get_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, size(bounds_,1), size(bounds_,2))
+        CALL cxios_get_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
@@ -267,7 +267,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(data_index_)) THEN
-        CALL cxios_get_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, size(data_index_,1))
+        CALL cxios_get_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
       ENDIF
 
       IF (PRESENT(data_n_)) THEN
@@ -283,8 +283,8 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(mask_)) THEN
-        ALLOCATE(mask__tmp(size(mask_,1)))
-        CALL cxios_get_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, size(mask_,1))
+        ALLOCATE(mask__tmp(SIZE(mask_,1)))
+        CALL cxios_get_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
         mask_ = mask__tmp
       ENDIF
 
@@ -313,7 +313,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_get_axisgroup_value(axisgroup_hdl%daddr, value_, size(value_,1))
+        CALL cxios_get_axisgroup_value(axisgroup_hdl%daddr, value_, SHAPE(value_))
       ENDIF
 
   END SUBROUTINE xios(get_axisgroup_attr_hdl_)

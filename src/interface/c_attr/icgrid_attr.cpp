@@ -17,18 +17,18 @@ extern "C"
 {
   typedef xios::CGrid* grid_Ptr;
 
-  void cxios_set_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int extent1)
+  void cxios_set_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
     grid_hdl->axis_domain_order.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int extent1)
+  void cxios_get_grid_axis_domain_order(grid_Ptr grid_hdl, bool* axis_domain_order, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
     tmp=grid_hdl->axis_domain_order.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -68,18 +68,18 @@ extern "C"
   }
 
 
-  void cxios_set_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int extent1)
+  void cxios_set_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
     grid_hdl->mask1.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int extent1)
+  void cxios_get_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
     tmp=grid_hdl->mask1.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -93,18 +93,18 @@ extern "C"
   }
 
 
-  void cxios_set_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int extent1, int extent2)
+  void cxios_set_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent1, extent2), neverDeleteData);
+    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
     grid_hdl->mask2.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int extent1, int extent2)
+  void cxios_get_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent1, extent2), neverDeleteData);
+    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
     tmp=grid_hdl->mask2.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -118,18 +118,18 @@ extern "C"
   }
 
 
-  void cxios_set_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  void cxios_set_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent1, extent2, extent3), neverDeleteData);
+    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     grid_hdl->mask3.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int extent1, int extent2, int extent3)
+  void cxios_get_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent1, extent2, extent3), neverDeleteData);
+    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
     tmp=grid_hdl->mask3.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }

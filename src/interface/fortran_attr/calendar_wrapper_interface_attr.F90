@@ -85,18 +85,18 @@ MODULE calendar_wrapper_interface_attr
     END FUNCTION cxios_is_defined_calendar_wrapper_leap_year_month
 
 
-    SUBROUTINE cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent1) BIND(C)
+    SUBROUTINE cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: calendar_wrapper_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: month_lengths
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_calendar_wrapper_month_lengths
 
-    SUBROUTINE cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent1) BIND(C)
+    SUBROUTINE cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl, month_lengths, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: calendar_wrapper_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: month_lengths
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_calendar_wrapper_month_lengths
 
     FUNCTION cxios_is_defined_calendar_wrapper_month_lengths(calendar_wrapper_hdl) BIND(C)

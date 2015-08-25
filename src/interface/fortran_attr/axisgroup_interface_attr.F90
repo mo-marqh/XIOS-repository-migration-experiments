@@ -49,20 +49,18 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_begin
 
 
-    SUBROUTINE cxios_set_axisgroup_bounds(axisgroup_hdl, bounds, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_axisgroup_bounds(axisgroup_hdl, bounds, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_axisgroup_bounds
 
-    SUBROUTINE cxios_get_axisgroup_bounds(axisgroup_hdl, bounds, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_axisgroup_bounds(axisgroup_hdl, bounds, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_axisgroup_bounds
 
     FUNCTION cxios_is_defined_axisgroup_bounds(axisgroup_hdl) BIND(C)
@@ -91,18 +89,18 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_data_begin
 
 
-    SUBROUTINE cxios_set_axisgroup_data_index(axisgroup_hdl, data_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_axisgroup_data_index(axisgroup_hdl, data_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_axisgroup_data_index
 
-    SUBROUTINE cxios_get_axisgroup_data_index(axisgroup_hdl, data_index, extent1) BIND(C)
+    SUBROUTINE cxios_get_axisgroup_data_index(axisgroup_hdl, data_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_axisgroup_data_index
 
     FUNCTION cxios_is_defined_axisgroup_data_index(axisgroup_hdl) BIND(C)
@@ -173,18 +171,18 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_long_name
 
 
-    SUBROUTINE cxios_set_axisgroup_mask(axisgroup_hdl, mask, extent1) BIND(C)
+    SUBROUTINE cxios_set_axisgroup_mask(axisgroup_hdl, mask, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_axisgroup_mask
 
-    SUBROUTINE cxios_get_axisgroup_mask(axisgroup_hdl, mask, extent1) BIND(C)
+    SUBROUTINE cxios_get_axisgroup_mask(axisgroup_hdl, mask, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_axisgroup_mask
 
     FUNCTION cxios_is_defined_axisgroup_mask(axisgroup_hdl) BIND(C)
@@ -316,18 +314,18 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_unit
 
 
-    SUBROUTINE cxios_set_axisgroup_value(axisgroup_hdl, value, extent1) BIND(C)
+    SUBROUTINE cxios_set_axisgroup_value(axisgroup_hdl, value, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: value
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_axisgroup_value
 
-    SUBROUTINE cxios_get_axisgroup_value(axisgroup_hdl, value, extent1) BIND(C)
+    SUBROUTINE cxios_get_axisgroup_value(axisgroup_hdl, value, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: value
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_axisgroup_value
 
     FUNCTION cxios_is_defined_axisgroup_value(axisgroup_hdl) BIND(C)

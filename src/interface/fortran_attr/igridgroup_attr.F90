@@ -75,9 +75,9 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
 
       IF (PRESENT(axis_domain_order_)) THEN
-        ALLOCATE(axis_domain_order__tmp(size(axis_domain_order_,1)))
+        ALLOCATE(axis_domain_order__tmp(SIZE(axis_domain_order_,1)))
         axis_domain_order__tmp = axis_domain_order_
-        CALL cxios_set_gridgroup_axis_domain_order(gridgroup_hdl%daddr, axis_domain_order__tmp, size(axis_domain_order_,1))
+        CALL cxios_set_gridgroup_axis_domain_order(gridgroup_hdl%daddr, axis_domain_order__tmp, SHAPE(axis_domain_order_))
       ENDIF
 
       IF (PRESENT(description_)) THEN
@@ -89,21 +89,21 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(mask1_)) THEN
-        ALLOCATE(mask1__tmp(size(mask1_,1)))
+        ALLOCATE(mask1__tmp(SIZE(mask1_,1)))
         mask1__tmp = mask1_
-        CALL cxios_set_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, size(mask1_,1))
+        CALL cxios_set_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, SHAPE(mask1_))
       ENDIF
 
       IF (PRESENT(mask2_)) THEN
-        ALLOCATE(mask2__tmp(size(mask2_,1), size(mask2_,2)))
+        ALLOCATE(mask2__tmp(SIZE(mask2_,1), SIZE(mask2_,2)))
         mask2__tmp = mask2_
-        CALL cxios_set_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, size(mask2_,1), size(mask2_,2))
+        CALL cxios_set_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, SHAPE(mask2_))
       ENDIF
 
       IF (PRESENT(mask3_)) THEN
-        ALLOCATE(mask3__tmp(size(mask3_,1), size(mask3_,2), size(mask3_,3)))
+        ALLOCATE(mask3__tmp(SIZE(mask3_,1), SIZE(mask3_,2), SIZE(mask3_,3)))
         mask3__tmp = mask3_
-        CALL cxios_set_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, size(mask3_,1), size(mask3_,2), size(mask3_,3))
+        CALL cxios_set_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, SHAPE(mask3_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -177,8 +177,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
 
       IF (PRESENT(axis_domain_order_)) THEN
-        ALLOCATE(axis_domain_order__tmp(size(axis_domain_order_,1)))
-        CALL cxios_get_gridgroup_axis_domain_order(gridgroup_hdl%daddr, axis_domain_order__tmp, size(axis_domain_order_,1))
+        ALLOCATE(axis_domain_order__tmp(SIZE(axis_domain_order_,1)))
+        CALL cxios_get_gridgroup_axis_domain_order(gridgroup_hdl%daddr, axis_domain_order__tmp, SHAPE(axis_domain_order_))
         axis_domain_order_ = axis_domain_order__tmp
       ENDIF
 
@@ -191,20 +191,20 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(mask1_)) THEN
-        ALLOCATE(mask1__tmp(size(mask1_,1)))
-        CALL cxios_get_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, size(mask1_,1))
+        ALLOCATE(mask1__tmp(SIZE(mask1_,1)))
+        CALL cxios_get_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, SHAPE(mask1_))
         mask1_ = mask1__tmp
       ENDIF
 
       IF (PRESENT(mask2_)) THEN
-        ALLOCATE(mask2__tmp(size(mask2_,1), size(mask2_,2)))
-        CALL cxios_get_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, size(mask2_,1), size(mask2_,2))
+        ALLOCATE(mask2__tmp(SIZE(mask2_,1), SIZE(mask2_,2)))
+        CALL cxios_get_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, SHAPE(mask2_))
         mask2_ = mask2__tmp
       ENDIF
 
       IF (PRESENT(mask3_)) THEN
-        ALLOCATE(mask3__tmp(size(mask3_,1), size(mask3_,2), size(mask3_,3)))
-        CALL cxios_get_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, size(mask3_,1), size(mask3_,2), size(mask3_,3))
+        ALLOCATE(mask3__tmp(SIZE(mask3_,1), SIZE(mask3_,2), SIZE(mask3_,3)))
+        CALL cxios_get_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, SHAPE(mask3_))
         mask3_ = mask3__tmp
       ENDIF
 

@@ -377,19 +377,19 @@ namespace xios
   { \
     string typeName=getStrType<T>(); \
 \
-    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1)" << iendl; \
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",1> tmp(" << name << ", shape(extent1), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",1> tmp(" << name << ", shape(extent[0]), neverDeleteData);" << iendl; \
     oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
     /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
     oss << iendl; \
-    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1)" << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",1> tmp(" << name << ", shape(extent1), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",1> tmp(" << name << ", shape(extent[0]), neverDeleteData);" << iendl; \
     oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
@@ -400,19 +400,19 @@ namespace xios
   { \
     string typeName=getStrType<T>(); \
 \
-    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1, int extent2)" << iendl; \
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",2> tmp(" << name << ", shape(extent1, extent2), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",2> tmp(" << name << ", shape(extent[0], extent[1]), neverDeleteData);" << iendl; \
     oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
     /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
     oss << iendl; \
-    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1, int extent2)" << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",2> tmp(" << name << ", shape(extent1, extent2), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",2> tmp(" << name << ", shape(extent[0], extent[1]), neverDeleteData);" << iendl; \
     oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
@@ -423,19 +423,19 @@ namespace xios
   { \
     string typeName=getStrType<T>(); \
 \
-    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1, int extent2, int extent3)" << iendl; \
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",3> tmp(" << name << ", shape(extent1, extent2, extent3), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",3> tmp(" << name << ", shape(extent[0], extent[1], extent[2]), neverDeleteData);" << iendl; \
     oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
     /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
     oss << iendl; \
-    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int extent1, int extent2, int extent3)" << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
     oss << "{" << iendl; \
     oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
-    oss << "  CArray<" << typeName << ",3> tmp(" << name << ", shape(extent1, extent2, extent3), neverDeleteData);" << iendl; \
+    oss << "  CArray<" << typeName << ",3> tmp(" << name << ", shape(extent[0], extent[1], extent[2]), neverDeleteData);" << iendl; \
     oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
@@ -458,18 +458,18 @@ macro(int)
     string fortranType=getStrFortranType<T>(); \
     string fortranKindC=getStrFortranKindC<T>(); \
       \
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
     oss << iendl; \
-    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
   } \
  \
@@ -479,20 +479,18 @@ macro(int)
     string fortranType=getStrFortranType<T>(); \
     string fortranKindC=getStrFortranKindC<T>(); \
       \
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1, extent2) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent2" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
     oss << iendl; \
-    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1, extent2) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent2" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
   } \
     \
@@ -502,22 +500,18 @@ macro(int)
     string fortranType=getStrFortranType<T>(); \
     string fortranKindC=getStrFortranKindC<T>(); \
       \
-    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1, extent2, extent3) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent2" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent3" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
     oss << iendl; \
-    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent1, extent2, extent3) BIND(C)" << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
     oss << "  USE ISO_C_BINDING" << iendl; \
     oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
     oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent1" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent2" << iendl; \
-    oss << "  INTEGER (kind = C_INT), VALUE  :: extent3" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
   }
 
@@ -584,11 +578,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1))" << iendl; \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
  \
@@ -600,11 +594,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1), size(" << name << "_,2)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1), size(" << name << "_,2))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1), size(" << name << "_,2))" << iendl; \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
     \
@@ -616,11 +610,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3))" << iendl; \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   }
 
@@ -639,11 +633,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1))" << iendl; \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
  \
@@ -655,11 +649,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1), size(" << name << "_,2)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1), size(" << name << "_,2))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1), size(" << name << "_,2))" << iendl; \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
     \
@@ -671,11 +665,11 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, size(" << name << "_,1), size(" << name << "_,2), size(" << name << "_,3))" << iendl; \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   }
 

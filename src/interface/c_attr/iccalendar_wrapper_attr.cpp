@@ -109,18 +109,18 @@ extern "C"
   }
 
 
-  void cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int extent1)
+  void cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(month_lengths, shape(extent1), neverDeleteData);
+    CArray<int,1> tmp(month_lengths, shape(extent[0]), neverDeleteData);
     calendar_wrapper_hdl->month_lengths.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int extent1)
+  void cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_Ptr calendar_wrapper_hdl, int* month_lengths, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(month_lengths, shape(extent1), neverDeleteData);
+    CArray<int,1> tmp(month_lengths, shape(extent[0]), neverDeleteData);
     tmp=calendar_wrapper_hdl->month_lengths.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }

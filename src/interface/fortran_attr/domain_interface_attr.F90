@@ -9,20 +9,18 @@ MODULE domain_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
-    SUBROUTINE cxios_set_domain_area(domain_hdl, area, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_area(domain_hdl, area, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_area
 
-    SUBROUTINE cxios_get_domain_area(domain_hdl, area, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_area(domain_hdl, area, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: area
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_area
 
     FUNCTION cxios_is_defined_domain_area(domain_hdl) BIND(C)
@@ -32,20 +30,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_area
 
 
-    SUBROUTINE cxios_set_domain_bounds_lat_1d(domain_hdl, bounds_lat_1d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_bounds_lat_1d(domain_hdl, bounds_lat_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_bounds_lat_1d
 
-    SUBROUTINE cxios_get_domain_bounds_lat_1d(domain_hdl, bounds_lat_1d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_bounds_lat_1d(domain_hdl, bounds_lat_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_bounds_lat_1d
 
     FUNCTION cxios_is_defined_domain_bounds_lat_1d(domain_hdl) BIND(C)
@@ -55,22 +51,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_bounds_lat_1d
 
 
-    SUBROUTINE cxios_set_domain_bounds_lat_2d(domain_hdl, bounds_lat_2d, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_set_domain_bounds_lat_2d(domain_hdl, bounds_lat_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_bounds_lat_2d
 
-    SUBROUTINE cxios_get_domain_bounds_lat_2d(domain_hdl, bounds_lat_2d, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_get_domain_bounds_lat_2d(domain_hdl, bounds_lat_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lat_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_bounds_lat_2d
 
     FUNCTION cxios_is_defined_domain_bounds_lat_2d(domain_hdl) BIND(C)
@@ -80,20 +72,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_bounds_lat_2d
 
 
-    SUBROUTINE cxios_set_domain_bounds_lon_1d(domain_hdl, bounds_lon_1d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_bounds_lon_1d(domain_hdl, bounds_lon_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_bounds_lon_1d
 
-    SUBROUTINE cxios_get_domain_bounds_lon_1d(domain_hdl, bounds_lon_1d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_bounds_lon_1d(domain_hdl, bounds_lon_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_bounds_lon_1d
 
     FUNCTION cxios_is_defined_domain_bounds_lon_1d(domain_hdl) BIND(C)
@@ -103,22 +93,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_bounds_lon_1d
 
 
-    SUBROUTINE cxios_set_domain_bounds_lon_2d(domain_hdl, bounds_lon_2d, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_set_domain_bounds_lon_2d(domain_hdl, bounds_lon_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_bounds_lon_2d
 
-    SUBROUTINE cxios_get_domain_bounds_lon_2d(domain_hdl, bounds_lon_2d, extent1, extent2, extent3) BIND(C)
+    SUBROUTINE cxios_get_domain_bounds_lon_2d(domain_hdl, bounds_lon_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds_lon_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
-      INTEGER (kind = C_INT), VALUE  :: extent3
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_bounds_lon_2d
 
     FUNCTION cxios_is_defined_domain_bounds_lon_2d(domain_hdl) BIND(C)
@@ -147,18 +133,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_data_dim
 
 
-    SUBROUTINE cxios_set_domain_data_i_index(domain_hdl, data_i_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_data_i_index(domain_hdl, data_i_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_i_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_data_i_index
 
-    SUBROUTINE cxios_get_domain_data_i_index(domain_hdl, data_i_index, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_data_i_index(domain_hdl, data_i_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_i_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_data_i_index
 
     FUNCTION cxios_is_defined_domain_data_i_index(domain_hdl) BIND(C)
@@ -187,18 +173,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_data_ibegin
 
 
-    SUBROUTINE cxios_set_domain_data_j_index(domain_hdl, data_j_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_data_j_index(domain_hdl, data_j_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_j_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_data_j_index
 
-    SUBROUTINE cxios_get_domain_data_j_index(domain_hdl, data_j_index, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_data_j_index(domain_hdl, data_j_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: data_j_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_data_j_index
 
     FUNCTION cxios_is_defined_domain_data_j_index(domain_hdl) BIND(C)
@@ -307,18 +293,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_domain_ref
 
 
-    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_i_index
 
-    SUBROUTINE cxios_get_domain_i_index(domain_hdl, i_index, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_i_index(domain_hdl, i_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_i_index
 
     FUNCTION cxios_is_defined_domain_i_index(domain_hdl) BIND(C)
@@ -347,18 +333,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_ibegin
 
 
-    SUBROUTINE cxios_set_domain_j_index(domain_hdl, j_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_j_index(domain_hdl, j_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_j_index
 
-    SUBROUTINE cxios_get_domain_j_index(domain_hdl, j_index, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_j_index(domain_hdl, j_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: j_index
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_j_index
 
     FUNCTION cxios_is_defined_domain_j_index(domain_hdl) BIND(C)
@@ -387,18 +373,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_jbegin
 
 
-    SUBROUTINE cxios_set_domain_latvalue_1d(domain_hdl, latvalue_1d, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_latvalue_1d(domain_hdl, latvalue_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_latvalue_1d
 
-    SUBROUTINE cxios_get_domain_latvalue_1d(domain_hdl, latvalue_1d, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_latvalue_1d(domain_hdl, latvalue_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_latvalue_1d
 
     FUNCTION cxios_is_defined_domain_latvalue_1d(domain_hdl) BIND(C)
@@ -408,20 +394,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_latvalue_1d
 
 
-    SUBROUTINE cxios_set_domain_latvalue_2d(domain_hdl, latvalue_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_latvalue_2d(domain_hdl, latvalue_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_latvalue_2d
 
-    SUBROUTINE cxios_get_domain_latvalue_2d(domain_hdl, latvalue_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_latvalue_2d(domain_hdl, latvalue_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: latvalue_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_latvalue_2d
 
     FUNCTION cxios_is_defined_domain_latvalue_2d(domain_hdl) BIND(C)
@@ -452,18 +436,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_long_name
 
 
-    SUBROUTINE cxios_set_domain_lonvalue_1d(domain_hdl, lonvalue_1d, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_lonvalue_1d(domain_hdl, lonvalue_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_lonvalue_1d
 
-    SUBROUTINE cxios_get_domain_lonvalue_1d(domain_hdl, lonvalue_1d, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_lonvalue_1d(domain_hdl, lonvalue_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_lonvalue_1d
 
     FUNCTION cxios_is_defined_domain_lonvalue_1d(domain_hdl) BIND(C)
@@ -473,20 +457,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_lonvalue_1d
 
 
-    SUBROUTINE cxios_set_domain_lonvalue_2d(domain_hdl, lonvalue_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_lonvalue_2d(domain_hdl, lonvalue_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_lonvalue_2d
 
-    SUBROUTINE cxios_get_domain_lonvalue_2d(domain_hdl, lonvalue_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_lonvalue_2d(domain_hdl, lonvalue_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: lonvalue_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_lonvalue_2d
 
     FUNCTION cxios_is_defined_domain_lonvalue_2d(domain_hdl) BIND(C)
@@ -496,18 +478,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_lonvalue_2d
 
 
-    SUBROUTINE cxios_set_domain_mask_1d(domain_hdl, mask_1d, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_mask_1d(domain_hdl, mask_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_mask_1d
 
-    SUBROUTINE cxios_get_domain_mask_1d(domain_hdl, mask_1d, extent1) BIND(C)
+    SUBROUTINE cxios_get_domain_mask_1d(domain_hdl, mask_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
-      INTEGER (kind = C_INT), VALUE  :: extent1
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_mask_1d
 
     FUNCTION cxios_is_defined_domain_mask_1d(domain_hdl) BIND(C)
@@ -517,20 +499,18 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_mask_1d
 
 
-    SUBROUTINE cxios_set_domain_mask_2d(domain_hdl, mask_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_set_domain_mask_2d(domain_hdl, mask_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_set_domain_mask_2d
 
-    SUBROUTINE cxios_get_domain_mask_2d(domain_hdl, mask_2d, extent1, extent2) BIND(C)
+    SUBROUTINE cxios_get_domain_mask_2d(domain_hdl, mask_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
-      INTEGER (kind = C_INT), VALUE  :: extent1
-      INTEGER (kind = C_INT), VALUE  :: extent2
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
     END SUBROUTINE cxios_get_domain_mask_2d
 
     FUNCTION cxios_is_defined_domain_mask_2d(domain_hdl) BIND(C)

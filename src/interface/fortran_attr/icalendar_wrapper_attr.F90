@@ -92,7 +92,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(month_lengths_)) THEN
-        CALL cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, size(month_lengths_,1))
+        CALL cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
       ENDIF
 
       IF (PRESENT(start_date_)) THEN
@@ -199,7 +199,7 @@ CONTAINS
       ENDIF
 
       IF (PRESENT(month_lengths_)) THEN
-        CALL cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, size(month_lengths_,1))
+        CALL cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
       ENDIF
 
       IF (PRESENT(start_date_)) THEN

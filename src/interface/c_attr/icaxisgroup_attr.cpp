@@ -66,18 +66,18 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl, double* bounds, int extent1, int extent2)
+  void cxios_set_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl, double* bounds, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds, shape(extent1, extent2), neverDeleteData);
+    CArray<double,2> tmp(bounds, shape(extent[0], extent[1]), neverDeleteData);
     axisgroup_hdl->bounds.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl, double* bounds, int extent1, int extent2)
+  void cxios_get_axisgroup_bounds(axisgroup_Ptr axisgroup_hdl, double* bounds, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,2> tmp(bounds, shape(extent1, extent2), neverDeleteData);
+    CArray<double,2> tmp(bounds, shape(extent[0], extent[1]), neverDeleteData);
     tmp=axisgroup_hdl->bounds.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -114,18 +114,18 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_data_index(axisgroup_Ptr axisgroup_hdl, int* data_index, int extent1)
+  void cxios_set_axisgroup_data_index(axisgroup_Ptr axisgroup_hdl, int* data_index, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(data_index, shape(extent1), neverDeleteData);
+    CArray<int,1> tmp(data_index, shape(extent[0]), neverDeleteData);
     axisgroup_hdl->data_index.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_axisgroup_data_index(axisgroup_Ptr axisgroup_hdl, int* data_index, int extent1)
+  void cxios_get_axisgroup_data_index(axisgroup_Ptr axisgroup_hdl, int* data_index, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<int,1> tmp(data_index, shape(extent1), neverDeleteData);
+    CArray<int,1> tmp(data_index, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->data_index.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -214,18 +214,18 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_mask(axisgroup_Ptr axisgroup_hdl, bool* mask, int extent1)
+  void cxios_set_axisgroup_mask(axisgroup_Ptr axisgroup_hdl, bool* mask, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     axisgroup_hdl->mask.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_axisgroup_mask(axisgroup_Ptr axisgroup_hdl, bool* mask, int extent1)
+  void cxios_get_axisgroup_mask(axisgroup_Ptr axisgroup_hdl, bool* mask, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask, shape(extent1), neverDeleteData);
+    CArray<bool,1> tmp(mask, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->mask.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
@@ -389,18 +389,18 @@ extern "C"
   }
 
 
-  void cxios_set_axisgroup_value(axisgroup_Ptr axisgroup_hdl, double* value, int extent1)
+  void cxios_set_axisgroup_value(axisgroup_Ptr axisgroup_hdl, double* value, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(value, shape(extent1), neverDeleteData);
+    CArray<double,1> tmp(value, shape(extent[0]), neverDeleteData);
     axisgroup_hdl->value.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_axisgroup_value(axisgroup_Ptr axisgroup_hdl, double* value, int extent1)
+  void cxios_get_axisgroup_value(axisgroup_Ptr axisgroup_hdl, double* value, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<double,1> tmp(value, shape(extent1), neverDeleteData);
+    CArray<double,1> tmp(value, shape(extent[0]), neverDeleteData);
     tmp=axisgroup_hdl->value.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
