@@ -106,18 +106,18 @@ PROGRAM test_remap
   ierr=NF90_INQ_VARID(ncid,"bounds_lat",varid)
   ierr=NF90_GET_VAR(ncid,varid, dst_boundslat, start=(/1,dst_ibegin+1/),count=(/dst_nvertex,dst_ni/))
 
-
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
 
   CALL xios_set_domain_attr("src_domain", ni_glo=src_ni_glo, ibegin=src_ibegin, ni=src_ni, type="unstructured")
-  CALL xios_set_domain_attr("src_domain",lonvalue_1D=src_lon,latvalue_1D=src_lat, bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
-                            
+  CALL xios_set_domain_attr("src_domain", lonvalue_1D=src_lon, latvalue_1D=src_lat, &
+                            bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
+
   CALL xios_set_domain_attr("dst_domain", ni_glo=dst_ni_glo, ibegin=dst_ibegin, ni=dst_ni, type="unstructured")
-  CALL xios_set_domain_attr("dst_domain",lonvalue_1D=dst_lon,latvalue_1D=dst_lat, bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
-                            
- 
+  CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
+                            bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
+
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
 
