@@ -271,7 +271,7 @@ namespace xios {
       globalIndexAxis(idx) = globalIndex;
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
       {
-        globalAxisZoom[nZoomCount];
+        globalAxisZoom[nZoomCount] = globalIndex;
         ++nZoomCount;
       }
     }
