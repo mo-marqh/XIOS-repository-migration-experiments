@@ -329,10 +329,10 @@ namespace xios {
       if (data_jbegin.isEmpty())
          data_jbegin.setValue(0) ;
 
-      if (!data_ni.isEmpty() && (data_ni.getValue() <= 0))
+      if (!data_ni.isEmpty() && data_ni.getValue() < 0)
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Data dimension is negative (data_ni).") ;
+               << "Data dimension is negative (data_ni).");
       }
       else if (data_ni.isEmpty())
       {
@@ -341,10 +341,10 @@ namespace xios {
                            : ni.getValue());
       }
 
-      if (!data_nj.isEmpty() && (data_nj.getValue() <= 0) )
+      if (!data_nj.isEmpty() && data_nj.getValue() < 0)
       {
          ERROR("CDomain::checkAttributes(void)",
-               << "Data dimension is negative (data_nj).") ;
+               << "Data dimension is negative (data_nj).");
       }
 
       if (data_nj.isEmpty())
@@ -360,7 +360,7 @@ namespace xios {
       if (!data_i_index.isEmpty())
       {
         if (!data_j_index.isEmpty() &&
-           (data_j_index.numElements() != data_i_index.numElements()))
+            data_j_index.numElements() != data_i_index.numElements())
         {
            ERROR("CDomain::checkAttributes(void)",
                  <<"Dimension data_j_index incompatible with data_i_index.") ;
@@ -386,7 +386,7 @@ namespace xios {
       }
       else
       {
-         if ((data_dim.getValue() == 2) && (!data_j_index.isEmpty()))
+         if (data_dim.getValue() == 2 && !data_j_index.isEmpty())
             ERROR("CDomain::checkAttributes(void)", << "data_i_index undefined") ;
 
          if (1 == data_dim.getValue())
