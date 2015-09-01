@@ -134,34 +134,36 @@ namespace xios {
    void CAxis::checkAttributes(void)
    {
       if (this->n_glo.isEmpty())
-         ERROR("CAxis::checkAttributes(void)",
-               << "Attribute <n_glo> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be specified");
+        ERROR("CAxis::checkAttributes(void)",
+              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+              << "The axis is wrongly defined, attribute 'n_glo' must be specified");
       StdSize size = this->n_glo.getValue();
 
       isDistributed_ = !this->begin.isEmpty() || !this->n.isEmpty();
 
       if (!this->begin.isEmpty())
       {
-        StdSize ibegin = this->begin.getValue();
-        if ((ibegin < 0) || (ibegin > size-1))
+        if (begin < 0 || begin > size - 1)
           ERROR("CAxis::checkAttributes(void)",
-                << "Attribute <ibegin> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size-1");
+                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                << "The axis is wrongly defined, attribute 'begin' (" << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").");
       }
       else this->begin.setValue(0);
 
       if (!this->n.isEmpty())
       {
-        StdSize ni = this->n.getValue();
-        if ((ni < 0) || (ni > size))
+        if (n < 0 || n > size)
           ERROR("CAxis::checkAttributes(void)",
-                << "Attribute <ni> of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be non-negative and smaller than size");
+                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" << size << ").");
       }
       else this->n.setValue(size);
 
       StdSize true_size = value.numElements();
       if (this->n.getValue() != true_size)
-         ERROR("CAxis::checkAttributes(void)",
-               << "The array \'value\' of axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] has a different size that the one defined by the \'size\' attribute");
+        ERROR("CAxis::checkAttributes(void)",
+              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
 
       this->checkData();
       this->checkZoom();
@@ -172,19 +174,22 @@ namespace xios {
    void CAxis::checkData()
    {
       if (data_begin.isEmpty()) data_begin.setValue(0);
-      if (!data_n.isEmpty() && data_n.getValue() <= 0)
+
+      if (data_n.isEmpty())
+      {
+        data_n.setValue(n);
+      }
+      else if (data_n.getValue() < 0)
       {
         ERROR("CAxis::checkData(void)",
-              << "Data dimension is negative (data_n).");
+              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "The data size should be strictly positive ('data_n' = " << data_n.getValue() << ").");
       }
-      else if (data_n.isEmpty())
-        data_n.setValue(n.getValue());
 
       if (data_index.isEmpty())
       {
-        int dn = data_n.getValue();
-        data_index.resize(dn);
-        for (int i = 0; i < dn; ++i) data_index(i) = i;
+        data_index.resize(data_n);
+        for (int i = 0; i < data_n; ++i) data_index(i) = i;
       }
    }
 
@@ -198,16 +203,16 @@ namespace xios {
       if (!mask.isEmpty())
       {
          if (mask.extent(0) != n)
-            ERROR("CAxis::checkMask(void)",
-                  << "the mask has not the same size than the local axis" << endl
-                  << "Local size is " << n << "x" << endl
-                  << "Mask size is " << mask.extent(0) << "x");
+           ERROR("CAxis::checkMask(void)",
+                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "The mask does not have the same size as the local domain." << std::endl
+                 << "Local size is " << n.getValue() << "." << std::endl
+                 << "Mask size is " << mask.extent(0) << ".");
       }
-      else // (!mask.hasValue())
-      { // Si aucun masque n'est défini,
-        // on en crée un nouveau qui valide l'intégralité du domaine.
+      else // (mask.isEmpty())
+      { // If no mask was defined, we create a default one without any masked point.
          mask.resize(n);
-         for (int i = 0; i < n.getValue(); ++i)
+         for (int i = 0; i < n; ++i)
          {
            mask(i) = true;
          }
@@ -220,9 +225,9 @@ namespace xios {
     {
       if (bounds.extent(0) != n || bounds.extent(1) != 2)
           ERROR("CAxis::checkAttributes(void)",
-                << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension axis size x 2" << endl
-                << "Axis size is " << n << endl
-                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1));
+                << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension axis size x 2." << std::endl
+                << "Axis size is " << n.getValue() << "." << std::endl
+                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
       hasBounds_ = true;
     }
     else hasBounds_ = false;
@@ -258,7 +263,7 @@ namespace xios {
             return true;
             break;
            default :
-             ERROR("bool CContext::dispatchEvent(CEventServer& event)",
+             ERROR("bool CAxis::dispatchEvent(CEventServer& event)",
                     << "Unknown Event");
            return false;
          }
