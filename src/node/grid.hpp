@@ -263,9 +263,9 @@ namespace xios {
    {
       if (this->getDataSize() != field.numElements())
          ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
-                << "[ Awaiting size of the data = " << this->getDataSize()       << ", "
+                << "[ Awaiting data of size = " << this->getDataSize() << ", "
                 << "Received data size = "      << field.numElements() << " ] "
-                << "The array of data has not the good size !")
+                << "The data array does not have the right size!")
       this->storeField_arr(field.dataFirst(), stored);
    }
 
@@ -276,7 +276,7 @@ namespace xios {
          ERROR("void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const",
                 << "[ Size of the data = " << this->getDataSize() << ", "
                 << "Output data size = "   << field.numElements() << " ] "
-                << "The ouput array does not have not the right size!")
+                << "The ouput array does not have the right size!")
       this->restoreField_arr(stored, field.dataFirst());
    }
 
@@ -313,10 +313,10 @@ namespace xios {
       for (int i = 0; i < dim; ++i)
       {
         if (gridMask.extent(i) != eachDimSize[i])
-           ERROR("CGrid::checkMask(void)",
-                <<"The mask has one dimension whose size is different from the one of the local grid"<<endl
-                <<"Local size is "<< i << " " << eachDimSize[i]<<endl
-                <<"Mask dimension size is "<<gridMask.extent(i));
+          ERROR("CGrid::checkMask(void)",
+                << "The mask has one dimension whose size is different from the one of the local grid." << std::endl
+                << "Local size of dimension " << i << " is " << eachDimSize[i] << "." << std::endl
+                << "Mask size for dimension " << i << " is " << gridMask.extent(i) << ".");
       }
     }
     else {

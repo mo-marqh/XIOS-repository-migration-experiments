@@ -197,7 +197,7 @@ namespace xios
   void CType_ref<T>::checkEmpty(void) const
   {
     if (empty) ERROR("template <typename T> void CType_ref<T>::checkEmpty(void)",
-                     <<"Type_ref reference is not assigned") ;
+                     <<"Data reference is not initialized.") ;
   }
                      
 
@@ -206,7 +206,7 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, const CType_ref<T>& type)
   {
     if (!type.toBuffer(buffer)) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                      << "Not enough free space in buffer to queue the data.");
     return buffer ;
   }
 
@@ -214,7 +214,7 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, T& type)
   {
     if (!CType_ref<T>(type).toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, T& type)",
-                                             <<"Buffer remain size is to low for size type") ;      
+                                                    << "Not enough free space in buffer to queue the data.");
     return buffer ;
   }
 
@@ -222,7 +222,7 @@ namespace xios
   CBufferIn& operator>>(CBufferIn& buffer, T& type)
   {
     if (! CType_ref<T>(type).fromBuffer(buffer)) ERROR(" template <typename T> CBufferIn& operator>>(CBufferIn& buffer, T& type)",
-                                                <<"Buffer remain size is to low for size type") ;
+                                                       << "Not enough data in buffer to unqueue the data.");
     return buffer ;
   }
 
@@ -230,19 +230,9 @@ namespace xios
   CBufferIn& operator>>(CBufferIn& buffer, const CType_ref<T>& type)
   {
     if (! type.fromBuffer(buffer) ) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                          << "Not enough data in buffer to unqueue the data.");
     return buffer ;
   }
-
-
-/*
-  template <typename T>
-  CMessage& operator<<(CMessage& msg, const CType_ref<T>& type)
-  {
-    msg.push(type) ;
-    return msg ;
-  }
-*/
 
   template <typename T>
   CMessage& operator<<(CMessage& msg, T& type)

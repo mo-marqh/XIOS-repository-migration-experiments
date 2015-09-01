@@ -553,14 +553,14 @@ namespace xios
   template <typename T_numtype,int N_rank> inline CBufferOut& operator<<(CBufferOut& buffer, const CArray<T_numtype,N_rank>& array)
   {
     if (!array.toBuffer(buffer)) ERROR("template <typename T_numtype,int N_rank> inline CBufferOut& operator<<(CBufferOut& buffer, const CArray& array)",
-                                       << "Buffer remain size is to low for size type");
+                                       << "Not enough free space in buffer to queue the array.");
     return buffer;
   }
 
   template <typename T_numtype,int N_rank> inline CBufferIn& operator>>(CBufferIn& buffer, CArray<T_numtype, N_rank>& array)
   {
     if (!array.fromBuffer(buffer)) ERROR("template <typename T_numtype,int N_rank> inline CBufferIn& operator>>(CBufferIn& buffer, CArray& array)",
-                                         << "Buffer remain size is to low for size type");
+                                         << "Not enough data in buffer to unqueue the array.");
     return buffer;
   }
 

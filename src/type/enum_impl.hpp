@@ -158,7 +158,7 @@ namespace xios
     }
     
     ERROR("template <typename T> void CEnum<T>::_fromString(const string& str)",
-    << tmpStr << " cannot be converted in a valid enumeration, possibilities are : "<<strList.str() ) ;
+          << tmpStr << " cannot be converted in a valid enumeration, possibilities are: " << strList.str());
 
   }
 
@@ -188,8 +188,8 @@ namespace xios
     if (sizeof(*ptrValue)==sizeof(short int)) return buffer.put((short int) *ptrValue) ;
     else if (sizeof(*ptrValue)==sizeof(int)) return buffer.put((int) *ptrValue) ;
     else if (sizeof(*ptrValue)==sizeof(long int)) return buffer.put((long int) *ptrValue) ;
-    else ERROR("template <typename T>  bool CEnum<T>::_toBuffer(CBufferOut& buffer) const",
-               <<"incompatibility between enumeration and standard integer type") ;
+    else ERROR("template <typename T> bool CEnum<T>::_toBuffer(CBufferOut& buffer) const",
+               << "incompatibility between enumeration and standard integer type.");
     return false ;
   }
   
@@ -216,8 +216,8 @@ namespace xios
       ret=buffer.get(val) ;
       if (ret) *ptrValue = (T_enum) val ;
     }
-    else ERROR("template <typename T>  bool CEnum<T>::_fromBuffer(CBufferIn& buffer)",
-               <<"incompatibility between enumeration and standard integer type") ;
+    else ERROR("template <typename T> bool CEnum<T>::_fromBuffer(CBufferIn& buffer)",
+               << "incompatibility between enumeration and standard integer type.");
     return ret ;
   }
  
@@ -245,7 +245,8 @@ namespace xios
   template <typename T>
   void CEnum<T>::checkEmpty(void) const
   {
-    if (empty) ERROR("template <typename T> void CEnum<T>::checkEmpty(void) const", <<"Type is not initialized") ;
+    if (empty) ERROR("template <typename T> void CEnum<T>::checkEmpty(void) const",
+                     << "Enum is not initialized.");
   }  
 
   
@@ -253,7 +254,7 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, const CEnum<T>& type)
   {
     if (!type.toBuffer(buffer)) ERROR("template <typename T> CBufferOut& operator<<(CBufferOut& buffer, const CEnum<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                      << "Not enough free space in buffer to queue the enum.");
     return buffer ;
   }
 
@@ -261,15 +262,15 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, const typename T::t_enum & type)
   {
     if (!CEnum<T>(type).toBuffer(buffer)) ERROR("template <typename T> CBufferOut& operator<<(CBufferOut& buffer, const typename T::t_enum & type)",
-                                           <<"Buffer remain size is to low for size type") ;      
+                                                << "Not enough free space in buffer to queue the enum.");
     return buffer ;
   }
   
   template <typename T>
   CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type)
   {
-    if (! type.fromBuffer(buffer)) ERROR("template <typename T> CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+    if (!type.fromBuffer(buffer)) ERROR("template <typename T> CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type)",
+                                        << "Not enough data in buffer to unqueue the enum.");
     return buffer ;
   }
   

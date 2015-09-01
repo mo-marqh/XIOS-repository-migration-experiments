@@ -39,9 +39,11 @@ namespace xios {
     if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1;
     if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1;
 
-    if ((zoom_begin < 0) || (zoom_begin > axisGlobalSize-1) || (zoom_end<0) || (zoom_end>axisGlobalSize-1) || (zoom_size<1) || (zoom_size>axisGlobalSize) || (zoom_begin>zoom_end))
-      ERROR("CZoomAxis::checkAttributes(void)",
-            << "One or more attributes among <zoom_begin>, <zoom_end>, <zoom_size> of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
+    if (zoom_begin < 0 || zoom_begin > axisGlobalSize - 1 || zoom_end < 0 || zoom_end > axisGlobalSize - 1
+        || zoom_size < 1 || zoom_size > axisGlobalSize || zoom_begin > zoom_end)
+      ERROR("CZoomAxis::checkValid(CAxis* axisDest)",
+            << "One or more attributes among 'zoom_begin' (" << zoom_begin.getValue() << "), 'zoom_end' (" << zoom_end.getValue() << "), 'zoom_size' (" << zoom_size.getValue() << ") "
+            << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
     this->zoom_begin.setValue(zoom_begin) ;
     this->zoom_end.setValue(zoom_end) ;

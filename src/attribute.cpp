@@ -85,25 +85,25 @@ namespace xios
         return msg ;
       }
 
-     CMessage& operator<<(CMessage& msg, const CAttribute&  type)
+     CMessage& operator<<(CMessage& msg, const CAttribute& type)
      {
 //       msg.push(*type.clone()) ;
        return msg ;
      }
  
-      CBufferOut& operator<<(CBufferOut& buffer, CAttribute&  type)
+      CBufferOut& operator<<(CBufferOut& buffer, CAttribute& type)
      {
     
-       if (!type.toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, CAttribute&  type)",
-                                           <<"Buffer remain size is to low for size type") ;
+       if (!type.toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, CAttribute& type)",
+                                         << "Not enough free space in buffer to queue the attribute.");
       return buffer ;
      }
      
-     CBufferIn& operator>>(CBufferIn& buffer, CAttribute&  type)
+     CBufferIn& operator>>(CBufferIn& buffer, CAttribute& type)
      {
     
-       if (!type.fromBuffer(buffer)) ERROR("CBufferInt& operator>>(CBufferIn& buffer, CAttribute&  type)",
-                                           <<"Buffer remain size is to low for size type") ;
+       if (!type.fromBuffer(buffer)) ERROR("CBufferInt& operator>>(CBufferIn& buffer, CAttribute& type)",
+                                           << "Not enough data in buffer to unqueue the attribute.");
        return buffer ;
      }
 

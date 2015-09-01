@@ -78,7 +78,8 @@ namespace xios
     CBufferOut& operator<<(CBufferOut& buffer, CMessage& msg)
     {
       if (!msg.toBuffer(buffer)) ERROR("CBufferOut& operator<<(CBufferOut& buffer, CMessage& msg)",
-                                             <<"Buffer remain size is to low for size type") ;
+                                       << "Not enough free space in buffer to queue the message.");
+    return buffer ;
       return buffer ;
     }
 
@@ -86,7 +87,8 @@ namespace xios
     CBufferIn& operator>>(CBufferIn& buffer, CMessage& msg)
     {
       if (!msg.fromBuffer(buffer)) ERROR("CBufferIn& operator>>(CBufferIn& buffer, CMessage& msg)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                         << "Not enough data in buffer to unqueue the message.");
+    return buffer ;
       return buffer ;
     }
 

@@ -61,9 +61,8 @@ namespace xios
       }
       
       ERROR("CObjectFactory::GetObject(const U * const object)",
-               << "[type = " << U::GetName() << ", "
-               << "adress = " << object << "]"
-               << " object was not found !");
+               << "[type = " << U::GetName() << ", adress = " << object << "] "
+               << "object was not found.");
       return (boost::shared_ptr<U>()); // jamais atteint
    }
 
@@ -76,7 +75,7 @@ namespace xios
       if (!CObjectFactory::HasObject<U>(id))
          ERROR("CObjectFactory::GetObject(const StdString & id)",
                << "[ id = " << id << ", U = " << U::GetName() << " ] "
-               << " object is not referenced !");
+               << "object was not found.");
       return (U::AllMapObj[CObjectFactory::CurrContext][id]);
    }
 
@@ -86,7 +85,7 @@ namespace xios
       if (!CObjectFactory::HasObject<U>(context,id))
          ERROR("CObjectFactory::GetObject(const StdString & id)",
                << "[ id = " << id << ", U = " << U::GetName() <<", context = "<<context<< " ] "
-               << " object is not referenced !");
+               << "object was not found.");
       return (U::AllMapObj[context][id]);
    }
 

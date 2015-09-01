@@ -200,7 +200,7 @@ namespace xios
   template <typename T>
   void CType<T>::checkEmpty(void) const
   {
-    if (empty) ERROR("template <typename T> void CTypef<T>::checkEmpty(void) const", <<"Type is not initialized") ;
+    if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
   }  
 
   
@@ -208,7 +208,7 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, const CType<T>& type)
   {
     if (!type.toBuffer(buffer)) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                      << "Not enough free space in buffer to queue the data.");
     return buffer ;
   }
 
@@ -217,26 +217,18 @@ namespace xios
   CBufferOut& operator<<(CBufferOut& buffer, const T& type)
   {
     if (!CType<T>(type).toBuffer(buffer)) ERROR("operator<<(CBuffer& buffer, const T& type)",
-                                           <<"Buffer remain size is to low for size type") ;      
+                                                << "Not enough free space in buffer to queue the data.");
     return buffer ;
   }
-  
+
   template <typename T>
   CBufferIn& operator>>(CBufferIn& buffer, CType<T>& type)
   {
     if (! type.fromBuffer(buffer)) ERROR("CBuffer& operator<<(CBuffer& buffer, CType<T>& type)",
-                                           <<"Buffer remain size is to low for size type") ;
+                                         << "Not enough data in buffer to unqueue the data.");
     return buffer ;
   }
-  
-/*  
-  template <typename T>
-  CMessage& operator<<(CMessage& msg, const CType<T>& type)
-  {
-    msg.push(*type.clone()) ;
-    return msg ;
-  }
-*/
+
   template <typename T>
   CMessage& operator<<(CMessage& msg, const T& type)
   {

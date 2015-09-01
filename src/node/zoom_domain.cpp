@@ -34,18 +34,19 @@ namespace xios {
        if (this->zoom_ni.isEmpty()     || this->zoom_nj.isEmpty() ||
            this->zoom_ibegin.isEmpty() || this->zoom_jbegin.isEmpty())
        {
-          ERROR("CZoomDomain::checkValid(void)",
-                <<"if one of zoom attributes is defined then all zoom attributes must be defined") ;
+         ERROR("CZoomDomain::checkValid(CDomain* domainSrc)",
+               << "If one of zoom attributes is defined then all zoom attributes must be defined.") ;
        }
        else
        {
           int zoom_iend = zoom_ibegin + zoom_ni - 1;
           int zoom_jend = zoom_jbegin + zoom_nj - 1;
 
-          if (zoom_ibegin < 0  || zoom_jbegin < 0 || zoom_iend > (ni_glo-1) || zoom_jend > (nj_glo-1))
-             ERROR("CZoomDomain::checkValid(void)",
-                   << "Zoom is wrongly defined,"
-                   << " Check the values : zoom_ni, zoom_nj, zoom_ibegin, zoom_jbegin") ;
+          if (zoom_ibegin < 0  || zoom_jbegin < 0 || zoom_iend > ni_glo - 1 || zoom_jend > nj_glo - 1)
+            ERROR("CZoomDomain::checkValid(CDomain* domainSrc)",
+                  << "Zoom is wrongly defined, "
+                  << "please check the values : 'zoom_ni' (" << zoom_ni.getValue() << "), 'zoom_nj' (" << zoom_nj.getValue() << "), "
+                  << "'zoom_ibegin' (" << zoom_ibegin.getValue() << "), 'zoom_jbegin' (" << zoom_jbegin.getValue() << ")");
        }
     }
     else

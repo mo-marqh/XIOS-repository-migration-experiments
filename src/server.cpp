@@ -369,19 +369,17 @@ namespace xios
        }
      }
 
-
-
      void CServer::registerContext(void* buff, int count, int leaderRank)
      {
        string contextId;
        CBufferIn buffer(buff, count);
        buffer >> contextId;
 
-       info(20)<<"CServer : Register new Context : "<<contextId<<endl;
+       info(20) << "CServer : Register new Context : " << contextId << endl;
 
-       if (contextList.find(contextId)!=contextList.end())
-        ERROR("void CServer::registerContext(void* buff,int count, int leaderRank)",
-              << "Context has already been registred");
+       if (contextList.find(contextId) != contextList.end())
+         ERROR("void CServer::registerContext(void* buff, int count, int leaderRank)",
+               << "Context '" << contextId << "' has already been registred");
 
        MPI_Comm contextIntercomm;
        MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextIntercomm);
@@ -397,7 +395,6 @@ namespace xios
        contextInterComms.push_back(contextIntercomm);
        MPI_Comm_free(&inter);
      }
-
 
      void CServer::contextEventLoop(void)
      {
