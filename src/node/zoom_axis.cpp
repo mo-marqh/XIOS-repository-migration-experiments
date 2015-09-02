@@ -42,7 +42,7 @@ namespace xios {
     if (zoom_begin < 0 || zoom_begin > axisGlobalSize - 1 || zoom_end < 0 || zoom_end > axisGlobalSize - 1
         || zoom_size < 1 || zoom_size > axisGlobalSize || zoom_begin > zoom_end)
       ERROR("CZoomAxis::checkValid(CAxis* axisDest)",
-            << "One or more attributes among 'zoom_begin' (" << zoom_begin.getValue() << "), 'zoom_end' (" << zoom_end.getValue() << "), 'zoom_size' (" << zoom_size.getValue() << ") "
+            << "One or more attributes among 'zoom_begin' (" << zoom_begin << "), 'zoom_end' (" << zoom_end << "), 'zoom_size' (" << zoom_size << ") "
             << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
     this->zoom_begin.setValue(zoom_begin) ;
