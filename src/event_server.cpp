@@ -6,59 +6,56 @@
 
 namespace xios
 {
-
-  void CEventServer::push(int rank,CServerBuffer* serverBuffer,char* startBuffer,int size)
+  void CEventServer::push(int rank, CServerBuffer* serverBuffer, char* startBuffer, int size)
   {
-    CBufferIn buffer(startBuffer,size) ;
-    size_t timeLine ;
-    int myClassId ;
-    int myType ;
-    int myNbSender ;
+    CBufferIn buffer(startBuffer, size);
+    size_t timeLine;
+    int myClassId, myType, myNbSender;
   
-    buffer>>size>>timeLine>>myNbSender>>myClassId>>myType ;
+    buffer >> size >> timeLine >> myNbSender >> myClassId >> myType;
   
     if (subEvents.empty())
     {  
-      nbSender=myNbSender ;
-      classId=myClassId;
-      type=myType ;
+      nbSender = myNbSender;
+      classId = myClassId;
+      type = myType;
     }
     else
     {
-      if (nbSender!=myNbSender || classId!=myClassId || type!=myType)
-        ERROR("void CEventServer::push(int rank,char* startBuffer,int size)",
-             "Callers of an event are not coherent") ;
+      if (classId != myClassId || type != myType || nbSender != myNbSender)
+        ERROR("void CEventServer::push(int rank, CServerBuffer* serverBuffer, char* startBuffer, int size)",
+              << "The callers of event " << timeLine << " are not coherent." << std::endl
+              << "Received subevent: classId = " << myClassId << ", type = " << myType << ", nbSender = " << myNbSender << std::endl
+              << "Excepted subevent: classId = " << classId << ", type = " << type << ", nbSender = " << nbSender);
     }
 
-    SSubEvent ev ;
-    ev.rank=rank ;
-    ev.serverBuffer=serverBuffer ;
-    ev.buffer=new CBufferIn(buffer.ptr(),buffer.remain()) ;
-    ev.size=size ;  
-    subEvents.push_back(ev) ;
+    SSubEvent ev;
+    ev.rank = rank;
+    ev.serverBuffer = serverBuffer;
+    ev.buffer = new CBufferIn(buffer.ptr(), buffer.remain());
+    ev.size = size;  
+    subEvents.push_back(ev);
   
-    if (subEvents.size()>nbSender)
+    if (subEvents.size() > nbSender)
     {
-        ERROR("void CEventServer::push(int rank,CServerBuffer* serverBuffer,char* startBuffer,int size)",
-              "Callers of an event are not coherent") ;
+        ERROR("void CEventServer::push(int rank, CServerBuffer* serverBuffer, char* startBuffer, int size)",
+              << "The callers of event " << timeLine << " are not coherent." << std::endl
+              << "Too many subevents have been received (" << subEvents.size() << " instead of " << nbSender << ").");
     }
-  
   }
 
   bool CEventServer::isFull(void)  
   {
-    return (nbSender==subEvents.size()) ;
+    return (nbSender == subEvents.size());
   }
 
   CEventServer::~CEventServer()
   {
     list<SSubEvent>::iterator it;
-
-    for(it=subEvents.begin();it!=subEvents.end();it++)
+    for (it = subEvents.begin(); it != subEvents.end(); it++)
     {
-      it->serverBuffer->freeBuffer(it->size) ;
-      delete it->buffer ;
+      it->serverBuffer->freeBuffer(it->size);
+      delete it->buffer;
     }
   }
-
 }
