@@ -13,7 +13,7 @@ namespace xios
     if (!context)
       ERROR("CStoreFilter::CStoreFilter(CContext* context, CGrid* grid)",
             "Impossible to construct a store filter without providing a context.");
-    if (!context)
+    if (!grid)
       ERROR("CStoreFilter::CStoreFilter(CContext* context, CGrid* grid)",
             "Impossible to construct a store filter without providing a grid.");
   }
