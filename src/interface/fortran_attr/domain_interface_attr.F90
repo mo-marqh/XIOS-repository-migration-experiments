@@ -293,7 +293,28 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_domain_ref
 
 
-    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent) BIND(C)
+    SUBROUTINE cxios_set_domain_domain_src(domain_hdl, domain_src, domain_src_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_src
+      INTEGER  (kind = C_INT)     , VALUE        :: domain_src_size
+    END SUBROUTINE cxios_set_domain_domain_src
+
+    SUBROUTINE cxios_get_domain_domain_src(domain_hdl, domain_src, domain_src_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_src
+      INTEGER  (kind = C_INT)     , VALUE        :: domain_src_size
+    END SUBROUTINE cxios_get_domain_domain_src
+
+    FUNCTION cxios_is_defined_domain_domain_src(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_domain_src
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_domain_src
+
+
+    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent1) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index

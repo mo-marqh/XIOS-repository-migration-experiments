@@ -125,7 +125,7 @@ namespace xios
     }
 
     std::vector<MPI_Status> requestStatus(sendRequest.size());
-    MPI_Wait(&sendRequest[0], &requestStatus[0]);
+    if (!sendRequest.empty()) MPI_Wait(&sendRequest[0], &requestStatus[0]);
     if (0 != sendBuffSize) delete [] sendBuff;
     if (0 != recvBuffSize) delete [] recvBuff;
   }

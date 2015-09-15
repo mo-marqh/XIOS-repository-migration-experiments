@@ -359,7 +359,33 @@ extern "C"
   }
 
 
-  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int* extent)
+  void cxios_set_domain_domain_src(domain_Ptr domain_hdl, const char * domain_src, int domain_src_size)
+  {
+    std::string domain_src_str;
+    if (!cstr2string(domain_src, domain_src_size, domain_src_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->domain_src.setValue(domain_src_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_domain_src(domain_Ptr domain_hdl, char * domain_src, int domain_src_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->domain_src.getInheritedValue(), domain_src, domain_src_size))
+      ERROR("void cxios_get_domain_domain_src(domain_Ptr domain_hdl, char * domain_src, int domain_src_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_domain_src(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->domain_src.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1)
   {
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(i_index, shape(extent[0]), neverDeleteData);

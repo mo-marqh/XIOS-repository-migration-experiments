@@ -359,6 +359,32 @@ extern "C"
   }
 
 
+  void cxios_set_domaingroup_domain_src(domaingroup_Ptr domaingroup_hdl, const char * domain_src, int domain_src_size)
+  {
+    std::string domain_src_str;
+    if (!cstr2string(domain_src, domain_src_size, domain_src_str)) return;
+    CTimer::get("XIOS").resume();
+    domaingroup_hdl->domain_src.setValue(domain_src_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_domain_src(domaingroup_Ptr domaingroup_hdl, char * domain_src, int domain_src_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domaingroup_hdl->domain_src.getInheritedValue(), domain_src, domain_src_size))
+      ERROR("void cxios_get_domaingroup_domain_src(domaingroup_Ptr domaingroup_hdl, char * domain_src, int domain_src_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_domain_src(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->domain_src.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domaingroup_group_ref(domaingroup_Ptr domaingroup_hdl, const char * group_ref, int group_ref_size)
   {
     std::string group_ref_str;
