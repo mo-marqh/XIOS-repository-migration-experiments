@@ -786,14 +786,14 @@ namespace xios {
                << "Please define either both attributes or none.");
        }
 
-       if (!bounds_lon_1d.isEmpty() && nvertex.getValue() != bounds_lon_1d.extent(1))
+       if (!bounds_lon_1d.isEmpty() && nvertex.getValue() != bounds_lon_1d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(1)
                << " but nvertex is " << nvertex.getValue() << ".");
 
-       if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(2))
+       if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
@@ -810,14 +810,14 @@ namespace xios {
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "Since 'bounds_lon_2d' is defined, 'lonvalue_2d' must be defined too." << std::endl);
 
-       if (!bounds_lat_1d.isEmpty() && nvertex.getValue() != bounds_lat_1d.extent(1))
+       if (!bounds_lat_1d.isEmpty() && nvertex.getValue() != bounds_lat_1d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
                << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(1)
                << " but nvertex is " << nvertex.getValue() << ".");
 
-       if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(2))
+       if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl

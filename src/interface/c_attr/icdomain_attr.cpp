@@ -385,7 +385,7 @@ extern "C"
   }
 
 
-  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int extent1)
+  void cxios_set_domain_i_index(domain_Ptr domain_hdl, int* i_index, int* extent)
   {
     CTimer::get("XIOS").resume();
     CArray<int,1> tmp(i_index, shape(extent[0]), neverDeleteData);

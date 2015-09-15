@@ -314,7 +314,7 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_domain_src
 
 
-    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent1) BIND(C)
+    SUBROUTINE cxios_set_domain_i_index(domain_hdl, i_index, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: domain_hdl
       INTEGER (KIND=C_INT)     , DIMENSION(*) :: i_index
