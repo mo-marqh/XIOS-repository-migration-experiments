@@ -214,9 +214,13 @@ namespace xios {
         }
         else
         {
-          // Compute (approximately) number of segment on x and y axis
-          float yOverXRatio = (nj_glo.getValue())/(ni_glo.getValue());
+          float njGlo = nj_glo.getValue();
+          float niGlo = ni_glo.getValue();
           int nbProcOnX, nbProcOnY, range;
+
+          // Compute (approximately) number of segment on x and y axis
+          float yOverXRatio = njGlo/niGlo;
+
           nbProcOnX = std::ceil(std::sqrt(nbLocalDomain/yOverXRatio));
           nbProcOnY = std::ceil(((float)nbLocalDomain)/nbProcOnX);
 
@@ -265,6 +269,7 @@ namespace xios {
 
         // Now fill other attributes
         fillInRectilinearLonLat();
+//        fillInRectilinearBoundLonLat();
      }
    }
 
@@ -279,19 +284,47 @@ namespace xios {
      if (!latvalue_2d.isEmpty()) latvalue_1d.free();
      lonvalue_1d.resize(ni);
      latvalue_1d.resize(nj);
+
      double lonStep = double(360/ni_glo.getValue());
      double latStep = double(180/nj_glo.getValue());
 
      // Assign lon value
      for (int i = 0; i < ni; ++i)
      {
-       lonvalue_1d(i) = static_cast<double>(ibegin + i) * lonStep;
+       lonvalue_1d(i) = static_cast<double>(ibegin + i) * lonStep -180 + lonStep/2;
      }
 
      for (int j = 0; j < nj; ++j)
      {
-       latvalue_1d(j) = static_cast<double>(jbegin + j) * latStep - 90;
+       latvalue_1d(j) = static_cast<double>(jbegin + j) * latStep - 90 + latStep/2;
      }
+   }
+
+   void CDomain::fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
+   {
+     int i,j,k;
+     const int nvertexValue = 4;
+
+     boundsLon.resize(nvertexValue,ni*nj);
+     boundsLat.resize(nvertexValue,nj*ni);
+
+     double lonStep = double(360/ni_glo.getValue());
+     double latStep = double(180/nj_glo.getValue());
+
+     for(j=0;j<nj;++j)
+       for(i=0;i<ni;++i)
+       {
+         k=j*ni+i;
+         boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep -180
+                                                               : -180;
+         boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep -180
+                                                                        : 180;
+
+         boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep - 90
+                                                               : -90;
+         boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep - 90
+                                                               : +90;
+       }
    }
 
    void CDomain::checkDomain(void)
@@ -624,6 +657,7 @@ namespace xios {
               }
             }
           }
+        lonvalue_1d.free();
      }
 
      if (!lonvalue_1d.isEmpty())
@@ -665,6 +699,7 @@ namespace xios {
            bounds_lat_temp = bounds_lat_1d;
          }
        }
+       lonvalue_2d.free();
      }
 
     int i_ind,j_ind;

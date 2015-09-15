@@ -114,9 +114,10 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("src_domain", lonvalue_1D=src_lon, latvalue_1D=src_lat, &
                             bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
 
-  CALL xios_set_domain_attr("dst_domain", ni_glo=dst_ni_glo, ibegin=dst_ibegin, ni=dst_ni, type="unstructured")
+!  CALL xios_set_domain_attr("dst_domain", ni_glo=dst_ni_glo, ibegin=dst_ibegin, ni=dst_ni, type="unstructured")
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
+
 
   dtime%second = 3600
   CALL xios_set_timestep(dtime)

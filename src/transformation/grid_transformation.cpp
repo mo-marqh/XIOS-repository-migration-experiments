@@ -53,6 +53,7 @@ CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
   {
     CDomain* domain = CDomain::createDomain();
     domain->setAttributes(domainSrcTmp[idx]);
+    domain->checkAttributesOnClient();
     domainSrc.push_back(domain);
   }
 

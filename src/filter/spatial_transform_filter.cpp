@@ -84,6 +84,7 @@ namespace xios
                                                                      ? itSend->second.numElements(): sendBuffSize;
     double* sendBuff;
     if (0 != sendBuffSize) sendBuff = new double[sendBuffSize];
+    std::vector<MPI_Request> sendRequest;
     for (itSend = itbSend; itSend != iteSend; ++itSend)
     {
       int destRank = itSend->first;
@@ -93,7 +94,8 @@ namespace xios
       {
         sendBuff[idx] = dataSrc(localIndex_p(idx));
       }
-      MPI_Send(sendBuff, countSize, MPI_DOUBLE, destRank, 12, client->intraComm);
+      sendRequest.push_back(MPI_Request());
+      MPI_Isend(sendBuff, countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRequest.back());
     }
 
     // Receiving data on destination fields
@@ -122,6 +124,8 @@ namespace xios
       }
     }
 
+    std::vector<MPI_Status> requestStatus(sendRequest.size());
+    MPI_Wait(&sendRequest[0], &requestStatus[0]);
     if (0 != sendBuffSize) delete [] sendBuff;
     if (0 != recvBuffSize) delete [] recvBuff;
   }

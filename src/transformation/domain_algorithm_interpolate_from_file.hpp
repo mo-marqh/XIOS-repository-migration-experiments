@@ -2,7 +2,7 @@
    \file domain_algorithm_interpolate_from_file.hpp
    \author Ha NGUYEN
    \since 09 July 2015
-   \date 09 July 2015
+   \date 09 Sep 2015
 
    \brief Algorithm for interpolation on a domain.
  */
@@ -29,7 +29,9 @@ public:
 
 private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
-  void randomizeInterpolationInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
+  void computeRemap();
+  void readRemapInfo();
+
 private:
   CInterpolateFromFileDomain* interpDomain_;
 

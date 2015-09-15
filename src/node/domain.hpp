@@ -123,6 +123,7 @@ namespace xios {
          void sendServerAttribut(void) ;
          void sendLonLatArea(void);
          void computeConnectedServer(void) ;
+         void fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
 
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);

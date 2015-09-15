@@ -2,7 +2,7 @@
    \file domain_algorithm_interpolate_from_file.cpp
    \author Ha NGUYEN
    \since 09 Jul 2015
-   \date 17 Jul 2015
+   \date 11 Sep 2015
 
    \brief Algorithm for interpolation on a domain.
  */
@@ -13,6 +13,7 @@
 #include "distribution_client.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "netcdf.hpp"
+#include "mapper.hpp"
 
 namespace xios {
 
@@ -23,10 +24,117 @@ CDomainAlgorithmInterpolateFromFile::CDomainAlgorithmInterpolateFromFile(CDomain
   computeIndexSourceMapping();
 }
 
+void CDomainAlgorithmInterpolateFromFile::computeRemap()
+{
+  using namespace sphereRemap;
+
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int i, j, k, idx;
+	double srcPole[] = {0, 0, 0};
+	double dstPole[] = {0, 0, 1};
+	int orderInterp = 2;
+
+  int constNVertex = 4; // Value by default number of vertex for rectangular domain
+  int nVertexSrc, nVertexDest;
+  nVertexSrc = nVertexDest = constNVertex;
+
+  // First of all, try to retrieve the boundary values of domain source and domain destination
+  int localDomainSrcSize = domainSrc_->i_index.numElements();
+  int niSrc = domainSrc_->ni.getValue(), njSrc = domainSrc_->nj.getValue();
+  bool hasBoundSrc = domainSrc_->hasBounds;
+  if (hasBoundSrc) nVertexSrc = domainSrc_->nvertex.getValue();
+  CArray<double,2> boundsLonSrc(nVertexSrc,localDomainSrcSize);
+  CArray<double,2> boundsLatSrc(nVertexSrc,localDomainSrcSize);
+
+  if (hasBoundSrc)  // Suppose that domain source is curvilinear or unstructured
+  {
+    if (!domainSrc_->bounds_lon_2d.isEmpty())
+    {
+      for (j = 0; j < njSrc; ++j)
+        for (i = 0; i < niSrc; ++i)
+        {
+          k=j*niSrc+i;
+          for(int n=0;n<nVertexSrc;++n)
+          {
+            boundsLonSrc(n,k) = domainSrc_->bounds_lon_2d(n,i,j);
+            boundsLatSrc(n,k) = domainSrc_->bounds_lat_2d(n,i,j);
+          }
+        }
+    }
+    else
+    {
+      boundsLonSrc = domainSrc_->bounds_lon_1d;
+      boundsLatSrc = domainSrc_->bounds_lat_1d;
+    }
+  }
+  else // if domain source is rectilinear, not do anything now
+  {
+    nVertexSrc = constNVertex;
+  }
+
+  int localDomainDestSize = domainDest_->i_index.numElements();
+  int niDest = domainDest_->ni.getValue(), njDest = domainDest_->nj.getValue();
+  bool hasBoundDest = domainDest_->hasBounds;
+  if (hasBoundDest) nVertexDest = domainDest_->nvertex.getValue();
+  CArray<double,2> boundsLonDest(nVertexDest,localDomainDestSize);
+  CArray<double,2> boundsLatDest(nVertexDest,localDomainDestSize);
+
+  if (hasBoundDest)
+  {
+    if (!domainDest_->bounds_lon_2d.isEmpty())
+    {
+      for (j = 0; j < njDest; ++j)
+        for (i = 0; i < niDest; ++i)
+        {
+          k=j*niDest+i;
+          for(int n=0;n<nVertexDest;++n)
+          {
+            boundsLonDest(n,k) = domainDest_->bounds_lon_2d(n,i,j);
+            boundsLatDest(n,k) = domainDest_->bounds_lat_2d(n,i,j);
+          }
+        }
+    }
+    else
+    {
+      boundsLonDest = domainDest_->bounds_lon_1d;
+      boundsLatDest = domainDest_->bounds_lat_1d;
+    }
+  }
+  else
+  {
+    // Ok, fill in boundary values for rectangular domain
+    domainDest_->fillInRectilinearBoundLonLat(boundsLonDest, boundsLatDest);
+    nVertexDest = 4;
+  }
+
+  // Ok, now use mapper to calculate
+  int nSrcLocal = domainSrc_->i_index.numElements();
+  int nDstLocal = domainDest_->i_index.numElements();
+  Mapper mapper(client->intraComm);
+  mapper.setVerbosity(PROGRESS) ;
+  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, srcPole);
+  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, dstPole);
+  std::vector<double> timings = mapper.computeWeights(orderInterp);
+
+  for (int idx = 0;  idx < mapper.nWeights; ++idx)
+  {
+    transformationMapping_[mapper.targetWeightId[idx]].push_back(mapper.sourceWeightId[idx]);
+    transformationWeight_[mapper.targetWeightId[idx]].push_back(mapper.remapMatrix[idx]);
+  }
+}
+
+void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
+{
+  computeRemap();
+}
+
+
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
-void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
+void CDomainAlgorithmInterpolateFromFile::readRemapInfo()
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -36,7 +144,6 @@ void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   readInterpolationInfo(filename, interpMapValue);
 
-  //randomizeInterpolationInfo(interpMapValue);
   boost::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();
   int nj = domainDest_->nj.getValue();
@@ -196,31 +303,6 @@ void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
   delete [] recvWeightBuff;
   delete [] sendBuff;
   delete [] recvBuff;
-}
-
-void CDomainAlgorithmInterpolateFromFile::randomizeInterpolationInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
-{
-  int iDestBegin = 2;
-  int jDestBegin = 2;
-
-  int ni_glo_src = domainSrc_->ni_glo.getValue();
-  int ni_glo = domainDest_->ni_glo.getValue();
-  size_t globalIndex;
-  int nIndexSize = domainDest_->i_index.numElements(), i_ind, j_ind;
-  for (int idx = 0; idx < nIndexSize; ++idx)
-  {
-    i_ind=domainDest_->i_index(idx) ;
-    j_ind=domainDest_->j_index(idx) ;
-
-    globalIndex = i_ind + j_ind * ni_glo;
-
-    interpMapValue[globalIndex].push_back(make_pair((i_ind+iDestBegin) + (j_ind+jDestBegin-1)*ni_glo_src, 0.25));
-    interpMapValue[globalIndex].push_back(make_pair((i_ind+iDestBegin+1) + (j_ind+jDestBegin)*ni_glo_src, 0.25));
-    interpMapValue[globalIndex].push_back(make_pair((i_ind+iDestBegin) + (j_ind+jDestBegin+1)*ni_glo_src, 0.25));
-    interpMapValue[globalIndex].push_back(make_pair((i_ind+iDestBegin-1) + (j_ind+jDestBegin)*ni_glo_src, 0.25));
-
-
-  }
 }
 
 /*!

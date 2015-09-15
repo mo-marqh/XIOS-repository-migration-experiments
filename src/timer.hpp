@@ -1,5 +1,5 @@
-#ifndef __TIMER_HPP__
-#define __TIMER_HPP__
+#ifndef __XIOS_TIMER_HPP__
+#define __XIOS_TIMER_HPP__
 
 #include <string>
 #include <map>
@@ -13,7 +13,7 @@ namespace xios
       double lastTime;
       bool suspended;
       std::string name;
-      
+
       CTimer(const std::string& name);
       void suspend(void);
       void resume(void);

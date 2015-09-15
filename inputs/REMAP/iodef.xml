@@ -26,7 +26,8 @@
 
    <domain_definition>
      <domain id="src_domain" />
-     <domain id="dst_domain" domain_ref="src_domain">
+     <domain id="dst_domain" domain_src="src_domain">
+       <generate_rectilinear_domain />
        <interpolate_from_file_domain file="weight.nc" />
      </domain>
    </domain_definition>
