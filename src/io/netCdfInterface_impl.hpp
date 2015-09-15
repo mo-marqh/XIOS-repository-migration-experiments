@@ -4,7 +4,7 @@
    \date 08 Oct 2014
    \since 06 Oct 2014
 
-   \brief Implemention of some templated functions in netCdfInterface
+   \brief Implementation of some templated functions in netCdfInterface
  */
 
 #ifndef __NETCDF_INTERFACE_IMPL_HPP__
@@ -15,63 +15,108 @@
 
 namespace xios
 {
-   /*!
-   This function makes a request to netcdf with its id, to add or change a variable attribute or gloabl attribute,
-   given its name, type, number of values provided for attribute
-   \param [in] ncid Id of groupd(or File Id)
-   \param [in] varId Id of the variable
-   \param [in] attrName Name of the attribute
-   \param [in] numVal Number of values
-   \param [in] op Array of values provided for attribute
-   \return Error code
-   */
+  /*!
+  This function reads a variable attribute or a global attribute
+  given a location id, a variable id and the attribute name
+  \param [in] ncid Id of group (or file id)
+  \param [in] varId Id of the variable
+  \param [in] attrName Name of the attribute
+  \param [out] data Array of values
+  \return Status code
+  */
+  template<typename T>
+  int CNetCdfInterface::getAttType(int ncid, int varId, const StdString& attrName, T* data)
+  {
+    int status = ncGetAttType(ncid, varId, attrName.c_str(), data);
+    if (NC_NOERR != status)
+    {
+      StdStringStream sstr;
+      sstr << "Error when calling function ncGetAttType(ncid, varId, attrName.c_str(), data)" << std::endl;
+      sstr << nc_strerror(status) << std::endl;
+      sstr << "Unable to read attribute " << attrName << " given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      throw CNetCdfException(sstr.str());
+    }
+
+    return status;
+  }
+
+  /*!
+  This function adds or modifies a variable attribute or a global attribute
+  given a location id, a variable id and the attribute name
+  \param [in] ncid Id of group (or file id)
+  \param [in] varId Id of the variable
+  \param [in] attrName Name of the attribute
+  \param [in] numVal Number of values to set
+  \param [in] data Array of values
+  \return Status code
+  */
   template<typename T>
   int CNetCdfInterface::putAttType(int ncid, int varId, const StdString& attrName,
-                                   StdSize numVal, const T* op)
+                                   StdSize numVal, const T* data)
   {
-    int status = ncPutAttType(ncid, varId, attrName.c_str(), numVal, op);
+    int status = ncPutAttType(ncid, varId, attrName.c_str(), numVal, data);
     if (NC_NOERR != status)
-     {
-       StdString errormsg(nc_strerror(status));
-       StdStringStream sstr;
-       sstr << "Error in calling function " << "ncPutAttType(ncid, varId, attrName.c_str(), numVal, op)" << std::endl;
-       sstr << errormsg << std::endl;
-       sstr << "Unable to set attribute " << attrName << " for a variable with id : " << varId
-         << " with number of attribute  " << numVal << std::endl;
-       StdString e = sstr.str();
-       throw CNetCdfException(e);
-     }
+    {
+      StdStringStream sstr;
+      sstr << "Error when calling function ncPutAttType(ncid, varId, attrName.c_str(), numVal, data)" << std::endl;
+      sstr << nc_strerror(status) << std::endl;
+      sstr << "Unable to set attribute " << attrName << " given the location id: " << ncid << " and the variable id: " << varId
+           << " with " << numVal << " elements." << std::endl;
+      throw CNetCdfException(sstr.str());
+    }
 
-     return status;
+    return status;
   }
 
-   /*!
-   This function makes a request to netcdf with its id, to write variable values into netcdf file,
-   \param [in] ncid Id of groupd(or File Id)
-   \param [in] varId Id of the variable
-   \param [in] start Array specifying the index in the variable where the first data value will be written
-   \param [in] count Array specifying the edge lengths along each dimension of block data
-   \param [in] op Array of values provided for attribute
-   \return Error code
-   */
+  /*!
+  This function reads data for the specified variable.
+  \param [in] ncid Id of group (or file id)
+  \param [in] varId Id of the variable
+  \param [in] start Array specifying the index in the variable where the first data value will be written
+  \param [in] count Array specifying the edge lengths along each dimension of the data block
+  \param [out] data Array of values
+  \return Status code
+  */
   template<typename T>
-  int CNetCdfInterface::putVaraType(int ncid, int varId, const StdSize* start, const StdSize* count, const T* op)
+  int CNetCdfInterface::getVaraType(int ncid, int varId, const StdSize* start, const StdSize* count, T* data)
   {
-    int status = ncPutVaraType(ncid, varId, start, count, op);
+    int status = ncGetVaraType(ncid, varId, start, count, data);
     if (NC_NOERR != status)
-     {
-       StdString errormsg(nc_strerror(status));
-       StdStringStream sstr;
-       sstr << "Error in calling function " << "ncPutVaraType(ncid, varId, start, count, op)" << std::endl;
-       sstr << errormsg << std::endl;
-       sstr << "Unable to write value of a variable with id : " << varId << std::endl;
-       StdString e = sstr.str();
-       throw CNetCdfException(e);
-     }
+    {
+      StdStringStream sstr;
+      sstr << "Error when calling function ncGetVaraType(ncid, varId, start, count, data)" << std::endl;
+      sstr << nc_strerror(status) << std::endl;
+      sstr << "Unable to read data given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      throw CNetCdfException(sstr.str());
+    }
 
-     return status;
+    return status;
   }
 
+  /*!
+  This function writes the given data for the specified variable.
+  \param [in] ncid Id of group (or file id)
+  \param [in] varId Id of the variable
+  \param [in] start Array specifying the index in the variable where the first data value will be written
+  \param [in] count Array specifying the edge lengths along each dimension of the data block
+  \param [in] data Array of values
+  \return Status code
+  */
+  template<typename T>
+  int CNetCdfInterface::putVaraType(int ncid, int varId, const StdSize* start, const StdSize* count, const T* data)
+  {
+    int status = ncPutVaraType(ncid, varId, start, count, data);
+    if (NC_NOERR != status)
+    {
+      StdStringStream sstr;
+      sstr << "Error when calling function ncPutVaraType(ncid, varId, start, count, data)" << std::endl;
+      sstr << nc_strerror(status) << std::endl;
+      sstr << "Unable to write data given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      throw CNetCdfException(sstr.str());
+    }
+
+    return status;
+  }
 }
 
 #endif // __NETCDF_INTERFACE_IMPL_HPP__

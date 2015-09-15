@@ -83,9 +83,13 @@ namespace xios
       T getMissingValue(const StdString& name, const CVarPath* const path = NULL);
 
       template <class T>
-      T getAttributeValue(const StdString& name,
-                          const StdString* const var  = NULL,
-                          const CVarPath* const path = NULL);
+      std::vector<T> getAttributeValue(const StdString& name,
+                                       const StdString* const var  = NULL,
+                                       const CVarPath* const path = NULL);
+
+      StdString getAttributeValue(const StdString& name,
+                                  const StdString* const var,
+                                  const CVarPath* const path);
 
       template <class T>
       void getData(CArray<T, 1>& data,
@@ -148,65 +152,9 @@ namespace xios
                        const std::vector<StdSize>* start = NULL, const std::vector<StdSize>* count = NULL);
 
     private:
-      /// Vérification des erreurs NetCDF ///
-      static void CheckError(int status);
-
-      int ncidp; // Identifiant de fichier netcdf.
-      bool mpi; //< Whether parallel file access is used
+      int ncidp; //< Id of the NetCDF file
+      bool mpi;  //< Whether parallel file access is used
   }; // class CINetCDF4
-
-  ///--------------------------------------------------------------
-
-  template <>
-  StdString CINetCDF4::getAttributeValue(const StdString& name, const StdString* const var,
-                                         const CVarPath* const path);
-
-  template <>
-  std::vector<double> CINetCDF4::getAttributeValue(const StdString& name, const StdString* const var,
-                                                   const CVarPath* const path);
-
-  template <>
-  std::vector<float> CINetCDF4::getAttributeValue(const StdString& name, const StdString* const var,
-                                                  const CVarPath* const path);
-
-  template <>
-  std::vector<int> CINetCDF4::getAttributeValue(const StdString& name, const StdString* const var,
-                                                const CVarPath* const path);
-
-  template <>
-  std::vector<char> CINetCDF4::getAttributeValue(const StdString& name, const StdString* const var,
-                                                 const CVarPath* const path);
-
-  //---------------------------------------------------------------
-
-  template <>
-  int CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
-
-  template <>
-  double CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
-
-  template <>
-  float CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
-
-  //---------------------------------------------------------------
-
-  template <>
-  void CINetCDF4::getData(CArray<int, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record);
-
-  template <>
-  void CINetCDF4::getData(CArray<double, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record);
-
-  template <>
-  void CINetCDF4::getData(CArray<float, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record);
-
-  template <>
-  void CINetCDF4::getData(CArray<double, 1>& data, const StdString& var,
-                          bool collective, StdSize record,
-                          const std::vector<StdSize>* start /*= NULL*/,
-                          const std::vector<StdSize>* count /*= NULL*/);
 } // namespace xios
 
 #endif //__XIOS_INETCDF4__

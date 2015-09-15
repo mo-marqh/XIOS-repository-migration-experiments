@@ -23,8 +23,6 @@ namespace xios
       {
          StdString timeid = StdString("time_counter");
          SuperClass::type = MULTI_FILE;
-//         if (!exist)
-//            SuperClassWriter::addDimension(timeid);
       }
 
       CNc4DataOutput::CNc4DataOutput
@@ -39,9 +37,6 @@ namespace xios
          StdString timeid = StdString("time_counter");
 
          SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
-
- //        if (!exist)
-//            SuperClassWriter::addDimension(timeid);
       }
 
 

@@ -54,8 +54,11 @@ namespace xios
     //! Query identity of a named variable
     static int inqVarId(int ncid, const StdString& varName, int& varId);
 
+    //! Query the name of a variable given its id
+    static int inqVarName(int ncid, int varId, StdString& varName);
+
     //! Query identity of a named dimension
-    static int inqDimId(int ncid,const StdString& dimName, int& dimId);
+    static int inqDimId(int ncid, const StdString& dimName, int& dimId);
 
     //! Query identity of unlimited dimension
     static int inqUnLimDim(int ncid, int& dimId);
@@ -75,15 +78,35 @@ namespace xios
     //! Query dimensions of a group
     static int inqDimIds(int ncid, int& nDims, int* dimIds, int includeParents);
 
+    //! Query the full name of a group given its id
+    static int inqGrpFullName(int ncid, StdString& grpFullName);
+
+    //! Query the list of group ids given a location id
+    static int inqGrpIds(int ncid, int& numgrps, int* ncids);
+
+    //! Query the list of variable ids given a location id
+    static int inqVarIds(int ncid, int& nvars, int* varids);
+
+    //! Query the type and the size of an attribute given its name and the id of the variable to which it is attached.
+    static int inqAtt(int ncid, int varid, const StdString& name, nc_type& type, size_t& len);
+
+    //! Query the number of global attributes given a location id
+    static int inqNAtts(int ncid, int& ngatts);
+
+    //! Query the number of attributes given a location id and a variable id
+    static int inqVarNAtts(int ncid, int varid, int& natts);
+
+    //! Query the name of an attribute given a location id, a variable id and the attribute number
+    static int inqAttName(int ncid, int varid, int attnum, StdString& name);
 
     //! Define a group
-    static int defGrp(int parentNcid,const StdString& grpName, int& grpId);
+    static int defGrp(int parentNcid, const StdString& grpName, int& grpId);
 
     //! Define a dimension
-    static int defDim(int ncid,const StdString& dimName, StdSize dimLen, int& dimId);
+    static int defDim(int ncid, const StdString& dimName, StdSize dimLen, int& dimId);
 
     //! Define a variable
-    static int defVar(int ncid,const StdString& varName, nc_type xtype,
+    static int defVar(int ncid, const StdString& varName, nc_type xtype,
                       int nDims, const int dimIds[], int& varId);
 
     //! Define variable chunking size
@@ -102,28 +125,41 @@ namespace xios
     //! Change access type of a variable
     static int varParAccess(int ncid, int varid, int access);
 
-    //! Syn
+    //! Sync the file
     static int sync(int ncId);
 
-    //! Put attribute into variable
-    static int putAtt(int ncid, int varid, const StdString& attrName, nc_type xtype,
-                      StdSize numVal, const void* op);
-
-
-    //! Put attribute into variable with specific type
+    //! Read an attribute
     template<typename T>
-    static int putAttType(int ncid, int varid, const StdString& attrName, StdSize numVal, const T* op);
+    static int getAttType(int ncid, int varid, const StdString& attrName, T* data);
 
-    //! Put value into a variable with a specific type
+    //! Set an attribute
     template<typename T>
-    static int putVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const T* op);
+    static int putAttType(int ncid, int varid, const StdString& attrName, StdSize numVal, const T* data);
+
+    //! Get data for a variable
+    template<typename T>
+    static int getVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, T* data);
+
+    //! Set data for a variable
+    template<typename T>
+    static int putVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const T* data);
+
+    //! Get the NetCDF type corresponding to a specific C type
+    template<typename T>
+    static nc_type getNcType();
 
   private:
     template<typename T>
-    static int ncPutAttType(int ncid, int varid, const char* attrName, StdSize numVal, const T* op);
+    static int ncGetAttType(int ncid, int varid, const char* attrName, T* data);
 
     template<typename T>
-    static int ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const T* op);
+    static int ncPutAttType(int ncid, int varid, const char* attrName, StdSize numVal, const T* data);
+
+    template<typename T>
+    static int ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, T* data);
+
+    template<typename T>
+    static int ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const T* data);
 
   private:
     static StdString openMode2String(int oMode);

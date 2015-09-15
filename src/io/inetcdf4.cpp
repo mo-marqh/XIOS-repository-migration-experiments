@@ -19,23 +19,11 @@ namespace xios
   CINetCDF4::~CINetCDF4(void)
   { /* Nothing to do */ }
 
-  ///--------------------------------------------------------------
-
-  void CINetCDF4::CheckError(int status)
-  {
-    if (status != NC_NOERR)
-    {
-      StdString errormsg(nc_strerror(status)); // fuite mémoire ici ?
-      ERROR("CINetCDF4::CheckError(int status)",
-            << "[ status = " << status << " ] " << errormsg);
-    }
-  }
-
   //---------------------------------------------------------------
 
   void CINetCDF4::close(void)
   {
-    CheckError(nc_close(this->ncidp));
+    CNetCdfInterface::close(this->ncidp);
   }
 
   //---------------------------------------------------------------
@@ -49,7 +37,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& groupid = *it;
-      CheckError(nc_inq_ncid(retvalue, const_cast<char*>(groupid.c_str()), &retvalue));
+      CNetCdfInterface::inqNcId(retvalue, groupid, retvalue);
     }
 
     return retvalue;
@@ -60,7 +48,7 @@ namespace xios
   {
     int varid = 0;
     int grpid = this->getGroup(path);
-    CheckError(nc_inq_varid(grpid, varname.c_str(), &varid));
+    CNetCdfInterface::inqVarId(grpid, varname, varid);
     return varid;
   }
 
@@ -69,7 +57,7 @@ namespace xios
   {
     int dimid = 0;
     int grpid = this->getGroup(path);
-    CheckError(nc_inq_dimid(grpid, dimname.c_str(), &dimid));
+    CNetCdfInterface::inqDimId(grpid, dimname, dimid);
     return dimid;
   }
 
@@ -80,8 +68,7 @@ namespace xios
     std::pair<nc_type, StdSize> retvalue;
     int grpid = this->getGroup(path);
     int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
-    CheckError(nc_inq_att(grpid, varid, attname.c_str(),
-                          &retvalue.first, &retvalue.second));
+    CNetCdfInterface::inqAtt(grpid, varid, attname, retvalue.first, retvalue.second);
     return retvalue;
   }
 
@@ -89,22 +76,23 @@ namespace xios
   {
     int dimid = 0;
     int grpid = this->getGroup(path);
-    CheckError(nc_inq_unlimdim(grpid, &dimid));
+    CNetCdfInterface::inqUnLimDim(grpid, dimid);
     return dimid;
   }
 
   StdString CINetCDF4::getUnlimitedDimensionName(const CVarPath* const path)
   {
-    char full_name_in[NC_MAX_NAME +1];
     int grpid = this->getGroup(path);
     int dimid = this->getUnlimitedDimension(path);
-    CheckError(nc_inq_dimname(grpid, dimid, full_name_in));
 
-    StdString dimname(full_name_in);
+    StdString dimname;
+    if (dimid != -1)
+      CNetCdfInterface::inqDimName(grpid, dimid, dimname);
     return dimname;
   }
 
   //---------------------------------------------------------------
+
   StdSize CINetCDF4::getNbVertex(const StdString& name,
                                  const CVarPath* const path)
   {
@@ -120,7 +108,7 @@ namespace xios
       StdString bound = this->getBoundsId
             (this->getCoordinatesIdList(name, path).back(), path);
       StdString dim = this->getDimensionsList(&bound, path).back();
-      return (this->getDimensions(&bound, path)[dim]);
+      return this->getDimensions(&bound, path)[dim];
     }
     return size_t(-1);
   }
@@ -129,21 +117,19 @@ namespace xios
 
   std::list<StdString> CINetCDF4::getGroups(const CVarPath* const path)
   {
-    StdSize strlen = 0;
-    char full_name_in[NC_MAX_NAME +1];
     int nbgroup = 0, *groupid = NULL;
     int grpid = this->getGroup(path);
     std::list<StdString> retvalue;
 
-    CheckError(nc_inq_grps(grpid, &nbgroup, NULL));
+    CNetCdfInterface::inqGrpIds(grpid, nbgroup, NULL);
     groupid = new int[nbgroup]();
-    CheckError(nc_inq_grps(grpid, NULL, groupid));
+    CNetCdfInterface::inqGrpIds(grpid, nbgroup, groupid);
 
     for (int i = 0; i < nbgroup; i++)
     {
-      CheckError(nc_inq_grpname_full(groupid[i], &strlen, full_name_in));
-      StdString groupname(full_name_in, strlen);
-      retvalue.push_back(groupname);
+      StdString fullGrpName;
+      CNetCdfInterface::inqGrpFullName(groupid[i], fullGrpName);
+      retvalue.push_back(fullGrpName);
     }
 
     delete [] groupid;
@@ -152,20 +138,19 @@ namespace xios
 
   std::list<StdString> CINetCDF4::getVariables(const CVarPath* const path)
   {
-    char full_name_in[NC_MAX_NAME +1];
     int nbvar = 0, *varid = NULL;
     int grpid = this->getGroup(path);
     std::list<StdString> retvalue;
 
-    CheckError(nc_inq_varids(grpid, &nbvar, NULL));
+    CNetCdfInterface::inqVarIds(grpid, nbvar, NULL);
     varid = new int[nbvar]();
-    CheckError(nc_inq_varids(grpid, NULL, varid));
+    CNetCdfInterface::inqVarIds(grpid, nbvar, varid);
 
     for (int i = 0; i < nbvar; i++)
     {
-      CheckError(nc_inq_varname(grpid, varid[i], full_name_in));
-      StdString varname(full_name_in);
-      retvalue.push_back(varname);
+      StdString varName;
+      CNetCdfInterface::inqVarName(grpid, varid[i], varName);
+      retvalue.push_back(varName);
     }
 
     delete [] varid;
@@ -174,7 +159,7 @@ namespace xios
 
   StdSize CINetCDF4::getNbOfTimestep(const CVarPath* const path)
   {
-    return (this->getDimensions(NULL, path)[this->getUnlimitedDimensionName(path)]);
+    return this->getDimensions(NULL, path)[this->getUnlimitedDimensionName(path)];
   }
 
   std::set<StdString> CINetCDF4::getBoundVariables(const CVarPath* const path)
@@ -213,7 +198,6 @@ namespace xios
 
   std::list<StdString> CINetCDF4::getDimensionsList(const StdString* const var, const CVarPath* const path)
   {
-    char full_name_in[NC_MAX_NAME +1];
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
     int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
@@ -221,21 +205,21 @@ namespace xios
 
     if (var != NULL)
     {
-      CheckError(nc_inq_varndims(grpid, varid, &nbdim));
+      CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
-      CheckError(nc_inq_vardimid(grpid, varid, dimid));
+      CNetCdfInterface::inqVarDimId(grpid, varid, dimid);
     }
     else
     {
-      CheckError(nc_inq_dimids(grpid, &nbdim, NULL, 1));
+      CNetCdfInterface::inqDimIds(grpid, nbdim, NULL, 1);
       dimid = new int[nbdim]();
-      CheckError(nc_inq_dimids(grpid, NULL, dimid, 1));
+      CNetCdfInterface::inqDimIds(grpid, nbdim, dimid, 1);
     }
 
     for (int i = 0; i < nbdim; i++)
     {
-      CheckError(nc_inq_dimname(grpid, dimid[i], full_name_in));
-      StdString dimname(full_name_in);
+      std::string dimname;
+      CNetCdfInterface::inqDimName(grpid, dimid[i], dimname);
       retvalue.push_back(dimname);
     }
     delete [] dimid;
@@ -245,8 +229,6 @@ namespace xios
 
   std::map<StdString, StdSize> CINetCDF4::getDimensions(const StdString* const var, const CVarPath* const path)
   {
-    StdSize size = 0;
-    char full_name_in[NC_MAX_NAME + 1];
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
     int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
@@ -254,23 +236,24 @@ namespace xios
 
     if (var != NULL)
     {
-      CheckError(nc_inq_varndims(grpid, varid, &nbdim));
+      CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
-      CheckError(nc_inq_vardimid(grpid, varid, dimid));
+      CNetCdfInterface::inqVarDimId(grpid, varid, dimid);
     }
     else
     {
-      CheckError(nc_inq_dimids(grpid, &nbdim, NULL, 1));
+      CNetCdfInterface::inqDimIds(grpid, nbdim, NULL, 1);
       dimid = new int[nbdim]();
-      CheckError(nc_inq_dimids(grpid, NULL, dimid, 1));
+      CNetCdfInterface::inqDimIds(grpid, nbdim, dimid, 1);
     }
 
     for (int i = 0; i < nbdim; i++)
     {
-      CheckError(nc_inq_dimname(grpid, dimid[i], full_name_in));
-      CheckError(nc_inq_dimlen (grpid, dimid[i], &size));
+      std::string dimname;
+      CNetCdfInterface::inqDimName(grpid, dimid[i], dimname);
+      StdSize size = 0;
+      CNetCdfInterface::inqDimLen(grpid, dimid[i], size);
 
-      StdString dimname(full_name_in);
       retvalue.insert(retvalue.end(), std::make_pair(dimname, size));
     }
     delete [] dimid;
@@ -278,23 +261,22 @@ namespace xios
     return retvalue;
   }
 
-  std::list<StdString> CINetCDF4::getAttributes(const StdString* const var, const CVarPath* const path )
+  std::list<StdString> CINetCDF4::getAttributes(const StdString* const var, const CVarPath* const path)
   {
     int nbatt = 0;
-    char full_name_in[NC_MAX_NAME +1];
     std::list<StdString> retvalue;
     int grpid = this->getGroup(path);
     int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
 
     if (var != NULL)
-      CheckError(nc_inq_varnatts(grpid, varid, &nbatt));
+      CNetCdfInterface::inqVarNAtts(grpid, varid, nbatt);
     else
-      CheckError(nc_inq_natts(grpid, &nbatt));
+      CNetCdfInterface::inqNAtts(grpid, nbatt);
 
     for (int i = 0; i < nbatt; i++)
     {
-      CheckError(nc_inq_attname(grpid, varid, i, full_name_in));
-      StdString attname(full_name_in);
+      StdString attname;
+      CNetCdfInterface::inqAttName(grpid, varid, i, attname);
       retvalue.push_back(attname);
     }
     return retvalue;
@@ -322,8 +304,7 @@ namespace xios
   bool CINetCDF4::hasMissingValue(const StdString& name,
                                   const CVarPath* const path)
   {
-    return (this->hasAttribute("missing_value", &name, path) ||
-          this->hasAttribute("_FillValue", &name, path));
+    return (this->hasAttribute("missing_value", &name, path) || this->hasAttribute("_FillValue", &name, path));
   }
 
   bool CINetCDF4::hasAttribute(const StdString& name,
@@ -356,13 +337,13 @@ namespace xios
   bool CINetCDF4::hasCoordinates(const StdString& name,
                                  const CVarPath* const path)
   {
-    return (this->hasAttribute("coordinates", &name, path));
+    return this->hasAttribute("coordinates", &name, path);
   }
 
   bool CINetCDF4::hasBounds(const StdString& name,
                             const CVarPath* const path)
   {
-    return (this->hasAttribute("bounds", &name, path));
+    return this->hasAttribute("bounds", &name, path);
   }
 
   bool CINetCDF4::hasTemporalDim(const CVarPath* const path)
@@ -372,73 +353,62 @@ namespace xios
 
   //---------------------------------------------------------------
 
-#define GET_ATTRIBUTE_VALUE(type, func_ext, type_enum)                              \
-  template <>                                                                       \
-  std::vector<type> CINetCDF4::getAttributeValue(const StdString& name,             \
-                                                 const StdString* const var,        \
-                                                 const CVarPath* const path)        \
-  {                                                                                 \
-    int grpid = this->getGroup(path);                                               \
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;          \
-    std::pair<nc_type , StdSize> attinfos = this->getAttribute(name, var, path);    \
-    std::vector<type> retvalue(attinfos.second);                                    \
-    if (attinfos.first != type_enum)                                                \
-      ERROR("CINetCDF4::getAttributeValue<double>(name, var, path",                 \
-            << "[ name : " << name                                                  \
-            << ", type requested :" << attinfos.first                               \
-            << ", type stored : " << type_enum << "]"                               \
-            << " Invalid type !");                                                  \
-    CheckError(nc_get_att_##func_ext(grpid, varid, name.c_str(), &(retvalue[0])));  \
-    return retvalue;                                                                \
+  template <class T>
+  std::vector<T> CINetCDF4::getAttributeValue(const StdString& name,
+                                              const StdString* const var,
+                                              const CVarPath* const path)
+  {
+    int grpid = this->getGroup(path);
+    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    std::pair<nc_type , StdSize> attinfos = this->getAttribute(name, var, path);
+    std::vector<T> retvalue(attinfos.second);
+    nc_type type = CNetCdfInterface::getNcType<T>();
+    if (attinfos.first != type)
+      ERROR("CINetCDF4::getAttributeValue<T>(name, var, path)",
+            << "[ name : " << name
+            << ", type requested :" << attinfos.first
+            << ", type stored : " << type << "]"
+            << " Invalid type !");
+    CNetCdfInterface::getAttType(grpid, varid, name.c_str(), &retvalue[0]);
+    return retvalue;
   }
 
-  GET_ATTRIBUTE_VALUE(double, double, NC_DOUBLE)
-  GET_ATTRIBUTE_VALUE(float,  float,  NC_FLOAT)
-  GET_ATTRIBUTE_VALUE(int,    int ,   NC_INT)
-  GET_ATTRIBUTE_VALUE(char,   text,   NC_CHAR)
+  template std::vector<double> CINetCDF4::getAttributeValue(const StdString& name,
+                                                            const StdString* const var,
+                                                            const CVarPath* const path);
+  template std::vector<float> CINetCDF4::getAttributeValue(const StdString& name,
+                                                           const StdString* const var,
+                                                           const CVarPath* const path);
+  template std::vector<int> CINetCDF4::getAttributeValue(const StdString& name,
+                                                         const StdString* const var,
+                                                         const CVarPath* const path);
+  template std::vector<char> CINetCDF4::getAttributeValue(const StdString& name,
+                                                          const StdString* const var,
+                                                          const CVarPath* const path);
 
-  template <>
   StdString CINetCDF4::getAttributeValue(const StdString& name,
                                          const StdString* const var,
                                          const CVarPath* const path)
   {
-    std::vector<char> chart = this->getAttributeValue<std::vector<char> >(name, var, path);
-    StdString retvalue(&(chart[0]), chart.size());
-    return retvalue;
+    std::vector<char> data = this->getAttributeValue<char>(name, var, path);
+
+    return StdString(data.begin(), data.end());
   }
 
-  template <>
-  int CINetCDF4::getMissingValue(const StdString& name,
-                                 const CVarPath* const path)
+  template <class T>
+  T CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path)
   {
     if (this->hasAttribute("missing_value", &name, path))
-      return (this->getAttributeValue<std::vector<int> >("missing_value", &name, path)[0]);
+      return this->getAttributeValue<T>("missing_value", &name, path)[0];
     if (this->hasAttribute("_FillValue", &name, path))
-      return (this->getAttributeValue<std::vector<int> >("_FillValue", &name, path)[0]);
+      return this->getAttributeValue<T>("_FillValue", &name, path)[0];
     return 0;
   }
 
-  template <>
-  double CINetCDF4::getMissingValue(const StdString& name,
-                                    const CVarPath* const path)
-  {
-    if (this->hasAttribute("missing_value", &name, path))
-      return (this->getAttributeValue<std::vector<double> >("missing_value", &name, path)[0]);
-    if (this->hasAttribute("_FillValue", &name, path))
-      return (this->getAttributeValue<std::vector<double> >("_FillValue", &name, path)[0]);
-    return 0;
-  }
-
-  template <>
-  float CINetCDF4::getMissingValue(const StdString& name,
-                                   const CVarPath* const path)
-  {
-    if (this->hasAttribute("missing_value", &name, path))
-      return (this->getAttributeValue<std::vector<float> >("missing_value", &name, path)[0]);
-    if (this->hasAttribute("_FillValue", &name, path))
-      return (this->getAttributeValue<std::vector<float> >("_FillValue", &name, path)[0]);
-    return 0;
-  }
+  template double CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
+  template float CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
+  template int CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
+  template char CINetCDF4::getMissingValue(const StdString& name, const CVarPath* const path);
 
   //---------------------------------------------------------------
 
@@ -463,7 +433,7 @@ namespace xios
     StdString retvalue;
     if (this->hasAttribute("coordinates", &name, path))
     {
-      return (this->getAttributeValue<StdString>("coordinates", &name, path));
+      return this->getAttributeValue("coordinates", &name, path);
     }
     else
     {
@@ -485,7 +455,7 @@ namespace xios
   {
     StdString retvalue;
     if (this->hasAttribute("bounds", &name, path))
-      return (this->getAttributeValue<StdString>("bounds", &name, path));
+      retvalue = this->getAttributeValue("bounds", &name, path);
     return retvalue;
   }
 
@@ -582,9 +552,7 @@ namespace xios
   {
     if (!this->hasTemporalDim(path)) return false;
     std::map<StdString, StdSize> dims = this->getDimensions(&name, path);
-    if (dims.find(this->getUnlimitedDimensionName(path)) != dims.end())
-      return true;
-    return false;
+    return (dims.find(this->getUnlimitedDimensionName(path)) != dims.end());
   }
 
   bool CINetCDF4::is3Dim(const StdString& name, const CVarPath* const path)
@@ -615,7 +583,7 @@ namespace xios
   {
     if (this->isCoordinate(name, path))
     {
-      return (this->hasBounds(name, path));
+      return this->hasBounds(name, path);
     }
     else
     {
@@ -711,45 +679,28 @@ namespace xios
     }
   }
 
+  template <class T>
+  void CINetCDF4::getData(CArray<T, 1>& data, const StdString& var,
+                          const CVarPath* const path, StdSize record)
+  {
+    std::vector<StdSize> start, count;
+    int grpid = this->getGroup(path);
+    int varid = this->getVariable(var, path);
+    StdSize array_size = 1;
+    this->getDataInfo(var, path, record, start, count, array_size);
+    data.resize(array_size);
+    CNetCdfInterface::getVaraType(grpid, varid, &start[0], &count[0], data.dataFirst());
+  }
+
   template <>
   void CINetCDF4::getData(CArray<int, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record)
-  {
-
-    std::vector<StdSize> start, count;
-    int grpid = this->getGroup(path);
-    int varid = this->getVariable(var, path);
-    StdSize array_size = 1;
-    this->getDataInfo(var, path, record, start, count, array_size);
-    data.resize(array_size);
-    CheckError(nc_get_vara_int(grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
-  }
-
+                          const CVarPath* const path, StdSize record);
   template <>
   void CINetCDF4::getData(CArray<double, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record)
-  {
-    std::vector<StdSize> start, count;
-    int grpid = this->getGroup(path);
-    int varid = this->getVariable(var, path);
-    StdSize array_size = 1;
-    this->getDataInfo(var, path, record, start, count, array_size);
-    data.resize(array_size);
-    CheckError(nc_get_vara_double(grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
-  }
-
+                          const CVarPath* const path, StdSize record);
   template <>
   void CINetCDF4::getData(CArray<float, 1>& data, const StdString& var,
-                          const CVarPath* const path, StdSize record)
-  {
-    std::vector<StdSize> start, count;
-    int grpid = this->getGroup(path);
-    int varid = this->getVariable(var, path);
-    StdSize array_size = 1;
-    this->getDataInfo(var, path, record, start, count, array_size);
-    data.resize(array_size);
-    CheckError(nc_get_vara_float(grpid, varid, &(start[0]), &(count[0]), data.dataFirst()));
-  }
+                          const CVarPath* const path, StdSize record);
 
   template <>
   void CINetCDF4::getData(CArray<double, 1>& data, const StdString& var,
@@ -761,7 +712,7 @@ namespace xios
 
     if (this->mpi && collective)
       CNetCdfInterface::varParAccess(ncidp, varid, NC_COLLECTIVE);
-    if (this->mpi && !collective)
+    else if (this->mpi && !collective)
       CNetCdfInterface::varParAccess(ncidp, varid, NC_INDEPENDENT);
 
     std::vector<StdSize> sstart, scount;
@@ -776,7 +727,7 @@ namespace xios
             << " ] Invalid array size");
     }
 
-    CheckError(nc_get_vara_double(ncidp, varid, &(sstart[0]), &(scount[0]), data.dataFirst()));
+    CNetCdfInterface::getVaraType(ncidp, varid, &sstart[0], &scount[0], data.dataFirst());
   }
 
   //---------------------------------------------------------------
@@ -786,9 +737,9 @@ namespace xios
   {
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
     if (this->hasCoordinates(varname, path))
-      return (*clist.begin());
+      return *clist.begin();
     else
-      return (*clist.rbegin());
+      return *clist.rbegin();
   }
 
   StdString CINetCDF4::getLatCoordName(const StdString& varname,
@@ -796,9 +747,9 @@ namespace xios
   {
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
     if (this->hasCoordinates(varname, path))
-      return (*(++clist.begin()));
+      return *(++clist.begin());
     else
-      return (*(++clist.rbegin()));
+      return *(++clist.rbegin());
   }
 
   StdString CINetCDF4::getVertCoordName(const StdString& varname,
@@ -807,8 +758,8 @@ namespace xios
     if (!this->is3Dim(varname, path)) return "";
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
     if (this->hasCoordinates(varname, path))
-      return (*(++(++clist.begin())));
+      return *(++(++clist.begin()));
     else
-      return (*(++(++clist.rbegin())));
+      return *(++(++clist.rbegin()));
   }
 } // namespace xios

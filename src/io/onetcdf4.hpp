@@ -112,9 +112,6 @@ namespace xios
                                    const std::vector<StdSize> * start,
                                    const std::vector<StdSize> * count);
 
-            /// Vérification des erreurs NetCDF ///
-            void CheckError(int status);
-
             /// Propriétés privées ///
             CONetCDF4Path path;
             int ncidp;
