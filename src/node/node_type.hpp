@@ -13,7 +13,7 @@
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
 #include "zoom_domain.hpp"
-#include "interpolate_from_file_domain.hpp"
+#include "interpolate_domain.hpp"
 #include "generate_rectilinear_domain.hpp"
 
 #endif // __XIOS_NODE_TYPE__

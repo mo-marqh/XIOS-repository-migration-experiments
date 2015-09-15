@@ -1,5 +1,5 @@
-#ifndef __XIOS_CInterpolateFromFileDomain__
-#define __XIOS_CInterpolateFromFileDomain__
+#ifndef __XIOS_CInterpolateDomain__
+#define __XIOS_CInterpolateDomain__
 
 /// xios headers ///
 #include "xios_spl.hpp"
@@ -15,39 +15,39 @@
 
 namespace xios {
   /// ////////////////////// Déclarations ////////////////////// ///
-  class CInterpolateFromFileDomainGroup;
-  class CInterpolateFromFileDomainAttributes;
-  class CInterpolateFromFileDomain;
+  class CInterpolateDomainGroup;
+  class CInterpolateDomainAttributes;
+  class CInterpolateDomain;
   class CDomain;
 
   ///--------------------------------------------------------------
 
   // Declare/Define CFileAttribute
-  BEGIN_DECLARE_ATTRIBUTE_MAP(CInterpolateFromFileDomain)
-#include "interpolate_from_file_domain_attribute.conf"
-  END_DECLARE_ATTRIBUTE_MAP(CInterpolateFromFileDomain)
+  BEGIN_DECLARE_ATTRIBUTE_MAP(CInterpolateDomain)
+#include "interpolate_domain_attribute.conf"
+  END_DECLARE_ATTRIBUTE_MAP(CInterpolateDomain)
 
   ///--------------------------------------------------------------
   /*!
-    \class CInterpolateFromFileDomain
+    \class CInterpolateDomain
     This class describes interpolate_from_file_domain in xml file.
   */
-  class CInterpolateFromFileDomain
-    : public CObjectTemplate<CInterpolateFromFileDomain>
-    , public CInterpolateFromFileDomainAttributes
+  class CInterpolateDomain
+    : public CObjectTemplate<CInterpolateDomain>
+    , public CInterpolateDomainAttributes
     , public CTransformation<CDomain>
   {
     public :
-      typedef CObjectTemplate<CInterpolateFromFileDomain> SuperClass;
-      typedef CInterpolateFromFileDomainAttributes SuperClassAttribute;
+      typedef CObjectTemplate<CInterpolateDomain> SuperClass;
+      typedef CInterpolateDomainAttributes SuperClassAttribute;
 
     public :
       /// Constructeurs ///
-      CInterpolateFromFileDomain(void);
-      explicit CInterpolateFromFileDomain(const StdString& id);
+      CInterpolateDomain(void);
+      explicit CInterpolateDomain(const StdString& id);
 
       /// Destructeur ///
-      virtual ~CInterpolateFromFileDomain(void);
+      virtual ~CInterpolateDomain(void);
 
       virtual void checkValid(CDomain* axisDest);
 
@@ -57,9 +57,9 @@ namespace xios {
       static ENodeType GetType(void);
     private:
 
-  }; // class CInterpolateFromFileDomain
+  }; // class CInterpolateDomain
 
-  DECLARE_GROUP(CInterpolateFromFileDomain);
+  DECLARE_GROUP(CInterpolateDomain);
 } // namespace xios
 
-#endif // __XIOS_CInterpolateFromFileDomain__
+#endif // __XIOS_CInterpolateDomain__

@@ -2,11 +2,11 @@
    \file domain_algorithm_interpolate_from_file.cpp
    \author Ha NGUYEN
    \since 09 Jul 2015
-   \date 11 Sep 2015
+   \date 15 Sep 2015
 
    \brief Algorithm for interpolation on a domain.
  */
-#include "domain_algorithm_interpolate_from_file.hpp"
+#include "domain_algorithm_interpolate.hpp"
 #include <boost/unordered_map.hpp>
 #include "context.hpp"
 #include "context_client.hpp"
@@ -17,14 +17,17 @@
 
 namespace xios {
 
-CDomainAlgorithmInterpolateFromFile::CDomainAlgorithmInterpolateFromFile(CDomain* domainDestination, CDomain* domainSource, CInterpolateFromFileDomain* interpDomain)
+CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain)
 {
   interpDomain_->checkValid(domainSource);
   computeIndexSourceMapping();
 }
 
-void CDomainAlgorithmInterpolateFromFile::computeRemap()
+/*!
+  Compute remap with integrated remap calculation module
+*/
+void CDomainAlgorithmInterpolate::computeRemap()
 {
   using namespace sphereRemap;
 
@@ -32,9 +35,8 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int i, j, k, idx;
-	double srcPole[] = {0, 0, 0};
-	double dstPole[] = {0, 0, 1};
-	int orderInterp = 2;
+  std::vector<double> srcPole(3,0), dstPole(3,0);
+	int orderInterp = interpDomain_->order.getValue();
 
   int constNVertex = 4; // Value by default number of vertex for rectangular domain
   int nVertexSrc, nVertexDest;
@@ -48,6 +50,7 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   CArray<double,2> boundsLonSrc(nVertexSrc,localDomainSrcSize);
   CArray<double,2> boundsLatSrc(nVertexSrc,localDomainSrcSize);
 
+  if (CDomain::type_attr::rectilinear == domainSrc_->type) srcPole[2] = 1;
   if (hasBoundSrc)  // Suppose that domain source is curvilinear or unstructured
   {
     if (!domainSrc_->bounds_lon_2d.isEmpty())
@@ -81,6 +84,7 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   CArray<double,2> boundsLonDest(nVertexDest,localDomainDestSize);
   CArray<double,2> boundsLatDest(nVertexDest,localDomainDestSize);
 
+  if (CDomain::type_attr::rectilinear == domainDest_->type) dstPole[2] = 1;
   if (hasBoundDest)
   {
     if (!domainDest_->bounds_lon_2d.isEmpty())
@@ -106,7 +110,7 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   {
     // Ok, fill in boundary values for rectangular domain
     domainDest_->fillInRectilinearBoundLonLat(boundsLonDest, boundsLatDest);
-    nVertexDest = 4;
+    nVertexDest = constNVertex;
   }
 
   // Ok, now use mapper to calculate
@@ -114,8 +118,8 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   int nDstLocal = domainDest_->i_index.numElements();
   Mapper mapper(client->intraComm);
   mapper.setVerbosity(PROGRESS) ;
-  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, srcPole);
-  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, dstPole);
+  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0]);
+  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0]);
   std::vector<double> timings = mapper.computeWeights(orderInterp);
 
   for (int idx = 0;  idx < mapper.nWeights; ++idx)
@@ -125,16 +129,21 @@ void CDomainAlgorithmInterpolateFromFile::computeRemap()
   }
 }
 
-void CDomainAlgorithmInterpolateFromFile::computeIndexSourceMapping()
-{
-  computeRemap();
-}
-
-
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
-void CDomainAlgorithmInterpolateFromFile::readRemapInfo()
+void CDomainAlgorithmInterpolate::computeIndexSourceMapping()
+{
+  if (!interpDomain_->file.isEmpty())
+    readRemapInfo();
+  else
+    computeRemap();
+}
+
+/*!
+  Read remap information from file then distribute it among clients
+*/
+void CDomainAlgorithmInterpolate::readRemapInfo()
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -311,7 +320,7 @@ void CDomainAlgorithmInterpolateFromFile::readRemapInfo()
   \param [in/out] interpMapValue Mapping between (global) index of domain on grid destination and
          corresponding global index of domain and associated weight value on grid source
 */
-void CDomainAlgorithmInterpolateFromFile::readInterpolationInfo(std::string& filename,
+void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
                                                                 std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 {
   int ncid ;

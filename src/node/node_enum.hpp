@@ -23,7 +23,7 @@ namespace xios
          eZoomAxis,
          eInterpolateAxis,
          eZoomDomain,
-         eInterpolateFromFileDomain,
+         eInterpolateDomain,
          eGenerateRectilinearDomain
 
       } ENodeType;

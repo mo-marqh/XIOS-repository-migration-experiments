@@ -16,7 +16,7 @@ namespace xios
   template class CObjectTemplate<CZoomAxis>;
   template class CObjectTemplate<CInterpolateAxis>;
   template class CObjectTemplate<CZoomDomain>;
-  template class CObjectTemplate<CInterpolateFromFileDomain>;
+  template class CObjectTemplate<CInterpolateDomain>;
   template class CObjectTemplate<CGenerateRectilinearDomain>;
 
   template class CObjectTemplate<CContextGroup>;
@@ -30,6 +30,6 @@ namespace xios
   template class CObjectTemplate<CZoomAxisGroup>;
   template class CObjectTemplate<CInterpolateAxisGroup>;
   template class CObjectTemplate<CZoomDomainGroup>;
-  template class CObjectTemplate<CInterpolateFromFileDomainGroup>;
+  template class CObjectTemplate<CInterpolateDomainGroup>;
   template class CObjectTemplate<CGenerateRectilinearDomainGroup>;
 }

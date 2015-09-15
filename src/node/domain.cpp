@@ -18,7 +18,7 @@
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "zoom_domain.hpp"
-#include "interpolate_from_file_domain.hpp"
+#include "interpolate_domain.hpp"
 #include "generate_rectilinear_domain.hpp"
 
 #include <algorithm>
@@ -1781,8 +1781,8 @@ namespace xios {
     {
       StdString zoomDomainDefRoot("zoom_domain_definition");
       StdString zoom("zoom_domain");
-      StdString interpFromFileDomainDefRoot("interpolate_from_file_domain_definition");
-      StdString interpFromFile("interpolate_from_file_domain");
+      StdString interpDomainDefRoot("interpolate_domain_definition");
+      StdString interpFromFile("interpolate_domain");
       StdString generateRectilinearDefRoot("generate_rectilinear_domain_definition");
       StdString generateRectilinear("generate_rectilinear_domain");
       do
@@ -1794,9 +1794,9 @@ namespace xios {
         }
         else if (node.getElementName() == interpFromFile)
         {
-          CInterpolateFromFileDomain* tmp = (CInterpolateFromFileDomainGroup::get(interpFromFileDomainDefRoot))->createChild();
+          CInterpolateDomain* tmp = (CInterpolateDomainGroup::get(interpDomainDefRoot))->createChild();
           tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN_FROM_FILE,tmp));
+          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN,tmp));
         }
         else if (node.getElementName() == generateRectilinear)
         {

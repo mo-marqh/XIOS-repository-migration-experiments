@@ -27,8 +27,8 @@ namespace xios
     class CInterpolateAxisGroup;
     class CZoomDomain;
     class CZoomDomainGroup;
-    class CInterpolateFromFileDomain;
-    class CInterpolateFromFileDomainGroup;
+    class CInterpolateDomain;
+    class CInterpolateDomainGroup;
     class CGenerateRectilinearDomain;
     class CGenerateRectilinearDomainGroup;
 
@@ -75,8 +75,8 @@ namespace xios
   macro(CInterpolateAxisGroup)
   macro(CZoomDomain)
   macro(CZoomDomainGroup)
-  macro(CInterpolateFromFileDomain)
-  macro(CInterpolateFromFileDomainGroup)
+  macro(CInterpolateDomain)
+  macro(CInterpolateDomainGroup)
   macro(CGenerateRectilinearDomain)
   macro(CGenerateRectilinearDomainGroup)
 #undef macro

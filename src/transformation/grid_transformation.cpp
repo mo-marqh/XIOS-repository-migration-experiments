@@ -11,7 +11,7 @@
 #include "axis_algorithm_zoom.hpp"
 #include "axis_algorithm_interpolate.hpp"
 #include "domain_algorithm_zoom.hpp"
-#include "domain_algorithm_interpolate_from_file.hpp"
+#include "domain_algorithm_interpolate.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
 #include "transformation_mapping.hpp"
@@ -275,13 +275,13 @@ void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranforma
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
 
   CZoomDomain* zoomDomain = 0;
-  CInterpolateFromFileDomain* interpFileDomain = 0;
+  CInterpolateDomain* interpFileDomain = 0;
   CGenericAlgorithmTransformation* algo = 0;
   switch (transType)
   {
-    case TRANS_INTERPOLATE_DOMAIN_FROM_FILE:
-      interpFileDomain = dynamic_cast<CInterpolateFromFileDomain*> (it->second);
-      algo = new CDomainAlgorithmInterpolateFromFile(domainListDestP[domainIndex], domainListSrcP[domainIndex],interpFileDomain);
+    case TRANS_INTERPOLATE_DOMAIN:
+      interpFileDomain = dynamic_cast<CInterpolateDomain*> (it->second);
+      algo = new CDomainAlgorithmInterpolate(domainListDestP[domainIndex], domainListSrcP[domainIndex],interpFileDomain);
       break;
     case TRANS_ZOOM_DOMAIN:
       zoomDomain = dynamic_cast<CZoomDomain*> (it->second);
@@ -311,7 +311,7 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
   int axisIndex, domainIndex;
   switch (transType)
   {
-    case TRANS_INTERPOLATE_DOMAIN_FROM_FILE:
+    case TRANS_INTERPOLATE_DOMAIN:
     case TRANS_ZOOM_DOMAIN:
       domainIndex = elementPosition2DomainPositionInGrid_[elementPositionInGrid];
       domListSrcP[domainIndex]->duplicateAttributes(domListDestP[domainIndex]);
@@ -493,8 +493,7 @@ void CGridTransformation::computeTransformationFromOriginalGridSource(const std:
    {
      if (searchCurrentSrc.search(itbIndex, iteIndex, globalIndexOfCurrentGridSourceToSend[idx], itIndex))
      {
-//       int index = std::distance(itbArr, itArr);
-       sendBuff[idx+currentBuffPosition] = globalIndexOfOriginalGridSource_[*itIndex]; //[index];
+       sendBuff[idx+currentBuffPosition] = globalIndexOfOriginalGridSource_[*itIndex];
      }
    }
    currentSendBuff = sendBuff + currentBuffPosition;
