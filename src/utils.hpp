@@ -170,6 +170,20 @@ namespace xios
 
       return hash;
     }
+
+    /*!
+      Adatped version of (stupid) boost hash (but working)
+    */
+    static inline size_t boost_hash(const std::vector<T>& vec)
+    {
+      size_t hash = 0;
+      int sizeVec = vec.size();
+      for(int i = 0; i < sizeVec; ++i)
+      {
+        hash ^= i + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+      }
+      return hash;
+    }
   };
 
   template<typename T, typename Algo = Int2Type<0> >
@@ -179,6 +193,11 @@ namespace xios
     {
       Algo al;
       return hash_value(val, al);
+    }
+
+    std::size_t hashVec(const std::vector<T>& vec)
+    {
+      return HashAlgorithm<T>::boost_hash(vec);
     }
 
   private:

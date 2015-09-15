@@ -16,6 +16,7 @@
 #include "client_server_mapping_distributed.hpp"
 #include "distribution_client.hpp"
 #include "grid_transformation.hpp"
+#include "grid_generate.hpp"
 
 namespace xios {
 
@@ -1167,6 +1168,7 @@ namespace xios {
       {
         pDom->solveRefInheritance(apply);
         pDom->solveBaseReference();
+        pDom->solveSrcInheritance();
         pDom->solveInheritanceTransformation();
         if ((!pDom->domain_ref.isEmpty()) && (pDom->name.isEmpty()))
           pDom->name.setValue(pDom->getBaseDomainReference()->getId());
@@ -1202,6 +1204,33 @@ namespace xios {
   CGridTransformation* CGrid::getTransformations()
   {
     return transformations_;
+  }
+
+  /*!
+     Complete all the necessary (and lacking) attributes of a grid
+     This function is similar to gridTransformation but works only (till now) on generate_rectilinear_domain transformation
+  */
+  void CGrid::completeGrid(CGrid* transformGridSrc)
+  {
+    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
+    {
+      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+           << "Two grids have different dimension size"
+           << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+           << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+    }
+    else
+    {
+      int ssize = axis_domain_order.numElements();
+      for (int i = 0; i < ssize; ++i)
+        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
+          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
+                << " don't have elements in the same order");
+    }
+
+    CGridGenerate gridGenerate(this, transformGridSrc);
+    gridGenerate.completeGrid();
   }
 
   void CGrid::transformGrid(CGrid* transformGridSrc)

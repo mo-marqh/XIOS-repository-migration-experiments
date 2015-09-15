@@ -57,8 +57,6 @@ CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
   }
 
   gridSource_ = CGrid::createGrid(domainSrc, axisSrc, gridDestination_->axis_domain_order);
-  gridSourceDimensionSize_ = gridSource_->getGlobalDimension();
-  gridDestinationDimensionSize_ = gridDestination_->getGlobalDimension();
 
   initializeMappingOfOriginalGridSource();
   initializeAlgorithms();
@@ -76,11 +74,11 @@ void CGridTransformation::initializeMappingOfOriginalGridSource()
   CContextClient* client = context->client;
 
   CDistributionClient distribution(client->clientRank, originalGridSource_);
-  const std::vector<size_t>& globalIndexGridDestSendToServer = distribution.getGlobalDataIndexSendToServer();
+  const std::vector<size_t>& globalIndexGridSrcSendToServer = distribution.getGlobalDataIndexSendToServer();
 
-  weightOfGlobalIndexOfOriginalGridSource_.resize(globalIndexGridDestSendToServer.size());
-  globalIndexOfCurrentGridSource_  = globalIndexGridDestSendToServer;
-  globalIndexOfOriginalGridSource_ = globalIndexGridDestSendToServer;
+  weightOfGlobalIndexOfOriginalGridSource_.resize(globalIndexGridSrcSendToServer.size());
+  globalIndexOfCurrentGridSource_  = globalIndexGridSrcSendToServer;
+  globalIndexOfOriginalGridSource_ = globalIndexGridSrcSendToServer;
   weightOfGlobalIndexOfOriginalGridSource_ = 1.0;
 }
 
@@ -345,7 +343,7 @@ void CGridTransformation::computeAll()
   ListAlgoType::const_iterator itb = listAlgos_.begin(),
                                ite = listAlgos_.end(), it;
   CGenericAlgorithmTransformation* algo = 0;
-
+  int nbAgloTransformation = 0; // Only count for executed transformation. Generate domain is a special one, not executed in the list
   for (it = itb; it != ite; ++it)
   {
     int elementPositionInGrid = it->first;
@@ -357,29 +355,36 @@ void CGridTransformation::computeAll()
     selectAlgo(elementPositionInGrid, transType, transformationOrder, algoTypes_[std::distance(itb, it)]);
     algo = algoTransformation_.back();
 
-    // Recalculate the distribution of grid destination
-    CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-    const std::vector<size_t>& globalIndexGridDestSendToServer = distributionClientDest.getGlobalDataIndexSendToServer();
+    if (0 != algo) // Only registered transformation can be executed
+    {
+      // Recalculate the distribution of grid destination
+      CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
+      const std::vector<size_t>& globalIndexGridDestSendToServer = distributionClientDest.getGlobalDataIndexSendToServer();
 
-    // ComputeTransformation of global index of each element
-    std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
-    std::vector<int> gridSrcDimensionSize = gridSource_->getGlobalDimension();
-    int elementPosition = it->first;
-    algo->computeGlobalSourceIndex(elementPosition,
-                                   gridDestinationDimensionSize,
-                                   gridSrcDimensionSize,
-                                   globalIndexGridDestSendToServer,
-                                   globaIndexWeightFromDestToSource);
+      // ComputeTransformation of global index of each element
+      std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
+      std::vector<int> gridSrcDimensionSize = gridSource_->getGlobalDimension();
+      int elementPosition = it->first;
+      algo->computeGlobalSourceIndex(elementPosition,
+                                     gridDestinationDimensionSize,
+                                     gridSrcDimensionSize,
+                                     globalIndexGridDestSendToServer,
+                                     globaIndexWeightFromDestToSource);
 
-    // Compute transformation of global indexes among grids
-    computeTransformationFromOriginalGridSource(globaIndexWeightFromDestToSource);
+      // Compute transformation of global indexes among grids
+      computeTransformationFromOriginalGridSource(globaIndexWeightFromDestToSource);
 
-    // Now grid destination becomes grid source in a new transformation
-    setUpGrid(elementPositionInGrid, transType);
+      // Now grid destination becomes grid source in a new transformation
+      setUpGrid(elementPositionInGrid, transType);
+      ++nbAgloTransformation;
+    }
   }
 
-  updateFinalGridDestination();
-  computeFinalTransformationMapping();
+  if (0 != nbAgloTransformation)
+  {
+    updateFinalGridDestination();
+    computeFinalTransformationMapping();
+  }
 }
 
 

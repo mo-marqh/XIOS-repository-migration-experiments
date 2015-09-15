@@ -75,7 +75,10 @@ namespace xios {
 
          bool hasTransformation();
          void solveInheritanceTransformation();
+         void solveSrcInheritance();
+         CDomain* getDomainSrc();
          TransMapTypes getAllTransformations();
+         void redistribute(int nbLocalDomain);
 
       public:
          const std::set<StdString> & getRelFiles(void) const;
@@ -163,6 +166,7 @@ namespace xios {
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
+         void fillInRectilinearLonLat();
 
          void sendIndex();
          void sendArea();
@@ -186,6 +190,7 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
+         CDomain* srcObject_;
 
          DECLARE_REF_FUNC(Domain,domain)
 

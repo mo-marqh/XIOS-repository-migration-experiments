@@ -10,7 +10,8 @@ namespace xios
         TRANS_INVERSE_AXIS,
         TRANS_INTERPOLATE_AXIS,
         TRANS_ZOOM_DOMAIN,
-        TRANS_INTERPOLATE_DOMAIN_FROM_FILE
+        TRANS_INTERPOLATE_DOMAIN_FROM_FILE,
+        TRANS_GENERATE_RECTILINEAR_DOMAIN
       } ETranformationType;
 
 } // namespace xios

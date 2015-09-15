@@ -2,7 +2,7 @@
    \file grid_transformation.hpp
    \author Ha NGUYEN
    \since 14 May 2015
-   \date 18 June 2015
+   \date 26 Aug 2015
 
    \brief Interface for all transformations.
  */
@@ -33,6 +33,9 @@ the grid destination of current transformation will be grid source of the next t
 class CGridTransformation
 {
 public:
+  typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
+
+public:
   /** Default constructor */
   CGridTransformation(CGrid* destination, CGrid* source);
   ~CGridTransformation();
@@ -43,8 +46,9 @@ public:
   const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
   CGrid* getGridSource() {return gridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
+  ListAlgoType getAlgoList() const {return listAlgos_; }
 
-private:
+protected:
   void computeTransformation();
   void initializeAlgorithms();
   void initializeAxisAlgorithms(int axisPositionInGrid);
@@ -59,7 +63,7 @@ private:
   void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
   void updateFinalGridDestination();
 
-private:
+protected:
   //! Grid source on transformation
   CGrid* gridSource_;
 
@@ -69,14 +73,7 @@ private:
   //! The grid source of the first transformation (original grid source)
   CGrid* originalGridSource_;
 
-  //! Grid source dimension size
-  std::vector<int> gridSourceDimensionSize_;
-
-  //! Grid destination dimension size
-  std::vector<int> gridDestinationDimensionSize_;
-
-private:
-  typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
+protected:
   //! List of algorithm types and their order
   ListAlgoType listAlgos_;
   // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_

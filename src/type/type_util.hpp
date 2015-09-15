@@ -29,6 +29,8 @@ namespace xios
     class CZoomDomainGroup;
     class CInterpolateFromFileDomain;
     class CInterpolateFromFileDomainGroup;
+    class CGenerateRectilinearDomain;
+    class CGenerateRectilinearDomainGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -75,6 +77,8 @@ namespace xios
   macro(CZoomDomainGroup)
   macro(CInterpolateFromFileDomain)
   macro(CInterpolateFromFileDomainGroup)
+  macro(CGenerateRectilinearDomain)
+  macro(CGenerateRectilinearDomainGroup)
 #undef macro
 }
 

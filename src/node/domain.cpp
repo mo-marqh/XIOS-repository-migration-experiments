@@ -19,6 +19,7 @@
 #include "client_server_mapping_distributed.hpp"
 #include "zoom_domain.hpp"
 #include "interpolate_from_file_domain.hpp"
+#include "generate_rectilinear_domain.hpp"
 
 #include <algorithm>
 
@@ -33,6 +34,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
+      , srcObject_(0)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
@@ -42,6 +44,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
+      , srcObject_(0)
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -157,6 +160,139 @@ namespace xios {
    ENodeType CDomain::GetType(void)   { return (eDomain); }
 
    //----------------------------------------------------------------
+
+   /*!
+     Redistribute RECTILINEAR domain with a number of local domains.
+   All attributes ni,nj,ibegin,jbegin (if defined) will be rewritten
+   The optional attributes lonvalue, latvalue will be added. Because this function only serves (for now)
+   for interpolation from unstructured domain to rectilinear one, range of latvalue is 0-360 and lonvalue is -90 - +90
+    \param [in] nbLocalDomain number of local domain on the domain destination
+   */
+   void CDomain::redistribute(int nbLocalDomain)
+   {
+     if (type_attr::rectilinear == type)
+     {
+        CContext* context = CContext::getCurrent();
+        CContextClient* client = context->client;
+        int rankClient = client->clientRank;
+        int rankOnDomain = rankClient%nbLocalDomain;
+
+        if (ni_glo.isEmpty() || ni_glo <= 0 )
+        {
+           ERROR("CDomain::redistribute(int nbLocalDomain)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The global domain is badly defined,"
+              << " check the \'ni_glo\'  value !")
+        }
+
+        if (nj_glo.isEmpty() || nj_glo <= 0 )
+        {
+           ERROR("CDomain::redistribute(int nbLocalDomain)",
+              << "[ Id = " << this->getId() << " ] "
+              << "The global domain is badly defined,"
+              << " check the \'nj_glo\'  value !")
+        }
+
+        int globalDomainSize = ni_glo * nj_glo;
+        if (globalDomainSize <= nbLocalDomain)
+        {
+          for (int idx = 0; idx < nbLocalDomain; ++idx)
+          {
+            if (rankOnDomain < globalDomainSize)
+            {
+              int iIdx = rankOnDomain % ni_glo;
+              int jIdx = rankOnDomain / ni_glo;
+              ibegin.setValue(iIdx); jbegin.setValue(jIdx);
+              ni.setValue(1); nj.setValue(1);
+            }
+            else
+            {
+              ibegin.setValue(0); jbegin.setValue(0);
+              ni.setValue(0); nj.setValue(0);
+            }
+          }
+        }
+        else
+        {
+          // Compute (approximately) number of segment on x and y axis
+          float yOverXRatio = (nj_glo.getValue())/(ni_glo.getValue());
+          int nbProcOnX, nbProcOnY, range;
+          nbProcOnX = std::ceil(std::sqrt(nbLocalDomain/yOverXRatio));
+          nbProcOnY = std::ceil(((float)nbLocalDomain)/nbProcOnX);
+
+          // Simple distribution: Sweep from top to bottom, left to right
+          // Calculate local begin on x
+          std::vector<int> ibeginVec(nbProcOnX,0), jbeginVec(nbProcOnY,0);
+          std::vector<int> niVec(nbProcOnX), njVec(nbProcOnY);
+          for (int i = 1; i < nbProcOnX; ++i)
+          {
+            range = ni_glo / nbProcOnX;
+            if (i < (ni_glo%nbProcOnX)) ++range;
+            niVec[i-1] = range;
+            ibeginVec[i] = ibeginVec[i-1] + niVec[i-1];
+          }
+          niVec[nbProcOnX-1] = ni_glo - ibeginVec[nbProcOnX-1];
+
+          // Calculate local begin on y
+          for (int j = 1; j < nbProcOnY; ++j)
+          {
+            range = nj_glo / nbProcOnY;
+            if (j < (nj_glo%nbProcOnY)) ++range;
+            njVec[j-1] = range;
+            jbeginVec[j] = jbeginVec[j-1] + njVec[j-1];
+          }
+          njVec[nbProcOnY-1] = nj_glo - jbeginVec[nbProcOnY-1];
+
+          // Now assign value to ni, ibegin, nj, jbegin
+          int iIdx = rankOnDomain % nbProcOnX;
+          int jIdx = rankOnDomain / nbProcOnX;
+
+          if (rankOnDomain != (nbLocalDomain-1))
+          {
+            ibegin.setValue(ibeginVec[iIdx]);
+            jbegin.setValue(jbeginVec[jIdx]);
+            nj.setValue(njVec[jIdx]);
+            ni.setValue(niVec[iIdx]);
+          }
+          else // just merge all the remaining rectangle into the last one
+          {
+            ibegin.setValue(ibeginVec[iIdx]);
+            jbegin.setValue(jbeginVec[jIdx]);
+            nj.setValue(njVec[jIdx]);
+            ni.setValue(ni_glo - ibeginVec[iIdx]);
+          }
+        }
+
+        // Now fill other attributes
+        fillInRectilinearLonLat();
+     }
+   }
+
+   /*!
+     Fill in the values for lonvalue_1d and latvalue_1d of rectilinear domain
+     Range of longitude value from 0 - 360
+     Range of latitude value from -90 - +90
+   */
+   void CDomain::fillInRectilinearLonLat()
+   {
+     if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
+     if (!latvalue_2d.isEmpty()) latvalue_1d.free();
+     lonvalue_1d.resize(ni);
+     latvalue_1d.resize(nj);
+     double lonStep = double(360/ni_glo.getValue());
+     double latStep = double(180/nj_glo.getValue());
+
+     // Assign lon value
+     for (int i = 0; i < ni; ++i)
+     {
+       lonvalue_1d(i) = static_cast<double>(ibegin + i) * lonStep;
+     }
+
+     for (int j = 0; j < nj; ++j)
+     {
+       latvalue_1d(j) = static_cast<double>(jbegin + j) * latStep - 90;
+     }
+   }
 
    void CDomain::checkDomain(void)
    {
@@ -701,7 +837,7 @@ namespace xios {
 
        if (!lonvalue_1d.isEmpty() && lonvalue_2d.isEmpty())
        {
-         if (lonvalue_1d.numElements() != i_index.numElements())
+         if ((type_attr::rectilinear != type) && (lonvalue_1d.numElements() != i_index.numElements()))
            ERROR("CDomain::completeLonLatClient(void)",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'lonvalue_1d' does not have the same size as the local domain." << std::endl
@@ -727,7 +863,7 @@ namespace xios {
 
        if (!latvalue_1d.isEmpty() && latvalue_2d.isEmpty())
        {
-         if (latvalue_1d.numElements() != i_index.numElements())
+         if ((type_attr::rectilinear != type) && (latvalue_1d.numElements() != i_index.numElements()))
            ERROR("CDomain::completeLonLatClient(void)",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'latvalue_1d' does not have the same size as the local domain." << std::endl
@@ -1579,6 +1715,24 @@ namespace xios {
         refDomain[idx]->setTransformations(refer_ptr->getAllTransformations());
   }
 
+  void CDomain::solveSrcInheritance()
+  {
+    if (!domain_src.isEmpty())
+    {
+       if (!CDomain::has(this->domain_src.getValue()))                                   \
+          ERROR("CDomain::solveSrcInheritance()",                                \
+             << "[ src_name = " << this->domain_src.getValue() << "]"                 \
+             << " invalid domain name !");
+
+       srcObject_ = CDomain::get(this->domain_src.getValue());
+    }
+  }
+
+  CDomain* CDomain::getDomainSrc()
+  {
+    return srcObject_;
+  }
+
   /*!
     Parse children nodes of a domain in xml file.
     Whenver there is a new transformation, its type and name should be added into this function
@@ -1594,6 +1748,8 @@ namespace xios {
       StdString zoom("zoom_domain");
       StdString interpFromFileDomainDefRoot("interpolate_from_file_domain_definition");
       StdString interpFromFile("interpolate_from_file_domain");
+      StdString generateRectilinearDefRoot("generate_rectilinear_domain_definition");
+      StdString generateRectilinear("generate_rectilinear_domain");
       do
       {
         if (node.getElementName() == zoom) {
@@ -1606,6 +1762,12 @@ namespace xios {
           CInterpolateFromFileDomain* tmp = (CInterpolateFromFileDomainGroup::get(interpFromFileDomainDefRoot))->createChild();
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN_FROM_FILE,tmp));
+        }
+        else if (node.getElementName() == generateRectilinear)
+        {
+          CGenerateRectilinearDomain* tmp = (CGenerateRectilinearDomainGroup::get(generateRectilinearDefRoot))->createChild();
+          tmp->parse(node);
+          transformationMap_.push_back(std::make_pair(TRANS_GENERATE_RECTILINEAR_DOMAIN,tmp));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

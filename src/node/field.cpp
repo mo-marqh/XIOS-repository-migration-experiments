@@ -174,7 +174,7 @@ namespace xios{
       }
       client->sendEvent(event);
     }
-    
+
     CTimer::get("XIOS Send Data").suspend();
   }
 
@@ -497,11 +497,18 @@ namespace xios{
 
         solveGridReference();
      }
+     if (context->hasClient)
+     {
+       solveGenerateGrid();
+     }
+
      solveGridDomainAxisRef(doSending2Sever);
+
      if (context->hasClient)
      {
        solveTransformedGrid();
      }
+
      solveCheckMaskIndex(doSending2Sever);
    }
 
@@ -772,6 +779,13 @@ namespace xios{
      if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
          && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
        grid->transformGrid(getDirectFieldReference()->grid);
+   }
+
+   void CField::solveGenerateGrid()
+   {
+     if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
+         && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
+       grid->completeGrid(getDirectFieldReference()->grid);
    }
 
    ///-------------------------------------------------------------------

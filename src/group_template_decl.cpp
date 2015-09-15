@@ -18,5 +18,6 @@ namespace xios
   macro(InterpolateAxis)
   macro(ZoomDomain)
   macro(InterpolateFromFileDomain)
+  macro(GenerateRectilinearDomain)
 
 }

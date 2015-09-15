@@ -179,6 +179,8 @@ namespace xios {
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
+         void completeGrid(CGrid* transformGridSrc);
+         void doAutoDistribution(CGrid* transformGridSrc);
          bool isTransformed();
          void setTransformed();
 
