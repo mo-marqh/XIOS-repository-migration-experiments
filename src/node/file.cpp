@@ -245,6 +245,8 @@ namespace xios {
       int color = allDomainEmpty ? 0 : 1;
       MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
       if (allDomainEmpty) MPI_Comm_free(&fileComm);
+
+      if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
     }
 
     //! Verify state of a file

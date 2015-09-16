@@ -1408,29 +1408,48 @@ namespace xios
          else if (field->getOperationTimeType() == func::CFunctor::centered)  timeAxisBoundId="time_centered_bounds" ;
 
          CArray<double,1> time_data(1) ;
+         CArray<double,1> time_data_bound(2);
          CArray<double,1> time_counter(1) ;
          CArray<double,1> time_counter_bound(2);
-         CArray<double,1> time_data_bound(2);
 
         bool wtime   = !(!field->operation.isEmpty() && (field->getOperationTimeType() == func::CFunctor::once));
 
         if (wtime)
         {
-          time_counter(0)= (Time(field->last_Write_srv) + Time(field->lastlast_Write_srv)) / 2;
-          if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data(0) = Time(field->last_Write_srv);
-          else if (field->getOperationTimeType() == func::CFunctor::centered) time_data(0) = time_counter(0);
+          Time lastWrite = field->last_Write_srv;
+          Time lastLastWrite = field->lastlast_Write_srv;
 
-          time_counter_bound(0) = Time(field->lastlast_Write_srv);
-          time_counter_bound(1) = Time(field->last_Write_srv);
           if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data_bound(0) = time_data_bound(1) = Time(field->last_Write_srv);
+            time_data(0) = lastWrite;
+          else if (field->getOperationTimeType() == func::CFunctor::centered)
+            time_data(0) = (lastWrite + lastLastWrite) / 2;
+
+          if (field->getOperationTimeType() == func::CFunctor::instant)
+            time_data_bound(0) = time_data_bound(1) = lastWrite;
           else if (field->getOperationTimeType() == func::CFunctor::centered)
           {
-            time_data_bound(0) = time_counter_bound(0);
-            time_data_bound(1) = time_counter_bound(1);
+            time_data_bound(0) = lastLastWrite;
+            time_data_bound(1) = lastWrite;
           }
-         }
+
+          if (field->file->time_counter == CFile::time_counter_attr::instant)
+            time_counter(0) = lastWrite;
+          else if (field->file->time_counter == CFile::time_counter_attr::centered)
+            time_counter(0) = (lastWrite + lastLastWrite) / 2;
+          else if (field->file->time_counter == CFile::time_counter_attr::record)
+            time_counter(0) = field->getNStep() - 1;
+
+
+          if (field->file->time_counter == CFile::time_counter_attr::instant)
+            time_counter_bound(0) = time_counter_bound(1) = lastWrite;
+          else if (field->file->time_counter == CFile::time_counter_attr::centered)
+          {
+            time_counter_bound(0) = lastLastWrite;
+            time_counter_bound(1) = lastWrite;
+          }
+          else if (field->file->time_counter == CFile::time_counter_attr::record)
+            time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
+        }
 
          bool isRoot ;
          if (server->intraCommRank==0) isRoot=true ;
@@ -1467,13 +1486,17 @@ namespace xios
            {
               case (MULTI_FILE) :
               {
-                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep()-1);
+                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1);
                  if (wtime)
                  {
-                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep()-1);
-                   SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep()-1);
-                   SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep()-1);
-                   SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep()-1);
+                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+                   SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                   {
+                     SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep() - 1);
+                     if (field->file->time_counter != CFile::time_counter_attr::record)
+                       SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                   }
                  }
                  break ;
               }
@@ -1565,10 +1588,14 @@ namespace xios
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);
                 if (wtime)
                 {
-                  SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
-                  SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep() - 1, isRoot);
-                  SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
-                  SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
+                   SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                   {
+                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep() - 1, isRoot);
+                     if (field->file->time_counter != CFile::time_counter_attr::record)
+                       SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+                   }
                 }
 
                 break;
@@ -1644,31 +1671,40 @@ namespace xios
               SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
            }
 
-           // Adding time_counter
-           axisid = "time_counter" ;
-           axisBoundId = "time_counter_bounds" ;
-           dims.clear() ;
-           dims.push_back(timeid);
-           if (!SuperClassWriter::varExist(axisid))
+           if (field->file->time_counter != CFile::time_counter_attr::none)
            {
-              SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-              SuperClassWriter::addAttribute("axis", string("T"), &axisid);
-              CDate timeOrigin=cal->getTimeOrigin() ;
-              StdString strTimeOrigin=timeOrigin.toString() ;
+             // Adding time_counter
+             axisid = "time_counter";
+             axisBoundId = "time_counter_bounds";
+             dims.clear();
+             dims.push_back(timeid);
+             if (!SuperClassWriter::varExist(axisid))
+             {
+                SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
+                SuperClassWriter::addAttribute("axis", string("T"), &axisid);
 
-              this->writeTimeAxisAttributes
-                 (axisid, cal->getType(),
-                  StdString("seconds since ").append(strTimeOrigin),
-                  strTimeOrigin, axisBoundId);
-           }
+                if (field->file->time_counter != CFile::time_counter_attr::record)
+                {
+                  CDate timeOrigin = cal->getTimeOrigin();
+                  StdString strTimeOrigin = timeOrigin.toString();
 
-           // Adding time_counter_bound dimension
-           if (!SuperClassWriter::varExist(axisBoundId))
-           {
-              dims.clear();
-              dims.push_back(timeid);
-              dims.push_back(timeBoundId);
-              SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+                  this->writeTimeAxisAttributes(axisid, cal->getType(),
+                                                StdString("seconds since ").append(strTimeOrigin),
+                                                strTimeOrigin, axisBoundId);
+                }
+             }
+
+             // Adding time_counter_bound dimension
+             if (field->file->time_counter != CFile::time_counter_attr::record)
+             {
+                if (!SuperClassWriter::varExist(axisBoundId))
+                {
+                  dims.clear();
+                  dims.push_back(timeid);
+                  dims.push_back(timeBoundId);
+                  SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+                }
+             }
            }
          }
          catch (CNetCdfException& e)
