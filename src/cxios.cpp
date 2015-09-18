@@ -96,13 +96,14 @@ namespace xios
   void CXios::clientFinalize(void)
   {
      CClient::finalize() ;
-     CClient::closeInfoStream();
      if (CClient::getRank()==0)
      {
        info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
        globalRegistry->toFile("xios_registry.bin") ;
        delete globalRegistry ;
      }
+     CClient::closeInfoStream();
+  
 
 #ifdef XIOS_MEMTRACK
      MemTrack::TrackListMemoryUsage() ;
