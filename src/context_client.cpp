@@ -5,7 +5,6 @@
 #include "buffer_out.hpp"
 #include "buffer_client.hpp"
 #include "type.hpp"
-#include "message.hpp"
 #include "event_client.hpp"
 #include "context.hpp"
 #include "mpi.hpp"
@@ -70,8 +69,10 @@ namespace xios
       }
 
       timeLine = 0;
+
     }
 
+     
     /*!
     In case of attached mode, the current context must be reset to context for client
     \param [in] event Event sent to server
@@ -286,14 +287,17 @@ namespace xios
     return !ranksServerLeader.empty();
   }
 
+ 
+
    /*!
    Finalize context client and do some reports
    */
+    
    void CContextClient::finalize(void)
    {
      map<int,CClientBuffer*>::iterator itBuff;
      bool stop = true;
-
+      
      CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
      if (isServerLeader())
      {
@@ -326,5 +330,6 @@ namespace xios
      report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
 
      releaseBuffers();
+     
    }
 }

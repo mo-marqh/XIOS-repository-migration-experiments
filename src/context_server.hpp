@@ -38,7 +38,7 @@ namespace xios
     map<size_t,CEventServer*> events ;
     size_t currentTimeLine ;
     CContext* context ;
-
+      
     bool finished ;
     bool pendingEvent ;
     bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */

@@ -219,6 +219,9 @@ namespace xios
     {
       int rank ;
       int msg=0 ;
+
+      MPI_Comm_rank(intraComm,&rank) ;
+ 
       if (!CXios::isServer)
       {
         MPI_Comm_rank(intraComm,&rank) ;
@@ -241,6 +244,7 @@ namespace xios
         if (CXios::usingOasis) oasis_finalize();
         else MPI_Finalize() ;
       }
+      
       info(20) << "Client side context is finalized"<<endl ;
       report(0) <<" Performance report : total time spent for XIOS : "<< CTimer::get("XIOS").getCumulatedTime()<<" s"<<endl ;
       report(0)<< " Performance report : time spent for waiting free buffer : "<< CTimer::get("Blocking time").getCumulatedTime()<<" s"<<endl ;

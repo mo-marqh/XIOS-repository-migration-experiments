@@ -11,7 +11,7 @@
 //#include "context_server.hpp"
 #include "data_output.hpp"
 #include "garbage_collector.hpp"
-
+#include "registry.hpp"
 #include "mpi.hpp"
 
 
@@ -50,7 +50,7 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_POST_PROCESS
+           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY
          };
 
          /// typedef ///
@@ -131,7 +131,7 @@ namespace xios {
          void sendRefDomainsAxis();
          void sendRefGrid();
          void sendPostProcessing();
-
+         void sendRegistry(void) ; //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          const StdString& getIdServer();
 
          // Client side: Receive and process messages
@@ -144,6 +144,8 @@ namespace xios {
          void recvSolveInheritanceContext(CBufferIn& buffer);
          static void recvPostProcessing(CEventServer& event);
          void recvPostProcessing(CBufferIn& buffer);
+         static void recvRegistry(CEventServer& event) ;
+         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the root process of the servers
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -212,7 +214,9 @@ namespace xios {
 
          // Concrete contex client
          CContextClient* client;
-
+         CRegistry* registryIn ;  //!< input registry which is read from file 
+         CRegistry* registryOut ; //!< output registry which will be wrote on file at the finalize
+         
       private:
          bool isPostProcessed;
          bool finalized;

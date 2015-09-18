@@ -3,9 +3,12 @@
 
 #include "xios_spl.hpp"
 #include "buffer_out.hpp"
+#include "buffer_in.hpp"
 #include "buffer_client.hpp"
 #include "event_client.hpp"
+#include "event_server.hpp"
 #include "mpi.hpp"
+#include "registry.hpp"
 
 namespace xios
 {
@@ -45,7 +48,6 @@ namespace xios
 
       void setBufferSize(const std::map<int,StdSize>& mapSize);
       void sendBufferSizeEvent();
-
     public:
       CContext* context; //!< Context for client
 

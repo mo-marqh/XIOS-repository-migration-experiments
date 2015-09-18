@@ -3,6 +3,7 @@
 
 #include "xios_spl.hpp"
 #include "mpi.hpp"
+#include "registry.hpp"
 
 namespace xios
 {
@@ -41,6 +42,7 @@ namespace xios
      static double bufferServerFactorSize ; //!< Factor helps tune buffer size
      static double defaultBufferServerFactorSize ; //!< Default factor value
      static bool isOptPerformance; //!< Check if buffer size is for performance (as large as possible)
+     static CRegistry* globalRegistry ; //!< global registry which is wrote by the root process of the servers
 
     public:
      //! Setting xios to use server mode

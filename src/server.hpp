@@ -3,6 +3,7 @@
 
 #include "xios_spl.hpp"
 #include "context.hpp"
+#include "context_client.hpp"
 #include "mpi.hpp"
 #include "event_scheduler.hpp"
 
@@ -26,7 +27,7 @@ namespace xios
         static list<MPI_Comm> interComm;
         static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
-
+        
         struct contextMessage
         {
           int nbRecv;

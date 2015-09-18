@@ -26,7 +26,7 @@ namespace xios
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
-
+   
     void CServer::initialize(void)
     {
       int initialized ;
@@ -147,7 +147,7 @@ namespace xios
     void CServer::finalize(void)
     {
       CTimer::get("XIOS").suspend() ;
-
+     
       delete eventScheduler ;
 
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)

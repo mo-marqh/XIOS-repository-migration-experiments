@@ -14,6 +14,7 @@
 #include "type.hpp"
 #include "xios_spl.hpp"
 
+
 namespace xios {
 
   shared_ptr<CContextGroup> CContext::root;
@@ -238,6 +239,14 @@ namespace xios {
    {
      hasClient=true;
      client = new CContextClient(this,intraComm, interComm, cxtServer);
+     registryIn=new CRegistry(intraComm);
+     registryIn->setPath(getId()) ;
+     if (client->clientRank==0) registryIn->fromFile("xios_registry.bin") ;
+     registryIn->bcastRegistry() ;
+
+     registryOut=new CRegistry(intraComm) ;
+     registryOut->setPath(getId()) ;
+
      MPI_Comm intraCommServer, interCommServer;
      if (cxtServer) // Attached mode
      {
@@ -295,6 +304,14 @@ namespace xios {
    {
      hasServer=true;
      server = new CContextServer(this,intraComm,interComm);
+
+     registryIn=new CRegistry(intraComm);
+     registryIn->setPath(getId()) ;
+     if (server->intraCommRank==0) registryIn->fromFile("xios_registry.bin") ;
+     registryIn->bcastRegistry() ;
+     registryOut=new CRegistry(intraComm) ;
+     registryOut->setPath(getId()) ;
+ 
      MPI_Comm intraCommClient, interCommClient;
      if (cxtClient) // Attached mode
      {
@@ -330,7 +347,7 @@ namespace xios {
       if (!finalized)
       {
         finalized = true;
-
+        if (hasClient) sendRegistry() ;
         client->finalize();
         while (!server->hasFinished())
         {
@@ -340,8 +357,10 @@ namespace xios {
         if (hasServer)
         {
           closeAllFile();
+          registryOut->hierarchicalGatherRegistry() ;
+          if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
         }
-
+        
         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
           MPI_Comm_free(&(*it));
         comms.clear();
@@ -575,7 +594,10 @@ namespace xios {
            case EVENT_ID_POST_PROCESS:
              recvPostProcessing(event);
              return true;
-             break;
+            case EVENT_ID_SEND_REGISTRY:
+             recvRegistry(event);
+             return true;
+            break;
 
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
@@ -1017,4 +1039,44 @@ namespace xios {
 
     return (context);
   }
+
+
+
+     //! Server side: Receive a message to do some post processing
+  void CContext::recvRegistry(CEventServer& event)
+  {
+    CBufferIn* buffer=event.subEvents.begin()->buffer;
+    string id;
+    *buffer>>id;
+    get(id)->recvRegistry(*buffer);
+  }
+
+  void CContext::recvRegistry(CBufferIn& buffer)
+  {
+    if (server->intraCommRank==0)
+    {
+      CRegistry registry(server->intraComm) ;
+      registry.fromBuffer(buffer) ;
+      registryOut->mergeRegistry(registry) ;
+    }
+  }
+
+  void CContext::sendRegistry(void)
+  {
+    registryOut->hierarchicalGatherRegistry() ;
+
+    CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
+    if (client->isServerLeader())
+    {
+       CMessage msg ;
+       msg<<this->getIdServer();
+       if (client->clientRank==0) msg<<*registryOut ;
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       client->sendEvent(event);
+     }
+     else client->sendEvent(event);
+  }
+
 } // namespace xios
