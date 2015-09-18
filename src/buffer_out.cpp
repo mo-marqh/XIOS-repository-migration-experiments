@@ -56,7 +56,7 @@ namespace xios
       return count_ ;
     }
 
-    size_t CBufferOut::size(void)
+    size_t CBufferOut::bufferSize(void)
     {
       return size_ ;
     }

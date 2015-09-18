@@ -41,11 +41,13 @@ namespace xios
       bool get_template(T* data, size_t n) ;
 
       void* ptr(void) ;
-
+      void* start(void) {return begin ; }
+      
       
       size_t remain(void) ;
       size_t count(void) ;                          
-      size_t size(void) ;                         
+//      size_t size(void) ;
+      size_t bufferSize() ;                       
       ~CBufferIn() ;
 
        char* begin ;
