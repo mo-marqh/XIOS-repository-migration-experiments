@@ -1,5 +1,4 @@
-//#include "mpi.h" // some compiler fails if mpi.h is not the first header to be included
-#include <mpi.h>
+#include "mpi.hpp"
 #include <map>
 #include "cputime.hpp"       /* time */
 #include "meshutil.hpp"

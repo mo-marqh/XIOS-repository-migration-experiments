@@ -1,4 +1,4 @@
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace sphereRemap {
   

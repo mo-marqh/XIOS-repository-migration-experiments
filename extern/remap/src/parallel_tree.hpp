@@ -4,8 +4,7 @@
 #include "tree.hpp" // for local tree and routing tree
 //#include "sample_tree.hpp"
 #include "mpi_cascade.hpp"
-//#include "mpi.h"
-#include <mpi.h>
+#include "mpi.hpp"
 
 namespace sphereRemap {
 

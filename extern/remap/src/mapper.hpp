@@ -1,8 +1,7 @@
 #ifndef  __MAPPER_HPP__
 #define __MAPPER_HPP__
 #include "parallel_tree.hpp"
-#include <mpi.h>
-//#include "mpi.h"
+#include "mpi.hpp"
 
 namespace sphereRemap {
 

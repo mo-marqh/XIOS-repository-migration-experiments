@@ -3,7 +3,7 @@
 #include "node.hpp"
 #include "elt.hpp"
 #include <iostream>
-#include <mpi.h>
+#include "mpi.hpp"
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <vector>

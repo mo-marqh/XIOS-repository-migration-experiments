@@ -1,5 +1,5 @@
 #include "timerRemap.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include <string>
 #include <map>
 #include <iostream>

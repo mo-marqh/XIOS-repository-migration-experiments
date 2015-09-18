@@ -1,7 +1,7 @@
 #ifndef  __MPI_ROUTING_HPP__
 #define  __MPI_ROUTING_HPP__
 
-#include <mpi.h>
+#include "mpi.hpp"
 #include <vector>
 #include "mpi_cascade.hpp"
 

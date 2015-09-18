@@ -1,7 +1,7 @@
 #ifndef  __MPI_CASCADE_HPP__
 #define  __MPI_CASCADE_HPP__
 
-#include <mpi.h>
+#include "mpi.hpp"
 #include <vector>
 #include <cassert>
 #include "misc.hpp"

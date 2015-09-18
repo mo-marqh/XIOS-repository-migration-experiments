@@ -1,4 +1,4 @@
-#include <mpi.h>
+#include "mpi.hpp"
 #include <netcdf.h>
 #include "errhandle.hpp"
 #include "libmapper.hpp"

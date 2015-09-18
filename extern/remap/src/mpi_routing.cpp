@@ -1,5 +1,5 @@
 #include "mpi_routing.hpp"
-#include <mpi.h>
+#include "mpi.hpp"
 #include "node.hpp"
 #include "elt.hpp"
 #include "timerRemap.hpp"
