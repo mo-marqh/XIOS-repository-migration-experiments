@@ -219,6 +219,18 @@ namespace xios {
 
       lastSync  = currentDate;
       lastSplit = currentDate;
+      if (!split_freq.isEmpty())
+      {
+        if (context->registryIn->foundKey("splitStart") && context->registryIn->foundKey("splitEnd"))
+        {
+          CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
+          context->registryIn->getKey("splitStart", savedSplitStart);
+          context->registryIn->getKey("splitEnd",   savedSplitEnd);
+
+          if (savedSplitStart <= lastSplit && lastSplit <= savedSplitEnd)
+            lastSplit = savedSplitStart;
+        }
+      }
       isOpen = false;
 
       allDomainEmpty = true;
@@ -335,6 +347,8 @@ namespace xios {
 
          if (!split_freq.isEmpty())
          {
+           CDate splitEnd = lastSplit + split_freq - 1 * Second;
+
            string splitFormat;
            if (split_freq_format.isEmpty())
            {
@@ -346,8 +360,11 @@ namespace xios {
              else splitFormat = "%y";
            }
            else splitFormat = split_freq_format;
-           oss << "_" << lastSplit.getStr(splitFormat)
-               << "-" << (lastSplit + split_freq.getValue() - 1 * Second).getStr(splitFormat);
+
+           oss << "_" << lastSplit.getStr(splitFormat) << "-" << splitEnd.getStr(splitFormat);
+
+           context->registryOut->setKey("splitStart", lastSplit);
+           context->registryOut->setKey("splitEnd",   splitEnd);
          }
 
         bool append = !this->append.isEmpty() && this->append.getValue();
