@@ -428,6 +428,32 @@ extern "C"
   }
 
 
+  void cxios_set_file_time_counter(file_Ptr file_hdl, const char * time_counter, int time_counter_size)
+  {
+    std::string time_counter_str;
+    if (!cstr2string(time_counter, time_counter_size, time_counter_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->time_counter.fromString(time_counter_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_time_counter(file_Ptr file_hdl, char * time_counter, int time_counter_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->time_counter.getInheritedStringValue(), time_counter, time_counter_size))
+      ERROR("void cxios_get_file_time_counter(file_Ptr file_hdl, char * time_counter, int time_counter_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_time_counter(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->time_counter.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_type(file_Ptr file_hdl, const char * type, int type_size)
   {
     std::string type_str;

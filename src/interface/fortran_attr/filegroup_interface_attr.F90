@@ -335,6 +335,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_sync_freq
 
 
+    SUBROUTINE cxios_set_filegroup_time_counter(filegroup_hdl, time_counter, time_counter_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_counter
+      INTEGER  (kind = C_INT)     , VALUE        :: time_counter_size
+    END SUBROUTINE cxios_set_filegroup_time_counter
+
+    SUBROUTINE cxios_get_filegroup_time_counter(filegroup_hdl, time_counter, time_counter_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_counter
+      INTEGER  (kind = C_INT)     , VALUE        :: time_counter_size
+    END SUBROUTINE cxios_get_filegroup_time_counter
+
+    FUNCTION cxios_is_defined_filegroup_time_counter(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_time_counter
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_time_counter
+
+
     SUBROUTINE cxios_set_filegroup_type(filegroup_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

@@ -13,7 +13,7 @@ CONTAINS
   SUBROUTINE xios(set_filegroup_attr)  &
     ( filegroup_id, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -36,20 +36,21 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: time_counter
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(set_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(set_filegroup_attr)
 
   SUBROUTINE xios(set_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -71,19 +72,20 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: time_counter
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
       CALL xios(set_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(set_filegroup_attr_hdl)
 
   SUBROUTINE xios(set_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, compression_level_, description_, enabled_, format_, group_ref_, min_digits_  &
     , mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_  &
-    , sync_freq_, type_ )
+    , sync_freq_, time_counter_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -105,6 +107,7 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: split_freq_format_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: sync_freq_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: time_counter_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(append_)) THEN
@@ -173,6 +176,10 @@ CONTAINS
         CALL cxios_set_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_)
       ENDIF
 
+      IF (PRESENT(time_counter_)) THEN
+        CALL cxios_set_filegroup_time_counter(filegroup_hdl%daddr, time_counter_, len(time_counter_))
+      ENDIF
+
       IF (PRESENT(type_)) THEN
         CALL cxios_set_filegroup_type(filegroup_hdl%daddr, type_, len(type_))
       ENDIF
@@ -182,7 +189,7 @@ CONTAINS
   SUBROUTINE xios(get_filegroup_attr)  &
     ( filegroup_id, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -205,20 +212,21 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: time_counter
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
       CALL xios(get_filegroup_handle)(filegroup_id,filegroup_hdl)
       CALL xios(get_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(get_filegroup_attr)
 
   SUBROUTINE xios(get_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -240,19 +248,20 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: time_counter
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
       CALL xios(get_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(get_filegroup_attr_hdl)
 
   SUBROUTINE xios(get_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, compression_level_, description_, enabled_, format_, group_ref_, min_digits_  &
     , mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_  &
-    , sync_freq_, type_ )
+    , sync_freq_, time_counter_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -274,6 +283,7 @@ CONTAINS
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: split_freq_format_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: sync_freq_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: time_counter_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(append_)) THEN
@@ -342,6 +352,10 @@ CONTAINS
         CALL cxios_get_filegroup_sync_freq(filegroup_hdl%daddr, sync_freq_)
       ENDIF
 
+      IF (PRESENT(time_counter_)) THEN
+        CALL cxios_get_filegroup_time_counter(filegroup_hdl%daddr, time_counter_, len(time_counter_))
+      ENDIF
+
       IF (PRESENT(type_)) THEN
         CALL cxios_get_filegroup_type(filegroup_hdl%daddr, type_, len(type_))
       ENDIF
@@ -351,7 +365,7 @@ CONTAINS
   SUBROUTINE xios(is_defined_filegroup_attr)  &
     ( filegroup_id, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup))  :: filegroup_hdl
@@ -388,6 +402,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: split_freq_format_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: sync_freq
       LOGICAL(KIND=C_BOOL) :: sync_freq_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: time_counter
+      LOGICAL(KIND=C_BOOL) :: time_counter_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
@@ -395,14 +411,14 @@ CONTAINS
       CALL xios(is_defined_filegroup_attr_hdl_)   &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(is_defined_filegroup_attr)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl)  &
     ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
     , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-    , sync_freq, type )
+    , sync_freq, time_counter, type )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -438,20 +454,22 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: split_freq_format_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: sync_freq
       LOGICAL(KIND=C_BOOL) :: sync_freq_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: time_counter
+      LOGICAL(KIND=C_BOOL) :: time_counter_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
       CALL xios(is_defined_filegroup_attr_hdl_)  &
       ( filegroup_hdl, append, compression_level, description, enabled, format, group_ref, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, split_freq, split_freq_format  &
-      , sync_freq, type )
+      , sync_freq, time_counter, type )
 
   END SUBROUTINE xios(is_defined_filegroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_filegroup_attr_hdl_)   &
     ( filegroup_hdl, append_, compression_level_, description_, enabled_, format_, group_ref_, min_digits_  &
     , mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, split_freq_, split_freq_format_  &
-    , sync_freq_, type_ )
+    , sync_freq_, time_counter_, type_ )
 
     IMPLICIT NONE
       TYPE(txios(filegroup)) , INTENT(IN) :: filegroup_hdl
@@ -487,6 +505,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: split_freq_format__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: sync_freq_
       LOGICAL(KIND=C_BOOL) :: sync_freq__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: time_counter_
+      LOGICAL(KIND=C_BOOL) :: time_counter__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: type_
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
@@ -568,6 +588,11 @@ CONTAINS
       IF (PRESENT(sync_freq_)) THEN
         sync_freq__tmp = cxios_is_defined_filegroup_sync_freq(filegroup_hdl%daddr)
         sync_freq_ = sync_freq__tmp
+      ENDIF
+
+      IF (PRESENT(time_counter_)) THEN
+        time_counter__tmp = cxios_is_defined_filegroup_time_counter(filegroup_hdl%daddr)
+        time_counter_ = time_counter__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
