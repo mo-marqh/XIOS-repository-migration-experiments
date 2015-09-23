@@ -103,7 +103,7 @@ namespace xios
         checkBuffers(ranks);
       }
 
-      if (0 != parentServer) // attached mode
+      if (isAttachedModeEnabled())
       {
         waitEvent(ranks);
         CContext::setCurrent(context->getId());
@@ -140,7 +140,7 @@ namespace xios
         (it->second)->checkBuffer();
       }
 
-      if (0 != parentServer) // attached mode
+      if (isAttachedModeEnabled())
       {
         while (checkBuffers())
         {
@@ -287,7 +287,15 @@ namespace xios
     return !ranksServerLeader.empty();
   }
 
- 
+  /*!
+   * Check if the attached mode is used.
+   *
+   * \return true if and only if attached mode is used
+   */
+  bool CContextClient::isAttachedModeEnabled() const
+  {
+    return (parentServer != 0);
+  }
 
    /*!
    Finalize context client and do some reports

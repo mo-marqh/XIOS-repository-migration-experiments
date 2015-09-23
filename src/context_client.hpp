@@ -42,6 +42,8 @@ namespace xios
       bool isServerLeader(void) const;
       const std::list<int>& getRanksServerLeader(void) const;
 
+      bool isAttachedModeEnabled() const;
+
       // Close and finalize context client
       void closeContext(void);
       void finalize(void);
