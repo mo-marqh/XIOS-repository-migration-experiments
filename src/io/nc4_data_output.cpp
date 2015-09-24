@@ -73,6 +73,8 @@ namespace xios
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
+         if (isWrittenDomain(domid)) return ;
+         else writtenDomains.insert(domid) ; 
 
 
          StdString dimXid, dimYid ;
@@ -1596,7 +1598,7 @@ namespace xios
                     if (axisDomainOrder(i))
                     {
                       CDomain* domain = CDomain::get(domainList[idxDomain]);
-                      if (! domain->type == CDomain::type_attr::unstructured)
+                      if (domain->type != CDomain::type_attr::unstructured)
                       {
                         start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
                         count.push_back(nZoomSizeServer[idx]);
