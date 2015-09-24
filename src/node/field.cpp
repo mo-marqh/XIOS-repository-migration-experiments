@@ -31,6 +31,7 @@ namespace xios{
       : CObjectTemplate<CField>(), CFieldAttributes()
       , refObject(), baseRefObject()
       , grid(), file()
+      , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
       , domAxisIds_("", ""), areAllReferenceSolved(false)
@@ -42,6 +43,7 @@ namespace xios{
       : CObjectTemplate<CField>(id), CFieldAttributes()
       , refObject(), baseRefObject()
       , grid(), file()
+      , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
       , domAxisIds_("", ""), areAllReferenceSolved(false)
@@ -441,9 +443,9 @@ namespace xios{
       this->nstep++;
    }
 
-   void CField::resetNStep(void)
+   void CField::resetNStep(StdSize nstep /*= 0*/)
    {
-      this->nstep = 0;
+      this->nstep = nstep;
    }
 
    void CField::resetNStepMax(void)
@@ -456,6 +458,18 @@ namespace xios{
    bool CField::isActive(void) const
    {
       return !this->refObject.empty();
+   }
+
+   //----------------------------------------------------------------
+
+   bool CField::wasWritten() const
+   {
+     return written;
+   }
+
+   void CField::setWritten()
+   {
+     written = true;
    }
 
    //----------------------------------------------------------------

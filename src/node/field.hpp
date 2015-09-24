@@ -55,7 +55,7 @@ namespace xios {
          typedef CObjectTemplate<CField>   SuperClass;
          typedef CFieldAttributes SuperClassAttribute;
 
-      public :
+      public:
 
          typedef CFieldAttributes RelAttributes;
          typedef CFieldGroup      RelGroup;
@@ -79,8 +79,7 @@ namespace xios {
 
          func::CFunctor::ETimeType getOperationTimeType() const;
 
-      public :
-
+      public:
          StdSize getNStep(void) const;
 
          template <int N> void getData(CArray<double, N>& _data) const;
@@ -90,14 +89,17 @@ namespace xios {
          /// Mutateur ///
          void setRelFile(CFile* _file);
          void incrementNStep(void);
-         void resetNStep();
+         void resetNStep(StdSize nstep = 0);
          void resetNStepMax();
 
          std::map<int, StdSize> getGridDataSize();
 
-       public :
+       public:
          bool isActive(void) const;
          bool hasOutputFile;
+
+         bool wasWritten() const;
+         void setWritten();
 
          bool getUseCompressedOutput() const;
          void setUseCompressedOutput();
@@ -169,7 +171,7 @@ namespace xios {
 
         const std::pair<StdString, StdString>& getRefDomainAxisIds();
 
-      public :
+      public:
          /// Propriétés privées ///
          CVariableGroup* vVariableGroup;
 
@@ -178,6 +180,7 @@ namespace xios {
 
          CDuration freq_operation_srv, freq_write_srv;
 
+         bool written; //<! Was the field written at least once
          StdSize nstep, nstepMax;
          bool isEOF;
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;

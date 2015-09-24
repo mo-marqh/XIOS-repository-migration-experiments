@@ -1392,36 +1392,45 @@ namespace xios
 
       void CNc4DataOutput::writeFieldData_ (CField*  field)
       {
-         CContext* context = CContext::getCurrent() ;
-//          if (field->getRelFile()->isSyncTime()) SuperClassWriter::sync() ;
-         CContextServer* server=context->server ;
+        CContext* context = CContext::getCurrent();
+        CContextServer* server = context->server;
+        CGrid* grid = field->grid;
 
-         CGrid* grid = field->grid ;
+        if (!grid->doGridHaveDataToWrite())
+          if (SuperClass::type == MULTI_FILE || !isCollective) return;
 
-         if (!grid->doGridHaveDataToWrite())
-          if (SuperClass::type==MULTI_FILE || !isCollective) return ;
+        StdString fieldid = !field->name.isEmpty()
+                          ? field->name.getValue()
+                          : field->getBaseFieldReference()->getId();
 
-         StdString fieldid   = (!field->name.isEmpty())
-                             ? field->name.getValue()
-                             : field->getBaseFieldReference()->getId();
+        StdOStringStream oss;
+        string timeAxisId;
+        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisId = "time_instant";
+        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisId = "time_centered";
 
-         StdOStringStream oss;
-         string timeAxisId ;
-         if (field->getOperationTimeType() == func::CFunctor::instant)  timeAxisId="time_instant" ;
-         else if (field->getOperationTimeType() == func::CFunctor::centered)  timeAxisId="time_centered" ;
+        StdString timeBoundId("time_counter_bounds");
 
-         StdString timeBoundId("time_counter_bounds");
+        StdString timeAxisBoundId;
+        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisBoundId = "time_instant_bounds";
+        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisBoundId = "time_centered_bounds";
 
-         StdString timeAxisBoundId;
-         if (field->getOperationTimeType() == func::CFunctor::instant)  timeAxisBoundId="time_instant_bounds" ;
-         else if (field->getOperationTimeType() == func::CFunctor::centered)  timeAxisBoundId="time_centered_bounds" ;
+        if (!field->wasWritten())
+        {
+          if (appendMode)
+          {
+            field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
+          }
 
-         CArray<double,1> time_data(1) ;
-         CArray<double,1> time_data_bound(2);
-         CArray<double,1> time_counter(1) ;
-         CArray<double,1> time_counter_bound(2);
+          field->setWritten();
+        }
 
-        bool wtime   = !(!field->operation.isEmpty() && (field->getOperationTimeType() == func::CFunctor::once));
+
+        CArray<double,1> time_data(1);
+        CArray<double,1> time_data_bound(2);
+        CArray<double,1> time_counter(1);
+        CArray<double,1> time_counter_bound(2);
+
+        bool wtime = (field->getOperationTimeType() != func::CFunctor::once);
 
         if (wtime)
         {
@@ -1460,17 +1469,15 @@ namespace xios
             time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
         }
 
-         bool isRoot ;
-         if (server->intraCommRank==0) isRoot=true ;
-         else isRoot=false ;
+         bool isRoot = (server->intraCommRank == 0);
 
          if (!field->scale_factor.isEmpty() || !field->add_offset.isEmpty())
          {
-           double scaleFactor=1. ;
-           double addOffset=0. ;
-           if (!field->scale_factor.isEmpty()) scaleFactor=field->scale_factor ;
-           if (!field->add_offset.isEmpty()) addOffset=field->add_offset ;
-           field->scaleFactorAddOffset(scaleFactor,addOffset) ;
+           double scaleFactor = 1.0;
+           double addOffset = 0.0;
+           if (!field->scale_factor.isEmpty()) scaleFactor = field->scale_factor;
+           if (!field->add_offset.isEmpty()) addOffset = field->add_offset;
+           field->scaleFactorAddOffset(scaleFactor, addOffset);
          }
 
          try
@@ -1489,7 +1496,7 @@ namespace xios
            else
              field->outputField(fieldData);
 
-           if (!field->prec.isEmpty() && field->prec==2) fieldData=round(fieldData) ;
+           if (!field->prec.isEmpty() && field->prec == 2) fieldData = round(fieldData);
 
            switch (SuperClass::type)
            {
@@ -1507,7 +1514,7 @@ namespace xios
                        SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
                    }
                  }
-                 break ;
+                 break;
               }
               case (ONE_FILE) :
               {
@@ -1970,4 +1977,30 @@ namespace xios
 
       ///--------------------------------------------------------------
 
+      StdSize CNc4DataOutput::getRecordFromTime(Time time)
+      {
+        std::map<Time, StdSize>::const_iterator it = timeToRecordCache.find(time);
+        if (it == timeToRecordCache.end())
+        {
+          StdString timeAxisBoundsId("time_counter_bounds");
+          if (!SuperClassWriter::varExist(timeAxisBoundsId))
+            timeAxisBoundsId = "time_instant_bounds";
+
+          CArray<double,2> timeAxisBounds;
+          SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective);
+
+          StdSize record = 0;
+          double dtime(time);
+          for (int n = timeAxisBounds.extent(1) - 1; n >= 0; n--)
+          {
+            if (timeAxisBounds(1, n) < dtime)
+            {
+              record = n + 1;
+              break;
+            }
+          }
+          it = timeToRecordCache.insert(std::make_pair(time, record)).first;
+        }
+        return it->second;
+      }
 } // namespace xios

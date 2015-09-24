@@ -16,13 +16,11 @@ namespace xios
         : path()
         , wmpi(false)
         , useClassicFormat(useClassicFormat)
-        , recordOffset(0)
       {
          this->initialize(filename, append, useClassicFormat, comm,multifile);
       }
 
       //---------------------------------------------------------------
-
 
       CONetCDF4::~CONetCDF4(void)
       {
@@ -59,7 +57,6 @@ namespace xios
                CNetCdfInterface::create(filename, mode, this->ncidp);
 
             this->appendMode = false;
-            this->recordOffset = 0;
          }
          else
          {
@@ -70,13 +67,6 @@ namespace xios
                CNetCdfInterface::open(filename, mode, this->ncidp);
 
             this->appendMode = true;
-            // Find out how many temporal records have been written already to the file we are opening
-            int ncUnlimitedDimId;
-            CNetCdfInterface::inqUnLimDim(this->ncidp, ncUnlimitedDimId);
-            if (ncUnlimitedDimId != -1)
-               CNetCdfInterface::inqDimLen(this->ncidp, ncUnlimitedDimId, this->recordOffset);
-            else
-               this->recordOffset = 0;
          }
 
          // If the classic NetCDF format is used, we enable the "no-fill mode" globally.
@@ -223,6 +213,32 @@ namespace xios
          delete [] dimid;
 
          return retvalue;
+      }
+
+      //---------------------------------------------------------------
+
+      void CONetCDF4::getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective)
+      {
+        int grpid = this->getCurrentGroup();
+        int varid = this->getVariable(name);
+
+        std::vector<StdSize> start(2), count(2);
+        start[0] = 0;
+        // Find out how many temporal records have been written already to the file we are opening
+        int ncUnlimitedDimId;
+        CNetCdfInterface::inqUnLimDim(this->ncidp, ncUnlimitedDimId);
+        CNetCdfInterface::inqDimLen(this->ncidp, ncUnlimitedDimId, count[0]);
+        start[1] = 0;
+        count[1] = 2;
+
+        timeAxisBounds.resize(count[1], count[0]);
+
+        if (this->wmpi && collective)
+          CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
+        if (this->wmpi && !collective)
+          CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
+
+        CNetCdfInterface::getVaraType(grpid, varid, &start[0], &count[0], timeAxisBounds.dataFirst());
       }
 
       //---------------------------------------------------------------
@@ -429,7 +445,7 @@ namespace xios
 
          if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
          {
-            sstart.push_back(record + recordOffset);
+            sstart.push_back(record);
             scount.push_back(1);
             if ((start == NULL) &&
                 (count == NULL)) i++;
