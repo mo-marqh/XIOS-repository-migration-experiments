@@ -448,6 +448,9 @@ namespace xios
          std::vector<StdString> dim0, dim1;
          StdString domid     = (!domain->name.isEmpty())
                              ? domain->name.getValue() : domain->getId();
+         if (isWrittenDomain(domid)) return ;
+         else writtenDomains.insert(domid) ; 
+
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
 
@@ -526,7 +529,7 @@ namespace xios
                  bounds_lonid = StdString("bounds_lon").append(appendDomid);
                  bounds_latid = StdString("bounds_lat").append(appendDomid);
                  dim0.push_back(dimXid);
-                 SuperClassWriter::addDimension(dimXid, domain->nj_glo);
+                 SuperClassWriter::addDimension(dimXid, domain->ni_glo);
                  if (domain->hasLonLat)
                  {
                    SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
@@ -572,11 +575,11 @@ namespace xios
                  }
                  else
                  {
-                   start[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
-                   count[0]=domain->zoom_nj_srv ;
-                   startBounds[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
+                   start[0]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
+                   count[0]=domain->zoom_ni_srv ;
+                   startBounds[0]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
                    startBounds[1]=0 ;
-                   countBounds[0]=domain->zoom_nj_srv ;
+                   countBounds[0]=domain->zoom_ni_srv ;
                    countBounds[1]=domain->nvertex ;
                  }
 
@@ -632,6 +635,9 @@ namespace xios
 
         std::vector<StdString> dims;
         StdString axisid = !axis->name.isEmpty() ? axis->name.getValue() : axis->getId();
+        if (isWrittenAxis(axisid)) return ;
+        else writtenAxis.insert(axisid) ; 
+
         try
         {
           SuperClassWriter::addDimension(axisid, zoom_size);
@@ -1574,7 +1580,44 @@ namespace xios
                 }
                 else
                 {
+
+                  CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+                  std::vector<StdString> domainList = grid->getDomainList();
+                  std::vector<StdString> axisList   = grid->getAxisList();
+                  int numElement = axisDomainOrder.numElements();
+                  int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
+                  int idx = nZoomBeginGlobal.size() - 1;
+
+                  start.reserve(nZoomBeginGlobal.size());
+                  count.reserve(nZoomBeginGlobal.size());
+
+                  for (int i = numElement - 1; i >= 0; --i)
+                  {
+                    if (axisDomainOrder(i))
+                    {
+                      CDomain* domain = CDomain::get(domainList[idxDomain]);
+                      if (! domain->type == CDomain::type_attr::unstructured)
+                      {
+                        start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                        count.push_back(nZoomSizeServer[idx]);
+                      }
+                      --idx ;
+                      start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                      count.push_back(nZoomSizeServer[idx]);
+                      --idx ;
+                      --idxDomain;
+                    }
+                    else
+                    {
+                      start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                      count.push_back(nZoomSizeServer[idx]);
+                      --idx;
+                     }
+                  }
+/*
                   int ssize = nZoomBeginGlobal.size();
+                  for (int i = numElement - 1; i >= 0; --i)
+
 
                   start.resize(ssize);
                   count.resize(ssize);
@@ -1584,6 +1627,7 @@ namespace xios
                     start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
                     count[i] = nZoomSizeServer[ssize - i - 1];
                   }
+*/
                 }
 
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);

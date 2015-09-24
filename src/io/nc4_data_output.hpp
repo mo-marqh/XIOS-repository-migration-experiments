@@ -95,6 +95,10 @@ namespace xios
             /// Propriétés privées ///
             MPI_Comm comm_file;
             const StdString filename;
+            std::set<std::string> writtenDomains ; 
+            std::set<std::string> writtenAxis ;
+            bool isWrittenDomain(const std::string& domainName) { return this->writtenDomains.find(domainName) != this->writtenDomains.end(); }
+            bool isWrittenAxis(const std::string& axisName) { return this->writtenAxis.find(axisName) != this->writtenAxis.end(); }
 
       }; // class CNc4DataOutput
 
