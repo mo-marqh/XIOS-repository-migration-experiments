@@ -258,6 +258,9 @@ namespace xios{
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
 
+    lastDataRequestedFromServer = context->getCalendar()->getCurrentDate();
+    isReadDataRequestPending = true;
+
     CEventClient event(getType(), EVENT_ID_READ_DATA);
     if (client->isServerLeader())
     {
@@ -269,9 +272,6 @@ namespace xios{
       client->sendEvent(event);
     }
     else client->sendEvent(event);
-
-    lastDataRequestedFromServer = context->getCalendar()->getCurrentDate();
-    isReadDataRequestPending = true;
   }
 
   /*!
