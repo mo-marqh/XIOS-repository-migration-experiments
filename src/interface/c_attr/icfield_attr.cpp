@@ -531,6 +531,67 @@ extern "C"
   }
 
 
+  void cxios_set_field_ts_enabled(field_Ptr field_hdl, bool ts_enabled)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->ts_enabled.setValue(ts_enabled);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_ts_enabled(field_Ptr field_hdl, bool* ts_enabled)
+  {
+    CTimer::get("XIOS").resume();
+    *ts_enabled = field_hdl->ts_enabled.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_ts_enabled(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->ts_enabled.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_field_ts_split_freq(field_Ptr field_hdl, cxios_duration ts_split_freq_c)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->ts_split_freq.allocate();
+    CDuration& ts_split_freq = field_hdl->ts_split_freq.get();
+    ts_split_freq.year = ts_split_freq_c.year;
+    ts_split_freq.month = ts_split_freq_c.month;
+    ts_split_freq.day = ts_split_freq_c.day;
+    ts_split_freq.hour = ts_split_freq_c.hour;
+    ts_split_freq.minute = ts_split_freq_c.minute;
+    ts_split_freq.second = ts_split_freq_c.second;
+    ts_split_freq.timestep = ts_split_freq_c.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_ts_split_freq(field_Ptr field_hdl, cxios_duration* ts_split_freq_c)
+  {
+    CTimer::get("XIOS").resume();
+    CDuration ts_split_freq = field_hdl->ts_split_freq.getInheritedValue();
+    ts_split_freq_c->year = ts_split_freq.year;
+    ts_split_freq_c->month = ts_split_freq.month;
+    ts_split_freq_c->day = ts_split_freq.day;
+    ts_split_freq_c->hour = ts_split_freq.hour;
+    ts_split_freq_c->minute = ts_split_freq.minute;
+    ts_split_freq_c->second = ts_split_freq.second;
+    ts_split_freq_c->timestep = ts_split_freq.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_ts_split_freq(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->ts_split_freq.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_unit(field_Ptr field_hdl, const char * unit, int unit_size)
   {
     std::string unit_str;

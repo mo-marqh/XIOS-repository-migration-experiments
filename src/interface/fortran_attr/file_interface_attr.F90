@@ -335,6 +335,48 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_time_counter
 
 
+    SUBROUTINE cxios_set_file_timeseries(file_hdl, timeseries, timeseries_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timeseries
+      INTEGER  (kind = C_INT)     , VALUE        :: timeseries_size
+    END SUBROUTINE cxios_set_file_timeseries
+
+    SUBROUTINE cxios_get_file_timeseries(file_hdl, timeseries, timeseries_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timeseries
+      INTEGER  (kind = C_INT)     , VALUE        :: timeseries_size
+    END SUBROUTINE cxios_get_file_timeseries
+
+    FUNCTION cxios_is_defined_file_timeseries(file_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_timeseries
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_timeseries
+
+
+    SUBROUTINE cxios_set_file_ts_prefix(file_hdl, ts_prefix, ts_prefix_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: ts_prefix
+      INTEGER  (kind = C_INT)     , VALUE        :: ts_prefix_size
+    END SUBROUTINE cxios_set_file_ts_prefix
+
+    SUBROUTINE cxios_get_file_ts_prefix(file_hdl, ts_prefix, ts_prefix_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: ts_prefix
+      INTEGER  (kind = C_INT)     , VALUE        :: ts_prefix_size
+    END SUBROUTINE cxios_get_file_ts_prefix
+
+    FUNCTION cxios_is_defined_file_ts_prefix(file_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_ts_prefix
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_ts_prefix
+
+
     SUBROUTINE cxios_set_file_type(file_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

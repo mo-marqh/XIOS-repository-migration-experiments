@@ -454,6 +454,58 @@ extern "C"
   }
 
 
+  void cxios_set_file_timeseries(file_Ptr file_hdl, const char * timeseries, int timeseries_size)
+  {
+    std::string timeseries_str;
+    if (!cstr2string(timeseries, timeseries_size, timeseries_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->timeseries.fromString(timeseries_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_timeseries(file_Ptr file_hdl, char * timeseries, int timeseries_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->timeseries.getInheritedStringValue(), timeseries, timeseries_size))
+      ERROR("void cxios_get_file_timeseries(file_Ptr file_hdl, char * timeseries, int timeseries_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_timeseries(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->timeseries.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_ts_prefix(file_Ptr file_hdl, const char * ts_prefix, int ts_prefix_size)
+  {
+    std::string ts_prefix_str;
+    if (!cstr2string(ts_prefix, ts_prefix_size, ts_prefix_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->ts_prefix.setValue(ts_prefix_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_ts_prefix(file_Ptr file_hdl, char * ts_prefix, int ts_prefix_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->ts_prefix.getInheritedValue(), ts_prefix, ts_prefix_size))
+      ERROR("void cxios_get_file_ts_prefix(file_Ptr file_hdl, char * ts_prefix, int ts_prefix_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_ts_prefix(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->ts_prefix.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_type(file_Ptr file_hdl, const char * type, int type_size)
   {
     std::string type_str;

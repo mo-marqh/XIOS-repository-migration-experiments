@@ -771,6 +771,10 @@ namespace xios {
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
       checkAxisDomainsGridsEligibilityForCompressedOutput();
 
+      // Check if some automatic time series should be generated
+      // Warning: This must be done after solving the inheritance and before the rest of post-processing
+      prepareTimeseries();
+
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
       this->findEnabledReadModeFiles();
@@ -892,6 +896,58 @@ namespace xios {
      const vector<CGrid*> allGrids = CGrid::getAll();
      for (vector<CGrid*>::const_iterator it = allGrids.begin(); it != allGrids.end(); it++)
        (*it)->checkEligibilityForCompressedOutput();
+   }
+
+   //! Client side: Prepare the timeseries by adding the necessary files
+   void CContext::prepareTimeseries()
+   {
+     if (!hasClient) return;
+
+     const std::vector<CFile*> allFiles = CFile::getAll();
+     for (size_t i = 0; i < allFiles.size(); i++)
+     {
+       CFile* file = allFiles[i];
+
+       if (!file->timeseries.isEmpty() && file->timeseries != CFile::timeseries_attr::none)
+       {
+         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : (!file->name.isEmpty() ? file->name : file->getId());
+
+         const std::vector<CField*> allFields = file->getAllFields();
+         for (size_t j = 0; j < allFields.size(); j++)
+         {
+           CField* field = allFields[j];
+
+           if (!field->ts_enabled.isEmpty() && field->ts_enabled)
+           {
+             CFile* tsFile = CFile::create();
+             tsFile->duplicateAttributes(file);
+
+             tsFile->name = tsPrefix + "_";
+             if (!field->name.isEmpty())
+               tsFile->name.get() += field->name;
+             else if (field->hasDirectFieldReference()) // We cannot use getBaseFieldReference() just yet
+               tsFile->name.get() += field->field_ref;
+             else
+               tsFile->name.get() += field->getId();
+
+             if (!field->ts_split_freq.isEmpty())
+               tsFile->split_freq = field->ts_split_freq;
+
+             CField* tsField = tsFile->addField();
+             tsField->field_ref = field->getId();
+
+             tsFile->solveFieldRefInheritance(true);
+
+             if (file->timeseries == CFile::timeseries_attr::exclusive)
+               field->enabled = false;
+           }
+         }
+
+         // Finally disable the original file is need be
+         if (file->timeseries == CFile::timeseries_attr::only)
+          file->enabled = false;
+       }
+     }
    }
 
    //! Client side: Send information of reference grid of active fields

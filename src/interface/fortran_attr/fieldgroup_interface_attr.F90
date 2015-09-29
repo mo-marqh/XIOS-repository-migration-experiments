@@ -430,6 +430,46 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_standard_name
 
 
+    SUBROUTINE cxios_set_fieldgroup_ts_enabled(fieldgroup_hdl, ts_enabled) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: ts_enabled
+    END SUBROUTINE cxios_set_fieldgroup_ts_enabled
+
+    SUBROUTINE cxios_get_fieldgroup_ts_enabled(fieldgroup_hdl, ts_enabled) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: ts_enabled
+    END SUBROUTINE cxios_get_fieldgroup_ts_enabled
+
+    FUNCTION cxios_is_defined_fieldgroup_ts_enabled(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_ts_enabled
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_ts_enabled
+
+
+    SUBROUTINE cxios_set_fieldgroup_ts_split_freq(fieldgroup_hdl, ts_split_freq) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      TYPE(txios(duration)), VALUE :: ts_split_freq
+    END SUBROUTINE cxios_set_fieldgroup_ts_split_freq
+
+    SUBROUTINE cxios_get_fieldgroup_ts_split_freq(fieldgroup_hdl, ts_split_freq) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      TYPE(txios(duration)) :: ts_split_freq
+    END SUBROUTINE cxios_get_fieldgroup_ts_split_freq
+
+    FUNCTION cxios_is_defined_fieldgroup_ts_split_freq(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_ts_split_freq
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_ts_split_freq
+
+
     SUBROUTINE cxios_set_fieldgroup_unit(fieldgroup_hdl, unit, unit_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

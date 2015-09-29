@@ -13,7 +13,8 @@ CONTAINS
   SUBROUTINE xios(set_field_attr)  &
     ( field_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
@@ -42,6 +43,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: scale_factor
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
+      LOGICAL  , OPTIONAL, INTENT(IN) :: ts_enabled
+      LOGICAL (KIND=C_BOOL) :: ts_enabled_tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: ts_split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min
@@ -50,14 +54,16 @@ CONTAINS
       CALL xios(set_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(set_field_attr)
 
   SUBROUTINE xios(set_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -85,6 +91,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: scale_factor
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
+      LOGICAL  , OPTIONAL, INTENT(IN) :: ts_enabled
+      LOGICAL (KIND=C_BOOL) :: ts_enabled_tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: ts_split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min
@@ -92,15 +101,16 @@ CONTAINS
       CALL xios(set_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(set_field_attr_hdl)
 
   SUBROUTINE xios(set_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
     , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, indexed_output_, level_  &
-    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, unit_, valid_max_  &
-    , valid_min_ )
+    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, ts_enabled_  &
+    , ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -128,6 +138,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access__tmp
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: scale_factor_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: ts_enabled_
+      LOGICAL (KIND=C_BOOL) :: ts_enabled__tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: ts_split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_max_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min_
@@ -216,6 +229,15 @@ CONTAINS
         CALL cxios_set_field_standard_name(field_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
+      IF (PRESENT(ts_enabled_)) THEN
+        ts_enabled__tmp = ts_enabled_
+        CALL cxios_set_field_ts_enabled(field_hdl%daddr, ts_enabled__tmp)
+      ENDIF
+
+      IF (PRESENT(ts_split_freq_)) THEN
+        CALL cxios_set_field_ts_split_freq(field_hdl%daddr, ts_split_freq_)
+      ENDIF
+
       IF (PRESENT(unit_)) THEN
         CALL cxios_set_field_unit(field_hdl%daddr, unit_, len(unit_))
       ENDIF
@@ -233,7 +255,8 @@ CONTAINS
   SUBROUTINE xios(get_field_attr)  &
     ( field_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
@@ -262,6 +285,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: scale_factor
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: ts_enabled
+      LOGICAL (KIND=C_BOOL) :: ts_enabled_tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: ts_split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min
@@ -270,14 +296,16 @@ CONTAINS
       CALL xios(get_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(get_field_attr)
 
   SUBROUTINE xios(get_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -305,6 +333,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access_tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: scale_factor
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: ts_enabled
+      LOGICAL (KIND=C_BOOL) :: ts_enabled_tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: ts_split_freq
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min
@@ -312,15 +343,16 @@ CONTAINS
       CALL xios(get_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(get_field_attr_hdl)
 
   SUBROUTINE xios(get_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
     , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, indexed_output_, level_  &
-    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, unit_, valid_max_  &
-    , valid_min_ )
+    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, ts_enabled_  &
+    , ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -348,6 +380,9 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: read_access__tmp
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: scale_factor_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: ts_enabled_
+      LOGICAL (KIND=C_BOOL) :: ts_enabled__tmp
+      TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: ts_split_freq_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_max_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min_
@@ -436,6 +471,15 @@ CONTAINS
         CALL cxios_get_field_standard_name(field_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
+      IF (PRESENT(ts_enabled_)) THEN
+        CALL cxios_get_field_ts_enabled(field_hdl%daddr, ts_enabled__tmp)
+        ts_enabled_ = ts_enabled__tmp
+      ENDIF
+
+      IF (PRESENT(ts_split_freq_)) THEN
+        CALL cxios_get_field_ts_split_freq(field_hdl%daddr, ts_split_freq_)
+      ENDIF
+
       IF (PRESENT(unit_)) THEN
         CALL cxios_get_field_unit(field_hdl%daddr, unit_, len(unit_))
       ENDIF
@@ -453,7 +497,8 @@ CONTAINS
   SUBROUTINE xios(is_defined_field_attr)  &
     ( field_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field))  :: field_hdl
@@ -498,6 +543,10 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: scale_factor_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_enabled
+      LOGICAL(KIND=C_BOOL) :: ts_enabled_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_split_freq
+      LOGICAL(KIND=C_BOOL) :: ts_split_freq_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit
       LOGICAL(KIND=C_BOOL) :: unit_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: valid_max
@@ -509,14 +558,16 @@ CONTAINS
       CALL xios(is_defined_field_attr_hdl_)   &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_field_attr)
 
   SUBROUTINE xios(is_defined_field_attr_hdl)  &
     ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
     , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-    , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+    , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+    , valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -560,6 +611,10 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: scale_factor_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name
       LOGICAL(KIND=C_BOOL) :: standard_name_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_enabled
+      LOGICAL(KIND=C_BOOL) :: ts_enabled_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_split_freq
+      LOGICAL(KIND=C_BOOL) :: ts_split_freq_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit
       LOGICAL(KIND=C_BOOL) :: unit_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: valid_max
@@ -570,15 +625,16 @@ CONTAINS
       CALL xios(is_defined_field_attr_hdl_)  &
       ( field_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value, domain_ref  &
       , enabled, field_ref, freq_offset, freq_op, grid_ref, indexed_output, level, long_name, name  &
-      , operation, prec, read_access, scale_factor, standard_name, unit, valid_max, valid_min )
+      , operation, prec, read_access, scale_factor, standard_name, ts_enabled, ts_split_freq, unit  &
+      , valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_field_attr_hdl)
 
   SUBROUTINE xios(is_defined_field_attr_hdl_)   &
     ( field_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
     , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, indexed_output_, level_  &
-    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, unit_, valid_max_  &
-    , valid_min_ )
+    , long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_, ts_enabled_  &
+    , ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(field)) , INTENT(IN) :: field_hdl
@@ -622,6 +678,10 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: scale_factor__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: standard_name_
       LOGICAL(KIND=C_BOOL) :: standard_name__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_enabled_
+      LOGICAL(KIND=C_BOOL) :: ts_enabled__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: ts_split_freq_
+      LOGICAL(KIND=C_BOOL) :: ts_split_freq__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: unit_
       LOGICAL(KIND=C_BOOL) :: unit__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: valid_max_
@@ -727,6 +787,16 @@ CONTAINS
       IF (PRESENT(standard_name_)) THEN
         standard_name__tmp = cxios_is_defined_field_standard_name(field_hdl%daddr)
         standard_name_ = standard_name__tmp
+      ENDIF
+
+      IF (PRESENT(ts_enabled_)) THEN
+        ts_enabled__tmp = cxios_is_defined_field_ts_enabled(field_hdl%daddr)
+        ts_enabled_ = ts_enabled__tmp
+      ENDIF
+
+      IF (PRESENT(ts_split_freq_)) THEN
+        ts_split_freq__tmp = cxios_is_defined_field_ts_split_freq(field_hdl%daddr)
+        ts_split_freq_ = ts_split_freq__tmp
       ENDIF
 
       IF (PRESENT(unit_)) THEN

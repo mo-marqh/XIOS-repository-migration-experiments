@@ -356,6 +356,48 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_time_counter
 
 
+    SUBROUTINE cxios_set_filegroup_timeseries(filegroup_hdl, timeseries, timeseries_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timeseries
+      INTEGER  (kind = C_INT)     , VALUE        :: timeseries_size
+    END SUBROUTINE cxios_set_filegroup_timeseries
+
+    SUBROUTINE cxios_get_filegroup_timeseries(filegroup_hdl, timeseries, timeseries_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: timeseries
+      INTEGER  (kind = C_INT)     , VALUE        :: timeseries_size
+    END SUBROUTINE cxios_get_filegroup_timeseries
+
+    FUNCTION cxios_is_defined_filegroup_timeseries(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_timeseries
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_timeseries
+
+
+    SUBROUTINE cxios_set_filegroup_ts_prefix(filegroup_hdl, ts_prefix, ts_prefix_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: ts_prefix
+      INTEGER  (kind = C_INT)     , VALUE        :: ts_prefix_size
+    END SUBROUTINE cxios_set_filegroup_ts_prefix
+
+    SUBROUTINE cxios_get_filegroup_ts_prefix(filegroup_hdl, ts_prefix, ts_prefix_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: ts_prefix
+      INTEGER  (kind = C_INT)     , VALUE        :: ts_prefix_size
+    END SUBROUTINE cxios_get_filegroup_ts_prefix
+
+    FUNCTION cxios_is_defined_filegroup_ts_prefix(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_ts_prefix
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_ts_prefix
+
+
     SUBROUTINE cxios_set_filegroup_type(filegroup_hdl, type, type_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

@@ -109,6 +109,7 @@ namespace xios {
          void updateCalendar(int step);
          void createFileHeader(void );
          void checkAxisDomainsGridsEligibilityForCompressedOutput();
+         void prepareTimeseries(void);
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildFilterGraphOfEnabledFields();
          void startPrefetchingOfEnabledReadModeFiles();
