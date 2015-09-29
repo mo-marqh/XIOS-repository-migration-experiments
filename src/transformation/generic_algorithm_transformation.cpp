@@ -31,12 +31,9 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                              const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                              std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
-  std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_.begin(),
-                                                   itTransMap = itbTransMap,
+  std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_.begin(), itTransMap,
                                                    iteTransMap = transformationMapping_.end();
   std::map<int, std::vector<double> >::const_iterator itTransWeight = transformationWeight_.begin();
-  std::map<size_t, std::vector<std::pair<size_t,double> > >::iterator iteWeight, itWeight;
-  std::vector<int>::const_iterator itbVec, itVec, iteVec;
   std::vector<std::vector<size_t> > globalIndexSrcGrid;
   CArray<size_t,1> globalIndexDestGrid;
   std::vector<size_t> vecGlobalIndexGridSendToServer(globalIndexGridDestSendToServer.begin(), globalIndexGridDestSendToServer.end());

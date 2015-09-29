@@ -75,6 +75,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   else // if domain source is rectilinear, not do anything now
   {
     nVertexSrc = constNVertex;
+    domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc);
   }
 
   int localDomainDestSize = domainDest_->i_index.numElements();
@@ -113,20 +114,51 @@ void CDomainAlgorithmInterpolate::computeRemap()
     nVertexDest = constNVertex;
   }
 
+
+
   // Ok, now use mapper to calculate
   int nSrcLocal = domainSrc_->i_index.numElements();
   int nDstLocal = domainDest_->i_index.numElements();
+  long int * globalSrc = new long int [nSrcLocal];
+  long int * globalDst = new long int [nDstLocal];
+
+  long int globalIndex;
+  int i_ind, j_ind;
+  for (int idx = 0; idx < nSrcLocal; ++idx)
+  {
+    i_ind=domainSrc_->i_index(idx) ;
+    j_ind=domainSrc_->j_index(idx) ;
+
+    globalIndex = i_ind + j_ind * domainSrc_->ni_glo;
+    globalSrc[idx] = globalIndex;
+  }
+
+  for (int idx = 0; idx < nDstLocal; ++idx)
+  {
+    i_ind=domainDest_->i_index(idx) ;
+    j_ind=domainDest_->j_index(idx) ;
+
+    globalIndex = i_ind + j_ind * domainDest_->ni_glo;
+    globalDst[idx] = globalIndex;
+  }
+
+
+  // Calculate weight index
   Mapper mapper(client->intraComm);
   mapper.setVerbosity(PROGRESS) ;
-  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0]);
-  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0]);
+  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0], globalSrc);
+  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0], globalDst);
   std::vector<double> timings = mapper.computeWeights(orderInterp);
 
+  std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   for (int idx = 0;  idx < mapper.nWeights; ++idx)
   {
-    transformationMapping_[mapper.targetWeightId[idx]].push_back(mapper.sourceWeightId[idx]);
-    transformationWeight_[mapper.targetWeightId[idx]].push_back(mapper.remapMatrix[idx]);
+    interpMapValue[mapper.targetWeightId[idx]].push_back(make_pair(mapper.sourceWeightId[idx],mapper.remapMatrix[idx]));
   }
+  exchangeRemapInfo(interpMapValue);
+
+  delete [] globalSrc;
+  delete [] globalDst;
 }
 
 /*!
@@ -140,9 +172,6 @@ void CDomainAlgorithmInterpolate::computeIndexSourceMapping()
     computeRemap();
 }
 
-/*!
-  Read remap information from file then distribute it among clients
-*/
 void CDomainAlgorithmInterpolate::readRemapInfo()
 {
   CContext* context = CContext::getCurrent();
@@ -152,6 +181,19 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
   std::string filename = interpDomain_->file.getValue();
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   readInterpolationInfo(filename, interpMapValue);
+
+  exchangeRemapInfo(interpMapValue);
+}
+
+
+/*!
+  Read remap information from file then distribute it among clients
+*/
+void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
 
   boost::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();
@@ -188,20 +230,26 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
   int nbClient = client->clientSize;
   int* sendBuff = new int[nbClient];
   int* recvBuff = new int[nbClient];
-  for (int i = 0; i < nbClient; ++i) sendBuff[i] = 0;
+  for (int i = 0; i < nbClient; ++i)
+  {
+    sendBuff[i] = 0;
+    recvBuff[i] = 0;
+  }
   int sendBuffSize = 0;
   std::map<int, std::vector<size_t> >::const_iterator itbMap = globalIndexInterpSendToClient.begin(), itMap,
                                                       iteMap = globalIndexInterpSendToClient.end();
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
+    const std::vector<size_t>& tmp = itMap->second;
     int sizeIndex = 0, mapSize = (itMap->second).size();
     for (int idx = 0; idx < mapSize; ++idx)
     {
-      sizeIndex += interpMapValue[(itMap->second)[idx]].size();
+      sizeIndex += interpMapValue.at((itMap->second)[idx]).size();
     }
     sendBuff[itMap->first] = sizeIndex;
     sendBuffSize += sizeIndex;
   }
+
 
   MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, client->intraComm);
 
@@ -210,22 +258,23 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
   double* sendWeightBuff = new double [sendBuffSize];
 
   std::vector<MPI_Request> sendRequest;
-  // Now send index and weight
-  int sendOffSet = 0;
+
+  int sendOffSet = 0, l = 0;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
+    const std::vector<size_t>& indexToSend = itMap->second;
+    int mapSize = indexToSend.size();
     int k = 0;
-    int mapSize = (itMap->second).size();
-
     for (int idx = 0; idx < mapSize; ++idx)
     {
-      std::vector<std::pair<int,double> >& interpMap = interpMapValue[(itMap->second)[idx]];
+      const std::vector<std::pair<int,double> >& interpMap = interpMapValue.at(indexToSend[idx]);
       for (int i = 0; i < interpMap.size(); ++i)
       {
-        sendIndexDestBuff[k] = (itMap->second)[idx];
-        sendIndexSrcBuff[k]  = interpMap[i].first;
-        sendWeightBuff[k]    = interpMap[i].second;
+        sendIndexDestBuff[l] = indexToSend[idx];
+        sendIndexSrcBuff[l]  = interpMap[i].first;
+        sendWeightBuff[l]    = interpMap[i].second;
         ++k;
+        ++l;
       }
     }
 
@@ -302,7 +351,7 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
   }
 
   std::vector<MPI_Status> requestStatus(sendRequest.size());
-  MPI_Wait(&sendRequest[0], &requestStatus[0]);
+  MPI_Waitall(sendRequest.size(), &sendRequest[0], MPI_STATUS_IGNORE);
 
   delete [] sendIndexDestBuff;
   delete [] sendIndexSrcBuff;
@@ -321,7 +370,7 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
          corresponding global index of domain and associated weight value on grid source
 */
 void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
-                                                                std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+                                                        std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 {
   int ncid ;
   int weightDimId ;

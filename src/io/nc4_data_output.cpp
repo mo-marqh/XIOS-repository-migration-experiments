@@ -1624,19 +1624,54 @@ namespace xios
                      }
                   }
 /*
-                  int ssize = nZoomBeginGlobal.size();
                   for (int i = numElement - 1; i >= 0; --i)
 
 
-                  start.resize(ssize);
-                  count.resize(ssize);
+                  start.reserve(nZoomBeginGlobal.size());
+                  count.reserve(nZoomBeginGlobal.size());
 
-                  for (int i = 0; i < ssize; ++i)
+
+                  for (int i = numElement - 1; i >= 0; --i)
                   {
-                    start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
-                    count[i] = nZoomSizeServer[ssize - i - 1];
+                    if (axisDomainOrder(i))
+                    {
+                      CDomain* domain = CDomain::get(domainList[idxDomain]);
+
+                      if (CDomain::type_attr::unstructured != domain->type)
+                      {
+                        start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                        count.push_back(nZoomSizeServer[idx]);
+                      }
+                      --idx;
+                      start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                      count.push_back(nZoomSizeServer[idx]);
+                      --idx;
+
+                      --idxDomain;
+                      //idx -= 2;
+                    }
+                    else
+                    {
+                      CAxis* axis = CAxis::get(axisList[idxAxis]);
+
+                      start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+                      count.push_back(nZoomSizeServer[idx]);
+
+                      --idxAxis;
+                      --idx;
+                    }
                   }
-*/
+
+//                  int ssize = nZoomBeginGlobal.size();
+//
+//                  start.resize(ssize);
+//                  count.resize(ssize);
+//
+//                  for (int i = 0; i < ssize; ++i)
+//                  {
+//                    start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
+//                    count[i] = nZoomSizeServer[ssize - i - 1];
+//                  }
                 }
 
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);

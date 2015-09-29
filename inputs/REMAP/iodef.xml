@@ -12,7 +12,7 @@
    </field_definition>
 
 
-   <file_definition type="multiple_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
+   <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
         <field field_ref="src_field" name="field" />
      </file>
@@ -31,9 +31,10 @@
    <domain_definition>
      <domain id="src_domain" />
      <domain id="dst_domain" domain_src="src_domain">
-       <interpolate_domain file="weight.nc"/>
+<!--       <interpolate_domain file="weight.nc"/>-->
+       <interpolate_domain/>
      </domain>
-     <domain id="dst_domain_regular" domain_src="src_domain">
+     <domain id="dst_domain_regular" domain_src="src_domain" ni_glo="180" nj_glo="90">
        <generate_rectilinear_domain />
        <interpolate_domain/>
      </domain>

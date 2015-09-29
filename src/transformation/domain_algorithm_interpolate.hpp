@@ -31,7 +31,7 @@ private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
   void computeRemap();
   void readRemapInfo();
-
+  void exchangeRemapInfo(const std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
 private:
   CInterpolateDomain* interpDomain_;
 
