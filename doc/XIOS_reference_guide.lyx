@@ -1248,7 +1248,7 @@ DOUBLE PRECISION :: value(:)
 \end_layout
 
 \begin_layout Standard
-Define the level values of the vertical axis.
+Define the value of each level of a vertical axis.
  The size of the array must be equal to the 
 \begin_inset Flex Strong
 status collapsed
@@ -1268,6 +1268,37 @@ status collapsed
 size
 \end_layout
 
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+bounds: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+2D-array of double
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+DOUBLE PRECISION :: value(:,:)
+\end_layout
+
+\begin_layout Standard
+Define the boundaries of each level of a the vertical axis.
+ The dimensions of the array must be 
+\begin_inset Formula $2\times\textbf{size}$
 \end_inset
 
 .
@@ -2094,6 +2125,40 @@ nvertex
 \end_layout
 
 \begin_layout Subsection*
+area: 
+\emph on
+2D-array of double
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+DOUBLE PRECISION :: area(:,:)
+\end_layout
+
+\begin_layout Standard
+Area of the cells.
+ The size of the array must be 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni
+\begin_inset Formula $\times$
+\end_inset
+
+nj
+\end_layout
+
+\end_inset
+
+.
+ This attribute is optional.
+\end_layout
+
+\begin_layout Subsection*
 data_dim: 
 \emph on
 integer
@@ -2902,6 +2967,50 @@ true
 \end_layout
 
 \begin_layout Subsection*
+read_access: 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: read_access
+\end_layout
+
+\begin_layout Standard
+Define whether a field can be read from the model or not.
+ This attribute is optional, the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+ Note that for fields belonging to a file in 
+\series bold
+\emph on
+read
+\series default
+\emph default
+ 
+\series bold
+mode
+\series default
+, this attribute is always 
+\series bold
+true
+\series default
+.
+\end_layout
+
+\begin_layout Subsection*
 field_ref: 
 \emph on
 string
@@ -3027,19 +3136,11 @@ DOUBLE PRECISION :: default_value
 \end_layout
 
 \begin_layout Standard
-Define the value for the missing data of a field.
+Define the value which should be used in place of the missing data of a
+ field.
  This attribute is optional.
- The default value is 
-\begin_inset Flex Strong
-status collapsed
-
-\begin_layout Plain Layout
-0
-\end_layout
-
-\end_inset
-
-.
+ If no value was defined, the missing data will be replaced by uninitialized
+ values which can lead to undefined behaviors.
 \end_layout
 
 \begin_layout Subsection*
@@ -3195,6 +3296,110 @@ scale_factor
  value.
 \end_layout
 
+\begin_layout Subsection*
+compression_level: 
+\emph on
+integer
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: compression_level
+\end_layout
+
+\begin_layout Standard
+Define whether the field should be compressed using NetCDF-4 built-in compressio
+n.
+ The compression level must range from 0 to 9.
+ An higher compression level means a better compression at the cost of using
+ more processing power.
+ This attribute is optional, the default value is inherited from the file
+ attribute 
+\series bold
+compression_level
+\series default
+.
+\end_layout
+
+\begin_layout Subsection*
+indexed_output: 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: indexed_output
+\end_layout
+
+\begin_layout Standard
+Define whether the field data must be outputted as an indexed grid instead
+ of a full grid whenever possible.
+ This attribute is optional, the default value is 
+\series bold
+\emph on
+false
+\series default
+\emph default
+.
+\end_layout
+
+\begin_layout Subsection*
+ts_enabled: 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: ts_enabled
+\end_layout
+
+\begin_layout Standard
+Define whether the field can be outputted as a timeserie if requested.
+ This attribute is optional, the default value is 
+\series bold
+\emph on
+false
+\series default
+\emph default
+.
+\end_layout
+
+\begin_layout Subsection*
+ts_split_freq: 
+\emph on
+duration
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+TYPE(xios_duration) :: ts_split_freq
+\end_layout
+
+\begin_layout Standard
+Define the splitting frequency that should be used for the timeserie if
+ it has been requested.
+ This attribute is optional, by default this value is inherited from the
+ file 
+\series bold
+split_freq
+\series default
+.
+\end_layout
+
 \begin_layout Section
 Variable attribute reference
 \end_layout
@@ -3226,6 +3431,17 @@ name
 
  of the variable as it will appear in an output file.
  This attribute is optional.
+ If not present, the 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+id
+\end_layout
+
+\end_inset
+
+ will be used instead.
 \end_layout
 
 \begin_layout Subsection*
@@ -3266,7 +3482,7 @@ int32
 \series default
 \emph default
 .
- This attribute is optional.
+ This attribute is mandatory.
 \end_layout
 
 \begin_layout Section
@@ -3288,7 +3504,7 @@ CHARACTER(LEN=*) :: name
 \end_layout
 
 \begin_layout Standard
-Define the name of the output file.
+Define the name of the file.
  This attribute is mandatory.
 \end_layout
 
@@ -3307,7 +3523,7 @@ CHARACTER(LEN=*) :: name_suffix
 \end_layout
 
 \begin_layout Standard
-Define a suffix to add to the name of the output file.
+Define a suffix to add to the name of the file.
  This attribute is optional.
 \end_layout
 
@@ -3327,8 +3543,7 @@ INTEGER :: min_digits
 
 \begin_layout Standard
 For multiple_file, define the minimum digits composing the suffix defining
- the rank of the server, which will be happened to the name of the output
- file.
+ the rank of the server, which will be happened to the name of the file.
  This attribute is optional and the default value is 
 \begin_inset Flex Strong
 status collapsed
@@ -3564,7 +3779,7 @@ LOGICAL :: enabled
 \end_layout
 
 \begin_layout Standard
-Define if a file must be output or not.
+Define if a file must be written/read or not.
  This attribute is optional, the default value is 
 \begin_inset Flex Strong
 status collapsed
@@ -3581,7 +3796,36 @@ true
 \begin_layout Subsection*
 type: 
 \emph on
-enumeration { one_file, multiple_file}
+mode { read, write }
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: mode
+\end_layout
+
+\begin_layout Standard
+Define whether the file will be read or written.
+ This attribute is optional, the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+write
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+type: 
+\emph on
+enumeration { one_file, multiple_file }
 \end_layout
 
 \begin_layout Standard
@@ -3593,7 +3837,7 @@ CHARACTER(LEN=*) :: type
 \end_layout
 
 \begin_layout Standard
-Define the type of the output file: 
+Define the type of the file: 
 \begin_inset Flex Strong
 status collapsed
 
@@ -3624,7 +3868,7 @@ one_file
 \begin_layout Subsection*
 format: 
 \emph on
-enumeration { netcdf4, netcdf4_classic}
+enumeration { netcdf4, netcdf4_classic }
 \end_layout
 
 \begin_layout Standard
@@ -3636,7 +3880,7 @@ CHARACTER(LEN=*) :: type
 \end_layout
 
 \begin_layout Standard
-Define the format of the output file: 
+Define the format of the file: 
 \begin_inset Flex Strong
 status collapsed
 
@@ -3764,6 +4008,209 @@ false
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsection*
+compression_level: 
+\emph on
+integer
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: compression_level
+\end_layout
+
+\begin_layout Standard
+Define whether the fields should be compressed using NetCDF-4 built-in compressi
+on by default.
+ The compression level must range from 0 to 9.
+ An higher compression level means a better compression at the cost of using
+ more processing power.
+ This attribute is optional, the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+
+\emph on
+0
+\end_layout
+
+\end_inset
+
+ (no compression).
+\end_layout
+
+\begin_layout Subsection*
+time_counter: 
+\emph on
+enumeration { centered, instant, record, none }
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: time_counter
+\end_layout
+
+\begin_layout Standard
+Define how the 
+\begin_inset Quotes eld
+\end_inset
+
+time_counter
+\begin_inset Quotes erd
+\end_inset
+
+ variable will be outputted:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+centered
+\series default
+\emph default
+: use centered times
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+instant
+\series default
+\emph default
+: use instant times
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+record
+\series default
+\emph default
+: use record indexes
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+none
+\series default
+\emph default
+: do not output the variable.
+\end_layout
+
+\begin_layout Standard
+This attribute is optional, the default value is 
+\series bold
+\emph on
+centered
+\series default
+\emph default
+.
+\end_layout
+
+\begin_layout Subsection*
+timeseries: 
+\emph on
+enumeration { none, only, both, exclusive }
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: time_counter
+\end_layout
+
+\begin_layout Standard
+Define whether the timeseries must be outputted:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+none
+\series default
+\emph default
+: no timeseries are outputted, only the regular file
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+only
+\series default
+\emph default
+: only the timeseries are outputted, the regular file is not created
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+both
+\series default
+\emph default
+: both the timeseries and the regular file are outputted.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+\emph on
+exclusive
+\series default
+\emph default
+: the timeseries are outputted and a regular file is created with only the
+ fields which were not marked for output as a timeserie (if any).
+\end_layout
+
+\begin_layout Standard
+This attribute is optional, the default value is 
+\series bold
+\emph on
+none
+\series default
+\emph default
+.
+\end_layout
+
+\begin_layout Subsection*
+ts_prefix: 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: ts_prefix
+\end_layout
+
+\begin_layout Standard
+Define the prefix to use for the name of the timeseries files.
+ This attribute is optional, by default the file 
+\series bold
+name
+\series default
+ will be used.
 \end_layout
 
 \begin_layout Chapter
