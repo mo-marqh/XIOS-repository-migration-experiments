@@ -684,15 +684,7 @@ namespace xios
               SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
               if (!axis->bounds.isEmpty())
-              {
-                CArray<double,2> axisBounds(2, zoom_size_srv);
-                for (int i = 0; i < zoom_size_srv; i++)
-                {
-                  axisBounds(0, i) = axis->bound_srv(i, 0);
-                  axisBounds(1, i) = axis->bound_srv(i, 1);
-                }
-                SuperClassWriter::writeData(axisBounds, axisBoundsId, isCollective, 0);
-              }
+                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0);
 
               SuperClassWriter::definition_start();
 
@@ -710,15 +702,7 @@ namespace xios
               SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
               if (!axis->bounds.isEmpty())
-              {
-                CArray<double,2> axisBounds(2, zoom_size_srv);
-                for (int i = 0; i < zoom_size_srv; ++i)
-                {
-                  axisBounds(0, i+zoom_begin_srv) = axis->bound_srv(i, 0);
-                  axisBounds(1, i+zoom_begin_srv) = axis->bound_srv(i, 1);
-                }
-                SuperClassWriter::writeData(axisBounds, axisBoundsId, isCollective, 0, &start, &count);
-              }
+                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &start, &count);
 
               SuperClassWriter::definition_start();
 

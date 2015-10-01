@@ -223,11 +223,11 @@ namespace xios {
   {
     if (!bounds.isEmpty())
     {
-      if (bounds.extent(0) != n || bounds.extent(1) != 2)
-          ERROR("CAxis::checkAttributes(void)",
-                << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension axis size x 2." << std::endl
-                << "Axis size is " << n.getValue() << "." << std::endl
-                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
+      if (bounds.extent(0) != 2 || bounds.extent(1) != n)
+        ERROR("CAxis::checkAttributes(void)",
+              << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
+              << "Axis size is " << n.getValue() << "." << std::endl
+              << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
       hasBounds_ = true;
     }
     else hasBounds_ = false;
