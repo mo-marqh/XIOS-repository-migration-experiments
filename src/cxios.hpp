@@ -39,8 +39,8 @@ namespace xios
      static bool printLogs2Files; //!< Printing out logs into files
      static bool usingOasis ; //!< Using Oasis
      static bool usingServer ; //!< Using server (server mode)
-     static double bufferServerFactorSize ; //!< Factor helps tune buffer size
-     static double defaultBufferServerFactorSize ; //!< Default factor value
+     static double bufferSizeFactor; //!< Factor used to tune the buffer size
+     static const double defaultBufferSizeFactor; //!< Default factor value
      static bool isOptPerformance; //!< Check if buffer size is for performance (as large as possible)
      static CRegistry* globalRegistry ; //!< global registry which is wrote by the root process of the servers
 

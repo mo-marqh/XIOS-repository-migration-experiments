@@ -23,8 +23,8 @@ namespace xios
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
-  double CXios::bufferServerFactorSize=1.0 ;
-  double CXios::defaultBufferServerFactorSize=1.0 ;
+  double CXios::bufferSizeFactor = 1.0;
+  const double CXios::defaultBufferSizeFactor = 1.0;
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
@@ -59,7 +59,8 @@ namespace xios
       ERROR("CXios::parseXiosConfig()", << "optimal_buffer_size must be memory or performance "<< endl );
     }
 
-    bufferServerFactorSize=getin<double>("buffer_factor_size",defaultBufferServerFactorSize) ;
+    bufferSizeFactor = getin<double>("buffer_size_factor", defaultBufferSizeFactor);
+
     globalComm=MPI_COMM_WORLD ;
   }
 

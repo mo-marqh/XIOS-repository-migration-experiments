@@ -85,7 +85,7 @@ namespace xios {
 
    std::map<int, StdSize> CGrid::getConnectedServerDataSize()
    {
-     double secureFactor = 2.5 * sizeof(double) * CXios::bufferServerFactorSize;
+     double secureFactor = 2.5 * sizeof(double) * CXios::bufferSizeFactor;
      StdSize retVal = 1;
      std::map<int, StdSize> ret;
      std::map<int, size_t >::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
