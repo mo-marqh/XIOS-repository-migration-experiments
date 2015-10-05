@@ -19,7 +19,7 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;
   INTEGER :: src_ibegin, dst_ibegin;
@@ -118,16 +118,20 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
 
-  CALL xios_set_domain_attr("dst_domain_regular", type="rectilinear")
+!  CALL xios_set_domain_attr("dst_domain_regular", type="rectilinear")
 
+
+  ALLOCATE(tmp_field(180*90/2))
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
 
   CALL xios_close_context_definition()
 
   DO ts=1,1
+    CALL xios_recv_field("src_field_regular", tmp_field)
     CALL xios_update_calendar(ts)
-    CALL xios_send_field("src_field",src_field)
+!    CALL xios_send_field("src_field",src_field)
+    CALL xios_send_field("tmp_field",tmp_field)
     CALL wait_us(5000) ;
   ENDDO
 

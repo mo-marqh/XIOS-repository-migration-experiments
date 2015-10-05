@@ -163,6 +163,7 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
+         void checkGenerate();
 
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
@@ -188,6 +189,7 @@ namespace xios {
          bool isDistributed_;
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
+         bool isRedistributed_;
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;

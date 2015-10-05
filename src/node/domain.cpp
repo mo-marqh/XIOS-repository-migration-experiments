@@ -34,7 +34,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , srcObject_(0)
+      , srcObject_(0), isRedistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
@@ -44,7 +44,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , srcObject_(0)
+      , srcObject_(0), isRedistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -170,6 +170,7 @@ namespace xios {
    */
    void CDomain::redistribute(int nbLocalDomain)
    {
+     if (this->isRedistributed_) return;
      if (type_attr::rectilinear == type)
      {
         CContext* context = CContext::getCurrent();
@@ -269,7 +270,9 @@ namespace xios {
 
         // Now fill other attributes
         fillInRectilinearLonLat();
-//        fillInRectilinearBoundLonLat();
+        this->isRedistributed_ = true;
+        info <<"now, we are here " << std::endl;
+        info << "domain " << this->getId() << " ni " << ni.getValue() << " nj " << nj.getValue() << std::endl;
      }
    }
 
@@ -326,6 +329,31 @@ namespace xios {
                                                                : +90;
        }
    }
+
+   /*!
+     Temporary function to verify whether a rectilinear domain is created automatically.
+   The domain is distributed into number of parts which are equal to number of clients (intracomm)
+   */
+   void CDomain::checkGenerate()
+   {
+     TransMapTypes trans = this->getAllTransformations();
+     TransMapTypes::const_iterator it = trans.begin(), ite = trans.end();
+     int transOrder = 0;
+     for (; it != ite; ++it, ++transOrder)
+     {
+       ETranformationType transType = it->first;
+       if ((TRANS_GENERATE_RECTILINEAR_DOMAIN == transType) && (0 == transOrder))
+       {
+         CContext* context = CContext::getCurrent();
+         CContextClient* client = context->client;
+         int nbClient;
+         MPI_Comm_size(client->intraComm,&nbClient);
+         this->redistribute(nbClient);
+         break;
+       }
+     }
+   }
+
 
    void CDomain::checkDomain(void)
    {
@@ -941,6 +969,7 @@ namespace xios {
      if (this->isClientChecked) return;
      CContext* context=CContext::getCurrent();
 
+      this->checkGenerate();
       this->checkDomain();
       this->checkBounds();
       this->checkArea();
