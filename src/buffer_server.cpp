@@ -8,12 +8,11 @@ namespace xios
 
   CServerBuffer::CServerBuffer(StdSize buffSize)
   {
-    bufferSizeByClient= buffSize * 2 * CXios::bufferServerFactorSize; //::bufferSize*CXios::bufferServerFactorSize ;
-    size=bufferSizeByClient ;
-    first=0 ;
-    current=1 ;
-    end=size ;
-    buffer=new char[size] ;  // change later for MPI_ALLOC_MEM later
+    size = 2 * buffSize;
+    first = 0;
+    current = 1;
+    end = size;
+    buffer = new char[size]; // use MPI_ALLOC_MEM later?
   }
 
   CServerBuffer::~CServerBuffer()

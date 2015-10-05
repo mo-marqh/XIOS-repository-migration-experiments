@@ -8,28 +8,23 @@
 
 namespace xios
 {
-
   class CServerBuffer
   {
-
     public:
+      CServerBuffer(StdSize bufSize) ;
+      ~CServerBuffer() ;
 
-    CServerBuffer(StdSize bufSize) ;
-    ~CServerBuffer() ;
-    char* buffer ;
+      bool isBufferFree(size_t count) ;
+      void* getBuffer(size_t count) ;
+      void freeBuffer(size_t count) ;
 
-    bool isBufferFree(size_t count) ;
-    void* getBuffer(size_t count) ;
-    void freeBuffer(size_t count) ;
-
-    size_t first ;   // first occupied element
-    size_t current ; // first free element
-    size_t end ;
-    size_t size ;
-    size_t bufferSizeByClient ;
-  } ;
-
-
+    private:
+      char* buffer;
+      size_t first;   // first occupied element
+      size_t current; // first free element
+      size_t end;
+      size_t size;
+  };
 }
 
 #endif
