@@ -25,6 +25,7 @@ namespace xios
   bool CXios::usingServer = false;
   double CXios::bufferSizeFactor = 1.0;
   const double CXios::defaultBufferSizeFactor = 1.0;
+  StdSize CXios::minBufferSize = 1024 * sizeof(double);
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
@@ -60,6 +61,7 @@ namespace xios
     }
 
     bufferSizeFactor = getin<double>("buffer_size_factor", defaultBufferSizeFactor);
+    minBufferSize = getin<int>("min_buffer_size", 1024 * sizeof(double));
 
     globalComm=MPI_COMM_WORLD ;
   }

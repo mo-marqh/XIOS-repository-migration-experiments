@@ -265,11 +265,14 @@ namespace xios {
 
    void CContext::setClientServerBuffer()
    {
-     size_t bufferSizeMin = 10 * sizeof(size_t) * 1024;
+     size_t bufferSizeMin = CXios::minBufferSize;
 #define DECLARE_NODE(Name_, name_)    \
-     bufferSizeMin = (bufferSizeMin < sizeof(C##Name_##Definition)) ?  sizeof(C##Name_##Definition) : bufferSizeMin;
+     if (bufferSizeMin < sizeof(C##Name_##Definition)) bufferSizeMin = sizeof(C##Name_##Definition);
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
+#undef DECLARE_NODE
+#undef DECLARE_NODE_PAR
+
      std::map<int, StdSize> bufferSize = getDataSize();
      if (bufferSize.empty())
      {
