@@ -26,7 +26,7 @@ namespace xios
         ERROR("void CEventServer::push(int rank, CServerBuffer* serverBuffer, char* startBuffer, int size)",
               << "The callers of event " << timeLine << " are not coherent." << std::endl
               << "Received subevent: classId = " << myClassId << ", type = " << myType << ", nbSender = " << myNbSender << std::endl
-              << "Excepted subevent: classId = " << classId << ", type = " << type << ", nbSender = " << nbSender);
+              << "Expected subevent: classId = " << classId << ", type = " << type << ", nbSender = " << nbSender);
     }
 
     SSubEvent ev;
