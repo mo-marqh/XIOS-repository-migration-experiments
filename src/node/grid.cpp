@@ -17,7 +17,6 @@
 #include "distribution_client.hpp"
 #include "grid_transformation.hpp"
 #include "grid_generate.hpp"
-#include "client_client_dht.hpp"
 
 namespace xios {
 
@@ -395,31 +394,8 @@ namespace xios {
                                                             client->intraComm,
                                                             clientDistribution_->isDataDistributed());
 
-     CClientClientDHT clientDht(serverDistributionDescription.getGlobalIndexRange(),
-                                client->intraComm,
-                                clientDistribution_->isDataDistributed());
-     clientDht.computeServerIndexMapping(clientDistribution_->getGlobalIndex());
-     const std::map<int, std::vector<size_t> >& globalIndexOnServer0 = clientDht.getGlobalIndexOnServer();
-
-     std::map<int, std::vector<size_t> >::const_iterator itbTmp, itTmp, iteTmp;
-     itbTmp = globalIndexOnServer0.begin(); iteTmp = globalIndexOnServer0.end();
-     for (itTmp = itbTmp; itTmp != iteTmp; ++itTmp)
-     {
-       const std::vector<size_t>& tmpVec = itTmp->second; info << "tmpVec0. Rank " << itTmp->first << ". Size = " << tmpVec.size() << ". "  ;
-       for (int i = 0; i < tmpVec.size(); ++i) info << tmpVec[i] << " ";
-       info << std::endl;
-     }
-//
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
      const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
-
-     itbTmp = globalIndexOnServer.begin(); iteTmp = globalIndexOnServer.end();
-     for (itTmp = itbTmp; itTmp != iteTmp; ++itTmp)
-     {
-       const std::vector<size_t>& tmpVec = itTmp->second; info << "tmpVec1. Rank " << itTmp->first << ". Size = " << tmpVec.size() << ". "  ;
-       for (int i = 0; i < tmpVec.size(); ++i) info << tmpVec[i] << " ";
-       info << std::endl;
-     }
 
      const std::vector<size_t>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
      std::map<int, std::vector<size_t> >::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;

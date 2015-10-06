@@ -2,7 +2,7 @@
    \file client_server_mapping.hpp
    \author Ha NGUYEN
    \since 27 Feb 2015
-   \date 09 Mars 2015
+   \date 06 Oct 2015
 
    \brief Mapping between index client and server.
    Clients pre-calculate all information of server distribution.
@@ -11,7 +11,6 @@
 #include <limits>
 #include <boost/functional/hash.hpp>
 #include "utils.hpp"
-#include "client_client_dht.hpp"
 #include "mpi_tag.hpp"
 
 namespace xios
@@ -28,13 +27,9 @@ CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::un
   MPI_Comm_rank(clientIntraComm,&clientRank_);
   computeHashIndex();
 
-  ccDHT_ = new CClientClientDHT(globalIndexOfServer,
-                                clientIntraComm,
-                                isDataDistributed);
-//  const boost::unordered_map<size_t,int>& globalIndexToServerMappingTmp = clientDht.getGlobalIndexServerMapping();
-//  globalIndexToServerMapping_ = clientDht.getGlobalIndexServerMapping();
-
-
+  ccDHT_ = new CClientClientDHTInt(globalIndexOfServer,
+                                   clientIntraComm,
+                                   isDataDistributed);
 
 //  computeDistributedServerIndex(globalIndexOfServer, clientIntraComm);
 }
@@ -50,8 +45,8 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 */
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
-  ccDHT_->computeServerIndexMapping(globalIndexOnClient);
-  indexGlobalOnServer_ = ccDHT_->getGlobalIndexOnServer();
+  ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
+  indexGlobalOnServer_ = (ccDHT_->getInfoIndexMap());
 
 /*
   size_t ssize = globalIndexOnClient.numElements(), hashedIndex;

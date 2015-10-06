@@ -16,7 +16,7 @@
 #include "array_new.hpp"
 #include "mpi.hpp"
 #include <boost/unordered_map.hpp>
-#include "client_client_dht.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios
 {
@@ -119,8 +119,8 @@ class CClientServerMappingDistributed : public CClientServerMapping
     //! Flag to specify whether data is distributed or not
     bool isDataDistributed_;
 
-
-    CClientClientDHT* ccDHT_;
+//    CClientClientDHTTemplate<int>* ccDHT_;
+    CClientClientDHTInt* ccDHT_;
 };
 
 } // namespace xios
