@@ -271,8 +271,6 @@ namespace xios {
         // Now fill other attributes
         fillInRectilinearLonLat();
         this->isRedistributed_ = true;
-        info <<"now, we are here " << std::endl;
-        info << "domain " << this->getId() << " ni " << ni.getValue() << " nj " << nj.getValue() << std::endl;
      }
    }
 

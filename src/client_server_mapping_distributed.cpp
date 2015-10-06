@@ -11,6 +11,8 @@
 #include <limits>
 #include <boost/functional/hash.hpp>
 #include "utils.hpp"
+#include "client_client_dht.hpp"
+#include "mpi_tag.hpp"
 
 namespace xios
 {
@@ -18,17 +20,28 @@ namespace xios
 CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
                                                                  const MPI_Comm& clientIntraComm, bool isDataDistributed)
   : CClientServerMapping(), indexClientHash_(), countIndexGlobal_(0), countIndexServer_(0),
-    indexGlobalBuffBegin_(), indexServerBuffBegin_(), requestRecvIndexServer_(), isDataDistributed_(isDataDistributed)
+    indexGlobalBuffBegin_(), indexServerBuffBegin_(), requestRecvIndexServer_(), isDataDistributed_(isDataDistributed),
+    ccDHT_(0)
 {
   clientIntraComm_ = clientIntraComm;
   MPI_Comm_size(clientIntraComm,&(nbClient_));
   MPI_Comm_rank(clientIntraComm,&clientRank_);
   computeHashIndex();
-  computeDistributedServerIndex(globalIndexOfServer, clientIntraComm);
+
+  ccDHT_ = new CClientClientDHT(globalIndexOfServer,
+                                clientIntraComm,
+                                isDataDistributed);
+//  const boost::unordered_map<size_t,int>& globalIndexToServerMappingTmp = clientDht.getGlobalIndexServerMapping();
+//  globalIndexToServerMapping_ = clientDht.getGlobalIndexServerMapping();
+
+
+
+//  computeDistributedServerIndex(globalIndexOfServer, clientIntraComm);
 }
 
 CClientServerMappingDistributed::~CClientServerMappingDistributed()
 {
+  if (0 != ccDHT_) delete ccDHT_;
 }
 
 /*!
@@ -37,6 +50,10 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 */
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
+  ccDHT_->computeServerIndexMapping(globalIndexOnClient);
+  indexGlobalOnServer_ = ccDHT_->getGlobalIndexOnServer();
+
+/*
   size_t ssize = globalIndexOnClient.numElements(), hashedIndex;
 
   std::vector<size_t>::const_iterator itbClientHash = indexClientHash_.begin(), itClientHash,
@@ -176,6 +193,7 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   if (0 != nbIndexReceivedFromOthers) delete [] recvBuffIndexServer;
   delete [] sendBuff;
   delete [] recvBuff;
+*/
 }
 
 /*!
@@ -347,13 +365,13 @@ void CClientServerMappingDistributed::probeIndexGlobalMessageFromClients(unsigne
   int flagIndexGlobal, count;
 
   // Probing for global index
-  MPI_Iprobe(MPI_ANY_SOURCE, 15, clientIntraComm_, &flagIndexGlobal, &statusIndexGlobal);
+  MPI_Iprobe(MPI_ANY_SOURCE, MPI_DHT_INDEX_0, clientIntraComm_, &flagIndexGlobal, &statusIndexGlobal);
   if ((true == flagIndexGlobal) && (countIndexGlobal_ < recvNbIndexCount))
   {
     MPI_Get_count(&statusIndexGlobal, MPI_UNSIGNED_LONG, &count);
     indexGlobalBuffBegin_.insert(std::make_pair<int, unsigned long*>(statusIndexGlobal.MPI_SOURCE, recvIndexGlobalBuff+countIndexGlobal_));
     MPI_Irecv(recvIndexGlobalBuff+countIndexGlobal_, count, MPI_UNSIGNED_LONG,
-              statusIndexGlobal.MPI_SOURCE, 15, clientIntraComm_,
+              statusIndexGlobal.MPI_SOURCE, MPI_DHT_INDEX_0, clientIntraComm_,
               &requestRecvIndexGlobal_[statusIndexGlobal.MPI_SOURCE]);
     countIndexGlobal_ += count;
   }
@@ -372,13 +390,13 @@ void CClientServerMappingDistributed::probeIndexServerMessageFromClients(int* re
   int flagIndexServer, count;
 
   // Probing for server index
-  MPI_Iprobe(MPI_ANY_SOURCE, 12, clientIntraComm_, &flagIndexServer, &statusIndexServer);
+  MPI_Iprobe(MPI_ANY_SOURCE, MPI_DHT_INFO_0, clientIntraComm_, &flagIndexServer, &statusIndexServer);
   if ((true == flagIndexServer) && (countIndexServer_ < recvNbIndexCount))
   {
     MPI_Get_count(&statusIndexServer, MPI_INT, &count);
     indexServerBuffBegin_.insert(std::make_pair<int, int*>(statusIndexServer.MPI_SOURCE, recvIndexServerBuff+countIndexServer_));
     MPI_Irecv(recvIndexServerBuff+countIndexServer_, count, MPI_INT,
-              statusIndexServer.MPI_SOURCE, 12, clientIntraComm_,
+              statusIndexServer.MPI_SOURCE, MPI_DHT_INFO_0, clientIntraComm_,
               &requestRecvIndexServer_[statusIndexServer.MPI_SOURCE]);
 
     countIndexServer_ += count;
@@ -399,7 +417,7 @@ void CClientServerMappingDistributed::sendIndexGlobalToClients(int clientDestRan
   MPI_Request request;
   requestSendIndexGlobal.push_back(request);
   MPI_Isend(&(indexGlobal)[0], (indexGlobal).size(), MPI_UNSIGNED_LONG,
-            clientDestRank, 15, clientIntraComm, &(requestSendIndexGlobal.back()));
+            clientDestRank, MPI_DHT_INDEX_0, clientIntraComm, &(requestSendIndexGlobal.back()));
 }
 
 /*!
@@ -416,7 +434,7 @@ void CClientServerMappingDistributed::sendIndexServerToClients(int clientDestRan
   MPI_Request request;
   requestSendIndexServer.push_back(request);
   MPI_Isend(&(indexServer)[0], (indexServer).size(), MPI_INT,
-            clientDestRank, 12, clientIntraComm, &(requestSendIndexServer.back()));
+            clientDestRank, MPI_DHT_INFO_0, clientIntraComm, &(requestSendIndexServer.back()));
 }
 
 /*!

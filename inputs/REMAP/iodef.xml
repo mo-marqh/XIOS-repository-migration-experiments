@@ -17,7 +17,7 @@
 <!--        <field field_ref="src_field" name="field" />-->
      </file>
      <file id="output_dst" name="output_dst">
-<!--        <field id="test" field_ref="dst_field" name="field" />-->
+<!--        <field field_ref="dst_field" name="field" />-->
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />

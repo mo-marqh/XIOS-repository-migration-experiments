@@ -18,7 +18,7 @@
 
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output" type="one_file">
-<!--        <field field_ref="field_A" />-->
+        <field field_ref="field_A" />
      </file>
      <file id="output_Axis" name="output_Axis" type="one_file">
 <!--        <field field_ref="field_Axis" />-->
@@ -33,7 +33,7 @@
 <!--        <field field_ref="field_Axis_transformed_Interpolated" />-->
      </file>
      <file id="output_Domain_transformed_interpolated" name="output_Domain_transformed_interpolated">
-        <field field_ref="field_Domain_transformed_Interpolated" />
+<!--        <field field_ref="field_Domain_transformed_Interpolated" />-->
      </file>
      <file id="output_Scalar" name="output_Scalar" type="one_file">
 <!--        <field field_ref="field_Scalar" />-->
