@@ -224,6 +224,11 @@ namespace xios
    */
    void CContextClient::newBuffer(int rank)
    {
+      if (!mapBufferSize_.count(rank))
+      {
+        error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
+        mapBufferSize_[rank] = CXios::minBufferSize;
+      }
       buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank]);
    }
 
