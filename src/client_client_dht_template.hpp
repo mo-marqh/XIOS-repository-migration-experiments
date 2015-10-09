@@ -31,7 +31,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 {
   public:
     typedef T InfoType;
-    const int infoTypeSize = sizeof(InfoType);
+    static const int infoTypeSize = sizeof(InfoType);
 
   public:
     /** Default constructor */

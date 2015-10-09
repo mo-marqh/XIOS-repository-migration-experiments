@@ -173,6 +173,8 @@ namespace xios {
      if (this->isRedistributed_) return;
      if (type_attr::rectilinear == type)
      {
+        this->isRedistributed_ = true;
+
         CContext* context = CContext::getCurrent();
         CContextClient* client = context->client;
         int rankClient = client->clientRank;
@@ -270,7 +272,6 @@ namespace xios {
 
         // Now fill other attributes
         fillInRectilinearLonLat();
-        this->isRedistributed_ = true;
      }
    }
 
@@ -286,18 +287,43 @@ namespace xios {
      lonvalue_1d.resize(ni);
      latvalue_1d.resize(nj);
 
-     double lonStep = double(360/ni_glo.getValue());
-     double latStep = double(180/nj_glo.getValue());
+     double lonRange = lon_end - lon_start;
+     double latRange = lat_end - lat_start;
+
+     double lonStep = lonRange/double(ni_glo.getValue());
+     double latStep = latRange/double(nj_glo.getValue());
 
      // Assign lon value
      for (int i = 0; i < ni; ++i)
      {
-       lonvalue_1d(i) = static_cast<double>(ibegin + i) * lonStep -180 + lonStep/2;
+       if (0 == (ibegin + i))
+       {
+         lonvalue_1d(i) = lon_start;
+       }
+       else if (ni_glo == (ibegin + i + 1))
+       {
+         lonvalue_1d(i) = lon_end;
+       }
+       else
+       {
+         lonvalue_1d(i) = (ibegin + i) * lonStep  + lon_start;
+       }
      }
 
      for (int j = 0; j < nj; ++j)
      {
-       latvalue_1d(j) = static_cast<double>(jbegin + j) * latStep - 90 + latStep/2;
+       if (0 == (jbegin + j))
+       {
+          latvalue_1d(j) = lat_start;
+       }
+       else if (nj_glo == (jbegin + j + 1))
+       {
+          latvalue_1d(j) = lat_end;
+       }
+       else
+       {
+         latvalue_1d(j) =  (jbegin + j) * latStep + lat_start;
+       }
      }
    }
 
@@ -306,25 +332,28 @@ namespace xios {
      int i,j,k;
      const int nvertexValue = 4;
 
+     double boundsLonRange = bounds_lon_end - bounds_lon_start;
+     double boundsLatRange = bounds_lat_end - bounds_lat_start;
+
      boundsLon.resize(nvertexValue,ni*nj);
      boundsLat.resize(nvertexValue,nj*ni);
 
-     double lonStep = double(360/ni_glo.getValue());
-     double latStep = double(180/nj_glo.getValue());
+     double lonStep = boundsLonRange/double(ni_glo.getValue());
+     double latStep = boundsLatRange/double(nj_glo.getValue());
 
      for(j=0;j<nj;++j)
        for(i=0;i<ni;++i)
        {
          k=j*ni+i;
-         boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep -180
-                                                               : -180;
-         boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep -180
-                                                                        : 180;
+         boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep + bounds_lon_start
+                                                               : bounds_lon_start;
+         boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep + bounds_lon_start
+                                                                        : bounds_lon_end;
 
-         boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep - 90
-                                                               : -90;
-         boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep - 90
-                                                               : +90;
+         boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep + bounds_lat_start
+                                                               : bounds_lat_start;
+         boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep + bounds_lat_start
+                                                               : bounds_lat_end;
        }
    }
 

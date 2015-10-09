@@ -103,6 +103,11 @@ namespace xios {
          int nj_srv,jbegin_srv,jend_srv ;
          int zoom_nj_srv,zoom_jbegin_srv,zoom_jend_srv ;
 
+         double bounds_lon_start, bounds_lon_end;
+         double bounds_lat_start, bounds_lat_end;
+         double lon_start, lon_end;
+         double lat_start, lat_end;
+
          CArray<double, 1> lonvalue_srv, latvalue_srv ;
          CArray<double, 2> bounds_lon_srv, bounds_lat_srv ;
          CArray<double, 1> lonvalue_client, latvalue_client;
