@@ -59,6 +59,12 @@ var      \${id}
 
 "^"  return POWER;
 
+"==" return EQ;
+"<"  return LT;
+">"  return GT;
+"<=" return LE;
+">=" return GE;
+
 "("  return LEFT_PARENTHESIS;
 ")"  return RIGHT_PARENTHESIS;
 
