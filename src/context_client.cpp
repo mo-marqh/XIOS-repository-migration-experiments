@@ -131,15 +131,6 @@ namespace xios
           newBuffer(itMap->first);
       }
 
-      CBufferOut* bufOut(NULL);
-      itE = buffers.end();
-      for (it = buffers.begin(); it != itE; ++it)
-      {
-        bufOut = (it->second)->getBuffer(sizeof(StdSize));
-        bufOut->put(mapBufferSize_[it->first]);  // Stupid C++
-        (it->second)->checkBuffer();
-      }
-
       if (isAttachedModeEnabled())
       {
         while (checkBuffers())
@@ -229,7 +220,11 @@ namespace xios
         error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
         mapBufferSize_[rank] = CXios::minBufferSize;
       }
-      buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank]);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank]);
+      // Notify the server
+      CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
+      bufOut->put(mapBufferSize_[rank]); // Stupid C++
+      buffer->checkBuffer();
    }
 
    /*!
