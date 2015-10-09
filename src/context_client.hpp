@@ -49,7 +49,7 @@ namespace xios
       void finalize(void);
 
       void setBufferSize(const std::map<int,StdSize>& mapSize);
-      void sendBufferSizeEvent();
+
     public:
       CContext* context; //!< Context for client
 

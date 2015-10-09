@@ -113,35 +113,6 @@ namespace xios
     }
 
     /*!
-    Special function to setup size of buffer not only on client side but also on server side
-    corresponding to the connection
-    */
-    void CContextClient::sendBufferSizeEvent()
-    {
-      std::map<int,CClientBuffer*>::iterator it, itE;
-      std::map<int,StdSize>::const_iterator itMap = mapBufferSize_.begin(), iteMap = mapBufferSize_.end();
-
-      if (itMap == iteMap)
-         ERROR("void CContextClient::sendBufferSizeEvent()",
-              <<"No information about server buffer, that should not happen...");
-
-      for (; itMap != iteMap; ++itMap)
-      {
-        if (buffers.end() == buffers.find(itMap->first))
-          newBuffer(itMap->first);
-      }
-
-      if (isAttachedModeEnabled())
-      {
-        while (checkBuffers())
-        {
-          parentServer->server->listen();
-        }
-        CContext::setCurrent(context->getId());
-      }
-    }
-
-    /*!
     If client is also server (attached mode), after sending event, it should process right away
     the incoming event.
     \param [in] ranks list rank of server connected this client
@@ -266,7 +237,6 @@ namespace xios
    void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
    {
      mapBufferSize_ = mapSize;
-     sendBufferSizeEvent();
    }
 
   /*!
