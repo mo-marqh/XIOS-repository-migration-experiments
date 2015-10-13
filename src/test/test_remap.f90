@@ -128,10 +128,10 @@ PROGRAM test_remap
   CALL xios_close_context_definition()
 
   DO ts=1,1
-!    CALL xios_recv_field("src_field_regular", tmp_field)
+    CALL xios_recv_field("src_field_regular", tmp_field)
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field",src_field)
-!    CALL xios_send_field("tmp_field",tmp_field)
+    CALL xios_send_field("tmp_field",tmp_field)
     CALL wait_us(5000) ;
   ENDDO
 

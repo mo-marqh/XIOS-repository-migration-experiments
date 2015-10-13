@@ -8,7 +8,7 @@
    <field_definition level="1" >
      <field id="src_field"  operation="instant" grid_ref="src_grid"/>
      <field id="dst_field"  operation="instant" field_ref="src_field" grid_ref="dst_grid"/>
-     <field id="dst_field_regular"  operation="instant" field_ref="tmp_field" grid_ref="dst_grid_regular"/>
+     <field id="dst_field_regular"  operation="instant" field_ref="tmp_field" grid_ref="dst_grid_regular"  read_access="true"/>
      <field id="tmp_field"  operation="instant" grid_ref="src_grid_regular"/>
    </field_definition>
 
@@ -21,14 +21,10 @@
         <field field_ref="dst_field" name="field" />
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
-<!--        <field field_ref="dst_field_regular" name="field" />-->
+        <field field_ref="dst_field_regular" name="field" />
      </file>
-
      <file id="output_src_regular" name="output_src_regular" mode="read" type="multiple_file">
-<!--        <field id="src_field_regular" name="field" grid_ref="src_grid_regular" operation="instant"/>-->
-     </file>
-     <file id="output_regular" name="output_regular" mode="write">
-<!--        <field field_ref="field_regular" name="field" />-->
+        <field id="src_field_regular" name="field" grid_ref="src_grid_regular" operation="instant"/>
      </file>
    </file_definition>
 
@@ -39,15 +35,14 @@
    <domain_definition>
      <domain id="src_domain" />
      <domain id="dst_domain" domain_src="src_domain">
-<!--       <interpolate_domain file="weight.nc"/>-->
        <interpolate_domain/>
      </domain>
-     <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="90" nj_glo="60" type="rectilinear">
+     <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="360" nj_glo="180" type="rectilinear">
        <generate_rectilinear_domain />
        <interpolate_domain/>
      </domain>
      <domain id="src_domain_regular" ni_glo="180" nj_glo="90" type="rectilinear">
-       <generate_rectilinear_domain />
+       <generate_rectilinear_domain bounds_lat_start="-90" bounds_lat_end="90" lon_start="2" lon_end="360" />
      </domain>
    </domain_definition>
 
@@ -73,6 +68,7 @@
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
             <variable id="buffer_size_factor" type="double">30.0</variable>
+            <variable id="buffer_size_min" type="double">800000</variable>
          </variable_group>
 
         <variable_group id="parameters" >

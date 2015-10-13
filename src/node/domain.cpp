@@ -337,8 +337,8 @@ namespace xios {
      double lonRange = lon_end - lon_start;
      double latRange = lat_end - lat_start;
 
-     double lonStep = lonRange/double(ni_glo.getValue());
-     double latStep = latRange/double(nj_glo.getValue());
+     double lonStep = (1 == ni_glo.getValue()) ? lonRange : lonRange/double(ni_glo.getValue()-1);
+     double latStep = (1 == nj_glo.getValue()) ? latRange : latRange/double(nj_glo.getValue()-1);
 
      // Assign lon value
      for (int i = 0; i < ni; ++i)
@@ -422,6 +422,7 @@ namespace xios {
          CContextClient* client = context->client;
          int nbClient;
          MPI_Comm_size(client->intraComm,&nbClient);
+         it->second->checkValid(this);
          this->redistribute(nbClient);
          break;
        }

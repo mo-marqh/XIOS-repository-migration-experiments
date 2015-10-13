@@ -70,23 +70,14 @@ namespace xios {
                << "Only one latitude boundary attribute or latitude can be used but both 'bounds_lat_start' and 'lat_start' are defined." << std::endl
                << "Define only one attribute: 'bounds_lat_start' or 'lat_start'.");
 
-    if (!bounds_lon_start.isEmpty() && !lat_start.isEmpty())
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only one latitude boundary attribute or latitude can be used but both 'bounds_lon_start' and 'lat_start' are defined." << std::endl
-               << "Define only one pair of attributes: ('bounds_lon_start' and 'bounds_lat_start') or ('lon_start' and 'lat_start').");
-
-    if (!bounds_lat_start.isEmpty() && !lon_start.isEmpty())
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only one latitude boundary attribute or latitude can be used but both 'bounds_lat_start' and 'lon_start' are defined." << std::endl
-               << "Define only one pair of attributes: ('bounds_lon_start' and 'bounds_lat_start') or ('lon_start' and 'lat_start').");
-
-    if (bounds_lon_start.isEmpty() && bounds_lat_start.isEmpty() &&
-        lon_start.isEmpty() && lat_start.isEmpty())
+    if (bounds_lon_start.isEmpty() && lon_start.isEmpty())
     {
       bounds_lon_start.setValue(defaultBndsLonStart);
       bounds_lon_end.setValue(defaultBndsLonEnd);
+    }
+
+    if (bounds_lat_start.isEmpty() && lat_start.isEmpty())
+    {
       bounds_lat_start.setValue(defaultBndsLatStart);
       bounds_lat_end.setValue(defaultBndsLatEnd);
     }
@@ -96,7 +87,7 @@ namespace xios {
       int niGlo = domainDst->ni_glo.getValue();
 
       double boundsLonRange = bounds_lon_end - bounds_lon_start;
-      double boundsLonStep = boundsLonRange/double(niGlo);
+      double boundsLonStep = boundsLonRange/(double(niGlo));
       domainDst->bounds_lon_start = bounds_lon_start;
       domainDst->bounds_lon_end   = bounds_lon_end;
       domainDst->lon_start = bounds_lon_start + boundsLonStep/2;
@@ -108,7 +99,7 @@ namespace xios {
       int njGlo = domainDst->nj_glo.getValue();
 
       double boundsLatRange = bounds_lat_end - bounds_lat_start;
-      double boundsLatStep = boundsLatRange/double(njGlo);
+      double boundsLatStep = boundsLatRange/(double(njGlo));
       domainDst->bounds_lat_start = bounds_lat_start;
       domainDst->bounds_lat_end   = bounds_lat_end;
       domainDst->lat_start = bounds_lat_start + boundsLatStep/2;
@@ -122,7 +113,7 @@ namespace xios {
       int niGlo = domainDst->ni_glo.getValue();
 
       double lonRange = lon_end - lon_start;
-      double lonStep = lonRange/double(niGlo);
+      double lonStep = (1 == niGlo) ? lonRange : lonRange/(double(niGlo)-1);
       domainDst->lon_start = lon_start;
       domainDst->lon_end   = lon_end;
       domainDst->bounds_lon_start = lon_start - lonStep/2;
@@ -134,7 +125,7 @@ namespace xios {
       int njGlo = domainDst->nj_glo.getValue();
 
       double latRange = lat_end - lat_start;
-      double latStep = latRange/double(njGlo);
+      double latStep = (1 == njGlo) ? latRange : latRange/(double(njGlo)-1);
       domainDst->lat_start = lat_start;
       domainDst->lat_end   = lat_end;
       domainDst->bounds_lat_start = lat_start - latStep/2;
