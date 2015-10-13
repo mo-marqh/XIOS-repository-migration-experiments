@@ -24,13 +24,13 @@ namespace xios {
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
-      , dataSize_(), idServer_(), client(0), server(0)
+      , idServer_(), client(0), server(0)
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
-      , dataSize_(), idServer_(), client(0), server(0)
+      , idServer_(), client(0), server(0)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
@@ -794,12 +794,11 @@ namespace xios {
    {
      CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
-     // Set of grid used by enabled fields
-     std::set<StdString> usedGrid;
+     std::map<int, StdSize> dataSize;
 
      // Find all reference domain and axis of all active fields
-     int numEnabledFiles = this->enabledFiles.size();
-     for (int i = 0; i < numEnabledFiles; ++i)
+     size_t numEnabledFiles = this->enabledFiles.size();
+     for (size_t i = 0; i < numEnabledFiles; ++i)
      {
        CFile* file = this->enabledFiles[i];
        CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
@@ -807,45 +806,25 @@ namespace xios {
        if (fileMode == mode)
        {
          std::vector<CField*> enabledFields = file->getEnabledFields();
-         int numEnabledFields = enabledFields.size();
-         for (int j = 0; j < numEnabledFields; ++j)
+         size_t numEnabledFields = enabledFields.size();
+         for (size_t j = 0; j < numEnabledFields; ++j)
          {
-           StdString currentGrid = enabledFields[j]->grid->getId();
            const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataSize();
-           if (dataSize_.empty())
+           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+           for (; it != itE; ++it)
            {
-             dataSize_ = mapSize;
-             usedGrid.insert(currentGrid);
-           }
-           else
-           {
-             std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-             if (usedGrid.find(currentGrid) == usedGrid.end())
-             {
-               for (; it != itE; ++it)
-               {
-                 if (0 < dataSize_.count(it->first)) dataSize_[it->first] += it->second;
-                 else dataSize_.insert(make_pair(it->first, it->second));
-               }
-             } else
-             {
-               for (; it != itE; ++it)
-               {
-                 if (0 < dataSize_.count(it->first))
-                  if (CXios::isOptPerformance) dataSize_[it->first] += it->second;
-                  else
-                  {
-                    if (dataSize_[it->first] < it->second) dataSize_[it->first] = it->second;
-                  }
-                 else dataSize_.insert(make_pair(it->first, it->second));
-               }
-             }
+             // If dataSize[it->first] does not exist, it will be zero-initialized
+             // so we can use it safely without checking for its existance
+             if (CXios::isOptPerformance)
+               dataSize[it->first] += it->second;
+             else if (dataSize[it->first] < it->second)
+               dataSize[it->first] = it->second;
            }
          }
        }
      }
 
-     return dataSize_;
+     return dataSize;
    }
 
    //! Client side: Send infomation of active files (files are enabled to write out)

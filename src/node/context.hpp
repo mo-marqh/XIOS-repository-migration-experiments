@@ -221,7 +221,6 @@ namespace xios {
       private:
          bool isPostProcessed;
          bool finalized;
-         std::map<int, StdSize> dataSize_;
          StdString idServer_;
          CGarbageCollector garbageCollector;
          std::list<MPI_Comm> comms; //!< Communicators allocated internally
