@@ -83,61 +83,68 @@ namespace xios {
      return retvalue;
    }
 
-   std::map<int, StdSize> CGrid::getConnectedServerDataSize()
+   /*!
+    * Compute the minimum buffer size required to send the attributes to the server(s).
+    *
+    * \return A map associating the server rank with its minimum buffer size.
+    */
+   std::map<int, StdSize> CGrid::getAttributesBufferSize()
    {
-     double secureFactor = 2.5 * sizeof(double) * CXios::bufferSizeFactor;
-     StdSize retVal = 1;
-     std::map<int, StdSize> ret;
-     std::map<int, size_t >::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
+     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
-     if (isScalarGrid())
+     // The grid indexes require a similar size as the actual data
+     std::map<int, StdSize> dataSizes = getDataBufferSize();
+     std::map<int, StdSize>::iterator it, itE = dataSizes.end();
+     for (it = dataSizes.begin(); it != itE; ++it)
      {
-       for (it = itb; it != itE; ++it)
-       {
-         retVal *= secureFactor;
-         ret.insert(std::make_pair(it->first, retVal));
-       }
-       return ret;
+       it->second += 2 * sizeof(bool);
+       if (it->second > attributesSizes[it->first])
+         attributesSizes[it->first] = it->second;
      }
 
+     // Account for the axis attributes
+     std::vector<CAxis*> axisList = getAxis();
+     for (size_t i = 0; i < axisList.size(); ++i)
+     {
+       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize();
+       for (it = axisAttBuffSize.begin(), itE = axisAttBuffSize.end(); it != itE; ++it)
+       {
+         if (it->second > attributesSizes[it->first])
+           attributesSizes[it->first] = it->second;
+       }
+     }
+
+     // Account for the domain attributes
+     std::vector<CDomain*> domList = getDomains();
+     for (size_t i = 0; i < domList.size(); ++i)
+     {
+       std::map<int, StdSize> domAttBuffSize = domList[i]->getAttributesBufferSize();
+       for (it = domAttBuffSize.begin(), itE = domAttBuffSize.end(); it != itE; ++it)
+       {
+         if (it->second > attributesSizes[it->first])
+           attributesSizes[it->first] = it->second;
+       }
+     }
+     
+     return attributesSizes;
+   }
+
+   /*!
+    * Compute the minimum buffer size required to send the data to the server(s).
+    *
+    * \param id the id used to tag the data
+    * \return A map associating the server rank with its minimum buffer size.
+    */
+   std::map<int, StdSize> CGrid::getDataBufferSize(const std::string& id /*= ""*/)
+   {
+     std::map<int, StdSize> dataSizes;
+     const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() + sizeof(size_t);
+
+     std::map<int, size_t>::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
      for (it = itb; it != itE; ++it)
-     {
-        retVal = it->second;
-        retVal *= secureFactor;
-        ret.insert(std::make_pair<int,StdSize>(it->first, retVal));
-     }
+       dataSizes.insert(std::make_pair(it->first, extraSize + CArray<double,1>::size(it->second)));
 
-     if (connectedDataSize_.empty())
-     {
-       for (int i = 0; i < connectedServerRank_.size(); ++i)
-       {
-         retVal = 1;
-         retVal *= secureFactor;
-         ret.insert(std::make_pair<int,StdSize>(connectedServerRank_[i], retVal));
-       }
-     }
-
-     // In some cases in which domain is masked, we need to count for connected server for longitude and latitude
-     std::vector<CDomain*> domListP = this->getDomains();
-     if (!domListP.empty())
-     {
-       for (int i = 0; i < domListP.size(); ++i)
-       {
-         const std::map<int, vector<size_t> >& indexDomainServer = domListP[i]->getIndexServer();
-         std::map<int, vector<size_t> >::const_iterator itDom = indexDomainServer.begin(), iteDom = indexDomainServer.end();
-         for (; itDom != iteDom; ++itDom)
-         {
-           if (ret.end() == ret.find(itDom->first))
-           {
-              retVal = (itDom->second).size();
-              retVal *= secureFactor;
-              ret.insert(std::make_pair<int,StdSize>(itDom->first, retVal));
-           }
-         }
-       }
-     }
-
-     return ret;
+     return dataSizes;
    }
 
    void CGrid::checkAttributesAfterTransformation()

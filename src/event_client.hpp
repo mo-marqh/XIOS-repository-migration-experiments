@@ -7,28 +7,27 @@
 
 namespace xios
 {
- 
   class CEventClient
   {
     public:
-    
-//    CEventClient(CContextClient& client,int nbSender,list<int>& serverList);  
-    CEventClient(int classId, int typeId);
-    void push(int rank,int nbSender, CMessage& msg) ;  
+      static const size_t headerSize;
 
-//    list<CBufferOut*> newEvent(int classId, int type, list<int> sizes) ;
-    list<int> getRanks(void) ;
-    list<int> getSizes(void) ;
-    void send(list<CBufferOut*>&) ;   
-    bool isEmpty(void) ;
-    list<int> ranks ;
-    list<int> nbSenders ;
-    list<CMessage*> messages ;
-//    CContextClient* client ;
-    int classId ;
-    int typeId ;
-  } ;
+      CEventClient(int classId, int typeId);
 
+      void push(int rank, int nbSender, CMessage& msg);
+      void send(size_t timeLine, const std::list<int>& sizes, std::list<CBufferOut*>&); 
+
+      bool isEmpty(void);
+      std::list<int> getRanks(void);
+      std::list<int> getSizes(void);
+
+    private:
+      int classId;
+      int typeId;
+      std::list<int> ranks;
+      std::list<int> nbSenders;
+      std::list<CMessage*> messages;
+  };
 }
 
 #endif

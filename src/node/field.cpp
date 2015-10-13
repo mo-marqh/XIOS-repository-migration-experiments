@@ -526,9 +526,14 @@ namespace xios{
      solveCheckMaskIndex(doSending2Sever);
    }
 
-   std::map<int, StdSize> CField::getGridDataSize()
+   std::map<int, StdSize> CField::getGridAttributesBufferSize()
    {
-     return grid->getConnectedServerDataSize();
+     return grid->getAttributesBufferSize();
+   }
+
+   std::map<int, StdSize> CField::getGridDataBufferSize()
+   {
+     return grid->getDataBufferSize(getId());
    }
 
    //----------------------------------------------------------------

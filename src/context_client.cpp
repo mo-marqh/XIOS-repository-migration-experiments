@@ -72,34 +72,21 @@ namespace xios
 
     }
 
-     
     /*!
     In case of attached mode, the current context must be reset to context for client
     \param [in] event Event sent to server
     */
     void CContextClient::sendEvent(CEventClient& event)
     {
-      list<int>::iterator itServer;
-      list<int> ranks;
-      list<int> sizes;
-      list<int>::iterator itSize;
-
-      ranks = event.getRanks();
+      list<int> ranks = event.getRanks();
       if (!event.isEmpty())
       {
-        sizes = event.getSizes();
-        CMessage msg;
+        list<int> sizes = event.getSizes();
 
-        msg << *(sizes.begin()) << timeLine;
-        for (list<int>::iterator it = sizes.begin(); it != sizes.end(); it++) *it += msg.size();
         list<CBufferOut*> buffList = getBuffers(ranks, sizes);
 
-        list<CBufferOut*>::iterator it;
-        for (it = buffList.begin(), itSize = sizes.begin(); it != buffList.end(); ++it, ++itSize)
-        {
-          **it << *itSize << timeLine;
-        }
-        event.send(buffList);
+        event.send(timeLine, sizes, buffList);
+
         checkBuffers(ranks);
       }
 
@@ -270,12 +257,11 @@ namespace xios
    /*!
    Finalize context client and do some reports
    */
-    
    void CContextClient::finalize(void)
    {
      map<int,CClientBuffer*>::iterator itBuff;
      bool stop = true;
-      
+
      CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
      if (isServerLeader())
      {
@@ -308,6 +294,5 @@ namespace xios
      report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
 
      releaseBuffers();
-     
    }
 }

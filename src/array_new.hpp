@@ -517,7 +517,8 @@ namespace xios
       virtual string toString(void) const { ostringstream oss; oss << *this; return oss.str(); }
       virtual void reset(void) { this->free(); initialized = false; }
       virtual bool isEmpty(void) const { return !initialized; }
-      virtual size_t size(void) const { return (this->dimensions() + 1) * sizeof(int) + sizeof(size_t) + this->numElements() * sizeof(T_numtype); }
+      virtual size_t size(void) const { return size(this->numElements()); }
+      static size_t size(sizeType numElements) { return (N_rank + 1) * sizeof(int) + sizeof(size_t) + numElements * sizeof(T_numtype); }
 
       virtual CBaseType* clone(void) const { return new CArray(*this); }
 

@@ -105,6 +105,53 @@ namespace xios {
 
    //----------------------------------------------------------------
 
+   /*!
+    * Compute the minimum buffer size required to send the attributes to the server(s).
+    *
+    * \return A map associating the server rank with its minimum buffer size.
+    */
+   std::map<int, StdSize> CDomain::getAttributesBufferSize()
+   {
+     CContextClient* client = CContext::getCurrent()->client;
+
+     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
+
+     if (client->isServerLeader())
+     {
+       // size estimation for sendServerAttribut
+       size_t size = 11 * sizeof(size_t);
+
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+       {
+         if (size > attributesSizes[*itRank])
+           attributesSizes[*itRank] = size;
+       }
+     }
+
+     std::map<int, std::vector<size_t> >::const_iterator it, ite = indSrv_.end();
+     for (it = indSrv_.begin(); it != ite; ++it)
+     {
+       // size estimation for sendIndex (and sendArea which is always smaller or equal)
+       size_t sizeIndexEvent = 2 * sizeof(size_t) + 2 * CArray<int,1>::size(it->second.size());
+       if (isCompressible_)
+         sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
+
+       // size estimation for sendLonLat
+       size_t sizeLonLatEvent = CArray<double,1>::size(it->second.size());
+       if (hasBounds)
+         sizeLonLatEvent += CArray<double,2>::size(it->second.size());
+
+       size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeLonLatEvent);
+       if (size > attributesSizes[it->first])
+         attributesSizes[it->first] = size;
+     }
+
+     return attributesSizes;
+   }
+
+   //----------------------------------------------------------------
+
    bool CDomain::isEmpty(void) const
    {
       return ((this->zoom_ni_srv == 0) ||

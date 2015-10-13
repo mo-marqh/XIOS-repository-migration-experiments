@@ -119,6 +119,61 @@ namespace xios {
 
    //----------------------------------------------------------------
 
+   /*!
+    * Compute the minimum buffer size required to send the attributes to the server(s).
+    *
+    * \return A map associating the server rank with its minimum buffer size.
+    */
+   std::map<int, StdSize> CAxis::getAttributesBufferSize()
+   {
+     CContextClient* client = CContext::getCurrent()->client;
+
+     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
+
+     bool isNonDistributed = (n == n_glo);
+
+     if (client->isServerLeader())
+     {
+       // size estimation for sendServerAttribut
+       size_t size = 6 * sizeof(size_t);
+       // size estimation for sendNonDistributedValue
+       if (isNonDistributed)
+         size = std::max(size, CArray<double,1>::size(n_glo) + (isCompressible_ ? CArray<int,1>::size(n_glo) : 0));
+       size += CEventClient::headerSize + getId().size() + sizeof(size_t);
+
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+       {
+         if (size > attributesSizes[*itRank])
+           attributesSizes[*itRank] = size;
+       }
+     }
+
+     if (!isNonDistributed)
+     {
+       // size estimation for sendDistributedValue
+       std::map<int, std::vector<size_t> >::const_iterator it, ite = indSrv_.end();
+       for (it = indSrv_.begin(); it != ite; ++it)
+       {
+         size_t sizeIndexEvent = CArray<int,1>::size(it->second.size());
+         if (isCompressible_)
+           sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
+
+         size_t sizeValEvent = CArray<double,1>::size(it->second.size());
+         if (hasBounds_)
+           sizeValEvent += CArray<double,2>::size(it->second.size());
+
+         size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeValEvent);
+         if (size > attributesSizes[it->first])
+           attributesSizes[it->first] = size;
+       }
+     }
+
+     return attributesSizes;
+   }
+
+   //----------------------------------------------------------------
+
    StdString CAxis::GetName(void)   { return (StdString("axis")); }
    StdString CAxis::GetDefName(void){ return (CAxis::GetName()); }
    ENodeType CAxis::GetType(void)   { return (eAxis); }

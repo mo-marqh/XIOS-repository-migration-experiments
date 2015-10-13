@@ -7,84 +7,49 @@
 
 namespace xios
 {
-   CEventClient::CEventClient(int classId_,int typeId_)
+   const size_t CEventClient::headerSize = sizeof(int) + sizeof(size_t) + sizeof(int) + sizeof(classId) + sizeof(typeId);
+
+   CEventClient::CEventClient(int classId_, int typeId_)
    {
-     classId=classId_ ;
-     typeId=typeId_ ;
+     classId = classId_;
+     typeId = typeId_;
    }
-   
-   void CEventClient::push(int rank,int nbSender,CMessage & msg)
+
+   void CEventClient::push(int rank, int nbSender, CMessage& msg)
    {
-     nbSenders.push_back(nbSender) ;
-     ranks.push_back(rank) ;
-     messages.push_back(&msg) ;
+     nbSenders.push_back(nbSender);
+     ranks.push_back(rank);
+     messages.push_back(&msg);
    }
 
    bool CEventClient::isEmpty(void)
    {
-     return ranks.empty() ;
+     return ranks.empty();
    }
 
-   list<int> CEventClient::getRanks(void)
+   std::list<int> CEventClient::getRanks(void)
    {
-     return ranks ;
+     return ranks;
    }
-   
-   list<int> CEventClient::getSizes(void)
+
+   std::list<int> CEventClient::getSizes(void)
    {
-     list<CMessage*>::iterator it ;
-     list<int> sizes ;
-     size_t headerSize=sizeof(int)+sizeof(classId)+sizeof(typeId) ;
-     
-     for(it=messages.begin();it!=messages.end();++it) sizes.push_back((*it)->size()+headerSize) ;
-     return sizes ;
+     std::list<CMessage*>::iterator it;
+     std::list<int> sizes;
+
+     for (it = messages.begin(); it != messages.end(); ++it) sizes.push_back((*it)->size() + headerSize);
+     return sizes;
    }
-   
-   void CEventClient::send(list<CBufferOut*>& buffers)
+
+   void CEventClient::send(size_t timeLine, const std::list<int>& sizes, std::list<CBufferOut*>& buffers)
    {
-     list<CBufferOut*>::iterator itBuff ;
-     list<CMessage*>::iterator itMsg ;
-     list<int>::iterator itSenders ;
-     
-     for(itBuff=buffers.begin(),itMsg=messages.begin(),itSenders=nbSenders.begin();itBuff!=buffers.end();++itBuff,++itMsg,++itSenders)
+     std::list<CBufferOut*>::iterator itBuff = buffers.begin();
+     std::list<int>::const_iterator itSizes = sizes.begin(), itSenders = nbSenders.begin();
+     std::list<CMessage*>::iterator itMsg = messages.begin();
+
+     for (; itBuff != buffers.end(); ++itBuff, ++itSizes, ++itSenders, ++itMsg)
      {
-       **itBuff<<*itSenders<<classId<<typeId<<**itMsg ;
+       **itBuff << *itSizes << timeLine << *itSenders << classId << typeId << **itMsg;
      }
-   }   
-/*
-   CEventClient::CEventClient(CContextClient& client_,int nbSender_,list<int>& serverList_)
-   {
-     client=&client_ ;
-     nbSender=nbSender_ ;
-     serverList=serverList_ ;
-     
-     client->registerEvent(*this) ;
    }
-
-   list<CBufferOut*> CEventClient::newEvent(int classId, int type, list<int> sizes)
-   {
-     list<int>::iterator it ;
-     list<CBufferOut*>::iterator itBuff;
-     
-     
-     CMessage msg;
-     
-     msg<<nbSender<<classId<<type ;    
-     
-     for(it=sizes.begin();it!=sizes.end();it++) *it+=msg.size() ;
-     list<CBufferOut*> buffers=client->newEvent(*this,sizes) ;
-
-     for(itBuff=buffers.begin();itBuff!=buffers.end();itBuff++) *(*itBuff)<<msg ;  
-     
-     return buffers ;
-   
-   }
-          
-   void CEventClient::send(void)
-   {
-     client->sendEvent(*this) ;
-   }
-
-*/   
-   
 }

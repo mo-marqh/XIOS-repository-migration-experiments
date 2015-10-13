@@ -92,7 +92,8 @@ namespace xios {
          void resetNStep(StdSize nstep = 0);
          void resetNStepMax();
 
-         std::map<int, StdSize> getGridDataSize();
+         std::map<int, StdSize> getGridAttributesBufferSize();
+         std::map<int, StdSize> getGridDataBufferSize();
 
        public:
          bool isActive(void) const;

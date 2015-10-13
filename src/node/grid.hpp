@@ -157,7 +157,8 @@ namespace xios {
 
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
-         std::map<int, StdSize> getConnectedServerDataSize();
+         std::map<int, StdSize> getAttributesBufferSize();
+         std::map<int, StdSize> getDataBufferSize(const std::string& id = "");
          std::vector<StdString> getDomainList();
          std::vector<StdString> getAxisList();
          std::vector<CDomain*> getDomains();

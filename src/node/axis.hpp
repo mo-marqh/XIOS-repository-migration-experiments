@@ -71,6 +71,8 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
+         std::map<int, StdSize> getAttributesBufferSize();
+
          /// Test ///
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;

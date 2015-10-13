@@ -161,6 +161,41 @@ namespace xios
    }
 
    template<typename T>
+   std::map<int, size_t> CObjectTemplate<T>::getMinimumBufferSizeForAttributes()
+   {
+     CContextClient* client = CContext::getCurrent()->client;
+     std::map<int, size_t> minimumSizes;
+
+     if (client->isServerLeader())
+     {
+       size_t minimumSize = 0;
+       CAttributeMap& attrMap = *this;
+       CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+       for (; it != itE; ++it)
+       {
+         if (!it->second->isEmpty())
+         {
+           size_t size = it->second->getName().size() + it->second->size();
+           if (size > minimumSize)
+             minimumSize = size;
+         }
+       }
+
+       if (minimumSize)
+       {
+         // Account for extra header info
+         minimumSize += CEventClient::headerSize + getIdServer().size();
+
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           minimumSizes.insert(std::make_pair(*itRank, minimumSize));
+       }
+     }
+
+     return minimumSizes;
+   }
+
+   template<typename T>
    void CObjectTemplate<T>::sendAllAttributesToServer()
    {
      CAttributeMap& attrMap = *this;
@@ -169,7 +204,6 @@ namespace xios
      {
        if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second));
      }
-
    }
 
    template <class T>

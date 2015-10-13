@@ -90,6 +90,8 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
+         std::map<int, StdSize> getAttributesBufferSize();
+
          bool isEmpty(void) const;
          bool isDistributed(void) const;
          bool isCompressible(void) const;

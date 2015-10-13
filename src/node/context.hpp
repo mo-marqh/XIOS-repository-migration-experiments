@@ -119,7 +119,8 @@ namespace xios {
          void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
 
-         std::map<int, StdSize>& getDataSize();
+         std::map<int, StdSize>& getAttributesBufferSize();
+         std::map<int, StdSize>& getDataBufferSize();
          void setClientServerBuffer();
 
          // Send context close definition

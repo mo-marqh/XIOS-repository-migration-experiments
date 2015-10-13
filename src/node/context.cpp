@@ -265,25 +265,29 @@ namespace xios {
 
    void CContext::setClientServerBuffer()
    {
-     size_t bufferSizeMin = CXios::minBufferSize;
+     size_t minBufferSize = CXios::minBufferSize;
 #define DECLARE_NODE(Name_, name_)    \
-     if (bufferSizeMin < sizeof(C##Name_##Definition)) bufferSizeMin = sizeof(C##Name_##Definition);
+     if (minBufferSize < sizeof(C##Name_##Definition)) minBufferSize = sizeof(C##Name_##Definition);
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
 #undef DECLARE_NODE
 #undef DECLARE_NODE_PAR
 
-     std::map<int, StdSize> bufferSize = getDataSize();
-     std::map<int, StdSize>::iterator it  = bufferSize.begin(),
-                                      ite = bufferSize.end();
-     for (; it != ite; ++it)
-       if (it->second < bufferSizeMin) it->second = bufferSizeMin;
+     std::map<int, StdSize> bufferSize = getAttributesBufferSize();
+     std::map<int, StdSize>::iterator it, ite = bufferSize.end();
+     for (it = bufferSize.begin(); it != ite; ++it)
+       if (it->second < minBufferSize) it->second = minBufferSize;
+
+     std::map<int, StdSize> dataBufferSize = getDataBufferSize();
+     ite = dataBufferSize.end();
+     for (it = dataBufferSize.begin(); it != ite; ++it)
+       if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
 
      if (client->isServerLeader())
      {
        const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = bufferSizeMin;
+         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = minBufferSize;
      }
 
      if (!bufferSize.empty())
@@ -790,7 +794,35 @@ namespace xios {
       isPostProcessed = true;
    }
 
-   std::map<int, StdSize>& CContext::getDataSize()
+   std::map<int, StdSize>& CContext::getAttributesBufferSize()
+   {
+     std::map<int, StdSize> attributesSize;
+
+     size_t numEnabledFiles = this->enabledFiles.size();
+     for (size_t i = 0; i < numEnabledFiles; ++i)
+     {
+       CFile* file = this->enabledFiles[i];
+
+       std::vector<CField*> enabledFields = file->getEnabledFields();
+       size_t numEnabledFields = enabledFields.size();
+       for (size_t j = 0; j < numEnabledFields; ++j)
+       {
+         const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+         std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+         for (; it != itE; ++it)
+         {
+           // If attributesSize[it->first] does not exist, it will be zero-initialized
+           // so we can use it safely without checking for its existance
+           if (attributesSize[it->first] < it->second)
+             attributesSize[it->first] = it->second;
+         }
+       }
+     }
+
+     return attributesSize;
+   }
+
+   std::map<int, StdSize>& CContext::getDataBufferSize()
    {
      CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
@@ -809,7 +841,7 @@ namespace xios {
          size_t numEnabledFields = enabledFields.size();
          for (size_t j = 0; j < numEnabledFields; ++j)
          {
-           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataSize();
+           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize();
            std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
            for (; it != itE; ++it)
            {
