@@ -794,7 +794,7 @@ namespace xios {
       isPostProcessed = true;
    }
 
-   std::map<int, StdSize>& CContext::getAttributesBufferSize()
+   std::map<int, StdSize> CContext::getAttributesBufferSize()
    {
      std::map<int, StdSize> attributesSize;
 
@@ -822,7 +822,7 @@ namespace xios {
      return attributesSize;
    }
 
-   std::map<int, StdSize>& CContext::getDataBufferSize()
+   std::map<int, StdSize> CContext::getDataBufferSize()
    {
      CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
