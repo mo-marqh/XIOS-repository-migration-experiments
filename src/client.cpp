@@ -251,7 +251,7 @@ namespace xios
       report(0)<< " Performance report : Ratio : "<< CTimer::get("Blocking time").getCumulatedTime()/CTimer::get("XIOS").getCumulatedTime()*100.<<" %"<<endl ;
       report(0)<< " Performance report : This ratio must be close to zero. Otherwise it may be usefull to increase buffer size or numbers of server"<<endl ;
 //      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
-      report(0)<< " Memory report : Minimum buffer size required : "<<maxRequestSize*2<< " bytes" << endl ;
+      report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
    }
 

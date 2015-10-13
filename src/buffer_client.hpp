@@ -8,38 +8,34 @@
 
 namespace xios
 {
-  extern size_t maxRequestSize ;
-
   class CClientBuffer
   {
-
     public:
+      static size_t maxRequestSize;
 
-    CClientBuffer(MPI_Comm intercomm,int serverRank, StdSize bfSize = 0) ;
-    ~CClientBuffer() ;
-    bool isBufferFree(int size) ;
-    CBufferOut*  getBuffer(int size) ;
-    bool checkBuffer(void) ;
-    bool hasPendingRequest(void) ;
+      CClientBuffer(MPI_Comm intercomm,int serverRank, StdSize bfSize = 0);
+      ~CClientBuffer();
 
-    char* buffer[2] ;
-    int remain(void) ;
+      bool isBufferFree(int size);
+      CBufferOut* getBuffer(int size);
+      bool checkBuffer(void);
+      bool hasPendingRequest(void);
+      int remain(void);
 
-    int current ;
-    int count ;
-    int bufferSize ;
-    int serverRank ;
-    bool pending ;
+    private:
+      char* buffer[2];
 
-    size_t bufferSizeByServer ;
+      int current;
+      int count;
+      int bufferSize;
+      int serverRank;
+      bool pending;
 
-    MPI_Request request ;
+      MPI_Request request;
 
-    CBufferOut* retBuffer;
-    MPI_Comm interComm ;
-  } ;
-
+      CBufferOut* retBuffer;
+      MPI_Comm interComm;
+  };
 }
 
 #endif
-

@@ -9,101 +9,92 @@
 
 namespace xios
 {
+  size_t CClientBuffer::maxRequestSize = 0;
 
-  size_t maxRequestSize=0 ;
-
-  CClientBuffer::CClientBuffer(MPI_Comm interComm_,int serverRank_, StdSize bfSize)
+  CClientBuffer::CClientBuffer(MPI_Comm interComm_, int serverRank_, StdSize bfSize)
   {
-    bufferSizeByServer=bfSize; //CXios::bufferSize ;
-    info(10)<<"bufferSizeByServer "<<bufferSizeByServer<<endl ;
-    interComm=interComm_ ;
-    serverRank=serverRank_ ;
-    bufferSize=bufferSizeByServer; //2 ;
-    buffer[0]=new char[bufferSize] ; // transform it with MPI_ALLOC_MEM later
-    buffer[1]=new char[bufferSize] ;
-    current=0 ;
-    count=0 ;
-    pending=false ;
-    retBuffer=new CBufferOut(buffer[current],bufferSize) ;
+    interComm = interComm_;
+    serverRank = serverRank_;
+    bufferSize = bfSize;
+    buffer[0] = new char[bufferSize]; // transform it with MPI_ALLOC_MEM later
+    buffer[1] = new char[bufferSize];
+    current = 0;
+    count = 0;
+    pending = false;
+    retBuffer = new CBufferOut(buffer[current], bufferSize);
+    info(10) << "CClientBuffer: allocated " << bufferSize << " bytes for server " << serverRank_ << endl;
   }
 
   CClientBuffer::~CClientBuffer()
   {
-   delete [] buffer[0] ;
-   delete [] buffer[1] ;
-   delete retBuffer ;
+   delete [] buffer[0];
+   delete [] buffer[1];
+   delete retBuffer;
   }
 
   int CClientBuffer::remain(void)
   {
-    return bufferSize-count ;
+    return bufferSize - count;
   }
 
   bool CClientBuffer::isBufferFree(int size)
   {
-    if (size>maxRequestSize) maxRequestSize=size ;
+    if (size > maxRequestSize) maxRequestSize = size;
 
-    if (size>bufferSize) ERROR("CClientBuffer::hasSpace(int size)",
-                               <<"request size is too big for buffer, increase buffer client size"<<endl
-                               <<"buffer_size must be > "<<size*2<<endl)
+    if (size > bufferSize)
+      ERROR("bool CClientBuffer::isBufferFree(int size)",
+            << "The requested size (" << size << " bytes) is too big to fit the buffer (" << bufferSize << " bytes), please increase the client buffer size." << endl);
 
-    if (size<=remain()) return true ;
-    else return false ;
+    return (size <= remain());
   }
 
 
-  CBufferOut*  CClientBuffer::getBuffer(int size)
+  CBufferOut* CClientBuffer::getBuffer(int size)
   {
-    if (size<=remain())
+    if (size <= remain())
     {
-      retBuffer->realloc(buffer[current]+count,size) ;
-      count+=size ;
-      return retBuffer ;
+      retBuffer->realloc(buffer[current] + count, size);
+      count += size;
+      return retBuffer;
     }
     else
     {
-       ERROR("CBufferOut*  CClientBuffer::getSpace(int size) ;",
-               <<"No ennough space in buffer, that may not happen...");
-       return NULL ;
+      ERROR("CBufferOut* CClientBuffer::getBuffer(int size)",
+            << "Not enough space in buffer, this should not have happened...");
+      return NULL;
     }
-
   }
 
   bool CClientBuffer::checkBuffer(void)
   {
-    MPI_Status status ;
-    int flag ;
+    MPI_Status status;
+    int flag;
 
     if (pending)
     {
-      traceOff() ;
-      MPI_Test(&request,&flag,&status) ;
-      traceOn() ;
-      if (flag==true) pending=false ;
+      traceOff();
+      MPI_Test(&request, &flag, &status);
+      traceOn();
+      if (flag == true) pending = false;
     }
 
     if (!pending)
     {
-      if (count>0)
+      if (count > 0)
       {
-        MPI_Issend(buffer[current],count,MPI_CHAR,serverRank,20,interComm,&request) ;
-        pending=true ;
-        if (current==1) current=0 ;
-        else current=1 ;
-        count=0 ;
+        MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
+        pending = true;
+        if (current == 1) current = 0;
+        else current = 1;
+        count = 0;
       }
     }
-    return pending ;
+
+    return pending;
   }
 
   bool CClientBuffer::hasPendingRequest(void)
   {
-    if (pending) return true ;
-    else if (count>0) return true ;
-    else return false ;
+    return (pending || count > 0);
   }
-
-
-
 }
-
