@@ -274,26 +274,20 @@ namespace xios {
 #undef DECLARE_NODE_PAR
 
      std::map<int, StdSize> bufferSize = getDataSize();
-     if (bufferSize.empty())
+     std::map<int, StdSize>::iterator it  = bufferSize.begin(),
+                                      ite = bufferSize.end();
+     for (; it != ite; ++it)
+       if (it->second < bufferSizeMin) it->second = bufferSizeMin;
+
+     if (client->isServerLeader())
      {
-       if (client->isServerLeader())
-       {
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           bufferSize[*itRank] = bufferSizeMin;
-       }
-       else
-        return;
-     }
-     else
-     {
-       std::map<int, StdSize>::iterator it  = bufferSize.begin(),
-                                        ite = bufferSize.end();
-       for (; it != ite; ++it)
-         it->second = (it->second < bufferSizeMin) ? bufferSizeMin : it->second;
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = bufferSizeMin;
      }
 
-     client->setBufferSize(bufferSize);
+     if (!bufferSize.empty())
+       client->setBufferSize(bufferSize);
    }
 
    //! Verify whether a context is initialized
