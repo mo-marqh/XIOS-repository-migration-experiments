@@ -175,7 +175,7 @@ namespace xios
        {
          if (!it->second->isEmpty())
          {
-           size_t size = it->second->getName().size() + it->second->size();
+           size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
            if (size > minimumSize)
              minimumSize = size;
          }
@@ -184,7 +184,7 @@ namespace xios
        if (minimumSize)
        {
          // Account for extra header info
-         minimumSize += CEventClient::headerSize + getIdServer().size();
+         minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
 
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
