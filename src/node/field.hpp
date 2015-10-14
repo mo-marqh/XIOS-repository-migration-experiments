@@ -115,6 +115,7 @@ namespace xios {
          void solveGenerateGrid();
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+         boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
@@ -207,6 +208,8 @@ namespace xios {
          boost::shared_ptr<COutputPin> instantDataFilter;
          //! The output pin of the filters providing the result of the field's temporal operation
          std::map<CDuration, boost::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
+         //! The output pin of the filter providing the instant data for self references
+         boost::shared_ptr<COutputPin> selfReferenceFilter;
          //! The source filter for data provided by the client
          boost::shared_ptr<CSourceFilter> clientSourceFilter;
          //! The source filter for data provided by the server

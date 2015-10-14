@@ -607,20 +607,7 @@ namespace xios{
        }
        // Check if we have a reference on another field
        else if (!field_ref.isEmpty())
-       {
-         CField* fieldRef = CField::get(field_ref);
-         fieldRef->buildFilterGraph(gc, false);
-
-         std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
-         // Check if a spatial transformation is needed
-         if (!grid_ref.isEmpty() && !fieldRef->grid_ref.isEmpty() && grid_ref.getValue() != fieldRef->grid_ref.getValue())
-           filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
-         else
-           filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
-
-         fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
-         instantDataFilter = filters.second;
-       }
+         instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
@@ -646,8 +633,36 @@ namespace xios{
    }
 
    /*!
-    * Returns the source filter to handle a self reference in the field's expression.
-    * If the needed source filter does not exist, it is created, otherwise it is reused.
+    * Returns the filter needed to handle the field reference.
+    * This method should only be called when building the filter graph corresponding to the field.
+    *
+    * \param gc the garbage collector to use
+    * \return the output pin corresponding to the field reference
+    */
+   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
+   {
+     if (instantDataFilter || field_ref.isEmpty())
+       ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
+             "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
+
+     CField* fieldRef = CField::get(field_ref);
+     fieldRef->buildFilterGraph(gc, false);
+
+     std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
+     // Check if a spatial transformation is needed
+     if (!grid_ref.isEmpty() && !fieldRef->grid_ref.isEmpty() && grid_ref.getValue() != fieldRef->grid_ref.getValue())
+       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
+     else
+       filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
+
+     fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+
+     return filters.second;
+   }
+
+   /*!
+    * Returns the filter needed to handle a self reference in the field's expression.
+    * If the needed filter does not exist, it is created, otherwise it is reused.
     * This method should only be called when building the filter graph corresponding
     * to the field's expression.
     *
@@ -660,10 +675,20 @@ namespace xios{
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
              "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
 
-     if (!clientSourceFilter)
-       clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+     if (!selfReferenceFilter)
+     {
+       if (!field_ref.isEmpty())
+         selfReferenceFilter = getFieldReference(gc);
+       else
+       {
+         if (!clientSourceFilter)
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
 
-     return clientSourceFilter;
+         selfReferenceFilter = clientSourceFilter;
+       }
+     }
+
+     return selfReferenceFilter;
    }
 
    /*!
