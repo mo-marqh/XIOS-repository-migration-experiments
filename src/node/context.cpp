@@ -482,10 +482,12 @@ namespace xios {
     const vector<CField*> allFields = CField::getAll();
     for (size_t i = 0; i < allFields.size(); ++i)
     {
-      if (allFields[i]->file && !allFields[i]->file->mode.isEmpty() && allFields[i]->file->mode.getValue() == CFile::mode_attr::read)
-        allFields[i]->read_access = true;
-      if (!allFields[i]->read_access.isEmpty() && allFields[i]->read_access.getValue())
-        fieldsWithReadAccess.push_back(allFields[i]);
+      CField* field = allFields[i];
+
+      if (field->file && !field->file->mode.isEmpty() && field->file->mode == CFile::mode_attr::read)
+        field->read_access = true;
+      else if (!field->read_access.isEmpty() && field->read_access && (field->enabled.isEmpty() || field->enabled))
+        fieldsWithReadAccess.push_back(field);
     }
   }
 

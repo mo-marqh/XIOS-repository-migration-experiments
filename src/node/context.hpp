@@ -199,7 +199,8 @@ namespace xios {
          // List of all enabled files in read mode (files on which fields are read)
          std::vector<CFile*> enabledReadModeFiles;
 
-         // List of all fields whose instant data is accessible from the public API
+         // List of all enabled fields whose instant data is accessible from the public API
+         // but which are not part of a file
          std::vector<CField*> fieldsWithReadAccess;
 
          // Context root
