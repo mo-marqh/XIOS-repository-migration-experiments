@@ -618,7 +618,7 @@ namespace xios{
      // If the field data is to be read by the client or/and written to a file
      if (enableOutput && !storeFilter && !fileWriterFilter)
      {
-       if (!read_access.isEmpty() && read_access.getValue())
+       if (!read_access.isEmpty() && read_access)
        {
          storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid));
          instantDataFilter->connectOutput(storeFilter, 0);
@@ -677,7 +677,14 @@ namespace xios{
 
      if (!selfReferenceFilter)
      {
-       if (!field_ref.isEmpty())
+       if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
+       {
+         if (!serverSourceFilter)
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+
+         selfReferenceFilter = serverSourceFilter;
+       }
+       else if (!field_ref.isEmpty())
          selfReferenceFilter = getFieldReference(gc);
        else
        {
