@@ -138,7 +138,9 @@ namespace xios {
    std::map<int, StdSize> CGrid::getDataBufferSize(const std::string& id /*= ""*/)
    {
      std::map<int, StdSize> dataSizes;
-     const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() + sizeof(size_t);
+     // The record index is sometimes sent along with the data but we always
+     // include it in the size calculation for the sake of simplicity
+     const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() + 2 * sizeof(size_t);
 
      std::map<int, size_t>::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
      for (it = itb; it != itE; ++it)
