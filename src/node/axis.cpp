@@ -65,7 +65,7 @@ namespace xios {
 
    /*!
     * Test whether the data defined on the axis can be outputted in a compressed way.
-    * 
+    *
     * \return true if and only if a mask was defined for this axis
     */
    bool CAxis::isCompressible(void) const
@@ -325,8 +325,7 @@ namespace xios {
       }
    }
 
-   void CAxis::checkAttributesOnClient(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                       CServerDistributionDescription::ServerDistributionType distType)
+   void CAxis::checkAttributesOnClient()
    {
      if (this->areClientAttributesChecked_) return;
 
@@ -339,9 +338,7 @@ namespace xios {
    void CAxis::sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
    {
-     if (!this->areClientAttributesChecked_) checkAttributesOnClient(globalDim,
-                                                                     orderPositionInGrid,
-                                                                     distType);
+     if (!this->areClientAttributesChecked_) checkAttributesOnClient();
      CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;

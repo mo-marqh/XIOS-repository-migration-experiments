@@ -6,10 +6,12 @@
 
 
    <field_definition level="1" >
-     <field id="src_field"  operation="instant" grid_ref="src_grid"/>
-     <field id="dst_field"  operation="instant" field_ref="src_field" grid_ref="dst_grid"/>
-     <field id="dst_field_regular"  operation="instant" field_ref="tmp_field" grid_ref="dst_grid_regular"  read_access="true"/>
-     <field id="tmp_field"  operation="instant" grid_ref="src_grid_regular"/>
+     <field id="src_field"  operation="instant" domain_ref="src_domain"/>
+     <field id="dst_field"  operation="instant" field_ref="src_field" domain_ref="dst_domain"/>
+     <field id="tmp_field"  operation="instant" domain_ref="src_domain_regular"/>
+     <field id="dst_field_regular_grid"  operation="instant" field_ref="tmp_field" grid_ref="dst_grid_regular"  read_access="true"/>
+     <field id="dst_field_regular"  operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular"  read_access="true"/>
+
    </field_definition>
 
 
@@ -17,14 +19,18 @@
      <file id="output" name="output">
         <field field_ref="src_field" name="field" />
      </file>
-     <file id="output_dst" name="output_dst">
+     <file id="output_dst" name="output_dst" type="one_file">
         <field field_ref="dst_field" name="field" />
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />
+        <field field_ref="dst_field_regular_grid" name="field_grid" />
      </file>
      <file id="output_src_regular" name="output_src_regular" mode="read" type="multiple_file">
-        <field id="src_field_regular" name="field" grid_ref="src_grid_regular" operation="instant"/>
+        <field id="src_field_regular" name="field" domain_ref="src_domain_regular" operation="instant"/>
+     </file>
+     <file id="output_src_regular_tmp" name="output_src_regular_tmp">
+        <field field_ref="tmp_field"/>
      </file>
    </file_definition>
 
@@ -37,7 +43,7 @@
      <domain id="dst_domain" domain_src="src_domain">
        <interpolate_domain/>
      </domain>
-     <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="360" nj_glo="180" type="rectilinear">
+     <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="90" nj_glo="45" type="rectilinear">
        <generate_rectilinear_domain />
        <interpolate_domain/>
      </domain>
@@ -47,17 +53,8 @@
    </domain_definition>
 
    <grid_definition>
-     <grid id="dst_grid">
-       <domain domain_ref="dst_domain" />
-     </grid>
      <grid id="dst_grid_regular">
        <domain domain_ref="dst_domain_regular" />
-     </grid>
-     <grid id="src_grid">
-       <domain domain_ref="src_domain" />
-     </grid>
-     <grid id="src_grid_regular">
-       <domain domain_ref="src_domain_regular" />
      </grid>
    </grid_definition>
   </context>
@@ -68,7 +65,7 @@
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
             <variable id="buffer_size_factor" type="double">30.0</variable>
-            <variable id="buffer_size_min" type="double">800000</variable>
+            <variable id="min_buffer_size" type="double">800000</variable>
          </variable_group>
 
         <variable_group id="parameters" >

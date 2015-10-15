@@ -101,8 +101,7 @@ namespace xios {
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
          void recvServerAttribut(CBufferIn& buffer) ;
-         void checkAttributesOnClient(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                      CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
+         void checkAttributesOnClient();
          void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 

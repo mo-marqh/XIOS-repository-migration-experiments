@@ -201,6 +201,10 @@ namespace xios {
          void checkMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
 
+         void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
+                                         const std::vector<CAxis*>& axis,
+                                         const CArray<bool,1>& axisDomainOrder);
+
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
@@ -217,10 +221,6 @@ namespace xios {
 
         void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());
         void setDomainList(const std::vector<CDomain*> domains = std::vector<CDomain*>());
-
-        void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
-                                        const std::vector<CAxis*>& axis,
-                                        const CArray<bool,1>& axisDomainOrder);
 
         CDomain* addDomain(const std::string& id);
         CAxis* addAxis(const std::string& id);

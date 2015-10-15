@@ -754,17 +754,39 @@ namespace xios{
 
    void CField::solveGridReference(void)
    {
+      if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
+      {
+        ERROR("CField::solveGridReference(void)",
+              << "At least one dimension must be defined for this field.");
+      }
+
       CDomain* domain;
       CAxis* axis;
       std::vector<CDomain*> vecDom;
       std::vector<CAxis*> vecAxis;
       std::vector<std::string> domList, axisList;
 
+      // In some cases, domain_ref, axis_ref and grid_ref don't come from the current field but from his direct field_ref
+      // To make sure to use the correct *_ref, we need to compare these values to direct field_ref's
+      CField* baseFieldRef = this->getBaseFieldReference();
+      bool hasDomainFromFieldRef = false;
+      bool hasAxisFromFieldRef = false;
+      bool hasGridFromFieldRef = false;
+
       if (!domain_ref.isEmpty())
       {
+         if (0 != baseFieldRef)
+         {
+           if ((!baseFieldRef->domain_ref.isEmpty()) && (baseFieldRef->domain_ref.getValue() == domain_ref.getValue()))
+            hasDomainFromFieldRef = true;
+         }
+
          if (CDomain::has(domain_ref.getValue()))
          {
            domain = CDomain::get(domain_ref.getValue());
+           // It's a direct reference, so we use this ref as its name
+           domain->name.setValue(domain_ref.getValue());
+
            vecDom.push_back(domain);
          }
          else
@@ -775,9 +797,17 @@ namespace xios{
 
       if (!axis_ref.isEmpty())
       {
+         if (0 != baseFieldRef)
+         {
+           if ((!baseFieldRef->axis_ref.isEmpty()) && (baseFieldRef->axis_ref.getValue() == axis_ref.getValue()))
+            hasAxisFromFieldRef = true;
+         }
          if (CAxis::has(axis_ref.getValue()))
          {
            axis = CAxis::get(axis_ref.getValue());
+                      // It's a direct reference, so we use this ref as its name
+           axis->name.setValue(axis_ref.getValue());
+
            vecAxis.push_back(axis);
          }
          else
@@ -788,30 +818,33 @@ namespace xios{
 
       if (!grid_ref.isEmpty())
       {
-         if (CGrid::has(grid_ref.getValue()))
+         if (0 != baseFieldRef)
          {
-           this->grid = CGrid::get(grid_ref.getValue());
-           domList = grid->getDomainList();
-           axisList = grid->getAxisList();
-           if (domList.empty() && axisList.empty())
-           {
-             this->grid = CGrid::createGrid(vecDom, vecAxis);
-           }
+           if ((!baseFieldRef->grid_ref.isEmpty()) && (baseFieldRef->grid_ref.getValue() == grid_ref.getValue()))
+            hasGridFromFieldRef = true;
          }
-         else
-            ERROR("CField::solveGridReference(void)",
-                  << "Reference to the grid \'"
-                  << grid_ref.getValue() << "\' is wrong");
+
+        if ((domain_ref.isEmpty() && axis_ref.isEmpty()) || (!hasGridFromFieldRef))
+        {
+           if (CGrid::has(grid_ref.getValue()))
+           {
+             this->grid = CGrid::get(grid_ref.getValue());
+           }
+           else
+              ERROR("CField::solveGridReference(void)",
+                    << "Reference to the grid \'"
+                    << grid_ref.getValue() << "\' is wrong");
+        }
+        else
+        {
+          this->grid = CGrid::createGrid(vecDom, vecAxis);
+          this->grid_ref.setValue(this->grid->getId());
+        }
       }
       else
       {
          this->grid = CGrid::createGrid(vecDom, vecAxis);
-      }
-
-      if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
-      {
-            ERROR("CField::solveGridReference(void)",
-                  << "At least one dimension must be defined for this field.");
+         this->grid_ref.setValue(this->grid->getId());
       }
    }
 

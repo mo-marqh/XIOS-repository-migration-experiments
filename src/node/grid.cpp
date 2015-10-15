@@ -20,7 +20,7 @@
 
 namespace xios {
 
-   /// ////////////////////// Définitions ////////////////////// ///
+   /// ////////////////////// Dfinitions ////////////////////// ///
 
    CGrid::CGrid(void)
       : CObjectTemplate<CGrid>(), CGridAttributes()
@@ -125,7 +125,7 @@ namespace xios {
            attributesSizes[it->first] = it->second;
        }
      }
-     
+
      return attributesSizes;
    }
 
@@ -341,7 +341,7 @@ namespace xios {
           if (sendAtt)
             axisListP[i]->sendCheckedAttributes(globalDim_,axisPositionInGrid_[i]);
           else
-            axisListP[i]->checkAttributesOnClient(globalDim_,axisPositionInGrid_[i]);
+            axisListP[i]->checkAttributesOnClient();
           ++idx;
         }
       }
@@ -499,7 +499,8 @@ namespace xios {
         grid->axis_domain_order = axisDomainOrder;
       }
 
-      grid->computeGridGlobalDimension(domains, axis, grid->axis_domain_order);
+
+      grid->solveDomainAxisRefInheritance(true);
 
       return grid;
    }
@@ -1306,7 +1307,13 @@ namespace xios {
   {
     if (isDomListSet) return;
     std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
-    if (!domains.empty() && domList.empty()) domList = domains;
+    if (!domains.empty() && domList.empty())
+    {
+      for (int i = 0; i < domains.size(); ++i)
+        this->getVirtualDomainGroup()->addChild(domains[i]);
+      domList = this->getVirtualDomainGroup()->getAllChildren();
+    }
+
     if (!domList.empty())
     {
       int sizeDom = domList.size();
@@ -1328,7 +1335,13 @@ namespace xios {
   {
     if (isAxisListSet) return;
     std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
-    if (!axis.empty() && aList.empty()) aList = axis;
+    if (!axis.empty() && aList.empty())
+    {
+      for (int i = 0; i < axis.size(); ++i)
+        this->getVirtualAxisGroup()->addChild(axis[i]);
+      aList = this->getVirtualAxisGroup()->getAllChildren();
+    }
+
     if (!aList.empty())
     {
       int sizeAxis = aList.size();
