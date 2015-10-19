@@ -374,7 +374,8 @@ namespace xios {
      }
    }
 
-   void CDomain::fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
+   void CDomain::fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat,
+                                              bool isNorthPole, bool isSouthPole)
    {
      int i,j,k;
      const int nvertexValue = 4;
@@ -396,11 +397,21 @@ namespace xios {
                                                                : bounds_lon_start;
          boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep + bounds_lon_start
                                                                         : bounds_lon_end;
+       }
 
+     double bounds_lat_start_pole = bounds_lat_start;
+     double bounds_lat_end_pole   = bounds_lat_end;
+     if (isNorthPole) bounds_lat_start_pole = lat_start;
+     if (isSouthPole) bounds_lat_end_pole   = lat_end;
+
+     for(j=0;j<nj;++j)
+       for(i=0;i<ni;++i)
+       {
+         k=j*ni+i;
          boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep + bounds_lat_start
-                                                               : bounds_lat_start;
+                                                               : bounds_lat_start_pole;
          boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep + bounds_lat_start
-                                                               : bounds_lat_end;
+                                                               : bounds_lat_end_pole;
        }
    }
 

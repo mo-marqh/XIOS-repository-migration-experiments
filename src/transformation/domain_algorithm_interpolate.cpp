@@ -38,7 +38,8 @@ void CDomainAlgorithmInterpolate::computeRemap()
   std::vector<double> srcPole(3,0), dstPole(3,0);
 	int orderInterp = interpDomain_->order.getValue();
 
-  int constNVertex = 4; // Value by default number of vertex for rectangular domain
+  const double poleValue = 90.0;
+  const int constNVertex = 4; // Value by default number of vertex for rectangular domain
   int nVertexSrc, nVertexDest;
   nVertexSrc = nVertexDest = constNVertex;
 
@@ -78,6 +79,11 @@ void CDomainAlgorithmInterpolate::computeRemap()
     domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc);
   }
 
+  bool isNorthPole = false;
+  bool isSouthPole = false;
+  std::map<int,std::vector<std::pair<int,double> > > interpMapValueNorthPole;
+  std::map<int,std::vector<std::pair<int,double> > > interpMapValueSouthPole;
+
   int localDomainDestSize = domainDest_->i_index.numElements();
   int niDest = domainDest_->ni.getValue(), njDest = domainDest_->nj.getValue();
   bool hasBoundDest = domainDest_->hasBounds;
@@ -109,9 +115,32 @@ void CDomainAlgorithmInterpolate::computeRemap()
   }
   else
   {
+    if (poleValue == std::abs(domainDest_->lat_start)) isNorthPole = true;
+    if (poleValue == std::abs(domainDest_->lat_end)) isSouthPole = true;
+    if (isNorthPole && (0 == domainDest_->jbegin.getValue()))
+    {
+      int ibegin = domainDest_->ibegin.getValue();
+      for (i = 0; i < niDest; ++i)
+      {
+        interpMapValueNorthPole[i+ibegin];
+      }
+    }
+
+    if (isSouthPole && (domainDest_->nj_glo.getValue() == (domainDest_->jbegin.getValue() + njDest)))
+    {
+      int ibegin = domainDest_->ibegin.getValue();
+      int njGlo = domainDest_->nj_glo.getValue();
+      int niGlo = domainDest_->ni_glo.getValue();
+      for (i = 0; i < niDest; ++i)
+      {
+        k = (njGlo - 1)*niGlo + i + ibegin;
+        interpMapValueSouthPole[k];
+      }
+    }
+
     // Ok, fill in boundary values for rectangular domain
-    domainDest_->fillInRectilinearBoundLonLat(boundsLonDest, boundsLatDest);
     nVertexDest = constNVertex;
+    domainDest_->fillInRectilinearBoundLonLat(boundsLonDest, boundsLatDest, isNorthPole, isSouthPole);
   }
 
 
@@ -151,14 +180,118 @@ void CDomainAlgorithmInterpolate::computeRemap()
   std::vector<double> timings = mapper.computeWeights(orderInterp);
 
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
+  std::map<int,std::vector<std::pair<int,double> > >::const_iterator iteNorthPole = interpMapValueNorthPole.end(),
+                                                                     iteSouthPole = interpMapValueSouthPole.end();
   for (int idx = 0;  idx < mapper.nWeights; ++idx)
   {
     interpMapValue[mapper.targetWeightId[idx]].push_back(make_pair(mapper.sourceWeightId[idx],mapper.remapMatrix[idx]));
+    if (iteNorthPole != interpMapValueNorthPole.find(mapper.targetWeightId[idx]))
+    {
+      interpMapValueNorthPole[mapper.targetWeightId[idx]].push_back(make_pair(mapper.sourceWeightId[idx],mapper.remapMatrix[idx]));
+    }
+
+    if (iteSouthPole != interpMapValueSouthPole.find(mapper.targetWeightId[idx]))
+    {
+      interpMapValueSouthPole[mapper.targetWeightId[idx]].push_back(make_pair(mapper.sourceWeightId[idx],mapper.remapMatrix[idx]));
+    }
   }
+  int niGloDst = domainDest_->ni_glo.getValue();
+  processPole(interpMapValueNorthPole, niGloDst);
+  processPole(interpMapValueSouthPole, niGloDst);
+
+  if (!interpMapValueNorthPole.empty())
+  {
+     std::map<int,std::vector<std::pair<int,double> > >::iterator itNorthPole = interpMapValueNorthPole.begin();
+     for (; itNorthPole != iteNorthPole; ++itNorthPole)
+     {
+       if (!(itNorthPole->second.empty()))
+        itNorthPole->second.swap(interpMapValue[itNorthPole->first]);
+     }
+  }
+
+  if (!interpMapValueSouthPole.empty())
+  {
+     std::map<int,std::vector<std::pair<int,double> > >::iterator itSouthPole = interpMapValueSouthPole.begin();
+     for (; itSouthPole != iteSouthPole; ++itSouthPole)
+     {
+       if (!(itSouthPole->second.empty()))
+        itSouthPole->second.swap(interpMapValue[itSouthPole->first]);
+     }
+  }
+
   exchangeRemapInfo(interpMapValue);
 
   delete [] globalSrc;
   delete [] globalDst;
+}
+
+void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair<int,double> > >& interMapValuePole,
+                                              int nbGlobalPointOnPole)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+
+  MPI_Comm poleComme(MPI_COMM_NULL);
+  MPI_Comm_split(client->intraComm, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
+  if (MPI_COMM_NULL != poleComme)
+  {
+    int nbClientPole;
+    MPI_Comm_size(poleComme, &nbClientPole);
+
+    std::map<int,std::vector<std::pair<int,double> > >::iterator itePole = interMapValuePole.end(), itPole,
+                                                                 itbPole = interMapValuePole.begin();
+
+    int nbWeight = 0;
+    for (itPole = itbPole; itPole != itePole; ++itPole)
+       nbWeight += itPole->second.size();
+
+    std::vector<int> recvCount(nbClientPole,0);
+    std::vector<int> displ(nbClientPole,0);
+    MPI_Allgather(&nbWeight,1,MPI_INT,&recvCount[0],1,MPI_INT,poleComme) ;
+
+    displ[0]=0;
+    for(int n=1;n<nbClientPole;++n) displ[n]=displ[n-1]+recvCount[n-1] ;
+    int recvSize=displ[nbClientPole-1]+recvCount[nbClientPole-1] ;
+
+    std::vector<int> sendSourceIndexBuff(nbWeight);
+    std::vector<double> sendSourceWeightBuff(nbWeight);
+    int k = 0;
+    for (itPole = itbPole; itPole != itePole; ++itPole)
+    {
+      for (int idx = 0; idx < itPole->second.size(); ++idx)
+      {
+        sendSourceIndexBuff[k] = (itPole->second)[idx].first;
+        sendSourceWeightBuff[k] = (itPole->second)[idx].second;
+        ++k;
+      }
+    }
+
+    std::vector<int> recvSourceIndexBuff(recvSize);
+    std::vector<double> recvSourceWeightBuff(recvSize);
+
+    // Gather all index and weight for pole
+    MPI_Allgatherv(&sendSourceIndexBuff[0],nbWeight,MPI_INT,&recvSourceIndexBuff[0],&recvCount[0],&displ[0],MPI_INT,poleComme);
+    MPI_Allgatherv(&sendSourceWeightBuff[0],nbWeight,MPI_DOUBLE,&recvSourceWeightBuff[0],&recvCount[0],&displ[0],MPI_DOUBLE,poleComme);
+
+    std::map<int,double> recvTemp;
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      if (recvTemp.end() != recvTemp.find(recvSourceIndexBuff[idx]))
+        recvTemp[recvSourceIndexBuff[idx]] += recvSourceWeightBuff[idx]/nbGlobalPointOnPole;
+      else
+        recvTemp[recvSourceIndexBuff[idx]] = 0.0;
+    }
+
+    std::map<int,double>::const_iterator itRecvTemp, itbRecvTemp = recvTemp.begin(), iteRecvTemp = recvTemp.end();
+
+    for (itPole = itbPole; itPole != itePole; ++itPole)
+    {
+      itPole->second.clear();
+      for (itRecvTemp = itbRecvTemp; itRecvTemp != iteRecvTemp; ++itRecvTemp)
+          itPole->second.push_back(make_pair(itRecvTemp->first, itRecvTemp->second));
+    }
+  }
+
 }
 
 /*!

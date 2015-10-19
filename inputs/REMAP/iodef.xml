@@ -11,6 +11,7 @@
      <field id="tmp_field"  operation="instant" domain_ref="src_domain_regular"/>
      <field id="dst_field_regular_grid"  operation="instant" field_ref="tmp_field" grid_ref="dst_grid_regular"  read_access="true"/>
      <field id="dst_field_regular"  operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular"  read_access="true"/>
+     <field id="dst_field_regular_pole"  operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"  read_access="true"/>
 
    </field_definition>
 
@@ -21,6 +22,9 @@
      </file>
      <file id="output_dst" name="output_dst" type="one_file">
         <field field_ref="dst_field" name="field" />
+     </file>
+     <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
+        <field field_ref="dst_field_regular_pole" name="field" />
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />
@@ -41,6 +45,10 @@
    <domain_definition>
      <domain id="src_domain" />
      <domain id="dst_domain" domain_src="src_domain">
+       <interpolate_domain/>
+     </domain>
+     <domain id="dst_domain_regular_pole" domain_src="src_domain" ni_glo="180" nj_glo="90" type="rectilinear">
+       <generate_rectilinear_domain bounds_lat_start="-90" bounds_lat_end="90" lon_start="2" lon_end="360"/>
        <interpolate_domain/>
      </domain>
      <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="90" nj_glo="45" type="rectilinear">

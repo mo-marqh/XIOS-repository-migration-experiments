@@ -130,7 +130,8 @@ namespace xios {
          void sendServerAttribut(void) ;
          void sendLonLatArea(void);
          void computeConnectedServer(void) ;
-         void fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
+         void fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat,
+                                           bool isNorthPole = false, bool isSouthPole = false);
 
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
