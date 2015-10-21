@@ -650,7 +650,7 @@ namespace xios{
 
      std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
-     if (!grid_ref.isEmpty() && !fieldRef->grid_ref.isEmpty() && grid_ref.getValue() != fieldRef->grid_ref.getValue())
+     if (grid && grid != fieldRef->grid)
        filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
      else
        filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
@@ -818,15 +818,13 @@ namespace xios{
 
    void CField::solveTransformedGrid()
    {
-     if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
-         && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
+     if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        grid->transformGrid(getDirectFieldReference()->grid);
    }
 
    void CField::solveGenerateGrid()
    {
-     if (!grid_ref.isEmpty() && hasDirectFieldReference() && !getDirectFieldReference()->grid_ref.isEmpty()
-         && grid_ref.getValue() != getDirectFieldReference()->grid_ref.getValue() && !grid->isTransformed())
+     if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        grid->completeGrid(getDirectFieldReference()->grid);
    }
 

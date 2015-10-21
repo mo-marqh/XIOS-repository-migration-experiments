@@ -1265,9 +1265,13 @@ namespace xios {
   */
   void CGrid::completeGrid(CGrid* transformGridSrc)
   {
+    if (!transformGridSrc)
+      ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
+            << "Impossible to complete grid '" << getId() << "', the source grid is null.");
+
     if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
     {
-      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+      ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
            << "Two grids have different dimension size"
            << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
            << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
@@ -1277,7 +1281,7 @@ namespace xios {
       int ssize = axis_domain_order.numElements();
       for (int i = 0; i < ssize; ++i)
         if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+          ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
                 << "Grids " << this->getId() << " and " << transformGridSrc->getId()
                 << " don't have elements in the same order");
     }
@@ -1288,6 +1292,10 @@ namespace xios {
 
   void CGrid::transformGrid(CGrid* transformGridSrc)
   {
+    if (!transformGridSrc)
+      ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+            << "Impossible to transform grid '" << getId() << "', the source grid is null.");
+
     if (isTransformed()) return;
     setTransformed();
     if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
