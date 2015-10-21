@@ -4,7 +4,7 @@
 
   <field_definition level="1" enabled=".FALSE." default_value="9.96921e+36">
     <field id="field_A_atm"  name="field_A_atm_origin" operation="average" freq_op="1ts" grid_ref="grid_A_atm" />
-    <field id="field_A_atm_zoom"  name="field_A_atm" operation="average" freq_op="1ts" field_ref="field_A_atm" domain_ref="domain_atm_zoom" axis_ref="axis_atm" />
+    <field id="field_A_atm_zoom"  name="field_A_atm" operation="average" freq_op="1ts" field_ref="field_A_atm" grid_ref="grid_A_atm_zoom" />
   </field_definition>
 
   <file_definition type="multiple_file" par_access="collective" output_freq="6h" sync_freq="6h" output_level="10" enabled=".TRUE.">
@@ -34,6 +34,10 @@
    <grid id="grid_A_atm">
      <domain domain_ref="domain_atm" />
      <axis axis_ref="axis_atm" />
+   </grid>
+   <grid id="grid_A_atm_zoom">
+     <domain domain_ref="domain_atm_zoom" />
+     <axis axis_ref="axis_atm_zoom" />
    </grid>
   </grid_definition>
 

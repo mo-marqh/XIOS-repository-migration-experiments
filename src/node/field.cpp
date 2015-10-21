@@ -757,94 +757,47 @@ namespace xios{
       if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
       {
         ERROR("CField::solveGridReference(void)",
-              << "At least one dimension must be defined for this field.");
+              << "A grid must be defined for field '" << (!name.isEmpty() ? name.getValue() : getId()) << "' .");
+      }
+      else if (!grid_ref.isEmpty() && (!domain_ref.isEmpty() || !axis_ref.isEmpty()))
+      {
+        ERROR("CField::solveGridReference(void)",
+              << "Field '" << (!name.isEmpty() ? name.getValue() : getId()) << "' has both a grid and a domain/axis." << std::endl
+              << "Please define either 'grid_ref' or 'domain_ref'/'axis_ref'.");
       }
 
-      CDomain* domain;
-      CAxis* axis;
-      std::vector<CDomain*> vecDom;
-      std::vector<CAxis*> vecAxis;
-      std::vector<std::string> domList, axisList;
-
-      // In some cases, domain_ref, axis_ref and grid_ref don't come from the current field but from his direct field_ref
-      // To make sure to use the correct *_ref, we need to compare these values to direct field_ref's
-      CField* baseFieldRef = this->getBaseFieldReference();
-      bool hasDomainFromFieldRef = false;
-      bool hasAxisFromFieldRef = false;
-      bool hasGridFromFieldRef = false;
-
-      if (!domain_ref.isEmpty())
+      if (grid_ref.isEmpty())
       {
-         if (0 != baseFieldRef)
-         {
-           if ((!baseFieldRef->domain_ref.isEmpty()) && (baseFieldRef->domain_ref.getValue() == domain_ref.getValue()))
-            hasDomainFromFieldRef = true;
-         }
+        std::vector<CDomain*> vecDom;
+        std::vector<CAxis*> vecAxis;
 
-         if (CDomain::has(domain_ref.getValue()))
-         {
-           domain = CDomain::get(domain_ref.getValue());
-           // It's a direct reference, so we use this ref as its name
-           domain->name.setValue(domain_ref.getValue());
-
-           vecDom.push_back(domain);
-         }
-         else
-            ERROR("CField::solveGridReference(void)",
-                  << "Reference to the domain \'"
-                  << domain_ref.getValue() << "\' is wrong");
-      }
-
-      if (!axis_ref.isEmpty())
-      {
-         if (0 != baseFieldRef)
-         {
-           if ((!baseFieldRef->axis_ref.isEmpty()) && (baseFieldRef->axis_ref.getValue() == axis_ref.getValue()))
-            hasAxisFromFieldRef = true;
-         }
-         if (CAxis::has(axis_ref.getValue()))
-         {
-           axis = CAxis::get(axis_ref.getValue());
-                      // It's a direct reference, so we use this ref as its name
-           axis->name.setValue(axis_ref.getValue());
-
-           vecAxis.push_back(axis);
-         }
-         else
-            ERROR("CField::solveGridReference(void)",
-                  << "Reference to the axis \'"
-                  << axis_ref.getValue() <<"\' is wrong");
-      }
-
-      if (!grid_ref.isEmpty())
-      {
-         if (0 != baseFieldRef)
-         {
-           if ((!baseFieldRef->grid_ref.isEmpty()) && (baseFieldRef->grid_ref.getValue() == grid_ref.getValue()))
-            hasGridFromFieldRef = true;
-         }
-
-        if ((domain_ref.isEmpty() && axis_ref.isEmpty()) || (!hasGridFromFieldRef))
+        if (!domain_ref.isEmpty())
         {
-           if (CGrid::has(grid_ref.getValue()))
-           {
-             this->grid = CGrid::get(grid_ref.getValue());
-           }
-           else
-              ERROR("CField::solveGridReference(void)",
-                    << "Reference to the grid \'"
-                    << grid_ref.getValue() << "\' is wrong");
+          if (CDomain::has(domain_ref))
+            vecDom.push_back(CDomain::get(domain_ref));
+          else
+            ERROR("CField::solveGridReference(void)",
+                  << "Invalid reference to domain '" << domain_ref.getValue() << "'.");
         }
-        else
+
+        if (!axis_ref.isEmpty())
         {
-          this->grid = CGrid::createGrid(vecDom, vecAxis);
-          this->grid_ref.setValue(this->grid->getId());
+          if (CAxis::has(axis_ref))
+            vecAxis.push_back(CAxis::get(axis_ref));
+          else
+            ERROR("CField::solveGridReference(void)",
+                  << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
         }
+
+        this->grid = CGrid::createGrid(vecDom, vecAxis);
       }
       else
       {
-         this->grid = CGrid::createGrid(vecDom, vecAxis);
-         this->grid_ref.setValue(this->grid->getId());
+        if (CGrid::has(grid_ref))
+          this->grid = CGrid::get(grid_ref);
+        else
+          ERROR("CField::solveGridReference(void)",
+                << "Invalid reference to grid '" << grid_ref.getValue() << "'.");
       }
    }
 
