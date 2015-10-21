@@ -33,22 +33,23 @@ private:                                                    \
 #define DEFINE_REF_FUNC(type, name)                                    \
 void C##type::solveRefInheritance(bool apply)                          \
 {                                                                      \
-  std::set<C##type*> sset;                                             \
+  std::set<C##type*> refObjects;                                       \
   C##type* refer_ptr = this;                                           \
                                                                        \
   while (refer_ptr->hasDirect##type##Reference())                      \
   {                                                                    \
+    refObjects.insert(refer_ptr);                                      \
+                                                                       \
     refer_ptr = refer_ptr->getDirect##type##Reference();               \
                                                                        \
-    if (sset.end() != sset.find(refer_ptr))                            \
+    if (refObjects.end() != refObjects.find(refer_ptr))                \
     {                                                                  \
-      DEBUG(<< "Circular dependency stopped for #name object on "      \
-            << "\"" + refer_ptr->getId() + "\" !");                    \
-      break;                                                           \
+      ERROR("void C" #type "::solveRefInheritance(bool apply)",        \
+            << "Circular dependency stopped for " #name " object "     \
+            << "with id = \"" << refer_ptr->getId() << "\".");         \
     }                                                                  \
                                                                        \
     SuperClassAttribute::setAttributes(refer_ptr, apply);              \
-    sset.insert(refer_ptr);                                            \
   }                                                                    \
 }                                                                      \
                                                                        \
@@ -60,21 +61,21 @@ void C##type::removeRefInheritance()                                   \
                                                                        \
 void C##type::solveBaseReference(void)                                 \
 {                                                                      \
-  std::set<C##type*> sset;                                             \
+  std::set<C##type*> refObjects;                                       \
   baseRefObject = C##type::get(this);                                  \
                                                                        \
   while (baseRefObject->hasDirect##type##Reference())                  \
   {                                                                    \
+    refObjects.insert(baseRefObject);                                  \
+                                                                       \
     baseRefObject = baseRefObject->getDirect##type##Reference();       \
                                                                        \
-    if (sset.end() != sset.find(baseRefObject))                        \
+    if (refObjects.end() != refObjects.find(baseRefObject))            \
     {                                                                  \
-      DEBUG(<< "Circular dependency stopped for #name object on "      \
-            << "\"" + baseRefObject->getId() + "\" !");                \
-      break;                                                           \
+      ERROR("void C" #type "::solveBaseReference(void)",               \
+            << "Circular dependency stopped for " #name " object "     \
+            << "with id = \"" << baseRefObject->getId() << "\".");     \
     }                                                                  \
-                                                                       \
-    sset.insert(baseRefObject);                                        \
   }                                                                    \
                                                                        \
   if (hasDirect##type##Reference()) baseRefObject->addReference(this); \
