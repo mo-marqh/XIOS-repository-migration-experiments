@@ -79,9 +79,8 @@ void C##type::solveBaseReference(void)                                 \
      sset.insert(refer_ptr);                                                       \
   }                                                                                \
   baseRefObject = refer_ptr;                                                      \
-  baseRefObject->addReference(this) ;               \
                                                                                    \
- /* if (hasDirect##type##Reference()) baseRefObject->addReference(this) ;*/               \
+  if (hasDirect##type##Reference()) baseRefObject->addReference(this) ;               \
 }                                                                                  \
                                                                                    \
 C##type * C##type::getDirect##type##Reference(void) const                                \
