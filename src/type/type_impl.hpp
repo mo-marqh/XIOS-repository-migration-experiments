@@ -12,22 +12,22 @@
 
 namespace xios
 {
- 
+
   using namespace std;
-  
+
   template <typename T>
   CType<T>::CType(void)
   {
     empty=true ;
   }
-    
+
   template <typename T>
   CType<T>::CType(const T& val)
   {
     empty=true ;
     set(val) ;
   }
-  
+
   template <typename T>
   CType<T>::CType(const CType<T>& type)
   {
@@ -40,13 +40,13 @@ namespace xios
   {
     empty=true ;
     set(type) ;
-  }  
-  
+  }
+
   template <typename T>
   void CType<T>::set(const T& val)
   {
-    if (empty) 
-    { 
+    if (empty)
+    {
       ptrValue = new T(val) ;
       empty=false ;
     }
@@ -60,7 +60,7 @@ namespace xios
     else
     {
       if (empty)
-      { 
+      {
         ptrValue = new T(*type.ptrValue) ;
         empty=false ;
       }
@@ -75,7 +75,7 @@ namespace xios
     else
     {
       if (empty)
-      { 
+      {
         ptrValue = new T(*type.ptrValue) ;
         empty=false ;
       }
@@ -96,30 +96,37 @@ namespace xios
     checkEmpty();
     return *ptrValue ;
   }
-  
+
   template <typename T>
   CType<T>& CType<T>::operator = (const T& val)
   {
     set(val) ;
     return *this ;
   }
-  
+
   template <typename T>
   CType<T>& CType<T>::operator = (const CType<T>& type)
   {
     set(type) ;
     return *this ;
   }
-  
+
   template <typename T>
   CType<T>& CType<T>::operator = (const CType_ref<T>& type)
   {
     set(type) ;
     return *this ;
   }
-  
+
    template <typename T>
    CType<T>::operator T&()
+   {
+    checkEmpty();
+    return *ptrValue ;
+   }
+
+   template <typename T>
+   CType<T>::operator const T&() const
    {
     checkEmpty();
     return *ptrValue ;
@@ -132,7 +139,7 @@ namespace xios
      return new CType(*this) ;
    }
 
-  
+
   template <typename T>
   void CType<T>::_fromString(const string& str)
   {
@@ -146,13 +153,13 @@ namespace xios
   {
     return sizeof(T) ;
   }
-  
+
   template <typename T>
   bool CType<T>::_isEmpty(void) const
   {
     return empty ;
   }
-  
+
   template <typename T>
   string CType<T>::_toString(void) const
   {
@@ -161,49 +168,49 @@ namespace xios
     oss<<*ptrValue ;
     return oss.str() ;
   }
-  
+
   template <typename T>
   bool CType<T>::_toBuffer(CBufferOut& buffer) const
   {
     checkEmpty();
     return buffer.put(*ptrValue) ;
   }
-  
+
   template <typename T>
   bool CType<T>::_fromBuffer(CBufferIn& buffer)
   {
     allocate() ;
     return buffer.get(*ptrValue) ;
   }
- 
+
 
   template <typename T>
   void CType<T>::allocate(void)
   {
-    if (empty) 
+    if (empty)
     {
       ptrValue = new T ;
       empty=false ;
     }
   }
-  
+
   template <typename T>
   void CType<T>::_reset(void)
   {
-    if (!empty) 
+    if (!empty)
     {
       delete ptrValue ;
       empty=true ;
     }
   }
-  
+
   template <typename T>
   void CType<T>::checkEmpty(void) const
   {
     if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
-  }  
+  }
 
-  
+
   template <typename T>
   CBufferOut& operator<<(CBufferOut& buffer, const CType<T>& type)
   {
