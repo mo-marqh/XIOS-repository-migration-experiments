@@ -789,7 +789,12 @@ namespace xios{
                   << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
         }
 
-        this->grid = CGrid::createGrid(vecDom, vecAxis);
+        // Warning: the gridId shouldn't be set as the grid_ref since it could be inherited
+        StdString gridId = CGrid::generateId(vecDom, vecAxis);
+        if (CGrid::has(gridId))
+          this->grid = CGrid::get(gridId);
+        else
+          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis);
       }
       else
       {

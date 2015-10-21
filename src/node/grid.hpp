@@ -120,7 +120,12 @@ namespace xios {
          /// Instanciateurs Statiques ///
          static CGrid* createGrid(CDomain* domain);
          static CGrid* createGrid(CDomain* domain, CAxis* axis);
-         static CGrid* createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, CArray<bool,1> axisDomainOrder = CArray<bool,1>());
+         static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                                  const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+         static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                                  const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+         static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                                     const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
 
       public:
 

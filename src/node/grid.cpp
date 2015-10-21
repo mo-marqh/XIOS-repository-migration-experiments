@@ -452,40 +452,42 @@ namespace xios {
 
    CGrid* CGrid::createGrid(CDomain* domain)
    {
-      std::vector<CDomain*> vecDom(1,domain);
+      std::vector<CDomain*> vecDom(1, domain);
       std::vector<CAxis*> vecAxis;
-      CArray<bool,1> axisDomainOrder;
-      CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
 
-      return grid;
+      return createGrid(vecDom, vecAxis);
    }
 
    CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
    {
-      std::vector<CDomain*> vecDom(1,domain);
-      std::vector<CAxis*> vecAxis(1,axis);
-      CArray<bool,1> axisDomainOrder;
-      CGrid* grid = createGrid(vecDom, vecAxis, axisDomainOrder);
+      std::vector<CDomain*> vecDom(1, domain);
+      std::vector<CAxis*> vecAxis(1, axis);
 
-      return grid;
+      return createGrid(vecDom, vecAxis);
    }
 
-   CGrid* CGrid::createGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, CArray<bool,1> axisDomainOrder)
+   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const CArray<bool,1>& axisDomainOrder)
    {
-      StdString new_id = StdString("__");
-      if (!domains.empty()) for (int i = 0; i < domains.size(); ++i) new_id += domains[i]->getId() + StdString("_");
-      if (!axis.empty()) for (int i = 0; i < axis.size(); ++i) new_id += axis[i]->getId() + StdString("_");
-      if (domains.empty() && axis.empty()) new_id += StdString("scalar_grid");
-      new_id += StdString("_");
+      return createGrid(generateId(domains, axis, axisDomainOrder), domains, axis, axisDomainOrder);
+   }
 
-      CGrid* grid = CGridGroup::get("grid_definition")->createChild(new_id);
+   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const CArray<bool,1>& axisDomainOrder)
+   {
+      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
+        ERROR("CGrid* CGrid::createGrid(...)",
+              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
+              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
+
+      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
       grid->setDomainList(domains);
       grid->setAxisList(axis);
 
-      //By default, domains are always the first ones of a grid
+      // By default, domains are always the first elements of a grid
       if (0 == axisDomainOrder.numElements())
       {
-        int size = domains.size()+axis.size();
+        int size = domains.size() + axis.size();
         grid->axis_domain_order.resize(size);
         for (int i = 0; i < size; ++i)
         {
@@ -499,11 +501,51 @@ namespace xios {
         grid->axis_domain_order = axisDomainOrder;
       }
 
-
       grid->solveDomainAxisRefInheritance(true);
 
       return grid;
    }
+
+   StdString CGrid::generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                               const CArray<bool,1>& axisDomainOrder)
+   {
+      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
+        ERROR("CGrid* CGrid::generateId(...)",
+              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
+              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
+
+      std::ostringstream id;
+
+      if (domains.empty() && axis.empty())
+        id << "__scalar_grid__";
+      else
+      {
+        id << "__grid";
+
+        if (0 == axisDomainOrder.numElements())
+        {
+          for (size_t i = 0; i < domains.size(); ++i) id << "_" << domains[i]->getId();
+          for (size_t i = 0; i < axis.size(); ++i) id << "_" << axis[i]->getId();
+        }
+        else
+        {
+          size_t iDomain = 0, iAxis = 0;
+          for (size_t i = 0; i < axisDomainOrder.numElements(); ++i)
+          {
+            if (axisDomainOrder(i))
+              id << "_" << domains[iDomain++]->getId();
+            else
+              id << "_" << axis[iAxis++]->getId();
+          }
+        }
+
+        id << "__";
+      }
+
+      return id.str();
+   }
+
+   //----------------------------------------------------------------
 
    CDomainGroup* CGrid::getVirtualDomainGroup() const
    {
