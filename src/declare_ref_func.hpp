@@ -87,9 +87,9 @@ C##type* C##type::getDirect##type##Reference(void) const               \
     return this->getBase##type##Reference();                           \
                                                                        \
   if (!C##type::has(this->name##_ref))                                 \
-    ERROR("C##type::getDirect##type##Reference(void)",                 \
-          << "[ ref_name = " << this->name##_ref.getValue() << "]"     \
-          << " invalid #name name !");                                 \
+    ERROR("C" #type "* C" #type "::getDirect" #type "Reference(void)", \
+          << this->name##_ref                                          \
+          << " refers to an unknown " #name " id.");                   \
                                                                        \
   return C##type::get(this->name##_ref);                               \
 }                                                                      \
