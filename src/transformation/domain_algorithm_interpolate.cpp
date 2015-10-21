@@ -75,12 +75,15 @@ void CDomainAlgorithmInterpolate::computeRemap()
   }
   else // if domain source is rectilinear, not do anything now
   {
+    bool isNorthPole = false;
+    bool isSouthPole = false;
+    if (poleValue == std::abs(domainSrc_->lat_start)) isNorthPole = true;
+    if (poleValue == std::abs(domainSrc_->lat_end)) isSouthPole = true;
+
     nVertexSrc = constNVertex;
-    domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc);
+    domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc, isNorthPole, isSouthPole);
   }
 
-  bool isNorthPole = false;
-  bool isSouthPole = false;
   std::map<int,std::vector<std::pair<int,double> > > interpMapValueNorthPole;
   std::map<int,std::vector<std::pair<int,double> > > interpMapValueSouthPole;
 
@@ -115,6 +118,8 @@ void CDomainAlgorithmInterpolate::computeRemap()
   }
   else
   {
+    bool isNorthPole = false;
+    bool isSouthPole = false;
     if (poleValue == std::abs(domainDest_->lat_start)) isNorthPole = true;
     if (poleValue == std::abs(domainDest_->lat_end)) isSouthPole = true;
     if (isNorthPole && (0 == domainDest_->jbegin.getValue()))

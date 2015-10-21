@@ -31,7 +31,7 @@
         <field id="src_field_regular" name="field" domain_ref="src_domain_regular" operation="instant"/>
      </file>
      <file id="output_src_regular_tmp" name="output_src_regular_tmp">
-        <field field_ref="tmp_field"/>
+<!--        <field field_ref="tmp_field"/>-->
      </file>
    </file_definition>
 
@@ -41,11 +41,11 @@
 
    <domain_definition>
      <domain id="src_domain" />
-     <domain id="dst_domain" domain_src="src_domain">
+     <domain id="dst_domain" domain_src="src_domain_regular">
        <interpolate_domain/>
      </domain>
      <domain id="dst_domain_regular_pole" domain_src="src_domain" ni_glo="180" nj_glo="90" type="rectilinear">
-       <generate_rectilinear_domain bounds_lat_start="-90" bounds_lat_end="90" lon_start="2" lon_end="360"/>
+       <generate_rectilinear_domain lat_start="-90" lat_end="90" lon_start="2" lon_end="360"/>
        <interpolate_domain/>
      </domain>
      <domain id="dst_domain_regular" domain_src="src_domain_regular" ni_glo="90" nj_glo="45" type="rectilinear">
@@ -53,7 +53,7 @@
        <interpolate_domain/>
      </domain>
      <domain id="src_domain_regular" ni_glo="180" nj_glo="90" type="rectilinear">
-       <generate_rectilinear_domain bounds_lat_start="-90" bounds_lat_end="90" lon_start="2" lon_end="360" />
+       <generate_rectilinear_domain lat_start="-90" lat_end="90" lon_start="2" lon_end="360" />
      </domain>
    </domain_definition>
   </context>
