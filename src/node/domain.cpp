@@ -1843,26 +1843,34 @@ namespace xios {
   }
 
   /*!
-    A current domain will go up the hierarchy to find out the domain from which it has transformation
-  */
+   * Go through the hierarchy to find the domain from which the transformations must be inherited
+   */
   void CDomain::solveInheritanceTransformation()
   {
-    if (this->hasTransformation()) return;
+    if (hasTransformation() || !hasDirectDomainReference())
+      return;
 
-    std::vector<CDomain*> refDomain;
-    CDomain* refer_sptr;
-    CDomain* refer_ptr = this;
-    while (refer_ptr->hasDirectDomainReference())
+    CDomain* domain = this;
+    std::vector<CDomain*> refDomains;
+    while (!domain->hasTransformation() && domain->hasDirectDomainReference())
     {
-      refDomain.push_back(refer_ptr);
-      refer_sptr = refer_ptr->getDirectDomainReference();
-      refer_ptr  = refer_sptr;
-      if (refer_ptr->hasTransformation()) break;
+      refDomains.push_back(domain);
+      domain = domain->getDirectDomainReference();
     }
 
-    if (refer_ptr->hasTransformation())
-      for (int idx = 0; idx < refDomain.size(); ++idx)
-        refDomain[idx]->setTransformations(refer_ptr->getAllTransformations());
+    if (domain->hasTransformation())
+      for (size_t i = 0; i < refDomains.size(); ++i)
+        refDomains[i]->setTransformations(domain->getAllTransformations());
+
+    // Try to inherit the id of the referenced object as the domain name
+    // when no name was been defined and a defaut id is used.
+    if (name.isEmpty())
+    {
+      static const std::string defId("__domain_undef_id_");
+      const std::string& id = getId();
+      if (id.size() > defId.size() && id.compare(0, defId.size(), defId) == 0)
+        name = domain->getId();
+    }
   }
 
   void CDomain::solveSrcInheritance()

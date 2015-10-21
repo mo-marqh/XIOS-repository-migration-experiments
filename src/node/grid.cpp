@@ -1223,8 +1223,6 @@ namespace xios {
         pDom->solveBaseReference();
         pDom->solveSrcInheritance();
         pDom->solveInheritanceTransformation();
-        if ((!pDom->domain_ref.isEmpty()) && (pDom->name.isEmpty()))
-          pDom->name.setValue(pDom->getBaseDomainReference()->getId());
       }
     }
 
@@ -1238,8 +1236,6 @@ namespace xios {
         pAxis->solveRefInheritance(apply);
         pAxis->solveBaseReference();
         pAxis->solveInheritanceTransformation();
-        if ((!pAxis->axis_ref.isEmpty()) && (pAxis->name.isEmpty()))
-          pAxis->name.setValue(pAxis->getBaseAxisReference()->getId());
       }
     }
   }

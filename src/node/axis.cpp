@@ -871,24 +871,35 @@ namespace xios {
     }
   }
 
+  /*!
+   * Go through the hierarchy to find the axis from which the transformations must be inherited
+   */
   void CAxis::solveInheritanceTransformation()
   {
-    if (this->hasTransformation()) return;
+    if (hasTransformation() || !hasDirectAxisReference())
+      return;
 
+    CAxis* axis = this;
     std::vector<CAxis*> refAxis;
-    CAxis* refer_sptr;
-    CAxis* refer_ptr = this;
-    while (refer_ptr->hasDirectAxisReference())
+    while (!axis->hasTransformation() && axis->hasDirectAxisReference())
     {
-      refAxis.push_back(refer_ptr);
-      refer_sptr = refer_ptr->getDirectAxisReference();
-      refer_ptr  = refer_sptr;
-      if (refer_ptr->hasTransformation()) break;
+      refAxis.push_back(axis);
+      axis = axis->getDirectAxisReference();
     }
 
-    if (refer_ptr->hasTransformation())
-      for (int idx = 0; idx < refAxis.size(); ++idx)
-        refAxis[idx]->setTransformations(refer_ptr->getAllTransformations());
+    if (axis->hasTransformation())
+      for (size_t i = 0; i < refAxis.size(); ++i)
+        refAxis[i]->setTransformations(axis->getAllTransformations());
+
+    // Try to inherit the id of the referenced object as the axis name
+    // when no name was been defined and a defaut id is used.
+    if (name.isEmpty())
+    {
+      static const std::string defId("__axis_undef_id_");
+      const std::string& id = getId();
+      if (id.size() > defId.size() && id.compare(0, defId.size(), defId) == 0)
+        name = axis->getId();
+    }
   }
 
   void CAxis::parse(xml::CXMLNode & node)
