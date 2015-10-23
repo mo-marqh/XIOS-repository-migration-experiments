@@ -1400,7 +1400,7 @@ namespace xios
 
         if (!field->wasWritten())
         {
-          if (appendMode)
+          if (appendMode && field->file->record_offset.isEmpty())
           {
             field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
           }

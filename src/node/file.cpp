@@ -235,6 +235,11 @@ namespace xios {
 
       allDomainEmpty = true;
 
+      if (!record_offset.isEmpty() && record_offset < 0)
+        ERROR("void CFile::initFile(void)",
+              "Invalid 'record_offset', this attribute cannot be negative.");
+      const size_t recordOffset = record_offset.isEmpty() ? 0 : record_offset;
+
       set<CAxis*> setAxis;
       set<CDomain*> setDomains;
 
@@ -249,6 +254,8 @@ namespace xios {
          std::vector<CDomain*> vecDomains = field->grid->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
             setDomains.insert(vecDomains[i]);
+
+         field->resetNStep(recordOffset);
       }
       nbAxis = setAxis.size();
       nbDomains = setDomains.size();
