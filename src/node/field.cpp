@@ -681,7 +681,8 @@ namespace xios{
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
+                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset));
 
          selfReferenceFilter = serverSourceFilter;
        }
