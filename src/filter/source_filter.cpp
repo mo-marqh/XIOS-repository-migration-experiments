@@ -1,11 +1,13 @@
 #include "source_filter.hpp"
 #include "grid.hpp"
 #include "exception.hpp"
+#include "calendar_util.hpp"
 
 namespace xios
 {
-  CSourceFilter::CSourceFilter(CGrid* grid)
+  CSourceFilter::CSourceFilter(CGrid* grid, const CDuration offset /*= NoneDu*/)
     : grid(grid)
+    , offset(offset)
   {
     if (!grid)
       ERROR("CSourceFilter::CSourceFilter(CGrid* grid)",
@@ -15,6 +17,8 @@ namespace xios
   template <int N>
   void CSourceFilter::streamData(CDate date, const CArray<double, N>& data)
   {
+    date = date + offset; // this is a temporary solution, it should be part of a proper temporal filter
+
     CDataPacketPtr packet(new CDataPacket);
     packet->date = date;
     packet->timestamp = date;
@@ -32,6 +36,8 @@ namespace xios
 
   void CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)
   {
+    date = date + offset; // this is a temporary solution, it should be part of a proper temporal filter
+
     CDataPacketPtr packet(new CDataPacket);
     packet->date = date;
     packet->timestamp = date;

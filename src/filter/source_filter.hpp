@@ -19,8 +19,9 @@ namespace xios
        * Constructs a source filter accepting data attached to the specified grid.
        *
        * \param grid the grid to which the data is attached
+       * \param offset the offset applied to the timestamp of all packets
        */
-      CSourceFilter(CGrid* grid);
+      CSourceFilter(CGrid* grid, const CDuration offset = NoneDu);
 
       /*!
        * Transforms the data received from the model into a packet and send it
@@ -52,6 +53,7 @@ namespace xios
 
     private:
       CGrid* grid; //!< The grid attached to the data the filter can accept
+      const CDuration offset; //!< The offset applied to the timestamp of all packets
   }; // class CSourceFilter
 } // namespace xios
 
