@@ -161,7 +161,7 @@ namespace xios {
 
          size_t sizeValEvent = CArray<double,1>::size(it->second.size());
          if (hasBounds_)
-           sizeValEvent += CArray<double,2>::size(it->second.size());
+           sizeValEvent += CArray<double,2>::size(2 * it->second.size());
 
          size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeValEvent);
          if (size > attributesSizes[it->first])

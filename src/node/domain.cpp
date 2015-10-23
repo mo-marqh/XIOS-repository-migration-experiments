@@ -140,7 +140,7 @@ namespace xios {
        // size estimation for sendLonLat
        size_t sizeLonLatEvent = CArray<double,1>::size(it->second.size());
        if (hasBounds)
-         sizeLonLatEvent += CArray<double,2>::size(it->second.size());
+         sizeLonLatEvent += CArray<double,2>::size(nvertex * it->second.size());
 
        size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeLonLatEvent);
        if (size > attributesSizes[it->first])
