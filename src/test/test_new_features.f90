@@ -59,7 +59,9 @@ PROGRAM test_new_features
     ENDDO
     lval_nj_glo(j) = j-1
   ENDDO
-  ni=ni_glo ; ibegin=0
+  ni = ni_glo
+  ibegin = 0
+  iend = ibegin + ni - 1
 
   jbegin=0
   CALL Distribute_index(jbegin, jend, nj, nj_glo, rank, size)
@@ -209,11 +211,6 @@ PROGRAM test_new_features
   CALL MPI_FINALIZE(ierr)
 
 CONTAINS
-  SUBROUTINE  Test_Interpolate
-
-
-  END SUBROUTINE Test_Interpolate
-
   SUBROUTINE Distribute_index(ibegin, iend, ni, nglob, rank, size)
     INTEGER, INTENT(INOUT) :: ibegin, iend, ni
     INTEGER, INTENT(IN)    :: nglob, rank, size
