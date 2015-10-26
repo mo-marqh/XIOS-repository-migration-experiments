@@ -438,12 +438,6 @@ namespace xios {
      for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexOnServer.begin(); it != globalIndexOnServer.end(); ++it) {
        connectedServerRank_.push_back(it->first);
      }
-     if (!connectedDataSize_.empty())
-     {
-       connectedServerRank_.clear();
-       for (std::map<int,size_t>::const_iterator it = connectedDataSize_.begin(); it != connectedDataSize_.end(); ++it)
-         connectedServerRank_.push_back(it->first);
-     }
 
      nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
    }

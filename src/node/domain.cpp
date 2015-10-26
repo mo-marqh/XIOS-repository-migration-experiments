@@ -1284,12 +1284,6 @@ namespace xios {
       connectedServerRank_.push_back(it->first);
     }
 
-    if (!indSrv_.empty())
-    {
-      connectedServerRank_.clear();
-      for (it = indSrv_.begin(); it != indSrv_.end(); ++it)
-        connectedServerRank_.push_back(it->first);
-    }
     nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
 
     delete clientServerMap;
