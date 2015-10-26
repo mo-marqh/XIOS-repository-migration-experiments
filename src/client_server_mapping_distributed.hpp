@@ -38,8 +38,6 @@ class CClientServerMappingDistributed : public CClientServerMapping
 
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
 
-    std::vector<int> computeConnectedServerRank(const CArray<size_t,1> globalIndexClient);
-
     /** Default destructor */
     virtual ~CClientServerMappingDistributed();
 
