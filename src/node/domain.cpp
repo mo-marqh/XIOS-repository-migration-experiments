@@ -943,7 +943,7 @@ namespace xios {
      if (hasLonLat)
      {
        if (!lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
-         ERROR("CDomain::completeLonLatClient(void)",
+         ERROR("CDomain::checkLonLat()",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "Only one longitude attribute can be used but both 'lonvalue_1d' and 'lonvalue_2d' are defined." << std::endl
                << "Define only one longitude attribute: 'lonvalue_1d' or 'lonvalue_2d'.");
@@ -951,7 +951,7 @@ namespace xios {
        if (!lonvalue_1d.isEmpty() && lonvalue_2d.isEmpty())
        {
          if ((type_attr::rectilinear != type) && (lonvalue_1d.numElements() != i_index.numElements()))
-           ERROR("CDomain::completeLonLatClient(void)",
+           ERROR("CDomain::checkLonLat()",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'lonvalue_1d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << i_index.numElements() << "." << std::endl
@@ -961,7 +961,7 @@ namespace xios {
        if (lonvalue_1d.isEmpty() && !lonvalue_2d.isEmpty())
        {
          if (lonvalue_2d.extent(0) != ni || lonvalue_2d.extent(1) != nj)
-           ERROR("CDomain::completeLonLatClient(void)",
+           ERROR("CDomain::checkLonLat()",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'lonvalue_2d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
@@ -969,7 +969,7 @@ namespace xios {
        }
 
        if (!latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
-         ERROR("CDomain::completeLonLatClient(void)",
+         ERROR("CDomain::checkLonLat()",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "Only one latitude attribute can be used but both 'latvalue_1d' and 'latvalue_2d' are defined." << std::endl
                << "Define only one latitude attribute: 'latvalue_1d' or 'latvalue_2d'.");
@@ -977,7 +977,7 @@ namespace xios {
        if (!latvalue_1d.isEmpty() && latvalue_2d.isEmpty())
        {
          if ((type_attr::rectilinear != type) && (latvalue_1d.numElements() != i_index.numElements()))
-           ERROR("CDomain::completeLonLatClient(void)",
+           ERROR("CDomain::checkLonLat()",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'latvalue_1d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << i_index.numElements() << "." << std::endl
@@ -987,7 +987,7 @@ namespace xios {
        if (latvalue_1d.isEmpty() && !latvalue_2d.isEmpty())
        {
          if (latvalue_2d.extent(0) != ni || latvalue_2d.extent(1) != nj)
-           ERROR("CDomain::completeLonLatClient(void)",
+           ERROR("CDomain::checkLonLat()",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'latvalue_2d' does not have the same size as the local domain." << std::endl
                  << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
@@ -1527,7 +1527,7 @@ namespace xios {
           return true;
           break;
         default:
-          ERROR("bool CContext::dispatchEvent(CEventServer& event)",
+          ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
                 << "Unknown Event");
           return false;
        }
