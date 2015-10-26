@@ -748,122 +748,86 @@ namespace xios {
 
    void CDomain::completeLonLatClient(void)
    {
-     int i,j,k ;
-     CArray<double,1> lonvalue_temp(ni * nj);
-     CArray<double,2> bounds_lon_temp(nvertex, ni * nj);
-     CArray<double,1> latvalue_temp(ni * nj);
-     CArray<double,2> bounds_lat_temp(nvertex, ni * nj);
-
      if (!lonvalue_2d.isEmpty())
      {
-        for (j = 0; j < nj; ++j)
-          for (i = 0; i < ni; ++i)
-          {
-            lonvalue_temp(i + j * ni) = lonvalue_2d(i,j);
-            latvalue_temp(i + j * ni) = latvalue_2d(i,j);
-            if (hasBounds)
-            {
-              k = j * ni + i;
-              for (int n = 0; n < nvertex; ++n)
-              {
-                bounds_lon_temp(n,k) = bounds_lon_2d(n,i,j);
-                bounds_lat_temp(n,k) = bounds_lat_2d(n,i,j);
-              }
-            }
-          }
-        lonvalue_1d.free();
-     }
+       lonvalue_client.resize(ni * nj);
+       latvalue_client.resize(ni * nj);
+       if (hasBounds)
+       {
+         bounds_lon_client.resize(nvertex, ni * nj);
+         bounds_lat_client.resize(nvertex, ni * nj);
+       }
 
-     if (!lonvalue_1d.isEmpty())
+       for (int j = 0; j < nj; ++j)
+       {
+         for (int i = 0; i < ni; ++i)
+         {
+           int k = j * ni + i;
+
+           lonvalue_client(k) = lonvalue_2d(i,j);
+           latvalue_client(k) = latvalue_2d(i,j);
+
+           if (hasBounds)
+           {
+             for (int n = 0; n < nvertex; ++n)
+             {
+               bounds_lon_client(n,k) = bounds_lon_2d(n,i,j);
+               bounds_lat_client(n,k) = bounds_lat_2d(n,i,j);
+             }
+           }
+         }
+       }
+     }
+     else if (!lonvalue_1d.isEmpty())
      {
        if (type_attr::rectilinear == type)
        {
          if (ni == lonvalue_1d.numElements() && nj == latvalue_1d.numElements())
          {
-           for (j = 0; j < nj; ++j)
-             for (i = 0; i < ni; ++i)
+           lonvalue_client.resize(ni * nj);
+           latvalue_client.resize(ni * nj);
+           if (hasBounds)
+           {
+             bounds_lon_client.resize(nvertex, ni * nj);
+             bounds_lat_client.resize(nvertex, ni * nj);
+           }
+
+           for (int j = 0; j < nj; ++j)
+           {
+             for (int i = 0; i < ni; ++i)
              {
-               k = j * ni + i;
-               lonvalue_temp(k) = lonvalue_1d(i);
-               latvalue_temp(k) = latvalue_1d(j);
+               int k = j * ni + i;
+
+               lonvalue_client(k) = lonvalue_1d(i);
+               latvalue_client(k) = latvalue_1d(j);
+
                if (hasBounds)
                {
                  for (int n = 0; n < nvertex; ++n)
                  {
-                   bounds_lon_temp(n,k) = bounds_lon_1d(n,i);
-                   bounds_lat_temp(n,k) = bounds_lat_1d(n,j);
+                   bounds_lon_client(n,k) = bounds_lon_1d(n,i);
+                   bounds_lat_client(n,k) = bounds_lat_1d(n,j);
                  }
                }
              }
-          }
-          else
-            ERROR("CDomain::completeLonClient(void)",
-                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-                  << "'lonvalue_1d' and 'latvalue_1d' does not have the same size as the local domain." << std::endl
-                  << "'lonvalue_1d' size is " << lonvalue_1d.numElements() << " but it should be " << ni.getValue() << '.' << std::endl
-                  << "'latvalue_1d' size is " << latvalue_1d.numElements() << " but it should be " << nj.getValue() << '.');
+           }
+         }
+         else
+           ERROR("CDomain::completeLonClient(void)",
+                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                 << "'lonvalue_1d' and 'latvalue_1d' does not have the same size as the local domain." << std::endl
+                 << "'lonvalue_1d' size is " << lonvalue_1d.numElements() << " but it should be " << ni.getValue() << '.' << std::endl
+                 << "'latvalue_1d' size is " << latvalue_1d.numElements() << " but it should be " << nj.getValue() << '.');
        }
        else if (type == type_attr::curvilinear || type == type_attr::unstructured)
        {
-         lonvalue_temp = lonvalue_1d;
-         latvalue_temp = latvalue_1d;
+         lonvalue_client.reference(lonvalue_1d);
+         latvalue_client.reference(latvalue_1d);
          if (hasBounds)
          {
-           bounds_lon_temp = bounds_lon_1d;
-           bounds_lat_temp = bounds_lat_1d;
+           bounds_lon_client.reference(bounds_lon_1d);
+           bounds_lat_client.reference(bounds_lat_1d);
          }
-       }
-       lonvalue_2d.free();
-     }
-
-    int i_ind,j_ind;
-    int global_zoom_iend=global_zoom_ibegin+global_zoom_ni-1;
-    int global_zoom_jend=global_zoom_jbegin+global_zoom_nj-1;
-
-    int globalIndexCountZoom = 0;
-    int nbIndex = i_index.numElements();
-    for (i = 0; i < nbIndex; ++i)
-    {
-      i_ind=i_index(i);
-      j_ind=j_index(i);
-
-      if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-      {
-        ++globalIndexCountZoom;
-      }
-    }
-
-      // Make sure that this attribute is non-empty for every client.
-     if (0 != globalIndexCountZoom)
-     {
-       lonvalue_client.resize(globalIndexCountZoom);
-       latvalue_client.resize(globalIndexCountZoom);
-       if (hasBounds)
-       {
-         bounds_lon_client.resize(nvertex,globalIndexCountZoom);
-         bounds_lat_client.resize(nvertex,globalIndexCountZoom);
-       }
-     }
-
-     int nCountZoom = 0;
-     for (i = 0; i < nbIndex; ++i)
-     {
-       i_ind=i_index(i);
-       j_ind=j_index(i);
-
-       if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-       {
-         lonvalue_client(nCountZoom) = lonvalue_temp(i);
-         latvalue_client(nCountZoom) = latvalue_temp(i);
-         if (hasBounds)
-         {
-           for (int n = 0; n < nvertex; ++n)
-           {
-             bounds_lon_client(n,nCountZoom) = bounds_lon_temp(n,i);
-             bounds_lat_client(n,nCountZoom) = bounds_lat_temp(n,i);
-           }
-         }
-         ++nCountZoom;
        }
      }
    }
