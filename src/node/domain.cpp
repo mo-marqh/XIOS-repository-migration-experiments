@@ -1040,7 +1040,7 @@ namespace xios {
      if (context->hasClient)
      {
        this->checkMask();
-       if (hasLonLat || hasArea) this->computeConnectedServer();
+       if (hasLonLat || hasArea || isCompressible_) this->computeConnectedServer();
        if (hasLonLat) this->completeLonLatClient();
      }
 
@@ -1085,7 +1085,7 @@ namespace xios {
      if (context->hasClient)
      {
        sendServerAttribut();
-       if (hasLonLat || hasArea) sendLonLatArea();
+       if (hasLonLat || hasArea || isCompressible_) sendLonLatArea();
      }
      this->isChecked = true;
    }
