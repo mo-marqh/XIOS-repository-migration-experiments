@@ -129,22 +129,31 @@ namespace xios {
        }
      }
 
-     std::map<int, std::vector<size_t> >::const_iterator it, ite = indSrv_.end();
-     for (it = indSrv_.begin(); it != ite; ++it)
+     std::map<int, std::vector<size_t> >::const_iterator itIndexEnd = indSrv_.end();
+     std::map<int, std::vector<int> >::const_iterator itWrittenIndexEnd = indWrittenSrv_.end();
+     for (size_t k = 0; k < connectedServerRank_.size(); ++k)
      {
+       int rank = connectedServerRank_[k];
+       std::map<int, std::vector<size_t> >::const_iterator it = indSrv_.find(rank);
+       size_t idxCount = (it != itIndexEnd) ? it->second.size() : 0;
+
        // size estimation for sendIndex (and sendArea which is always smaller or equal)
-       size_t sizeIndexEvent = 2 * sizeof(size_t) + 2 * CArray<int,1>::size(it->second.size());
+       size_t sizeIndexEvent = 2 * sizeof(size_t) + 2 * CArray<int,1>::size(idxCount);
        if (isCompressible_)
-         sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
+       {
+         std::map<int, std::vector<int> >::const_iterator itWritten = indWrittenSrv_.find(rank);
+         size_t writtenIdxCount = (itWritten != itWrittenIndexEnd) ? itWritten->second.size() : 0;
+         sizeIndexEvent += CArray<int,1>::size(writtenIdxCount);
+       }
 
        // size estimation for sendLonLat
-       size_t sizeLonLatEvent = CArray<double,1>::size(it->second.size());
+       size_t sizeLonLatEvent = CArray<double,1>::size(idxCount);
        if (hasBounds)
-         sizeLonLatEvent += CArray<double,2>::size(nvertex * it->second.size());
+         sizeLonLatEvent += CArray<double,2>::size(nvertex * idxCount);
 
        size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeLonLatEvent);
-       if (size > attributesSizes[it->first])
-         attributesSizes[it->first] = size;
+       if (size > attributesSizes[rank])
+         attributesSizes[rank] = size;
      }
 
      return attributesSizes;

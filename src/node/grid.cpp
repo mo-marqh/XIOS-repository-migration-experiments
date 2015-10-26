@@ -142,9 +142,15 @@ namespace xios {
      // include it in the size calculation for the sake of simplicity
      const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() + 2 * sizeof(size_t);
 
-     std::map<int, size_t>::const_iterator itb = connectedDataSize_.begin(), it, itE = connectedDataSize_.end();
-     for (it = itb; it != itE; ++it)
-       dataSizes.insert(std::make_pair(it->first, extraSize + CArray<double,1>::size(it->second)));
+     std::map<int, size_t>::const_iterator itEnd = connectedDataSize_.end();
+     for (size_t k = 0; k < connectedServerRank_.size(); ++k)
+     {
+       int rank = connectedServerRank_[k];
+       std::map<int, size_t>::const_iterator it = connectedDataSize_.find(rank);
+       size_t count = (it != itEnd) ? it->second : 0;
+
+       dataSizes.insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
+     }
 
      return dataSizes;
    }
