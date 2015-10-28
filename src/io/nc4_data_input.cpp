@@ -52,6 +52,7 @@ namespace xios
         break;
       case ONE_FILE:
       {
+/*
         std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
         std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
         std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
@@ -66,7 +67,48 @@ namespace xios
           start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
           count[i] = nZoomSizeServer[ssize - i - 1];
         }
+*/
 
+        std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
+        std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
+        std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
+
+        std::vector<StdSize> start, count;
+
+        CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+        std::vector<StdString> domainList = grid->getDomainList();
+        std::vector<StdString> axisList   = grid->getAxisList();
+        int numElement = axisDomainOrder.numElements();
+        int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
+        int idx = nZoomBeginGlobal.size() - 1;
+
+        start.reserve(nZoomBeginGlobal.size());
+        count.reserve(nZoomBeginGlobal.size());
+
+        for (int i = numElement - 1; i >= 0; --i)
+        {
+          if (axisDomainOrder(i))
+          {
+            CDomain* domain = CDomain::get(domainList[idxDomain]);
+            if ((domain->type) != CDomain::type_attr::unstructured)
+            {
+              start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+              count.push_back(nZoomSizeServer[idx]);
+            }
+            --idx ;
+            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+            count.push_back(nZoomSizeServer[idx]);
+            --idx ;
+            --idxDomain;
+          }
+          else
+          {
+            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
+            count.push_back(nZoomSizeServer[idx]);
+            --idx;
+           }
+        }
+                  
         SuperClassWriter::getData(fieldData, fieldId, isCollective, field->getNStep() - 1, &start, &count);
         break;
       }
