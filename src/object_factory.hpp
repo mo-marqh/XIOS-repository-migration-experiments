@@ -51,7 +51,9 @@ namespace xios
          template <typename U>
             static  boost::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
 
-         template <typename U> static  StdString GenUId(void) ; 
+         template <typename U> static const StdString& GetUIdBase(void);
+         template <typename U> static StdString GenUId(void);
+         template <typename U> static bool IsGenUId(const StdString& id);
 
       private :
 
