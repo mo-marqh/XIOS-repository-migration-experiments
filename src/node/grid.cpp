@@ -1220,7 +1220,6 @@ namespace xios {
       if (context->hasClient)
       {
         pDom->solveRefInheritance(apply);
-        pDom->solveBaseReference();
         pDom->solveSrcInheritance();
         pDom->solveInheritanceTransformation();
       }
@@ -1234,7 +1233,6 @@ namespace xios {
       if (context->hasClient)
       {
         pAxis->solveRefInheritance(apply);
-        pAxis->solveBaseReference();
         pAxis->solveInheritanceTransformation();
       }
     }

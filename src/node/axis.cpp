@@ -22,7 +22,7 @@ namespace xios {
 
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
-      , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
+      , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
@@ -31,7 +31,7 @@ namespace xios {
 
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
-      , CAxisAttributes(), isChecked(false), relFiles(), baseRefObject(), areClientAttributesChecked_(false)
+      , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)

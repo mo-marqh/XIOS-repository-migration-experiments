@@ -160,8 +160,6 @@ namespace xios {
 //         (*it)->refObject.push_back(*it);
          // Le champ est finalement actif, on y ajoute la référence au champ de base.
          (*it)->setRelFile(CFile::get(this));
-//         (*it)->baseRefObject->refObject.push_back(*it);
-         // A faire, ajouter les references intermediaires...
       }
       enabledFields = newEnabledFields;
 

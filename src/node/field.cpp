@@ -29,7 +29,6 @@ namespace xios{
 
    CField::CField(void)
       : CObjectTemplate<CField>(), CFieldAttributes()
-      , baseRefObject()
       , grid(), file()
       , written(false)
       , nstep(0), nstepMax(0)
@@ -41,7 +40,6 @@ namespace xios{
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
-      , baseRefObject()
       , grid(), file()
       , written(false)
       , nstep(0), nstepMax(0)
@@ -503,7 +501,6 @@ namespace xios{
         if (context->hasClient)
         {
           solveRefInheritance(true);
-          solveBaseReference();
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
         else if (context->hasServer)

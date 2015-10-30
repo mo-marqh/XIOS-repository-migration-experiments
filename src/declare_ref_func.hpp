@@ -13,17 +13,11 @@
 
 #define DECLARE_REF_FUNC(type, name_)                       \
 public:                                                     \
+  void solveRefInheritance(bool apply = true);              \
+  void removeRefInheritance();                              \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
-  C##type* getBase##type##Reference(void) const;            \
-  void removeRefInheritance();                              \
-  const StdString& getBase##type##Id(void) const;           \
-  void solveRefInheritance(bool apply = true);              \
-  void solveBaseReference(void);                            \
   const StdString& get##type##OutputName(void) const;       \
-                                                            \
-private:                                                    \
-  C##type* baseRefObject;                                   \
 
 // Definitions
 
@@ -56,30 +50,17 @@ void C##type::removeRefInheritance()                                   \
     this->name_##_ref.reset();                                         \
 }                                                                      \
                                                                        \
-void C##type::solveBaseReference(void)                                 \
+bool C##type::hasDirect##type##Reference(void) const                   \
 {                                                                      \
-  std::set<C##type*> refObjects;                                       \
-  baseRefObject = C##type::get(this);                                  \
-                                                                       \
-  while (baseRefObject->hasDirect##type##Reference())                  \
-  {                                                                    \
-    refObjects.insert(baseRefObject);                                  \
-                                                                       \
-    baseRefObject = baseRefObject->getDirect##type##Reference();       \
-                                                                       \
-    if (refObjects.end() != refObjects.find(baseRefObject))            \
-    {                                                                  \
-      ERROR("void C" #type "::solveBaseReference(void)",               \
-            << "Circular dependency stopped for " #name_ " object "    \
-            << "with id = \"" << baseRefObject->getId() << "\".");     \
-    }                                                                  \
-  }                                                                    \
+  return !this->name_##_ref.isEmpty();                                 \
 }                                                                      \
                                                                        \
 C##type* C##type::getDirect##type##Reference(void) const               \
 {                                                                      \
   if (this->name_##_ref.isEmpty())                                     \
-    return this->getBase##type##Reference();                           \
+    ERROR("C" #type "* C" #type "::getDirect" #type "Reference(void)", \
+          << "The " #name_ " with id = '" << getId() << "'"            \
+          << " has no " #name_ "_ref.");                               \
                                                                        \
   if (!C##type::has(this->name_##_ref))                                \
     ERROR("C" #type "* C" #type "::getDirect" #type "Reference(void)", \
@@ -87,20 +68,6 @@ C##type* C##type::getDirect##type##Reference(void) const               \
           << " refers to an unknown " #name_ " id.");                  \
                                                                        \
   return C##type::get(this->name_##_ref);                              \
-}                                                                      \
-                                                                       \
-C##type* C##type::getBase##type##Reference(void) const                 \
-{                                                                      \
-  return baseRefObject;                                                \
-}                                                                      \
-                                                                       \
-const StdString& C##type::getBase##type##Id(void) const                \
-{                                                                      \
-  return this->getBase##type##Reference()->getId();                    \
-}                                                                      \
-bool C##type::hasDirect##type##Reference(void) const                   \
-{                                                                      \
-  return !this->name_##_ref.isEmpty();                                 \
 }                                                                      \
                                                                        \
 const StdString& C##type::get##type##OutputName(void) const            \
