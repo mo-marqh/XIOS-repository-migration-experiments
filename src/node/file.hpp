@@ -70,6 +70,7 @@ namespace xios {
 
       public:
          /// Accesseurs ///
+         const StdString& getFileOutputName(void) const;
          boost::shared_ptr<CDataOutput> getDataOutput(void) const;
          boost::shared_ptr<CDataInput> getDataInput(void) const;
          CFieldGroup* getVirtualFieldGroup(void) const;

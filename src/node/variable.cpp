@@ -46,6 +46,11 @@ namespace xios {
       content = boost::trim_copy(content) ;
    }
 
+   const StdString& CVariable::getVariableOutputName(void) const
+   {
+     return name.isEmpty() ? getId() : name;
+   }
+
    const StdString & CVariable::getContent (void) const
    {
       return (this->content);

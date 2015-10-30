@@ -1219,8 +1219,7 @@ namespace xios
 
       void CNc4DataOutput::writeFile_ (CFile* file)
       {
-         StdString filename = (!file->name.isEmpty())
-                            ? file->name.getValue() : file->getId();
+         StdString filename = file->getFileOutputName();
          StdString description = (!file->description.isEmpty())
                                ? file->description.getValue()
                                : StdString("Created by xios");
@@ -1251,10 +1250,7 @@ namespace xios
 
       void CNc4DataOutput::writeAttribute_ (CVariable* var, const string& fieldId)
       {
-        string name ;
-        if (!var->name.isEmpty()) name=var->name ;
-        else if (var->hasId()) name=var->getId() ;
-        else return ;
+        StdString name = var->getVariableOutputName();
 
         try
         {
@@ -1286,10 +1282,8 @@ namespace xios
 
      void CNc4DataOutput::writeAttribute_ (CVariable* var)
      {
-        string name ;
-        if (!var->name.isEmpty()) name=var->name ;
-        else if (var->hasId()) name=var->getId() ;
-        else return ;
+        StdString name = var->getVariableOutputName();
+
         try
         {
           if (var->type.getValue() == CVariable::type_attr::t_int || var->type.getValue() == CVariable::type_attr::t_int32)

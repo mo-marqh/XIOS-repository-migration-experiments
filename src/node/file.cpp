@@ -46,6 +46,13 @@ namespace xios {
    ENodeType CFile::GetType(void)   { return (eFile); }
 
    //----------------------------------------------------------------
+
+   const StdString& CFile::getFileOutputName(void) const
+   {
+     return name.isEmpty() ? getId() : name;
+   }
+
+   //----------------------------------------------------------------
    /*!
    \brief Get data writer object.
    Each enabled file in xml represents a physical netcdf file.
@@ -345,7 +352,7 @@ namespace xios {
 
       if (!allDomainEmpty)
       {
-         StdString filename = (!name.isEmpty()) ?   name.getValue() : getId();
+         StdString filename = getFileOutputName();
          StdOStringStream oss;
          oss << filename;
          if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
@@ -456,7 +463,7 @@ namespace xios {
 
     if (!allDomainEmpty)
     {
-      StdString filename = (!name.isEmpty()) ? name.getValue() : getId();
+      StdString filename = getFileOutputName();
       StdOStringStream oss;
       oss << filename;
       if (!name_suffix.isEmpty()) oss << name_suffix.getValue();

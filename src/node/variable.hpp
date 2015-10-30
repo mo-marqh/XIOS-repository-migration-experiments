@@ -61,6 +61,7 @@ namespace xios
             virtual StdString toString(void) const;
 
             /// Accesseur ///
+            const StdString& getVariableOutputName(void) const;
             const StdString & getContent (void) const;
 
             void setContent(const StdString& content);

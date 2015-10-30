@@ -920,7 +920,7 @@ namespace xios {
 
        if (!file->timeseries.isEmpty() && file->timeseries != CFile::timeseries_attr::none)
        {
-         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : (!file->name.isEmpty() ? file->name : file->getId());
+         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : file->getFileOutputName();
 
          const std::vector<CField*> allFields = file->getAllFields();
          for (size_t j = 0; j < allFields.size(); j++)
