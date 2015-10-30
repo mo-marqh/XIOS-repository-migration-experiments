@@ -1057,8 +1057,7 @@ namespace xios
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
 */
-         StdString fieldid   = (!field->name.isEmpty())
-                             ? field->name.getValue() : field->getBaseFieldReference()->getId();
+         StdString fieldid = field->getFieldOutputName();
 
 //         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
 //         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
@@ -1383,9 +1382,7 @@ namespace xios
         if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type == MULTI_FILE || !isCollective) return;
 
-        StdString fieldid = !field->name.isEmpty()
-                          ? field->name.getValue()
-                          : field->getBaseFieldReference()->getId();
+        StdString fieldid = field->getFieldOutputName();
 
         StdOStringStream oss;
         string timeAxisId;

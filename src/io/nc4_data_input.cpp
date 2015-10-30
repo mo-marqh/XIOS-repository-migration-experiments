@@ -20,7 +20,7 @@ namespace xios
 
   StdSize CNc4DataInput::getFieldNbRecords_(CField* field)
   {
-    StdString fieldId = !field->name.isEmpty() ? field->name.getValue() : field->getBaseFieldReference()->getId();
+    StdString fieldId = field->getFieldOutputName();
 
     if (SuperClassWriter::isTemporal(fieldId))
     {
@@ -40,7 +40,7 @@ namespace xios
     if (!grid->doGridHaveDataToWrite())
       if (SuperClass::type==MULTI_FILE || !isCollective) return;
 
-    StdString fieldId = !field->name.isEmpty() ? field->name.getValue() : field->getBaseFieldReference()->getId();
+    StdString fieldId = field->getFieldOutputName();
 
     CArray<double,1> fieldData(grid->getWrittenDataSize());
     if (!field->default_value.isEmpty()) fieldData = field->default_value;

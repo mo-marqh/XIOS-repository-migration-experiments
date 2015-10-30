@@ -759,12 +759,12 @@ namespace xios{
       if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
       {
         ERROR("CField::solveGridReference(void)",
-              << "A grid must be defined for field '" << (!name.isEmpty() ? name.getValue() : getId()) << "' .");
+              << "A grid must be defined for field '" << getFieldOutputName() << "' .");
       }
       else if (!grid_ref.isEmpty() && (!domain_ref.isEmpty() || !axis_ref.isEmpty()))
       {
         ERROR("CField::solveGridReference(void)",
-              << "Field '" << (!name.isEmpty() ? name.getValue() : getId()) << "' has both a grid and a domain/axis." << std::endl
+              << "Field '" << getFieldOutputName() << "' has both a grid and a domain/axis." << std::endl
               << "Please define either 'grid_ref' or 'domain_ref'/'axis_ref'.");
       }
 

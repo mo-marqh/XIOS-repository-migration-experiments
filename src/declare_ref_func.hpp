@@ -11,7 +11,7 @@
 
 // Declarations
 
-#define DECLARE_REF_FUNC(type, name)                        \
+#define DECLARE_REF_FUNC(type, name_)                       \
 public:                                                     \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
@@ -20,13 +20,14 @@ public:                                                     \
   const StdString& getBase##type##Id(void) const;           \
   void solveRefInheritance(bool apply = true);              \
   void solveBaseReference(void);                            \
+  const StdString& get##type##OutputName(void) const;       \
                                                             \
 private:                                                    \
   C##type* baseRefObject;                                   \
 
 // Definitions
 
-#define DEFINE_REF_FUNC(type, name)                                    \
+#define DEFINE_REF_FUNC(type, name_)                                   \
 void C##type::solveRefInheritance(bool apply)                          \
 {                                                                      \
   std::set<C##type*> refObjects;                                       \
@@ -41,7 +42,7 @@ void C##type::solveRefInheritance(bool apply)                          \
     if (refObjects.end() != refObjects.find(refer_ptr))                \
     {                                                                  \
       ERROR("void C" #type "::solveRefInheritance(bool apply)",        \
-            << "Circular dependency stopped for " #name " object "     \
+            << "Circular dependency stopped for " #name_ " object "    \
             << "with id = \"" << refer_ptr->getId() << "\".");         \
     }                                                                  \
                                                                        \
@@ -51,8 +52,8 @@ void C##type::solveRefInheritance(bool apply)                          \
                                                                        \
 void C##type::removeRefInheritance()                                   \
 {                                                                      \
-  if (!this->name##_ref.isEmpty())                                     \
-    this->name##_ref.reset();                                          \
+  if (!this->name_##_ref.isEmpty())                                    \
+    this->name_##_ref.reset();                                         \
 }                                                                      \
                                                                        \
 void C##type::solveBaseReference(void)                                 \
@@ -69,7 +70,7 @@ void C##type::solveBaseReference(void)                                 \
     if (refObjects.end() != refObjects.find(baseRefObject))            \
     {                                                                  \
       ERROR("void C" #type "::solveBaseReference(void)",               \
-            << "Circular dependency stopped for " #name " object "     \
+            << "Circular dependency stopped for " #name_ " object "    \
             << "with id = \"" << baseRefObject->getId() << "\".");     \
     }                                                                  \
   }                                                                    \
@@ -77,15 +78,15 @@ void C##type::solveBaseReference(void)                                 \
                                                                        \
 C##type* C##type::getDirect##type##Reference(void) const               \
 {                                                                      \
-  if (this->name##_ref.isEmpty())                                      \
+  if (this->name_##_ref.isEmpty())                                     \
     return this->getBase##type##Reference();                           \
                                                                        \
-  if (!C##type::has(this->name##_ref))                                 \
+  if (!C##type::has(this->name_##_ref))                                \
     ERROR("C" #type "* C" #type "::getDirect" #type "Reference(void)", \
-          << this->name##_ref                                          \
-          << " refers to an unknown " #name " id.");                   \
+          << this->name_##_ref                                         \
+          << " refers to an unknown " #name_ " id.");                  \
                                                                        \
-  return C##type::get(this->name##_ref);                               \
+  return C##type::get(this->name_##_ref);                              \
 }                                                                      \
                                                                        \
 C##type* C##type::getBase##type##Reference(void) const                 \
@@ -97,10 +98,19 @@ const StdString& C##type::getBase##type##Id(void) const                \
 {                                                                      \
   return this->getBase##type##Reference()->getId();                    \
 }                                                                      \
-                                                                       \
 bool C##type::hasDirect##type##Reference(void) const                   \
 {                                                                      \
-  return !this->name##_ref.isEmpty();                                  \
+  return !this->name_##_ref.isEmpty();                                 \
+}                                                                      \
+                                                                       \
+const StdString& C##type::get##type##OutputName(void) const            \
+{                                                                      \
+  if (!this->name.isEmpty())                                           \
+    return this->name;                                                 \
+  else if (hasAutoGeneratedId() && hasDirect##type##Reference())       \
+    return this->name_##_ref;                                          \
+  else                                                                 \
+    return getId();                                                    \
 }                                                                      \
 
 #endif // __XIOS_DECLARE_REF_FUNC_HPP__

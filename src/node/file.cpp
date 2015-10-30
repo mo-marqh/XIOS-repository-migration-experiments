@@ -955,15 +955,13 @@ namespace xios {
    */
    void CFile::sendEnabledFields()
    {
-     int size = this->enabledFields.size();
-     CField* fieldPtr(0);
-     for (int i = 0; i < size; ++i)
+     size_t size = this->enabledFields.size();
+     for (size_t i = 0; i < size; ++i)
      {
-       fieldPtr = this->enabledFields[i];
-       if (fieldPtr->name.isEmpty()) fieldPtr->name.setValue(fieldPtr->getBaseFieldReference()->getId());
-       this->sendAddField(fieldPtr->getId());
-       fieldPtr->sendAllAttributesToServer();
-       fieldPtr->sendAddAllVariables();
+       CField* field = this->enabledFields[i];
+       this->sendAddField(field->getId());
+       field->sendAllAttributesToServer();
+       field->sendAddAllVariables();
      }
    }
 
