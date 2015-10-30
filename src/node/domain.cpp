@@ -1828,16 +1828,6 @@ namespace xios {
     if (domain->hasTransformation())
       for (size_t i = 0; i < refDomains.size(); ++i)
         refDomains[i]->setTransformations(domain->getAllTransformations());
-
-    // Try to inherit the id of the referenced object as the domain name
-    // when no name was been defined and a defaut id is used.
-    if (name.isEmpty())
-    {
-      static const std::string defId("__domain_undef_id_");
-      const std::string& id = getId();
-      if (id.size() > defId.size() && id.compare(0, defId.size(), defId) == 0)
-        name = domain->getId();
-    }
   }
 
   void CDomain::solveSrcInheritance()

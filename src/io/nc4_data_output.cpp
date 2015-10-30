@@ -70,8 +70,7 @@ namespace xios
            if (SuperClass::type==MULTI_FILE) return ;
 
          std::vector<StdString> dim0, dim1;
-         StdString domid     = (!domain->name.isEmpty())
-                             ? domain->name.getValue() : domain->getId();
+         StdString domid = domain->getDomainOutputName();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
          if (isWrittenDomain(domid)) return ;
          else writtenDomains.insert(domid) ;
@@ -448,8 +447,7 @@ namespace xios
            if (SuperClass::type==MULTI_FILE) return ;
 
          std::vector<StdString> dim0, dim1;
-         StdString domid     = (!domain->name.isEmpty())
-                             ? domain->name.getValue() : domain->getId();
+         StdString domid = domain->getDomainOutputName();
          if (isWrittenDomain(domid)) return ;
          else writtenDomains.insert(domid) ;
 
@@ -636,7 +634,7 @@ namespace xios
         if ((0 == zoom_size_srv) && (MULTI_FILE == SuperClass::type)) return;
 
         std::vector<StdString> dims;
-        StdString axisid = !axis->name.isEmpty() ? axis->name.getValue() : axis->getId();
+        StdString axisid = axis->getAxisOutputName();
         if (isWrittenAxis(axisid)) return ;
         else writtenAxis.insert(axisid) ;
 
@@ -758,7 +756,7 @@ namespace xios
              if (axisDomainOrder(i))
              {
                CDomain* domain = CDomain::get(domainList[domainList.size() - idxDomain - 1]);
-               StdString domId = !domain->name.isEmpty() ? domain->name.getValue() : domain->getId();
+               StdString domId = domain->getDomainOutputName();
                StdString appendDomId  = singleDomain ? "" : "_" + domId;
 
                switch (domain->type)
@@ -778,7 +776,7 @@ namespace xios
              else
              {
                CAxis* axis = CAxis::get(axisList[axisList.size() - idxAxis - 1]);
-               compress << (!axis->name.isEmpty() ? axis->name.getValue() : axis->getId());
+               compress << axis->getAxisOutputName();
                ++idxAxis;
              }
 
@@ -836,7 +834,7 @@ namespace xios
                     || domain->isWrittenCompressed(this->filename))
                  continue;
 
-               StdString domId = !domain->name.isEmpty() ? domain->name.getValue() : domain->getId();
+               StdString domId = domain->getDomainOutputName();
                StdString appendDomId  = singleDomain ? "" : "_" + domId;
 
                varId = domId + "_points";
@@ -870,7 +868,7 @@ namespace xios
                if (!axis->isCompressible() || axis->isWrittenCompressed(this->filename))
                  continue;
 
-               StdString axisId = !axis->name.isEmpty() ? axis->name.getValue() : axis->getId();
+               StdString axisId = axis->getAxisOutputName();
                varId = axisId + "_points";
                compress = axisId;
 
@@ -986,7 +984,7 @@ namespace xios
            if (axisDomainOrder(i))
            {
              CDomain* domain = CDomain::get(domainList[idxDomain]);
-             StdString domId = !domain->name.isEmpty() ? domain->name.getValue() : domain->getId();
+             StdString domId = domain->getDomainOutputName();
              StdString appendDomId  = singleDomain ? "" : "_" + domId ;
 
              if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
@@ -1034,7 +1032,7 @@ namespace xios
            else
            {
              CAxis* axis = CAxis::get(axisList[idxAxis]);
-             StdString axisId = !axis->name.isEmpty() ? axis->name.getValue() : axis->getId();
+             StdString axisId = axis->getAxisOutputName();
 
              if (compressedOutput && axis->isCompressible())
              {

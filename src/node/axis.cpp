@@ -890,16 +890,6 @@ namespace xios {
     if (axis->hasTransformation())
       for (size_t i = 0; i < refAxis.size(); ++i)
         refAxis[i]->setTransformations(axis->getAllTransformations());
-
-    // Try to inherit the id of the referenced object as the axis name
-    // when no name was been defined and a defaut id is used.
-    if (name.isEmpty())
-    {
-      static const std::string defId("__axis_undef_id_");
-      const std::string& id = getId();
-      if (id.size() > defId.size() && id.compare(0, defId.size(), defId) == 0)
-        name = axis->getId();
-    }
   }
 
   void CAxis::parse(xml::CXMLNode & node)
