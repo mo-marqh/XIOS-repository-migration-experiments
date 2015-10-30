@@ -16,16 +16,12 @@ public:                                                     \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
   C##type* getBase##type##Reference(void) const;            \
-  const std::vector<C##type*>& getAllReference(void) const; \
   void removeRefInheritance();                              \
   const StdString& getBase##type##Id(void) const;           \
   void solveRefInheritance(bool apply = true);              \
   void solveBaseReference(void);                            \
                                                             \
 private:                                                    \
-  void addReference(C##type* _##name##_);                   \
-                                                            \
-  std::vector<C##type*> refObject;                          \
   C##type* baseRefObject;                                   \
 
 // Definitions
@@ -77,8 +73,6 @@ void C##type::solveBaseReference(void)                                 \
             << "with id = \"" << baseRefObject->getId() << "\".");     \
     }                                                                  \
   }                                                                    \
-                                                                       \
-  if (hasDirect##type##Reference()) baseRefObject->addReference(this); \
 }                                                                      \
                                                                        \
 C##type* C##type::getDirect##type##Reference(void) const               \
@@ -99,19 +93,9 @@ C##type* C##type::getBase##type##Reference(void) const                 \
   return baseRefObject;                                                \
 }                                                                      \
                                                                        \
-const std::vector<C##type*>& C##type::getAllReference(void) const      \
-{                                                                      \
-  return refObject;                                                    \
-}                                                                      \
-                                                                       \
 const StdString& C##type::getBase##type##Id(void) const                \
 {                                                                      \
   return this->getBase##type##Reference()->getId();                    \
-}                                                                      \
-                                                                       \
-void C##type::addReference(C##type* _##name##_)                        \
-{                                                                      \
-  refObject.push_back(_##name##_);                                     \
 }                                                                      \
                                                                        \
 bool C##type::hasDirect##type##Reference(void) const                   \
