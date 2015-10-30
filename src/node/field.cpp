@@ -29,7 +29,7 @@ namespace xios{
 
    CField::CField(void)
       : CObjectTemplate<CField>(), CFieldAttributes()
-      , refObject(), baseRefObject()
+      , baseRefObject()
       , grid(), file()
       , written(false)
       , nstep(0), nstepMax(0)
@@ -41,7 +41,7 @@ namespace xios{
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
-      , refObject(), baseRefObject()
+      , baseRefObject()
       , grid(), file()
       , written(false)
       , nstep(0), nstepMax(0)
@@ -457,7 +457,7 @@ namespace xios{
 
    bool CField::isActive(void) const
    {
-      return !this->refObject.empty();
+      return (instantDataFilter != NULL);
    }
 
    //----------------------------------------------------------------
