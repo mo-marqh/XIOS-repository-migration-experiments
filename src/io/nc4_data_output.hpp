@@ -94,15 +94,23 @@ namespace xios
             /// Traitement ///
             StdString getTimeStamp(void) const;
 
+            bool isWrittenDomain(const std::string& domainName) const;
+            bool isWrittenCompressedDomain(const std::string& domainName) const;
+            bool isWrittenAxis(const std::string& axisName) const;
+            bool isWrittenCompressedAxis(const std::string& axisName) const;
+
+            void setWrittenDomain(const std::string& domainName);
+            void setWrittenCompressedDomain(const std::string& domainName);
+            void setWrittenAxis(const std::string& axisName);
+            void setWrittenCompressedAxis(const std::string& axisName);
+
             /// Propriétés privées ///
             MPI_Comm comm_file;
             const StdString filename;
             std::map<Time, StdSize> timeToRecordCache;
 
-            std::set<std::string> writtenDomains ; 
-            std::set<std::string> writtenAxis ;
-            bool isWrittenDomain(const std::string& domainName) { return this->writtenDomains.find(domainName) != this->writtenDomains.end(); }
-            bool isWrittenAxis(const std::string& axisName) { return this->writtenAxis.find(axisName) != this->writtenAxis.end(); }
+            std::set<std::string> writtenDomains, writtenCompressedDomains;
+            std::set<std::string> writtenAxis, writtenCompressedAxis;
       }; // class CNc4DataOutput
 
 } // namespace xios

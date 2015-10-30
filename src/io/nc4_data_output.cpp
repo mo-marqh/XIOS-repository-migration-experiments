@@ -73,7 +73,7 @@ namespace xios
          StdString domid = domain->getDomainOutputName();
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
          if (isWrittenDomain(domid)) return ;
-         else writtenDomains.insert(domid) ;
+         else setWrittenDomain(domid);
 
 
          StdString dimXid, dimYid ;
@@ -449,7 +449,7 @@ namespace xios
          std::vector<StdString> dim0, dim1;
          StdString domid = domain->getDomainOutputName();
          if (isWrittenDomain(domid)) return ;
-         else writtenDomains.insert(domid) ;
+         else setWrittenDomain(domid);
 
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
@@ -636,7 +636,7 @@ namespace xios
         std::vector<StdString> dims;
         StdString axisid = axis->getAxisOutputName();
         if (isWrittenAxis(axisid)) return ;
-        else writtenAxis.insert(axisid) ;
+        else setWrittenAxis(axisid);
 
         try
         {
@@ -829,12 +829,14 @@ namespace xios
              if (axisDomainOrder(i))
              {
                CDomain* domain = CDomain::get(domainList[idxDomain]);
+               StdString domId = domain->getDomainOutputName();
+
                if (!domain->isCompressible()
                     || domain->type == CDomain::type_attr::unstructured
-                    || domain->isWrittenCompressed(this->filename))
+                    || domain->isWrittenCompressed(this->filename)
+                    || isWrittenCompressedDomain(domId))
                  continue;
 
-               StdString domId = domain->getDomainOutputName();
                StdString appendDomId  = singleDomain ? "" : "_" + domId;
 
                varId = domId + "_points";
@@ -860,15 +862,19 @@ namespace xios
                firstGlobalIndex = domain->ibegin + domain->jbegin * domain->ni_glo;
 
                domain->addRelFileCompressed(this->filename);
+               setWrittenCompressedDomain(domId);
                ++idxDomain;
              }
              else
              {
                CAxis* axis = CAxis::get(axisList[idxAxis]);
-               if (!axis->isCompressible() || axis->isWrittenCompressed(this->filename))
+               StdString axisId = axis->getAxisOutputName();
+
+               if (!axis->isCompressible()
+                    || axis->isWrittenCompressed(this->filename)
+                    || isWrittenCompressedAxis(axisId))
                  continue;
 
-               StdString axisId = axis->getAxisOutputName();
                varId = axisId + "_points";
                compress = axisId;
 
@@ -884,6 +890,7 @@ namespace xios
                firstGlobalIndex = axis->begin;
 
                axis->addRelFileCompressed(this->filename);
+               setWrittenCompressedAxis(axisId);
                ++idxAxis;
              }
 
@@ -1965,5 +1972,47 @@ namespace xios
           it = timeToRecordCache.insert(std::make_pair(time, record)).first;
         }
         return it->second;
+      }
+
+      ///--------------------------------------------------------------
+
+      bool CNc4DataOutput::isWrittenDomain(const std::string& domainName) const
+      {
+        return (this->writtenDomains.find(domainName) != this->writtenDomains.end());
+      }
+
+      bool CNc4DataOutput::isWrittenCompressedDomain(const std::string& domainName) const
+      {
+        return (this->writtenCompressedDomains.find(domainName) != this->writtenCompressedDomains.end());
+      }
+
+      bool CNc4DataOutput::isWrittenAxis(const std::string& axisName) const
+      {
+        return (this->writtenAxis.find(axisName) != this->writtenAxis.end());
+      }
+
+      bool CNc4DataOutput::isWrittenCompressedAxis(const std::string& axisName) const
+      {
+        return (this->writtenCompressedAxis.find(axisName) != this->writtenCompressedAxis.end());
+      }
+
+      void CNc4DataOutput::setWrittenDomain(const std::string& domainName)
+      {
+        this->writtenDomains.insert(domainName);
+      }
+
+      void CNc4DataOutput::setWrittenCompressedDomain(const std::string& domainName)
+      {
+        this->writtenCompressedDomains.insert(domainName);
+      }
+
+      void CNc4DataOutput::setWrittenAxis(const std::string& axisName)
+      {
+        this->writtenAxis.insert(axisName);
+      }
+
+      void CNc4DataOutput::setWrittenCompressedAxis(const std::string& axisName)
+      {
+        this->writtenCompressedAxis.insert(axisName);
       }
 } // namespace xios
