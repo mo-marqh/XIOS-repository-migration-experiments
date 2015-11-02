@@ -143,6 +143,7 @@ namespace xios {
          void solveAxisRef(bool checkAtt);
          void solveDomainAxisRefInheritance(bool apply = true);
          void solveTransformations();
+         void solveDomainAxisBaseRef();
 
          void sendAddDomain(const std::string& id="");
          void sendAddAxis(const std::string& id="");
@@ -185,7 +186,7 @@ namespace xios {
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
-         void completeGrid(CGrid* transformGridSrc);
+         void completeGrid(CGrid* transformGridSrc = 0);
          void doAutoDistribution(CGrid* transformGridSrc);
          bool isTransformed();
          void setTransformed();
@@ -262,6 +263,7 @@ namespace xios {
         bool isTransformed_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
+        bool hasDomainAxisBaseRef_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

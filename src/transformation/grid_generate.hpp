@@ -31,7 +31,7 @@ public:
 
 public:
   /** Default constructor */
-  CGridGenerate(CGrid* destination, CGrid* source);
+  CGridGenerate(CGrid* destination, CGrid* source = 0);
   ~CGridGenerate();
 
   void completeGrid();

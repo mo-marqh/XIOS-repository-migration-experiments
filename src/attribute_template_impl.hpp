@@ -7,7 +7,7 @@
 #include "generate_interface.hpp"
 #include "attribute_template.hpp"
 
-  
+
 namespace xios
 {
 
@@ -53,7 +53,7 @@ namespace xios
 /*
       template <class T>
       CAttributeTemplate<T>::~CAttributeTemplate(void)
-      { 
+      {
 //         this->CType<T>::reset() ;
 //         this->clear();
       }
@@ -107,39 +107,39 @@ namespace xios
     void CAttributeTemplate<T>::set(const CAttribute& attr)
     {
       this->set(dynamic_cast<const CAttributeTemplate<T>& >(attr)) ;
-    } 
+    }
 
    template <class T>
     void CAttributeTemplate<T>::set(const CAttributeTemplate& attr)
     {
       CType<T>::set(attr) ;
-    } 
+    }
 
     template <class T>
     void CAttributeTemplate<T>::setInheritedValue(const CAttribute& attr)
     {
       this->setInheritedValue(dynamic_cast<const CAttributeTemplate<T>& >(attr)) ;
-    } 
+    }
 
     template <class T>
     void CAttributeTemplate<T>::setInheritedValue(const CAttributeTemplate& attr)
     {
       if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
-    } 
+    }
 
     template <class T>
     T CAttributeTemplate<T>::getInheritedValue(void) const
     {
       if (this->isEmpty()) return inheritedValue.get() ;
       else return getValue() ;
-    } 
-    
+    }
+
     template <class T>
     bool CAttributeTemplate<T>::hasInheritedValue(void) const
     {
       return !this->isEmpty() || !inheritedValue.isEmpty() ;
-    } 
-    
+    }
+
       //---------------------------------------------------------------
 
       template <class T>
@@ -187,7 +187,7 @@ namespace xios
          bool CAttributeTemplate<T>::_toBuffer (CBufferOut& buffer) const
       {
          return CType<T>::toBuffer(buffer) ;
-/*         
+/*
          if (isEmpty()) return buffer.put(true) ;
          else
          {
@@ -204,11 +204,11 @@ namespace xios
       bool CAttributeTemplate<T>::_fromBuffer(CBufferIn& buffer)
       {
         return CType<T>::fromBuffer(buffer) ;
-/*        
+/*
         bool empty ;
         bool ret=true ;
         ret&=buffer.get(empty) ;
-        if (empty) 
+        if (empty)
         {
           clear() ;
           return ret ;
@@ -229,9 +229,9 @@ namespace xios
 /*
       template <class T>
       size_t CAttributeTemplate<T>::size(void) const
-      { 
+      {
         return CType<T>::size() ;*/
-/*        
+/*
         if (isEmpty()) return sizeof(bool) ;
         else
         {
@@ -244,66 +244,74 @@ namespace xios
       template <typename T>
       void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)
       {
-        CInterface::AttributeCInterface<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeCInterface<T>(oss, className, this->getName()) ;
 //        CInterface::AttributeIsDefinedCInterface(oss, className, this->getName()) ;
       }
-      
+
       template <typename T>
       void CAttributeTemplate<T>::generateFortran2003Interface(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName()) ;
 //        CInterface::AttributeIsDefinedFortran2003Interface(oss, className, this->getName()) ;
       }
-      
+
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceDeclaration_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()+"_") ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()+"_") ;
       }
- 
+
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceBody_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceBody<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceBody<T>(oss, className, this->getName()) ;
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceDeclaration(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()) ;
       }
-      
+
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()+"_") ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()+"_") ;
       }
- 
- 
+
+
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetBody_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetBody<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetBody<T>(oss, className, this->getName()) ;
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
       }
 
- 
-/*      
+
+/*
       //---------------------------------------------------------------
 
-      // Spécialisations des templates pour la fonction [toString] 
+      // Spécialisations des templates pour la fonction [toString]
 
       template <>
          StdString CAttributeTemplate<bool>::toString(void) const;
 
       //---------------------------------------------------------------
 
-      // Spécialisations des templates pour la fonction [fromString] 
+      // Spécialisations des templates pour la fonction [fromString]
 
       template <> // Chaîne de caractères.
          void CAttributeTemplate<StdString>::fromString(const StdString & str);
@@ -332,7 +340,7 @@ namespace xios
 
       template <> // Booléen
          void CAttributeTemplate<bool>::toBinary(StdOStream & os) const;
-         
+
       template <> // Double
          void CAttributeTemplate<double>::toBinary(StdOStream & os) const;
 
@@ -348,12 +356,12 @@ namespace xios
 
       template <> // Booléen
          void CAttributeTemplate<bool>::fromBinary(StdIStream & is);
-         
+
       template <> // Double
          void CAttributeTemplate<double>::fromBinary(StdIStream & is);
 
       ///--------------------------------------------------------------
-*/      
+*/
 } // namespace xios
 
 #endif // __XIOS_CAttributeTemplate_impl__

@@ -8,6 +8,9 @@
 
 namespace xios
 {
+  class CDomain;
+  class CAxis;
+
   class CNc4DataInput
     : protected CINetCDF4
     , public virtual CDataInput
@@ -32,7 +35,28 @@ namespace xios
     // Read methods
     virtual StdSize getFieldNbRecords_(CField* field);
     virtual void readFieldData_(CField* field);
+    virtual void readFieldAttributes_(CField* field, bool readAttributeValues);
     virtual void closeFile_(void);
+
+  private:
+    void readDomainAttributesFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+                                      int elementPosition, const StdString& fieldId);
+    void readDomainAttributeValueFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+                                          int elementPosition, const StdString& fieldId);
+
+    void readAxisAttributesFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+                                    int elementPosition, const StdString& fieldId);
+    void readAxisAttributeValueFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+                                        int elementPosition, const StdString& fieldId);
+
+    void readFieldVariableValue(CArray<double,1>& var, const StdString& varId,
+                                const std::vector<StdSize>& nBegin,
+                                const std::vector<StdSize>& nSize,
+                                bool forceIndependent = false);
+
+  private:
+    std::set<StdString> readMetaDataDomains_, readValueDomains_;
+    std::set<StdString> readMetaDataAxis_, readValueAxis_;
 
   private:
     /// Private attributes ///

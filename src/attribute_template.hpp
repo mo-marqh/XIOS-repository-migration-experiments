@@ -11,13 +11,13 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "type.hpp"
-
+#include "attribute_public.hpp"
 
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
       template <class T>
-         class CAttributeTemplate : public CAttribute, public CType<T>
+         class CAttributeTemplate : public CAttribute, public CType<T>, public PublicAttributes
       {
             typedef CAttribute SuperClass;
 
@@ -44,7 +44,7 @@ namespace xios
 
             /// Mutateurs ///
             void setValue(const ValueType & value);
-            
+
             void set(const CAttribute& attr) ;
             void set(const CAttributeTemplate& attr) ;
             void reset(void) ;
@@ -53,7 +53,7 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             T getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
-            
+
             /// Destructeur ///
             virtual ~CAttributeTemplate(void) { }
 
@@ -65,10 +65,10 @@ namespace xios
             virtual void fromString(const StdString & str) { _fromString(str);}
 //            virtual CAttributeTemplate* clone() const {}
 //            virtual void toBinary  (StdOStream & os) const;
-//            virtual void fromBinary(StdIStream & is);            
+//            virtual void fromBinary(StdIStream & is);
 
-            virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);} 
-            virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); } 
+            virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);}
+            virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); }
 //            virtual size_t size(void) const;
             virtual void generateCInterface(ostream& oss,const string& className) ;
             virtual void generateFortran2003Interface(ostream& oss,const string& className) ;
@@ -82,7 +82,7 @@ namespace xios
 //            virtual void generateFortranInterfaceIsDefinedBody_(ostream& oss,const string& className) ;
 //            virtual void generateFortranInterfaceIsDefinedDeclaration(ostream& oss,const string& className) ;
 
-      
+
          protected :
 
             /// Constructeurs ///
@@ -92,13 +92,13 @@ namespace xios
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;
-          
+
           CType<T> inheritedValue ;
-      }; // class CAttribute    
-      
-   
+      }; // class CAttribute
+
+
    template <class T>  void FromBinary(StdIStream & is, T & obj);
-   
+
 } // namespace xios
 
 #endif // __XIOS_CAttributeTemplate__

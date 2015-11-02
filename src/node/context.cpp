@@ -312,7 +312,7 @@ namespace xios {
      registryIn->bcastRegistry() ;
      registryOut=new CRegistry(intraComm) ;
      registryOut->setPath(getId()) ;
- 
+
      MPI_Comm intraCommClient, interCommClient;
      if (cxtClient) // Attached mode
      {
@@ -361,7 +361,7 @@ namespace xios {
           registryOut->hierarchicalGatherRegistry() ;
           if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
         }
-        
+
         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
           MPI_Comm_free(&(*it));
         comms.clear();
@@ -438,6 +438,18 @@ namespace xios {
    {
      for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
      (void)this->enabledFiles[i]->getEnabledFields();
+   }
+
+   void CContext::findAllEnabledFieldsInReadModeFiles(void)
+   {
+     for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
+     (void)this->enabledReadModeFiles[i]->getEnabledFields();
+   }
+
+   void CContext::readAttributesOfEnabledFieldsInReadModeFiles()
+   {
+      for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
+        (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
    }
 
    void CContext::solveAllRefOfEnabledFields(bool sendToServer)
@@ -784,7 +796,13 @@ namespace xios {
 
       // Find all enabled fields of each file
       this->findAllEnabledFields();
+      this->findAllEnabledFieldsInReadModeFiles();
 
+     if (hasClient && !hasServer)
+     {
+      // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
+      this->readAttributesOfEnabledFieldsInReadModeFiles();
+     }
       // Search and rebuild all reference object of enabled fields
       this->solveAllRefOfEnabledFields(false);
 
@@ -1052,7 +1070,7 @@ namespace xios {
 
       if (hasClient)
       {
-        checkPrefetchingOfEnabledReadModeFiles();
+        //checkPrefetchingOfEnabledReadModeFiles();
         garbageCollector.invalidate(calendar->getCurrentDate());
       }
    }

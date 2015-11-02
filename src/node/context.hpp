@@ -102,6 +102,8 @@ namespace xios {
 
          // Some functions to process context
          void findAllEnabledFields(void);
+         void findAllEnabledFieldsInReadModeFiles(void);
+         void readAttributesOfEnabledFieldsInReadModeFiles();
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
          void findEnabledReadModeFiles(void);
@@ -217,9 +219,9 @@ namespace xios {
 
          // Concrete contex client
          CContextClient* client;
-         CRegistry* registryIn ;  //!< input registry which is read from file 
+         CRegistry* registryIn ;  //!< input registry which is read from file
          CRegistry* registryOut ; //!< output registry which will be wrote on file at the finalize
-         
+
       private:
          bool isPostProcessed;
          bool finalized;

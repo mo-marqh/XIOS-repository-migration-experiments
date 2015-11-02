@@ -6,7 +6,7 @@
 #include "generate_interface.hpp"
 #include "attribute_array.hpp"
 
-  
+
 namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
@@ -46,7 +46,7 @@ namespace xios
         CArray<T_numtype, N_rank>::reset() ;
         inheritedValue.reset() ;
       }
-      
+
       template <typename T_numtype, int N_rank>
       CArray<T_numtype,N_rank> CAttributeArray<T_numtype, N_rank>::getValue(void) const
       {
@@ -64,44 +64,44 @@ namespace xios
     void CAttributeArray<T_numtype,N_rank>::set(const CAttribute& attr)
     {
       this->set(dynamic_cast<const CAttributeArray<T_numtype,N_rank>& >(attr)) ;
-    } 
+    }
 
     template <typename T_numtype, int N_rank>
     void CAttributeArray<T_numtype,N_rank>::set(const CAttributeArray& attr)
     {
       this->setValue(attr) ;
-    } 
-    
-    
+    }
+
+
     template <typename T_numtype, int N_rank>
     void CAttributeArray<T_numtype,N_rank>::setInheritedValue(const CAttribute& attr)
     {
       this->setInheritedValue(dynamic_cast<const CAttributeArray<T_numtype,N_rank>& >(attr)) ;
-    } 
+    }
 
     template <typename T_numtype, int N_rank>
     void CAttributeArray<T_numtype,N_rank>::setInheritedValue(const CAttributeArray& attr)
     {
-      if (this->isEmpty() && attr.hasInheritedValue()) 
+      if (this->isEmpty() && attr.hasInheritedValue())
       {
         inheritedValue.resize(attr.shape()) ;
         inheritedValue=attr ;
       }
-    } 
+    }
 
     template <typename T_numtype, int N_rank>
     CArray<T_numtype,N_rank> CAttributeArray<T_numtype,N_rank>::getInheritedValue(void) const
     {
       if (this->isEmpty()) return inheritedValue.copy() ;
       else return getValue() ;
-    } 
-    
+    }
+
     template <typename T_numtype, int N_rank>
     bool CAttributeArray<T_numtype,N_rank>::hasInheritedValue(void) const
     {
       return !this->isEmpty() || !inheritedValue.isEmpty() ;
-    } 
-    
+    }
+
 
     template <typename T_numtype, int N_rank>
     StdString CAttributeArray<T_numtype,N_rank>::_toString(void) const
@@ -132,49 +132,57 @@ namespace xios
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateCInterface(ostream& oss,const string& className)
       {
-        CInterface::AttributeCInterface<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeCInterface<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
-      
+
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortran2003Interface(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortran2003Interface<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortran2003Interface<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
-      
+
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceDeclaration_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()+"_") ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()+"_") ;
       }
- 
+
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceBody_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceBody<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceBody<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
 
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceDeclaration(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
-      
+
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()+"_") ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()+"_") ;
       }
- 
+
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceGetBody_(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetBody<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetBody<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
 
       template <typename T_numtype, int N_rank>
       void CAttributeArray<T_numtype, N_rank>::generateFortranInterfaceGetDeclaration(ostream& oss,const string& className)
       {
-        CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
+        if (this->isAttributePublic())
+          CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T_numtype, N_rank> >(oss, className, this->getName()) ;
       }
 } // namespace xios
 

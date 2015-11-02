@@ -77,8 +77,8 @@ void CDomainAlgorithmInterpolate::computeRemap()
   {
     bool isNorthPole = false;
     bool isSouthPole = false;
-    if (poleValue == std::abs(domainSrc_->lat_start)) isNorthPole = true;
-    if (poleValue == std::abs(domainSrc_->lat_end)) isSouthPole = true;
+    if (std::abs(poleValue - std::abs(domainSrc_->lat_start)) < NumTraits<double>::epsilon()) isNorthPole = true;
+    if (std::abs(poleValue - std::abs(domainSrc_->lat_end)) < NumTraits<double>::epsilon()) isSouthPole = true;
 
     nVertexSrc = constNVertex;
     domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc, isNorthPole, isSouthPole);
@@ -120,8 +120,8 @@ void CDomainAlgorithmInterpolate::computeRemap()
   {
     bool isNorthPole = false;
     bool isSouthPole = false;
-    if (poleValue == std::abs(domainDest_->lat_start)) isNorthPole = true;
-    if (poleValue == std::abs(domainDest_->lat_end)) isSouthPole = true;
+    if (std::abs(poleValue - std::abs(domainDest_->lat_start)) < NumTraits<double>::epsilon()) isNorthPole = true;
+    if (std::abs(poleValue - std::abs(domainDest_->lat_end)) < NumTraits<double>::epsilon()) isSouthPole = true;
     if (isNorthPole && (0 == domainDest_->jbegin.getValue()))
     {
       int ibegin = domainDest_->ibegin.getValue();

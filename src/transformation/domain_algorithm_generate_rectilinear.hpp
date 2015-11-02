@@ -26,18 +26,20 @@ class CGenerateRectilinearDomain;
 class CDomainAlgorithmGenerateRectilinear : public CDomainAlgorithmTransformation
 {
 public:
-  CDomainAlgorithmGenerateRectilinear(CDomain* domainDestination, CDomain* domainSource, CGrid* gridSource, CGenerateRectilinearDomain* zoomDomain);
+  CDomainAlgorithmGenerateRectilinear(CDomain* domainDestination, CDomain* domainSource,
+                                      CGrid* gridDest, CGrid* gridSource,
+                                      CGenerateRectilinearDomain* zoomDomain);
 
   virtual ~CDomainAlgorithmGenerateRectilinear() {}
 
   virtual void computeIndexSourceMapping();
 
 private:
-  void computeDistributionGridSource();
+  void computeDistributionGridSource(CGrid* gridSrc);
+  void computeDistributionGridDestination(CGrid* gridDest);
   void fillInAttributesDomainDestination();
 
 private:
-  CGrid* gridSrc_;
   int nbDomainDistributedPart_; //! Number of local domain.
 
 };

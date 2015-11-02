@@ -88,10 +88,10 @@ namespace xios {
 
       double boundsLonRange = bounds_lon_end - bounds_lon_start;
       double boundsLonStep = boundsLonRange/(double(niGlo));
-      domainDst->bounds_lon_start = bounds_lon_start;
-      domainDst->bounds_lon_end   = bounds_lon_end;
-      domainDst->lon_start = bounds_lon_start + boundsLonStep/2;
-      domainDst->lon_end   = bounds_lon_end   - boundsLonStep/2;
+      domainDst->bounds_lon_start.setValue(bounds_lon_start);
+      domainDst->bounds_lon_end.setValue(bounds_lon_end);
+      domainDst->lon_start.setValue(bounds_lon_start + boundsLonStep/2);
+      domainDst->lon_end.setValue( bounds_lon_end   - boundsLonStep/2);
     }
 
     if (!bounds_lat_start.isEmpty())
@@ -100,10 +100,10 @@ namespace xios {
 
       double boundsLatRange = bounds_lat_end - bounds_lat_start;
       double boundsLatStep = boundsLatRange/(double(njGlo));
-      domainDst->bounds_lat_start = bounds_lat_start;
-      domainDst->bounds_lat_end   = bounds_lat_end;
-      domainDst->lat_start = bounds_lat_start + boundsLatStep/2;
-      domainDst->lat_end   = bounds_lat_end   - boundsLatStep/2;
+      domainDst->bounds_lat_start.setValue(bounds_lat_start);
+      domainDst->bounds_lat_end.setValue(bounds_lat_end);
+      domainDst->lat_start.setValue(bounds_lat_start + boundsLatStep/2);
+      domainDst->lat_end.setValue(bounds_lat_end   - boundsLatStep/2);
     }
 
     if (lon_start.isEmpty() && lat_start.isEmpty()) return;
@@ -114,10 +114,10 @@ namespace xios {
 
       double lonRange = lon_end - lon_start;
       double lonStep = (1 == niGlo) ? lonRange : lonRange/(double(niGlo)-1);
-      domainDst->lon_start = lon_start;
-      domainDst->lon_end   = lon_end;
-      domainDst->bounds_lon_start = lon_start - lonStep/2;
-      domainDst->bounds_lon_end   = lon_end   + lonStep/2;
+      domainDst->lon_start.setValue(lon_start);
+      domainDst->lon_end.setValue(lon_end);
+      domainDst->bounds_lon_start.setValue(lon_start - lonStep/2);
+      domainDst->bounds_lon_end.setValue(lon_end   + lonStep/2);
     }
 
     if (!lat_start.isEmpty())
@@ -126,10 +126,10 @@ namespace xios {
 
       double latRange = lat_end - lat_start;
       double latStep = (1 == njGlo) ? latRange : latRange/(double(njGlo)-1);
-      domainDst->lat_start = lat_start;
-      domainDst->lat_end   = lat_end;
-      domainDst->bounds_lat_start = lat_start - latStep/2;
-      domainDst->bounds_lat_end   = lat_end   + latStep/2;
+      domainDst->lat_start.setValue(lat_start);
+      domainDst->lat_end.setValue(lat_end);
+      domainDst->bounds_lat_start.setValue(lat_start - latStep/2);
+      domainDst->bounds_lat_end.setValue(lat_end   + latStep/2);
     }
   }
 

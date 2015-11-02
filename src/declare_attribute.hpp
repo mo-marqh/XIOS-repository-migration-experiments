@@ -2,7 +2,6 @@
 #define __XIOS_DECLARE_ATTRIBUTE__
 
 /// ///////////////////////////// Macros ///////////////////////////// ///
-
 #define DECLARE_ATTRIBUTE(type, name)                             \
    class name##_attr : public CAttributeTemplate<type>            \
    {                                                              \
@@ -17,6 +16,22 @@
          { /* Ne rien faire de plus */ }                          \
    } name;
 
+#define DECLARE_ATTRIBUTE_PRIVATE(type, name)                    \
+   class name##_attr : public CAttributeTemplate<type>           \
+   {                                                              \
+      public :                                                    \
+         name##_attr(void)                                          \
+            : CAttributeTemplate<type>                            \
+            (#name, *CAttributeMap::Current)                      \
+         { /* Ne rien faire de plus */ }                          \
+         type operator=(const type & value)                       \
+         { return (CAttributeTemplate<type>::operator=(value)); } \
+         virtual bool isAttributePublic()                         \
+         { return false; }                                        \
+         virtual ~name##_attr(void)                               \
+         { /* Ne rien faire de plus */ }                          \
+   } name;
+
 #define DECLARE_ARRAY(T_num, T_rank, name)                        \
    class name##_attr : public CAttributeArray<T_num, T_rank>      \
    {                                                              \
@@ -25,7 +40,18 @@
          name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
          virtual ~name##_attr(void) {}                            \
    } name;
-   
+
+#define DECLARE_ARRAY_PRIVATE(T_num, T_rank, name)                        \
+   class name##_attr : public CAttributeArray<T_num, T_rank>      \
+   {                                                              \
+      public :                                                    \
+         using CAttributeArray<T_num, T_rank>::operator = ;       \
+         name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
+         virtual bool isAttributePublic()                         \
+         { return false; }                                        \
+         virtual ~name##_attr(void) {}                            \
+   } name;
+
 #define DECLARE_CLASS_ENUM(name)                                   \
    class name##_attr : public CAttributeEnum<Enum_##name>          \
    {                                                              \
@@ -33,7 +59,7 @@
          name##_attr(void) : CAttributeEnum<Enum_##name>(#name, *CAttributeMap::Current) { } \
          virtual ~name##_attr(void) {}                           \
    } name;
-   
+
 #define DECLARE_ENUM2(name,arg1,arg2)                             \
    class Enum_##name                                              \
    {                                                              \
@@ -43,7 +69,7 @@
      int getSize(void) const { return 2 ; }                       \
    } ;                                                            \
    DECLARE_CLASS_ENUM(name)
-   
+
 #define DECLARE_ENUM3(name,arg1,arg2,arg3)                             \
    class Enum_##name                                              \
    {                                                              \
@@ -112,7 +138,7 @@
      const char** getStr(void) const { static const char * enumStr[] = { #arg1, #arg2, #arg3,#arg4,#arg5,#arg6,#arg7,#arg8,#arg9 } ; return enumStr ; }   \
      int getSize(void) const { return 9 ; }                       \
    } ;                                                            \
-   DECLARE_CLASS_ENUM(name) 
+   DECLARE_CLASS_ENUM(name)
 
   #define DECLARE_TYPE(name)                                      \
    class Enum_##name                                              \

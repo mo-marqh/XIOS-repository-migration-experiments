@@ -14,8 +14,8 @@ PROGRAM test_new_features
   TYPE(xios_date) :: date
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=10
-  INTEGER,PARAMETER :: nj_glo=10
+  INTEGER,PARAMETER :: ni_glo=100
+  INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=2
   INTEGER,PARAMETER :: llmInterPolated=5
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1

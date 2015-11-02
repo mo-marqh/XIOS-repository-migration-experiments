@@ -18,6 +18,7 @@ public:                                                     \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
   const StdString& get##type##OutputName(void) const;       \
+  void setAttributesBaseReference(bool apply = true);       \
 
 // Definitions
 
@@ -42,6 +43,11 @@ void C##type::solveRefInheritance(bool apply)                          \
                                                                        \
     SuperClassAttribute::setAttributes(refer_ptr, apply);              \
   }                                                                    \
+}                                                                      \
+                                                                       \
+void C##type::setAttributesBaseReference(bool apply)                   \
+{                                                                      \
+  baseRefObject->setAttributes(this, apply);                           \
 }                                                                      \
                                                                        \
 void C##type::removeRefInheritance()                                   \

@@ -113,6 +113,7 @@ namespace xios {
          void solveGridDomainAxisRef(bool checkAtt);
          void solveTransformedGrid();
          void solveGenerateGrid();
+         void solveGridDomainAxisBaseRef();
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
          boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);

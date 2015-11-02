@@ -110,6 +110,7 @@ namespace xios {
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
+         void fillInValues(const CArray<double,1>& values);
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;

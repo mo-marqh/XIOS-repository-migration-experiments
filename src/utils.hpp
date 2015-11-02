@@ -224,6 +224,12 @@ struct NumTraits<unsigned long>
   static inline Scalar sfmax() {
     return std::numeric_limits<Scalar>::max();
   }
+  static inline Scalar sflowest() {
+    return -(std::numeric_limits<Scalar>::max());
+  }
+  static inline Scalar epsilon() {
+    return std::numeric_limits<Scalar>::epsilon();
+  }
 };
 
 template<>
@@ -237,6 +243,12 @@ struct NumTraits<double>
   }
   static inline Scalar sfmax() {
     return std::numeric_limits<Scalar>::max();
+  }
+  static inline Scalar sflowest() {
+    return -(std::numeric_limits<Scalar>::max());
+  }
+  static inline Scalar epsilon() {
+    return std::numeric_limits<Scalar>::epsilon();
   }
 };
 

@@ -16,11 +16,16 @@
 namespace xios {
 
 CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(CDomain* domainDestination, CDomain* domainSource,
-                                                                         CGrid* gridSource, CGenerateRectilinearDomain* genRectDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource), gridSrc_(gridSource), nbDomainDistributedPart_(0)
+                                                                         CGrid* gridDest, CGrid* gridSource,
+                                                                         CGenerateRectilinearDomain* genRectDomain)
+: CDomainAlgorithmTransformation(domainDestination, domainSource), nbDomainDistributedPart_(0)
 {
   genRectDomain->checkValid(domainDestination);
-  computeDistributionGridSource();
+  if (0 != gridSource) computeDistributionGridSource(gridSource);
+  else
+  {
+    computeDistributionGridDestination(gridDest);
+  }
   fillInAttributesDomainDestination();
 }
 
@@ -35,13 +40,13 @@ void CDomainAlgorithmGenerateRectilinear::computeIndexSourceMapping()
 /*!
   Calculate the number of distributed parts on domain source
 */
-void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource()
+void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource(CGrid* gridSrc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
 
-  std::vector<CDomain*> domListSrcP = gridSrc_->getDomains();
-  std::vector<CAxis*> axisListSrcP = gridSrc_->getAxis();
+  std::vector<CDomain*> domListSrcP = gridSrc->getDomains();
+  std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
 
   for (int i = 0; i < domListSrcP.size(); ++i) // support we have only domain, more than one, for now, dont know how to process
   {
@@ -49,7 +54,7 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource()
     if (axisListSrcP.empty()) nbDomainDistributedPart_ = client->clientSize;
     else
     {
-      gridSrc_->solveAxisRef(false);
+      gridSrc->solveAxisRef(false);
       int nbAxis = axisListSrcP.size();
       std::vector<int> nbLocalAxis(nbAxis, 0);
       for (int j = 0; j < nbAxis; ++j)
@@ -86,6 +91,33 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridSource()
       nbDomainDistributedPart_ = client->clientSize/nbAxisDistributedPart;
     }
   }
+}
+
+/*!
+  Compute the distribution of the domain destination by using available information provided by user such as n_distributed_partition of axis
+*/
+void CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGrid* gridDest)
+{
+  // For now, just suppose that the grid contains only one domain
+  std::vector<CAxis*> axisListDestP = gridDest->getAxis();
+  int nbPartition = 1, idx = 0;
+  for (int i = 0; i < gridDest->axis_domain_order.numElements(); ++i)
+  {
+    if (false == (gridDest->axis_domain_order)(i))
+    {
+      nbPartition *= (axisListDestP[idx]->n_distributed_partition.isEmpty()) ? 1: (axisListDestP[idx]->n_distributed_partition.getValue());
+      ++idx;
+    }
+  }
+
+  CContext* context = CContext::getCurrent();
+  CContextClient* client = context->client;
+  int modPart = (client->clientSize) % nbPartition;
+  if (0 != modPart)
+    ERROR("CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGrid* gridDest)",
+       << "The grid " <<gridDest->getId() << " is not well-distributed. There is an incompatibility between distribution of axis and domain.");
+  nbDomainDistributedPart_ = client->clientSize/nbPartition;
+
 }
 
 /*!

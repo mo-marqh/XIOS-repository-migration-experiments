@@ -30,7 +30,7 @@ namespace xios {
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_(), positionDimensionDistributed_(1)
+      , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -44,7 +44,7 @@ namespace xios {
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_(), positionDimensionDistributed_(1)
+      , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -202,6 +202,27 @@ namespace xios {
      this->solveDomainRef(areAttributesChecked);
      computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
      this->isDomainAxisChecked = areAttributesChecked;
+   }
+
+   void CGrid::solveDomainAxisBaseRef()
+   {
+     if (this->hasDomainAxisBaseRef_) return;
+     // Account for the axis attributes
+     std::vector<CAxis*> axisList = getAxis();
+     for (size_t i = 0; i < axisList.size(); ++i)
+     {
+       axisList[i]->solveBaseReference();
+       axisList[i]->setAttributesBaseReference();
+     }
+
+     // Account for the domain attributes
+     std::vector<CDomain*> domList = getDomains();
+     for (size_t i = 0; i < domList.size(); ++i)
+     {
+       domList[i]->solveBaseReference();
+       domList[i]->setAttributesBaseReference();
+     }
+     this->hasDomainAxisBaseRef_ = true;
    }
 
    void CGrid::checkEligibilityForCompressedOutput()
@@ -1259,25 +1280,24 @@ namespace xios {
   */
   void CGrid::completeGrid(CGrid* transformGridSrc)
   {
-    if (!transformGridSrc)
-      ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-            << "Impossible to complete grid '" << getId() << "', the source grid is null.");
-
-    if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
+    if (0 != transformGridSrc)
     {
-      ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-           << "Two grids have different dimension size"
-           << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
-    }
-    else
-    {
-      int ssize = axis_domain_order.numElements();
-      for (int i = 0; i < ssize; ++i)
-        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-          ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
-                << " don't have elements in the same order");
+      if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
+      {
+        ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
+             << "Two grids have different dimension size"
+             << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+             << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+      }
+      else
+      {
+        int ssize = axis_domain_order.numElements();
+        for (int i = 0; i < ssize; ++i)
+          if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
+            ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
+                  << "Grids " << this->getId() << " and " << transformGridSrc->getId()
+                  << " don't have elements in the same order");
+      }
     }
 
     CGridGenerate gridGenerate(this, transformGridSrc);

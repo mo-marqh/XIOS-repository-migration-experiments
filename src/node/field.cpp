@@ -825,6 +825,14 @@ namespace xios{
    {
      if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        grid->completeGrid(getDirectFieldReference()->grid);
+     else
+       grid->completeGrid();
+   }
+
+   void CField::solveGridDomainAxisBaseRef()
+   {
+     grid->solveDomainAxisRef(false);
+     grid->solveDomainAxisBaseRef();
    }
 
    ///-------------------------------------------------------------------

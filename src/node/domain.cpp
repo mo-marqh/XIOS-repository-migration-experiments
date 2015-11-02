@@ -338,47 +338,70 @@ namespace xios {
    */
    void CDomain::fillInRectilinearLonLat()
    {
-     if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
-     if (!latvalue_2d.isEmpty()) latvalue_1d.free();
-     lonvalue_1d.resize(ni);
-     latvalue_1d.resize(nj);
-
-     double lonRange = lon_end - lon_start;
-     double latRange = lat_end - lat_start;
-
-     double lonStep = (1 == ni_glo.getValue()) ? lonRange : lonRange/double(ni_glo.getValue()-1);
-     double latStep = (1 == nj_glo.getValue()) ? latRange : latRange/double(nj_glo.getValue()-1);
-
-     // Assign lon value
-     for (int i = 0; i < ni; ++i)
+     if (!lonvalue_rectilinear_read_from_file.isEmpty())
      {
-       if (0 == (ibegin + i))
+       lonvalue_1d.resize(ni);
+       for (int idx = 0; idx < ni; ++idx)
+         lonvalue_1d(idx) = lonvalue_rectilinear_read_from_file(idx+ibegin);
+       lon_start.setValue(lonvalue_rectilinear_read_from_file(0));
+       lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1));
+     }
+     else
+     {
+       if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
+       lonvalue_1d.resize(ni);
+       double lonRange = lon_end - lon_start;
+       double lonStep = (1 == ni_glo.getValue()) ? lonRange : lonRange/double(ni_glo.getValue()-1);
+
+        // Assign lon value
+       for (int i = 0; i < ni; ++i)
        {
-         lonvalue_1d(i) = lon_start;
-       }
-       else if (ni_glo == (ibegin + i + 1))
-       {
-         lonvalue_1d(i) = lon_end;
-       }
-       else
-       {
-         lonvalue_1d(i) = (ibegin + i) * lonStep  + lon_start;
+         if (0 == (ibegin + i))
+         {
+           lonvalue_1d(i) = lon_start;
+         }
+         else if (ni_glo == (ibegin + i + 1))
+         {
+           lonvalue_1d(i) = lon_end;
+         }
+         else
+         {
+           lonvalue_1d(i) = (ibegin + i) * lonStep  + lon_start;
+         }
        }
      }
 
-     for (int j = 0; j < nj; ++j)
+
+     if (!latvalue_rectilinear_read_from_file.isEmpty())
      {
-       if (0 == (jbegin + j))
+       latvalue_1d.resize(nj);
+       for (int idx = 0; idx < nj; ++idx)
+         latvalue_1d(idx) = latvalue_rectilinear_read_from_file(idx+jbegin);
+       lat_start.setValue(latvalue_rectilinear_read_from_file(0));
+       lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
+     }
+     else
+     {
+       if (!latvalue_2d.isEmpty()) latvalue_1d.free();
+       latvalue_1d.resize(nj);
+
+       double latRange = lat_end - lat_start;
+       double latStep = (1 == nj_glo.getValue()) ? latRange : latRange/double(nj_glo.getValue()-1);
+
+       for (int j = 0; j < nj; ++j)
        {
-          latvalue_1d(j) = lat_start;
-       }
-       else if (nj_glo == (jbegin + j + 1))
-       {
-          latvalue_1d(j) = lat_end;
-       }
-       else
-       {
-         latvalue_1d(j) =  (jbegin + j) * latStep + lat_start;
+         if (0 == (jbegin + j))
+         {
+            latvalue_1d(j) = lat_start;
+         }
+         else if (nj_glo == (jbegin + j + 1))
+         {
+            latvalue_1d(j) = lat_end;
+         }
+         else
+         {
+           latvalue_1d(j) =  (jbegin + j) * latStep + lat_start;
+         }
        }
      }
    }
@@ -388,67 +411,84 @@ namespace xios {
    {
      int i,j,k;
      const int nvertexValue = 4;
-
-     double boundsLonRange = bounds_lon_end - bounds_lon_start;
-     double boundsLatRange = bounds_lat_end - bounds_lat_start;
-
      boundsLon.resize(nvertexValue,ni*nj);
-     boundsLat.resize(nvertexValue,nj*ni);
 
-     double lonStep = boundsLonRange/double(ni_glo.getValue());
-     double latStep = boundsLatRange/double(nj_glo.getValue());
-
-     for(j=0;j<nj;++j)
-       for(i=0;i<ni;++i)
-       {
-         k=j*ni+i;
-         boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep + bounds_lon_start
-                                                               : bounds_lon_start;
-         boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep + bounds_lon_start
-                                                                        : bounds_lon_end;
-       }
-
-     double bounds_lat_start_pole = bounds_lat_start;
-     double bounds_lat_end_pole   = bounds_lat_end;
-     if (isNorthPole) bounds_lat_start_pole = lat_start;
-     if (isSouthPole) bounds_lat_end_pole   = lat_end;
-
-     for(j=0;j<nj;++j)
-       for(i=0;i<ni;++i)
-       {
-         k=j*ni+i;
-         boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep + bounds_lat_start
-                                                               : bounds_lat_start_pole;
-         boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep + bounds_lat_start
-                                                               : bounds_lat_end_pole;
-       }
-   }
-
-   /*!
-     Temporary function to verify whether a rectilinear domain is created automatically.
-   The domain is distributed into number of parts which are equal to number of clients (intracomm)
-   */
-   void CDomain::checkGenerate()
-   {
-     TransMapTypes trans = this->getAllTransformations();
-     TransMapTypes::const_iterator it = trans.begin(), ite = trans.end();
-     int transOrder = 0;
-     for (; it != ite; ++it, ++transOrder)
+     if (!lonvalue_rectilinear_read_from_file.isEmpty())
      {
-       ETranformationType transType = it->first;
-       if ((TRANS_GENERATE_RECTILINEAR_DOMAIN == transType) && (0 == transOrder))
-       {
-         CContext* context = CContext::getCurrent();
-         CContextClient* client = context->client;
-         int nbClient;
-         MPI_Comm_size(client->intraComm,&nbClient);
-         it->second->checkValid(this);
-         this->redistribute(nbClient);
-         break;
-       }
+       double lonStepStart = lonvalue_rectilinear_read_from_file(1)-lonvalue_rectilinear_read_from_file(0);
+       bounds_lon_start.setValue(lonvalue_rectilinear_read_from_file(0) - lonStepStart/2);
+       double lonStepEnd = (lonvalue_rectilinear_read_from_file(ni_glo-1)-lonvalue_rectilinear_read_from_file(ni_glo-2));
+       bounds_lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1) + lonStepEnd/2);
+       double errorBoundsLon = std::abs(360-std::abs(bounds_lon_end-bounds_lon_start));
+       if (errorBoundsLon > NumTraits<double>::epsilon()) bounds_lon_end.setValue(bounds_lon_start+360);
+       for(j=0;j<nj;++j)
+         for(i=0;i<ni;++i)
+         {
+           k=j*ni+i;
+           boundsLon(0,k) = boundsLon(1,k) = (0 == (ibegin + i)) ? bounds_lon_start
+                                                                 : (lonvalue_rectilinear_read_from_file(ibegin + i)+lonvalue_rectilinear_read_from_file(ibegin + i-1))/2;
+           boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) == ni_glo) ? bounds_lon_end
+                                                                          : (lonvalue_rectilinear_read_from_file(ibegin + i + 1)+lonvalue_rectilinear_read_from_file(ibegin + i))/2;
+         }
      }
-   }
+     else
+     {
+       double boundsLonRange = bounds_lon_end - bounds_lon_start;
+       double lonStep = boundsLonRange/double(ni_glo.getValue());
+       for(j=0;j<nj;++j)
+         for(i=0;i<ni;++i)
+         {
+           k=j*ni+i;
+           boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep + bounds_lon_start
+                                                                 : bounds_lon_start;
+           boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep + bounds_lon_start
+                                                                          : bounds_lon_end;
+         }
+     }
 
+     boundsLat.resize(nvertexValue,nj*ni);
+     if (!latvalue_rectilinear_read_from_file.isEmpty())
+     {
+       double latStepStart = latvalue_rectilinear_read_from_file(1)-latvalue_rectilinear_read_from_file(0);
+       bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0) - latStepStart/2);
+       double latStepEnd = (latvalue_rectilinear_read_from_file(nj_glo-1)-latvalue_rectilinear_read_from_file(nj_glo-2));
+       bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1) + latStepEnd/2);
+       double bounds_lat_start_pole = bounds_lat_start;
+       double bounds_lat_end_pole   = bounds_lat_end;
+       if (isNorthPole) bounds_lat_start_pole = lat_start;
+       if (isSouthPole) bounds_lat_end_pole   = lat_end;
+
+       for(j=0;j<nj;++j)
+         for(i=0;i<ni;++i)
+         {
+           k=j*ni+i;
+           boundsLat(1,k) = boundsLat(2,k) = (0 == (jbegin + j)) ? bounds_lat_start_pole
+                                                                 : (latvalue_rectilinear_read_from_file(jbegin + j)+latvalue_rectilinear_read_from_file(jbegin + j-1))/2;
+           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) == nj_glo) ? bounds_lat_end_pole
+                                                                 : (latvalue_rectilinear_read_from_file(jbegin + j + 1)+latvalue_rectilinear_read_from_file(jbegin + j))/2;
+         }
+     }
+     else
+     {
+       double boundsLatRange = bounds_lat_end - bounds_lat_start;
+       double latStep = boundsLatRange/double(nj_glo.getValue());
+       double bounds_lat_start_pole = bounds_lat_start;
+       double bounds_lat_end_pole   = bounds_lat_end;
+       if (isNorthPole) bounds_lat_start_pole = lat_start;
+       if (isSouthPole) bounds_lat_end_pole   = lat_end;
+
+       for(j=0;j<nj;++j)
+         for(i=0;i<ni;++i)
+         {
+           k=j*ni+i;
+           boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep + bounds_lat_start
+                                                                 : bounds_lat_start_pole;
+           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep + bounds_lat_start
+                                                                 : bounds_lat_end_pole;
+         }
+     }
+
+   }
 
    void CDomain::checkDomain(void)
    {
@@ -1028,7 +1068,6 @@ namespace xios {
      if (this->isClientChecked) return;
      CContext* context=CContext::getCurrent();
 
-      this->checkGenerate();
       this->checkDomain();
       this->checkBounds();
       this->checkArea();

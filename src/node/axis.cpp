@@ -186,6 +186,11 @@ namespace xios {
      return axis;
    }
 
+   void CAxis::fillInValues(const CArray<double,1>& values)
+   {
+     this->value = values;
+   }
+
    void CAxis::checkAttributes(void)
    {
       if (this->n_glo.isEmpty())

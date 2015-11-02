@@ -29,4 +29,14 @@ namespace xios
   {
     this->closeFile_();
   }
+
+  void CDataInput::readFieldAttributesMetaData(CField* field)
+  {
+    this->readFieldAttributes_(field, false);
+  }
+
+  void CDataInput::readFieldAttributesValues(CField* field)
+  {
+    this->readFieldAttributes_(field, true);
+  }
 } // namespace xios

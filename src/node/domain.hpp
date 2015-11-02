@@ -29,6 +29,7 @@ namespace xios {
    // Declare/Define CDomainAttribute
    BEGIN_DECLARE_ATTRIBUTE_MAP(CDomain)
 #  include "domain_attribute.conf"
+#  include "domain_attribute_private.conf"
    END_DECLARE_ATTRIBUTE_MAP(CDomain)
 
    ///--------------------------------------------------------------
@@ -105,11 +106,6 @@ namespace xios {
          int nj_srv,jbegin_srv,jend_srv ;
          int zoom_nj_srv,zoom_jbegin_srv,zoom_jend_srv ;
 
-         double bounds_lon_start, bounds_lon_end;
-         double bounds_lat_start, bounds_lat_end;
-         double lon_start, lon_end;
-         double lat_start, lat_end;
-
          CArray<double, 1> lonvalue_srv, latvalue_srv ;
          CArray<double, 2> bounds_lon_srv, bounds_lat_srv ;
          CArray<double, 1> lonvalue_client, latvalue_client;
@@ -132,6 +128,7 @@ namespace xios {
          void computeConnectedServer(void) ;
          void fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat,
                                            bool isNorthPole = false, bool isSouthPole = false);
+         void fillInRectilinearLonLat();
 
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
@@ -171,12 +168,10 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-         void checkGenerate();
 
          void checkTransformations();
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
-         void fillInRectilinearLonLat();
 
          void sendIndex();
          void sendArea();

@@ -32,8 +32,8 @@
      <file id="output_Axis_transformed_interpolated" name="output_Axis_transformed_interpolated">
 <!--        <field field_ref="field_Axis_transformed_Interpolated" />-->
      </file>
-     <file id="output_Domain_transformed_interpolated" name="output_Domain_transformed_interpolated">
-<!--        <field field_ref="field_Domain_transformed_Interpolated" />-->
+     <file id="output_Domain_transformed_interpolated" name="output_Domain_transformed_interpolated" type="one_file">
+        <field field_ref="field_Domain_transformed_Interpolated" />
      </file>
      <file id="output_Scalar" name="output_Scalar" type="one_file">
 <!--        <field field_ref="field_Scalar" />-->

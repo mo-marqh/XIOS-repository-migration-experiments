@@ -23,6 +23,7 @@ namespace xios {
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
+      , allDomainEmpty(false), isOpen(false)
    {
      setVirtualFieldGroup();
      setVirtualVariableGroup();
@@ -31,6 +32,7 @@ namespace xios {
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
+      , allDomainEmpty(false), isOpen(false)
     {
       setVirtualFieldGroup();
       setVirtualVariableGroup();
@@ -541,6 +543,40 @@ namespace xios {
       if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
    }
    //----------------------------------------------------------------
+
+   void CFile::readAttributesOfEnabledFieldsInReadMode()
+   {
+     if (enabledFields.empty()) return;
+
+     // Just check file and try to open it
+     CContext* context = CContext::getCurrent();
+     CContextClient* client=context->client;
+
+     MPI_Comm_dup(client->intraComm, &fileComm);
+     checkFile();
+     for (int idx = 0; idx < enabledFields.size(); ++idx)
+     {
+        // First of all, find out which domain and axis associated with this field
+        enabledFields[idx]->solveGridReference();
+
+        // Read attributes of domain and axis from this file
+        this->data_in->readFieldAttributesMetaData(enabledFields[idx]);
+
+        // Now complete domain and axis associated with this field
+        enabledFields[idx]->solveGenerateGrid();
+
+        // Read necessary value from file
+        this->data_in->readFieldAttributesValues(enabledFields[idx]);
+
+        // Fill attributes for base reference
+        enabledFields[idx]->solveGridDomainAxisBaseRef();
+     }
+
+     // Now everything is ok, close it
+     close();
+
+   }
+
 
    /*!
    \brief Parse xml file and write information into file object

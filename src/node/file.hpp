@@ -100,6 +100,7 @@ namespace xios {
          void createHeader(void);
          void openInReadMode(void);
          void close(void);
+         void readAttributesOfEnabledFieldsInReadMode();
 
          // Some processing on file
          void solveFieldRefInheritance(bool apply);

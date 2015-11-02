@@ -16,21 +16,24 @@ namespace xios {
 CGridGenerate::CGridGenerate(CGrid* destination, CGrid* source)
 : gridSource_(source), gridDestination_(destination), algoTypes_()
 {
-  //Verify the compatibity between two grids
-  int numElement = gridDestination_->axis_domain_order.numElements();
-  if (numElement != gridSource_->axis_domain_order.numElements())
-    ERROR("CGridGenerate::CGridGenerate(CGrid* destination, CGrid* source)",
-       << "Two grids have different number of elements"
-       << "Number of elements of grid source " <<gridSource_->getId() << " is " << gridSource_->axis_domain_order.numElements()  << std::endl
-       << "Number of elements of grid destination " <<gridDestination_->getId() << " is " << numElement);
-
-  for (int i = 0; i < numElement; ++i)
+  if (0 != source)
   {
-    if (gridDestination_->axis_domain_order(i) != gridSource_->axis_domain_order(i))
+    //Verify the compatibity between two grids
+    int numElement = gridDestination_->axis_domain_order.numElements();
+    if (numElement != gridSource_->axis_domain_order.numElements())
       ERROR("CGridGenerate::CGridGenerate(CGrid* destination, CGrid* source)",
-         << "Transformed grid and its grid source have incompatible elements"
-         << "Grid source " <<gridSource_->getId() << std::endl
-         << "Grid destination " <<gridDestination_->getId());
+         << "Two grids have different number of elements"
+         << "Number of elements of grid source " <<gridSource_->getId() << " is " << gridSource_->axis_domain_order.numElements()  << std::endl
+         << "Number of elements of grid destination " <<gridDestination_->getId() << " is " << numElement);
+
+    for (int i = 0; i < numElement; ++i)
+    {
+      if (gridDestination_->axis_domain_order(i) != gridSource_->axis_domain_order(i))
+        ERROR("CGridGenerate::CGridGenerate(CGrid* destination, CGrid* source)",
+           << "Transformed grid and its grid source have incompatible elements"
+           << "Grid source " <<gridSource_->getId() << std::endl
+           << "Grid destination " <<gridDestination_->getId());
+    }
   }
 
   initializeAlgorithms();
@@ -178,7 +181,6 @@ void CGridGenerate::selectAlgo(int elementPositionInGrid, ETranformationType tra
 void CGridGenerate::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
-  std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
 
   int axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
   CAxis::TransMapTypes trans = axisListDestP[axisIndex]->getAllTransformations();
@@ -206,7 +208,8 @@ void CGridGenerate::selectAxisAlgo(int elementPositionInGrid, ETranformationType
 void CGridGenerate::selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
   std::vector<CDomain*> domainListDestP = gridDestination_->getDomains();
-  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
+  std::vector<CDomain*> domainListSrcP(domainListDestP.size());
+  if (0 != gridSource_) domainListSrcP = gridSource_->getDomains();
 
   int domainIndex =  elementPosition2DomainPositionInGrid_[elementPositionInGrid];
   CDomain::TransMapTypes trans = domainListDestP[domainIndex]->getAllTransformations();
@@ -222,7 +225,8 @@ void CGridGenerate::selectDomainAlgo(int elementPositionInGrid, ETranformationTy
       if (0 == transformationOrder)
       {
         genRectDomain = dynamic_cast<CGenerateRectilinearDomain*> (it->second);
-        algo = new CDomainAlgorithmGenerateRectilinear(domainListDestP[domainIndex], domainListSrcP[domainIndex], gridSource_, genRectDomain);
+        algo = new CDomainAlgorithmGenerateRectilinear(domainListDestP[domainIndex], domainListSrcP[domainIndex],
+                                                       gridDestination_, gridSource_, genRectDomain);
       }
       else
       {

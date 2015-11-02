@@ -19,11 +19,12 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;
   INTEGER :: src_ibegin, dst_ibegin;
   INTEGER :: src_ni, dst_ni;
+  INTEGER :: src_tmp_ni, src_tmp_nj, src_tmp_n;
   CHARACTER(LEN=*),PARAMETER :: src_file="h14.nc"
   CHARACTER(LEN=*),PARAMETER :: dst_file="r180x90.nc"
   INTEGER :: ncid
@@ -118,17 +119,25 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
 
-  ALLOCATE(tmp_field(180*90/2))
+
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
 
   CALL xios_close_context_definition()
+  CALL xios_get_domain_attr("src_domain_regular_tmp", ni=src_tmp_ni, nj=src_tmp_nj)
+  ALLOCATE(tmp_field(src_tmp_ni*src_tmp_nj))
+
+  CALL xios_get_axis_attr("src_axis_curvilinear", n=src_tmp_n)
+  CALL xios_get_domain_attr("src_domain_curvilinear", ni=src_tmp_ni, nj=src_tmp_nj)
+  ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
 
   DO ts=1,1
-    CALL xios_recv_field("src_field_regular", tmp_field)
+    CALL xios_recv_field("src_field_regular_tmp", tmp_field)
+    CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field",src_field)
     CALL xios_send_field("tmp_field",tmp_field)
+    CALL xios_send_field("tmp_field_1",tmp_field_1)
     CALL wait_us(5000) ;
   ENDDO
 
