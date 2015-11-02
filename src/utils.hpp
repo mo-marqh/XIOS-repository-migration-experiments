@@ -230,6 +230,9 @@ struct NumTraits<unsigned long>
   static inline Scalar epsilon() {
     return std::numeric_limits<Scalar>::epsilon();
   }
+  static inline Scalar dummy_precision() {
+    return 0;
+  }
 };
 
 template<>
@@ -249,6 +252,9 @@ struct NumTraits<double>
   }
   static inline Scalar epsilon() {
     return std::numeric_limits<Scalar>::epsilon();
+  }
+  static inline Scalar dummy_precision() {
+    return 1e-12;
   }
 };
 

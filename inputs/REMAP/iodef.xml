@@ -11,19 +11,19 @@
      <field id="tmp_field" operation="instant" domain_ref="src_domain_regular_tmp"/>
      <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />
      <field id="dst_field_regular" operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular" read_access="true"/>
-<!--     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole" read_access="true"/>-->
+     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole" read_access="true"/>
    </field_definition>
 
 
    <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-<!--        <field field_ref="src_field" name="field" />-->
+        <field field_ref="src_field" name="field" />
      </file>
      <file id="output_dst" name="output_dst" type="one_file">
 <!--        <field field_ref="dst_field" name="field" />-->
      </file>
      <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
-<!--        <field field_ref="dst_field_regular_pole" name="field" />-->
+        <field field_ref="dst_field_regular_pole" name="field" />
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />
