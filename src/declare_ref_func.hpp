@@ -18,36 +18,42 @@ public:                                                     \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
   const StdString& get##type##OutputName(void) const;       \
-  void setAttributesBaseReference(bool apply = true);       \
+  void setAttributesReference(bool apply = true);       \
+                                                                       \
+private:                                                               \
+  std::vector<C##type*> refObjects;                                    \
 
 // Definitions
 
 #define DEFINE_REF_FUNC(type, name_)                                   \
 void C##type::solveRefInheritance(bool apply)                          \
 {                                                                      \
-  std::set<C##type*> refObjects;                                       \
+  std::set<C##type*> tmpRefObjects;                                    \
   C##type* refer_ptr = this;                                           \
+  refObjects.push_back(this);                                          \
                                                                        \
   while (refer_ptr->hasDirect##type##Reference())                      \
   {                                                                    \
-    refObjects.insert(refer_ptr);                                      \
+    tmpRefObjects.insert(refer_ptr);                                   \
                                                                        \
     refer_ptr = refer_ptr->getDirect##type##Reference();               \
                                                                        \
-    if (refObjects.end() != refObjects.find(refer_ptr))                \
+    if (tmpRefObjects.end() != tmpRefObjects.find(refer_ptr))          \
     {                                                                  \
       ERROR("void C" #type "::solveRefInheritance(bool apply)",        \
             << "Circular dependency stopped for " #name_ " object "    \
             << "with id = \"" << refer_ptr->getId() << "\".");         \
     }                                                                  \
                                                                        \
+    refObjects.push_back(refer_ptr);                                   \
     SuperClassAttribute::setAttributes(refer_ptr, apply);              \
   }                                                                    \
 }                                                                      \
                                                                        \
-void C##type::setAttributesBaseReference(bool apply)                   \
+void C##type::setAttributesReference(bool apply)                       \
 {                                                                      \
-  baseRefObject->setAttributes(this, apply);                           \
+  for (int i = 1; i < refObjects.size(); ++i)                          \
+    refObjects[i]->setAttributes(refObjects[0], apply);                \
 }                                                                      \
                                                                        \
 void C##type::removeRefInheritance()                                   \

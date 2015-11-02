@@ -113,7 +113,7 @@ namespace xios
             --idx;
            }
         }
-                  
+
         SuperClassWriter::getData(fieldData, fieldId, isCollective, field->getNStep() - 1, &start, &count);
         break;
       }
@@ -132,7 +132,7 @@ namespace xios
 
   void CNc4DataInput::readFieldAttributes_(CField* field, bool readAttributeValues)
   {
-    StdString fieldId = !field->name.isEmpty() ? field->name.getValue() : field->getBaseFieldReference()->getId();
+    StdString fieldId = field->getFieldOutputName();
 
     CGrid* grid = field->grid;
 

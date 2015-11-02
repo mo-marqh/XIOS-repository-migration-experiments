@@ -211,16 +211,14 @@ namespace xios {
      std::vector<CAxis*> axisList = getAxis();
      for (size_t i = 0; i < axisList.size(); ++i)
      {
-       axisList[i]->solveBaseReference();
-       axisList[i]->setAttributesBaseReference();
+       axisList[i]->setAttributesReference();
      }
 
      // Account for the domain attributes
      std::vector<CDomain*> domList = getDomains();
      for (size_t i = 0; i < domList.size(); ++i)
      {
-       domList[i]->solveBaseReference();
-       domList[i]->setAttributesBaseReference();
+       domList[i]->setAttributesReference();
      }
      this->hasDomainAxisBaseRef_ = true;
    }
