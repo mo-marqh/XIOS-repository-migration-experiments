@@ -12,10 +12,10 @@ CONTAINS
 
   SUBROUTINE xios(set_domaingroup_attr)  &
     ( domaingroup_id, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -32,7 +32,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: data_jbegin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_ni
       INTEGER  , OPTIONAL, INTENT(IN) :: data_nj
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_src
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
@@ -61,19 +60,19 @@ CONTAINS
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(set_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(set_domaingroup_attr)
 
   SUBROUTINE xios(set_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -89,7 +88,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: data_jbegin
       INTEGER  , OPTIONAL, INTENT(IN) :: data_ni
       INTEGER  , OPTIONAL, INTENT(IN) :: data_nj
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_src
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
@@ -117,17 +115,17 @@ CONTAINS
 
       CALL xios(set_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(set_domaingroup_attr_hdl)
 
   SUBROUTINE xios(set_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, area_, bounds_lat_1d_, bounds_lat_2d_, bounds_lon_1d_, bounds_lon_2d_, data_dim_  &
-    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_group_ref_  &
-    , domain_ref_, domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
+    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_ref_  &
+    , domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
     , long_name_, lonvalue_1d_, lonvalue_2d_, mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_  &
     , nvertex_, standard_name_, type_ )
 
@@ -145,7 +143,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: data_jbegin_
       INTEGER  , OPTIONAL, INTENT(IN) :: data_ni_
       INTEGER  , OPTIONAL, INTENT(IN) :: data_nj_
-      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_group_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: domain_src_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
@@ -217,10 +214,6 @@ CONTAINS
 
       IF (PRESENT(data_nj_)) THEN
         CALL cxios_set_domaingroup_data_nj(domaingroup_hdl%daddr, data_nj_)
-      ENDIF
-
-      IF (PRESENT(domain_group_ref_)) THEN
-        CALL cxios_set_domaingroup_domain_group_ref(domaingroup_hdl%daddr, domain_group_ref_, len(domain_group_ref_))
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
@@ -319,10 +312,10 @@ CONTAINS
 
   SUBROUTINE xios(get_domaingroup_attr)  &
     ( domaingroup_id, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -339,7 +332,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_jbegin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_ni
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_nj
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_src
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
@@ -368,19 +360,19 @@ CONTAINS
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(get_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(get_domaingroup_attr)
 
   SUBROUTINE xios(get_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -396,7 +388,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_jbegin
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_ni
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_nj
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_group_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_src
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
@@ -424,17 +415,17 @@ CONTAINS
 
       CALL xios(get_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(get_domaingroup_attr_hdl)
 
   SUBROUTINE xios(get_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, area_, bounds_lat_1d_, bounds_lat_2d_, bounds_lon_1d_, bounds_lon_2d_, data_dim_  &
-    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_group_ref_  &
-    , domain_ref_, domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
+    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_ref_  &
+    , domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
     , long_name_, lonvalue_1d_, lonvalue_2d_, mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_  &
     , nvertex_, standard_name_, type_ )
 
@@ -452,7 +443,6 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_jbegin_
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_ni_
       INTEGER  , OPTIONAL, INTENT(OUT) :: data_nj_
-      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_group_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: domain_src_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
@@ -524,10 +514,6 @@ CONTAINS
 
       IF (PRESENT(data_nj_)) THEN
         CALL cxios_get_domaingroup_data_nj(domaingroup_hdl%daddr, data_nj_)
-      ENDIF
-
-      IF (PRESENT(domain_group_ref_)) THEN
-        CALL cxios_get_domaingroup_domain_group_ref(domaingroup_hdl%daddr, domain_group_ref_, len(domain_group_ref_))
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
@@ -626,10 +612,10 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_domaingroup_attr)  &
     ( domaingroup_id, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup))  :: domaingroup_hdl
@@ -658,8 +644,6 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_ni_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_nj
       LOGICAL(KIND=C_BOOL) :: data_nj_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_group_ref
-      LOGICAL(KIND=C_BOOL) :: domain_group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
       LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_src
@@ -708,19 +692,19 @@ CONTAINS
       CALL xios(get_domaingroup_handle)(domaingroup_id,domaingroup_hdl)
       CALL xios(is_defined_domaingroup_attr_hdl_)   &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(is_defined_domaingroup_attr)
 
   SUBROUTINE xios(is_defined_domaingroup_attr_hdl)  &
     ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-    , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-    , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-    , type )
+    , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+    , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+    , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(domaingroup)) , INTENT(IN) :: domaingroup_hdl
@@ -748,8 +732,6 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_ni_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_nj
       LOGICAL(KIND=C_BOOL) :: data_nj_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_group_ref
-      LOGICAL(KIND=C_BOOL) :: domain_group_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref
       LOGICAL(KIND=C_BOOL) :: domain_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_src
@@ -797,17 +779,17 @@ CONTAINS
 
       CALL xios(is_defined_domaingroup_attr_hdl_)  &
       ( domaingroup_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim  &
-      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_group_ref, domain_ref  &
-      , domain_src, group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name  &
-      , lonvalue_1d, lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name  &
-      , type )
+      , data_i_index, data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, domain_src  &
+      , group_ref, i_index, ibegin, j_index, jbegin, latvalue_1d, latvalue_2d, long_name, lonvalue_1d  &
+      , lonvalue_2d, mask_1d, mask_2d, name, ni, ni_glo, nj, nj_glo, nvertex, standard_name, type  &
+       )
 
   END SUBROUTINE xios(is_defined_domaingroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_domaingroup_attr_hdl_)   &
     ( domaingroup_hdl, area_, bounds_lat_1d_, bounds_lat_2d_, bounds_lon_1d_, bounds_lon_2d_, data_dim_  &
-    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_group_ref_  &
-    , domain_ref_, domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
+    , data_i_index_, data_ibegin_, data_j_index_, data_jbegin_, data_ni_, data_nj_, domain_ref_  &
+    , domain_src_, group_ref_, i_index_, ibegin_, j_index_, jbegin_, latvalue_1d_, latvalue_2d_  &
     , long_name_, lonvalue_1d_, lonvalue_2d_, mask_1d_, mask_2d_, name_, ni_, ni_glo_, nj_, nj_glo_  &
     , nvertex_, standard_name_, type_ )
 
@@ -837,8 +819,6 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: data_ni__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: data_nj_
       LOGICAL(KIND=C_BOOL) :: data_nj__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: domain_group_ref_
-      LOGICAL(KIND=C_BOOL) :: domain_group_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_ref_
       LOGICAL(KIND=C_BOOL) :: domain_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: domain_src_
@@ -942,11 +922,6 @@ CONTAINS
       IF (PRESENT(data_nj_)) THEN
         data_nj__tmp = cxios_is_defined_domaingroup_data_nj(domaingroup_hdl%daddr)
         data_nj_ = data_nj__tmp
-      ENDIF
-
-      IF (PRESENT(domain_group_ref_)) THEN
-        domain_group_ref__tmp = cxios_is_defined_domaingroup_domain_group_ref(domaingroup_hdl%daddr)
-        domain_group_ref_ = domain_group_ref__tmp
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN

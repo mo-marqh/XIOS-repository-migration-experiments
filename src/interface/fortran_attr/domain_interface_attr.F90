@@ -251,27 +251,6 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_data_nj
 
 
-    SUBROUTINE cxios_set_domain_domain_group_ref(domain_hdl, domain_group_ref, domain_group_ref_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_group_ref
-      INTEGER  (kind = C_INT)     , VALUE        :: domain_group_ref_size
-    END SUBROUTINE cxios_set_domain_domain_group_ref
-
-    SUBROUTINE cxios_get_domain_domain_group_ref(domain_hdl, domain_group_ref, domain_group_ref_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: domain_group_ref
-      INTEGER  (kind = C_INT)     , VALUE        :: domain_group_ref_size
-    END SUBROUTINE cxios_get_domain_domain_group_ref
-
-    FUNCTION cxios_is_defined_domain_domain_group_ref(domain_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_domain_group_ref
-      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
-    END FUNCTION cxios_is_defined_domain_domain_group_ref
-
-
     SUBROUTINE cxios_set_domain_domain_ref(domain_hdl, domain_ref, domain_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
