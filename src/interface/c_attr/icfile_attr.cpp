@@ -326,6 +326,29 @@ extern "C"
   }
 
 
+  void cxios_set_file_record_offset(file_Ptr file_hdl, int record_offset)
+  {
+    CTimer::get("XIOS").resume();
+    file_hdl->record_offset.setValue(record_offset);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_record_offset(file_Ptr file_hdl, int* record_offset)
+  {
+    CTimer::get("XIOS").resume();
+    *record_offset = file_hdl->record_offset.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_record_offset(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->record_offset.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_split_freq(file_Ptr file_hdl, cxios_duration split_freq_c)
   {
     CTimer::get("XIOS").resume();

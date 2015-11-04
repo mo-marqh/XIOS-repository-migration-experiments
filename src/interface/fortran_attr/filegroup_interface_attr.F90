@@ -272,6 +272,25 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_par_access
 
 
+    SUBROUTINE cxios_set_filegroup_record_offset(filegroup_hdl, record_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: record_offset
+    END SUBROUTINE cxios_set_filegroup_record_offset
+
+    SUBROUTINE cxios_get_filegroup_record_offset(filegroup_hdl, record_offset) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      INTEGER (KIND=C_INT)             :: record_offset
+    END SUBROUTINE cxios_get_filegroup_record_offset
+
+    FUNCTION cxios_is_defined_filegroup_record_offset(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_record_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_record_offset
+
+
     SUBROUTINE cxios_set_filegroup_split_freq(filegroup_hdl, split_freq) BIND(C)
       USE ISO_C_BINDING
       USE IDURATION

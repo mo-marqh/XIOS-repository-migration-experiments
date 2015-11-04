@@ -262,6 +262,29 @@ extern "C"
   }
 
 
+  void cxios_set_axisgroup_n_distributed_partition(axisgroup_Ptr axisgroup_hdl, int n_distributed_partition)
+  {
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->n_distributed_partition.setValue(n_distributed_partition);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_n_distributed_partition(axisgroup_Ptr axisgroup_hdl, int* n_distributed_partition)
+  {
+    CTimer::get("XIOS").resume();
+    *n_distributed_partition = axisgroup_hdl->n_distributed_partition.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_n_distributed_partition(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->n_distributed_partition.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axisgroup_n_glo(axisgroup_Ptr axisgroup_hdl, int n_glo)
   {
     CTimer::get("XIOS").resume();

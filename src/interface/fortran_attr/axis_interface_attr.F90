@@ -190,6 +190,25 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_n
 
 
+    SUBROUTINE cxios_set_axis_n_distributed_partition(axis_hdl, n_distributed_partition) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: n_distributed_partition
+    END SUBROUTINE cxios_set_axis_n_distributed_partition
+
+    SUBROUTINE cxios_get_axis_n_distributed_partition(axis_hdl, n_distributed_partition) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+      INTEGER (KIND=C_INT)             :: n_distributed_partition
+    END SUBROUTINE cxios_get_axis_n_distributed_partition
+
+    FUNCTION cxios_is_defined_axis_n_distributed_partition(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_n_distributed_partition
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_n_distributed_partition
+
+
     SUBROUTINE cxios_set_axis_n_glo(axis_hdl, n_glo) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl

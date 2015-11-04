@@ -12,7 +12,7 @@ CONTAINS
 
   SUBROUTINE xios(set_axisgroup_attr)  &
     ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -28,6 +28,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: n
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_distributed_partition
       INTEGER  , OPTIONAL, INTENT(IN) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
@@ -38,13 +39,13 @@ CONTAINS
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(set_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl)  &
     ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -59,6 +60,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: n
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_distributed_partition
       INTEGER  , OPTIONAL, INTENT(IN) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive
@@ -68,13 +70,14 @@ CONTAINS
 
       CALL xios(set_axisgroup_attr_hdl_)  &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(set_axisgroup_attr_hdl)
 
   SUBROUTINE xios(set_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
-    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
+    , mask_, n_, n_distributed_partition_, n_glo_, name_, positive_, standard_name_, unit_, value_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -89,6 +92,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:)
       INTEGER  , OPTIONAL, INTENT(IN) :: n_
+      INTEGER  , OPTIONAL, INTENT(IN) :: n_distributed_partition_
       INTEGER  , OPTIONAL, INTENT(IN) :: n_glo_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: positive_
@@ -138,6 +142,10 @@ CONTAINS
         CALL cxios_set_axisgroup_n(axisgroup_hdl%daddr, n_)
       ENDIF
 
+      IF (PRESENT(n_distributed_partition_)) THEN
+        CALL cxios_set_axisgroup_n_distributed_partition(axisgroup_hdl%daddr, n_distributed_partition_)
+      ENDIF
+
       IF (PRESENT(n_glo_)) THEN
         CALL cxios_set_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
       ENDIF
@@ -166,7 +174,7 @@ CONTAINS
 
   SUBROUTINE xios(get_axisgroup_attr)  &
     ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -182,6 +190,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: n
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_distributed_partition
       INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
@@ -192,13 +201,13 @@ CONTAINS
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(get_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl)  &
     ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -213,6 +222,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_tmp(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: n
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_distributed_partition
       INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive
@@ -222,13 +232,14 @@ CONTAINS
 
       CALL xios(get_axisgroup_attr_hdl_)  &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(get_axisgroup_attr_hdl)
 
   SUBROUTINE xios(get_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
-    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
+    , mask_, n_, n_distributed_partition_, n_glo_, name_, positive_, standard_name_, unit_, value_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -243,6 +254,7 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask__tmp(:)
       INTEGER  , OPTIONAL, INTENT(OUT) :: n_
+      INTEGER  , OPTIONAL, INTENT(OUT) :: n_distributed_partition_
       INTEGER  , OPTIONAL, INTENT(OUT) :: n_glo_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: positive_
@@ -292,6 +304,10 @@ CONTAINS
         CALL cxios_get_axisgroup_n(axisgroup_hdl%daddr, n_)
       ENDIF
 
+      IF (PRESENT(n_distributed_partition_)) THEN
+        CALL cxios_get_axisgroup_n_distributed_partition(axisgroup_hdl%daddr, n_distributed_partition_)
+      ENDIF
+
       IF (PRESENT(n_glo_)) THEN
         CALL cxios_get_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
       ENDIF
@@ -320,7 +336,7 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_axisgroup_attr)  &
     ( axisgroup_id, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup))  :: axisgroup_hdl
@@ -345,6 +361,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: mask_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n
       LOGICAL(KIND=C_BOOL) :: n_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_distributed_partition
+      LOGICAL(KIND=C_BOOL) :: n_distributed_partition_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo
       LOGICAL(KIND=C_BOOL) :: n_glo_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
@@ -361,13 +379,13 @@ CONTAINS
       CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
       CALL xios(is_defined_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl)  &
     ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-    , mask, n, n_glo, name, positive, standard_name, unit, value )
+    , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -391,6 +409,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: mask_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n
       LOGICAL(KIND=C_BOOL) :: n_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_distributed_partition
+      LOGICAL(KIND=C_BOOL) :: n_distributed_partition_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo
       LOGICAL(KIND=C_BOOL) :: n_glo_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
@@ -406,13 +426,14 @@ CONTAINS
 
       CALL xios(is_defined_axisgroup_attr_hdl_)  &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, long_name  &
-      , mask, n, n_glo, name, positive, standard_name, unit, value )
+      , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
 
   END SUBROUTINE xios(is_defined_axisgroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_axisgroup_attr_hdl_)   &
     ( axisgroup_hdl, axis_ref_, begin_, bounds_, data_begin_, data_index_, data_n_, group_ref_, long_name_  &
-    , mask_, n_, n_glo_, name_, positive_, standard_name_, unit_, value_ )
+    , mask_, n_, n_distributed_partition_, n_glo_, name_, positive_, standard_name_, unit_, value_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(axisgroup)) , INTENT(IN) :: axisgroup_hdl
@@ -436,6 +457,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: mask__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n_
       LOGICAL(KIND=C_BOOL) :: n__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_distributed_partition_
+      LOGICAL(KIND=C_BOOL) :: n_distributed_partition__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: n_glo_
       LOGICAL(KIND=C_BOOL) :: n_glo__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
@@ -497,6 +520,11 @@ CONTAINS
       IF (PRESENT(n_)) THEN
         n__tmp = cxios_is_defined_axisgroup_n(axisgroup_hdl%daddr)
         n_ = n__tmp
+      ENDIF
+
+      IF (PRESENT(n_distributed_partition_)) THEN
+        n_distributed_partition__tmp = cxios_is_defined_axisgroup_n_distributed_partition(axisgroup_hdl%daddr)
+        n_distributed_partition_ = n_distributed_partition__tmp
       ENDIF
 
       IF (PRESENT(n_glo_)) THEN
