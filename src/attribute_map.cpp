@@ -225,10 +225,13 @@ namespace xios
          SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();
          for (; it != end; it++)
          {
-           oss << std::endl << iendl;
-           it->second->generateCInterface(oss, className);
-           oss << iendl;
-           it->second->generateCInterfaceIsDefined(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << std::endl << iendl;
+             it->second->generateCInterface(oss, className);
+             oss << iendl;
+             it->second->generateCInterfaceIsDefined(oss, className);
+           }
          }
       }
 
@@ -237,10 +240,13 @@ namespace xios
          SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();
          for (; it != end; it++)
          {
-           oss << std::endl << iendl;
-           it->second->generateFortran2003Interface(oss, className);
-           oss << iendl;
-           it->second->generateFortran2003InterfaceIsDefined(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << std::endl << iendl;
+             it->second->generateFortran2003Interface(oss, className);
+             oss << iendl;
+             it->second->generateFortran2003InterfaceIsDefined(oss, className);
+           }
          }
       }
 
@@ -257,11 +263,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName() << "_";
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName() << "_";
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -273,14 +282,20 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceDeclaration_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceDeclaration_(oss, className);
+           }
          }
 
          for (it = begin; it != end; it++)
          {
-           oss << std::endl << iendl;
-           it->second->generateFortranInterfaceBody_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << std::endl << iendl;
+             it->second->generateFortranInterfaceBody_(oss, className);
+           }
          }
 
          oss << std::endl << (iendl -= 2);
@@ -298,11 +313,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName() << "_";
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName() << "_";
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -314,14 +332,20 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceGetDeclaration_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceGetDeclaration_(oss, className);
+           }
          }
 
          for (it = begin; it != end; it++)
          {
-           oss << std::endl << iendl;
-           it->second->generateFortranInterfaceGetBody_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << std::endl << iendl;
+             it->second->generateFortranInterfaceGetBody_(oss, className);
+           }
          }
 
          oss << std::endl << (iendl -= 2);
@@ -339,11 +363,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName() << "_";
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName() << "_";
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -355,14 +382,20 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceIsDefinedDeclaration_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceIsDefinedDeclaration_(oss, className);
+           }
          }
 
          for (it = begin; it != end; it++)
          {
-           oss << std::endl << iendl;
-           it->second->generateFortranInterfaceIsDefinedBody_(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << std::endl << iendl;
+             it->second->generateFortranInterfaceIsDefinedBody_(oss, className);
+           }
          }
 
          oss << std::endl << (iendl -= 2);
@@ -380,11 +413,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -396,8 +432,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -409,11 +448,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -433,11 +475,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -449,8 +494,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceGetDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceGetDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -462,11 +510,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -486,11 +537,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -502,8 +556,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceIsDefinedDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceIsDefinedDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -515,11 +572,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -539,11 +599,14 @@ namespace xios
          oss << "( " << className << "_id";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -557,8 +620,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -570,11 +636,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -594,11 +663,14 @@ namespace xios
          oss << "( " << className << "_id";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -612,8 +684,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceGetDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceGetDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -625,11 +700,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -649,11 +727,14 @@ namespace xios
          oss << "( " << className << "_id";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";
@@ -667,8 +748,11 @@ namespace xios
 
          for (it = begin; it != end; it++)
          {
-           oss << iendl;
-           it->second->generateFortranInterfaceIsDefinedDeclaration(oss, className);
+           if (it->second->isPublic())
+           {
+             oss << iendl;
+             it->second->generateFortranInterfaceIsDefinedDeclaration(oss, className);
+           }
          }
 
          oss << std::endl << iendl;
@@ -680,11 +764,14 @@ namespace xios
          oss << "( " << className << "_hdl";
          for (it = begin; it != end; it++)
          {
-           oss << ", " << it->second->getName();
-           if (oss.tellp() - startPos > 90)
+           if (it->second->isPublic())
            {
-             oss << "  &" << iendl;
-             startPos = oss.tellp();
+             oss << ", " << it->second->getName();
+             if (oss.tellp() - startPos > 90)
+             {
+               oss << "  &" << iendl;
+               startPos = oss.tellp();
+             }
            }
          }
          oss << " )";

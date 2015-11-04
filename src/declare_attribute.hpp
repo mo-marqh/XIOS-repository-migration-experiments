@@ -26,7 +26,7 @@
          { /* Ne rien faire de plus */ }                          \
          type operator=(const type & value)                       \
          { return (CAttributeTemplate<type>::operator=(value)); } \
-         virtual bool isAttributePublic()                         \
+         virtual bool isPublic() const                            \
          { return false; }                                        \
          virtual ~name##_attr(void)                               \
          { /* Ne rien faire de plus */ }                          \
@@ -47,7 +47,7 @@
       public :                                                    \
          using CAttributeArray<T_num, T_rank>::operator = ;       \
          name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
-         virtual bool isAttributePublic()                         \
+         virtual bool isPublic() const                            \
          { return false; }                                        \
          virtual ~name##_attr(void) {}                            \
    } name;

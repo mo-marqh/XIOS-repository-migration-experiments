@@ -17,7 +17,7 @@ namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
       template <class T>
-         class CAttributeTemplate : public CAttribute, public CType<T>, public PublicAttributes
+         class CAttributeTemplate : public CAttribute, public CType<T>
       {
             typedef CAttribute SuperClass;
 

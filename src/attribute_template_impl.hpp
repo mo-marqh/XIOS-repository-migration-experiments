@@ -244,60 +244,50 @@ namespace xios
       template <typename T>
       void CAttributeTemplate<T>::generateCInterface(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeCInterface<T>(oss, className, this->getName()) ;
-//        CInterface::AttributeIsDefinedCInterface(oss, className, this->getName()) ;
+        CInterface::AttributeCInterface<T>(oss, className, this->getName());
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortran2003Interface(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName()) ;
-//        CInterface::AttributeIsDefinedFortran2003Interface(oss, className, this->getName()) ;
+        CInterface::AttributeFortran2003Interface<T>(oss, className, this->getName());
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceDeclaration_(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()+"_") ;
+        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName() + "_");
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceBody_(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceBody<T>(oss, className, this->getName()) ;
+        CInterface::AttributeFortranInterfaceBody<T>(oss, className, this->getName());
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceDeclaration(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName()) ;
+        CInterface::AttributeFortranInterfaceDeclaration<T>(oss, className, this->getName());
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()+"_") ;
+        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName() + "_");
       }
 
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetBody_(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceGetBody<T>(oss, className, this->getName()) ;
+        CInterface::AttributeFortranInterfaceGetBody<T>(oss, className, this->getName());
       }
 
       template <typename T>
       void CAttributeTemplate<T>::generateFortranInterfaceGetDeclaration(ostream& oss,const string& className)
       {
-        if (this->isAttributePublic())
-          CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName()) ;
+        CInterface::AttributeFortranInterfaceGetDeclaration<T>(oss, className, this->getName());
       }
 
 

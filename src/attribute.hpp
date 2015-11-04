@@ -52,6 +52,9 @@ namespace xios
 //            virtual void toBinary  (StdOStream & os) const = 0;
 //            virtual void fromBinary(StdIStream & is) = 0;
 
+            //! Returns true if and only if the attribute should be publicly exposed in the API
+            virtual bool isPublic() const { return true; }
+
             virtual void generateCInterface(ostream& oss, const string& className) = 0 ;
             virtual void generateCInterfaceIsDefined(ostream& oss, const string& className) ;
             virtual void generateFortran2003Interface(ostream& oss, const string& className) = 0 ;

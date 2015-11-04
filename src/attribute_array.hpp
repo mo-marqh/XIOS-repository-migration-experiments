@@ -14,7 +14,7 @@ namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
       template <typename T_numtype, int N_rank>
-         class CAttributeArray : public CAttribute, public CArray<T_numtype, N_rank>, public PublicAttributes
+         class CAttributeArray : public CAttribute, public CArray<T_numtype, N_rank>
       {
         public :
 
