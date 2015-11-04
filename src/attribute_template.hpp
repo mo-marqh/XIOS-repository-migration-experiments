@@ -11,7 +11,6 @@
 #include "buffer_in.hpp"
 #include "buffer_out.hpp"
 #include "type.hpp"
-#include "attribute_public.hpp"
 
 namespace xios
 {
