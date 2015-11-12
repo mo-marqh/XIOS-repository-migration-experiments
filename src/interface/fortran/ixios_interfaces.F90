@@ -58,6 +58,26 @@ USE izoom_domain, ONLY : xios(get_zoom_domain_handle)
 
 USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr_hdl), xios(get_zoom_domain_attr_hdl), xios(is_defined_zoom_domain_attr_hdl)
 
+USE iinterpolate_axis, ONLY : xios(get_interpolate_axis_handle)
+
+USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr_hdl), xios(get_interpolate_axis_attr_hdl), &
+                                   xios(is_defined_interpolate_axis_attr_hdl)
+
+USE iinterpolate_domain, ONLY : xios(get_interpolate_domain_handle)
+
+USE iinterpolate_domain_attr, ONLY : xios(set_interpolate_domain_attr_hdl), xios(get_interpolate_domain_attr_hdl), &
+                                     xios(is_defined_interpolate_domain_attr_hdl)
+
+USE iinverse_axis, ONLY : xios(get_inverse_axis_handle)
+
+USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr_hdl), xios(get_inverse_axis_attr_hdl), xios(is_defined_inverse_axis_attr_hdl)
+
+USE igenerate_rectilinear_domain, ONLY : xios(get_generate_rectilinear_domain_handle)
+
+USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr_hdl), &
+                                              xios(get_generate_rectilinear_domain_attr_hdl), &
+                                              xios(is_defined_generate_rectilinear_domain_attr_hdl)
+
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),   &
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
                       xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), &
@@ -72,7 +92,9 @@ INTERFACE xios(set_attr)
                    xios(set_file_attr_hdl), xios(set_filegroup_attr_hdl),                                    &
                    xios(set_grid_attr_hdl), xios(set_gridgroup_attr_hdl), xios(set_axis_attr_hdl) ,          &
                    xios(set_axisgroup_attr_hdl), xios(set_context_attr_hdl), xios(set_zoom_axis_attr_hdl),   &
-                   xios(set_zoom_domain_attr_hdl)
+                   xios(set_zoom_domain_attr_hdl), xios(set_interpolate_axis_attr_hdl),                      &
+                   xios(set_interpolate_domain_attr_hdl), xios(set_inverse_axis_attr_hdl),                   &
+                   xios(set_generate_rectilinear_domain_attr_hdl)
 END INTERFACE xios(set_attr)
 
 INTERFACE xios(get_attr)
@@ -81,7 +103,9 @@ INTERFACE xios(get_attr)
                    xios(get_file_attr_hdl), xios(get_filegroup_attr_hdl),                                    &
                    xios(get_grid_attr_hdl), xios(get_gridgroup_attr_hdl), xios(get_axis_attr_hdl) ,          &
                    xios(get_axisgroup_attr_hdl), xios(get_context_attr_hdl), xios(get_zoom_axis_attr_hdl),   &
-                   xios(get_zoom_domain_attr_hdl)
+                   xios(get_zoom_domain_attr_hdl), xios(get_interpolate_axis_attr_hdl),                      &
+                   xios(get_interpolate_domain_attr_hdl), xios(get_inverse_axis_attr_hdl),                   &
+                   xios(get_generate_rectilinear_domain_attr_hdl)
 END INTERFACE xios(get_attr)
 
 INTERFACE xios(is_defined_attr)
@@ -90,7 +114,9 @@ INTERFACE xios(is_defined_attr)
                    xios(is_defined_file_attr_hdl), xios(is_defined_filegroup_attr_hdl),                                           &
                    xios(is_defined_grid_attr_hdl), xios(is_defined_gridgroup_attr_hdl), xios(is_defined_axis_attr_hdl) ,          &
                    xios(is_defined_axisgroup_attr_hdl), xios(is_defined_context_attr_hdl),                                        &
-                   xios(is_defined_zoom_axis_attr_hdl), xios(is_defined_zoom_domain_attr_hdl)
+                   xios(is_defined_zoom_axis_attr_hdl), xios(is_defined_zoom_domain_attr_hdl),                                    &
+                   xios(is_defined_interpolate_axis_attr_hdl), xios(is_defined_interpolate_domain_attr_hdl),                      &
+                   xios(is_defined_inverse_axis_attr_hdl), xios(is_defined_generate_rectilinear_domain_attr_hdl)
 END INTERFACE xios(is_defined_attr)
 
 INTERFACE xios(get_handle)
@@ -98,8 +124,10 @@ INTERFACE xios(get_handle)
                    xios(get_file_handle), xios(get_filegroup_handle), xios(get_grid_handle),        &
                    xios(get_gridgroup_handle), xios(get_axis_handle), xios(get_axisgroup_handle),   &
                    xios(get_field_handle), xios(get_fieldgroup_handle),xios(get_variable_handle),   &
-                   xios(get_variablegroup_handle), xios(get_zoom_axis_handle),                  &
-                   xios(get_zoom_domain_handle)
+                   xios(get_variablegroup_handle), xios(get_zoom_axis_handle),                      &
+                   xios(get_zoom_domain_handle), xios(get_interpolate_axis_handle),                 &
+                   xios(get_interpolate_domain_handle), xios(get_inverse_axis_handle),              &
+                   xios(get_generate_rectilinear_domain_handle)
 END INTERFACE xios(get_handle)
 
 INTERFACE xios(add_child)

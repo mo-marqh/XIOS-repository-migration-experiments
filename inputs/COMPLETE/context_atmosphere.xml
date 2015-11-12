@@ -19,7 +19,7 @@
   <axis_definition>
     <axis id="axis_atm"/>
     <axis id="axis_atm_zoom" axis_ref="axis_atm">
-      <zoom_axis zoom_size="2" zoom_end="2" />
+      <zoom_axis id="axis_atm_zoom" zoom_size="4" zoom_end="2" />
     </axis>
   </axis_definition>
 

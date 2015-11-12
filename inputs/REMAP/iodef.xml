@@ -65,9 +65,8 @@
        <interpolate_domain/>
      </domain>
      <domain id="dst_domain_regular_pole" domain_src="src_domain" ni_glo="180" nj_glo="90" type="rectilinear">
-       <generate_rectilinear_domain lat_start="-90" lat_end="90" lon_start="2" lon_end="360"/>
+       <generate_rectilinear_domain id="domain_regular_pole"/>
        <interpolate_domain/>
-<!--       <zoom_domain id="dst_domain_regular_pole"/>-->
      </domain>
      <domain id="dst_domain_regular" domain_src="src_domain_regular_tmp" ni_glo="90" nj_glo="45" type="rectilinear">
        <generate_rectilinear_domain />

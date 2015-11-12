@@ -74,6 +74,25 @@ USE izoom_domain, ONLY : txios(zoom_domain), xios(is_valid_zoom_domain)
 
 USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr), xios(get_zoom_domain_attr), xios(is_defined_zoom_domain_attr)
 
+USE iinterpolate_axis, ONLY : txios(interpolate_axis), xios(is_valid_interpolate_axis)
+
+USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr), xios(get_interpolate_axis_attr), &
+                                   xios(is_defined_interpolate_axis_attr)
+
+USE iinterpolate_domain, ONLY : txios(interpolate_domain), xios(is_valid_interpolate_domain)
+
+USE iinterpolate_domain_attr, ONLY : xios(set_interpolate_domain_attr), xios(get_interpolate_domain_attr), &
+                                     xios(is_defined_interpolate_domain_attr)
+
+USE iinverse_axis, ONLY : txios(inverse_axis), xios(is_valid_inverse_axis)
+
+USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr), xios(get_inverse_axis_attr), xios(is_defined_inverse_axis_attr)
+
+USE igenerate_rectilinear_domain, ONLY : txios(generate_rectilinear_domain), xios(is_valid_generate_rectilinear_domain)
+
+USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr), xios(get_generate_rectilinear_domain_attr), &
+                                              xios(is_defined_generate_rectilinear_domain_attr)
+
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
                             xios(send_field), xios(send_scalar), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)
 

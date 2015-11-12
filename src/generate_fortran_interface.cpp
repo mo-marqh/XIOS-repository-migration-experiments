@@ -4,10 +4,13 @@
 #include "attribute_template.hpp"
 #include "object_template.hpp"
 #include "group_template.hpp"
-#include "context.hpp"
-#include "file.hpp"
-#include "zoom_domain.hpp"
-#include "zoom_axis.hpp"
+//#include "context.hpp"
+//#include "file.hpp"
+//#include "zoom_domain.hpp"
+//#include "zoom_axis.hpp"
+//#include "interpolate_axis.hpp"
+//#include "interpolate_domain.hpp"
+#include "node_type.hpp"
 
 int main (int argc, char ** argv, char ** UNUSED (env))
 {
@@ -32,6 +35,12 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   CZoomDomain zoomDomain;
   CZoomAxis zoomAxis;
+
+  CInterpolateAxis interpolateAxis;
+  CInterpolateDomain interpolateDomain;
+
+  CGenerateRectilinearDomain genDomain;
+  CInverseAxis inverseAxis;
 
   ostringstream oss;
   ofstream file;
@@ -223,6 +232,54 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   zoomAxis.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"interpolate_axis_interface_attr.F90").c_str());
+  interpolateAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icinterpolate_axis_attr.cpp").c_str());
+  interpolateAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iinterpolate_axis_attr.F90").c_str());
+  interpolateAxis.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"interpolate_domain_interface_attr.F90").c_str());
+  interpolateDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icinterpolate_domain_attr.cpp").c_str());
+  interpolateDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iinterpolate_domain_attr.F90").c_str());
+  interpolateDomain.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"generate_rectilinear_domain_interface_attr.F90").c_str());
+  genDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icgenerate_rectilinear_domain_attr.cpp").c_str());
+  genDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"igenerate_rectilinear_domain_attr.F90").c_str());
+  genDomain.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"inverse_axis_interface_attr.F90").c_str());
+  inverseAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icinverse_axis_attr.cpp").c_str());
+  inverseAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iinverse_axis_attr.F90").c_str());
+  inverseAxis.generateFortranInterface(file);
+  file.close();
+
   file.open((path+"context_interface_attr.F90").c_str());
   context->generateFortran2003Interface(file);
   file.close();
@@ -234,7 +291,4 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"icontext_attr.F90").c_str());
   context->generateFortranInterface(file);
   file.close();
-
-
-
 }

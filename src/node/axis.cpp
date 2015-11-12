@@ -919,8 +919,9 @@ namespace xios {
           CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_INVERSE_AXIS,tmp));
-        } else if (node.getElementName() == zoom) {
-          CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild();
+        }
+        else if (node.getElementName() == zoom) {
+          CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_ZOOM_AXIS,tmp));
         }
