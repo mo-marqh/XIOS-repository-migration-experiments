@@ -1,5 +1,6 @@
 #include "inetcdf4.hpp"
 #include "netCdfInterface.hpp"
+#include "netCdf_cf_constant.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -301,7 +302,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& attname = *it;
-      if (attname.compare(name) == 0)
+      if (attname.compare(0, name.size(), name) == 0)
         return retvalue;
       retvalue++;
     }
@@ -325,7 +326,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& attname = *it;
-      if (attname.compare(name) == 0) return true;
+      if (attname.compare(0, name.size(), name) == 0) return true;
     }
     return false;
   }
@@ -338,7 +339,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& varname = *it;
-      if (varname.compare(name) == 0) return true;
+      if (varname.compare(0, name.size(), name) == 0) return true;
     }
     return false;
   }
@@ -346,13 +347,13 @@ namespace xios
   bool CINetCDF4::hasCoordinates(const StdString& name,
                                  const CVarPath* const path)
   {
-    return this->hasAttribute("coordinates", &name, path);
+    return this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path);
   }
 
   bool CINetCDF4::hasBounds(const StdString& name,
                             const CVarPath* const path)
   {
-    return this->hasAttribute("bounds", &name, path);
+    return this->hasAttribute(CCFKeywords::XIOS_CF_bounds, &name, path);
   }
 
   bool CINetCDF4::hasTemporalDim(const CVarPath* const path)
@@ -440,9 +441,9 @@ namespace xios
   StdString CINetCDF4::getCoordinatesId(const StdString& name, const CVarPath* const path)
   {
     StdString retvalue;
-    if (this->hasAttribute("coordinates", &name, path))
+    if (this->hasAttribute(CCFKeywords::XIOS_CF_coordinates, &name, path))
     {
-      return this->getAttributeValue("coordinates", &name, path);
+      return this->getAttributeValue(CCFKeywords::XIOS_CF_coordinates, &name, path);
     }
     else
     {
@@ -463,8 +464,8 @@ namespace xios
                                    const CVarPath* const path)
   {
     StdString retvalue;
-    if (this->hasAttribute("bounds", &name, path))
-      retvalue = this->getAttributeValue("bounds", &name, path);
+    if (this->hasAttribute(CCFKeywords::XIOS_CF_bounds, &name, path))
+      retvalue = this->getAttributeValue(CCFKeywords::XIOS_CF_bounds, &name, path);
     return retvalue;
   }
 
@@ -508,19 +509,22 @@ namespace xios
     if (this->isRectilinear(name, path) || !this->hasCoordinates(name, path))
       return false;
 
+    bool isCurVi = true;
+    unsigned int nbLonLat = 0;
     std::list<StdString> coords = this->getCoordinatesIdList(name, path);
     std::list<StdString>::const_iterator it = coords.begin(), end = coords.end();
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
-        if (dimvar.size() != 2) return false;
+        if (2 == dimvar.size()) ++nbLonLat;
       }
-      else return false;
     }
-    return true;
+    if (2 != nbLonLat) isCurVi = false;
+
+    return isCurVi;
   }
 
   bool CINetCDF4::isUnstructured(const StdString& name, const CVarPath* const path)
@@ -537,7 +541,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if ((dimvar.size() == 1) &&
@@ -580,7 +584,8 @@ namespace xios
       }
       else
       {
-        if (coord.compare(this->getUnlimitedDimensionName()) == 0)
+        StdString unlimitedDimName = this->getUnlimitedDimensionName();
+        if (coord.compare(0, unlimitedDimName.size(), unlimitedDimName) == 0)
           continue;
         i++;
       }
@@ -611,7 +616,8 @@ namespace xios
         }
         else
         {
-          if (coord.compare(this->getUnlimitedDimensionName()) == 0)
+          StdString unlimitedDimName = this->getUnlimitedDimensionName();
+          if (coord.compare(0, unlimitedDimName.size(), unlimitedDimName) == 0)
             continue;
           return false;
         }
@@ -711,54 +717,40 @@ namespace xios
   void CINetCDF4::getData(CArray<float, 1>& data, const StdString& var,
                           const CVarPath* const path, StdSize record);
 
-  template <>
-  void CINetCDF4::getData(CArray<double, 1>& data, const StdString& var,
-                          bool collective, StdSize record,
-                          const std::vector<StdSize>* start /*= NULL*/,
-                          const std::vector<StdSize>* count /*= NULL*/)
-  {
-    int varid = this->getVariable(var);
-
-    if (this->mpi && collective)
-      CNetCdfInterface::varParAccess(ncidp, varid, NC_COLLECTIVE);
-    else if (this->mpi && !collective)
-      CNetCdfInterface::varParAccess(ncidp, varid, NC_INDEPENDENT);
-
-    std::vector<StdSize> sstart, scount;
-    StdSize array_size = 1;
-    this->getDataInfo(var, NULL, record, sstart, scount, array_size, start, count);
-
-    if (data.numElements() != array_size)
-    {
-      ERROR("CONetCDF4::getData(...)",
-            << "[ Array size = " << data.numElements()
-            << ", Data size = "  << array_size
-            << " ] Invalid array size");
-    }
-
-    CNetCdfInterface::getVaraType(ncidp, varid, &sstart[0], &scount[0], data.dataFirst());
-  }
-
   //---------------------------------------------------------------
 
   StdString CINetCDF4::getLonCoordName(const StdString& varname,
                                        const CVarPath* const path)
   {
+    std::list<StdString>::const_iterator itbList, itList, iteList;
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
-    if (this->hasCoordinates(varname, path))
-      return *clist.begin();
-    else
-      return *clist.rbegin();
+    itbList = clist.begin(); iteList = clist.end();
+    for (itList = itbList; itList != iteList; ++itList)
+    {
+      if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &(*itList), path))
+      {
+        StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
+        if (CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit))
+          return *itList;
+      }
+    }
   }
 
   StdString CINetCDF4::getLatCoordName(const StdString& varname,
                                        const CVarPath* const path)
   {
+    std::list<StdString>::const_iterator itbList, itList, iteList;
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
-    if (this->hasCoordinates(varname, path))
-      return *(++clist.begin());
-    else
-      return *(++clist.rbegin());
+    itbList = clist.begin(); iteList = clist.end();
+    for (itList = itbList; itList != iteList; ++itList)
+    {
+      if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &(*itList), path))
+      {
+        StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
+        if (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit))
+          return *itList;
+      }
+    }
   }
 
   StdString CINetCDF4::getVertCoordName(const StdString& varname,

@@ -49,7 +49,8 @@ namespace xios
     void readAxisAttributeValueFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
                                         int elementPosition, const StdString& fieldId);
 
-    void readFieldVariableValue(CArray<double,1>& var, const StdString& varId,
+    template <typename T, int Ndim>
+    void readFieldVariableValue(CArray<T, Ndim>& var, const StdString& varId,
                                 const std::vector<StdSize>& nBegin,
                                 const std::vector<StdSize>& nSize,
                                 bool forceIndependent = false);
@@ -64,6 +65,30 @@ namespace xios
     const StdString filename;
     bool isCollective;
   }; // class CNc4DataInput
+
+template <typename T, int Ndim>
+void CNc4DataInput::readFieldVariableValue(CArray<T,Ndim>& var, const StdString& varId,
+                                           const std::vector<StdSize>& nBegin,
+                                           const std::vector<StdSize>& nSize,
+                                           bool forceIndependent)
+{
+  if (SuperClass::type==MULTI_FILE || !isCollective) return;
+
+  bool openCollective = isCollective;
+  if (forceIndependent) openCollective = !isCollective;
+  switch (SuperClass::type)
+  {
+    case MULTI_FILE:
+      ERROR("CINetCDF4::readFieldVariableValue(...)",
+            << "Only support attributes reading with one_file mode");
+      break;
+    case ONE_FILE:
+    {
+      SuperClassWriter::getData(var, varId, openCollective, 0, &nBegin, &nSize);
+      break;
+    }
+  }
+}
 } // namespace xios
 
 #endif //__XIOS_NC4_DATA_INPUT__

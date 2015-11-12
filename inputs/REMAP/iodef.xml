@@ -17,19 +17,19 @@
 
    <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-        <field field_ref="src_field" name="field" />
+<!--        <field field_ref="src_field" name="field" />-->
      </file>
      <file id="output_dst" name="output_dst" type="one_file">
 <!--        <field field_ref="dst_field" name="field" />-->
      </file>
      <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
-        <field field_ref="dst_field_regular_pole" name="field" />
+<!--        <field field_ref="dst_field_regular_pole" name="field" />-->
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
-        <field field_ref="dst_field_regular" name="field" />
+<!--        <field field_ref="dst_field_regular" name="field" />-->
      </file>
      <file id="output_dst_curvilinear" name="output_dst_curvilinear" type="one_file">
-        <field field_ref="tmp_field_1" operation="instant"/>
+<!--        <field field_ref="tmp_field_1" operation="instant"/>-->
      </file>
 
      <file id="output_src_regular" name="output_src_regular" mode="read" type="multiple_file">
@@ -43,11 +43,17 @@
 <!--        <field id="src_field_curvilinear" name="field_A" domain_ref="src_domain_curvilinear" axis_ref="src_axis_curvilinear" operation="instant"/>-->
         <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>
      </file>
+     <file id="output_surface_curvi" name="output_surface_curvi" mode="read" type="one_file">
+        <field id="field_surface_curvi" name="field_A" domain_ref="domain_surface_curvi" axis_ref="axis_surface_curvi" operation="instant"/>
+     </file>
    </file_definition>
 
 
    <axis_definition>
      <axis id="src_axis_curvilinear" />
+   </axis_definition>
+   <axis_definition>
+     <axis id="axis_surface_curvi" />
    </axis_definition>
 
    <domain_definition>
@@ -71,6 +77,9 @@
        <generate_rectilinear_domain />
      </domain>
      <domain id="src_domain_curvilinear" type="rectilinear">
+       <generate_rectilinear_domain />
+     </domain>
+     <domain id="domain_surface_curvi" type="curvilinear">
        <generate_rectilinear_domain />
      </domain>
    </domain_definition>

@@ -26,14 +26,16 @@ PROGRAM test_new_features
   LOGICAL,ALLOCATABLE :: mask_glo(:),mask(:)
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
+  DOUBLE PRECISION,DIMENSION(4,ni_glo,nj_glo) :: bnds_lon_glo, bnds_lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , &
                                   field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:), lvalnInterp(:), &
-                                  lontransformed(:,:), lattransformed(:,:), lon_glotransformed(:,:), lat_glotransformed(:,:)
+                                  lontransformed(:,:), lattransformed(:,:), lon_glotransformed(:,:), lat_glotransformed(:,:), &
+                                  bnds_lon(:,:,:), bnds_lat(:,:,:)
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
   INTEGER :: axisterpBegin, nAxisinterp, axisinterpEnd
   INTEGER :: niDomInterp,ibeginDomInterp,iendDomInterp,njDomInterp,jbeginDomInterp,jendDomInterp, niDomGlo, njDomGlo
-  INTEGER :: i,j,l,ts,n
+  INTEGER :: i,j,k,l,ts,n
 
 !!! MPI Initialization
 
@@ -52,6 +54,17 @@ PROGRAM test_new_features
     DO i=1,ni_glo
       lon_glo(i,j)=(i-1)+(j-1)*ni_glo
       lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
+      DO k = 1,4
+        bnds_lon_glo(1,i,j) = lon_glo(i,j)
+        bnds_lon_glo(2,i,j) = lon_glo(i,j)-10
+        bnds_lon_glo(3,i,j) = lon_glo(i,j)
+        bnds_lon_glo(4,i,j) = lon_glo(i,j)+10
+
+        bnds_lat_glo(1,i,j) = lat_glo(i,j) -10
+        bnds_lat_glo(2,i,j) = lat_glo(i,j)
+        bnds_lat_glo(3,i,j) = lat_glo(i,j) -10
+        bnds_lat_glo(4,i,j) = lat_glo(i,j)
+      ENDDO
       lval_ni_glo(i) = i-1
       DO l=1,llm
         field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
@@ -95,7 +108,8 @@ PROGRAM test_new_features
   ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
           lon(ni,nj),lat(ni,nj), lonvalue(ni*nj), &
           lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp), &
-          lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp))
+          lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp), &
+          bnds_lon(4,ni,nj), bnds_lat(4,ni,nj))
 
   ALLOCATE(mask(nj))
   DO i = 1, nj
@@ -107,6 +121,8 @@ PROGRAM test_new_features
   ENDDO
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
+  bnds_lon(:,:,:) = bnds_lon_glo(:,ibegin+1:iend+1,jbegin+1:jend+1)
+  bnds_lat(:,:,:) = bnds_lat_glo(:,ibegin+1:iend+1,jbegin+1:jend+1)
   lontransformed(:,:) = lon_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   lattransformed(:,:) = lat_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
@@ -134,6 +150,7 @@ PROGRAM test_new_features
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat, type='curvilinear')
+  CALL xios_set_domain_attr("domain_A",bounds_lon_2d=bnds_lon,bounds_lat_2d=bnds_lat, nvertex=4, type='curvilinear')
 
   CALL xios_set_domain_attr("domain_A_transformed", ni_glo=niDomGlo, nj_glo=njDomGlo, &
                             type='rectilinear')
@@ -200,7 +217,8 @@ PROGRAM test_new_features
 
   DEALLOCATE(field_A, field_Two_Axis, field_Axis, field_All_Axis, &
              lon, lat, lonvalue, &
-             lvaln, lval_ni, lval_nj, lvalnInterp)
+             lvaln, lval_ni, lval_nj, lvalnInterp, &
+             bnds_lon, bnds_lat)
 
   DEALLOCATE(mask)
 

@@ -97,8 +97,8 @@ namespace xios
                    const CVarPath* const path = NULL,
                    StdSize record = UNLIMITED_DIM);
 
-      template <class T>
-      void getData(CArray<T, 1>& data, const StdString& var,
+      template <class T, int Ndim>
+      void getData(CArray<T, Ndim>& data, const StdString& var,
                    bool collective, StdSize record,
                    const std::vector<StdSize>* start = NULL,
                    const std::vector<StdSize>* count = NULL);

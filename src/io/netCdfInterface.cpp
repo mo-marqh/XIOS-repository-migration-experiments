@@ -602,8 +602,8 @@ int CNetCdfInterface::inqVarNAtts(int ncid, int varid, int& natts)
 //! Query the name of an attribute given a location id, a variable id and the attribute number
 int CNetCdfInterface::inqAttName(int ncid, int varid, int attnum, StdString& name)
 {
-  char attName[NC_MAX_NAME + 1];
-  int status = nc_inq_attname(ncid, varid, attnum, attName);
+  std::vector<char> attName(NC_MAX_NAME + 1,' ');
+  int status = nc_inq_attname(ncid, varid, attnum, &attName[0]);
   if (NC_NOERR != status)
   {
     StdString errormsg(nc_strerror(status));
@@ -615,6 +615,12 @@ int CNetCdfInterface::inqAttName(int ncid, int varid, int attnum, StdString& nam
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
+
+  int nameSize = 0;
+  while ((nameSize < NC_MAX_NAME) && (' ' != attName[nameSize] )) ++nameSize;
+  name.resize(nameSize);
+//  for (int idx = 0; idx < nameSize; ++idx) name.at(idx) = attName[idx];
+  std::copy(&attName[0], &attName[nameSize-1], name.begin());
 
   return status;
 }

@@ -227,7 +227,7 @@ namespace xios {
    void CDomain::redistribute(int nbLocalDomain)
    {
      if (this->isRedistributed_) return;
-     if (type_attr::rectilinear == type)
+     if ((type_attr::rectilinear == type)  || (type_attr::curvilinear == type))
      {
         this->isRedistributed_ = true;
 
@@ -327,7 +327,7 @@ namespace xios {
         }
 
         // Now fill other attributes
-        fillInRectilinearLonLat();
+        if (type_attr::rectilinear == type) fillInRectilinearLonLat();
      }
    }
 
