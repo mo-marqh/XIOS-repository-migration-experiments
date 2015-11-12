@@ -142,8 +142,10 @@ namespace xios
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
+    bool isUnstructuredGrid = SuperClassWriter::isUnstructured(fieldId);
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
     realGridDim = SuperClassWriter::isTemporal(fieldId) ? dimSizeMap.size() - 1 : dimSizeMap.size();
+    if (isUnstructuredGrid) ++realGridDim;
 
     if (gridDim != realGridDim)
        ERROR("CNc4DataInput::readFieldAttributes_(CField* field, bool readAttributeValues)",
@@ -153,6 +155,9 @@ namespace xios
     // Remove unlimited dimension from the map, we dont need it anymore
     if (SuperClassWriter::isTemporal(fieldId)) dimSizeMap.erase(SuperClassWriter::getUnlimitedDimensionName());
     int mapSize = dimSizeMap.size() - 1;
+    std::list<std::pair<StdString, StdSize> > listDimSize;
+    for (std::map<StdString, StdSize>::const_iterator itMap = dimSizeMap.begin(); itMap != dimSizeMap.end(); ++itMap)
+      listDimSize.push_front(*itMap);
 
     // Now process domain and axis
     CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
@@ -168,27 +173,28 @@ namespace xios
         if (readAttributeValues)
         {
            it = readValueDomains_.insert(domainP[idxDomain]->getId());
-           if (it.second) readDomainAttributeValueFromFile(domainP[idxDomain], dimSizeMap, mapSize - 1 - elementPosition, fieldId);
+           if (it.second) readDomainAttributeValueFromFile(domainP[idxDomain], listDimSize, elementPosition, fieldId);
         }
         else
         {
           it = readMetaDataDomains_.insert(domainP[idxDomain]->getId());
-          if (it.second) readDomainAttributesFromFile(domainP[idxDomain], dimSizeMap, mapSize - 1 - elementPosition, fieldId);
+          if (it.second) readDomainAttributesFromFile(domainP[idxDomain], listDimSize, elementPosition, fieldId);
         }
         ++idxDomain;
-        elementPosition += 2;
+        if (isUnstructuredGrid) ++elementPosition;
+        else elementPosition += 2;
       }
       else
       {
         if (readAttributeValues)
         {
           it = readValueAxis_.insert(axisP[idxAxis]->getId());
-          if (it.second) readAxisAttributeValueFromFile(axisP[idxAxis], dimSizeMap, mapSize - elementPosition, fieldId);
+          if (it.second) readAxisAttributeValueFromFile(axisP[idxAxis], listDimSize, elementPosition, fieldId);
         }
         else
         {
           it = readMetaDataAxis_.insert(axisP[idxAxis]->getId());
-          if (it.second) readAxisAttributesFromFile(axisP[idxAxis], dimSizeMap, mapSize - elementPosition, fieldId);
+          if (it.second) readAxisAttributesFromFile(axisP[idxAxis], listDimSize, elementPosition, fieldId);
         }
         ++idxAxis;
         ++elementPosition;
@@ -203,15 +209,15 @@ namespace xios
     \param [in] emelentPosition position of domain in grid
     \param [in] fieldId id (or name) associated with the grid
   */
-  void CNc4DataInput::readDomainAttributeValueFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+  void CNc4DataInput::readDomainAttributeValueFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                        int elementPosition, const StdString& fieldId)
   {
     // There are some optional attributes of a domain to retrieve from file    // + lon lat?
-    std::map<StdString, StdSize>::const_iterator itMapNj = dimSizeMap.begin(), itMapNi,
-                                                 iteMap  = dimSizeMap.end();
+    std::list<std::pair<StdString, StdSize> >::const_iterator itMapNi = dimSizeMap.begin(), itMapNj,
+                                                              iteMap  = dimSizeMap.end();
 
-    for (int i = 0; i < elementPosition; ++i, ++itMapNj) {}
-    itMapNi = itMapNj; ++itMapNi;
+    for (int i = 0; i < elementPosition; ++i, ++itMapNi) {}
+    itMapNj = itMapNi; ++itMapNj;
 
     if (this->isRectilinear(fieldId))
     {
@@ -224,6 +230,44 @@ namespace xios
       std::vector<StdSize> nBeginLon(1, 0), nSizeLon(1, itMapNi->second);
       readFieldVariableValue(domain->lonvalue_rectilinear_read_from_file, itMapNi->first, nBeginLon, nSizeLon, true);
       domain->fillInRectilinearLonLat();
+    }
+    else if (this->isUnstructured(fieldId))
+    {
+      int ni = domain->ni;
+      std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
+      nBeginLatLon[0] = domain->ibegin.getValue();
+      nSizeLatLon[0]  = ni;
+
+      StdString latName = this->getLatCoordName(fieldId);
+      domain->latvalue_1d.resize(ni);
+      readFieldVariableValue(domain->latvalue_1d, latName, nBeginLatLon, nSizeLatLon);
+      StdString lonName = this->getLonCoordName(fieldId);
+      domain->lonvalue_1d.resize(ni);
+      readFieldVariableValue(domain->lonvalue_1d, lonName, nBeginLatLon, nSizeLatLon);
+
+      StdString boundsLatName = this->getBoundsId(latName);
+      if (0 == boundsLatName.compare(""))
+         ERROR("CNc4DataInput::readDomainAttributeValueFromFile(...)",
+              << "Field '" << fieldId << std::endl
+              << "Trying to read attributes from unstructured grid."
+              << "Latitude variable " << latName << " does not have bounds.");
+      StdString boundsLonName = this->getBoundsId(lonName);
+      if (0 == boundsLonName.compare(""))
+         ERROR("CNc4DataInput::readDomainAttributeValueFromFile(...)",
+              << "Field '" << fieldId << std::endl
+              << "Trying to read attributes from unstructured grid."
+              << "Longitude variable " << lonName << " does not have bounds.");
+
+      int nbVertex = this->getNbVertex(fieldId);
+      domain->nvertex.setValue(nbVertex);
+      std::vector<StdSize> nBeginBndsLatLon(2), nSizeBndsLatLon(2);
+      nBeginBndsLatLon[0] = domain->ibegin.getValue(); nSizeBndsLatLon[0] = ni;
+      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
+
+      domain->bounds_lat_1d.resize(nbVertex,ni);
+      readFieldVariableValue(domain->bounds_lat_1d, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
+      domain->bounds_lon_1d.resize(nbVertex,ni);
+      readFieldVariableValue(domain->bounds_lon_1d, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
     }
     else if (this->isCurvilinear(fieldId))
     {
@@ -253,20 +297,17 @@ namespace xios
               << "Trying to read attributes from curvilinear grid."
               << "Longitude variable " << lonName << " does not have bounds.");
 
-      domain->nvertex.setValue(4);
+      int nbVertex = this->getNbVertex(fieldId);
+      domain->nvertex.setValue(nbVertex);
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
       nBeginBndsLatLon[0] = domain->jbegin.getValue(); nSizeBndsLatLon[0] = nj;
       nBeginBndsLatLon[1] = domain->ibegin.getValue(); nSizeBndsLatLon[1] = ni;
-      nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = 4;
+      nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
 
-      domain->bounds_lat_2d.resize(4,ni,nj);
+      domain->bounds_lat_2d.resize(nbVertex,ni,nj);
       readFieldVariableValue(domain->bounds_lat_2d, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
-      domain->bounds_lon_2d.resize(4,ni,nj);
+      domain->bounds_lon_2d.resize(nbVertex,ni,nj);
       readFieldVariableValue(domain->bounds_lon_2d, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
-    }
-    else if (this->isUnstructured(fieldId))
-    {
-
     }
   }
 
@@ -277,24 +318,25 @@ namespace xios
     \param [in] emelentPosition position of domain in grid
     \param [in] fieldId id (or name) associated with the grid
   */
-  void CNc4DataInput::readDomainAttributesFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+  void CNc4DataInput::readDomainAttributesFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                    int elementPosition, const StdString& fieldId)
   {
     // There are some mandatory attributes of a domain to retrieve from file
     // + ni_glo, nj_glo
-    std::map<StdString, StdSize>::const_iterator itMapNj = dimSizeMap.begin(), itMapNi,
-                                                 iteMap  = dimSizeMap.end();
-    for (int i = 0; i < elementPosition; ++i, ++itMapNj) {}
-    itMapNi = itMapNj; ++itMapNi;
+    std::list<std::pair<StdString, StdSize> >::const_iterator itMapNi = dimSizeMap.begin(), itMapNj,
+                                                              iteMap  = dimSizeMap.end();
+    for (int i = 0; i < elementPosition; ++i, ++itMapNi) {}
+    itMapNj = itMapNi; ++itMapNj;
 
     if (this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
     {
       domain->nj_glo.setValue(itMapNj->second);
-      domain->ni_glo.setValue((itMapNi)->second);
+      domain->ni_glo.setValue(itMapNi->second);
     }
     else if (this->isUnstructured(fieldId))
     {
-
+      domain->nj_glo.setValue(1);
+      domain->ni_glo.setValue(itMapNi->second);
     }
   }
 
@@ -305,11 +347,11 @@ namespace xios
     \param [in] emelentPosition position of axis in grid
     \param [in] fieldId id (or name) associated with the grid
   */
-  void CNc4DataInput::readAxisAttributesFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+  void CNc4DataInput::readAxisAttributesFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                  int elementPosition, const StdString& fieldId)
   {
-    std::map<StdString, StdSize>::const_iterator itMapN = dimSizeMap.begin(),
-                                                 iteMap  = dimSizeMap.end();
+    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
+                                                              iteMap = dimSizeMap.end();
     for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
     axis->n_glo.setValue(itMapN->second);
   }
@@ -321,11 +363,11 @@ namespace xios
     \param [in] emelentPosition position of axis in grid
     \param [in] fieldId id (or name) associated with the grid
   */
-  void CNc4DataInput::readAxisAttributeValueFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+  void CNc4DataInput::readAxisAttributeValueFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                     int elementPosition, const StdString& fieldId)
   {
-    std::map<StdString, StdSize>::const_iterator itMapN = dimSizeMap.begin(),
-                                                 iteMap  = dimSizeMap.end();
+    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
+                                                              iteMap = dimSizeMap.end();
     for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
 
     { // Read axis value

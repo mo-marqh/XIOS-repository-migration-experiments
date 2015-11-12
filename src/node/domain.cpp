@@ -227,31 +227,31 @@ namespace xios {
    void CDomain::redistribute(int nbLocalDomain)
    {
      if (this->isRedistributed_) return;
+
+     this->isRedistributed_ = true;
+     CContext* context = CContext::getCurrent();
+     CContextClient* client = context->client;
+     int rankClient = client->clientRank;
+     int rankOnDomain = rankClient%nbLocalDomain;
+
+     if (ni_glo.isEmpty() || ni_glo <= 0 )
+     {
+        ERROR("CDomain::redistribute(int nbLocalDomain)",
+           << "[ Id = " << this->getId() << " ] "
+           << "The global domain is badly defined,"
+           << " check the \'ni_glo\'  value !")
+     }
+
+     if (nj_glo.isEmpty() || nj_glo <= 0 )
+     {
+        ERROR("CDomain::redistribute(int nbLocalDomain)",
+           << "[ Id = " << this->getId() << " ] "
+           << "The global domain is badly defined,"
+           << " check the \'nj_glo\'  value !")
+     }
+
      if ((type_attr::rectilinear == type)  || (type_attr::curvilinear == type))
      {
-        this->isRedistributed_ = true;
-
-        CContext* context = CContext::getCurrent();
-        CContextClient* client = context->client;
-        int rankClient = client->clientRank;
-        int rankOnDomain = rankClient%nbLocalDomain;
-
-        if (ni_glo.isEmpty() || ni_glo <= 0 )
-        {
-           ERROR("CDomain::redistribute(int nbLocalDomain)",
-              << "[ Id = " << this->getId() << " ] "
-              << "The global domain is badly defined,"
-              << " check the \'ni_glo\'  value !")
-        }
-
-        if (nj_glo.isEmpty() || nj_glo <= 0 )
-        {
-           ERROR("CDomain::redistribute(int nbLocalDomain)",
-              << "[ Id = " << this->getId() << " ] "
-              << "The global domain is badly defined,"
-              << " check the \'nj_glo\'  value !")
-        }
-
         int globalDomainSize = ni_glo * nj_glo;
         if (globalDomainSize <= nbLocalDomain)
         {
@@ -328,6 +328,49 @@ namespace xios {
 
         // Now fill other attributes
         if (type_attr::rectilinear == type) fillInRectilinearLonLat();
+     }
+     else  // unstructured domain
+     {
+        int globalDomainSize = ni_glo * nj_glo;
+        if (globalDomainSize <= nbLocalDomain)
+        {
+          for (int idx = 0; idx < nbLocalDomain; ++idx)
+          {
+            if (rankOnDomain < globalDomainSize)
+            {
+              int iIdx = rankOnDomain % ni_glo;
+              int jIdx = rankOnDomain / ni_glo;
+              ibegin.setValue(iIdx); jbegin.setValue(jIdx);
+              ni.setValue(1); nj.setValue(1);
+            }
+            else
+            {
+              ibegin.setValue(0); jbegin.setValue(0);
+              ni.setValue(0); nj.setValue(0);
+            }
+          }
+        }
+        else
+        {
+          float njGlo = nj_glo.getValue();
+          float niGlo = ni_glo.getValue();
+          std::vector<int> ibeginVec(nbLocalDomain,0);
+          std::vector<int> niVec(nbLocalDomain);
+          for (int i = 1; i < nbLocalDomain; ++i)
+          {
+            int range = ni_glo / nbLocalDomain;
+            if (i < (ni_glo%nbLocalDomain)) ++range;
+            niVec[i-1] = range;
+            ibeginVec[i] = ibeginVec[i-1] + niVec[i-1];
+          }
+          niVec[nbLocalDomain-1] = ni_glo - ibeginVec[nbLocalDomain-1];
+
+          int iIdx = rankOnDomain % nbLocalDomain;
+          ibegin.setValue(ibeginVec[iIdx]);
+          jbegin.setValue(0);
+          ni.setValue(niVec[iIdx]);
+          nj.setValue(1);
+        }
      }
    }
 

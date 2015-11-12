@@ -19,7 +19,7 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:), tmp_field_2(:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;
   INTEGER :: src_ibegin, dst_ibegin;
@@ -131,13 +131,18 @@ PROGRAM test_remap
   CALL xios_get_domain_attr("src_domain_curvilinear", ni=src_tmp_ni, nj=src_tmp_nj)
   ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
 
+  CALL xios_get_domain_attr("domain_src_unstructured", ni=src_tmp_ni, nj=src_tmp_nj)
+  ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
+
   DO ts=1,1
     CALL xios_recv_field("src_field_regular_tmp", tmp_field)
     CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
+    CALL xios_recv_field("field_src_unstructred", tmp_field_2)
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field",src_field)
     CALL xios_send_field("tmp_field",tmp_field)
     CALL xios_send_field("tmp_field_1",tmp_field_1)
+    CALL xios_send_field("tmp_field_2",tmp_field_2)
     CALL wait_us(5000) ;
   ENDDO
 
@@ -145,6 +150,7 @@ PROGRAM test_remap
 
   DEALLOCATE(src_lon, src_lat, src_boundslon,src_boundslat, src_field)
   DEALLOCATE(dst_lon, dst_lat, dst_boundslon,dst_boundslat)
+  DEALLOCATE(tmp_field, tmp_field_1, tmp_field_2)
 
   CALL MPI_COMM_FREE(comm, ierr)
 

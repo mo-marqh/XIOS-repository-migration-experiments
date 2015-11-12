@@ -39,14 +39,14 @@ namespace xios
     virtual void closeFile_(void);
 
   private:
-    void readDomainAttributesFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+    void readDomainAttributesFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                       int elementPosition, const StdString& fieldId);
-    void readDomainAttributeValueFromFile(CDomain* domain, std::map<StdString, StdSize>& dimSizeMap,
+    void readDomainAttributeValueFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                           int elementPosition, const StdString& fieldId);
 
-    void readAxisAttributesFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+    void readAxisAttributesFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                     int elementPosition, const StdString& fieldId);
-    void readAxisAttributeValueFromFile(CAxis* axis, std::map<StdString, StdSize>& dimSizeMap,
+    void readAxisAttributeValueFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                         int elementPosition, const StdString& fieldId);
 
     template <typename T, int Ndim>
