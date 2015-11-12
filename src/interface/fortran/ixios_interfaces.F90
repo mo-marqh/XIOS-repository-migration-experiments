@@ -50,6 +50,14 @@ USE iaxis_attr, ONLY : xios(set_axis_attr_hdl), xios(get_axis_attr_hdl), xios(is
 
 USE iaxisgroup_attr, ONLY : xios(set_axisgroup_attr_hdl), xios(get_axisgroup_attr_hdl), xios(is_defined_axisgroup_attr_hdl)
 
+USE izoom_axis, ONLY : xios(get_zoom_axis_handle)
+
+USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr_hdl), xios(get_zoom_axis_attr_hdl), xios(is_defined_zoom_axis_attr_hdl)
+
+USE izoom_domain, ONLY : xios(get_zoom_domain_handle)
+
+USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr_hdl), xios(get_zoom_domain_attr_hdl), xios(is_defined_zoom_domain_attr_hdl)
+
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),   &
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
                       xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), &
@@ -63,7 +71,8 @@ INTERFACE xios(set_attr)
                    xios(set_field_attr_hdl),xios(set_variable_attr_hdl), xios(set_variablegroup_attr_hdl),   &
                    xios(set_file_attr_hdl), xios(set_filegroup_attr_hdl),                                    &
                    xios(set_grid_attr_hdl), xios(set_gridgroup_attr_hdl), xios(set_axis_attr_hdl) ,          &
-                   xios(set_axisgroup_attr_hdl), xios(set_context_attr_hdl)
+                   xios(set_axisgroup_attr_hdl), xios(set_context_attr_hdl), xios(set_zoom_axis_attr_hdl),   &
+                   xios(set_zoom_domain_attr_hdl)
 END INTERFACE xios(set_attr)
 
 INTERFACE xios(get_attr)
@@ -71,7 +80,8 @@ INTERFACE xios(get_attr)
                    xios(get_field_attr_hdl), xios(get_variable_attr_hdl), xios(get_variablegroup_attr_hdl),  &
                    xios(get_file_attr_hdl), xios(get_filegroup_attr_hdl),                                    &
                    xios(get_grid_attr_hdl), xios(get_gridgroup_attr_hdl), xios(get_axis_attr_hdl) ,          &
-                   xios(get_axisgroup_attr_hdl), xios(get_context_attr_hdl)
+                   xios(get_axisgroup_attr_hdl), xios(get_context_attr_hdl), xios(get_zoom_axis_attr_hdl),   &
+                   xios(get_zoom_domain_attr_hdl)
 END INTERFACE xios(get_attr)
 
 INTERFACE xios(is_defined_attr)
@@ -79,7 +89,8 @@ INTERFACE xios(is_defined_attr)
                    xios(is_defined_field_attr_hdl), xios(is_defined_variable_attr_hdl), xios(is_defined_variablegroup_attr_hdl),  &
                    xios(is_defined_file_attr_hdl), xios(is_defined_filegroup_attr_hdl),                                           &
                    xios(is_defined_grid_attr_hdl), xios(is_defined_gridgroup_attr_hdl), xios(is_defined_axis_attr_hdl) ,          &
-                   xios(is_defined_axisgroup_attr_hdl), xios(is_defined_context_attr_hdl)
+                   xios(is_defined_axisgroup_attr_hdl), xios(is_defined_context_attr_hdl),                                        &
+                   xios(is_defined_zoom_axis_attr_hdl), xios(is_defined_zoom_domain_attr_hdl)
 END INTERFACE xios(is_defined_attr)
 
 INTERFACE xios(get_handle)
@@ -87,7 +98,8 @@ INTERFACE xios(get_handle)
                    xios(get_file_handle), xios(get_filegroup_handle), xios(get_grid_handle),        &
                    xios(get_gridgroup_handle), xios(get_axis_handle), xios(get_axisgroup_handle),   &
                    xios(get_field_handle), xios(get_fieldgroup_handle),xios(get_variable_handle),   &
-                   xios(get_variablegroup_handle)
+                   xios(get_variablegroup_handle), xios(get_zoom_axis_handle),                  &
+                   xios(get_zoom_domain_handle)
 END INTERFACE xios(get_handle)
 
 INTERFACE xios(add_child)

@@ -6,6 +6,8 @@
 #include "group_template.hpp"
 #include "context.hpp"
 #include "file.hpp"
+#include "zoom_domain.hpp"
+#include "zoom_axis.hpp"
 
 int main (int argc, char ** argv, char ** UNUSED (env))
 {
@@ -27,6 +29,9 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   CFile afile;
   CFileGroup filegroup;
+
+  CZoomDomain zoomDomain;
+  CZoomAxis zoomAxis;
 
   ostringstream oss;
   ofstream file;
@@ -194,6 +199,29 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   calendarWrapper.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"zoom_domain_interface_attr.F90").c_str());
+  zoomDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"iczoom_domain_attr.cpp").c_str());
+  zoomDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"izoom_domain_attr.F90").c_str());
+  zoomDomain.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"zoom_axis_interface_attr.F90").c_str());
+  zoomAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"iczoom_axis_attr.cpp").c_str());
+  zoomAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"izoom_axis_attr.F90").c_str());
+  zoomAxis.generateFortranInterface(file);
+  file.close();
 
   file.open((path+"context_interface_attr.F90").c_str());
   context->generateFortran2003Interface(file);
@@ -206,5 +234,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"icontext_attr.F90").c_str());
   context->generateFortranInterface(file);
   file.close();
+
+
 
 }

@@ -911,8 +911,12 @@ namespace xios {
       StdString interp("interpolate_axis");
       do
       {
+        StdString nodeId("");
+        if (node.getAttributes().end() != node.getAttributes().find("id"))
+        { nodeId = node.getAttributes()["id"]; }
+
         if (node.getElementName() == inverse) {
-          CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild();
+          CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_INVERSE_AXIS,tmp));
         } else if (node.getElementName() == zoom) {
@@ -921,7 +925,7 @@ namespace xios {
           transformationMap_.push_back(std::make_pair(TRANS_ZOOM_AXIS,tmp));
         }
         else if (node.getElementName() == interp) {
-          CInterpolateAxis* tmp = (CInterpolateAxisGroup::get(interpAxisDefRoot))->createChild();
+          CInterpolateAxis* tmp = (CInterpolateAxisGroup::get(interpAxisDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_AXIS,tmp));
         }

@@ -1949,20 +1949,24 @@ namespace xios {
       StdString generateRectilinear("generate_rectilinear_domain");
       do
       {
+        StdString nodeId("");
+        if (node.getAttributes().end() != node.getAttributes().find("id"))
+        { nodeId = node.getAttributes()["id"]; }
+
         if (node.getElementName() == zoom) {
-          CZoomDomain* tmp = (CZoomDomainGroup::get(zoomDomainDefRoot))->createChild();
+          CZoomDomain* tmp = (CZoomDomainGroup::get(zoomDomainDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_ZOOM_DOMAIN,tmp));
         }
         else if (node.getElementName() == interpFromFile)
         {
-          CInterpolateDomain* tmp = (CInterpolateDomainGroup::get(interpDomainDefRoot))->createChild();
+          CInterpolateDomain* tmp = (CInterpolateDomainGroup::get(interpDomainDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN,tmp));
         }
         else if (node.getElementName() == generateRectilinear)
         {
-          CGenerateRectilinearDomain* tmp = (CGenerateRectilinearDomainGroup::get(generateRectilinearDefRoot))->createChild();
+          CGenerateRectilinearDomain* tmp = (CGenerateRectilinearDomainGroup::get(generateRectilinearDefRoot))->createChild(nodeId);
           tmp->parse(node);
           transformationMap_.push_back(std::make_pair(TRANS_GENERATE_RECTILINEAR_DOMAIN,tmp));
         }
