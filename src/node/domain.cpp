@@ -331,47 +331,59 @@ namespace xios {
      }
      else  // unstructured domain
      {
-        int globalDomainSize = ni_glo * nj_glo;
-        if (globalDomainSize <= nbLocalDomain)
-        {
-          for (int idx = 0; idx < nbLocalDomain; ++idx)
+       if (this->i_index.isEmpty())
+       {
+          int globalDomainSize = ni_glo * nj_glo;
+          if (globalDomainSize <= nbLocalDomain)
           {
-            if (rankOnDomain < globalDomainSize)
+            for (int idx = 0; idx < nbLocalDomain; ++idx)
             {
-              int iIdx = rankOnDomain % ni_glo;
-              int jIdx = rankOnDomain / ni_glo;
-              ibegin.setValue(iIdx); jbegin.setValue(jIdx);
-              ni.setValue(1); nj.setValue(1);
+              if (rankOnDomain < globalDomainSize)
+              {
+                int iIdx = rankOnDomain % ni_glo;
+                int jIdx = rankOnDomain / ni_glo;
+                ibegin.setValue(iIdx); jbegin.setValue(jIdx);
+                ni.setValue(1); nj.setValue(1);
+              }
+              else
+              {
+                ibegin.setValue(0); jbegin.setValue(0);
+                ni.setValue(0); nj.setValue(0);
+              }
             }
-            else
+          }
+          else
+          {
+            float njGlo = nj_glo.getValue();
+            float niGlo = ni_glo.getValue();
+            std::vector<int> ibeginVec(nbLocalDomain,0);
+            std::vector<int> niVec(nbLocalDomain);
+            for (int i = 1; i < nbLocalDomain; ++i)
             {
-              ibegin.setValue(0); jbegin.setValue(0);
-              ni.setValue(0); nj.setValue(0);
+              int range = ni_glo / nbLocalDomain;
+              if (i < (ni_glo%nbLocalDomain)) ++range;
+              niVec[i-1] = range;
+              ibeginVec[i] = ibeginVec[i-1] + niVec[i-1];
             }
+            niVec[nbLocalDomain-1] = ni_glo - ibeginVec[nbLocalDomain-1];
+
+            int iIdx = rankOnDomain % nbLocalDomain;
+            ibegin.setValue(ibeginVec[iIdx]);
+            jbegin.setValue(0);
+            ni.setValue(niVec[iIdx]);
+            nj.setValue(1);
           }
         }
         else
         {
-          float njGlo = nj_glo.getValue();
-          float niGlo = ni_glo.getValue();
-          std::vector<int> ibeginVec(nbLocalDomain,0);
-          std::vector<int> niVec(nbLocalDomain);
-          for (int i = 1; i < nbLocalDomain; ++i)
-          {
-            int range = ni_glo / nbLocalDomain;
-            if (i < (ni_glo%nbLocalDomain)) ++range;
-            niVec[i-1] = range;
-            ibeginVec[i] = ibeginVec[i-1] + niVec[i-1];
-          }
-          niVec[nbLocalDomain-1] = ni_glo - ibeginVec[nbLocalDomain-1];
-
-          int iIdx = rankOnDomain % nbLocalDomain;
-          ibegin.setValue(ibeginVec[iIdx]);
+          ibegin.setValue(this->i_index(0));
           jbegin.setValue(0);
-          ni.setValue(niVec[iIdx]);
+          ni.setValue(this->i_index.numElements());
           nj.setValue(1);
         }
      }
+
+     checkDomain();
    }
 
    /*!
