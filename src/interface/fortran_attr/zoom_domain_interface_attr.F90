@@ -9,80 +9,80 @@ MODULE zoom_domain_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
-    SUBROUTINE cxios_set_zoom_domain_zoom_ibegin(zoom_domain_hdl, zoom_ibegin) BIND(C)
+    SUBROUTINE cxios_set_zoom_domain_ibegin(zoom_domain_hdl, ibegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ibegin
-    END SUBROUTINE cxios_set_zoom_domain_zoom_ibegin
+      INTEGER (KIND=C_INT)      , VALUE :: ibegin
+    END SUBROUTINE cxios_set_zoom_domain_ibegin
 
-    SUBROUTINE cxios_get_zoom_domain_zoom_ibegin(zoom_domain_hdl, zoom_ibegin) BIND(C)
+    SUBROUTINE cxios_get_zoom_domain_ibegin(zoom_domain_hdl, ibegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ibegin
-    END SUBROUTINE cxios_get_zoom_domain_zoom_ibegin
+      INTEGER (KIND=C_INT)             :: ibegin
+    END SUBROUTINE cxios_get_zoom_domain_ibegin
 
-    FUNCTION cxios_is_defined_zoom_domain_zoom_ibegin(zoom_domain_hdl) BIND(C)
+    FUNCTION cxios_is_defined_zoom_domain_ibegin(zoom_domain_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_zoom_ibegin
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_ibegin
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-    END FUNCTION cxios_is_defined_zoom_domain_zoom_ibegin
+    END FUNCTION cxios_is_defined_zoom_domain_ibegin
 
 
-    SUBROUTINE cxios_set_zoom_domain_zoom_jbegin(zoom_domain_hdl, zoom_jbegin) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_jbegin
-    END SUBROUTINE cxios_set_zoom_domain_zoom_jbegin
-
-    SUBROUTINE cxios_get_zoom_domain_zoom_jbegin(zoom_domain_hdl, zoom_jbegin) BIND(C)
+    SUBROUTINE cxios_set_zoom_domain_jbegin(zoom_domain_hdl, jbegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)             :: zoom_jbegin
-    END SUBROUTINE cxios_get_zoom_domain_zoom_jbegin
+      INTEGER (KIND=C_INT)      , VALUE :: jbegin
+    END SUBROUTINE cxios_set_zoom_domain_jbegin
 
-    FUNCTION cxios_is_defined_zoom_domain_zoom_jbegin(zoom_domain_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_zoom_jbegin
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-    END FUNCTION cxios_is_defined_zoom_domain_zoom_jbegin
-
-
-    SUBROUTINE cxios_set_zoom_domain_zoom_ni(zoom_domain_hdl, zoom_ni) BIND(C)
+    SUBROUTINE cxios_get_zoom_domain_jbegin(zoom_domain_hdl, jbegin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_ni
-    END SUBROUTINE cxios_set_zoom_domain_zoom_ni
+      INTEGER (KIND=C_INT)             :: jbegin
+    END SUBROUTINE cxios_get_zoom_domain_jbegin
 
-    SUBROUTINE cxios_get_zoom_domain_zoom_ni(zoom_domain_hdl, zoom_ni) BIND(C)
+    FUNCTION cxios_is_defined_zoom_domain_jbegin(zoom_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_jbegin
+      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
+    END FUNCTION cxios_is_defined_zoom_domain_jbegin
+
+
+    SUBROUTINE cxios_set_zoom_domain_ni(zoom_domain_hdl, ni) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)             :: zoom_ni
-    END SUBROUTINE cxios_get_zoom_domain_zoom_ni
+      INTEGER (KIND=C_INT)      , VALUE :: ni
+    END SUBROUTINE cxios_set_zoom_domain_ni
 
-    FUNCTION cxios_is_defined_zoom_domain_zoom_ni(zoom_domain_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_zoom_ni
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-    END FUNCTION cxios_is_defined_zoom_domain_zoom_ni
-
-
-    SUBROUTINE cxios_set_zoom_domain_zoom_nj(zoom_domain_hdl, zoom_nj) BIND(C)
+    SUBROUTINE cxios_get_zoom_domain_ni(zoom_domain_hdl, ni) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_nj
-    END SUBROUTINE cxios_set_zoom_domain_zoom_nj
+      INTEGER (KIND=C_INT)             :: ni
+    END SUBROUTINE cxios_get_zoom_domain_ni
 
-    SUBROUTINE cxios_get_zoom_domain_zoom_nj(zoom_domain_hdl, zoom_nj) BIND(C)
+    FUNCTION cxios_is_defined_zoom_domain_ni(zoom_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_ni
+      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
+    END FUNCTION cxios_is_defined_zoom_domain_ni
+
+
+    SUBROUTINE cxios_set_zoom_domain_nj(zoom_domain_hdl, nj) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-      INTEGER (KIND=C_INT)             :: zoom_nj
-    END SUBROUTINE cxios_get_zoom_domain_zoom_nj
+      INTEGER (KIND=C_INT)      , VALUE :: nj
+    END SUBROUTINE cxios_set_zoom_domain_nj
 
-    FUNCTION cxios_is_defined_zoom_domain_zoom_nj(zoom_domain_hdl) BIND(C)
+    SUBROUTINE cxios_get_zoom_domain_nj(zoom_domain_hdl, nj) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_zoom_nj
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
-    END FUNCTION cxios_is_defined_zoom_domain_zoom_nj
+      INTEGER (KIND=C_INT)             :: nj
+    END SUBROUTINE cxios_get_zoom_domain_nj
+
+    FUNCTION cxios_is_defined_zoom_domain_nj(zoom_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_domain_nj
+      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_domain_hdl
+    END FUNCTION cxios_is_defined_zoom_domain_nj
 
   END INTERFACE
 

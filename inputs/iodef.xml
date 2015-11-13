@@ -21,7 +21,7 @@
    <axis_definition>
      <axis id="axis_A"/>
      <axis id="axis_A_zoom" axis_ref="axis_A">
-       <zoom_axis zoom_begin="1" zoom_size="2" />
+       <zoom_axis begin="1" n="2" />
      </axis>
    </axis_definition>
 

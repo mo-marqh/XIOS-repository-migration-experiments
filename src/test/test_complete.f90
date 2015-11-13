@@ -87,7 +87,7 @@ PROGRAM test_complete
                             time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
   CALL xios_set_axis_attr("axis_atm",n_glo=llm ,value=lval) ;
-  CALL xios_set_zoom_axis_attr("axis_atm_zoom",zoom_size=2);
+!  CALL xios_set_zoom_axis_attr("axis_atm_zoom",n=2);
 
   CALL xios_set_domain_attr("domain_atm",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj, type='curvilinear')
   CALL xios_set_domain_attr("domain_atm",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
@@ -96,7 +96,7 @@ PROGRAM test_complete
   CALL xios_set_domain_attr("domain_atm_zoom",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_atm_zoom",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_atm_zoom",lonvalue_2D=lon,latvalue_2D=lat)
-  CALL xios_set_zoom_domain_attr("domain_atm_zoom",zoom_ibegin=39, zoom_ni=20, zoom_jbegin=39, zoom_nj=5)
+!  CALL xios_set_zoom_domain_attr("domain_atm_zoom",ibegin=39, ni=20, jbegin=39, nj=5)
 
 !!! Activation du groupe field_definition
 

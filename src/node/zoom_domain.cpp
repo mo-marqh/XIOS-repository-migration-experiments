@@ -28,33 +28,33 @@ namespace xios {
     int nj_glo = domainSrc->nj_glo.getValue();
 
     // Résolution et vérification des données globales de zoom.
-    if (!this->zoom_ni.isEmpty() || !this->zoom_nj.isEmpty() ||
-        !this->zoom_ibegin.isEmpty() || !this->zoom_jbegin.isEmpty())
+    if (!this->ni.isEmpty() || !this->nj.isEmpty() ||
+        !this->ibegin.isEmpty() || !this->jbegin.isEmpty())
     {
-       if (this->zoom_ni.isEmpty()     || this->zoom_nj.isEmpty() ||
-           this->zoom_ibegin.isEmpty() || this->zoom_jbegin.isEmpty())
+       if (this->ni.isEmpty()     || this->nj.isEmpty() ||
+           this->ibegin.isEmpty() || this->jbegin.isEmpty())
        {
          ERROR("CZoomDomain::checkValid(CDomain* domainSrc)",
                << "If one of zoom attributes is defined then all zoom attributes must be defined.") ;
        }
        else
        {
-          int zoom_iend = zoom_ibegin + zoom_ni - 1;
-          int zoom_jend = zoom_jbegin + zoom_nj - 1;
+          int iend = ibegin + ni - 1;
+          int jend = jbegin + nj - 1;
 
-          if (zoom_ibegin < 0  || zoom_jbegin < 0 || zoom_iend > ni_glo - 1 || zoom_jend > nj_glo - 1)
+          if (ibegin < 0  || jbegin < 0 || iend > ni_glo - 1 || jend > nj_glo - 1)
             ERROR("CZoomDomain::checkValid(CDomain* domainSrc)",
                   << "Zoom is wrongly defined, "
-                  << "please check the values : 'zoom_ni' (" << zoom_ni.getValue() << "), 'zoom_nj' (" << zoom_nj.getValue() << "), "
-                  << "'zoom_ibegin' (" << zoom_ibegin.getValue() << "), 'zoom_jbegin' (" << zoom_jbegin.getValue() << ")");
+                  << "please check the values : 'ni' (" << ni.getValue() << "), 'nj' (" << nj.getValue() << "), "
+                  << "'ibegin' (" << ibegin.getValue() << "), 'jbegin' (" << jbegin.getValue() << ")");
        }
     }
     else
     {
-       zoom_ni = ni_glo;
-       zoom_nj = nj_glo;
-       zoom_ibegin = 0;
-       zoom_jbegin = 0;
+       ni = ni_glo;
+       nj = nj_glo;
+       ibegin = 0;
+       jbegin = 0;
     }
   }
 

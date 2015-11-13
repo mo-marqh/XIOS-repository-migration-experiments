@@ -14,11 +14,11 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
 {
   zoomDomain->checkValid(domainSource);
-  zoomIBegin_ = zoomDomain->zoom_ibegin.getValue();
-  zoomJBegin_ = zoomDomain->zoom_jbegin.getValue();
+  zoomIBegin_ = zoomDomain->ibegin.getValue();
+  zoomJBegin_ = zoomDomain->jbegin.getValue();
 
-  zoomNi_  = zoomDomain->zoom_ni.getValue();
-  zoomNj_  = zoomDomain->zoom_nj.getValue();
+  zoomNi_  = zoomDomain->ni.getValue();
+  zoomNj_  = zoomDomain->nj.getValue();
 
   zoomIEnd_ = zoomIBegin_ + zoomNi_ - 1;
   zoomJEnd_ = zoomJBegin_ + zoomNj_ - 1;

@@ -25,29 +25,24 @@ namespace xios {
   void CZoomAxis::checkValid(CAxis* axisDest)
   {
     int axisIBegin, axisNi, axisGlobalSize;
-    int zoom_begin, zoom_end, zoom_size;
+    int begin, end, n;
 
     axisIBegin = axisDest->begin.getValue();
     axisNi     = axisDest->n.getValue();
     axisGlobalSize   = axisDest->n_glo.getValue();
 
-    zoom_begin = (this->zoom_begin.isEmpty()) ?  0 : this->zoom_begin.getValue() ;
-    zoom_size  = (this->zoom_size.isEmpty()) ?  axisGlobalSize : this->zoom_size.getValue() ;
-    zoom_end   = (this->zoom_end.isEmpty()) ?  (axisGlobalSize - 1) : this->zoom_end.getValue() ;
+    begin = (this->begin.isEmpty()) ?  0 : this->begin.getValue();
+    n     = (this->n.isEmpty()) ?  axisGlobalSize : this->n.getValue();
+    end   = begin+n-1;
 
-    if (this->zoom_begin.isEmpty()) zoom_begin=zoom_end-zoom_size+1;
-    if (this->zoom_size.isEmpty()) zoom_size=zoom_end-zoom_begin+1;
-    if (this->zoom_end.isEmpty()) zoom_end=zoom_begin+zoom_size-1;
-
-    if (zoom_begin < 0 || zoom_begin > axisGlobalSize - 1 || zoom_end < 0 || zoom_end > axisGlobalSize - 1
-        || zoom_size < 1 || zoom_size > axisGlobalSize || zoom_begin > zoom_end)
+    if (begin < 0 || begin > axisGlobalSize - 1 || end < 0 || end > axisGlobalSize - 1
+        || n < 1 || n > axisGlobalSize || begin > end)
       ERROR("CZoomAxis::checkValid(CAxis* axisDest)",
-            << "One or more attributes among 'zoom_begin' (" << zoom_begin << "), 'zoom_end' (" << zoom_end << "), 'zoom_size' (" << zoom_size << ") "
+            << "One or more attributes among 'begin' (" << begin << "), 'end' (" << end << "), 'n' (" << n << ") "
             << "of axis transformation [ id = '" << axisDest->getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] are not well specified");
 
-    this->zoom_begin.setValue(zoom_begin) ;
-    this->zoom_end.setValue(zoom_end) ;
-    this->zoom_size.setValue(zoom_size) ;
+    this->begin.setValue(begin);
+    this->n.setValue(n);
 
   }
 

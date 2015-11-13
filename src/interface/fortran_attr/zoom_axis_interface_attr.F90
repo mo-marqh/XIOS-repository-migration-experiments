@@ -9,61 +9,42 @@ MODULE zoom_axis_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
-    SUBROUTINE cxios_set_zoom_axis_zoom_begin(zoom_axis_hdl, zoom_begin) BIND(C)
+    SUBROUTINE cxios_set_zoom_axis_begin(zoom_axis_hdl, begin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_begin
-    END SUBROUTINE cxios_set_zoom_axis_zoom_begin
+      INTEGER (KIND=C_INT)      , VALUE :: begin
+    END SUBROUTINE cxios_set_zoom_axis_begin
 
-    SUBROUTINE cxios_get_zoom_axis_zoom_begin(zoom_axis_hdl, zoom_begin) BIND(C)
+    SUBROUTINE cxios_get_zoom_axis_begin(zoom_axis_hdl, begin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_begin
-    END SUBROUTINE cxios_get_zoom_axis_zoom_begin
+      INTEGER (KIND=C_INT)             :: begin
+    END SUBROUTINE cxios_get_zoom_axis_begin
 
-    FUNCTION cxios_is_defined_zoom_axis_zoom_begin(zoom_axis_hdl) BIND(C)
+    FUNCTION cxios_is_defined_zoom_axis_begin(zoom_axis_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_axis_zoom_begin
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_axis_begin
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-    END FUNCTION cxios_is_defined_zoom_axis_zoom_begin
+    END FUNCTION cxios_is_defined_zoom_axis_begin
 
 
-    SUBROUTINE cxios_set_zoom_axis_zoom_end(zoom_axis_hdl, zoom_end) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_end
-    END SUBROUTINE cxios_set_zoom_axis_zoom_end
-
-    SUBROUTINE cxios_get_zoom_axis_zoom_end(zoom_axis_hdl, zoom_end) BIND(C)
+    SUBROUTINE cxios_set_zoom_axis_n(zoom_axis_hdl, n) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_end
-    END SUBROUTINE cxios_get_zoom_axis_zoom_end
+      INTEGER (KIND=C_INT)      , VALUE :: n
+    END SUBROUTINE cxios_set_zoom_axis_n
 
-    FUNCTION cxios_is_defined_zoom_axis_zoom_end(zoom_axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_axis_zoom_end
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-    END FUNCTION cxios_is_defined_zoom_axis_zoom_end
-
-
-    SUBROUTINE cxios_set_zoom_axis_zoom_size(zoom_axis_hdl, zoom_size) BIND(C)
+    SUBROUTINE cxios_get_zoom_axis_n(zoom_axis_hdl, n) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)      , VALUE :: zoom_size
-    END SUBROUTINE cxios_set_zoom_axis_zoom_size
+      INTEGER (KIND=C_INT)             :: n
+    END SUBROUTINE cxios_get_zoom_axis_n
 
-    SUBROUTINE cxios_get_zoom_axis_zoom_size(zoom_axis_hdl, zoom_size) BIND(C)
+    FUNCTION cxios_is_defined_zoom_axis_n(zoom_axis_hdl) BIND(C)
       USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_axis_n
       INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-      INTEGER (KIND=C_INT)             :: zoom_size
-    END SUBROUTINE cxios_get_zoom_axis_zoom_size
-
-    FUNCTION cxios_is_defined_zoom_axis_zoom_size(zoom_axis_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_zoom_axis_zoom_size
-      INTEGER (kind = C_INTPTR_T), VALUE :: zoom_axis_hdl
-    END FUNCTION cxios_is_defined_zoom_axis_zoom_size
+    END FUNCTION cxios_is_defined_zoom_axis_n
 
   END INTERFACE
 
