@@ -90,7 +90,8 @@ USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr), xios(get_inverse_axi
 
 USE igenerate_rectilinear_domain, ONLY : txios(generate_rectilinear_domain), xios(is_valid_generate_rectilinear_domain)
 
-USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr), xios(get_generate_rectilinear_domain_attr), &
+USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr), &
+                                              xios(get_generate_rectilinear_domain_attr), &
                                               xios(is_defined_generate_rectilinear_domain_attr)
 
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
