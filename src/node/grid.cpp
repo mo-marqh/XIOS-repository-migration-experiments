@@ -1239,7 +1239,6 @@ namespace xios {
       if (context->hasClient)
       {
         pDom->solveRefInheritance(apply);
-        pDom->solveSrcInheritance();
         pDom->solveInheritanceTransformation();
       }
     }

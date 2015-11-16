@@ -76,8 +76,6 @@ namespace xios {
 
          bool hasTransformation();
          void solveInheritanceTransformation();
-         void solveSrcInheritance();
-         CDomain* getDomainSrc();
          TransMapTypes getAllTransformations();
          void redistribute(int nbLocalDomain);
 
@@ -196,7 +194,6 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
-         CDomain* srcObject_;
 
          DECLARE_REF_FUNC(Domain,domain)
 

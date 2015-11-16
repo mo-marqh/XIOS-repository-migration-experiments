@@ -34,7 +34,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , srcObject_(0), isRedistributed_(false)
+      , isRedistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::CDomain(const StdString & id)
@@ -44,7 +44,7 @@ namespace xios {
       , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , srcObject_(0), isRedistributed_(false)
+      , isRedistributed_(false)
    { /* Ne rien faire de plus */ }
 
    CDomain::~CDomain(void)
@@ -1922,24 +1922,6 @@ namespace xios {
     if (domain->hasTransformation())
       for (size_t i = 0; i < refDomains.size(); ++i)
         refDomains[i]->setTransformations(domain->getAllTransformations());
-  }
-
-  void CDomain::solveSrcInheritance()
-  {
-    if (!domain_src.isEmpty())
-    {
-       if (!CDomain::has(this->domain_src.getValue()))                                   \
-          ERROR("CDomain::solveSrcInheritance()",                                \
-             << "[ src_name = " << this->domain_src.getValue() << "]"                 \
-             << " invalid domain name !");
-
-       srcObject_ = CDomain::get(this->domain_src.getValue());
-    }
-  }
-
-  CDomain* CDomain::getDomainSrc()
-  {
-    return srcObject_;
   }
 
   /*!
