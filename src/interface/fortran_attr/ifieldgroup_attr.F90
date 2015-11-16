@@ -12,7 +12,7 @@ CONTAINS
 
   SUBROUTINE xios(set_fieldgroup_attr)  &
     ( fieldgroup_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -31,6 +31,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_path
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       LOGICAL  , OPTIONAL, INTENT(IN) :: indexed_output
@@ -54,7 +55,7 @@ CONTAINS
       CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
       CALL xios(set_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -62,7 +63,7 @@ CONTAINS
 
   SUBROUTINE xios(set_fieldgroup_attr_hdl)  &
     ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -80,6 +81,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_path
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
       LOGICAL  , OPTIONAL, INTENT(IN) :: indexed_output
@@ -102,7 +104,7 @@ CONTAINS
 
       CALL xios(set_fieldgroup_attr_hdl_)  &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -110,9 +112,9 @@ CONTAINS
 
   SUBROUTINE xios(set_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
-    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, group_ref_, indexed_output_  &
-    , level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_  &
-    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_  &
+    , indexed_output_, level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_  &
+    , standard_name_, ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -128,6 +130,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: field_ref_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(IN) :: freq_op_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_path_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: grid_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
       LOGICAL  , OPTIONAL, INTENT(IN) :: indexed_output_
@@ -188,6 +191,10 @@ CONTAINS
 
       IF (PRESENT(freq_op_)) THEN
         CALL cxios_set_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
+      ENDIF
+
+      IF (PRESENT(grid_path_)) THEN
+        CALL cxios_set_fieldgroup_grid_path(fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN
@@ -261,7 +268,7 @@ CONTAINS
 
   SUBROUTINE xios(get_fieldgroup_attr)  &
     ( fieldgroup_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -280,6 +287,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_path
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL  , OPTIONAL, INTENT(OUT) :: indexed_output
@@ -303,7 +311,7 @@ CONTAINS
       CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
       CALL xios(get_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -311,7 +319,7 @@ CONTAINS
 
   SUBROUTINE xios(get_fieldgroup_attr_hdl)  &
     ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -329,6 +337,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_path
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL  , OPTIONAL, INTENT(OUT) :: indexed_output
@@ -351,7 +360,7 @@ CONTAINS
 
       CALL xios(get_fieldgroup_attr_hdl_)  &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -359,9 +368,9 @@ CONTAINS
 
   SUBROUTINE xios(get_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
-    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, group_ref_, indexed_output_  &
-    , level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_  &
-    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_  &
+    , indexed_output_, level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_  &
+    , standard_name_, ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -377,6 +386,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: field_ref_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_offset_
       TYPE(txios(duration))  , OPTIONAL, INTENT(OUT) :: freq_op_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_path_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: grid_ref_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: indexed_output_
@@ -437,6 +447,10 @@ CONTAINS
 
       IF (PRESENT(freq_op_)) THEN
         CALL cxios_get_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
+      ENDIF
+
+      IF (PRESENT(grid_path_)) THEN
+        CALL cxios_get_fieldgroup_grid_path(fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN
@@ -510,7 +524,7 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_fieldgroup_attr)  &
     ( fieldgroup_id, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -537,6 +551,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: freq_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: freq_op
       LOGICAL(KIND=C_BOOL) :: freq_op_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: grid_path
+      LOGICAL(KIND=C_BOOL) :: grid_path_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: grid_ref
       LOGICAL(KIND=C_BOOL) :: grid_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
@@ -573,7 +589,7 @@ CONTAINS
       CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
       CALL xios(is_defined_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -581,7 +597,7 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_fieldgroup_attr_hdl)  &
     ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+    , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
     , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
     , ts_split_freq, unit, valid_max, valid_min )
 
@@ -607,6 +623,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: freq_offset_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: freq_op
       LOGICAL(KIND=C_BOOL) :: freq_op_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: grid_path
+      LOGICAL(KIND=C_BOOL) :: grid_path_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: grid_ref
       LOGICAL(KIND=C_BOOL) :: grid_ref_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
@@ -642,7 +660,7 @@ CONTAINS
 
       CALL xios(is_defined_fieldgroup_attr_hdl_)  &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
-      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_ref, group_ref, indexed_output  &
+      , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
       , level, long_name, name, operation, prec, read_access, scale_factor, standard_name, ts_enabled  &
       , ts_split_freq, unit, valid_max, valid_min )
 
@@ -650,9 +668,9 @@ CONTAINS
 
   SUBROUTINE xios(is_defined_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, compression_level_, default_value_, detect_missing_value_  &
-    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_ref_, group_ref_, indexed_output_  &
-    , level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_, standard_name_  &
-    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , domain_ref_, enabled_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_  &
+    , indexed_output_, level_, long_name_, name_, operation_, prec_, read_access_, scale_factor_  &
+    , standard_name_, ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -676,6 +694,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: freq_offset__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: freq_op_
       LOGICAL(KIND=C_BOOL) :: freq_op__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: grid_path_
+      LOGICAL(KIND=C_BOOL) :: grid_path__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: grid_ref_
       LOGICAL(KIND=C_BOOL) :: grid_ref__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
@@ -757,6 +777,11 @@ CONTAINS
       IF (PRESENT(freq_op_)) THEN
         freq_op__tmp = cxios_is_defined_fieldgroup_freq_op(fieldgroup_hdl%daddr)
         freq_op_ = freq_op__tmp
+      ENDIF
+
+      IF (PRESENT(grid_path_)) THEN
+        grid_path__tmp = cxios_is_defined_fieldgroup_grid_path(fieldgroup_hdl%daddr)
+        grid_path_ = grid_path__tmp
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN

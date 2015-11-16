@@ -286,6 +286,32 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_grid_path(fieldgroup_Ptr fieldgroup_hdl, const char * grid_path, int grid_path_size)
+  {
+    std::string grid_path_str;
+    if (!cstr2string(grid_path, grid_path_size, grid_path_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->grid_path.setValue(grid_path_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_grid_path(fieldgroup_Ptr fieldgroup_hdl, char * grid_path, int grid_path_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->grid_path.getInheritedValue(), grid_path, grid_path_size))
+      ERROR("void cxios_get_fieldgroup_grid_path(fieldgroup_Ptr fieldgroup_hdl, char * grid_path, int grid_path_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_grid_path(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->grid_path.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_grid_ref(fieldgroup_Ptr fieldgroup_hdl, const char * grid_ref, int grid_ref_size)
   {
     std::string grid_ref_str;

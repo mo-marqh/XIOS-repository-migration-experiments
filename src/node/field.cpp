@@ -818,7 +818,46 @@ namespace xios{
    void CField::solveTransformedGrid()
    {
      if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
-       grid->transformGrid(getDirectFieldReference()->grid);
+     {
+       std::vector<CGrid*> grids;
+       // Source grid
+       grids.push_back(getDirectFieldReference()->grid);
+       // Intermediate grids
+       if (!grid_path.isEmpty())
+       {
+         std::string gridId;
+         size_t start = 0, end;
+
+         do
+         {
+           end = grid_path.getValue().find(',', start);
+           if (end != std::string::npos)
+           {
+             gridId = grid_path.getValue().substr(start, end - start);
+             start = end + 1;
+           }
+           else
+             gridId = grid_path.getValue().substr(start);
+
+           if (!CGrid::has(gridId))
+             ERROR("void CField::solveTransformedGrid()",
+                   << "Invalid grid_path, the grid '" << gridId << "' does not exist.");
+
+           grids.push_back(CGrid::get(gridId));
+         }
+         while (end != std::string::npos);
+       }
+       // Destination grid
+       grids.push_back(grid);
+
+       for (size_t i = 0, count = grids.size() - 1; i < count; ++i)
+       {
+         CGrid *gridSrc  = grids[i];
+         CGrid *gridDest = grids[i + 1];
+         if (!gridDest->isTransformed())
+           gridDest->transformGrid(gridSrc);
+       }
+     }
    }
 
    void CField::solveGenerateGrid()

@@ -209,6 +209,27 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_freq_op
 
 
+    SUBROUTINE cxios_set_fieldgroup_grid_path(fieldgroup_hdl, grid_path, grid_path_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: grid_path
+      INTEGER  (kind = C_INT)     , VALUE        :: grid_path_size
+    END SUBROUTINE cxios_set_fieldgroup_grid_path
+
+    SUBROUTINE cxios_get_fieldgroup_grid_path(fieldgroup_hdl, grid_path, grid_path_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: grid_path
+      INTEGER  (kind = C_INT)     , VALUE        :: grid_path_size
+    END SUBROUTINE cxios_get_fieldgroup_grid_path
+
+    FUNCTION cxios_is_defined_fieldgroup_grid_path(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_grid_path
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_grid_path
+
+
     SUBROUTINE cxios_set_fieldgroup_grid_ref(fieldgroup_hdl, grid_ref, grid_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

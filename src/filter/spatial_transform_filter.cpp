@@ -17,12 +17,25 @@ namespace xios
             "buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid)",
             "Impossible to build the filter graph if either the source or the destination grid are null.");
 
-    // TODO: Implement the real path finding algorithm after a solution has been found
-    //       to support initializing grid transformations during parsing.
-    CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
-    boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine));
+    boost::shared_ptr<CSpatialTransformFilter> firstFilter, lastFilter;
+    // Note that this loop goes from the last transformation to the first transformation
+    do
+    {
+      CGridTransformation* gridTransformation = destGrid->getTransformations();
+      CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
+      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine));
 
-    return std::make_pair(filter, filter);
+      if (!lastFilter)
+        lastFilter = filter;
+      else
+        filter->connectOutput(firstFilter, 0);
+
+      firstFilter = filter;
+      destGrid = gridTransformation->getGridSource();
+    }
+    while (destGrid != srcGrid);
+
+    return std::make_pair(firstFilter, lastFilter);
   }
 
   CSpatialTransformFilterEngine::CSpatialTransformFilterEngine(CGridTransformation* gridTransformation)
