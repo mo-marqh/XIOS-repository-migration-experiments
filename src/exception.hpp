@@ -51,6 +51,6 @@ namespace xios
 #  define DEBUG(x)
 #endif
 
-#define ERROR(id, x)  CException(id).getStream() << INFO(x)
+#define ERROR(id, x) xios::CException(id).getStream() << INFO(x)
 
 #endif // __XIOS_CException__
