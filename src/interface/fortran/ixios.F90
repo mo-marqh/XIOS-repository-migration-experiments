@@ -22,12 +22,13 @@ USE idomaingroup_attr, ONLY : xios(set_domaingroup_attr), xios(get_domaingroup_a
 
 USE iduration, ONLY: txios(duration),                                                                            &
                      xios(year), xios(month), xios(day), xios(hour), xios(minute), xios(second), xios(timestep), &
+                     xios(duration_convert_to_string),                                                           &
                      xios(duration_add), xios(duration_sub), xios(duration_mult), xios(duration_neg),            &
                      xios(duration_eq), xios(duration_neq),                                                      &
                      OPERATOR(+), OPERATOR(-), OPERATOR(*)
 
 USE idate, ONLY : txios(date),                                                                                &
-                  xios(date_convert_to_seconds),                                                              &
+                  xios(date_convert_to_seconds), xios(date_convert_to_string),                                &
                   xios(date_add_duration), xios(date_sub_duration), xios(date_sub),                           &
                   xios(date_eq), xios(date_neq), xios(date_lt), xios(date_le), xios(date_gt), xios(date_ge),  &
                   xios(date_get_second_of_year), xios(date_get_day_of_year), xios(date_get_fraction_of_year), &

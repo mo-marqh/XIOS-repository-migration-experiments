@@ -9,6 +9,14 @@ MODULE DURATION_INTERFACE
      
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
+      SUBROUTINE cxios_duration_convert_to_string(dur, str, str_size) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         TYPE(txios(duration)), VALUE :: dur
+         CHARACTER(kind = C_CHAR), DIMENSION(*) :: str
+         INTEGER(kind = C_INT), VALUE :: str_size
+      END SUBROUTINE cxios_duration_convert_to_string
+
       TYPE(txios(duration)) FUNCTION cxios_duration_add(dur1, dur2) BIND(C)
          USE ISO_C_BINDING
          IMPORT :: txios(duration)

@@ -49,6 +49,17 @@ MODULE IDURATION
 
    CONTAINS
 
+   ! Conversion function
+
+   SUBROUTINE xios(duration_convert_to_string)(dur, str)
+      USE DURATION_INTERFACE, only : txios(duration)
+      IMPLICIT NONE
+      TYPE(txios(duration)), INTENT(IN) :: dur
+      CHARACTER(len = *), INTENT(OUT) :: str
+
+      CALL cxios_duration_convert_to_string(dur, str, len(str))
+   END SUBROUTINE xios(duration_convert_to_string)
+
    ! Addition
 
    FUNCTION xios(duration_add)(dur1, dur2) RESULT(res)

@@ -18,6 +18,14 @@ MODULE DATE_INTERFACE
          TYPE(txios(date)), VALUE :: date
       END FUNCTION cxios_date_convert_to_seconds
 
+      SUBROUTINE cxios_date_convert_to_string(date, str, str_size) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(date)
+         TYPE(txios(date)), VALUE :: date
+         CHARACTER(kind = C_CHAR), DIMENSION(*) :: str
+         INTEGER(kind = C_INT), VALUE :: str_size
+      END SUBROUTINE cxios_date_convert_to_string
+
       TYPE(txios(date)) FUNCTION cxios_date_add_duration(date, dur) BIND(C)
          USE ISO_C_BINDING
          IMPORT :: txios(date)

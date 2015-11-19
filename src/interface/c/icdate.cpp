@@ -42,6 +42,16 @@ extern "C"
     return date;
   }
 
+  void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size)
+  {
+    xios::CDate date = xios::CDate(getCalendar("void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size)"),
+                                   date_c.year, date_c.month, date_c.day,
+                                   date_c.hour, date_c.minute, date_c.second);
+
+    if (!string_copy(date.toString(), str, str_size))
+      ERROR("void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size)", << "Input string is too short");
+  }
+
   cxios_date cxios_date_add_duration(cxios_date date_c, cxios_duration dur_c)
   {
     xios::CDate date = xios::CDate(getCalendar("cxios_date cxios_date_add_duration(cxios_date date_c, cxios_duration dur_c)"),

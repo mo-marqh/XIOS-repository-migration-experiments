@@ -42,6 +42,8 @@ MODULE IDATE
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
+   ! Conversion functions
+
    FUNCTION xios(date_convert_to_seconds)(date) RESULT(res)
       USE DATE_INTERFACE, only : txios(date)
       IMPLICIT NONE
@@ -50,6 +52,15 @@ MODULE IDATE
 
       res = cxios_date_convert_to_seconds(date)
    END FUNCTION xios(date_convert_to_seconds)
+
+   SUBROUTINE xios(date_convert_to_string)(date, str)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      TYPE(txios(date)), INTENT(IN) :: date
+      CHARACTER(len = *), INTENT(OUT) :: str
+
+      CALL cxios_date_convert_to_string(date, str, len(str))
+   END SUBROUTINE xios(date_convert_to_string)
 
    ! Addition: date + duration = date
 

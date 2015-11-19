@@ -1,8 +1,19 @@
+#include "icutil.hpp"
 #include "icdate.hpp"
 #include "calendar_util.hpp"
 
 extern "C"
 {
+  void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size)
+  {
+    xios::CDuration dur = { dur_c.year, dur_c.month, dur_c.day,
+                            dur_c.hour, dur_c.minute, dur_c.second,
+                            dur_c.timestep };
+
+    if (!string_copy(dur.toString(), str, str_size))
+      ERROR("void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size)", << "Input string is too short");
+  }
+
   cxios_duration cxios_duration_add(cxios_duration dur1_c, cxios_duration dur2_c)
   {
     xios::CDuration dur1 = { dur1_c.year, dur1_c.month, dur1_c.day,

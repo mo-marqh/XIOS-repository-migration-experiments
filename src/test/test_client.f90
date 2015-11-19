@@ -11,7 +11,9 @@ PROGRAM test_client
   CHARACTER(len=*),PARAMETER :: id="client"
   INTEGER :: comm
   TYPE(xios_duration) :: dtime
+  CHARACTER(len=20) :: dtime_str
   TYPE(xios_date) :: date
+  CHARACTER(len=20) :: date_str
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
@@ -97,7 +99,8 @@ PROGRAM test_client
   CALL xios_get_time_origin(date)
   PRINT *, "--> year length = ", xios_get_year_length_in_seconds(date%year)
   PRINT *, "--> day length = ", xios_get_day_length_in_seconds()
-  PRINT *, "time_origin = ", date
+  CALL xios_date_convert_to_string(date, date_str)
+  PRINT *, "time_origin = ", date_str
   PRINT *, "xios_date_get_second_of_year(time_origin) = ", xios_date_get_second_of_year(date)
   PRINT *, "xios_date_get_day_of_year(time_origin) = ", xios_date_get_day_of_year(date)
   PRINT *, "xios_date_get_fraction_of_year(time_origin) = ", xios_date_get_fraction_of_year(date)
@@ -105,9 +108,11 @@ PROGRAM test_client
   PRINT *, "xios_date_get_fraction_of_day(time_origin) = ", xios_date_get_fraction_of_day(date)
   dtime%timestep = 1
   dtime = 0.5 * dtime
-  PRINT *, "duration = ", dtime
+  CALL xios_duration_convert_to_string(dtime, dtime_str)
+  PRINT *, "duration = ", dtime_str
   date = date + 3 * (dtime + dtime)
-  PRINT *, "date = time_origin + 3 * (duration + duration) = ", date
+  CALL xios_date_convert_to_string(date, date_str)
+  PRINT *, "date = time_origin + 3 * (duration + duration) = ", date_str
   PRINT *, "xios_date_convert_to_seconds(date) = ", xios_date_convert_to_seconds(date)
   PRINT *, "xios_date_convert_to_seconds(date - 2.5h) = ", xios_date_convert_to_seconds(date - 2.5 * xios_hour)
 
