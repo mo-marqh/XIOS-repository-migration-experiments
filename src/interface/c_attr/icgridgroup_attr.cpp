@@ -17,31 +17,6 @@ extern "C"
 {
   typedef xios::CGridGroup* gridgroup_Ptr;
 
-  void cxios_set_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int* extent)
-  {
-    CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
-    gridgroup_hdl->axis_domain_order.reference(tmp.copy());
-     CTimer::get("XIOS").suspend();
-  }
-
-  void cxios_get_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl, bool* axis_domain_order, int* extent)
-  {
-    CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(axis_domain_order, shape(extent[0]), neverDeleteData);
-    tmp=gridgroup_hdl->axis_domain_order.getInheritedValue();
-     CTimer::get("XIOS").suspend();
-  }
-
-  bool cxios_is_defined_gridgroup_axis_domain_order(gridgroup_Ptr gridgroup_hdl)
-  {
-     CTimer::get("XIOS").resume();
-     bool isDefined = gridgroup_hdl->axis_domain_order.hasInheritedValue();
-     CTimer::get("XIOS").suspend();
-     return isDefined;
-  }
-
-
   void cxios_set_gridgroup_description(gridgroup_Ptr gridgroup_hdl, const char * description, int description_size)
   {
     std::string description_str;

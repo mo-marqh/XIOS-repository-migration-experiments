@@ -11,13 +11,11 @@ MODULE igrid_attr
 CONTAINS
 
   SUBROUTINE xios(set_grid_attr)  &
-    ( grid_id, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_id, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
-      LOGICAL  , OPTIONAL, INTENT(IN) :: axis_domain_order(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order_tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask1(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
@@ -29,17 +27,15 @@ CONTAINS
 
       CALL xios(get_grid_handle)(grid_id,grid_hdl)
       CALL xios(set_grid_attr_hdl_)   &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(set_grid_attr)
 
   SUBROUTINE xios(set_grid_attr_hdl)  &
-    ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_hdl, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL  , OPTIONAL, INTENT(IN) :: axis_domain_order(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order_tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask1(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
@@ -50,17 +46,15 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
 
       CALL xios(set_grid_attr_hdl_)  &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(set_grid_attr_hdl)
 
   SUBROUTINE xios(set_grid_attr_hdl_)   &
-    ( grid_hdl, axis_domain_order_, description_, mask1_, mask2_, mask3_, name_ )
+    ( grid_hdl, description_, mask1_, mask2_, mask3_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL  , OPTIONAL, INTENT(IN) :: axis_domain_order_(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order__tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description_
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask1_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1__tmp(:)
@@ -69,12 +63,6 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask3_(:,:,:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
-
-      IF (PRESENT(axis_domain_order_)) THEN
-        ALLOCATE(axis_domain_order__tmp(SIZE(axis_domain_order_,1)))
-        axis_domain_order__tmp = axis_domain_order_
-        CALL cxios_set_grid_axis_domain_order(grid_hdl%daddr, axis_domain_order__tmp, SHAPE(axis_domain_order_))
-      ENDIF
 
       IF (PRESENT(description_)) THEN
         CALL cxios_set_grid_description(grid_hdl%daddr, description_, len(description_))
@@ -105,13 +93,11 @@ CONTAINS
   END SUBROUTINE xios(set_grid_attr_hdl_)
 
   SUBROUTINE xios(get_grid_attr)  &
-    ( grid_id, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_id, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: axis_domain_order(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order_tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
@@ -123,17 +109,15 @@ CONTAINS
 
       CALL xios(get_grid_handle)(grid_id,grid_hdl)
       CALL xios(get_grid_attr_hdl_)   &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(get_grid_attr)
 
   SUBROUTINE xios(get_grid_attr_hdl)  &
-    ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_hdl, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: axis_domain_order(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order_tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
@@ -144,17 +128,15 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
 
       CALL xios(get_grid_attr_hdl_)  &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(get_grid_attr_hdl)
 
   SUBROUTINE xios(get_grid_attr_hdl_)   &
-    ( grid_hdl, axis_domain_order_, description_, mask1_, mask2_, mask3_, name_ )
+    ( grid_hdl, description_, mask1_, mask2_, mask3_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: axis_domain_order_(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: axis_domain_order__tmp(:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1__tmp(:)
@@ -163,12 +145,6 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask3_(:,:,:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
-
-      IF (PRESENT(axis_domain_order_)) THEN
-        ALLOCATE(axis_domain_order__tmp(SIZE(axis_domain_order_,1)))
-        CALL cxios_get_grid_axis_domain_order(grid_hdl%daddr, axis_domain_order__tmp, SHAPE(axis_domain_order_))
-        axis_domain_order_ = axis_domain_order__tmp
-      ENDIF
 
       IF (PRESENT(description_)) THEN
         CALL cxios_get_grid_description(grid_hdl%daddr, description_, len(description_))
@@ -199,13 +175,11 @@ CONTAINS
   END SUBROUTINE xios(get_grid_attr_hdl_)
 
   SUBROUTINE xios(is_defined_grid_attr)  &
-    ( grid_id, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_id, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
-      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_domain_order
-      LOGICAL(KIND=C_BOOL) :: axis_domain_order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
       LOGICAL(KIND=C_BOOL) :: description_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask1
@@ -219,17 +193,15 @@ CONTAINS
 
       CALL xios(get_grid_handle)(grid_id,grid_hdl)
       CALL xios(is_defined_grid_attr_hdl_)   &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(is_defined_grid_attr)
 
   SUBROUTINE xios(is_defined_grid_attr_hdl)  &
-    ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+    ( grid_hdl, description, mask1, mask2, mask3, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_domain_order
-      LOGICAL(KIND=C_BOOL) :: axis_domain_order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
       LOGICAL(KIND=C_BOOL) :: description_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask1
@@ -242,17 +214,15 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: name_tmp
 
       CALL xios(is_defined_grid_attr_hdl_)  &
-      ( grid_hdl, axis_domain_order, description, mask1, mask2, mask3, name )
+      ( grid_hdl, description, mask1, mask2, mask3, name )
 
   END SUBROUTINE xios(is_defined_grid_attr_hdl)
 
   SUBROUTINE xios(is_defined_grid_attr_hdl_)   &
-    ( grid_hdl, axis_domain_order_, description_, mask1_, mask2_, mask3_, name_ )
+    ( grid_hdl, description_, mask1_, mask2_, mask3_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
-      LOGICAL, OPTIONAL, INTENT(OUT) :: axis_domain_order_
-      LOGICAL(KIND=C_BOOL) :: axis_domain_order__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description_
       LOGICAL(KIND=C_BOOL) :: description__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask1_
@@ -263,11 +233,6 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: mask3__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
-
-      IF (PRESENT(axis_domain_order_)) THEN
-        axis_domain_order__tmp = cxios_is_defined_grid_axis_domain_order(grid_hdl%daddr)
-        axis_domain_order_ = axis_domain_order__tmp
-      ENDIF
 
       IF (PRESENT(description_)) THEN
         description__tmp = cxios_is_defined_grid_description(grid_hdl%daddr)

@@ -9,27 +9,6 @@ MODULE gridgroup_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
-    SUBROUTINE cxios_set_gridgroup_axis_domain_order(gridgroup_hdl, axis_domain_order, extent) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axis_domain_order
-      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_set_gridgroup_axis_domain_order
-
-    SUBROUTINE cxios_get_gridgroup_axis_domain_order(gridgroup_hdl, axis_domain_order, extent) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE       :: gridgroup_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: axis_domain_order
-      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_get_gridgroup_axis_domain_order
-
-    FUNCTION cxios_is_defined_gridgroup_axis_domain_order(gridgroup_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_gridgroup_axis_domain_order
-      INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
-    END FUNCTION cxios_is_defined_gridgroup_axis_domain_order
-
-
     SUBROUTINE cxios_set_gridgroup_description(gridgroup_hdl, description, description_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: gridgroup_hdl
