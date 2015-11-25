@@ -693,14 +693,16 @@ namespace xios
               CArray<double,1> axis_value(zoom_size_srv);
               axis_value = axis->value_srv;
 
-              std::vector<StdSize> start(1) ;
-              std::vector<StdSize> count(1) ;
-              start[0] = zoom_begin_srv-axis->global_zoom_begin;
-              count[0] = zoom_size_srv;
+              std::vector<StdSize> start(1), startBounds(2) ;
+              std::vector<StdSize> count(1), countBounds(2) ;
+              start[0] = startBounds[0] = zoom_begin_srv-axis->global_zoom_begin;
+              count[0] = countBounds[0] = zoom_size_srv;
+              startBounds[1] = 0;
+              countBounds[1] = 2;
               SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
               if (!axis->bounds.isEmpty())
-                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &start, &count);
+                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
 
               SuperClassWriter::definition_start();
 
