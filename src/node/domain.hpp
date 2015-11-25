@@ -60,7 +60,6 @@ namespace xios {
          CDomain(const CDomain * const domain); // Not implemented yet.
 
          static CDomain* createDomain();
-         void duplicateAttributes(CDomain* domain);
 
          virtual void parse(xml::CXMLNode & node);
 

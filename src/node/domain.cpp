@@ -59,11 +59,6 @@ namespace xios {
      return domain;
    }
 
-   void CDomain::duplicateAttributes(CDomain* domain)
-   {
-     domain->setAttributes(this);
-   }
-
    const std::set<StdString> & CDomain::getRelFiles(void) const
    {
       return (this->relFiles);

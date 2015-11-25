@@ -320,6 +320,7 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
     case TRANS_INTERPOLATE_DOMAIN:
     case TRANS_ZOOM_DOMAIN:
       domainIndex = elementPosition2DomainPositionInGrid_[elementPositionInGrid];
+      domListSrcP[domainIndex]->clearAllAttributes();
       domListSrcP[domainIndex]->duplicateAttributes(domListDestP[domainIndex]);
       break;
 
@@ -327,6 +328,7 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
       axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
+      axisListSrcP[axisIndex]->clearAllAttributes();
       axisListSrcP[axisIndex]->duplicateAttributes(axisListDestP[axisIndex]);
       break;
     default:
