@@ -286,6 +286,10 @@ interpolation_axis: Implement interpolation from an axis to one another.
  For now, only polynominal interpolation is available.
 \end_layout
 
+\begin_layout Itemize
+inverse_axis: Inverse an axis
+\end_layout
+
 \begin_layout Standard
 It is not difficult to define a transformation: Include type of transformation
  inside axis definition, as the following
@@ -314,7 +318,7 @@ status open
 
 \begin_layout Plain Layout
 
-   <zoom_axis zoom_begin="1" zoom_size="3"/>
+   <zoom_axis zoom_begin="1" zoom_n="3"/>
 \end_layout
 
 \begin_layout Plain Layout
@@ -333,8 +337,8 @@ status open
 \end_layout
 
 \begin_layout Standard
-The concrete example above says many things: the axis named axis_A_zoom
- is transformed from axis name axis_A with a zoom activity.
+The concrete example is translated as: the axis named axis_A_zoom is transformed
+ from axis name axis_A with a zoom activity.
  The detailed attributes of zoom_axis can be found in reference document,
  but simply it contains the begining and size of zoomed region.
 \end_layout

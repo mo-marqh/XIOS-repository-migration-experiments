@@ -320,6 +320,11 @@ interpolation_domain: Implement interpolation from a domain to one another,
  The calculation on the fly will be implemented soon.
 \end_layout
 
+\begin_layout Itemize
+generate_rectilinear_domain: auto generating, distributing a rectilinear
+ domain then filling all mandatory attributes.
+\end_layout
+
 \begin_layout Standard
 It is not difficult to define a transformation: Include type of transformation
  inside domain definition, as the following
@@ -367,8 +372,9 @@ status open
 \end_layout
 
 \begin_layout Standard
-The concrete example above says many things: a domain named domain_A_zoom
+The concrete example above tells many things: a domain named domain_A_zoom
  is transformed from domain name domain_A with a zoom activity.
+ The domain_A_zoom is the zoomed region of domain_A.
  The detailed attributes of zoom_domain can be found in reference document,
  but simply it contains the begining and size of zoomed region.
 \end_layout
@@ -474,8 +480,8 @@ _zoom" />
 \end_layout
 
 \begin_layout Standard
-Although xml is helpful to define several configurations, it can not be
- used to customize attributes of domain.
+Although xml is helpful to define several configurations, it is not convenient
+ to customize attributes of domain.
  So it's the turn of Fortran interface.
 \end_layout
 
@@ -771,8 +777,8 @@ In order to be processed correctly, data must be specified with the begining
  the first dimension and data_jbegin, data_nj for the second dimension.
  In case of one-dimensional data, it is only necessary to determine data_ibegin
  and data_ni.
- Although the valid data must be inside a domain, it is not neccessary for
- data to have same size as domain.
+ Although the valid data must be inside a local domain, it is not neccessary
+ for data to have same size as local domain.
  In fact, data can have larger size than domain on each dimension, this
  is often the case of 
 \begin_inset Quotes eld
@@ -843,7 +849,7 @@ reference "localDomain"
 
 \end_inset
 
-, local domain occupies the center of the global domain, whereas real data
+, local domain occupies the center of the global domain, where real data
  fill up a larger region.
  Only data inside the local domain, represented by blue cells, are valid.
   
@@ -937,7 +943,7 @@ Like data, longitude and latitude values can be one or two dimension.
 \end_layout
 
 \begin_layout Standard
-With the same domain_A, we can have longitude and latitude by calling:
+With the same domain_A, we can set longitude and latitude values by calling:
 \end_layout
 
 \begin_layout Standard
