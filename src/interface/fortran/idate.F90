@@ -62,6 +62,15 @@ MODULE IDATE
       CALL cxios_date_convert_to_string(date, str, len(str))
    END SUBROUTINE xios(date_convert_to_string)
 
+   FUNCTION xios(date_convert_from_string)(str) RESULT(res)
+      USE DATE_INTERFACE, only : txios(date)
+      IMPLICIT NONE
+      CHARACTER(len = *), INTENT(IN) :: str
+      TYPE(txios(date)) :: res
+
+      res = cxios_date_convert_from_string(str, len(str))
+   END FUNCTION xios(date_convert_from_string)
+
    ! Addition: date + duration = date
 
    FUNCTION xios(date_add_duration)(date, dur) RESULT(res)

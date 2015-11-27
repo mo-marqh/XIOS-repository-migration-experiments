@@ -52,6 +52,18 @@ extern "C"
       ERROR("void cxios_date_convert_to_string(cxios_date date_c, char* str, int str_size)", << "Input string is too short");
   }
 
+  cxios_date cxios_date_convert_from_string(const char* str, int str_size)
+  {
+    std::string date_str;
+    xios::CDate date;
+
+    if (cstr2string(str, str_size, date_str))
+      date = xios::CDate::FromString(date_str,
+                                     getCalendar("cxios_date cxios_date_convert_from_string(const char* str, int str_size)"));
+
+    return { date.getYear(), date.getMonth(), date.getDay(), date.getHour(), date.getMinute(), date.getSecond() };
+  }
+
   cxios_date cxios_date_add_duration(cxios_date date_c, cxios_duration dur_c)
   {
     xios::CDate date = xios::CDate(getCalendar("cxios_date cxios_date_add_duration(cxios_date date_c, cxios_duration dur_c)"),

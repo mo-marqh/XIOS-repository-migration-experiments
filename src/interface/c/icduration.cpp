@@ -14,6 +14,17 @@ extern "C"
       ERROR("void cxios_duration_convert_to_string(cxios_duration dur_c, char* str, int str_size)", << "Input string is too short");
   }
 
+  cxios_duration cxios_duration_convert_from_string(const char* str, int str_size)
+  {
+    std::string dur_str;
+    xios::CDuration dur;
+
+    if (cstr2string(str, str_size, dur_str))
+      dur = xios::CDuration::FromString(dur_str);
+
+    return { dur.year, dur.month, dur.day, dur.hour, dur.minute, dur.second, dur.timestep };
+  }
+
   cxios_duration cxios_duration_add(cxios_duration dur1_c, cxios_duration dur2_c)
   {
     xios::CDuration dur1 = { dur1_c.year, dur1_c.month, dur1_c.day,

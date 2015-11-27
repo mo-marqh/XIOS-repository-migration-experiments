@@ -60,6 +60,15 @@ MODULE IDURATION
       CALL cxios_duration_convert_to_string(dur, str, len(str))
    END SUBROUTINE xios(duration_convert_to_string)
 
+   FUNCTION xios(duration_convert_from_string)(str) RESULT(res)
+      USE DURATION_INTERFACE, only : txios(duration)
+      IMPLICIT NONE
+      CHARACTER(len = *), INTENT(IN) :: str
+      TYPE(txios(duration)) :: res
+
+      res = cxios_duration_convert_from_string(str, len(str))
+   END FUNCTION xios(duration_convert_from_string)
+
    ! Addition
 
    FUNCTION xios(duration_add)(dur1, dur2) RESULT(res)

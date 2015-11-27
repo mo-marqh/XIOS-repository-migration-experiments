@@ -17,6 +17,13 @@ MODULE DURATION_INTERFACE
          INTEGER(kind = C_INT), VALUE :: str_size
       END SUBROUTINE cxios_duration_convert_to_string
 
+      TYPE(txios(duration)) FUNCTION cxios_duration_convert_from_string(str, str_size) BIND(C)
+         USE ISO_C_BINDING
+         IMPORT :: txios(duration)
+         CHARACTER(kind = C_CHAR), DIMENSION(*) :: str
+         INTEGER(kind = C_INT), VALUE :: str_size
+      END FUNCTION cxios_duration_convert_from_string
+
       TYPE(txios(duration)) FUNCTION cxios_duration_add(dur1, dur2) BIND(C)
          USE ISO_C_BINDING
          IMPORT :: txios(duration)
