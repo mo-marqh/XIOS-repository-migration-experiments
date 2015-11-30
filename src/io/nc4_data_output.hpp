@@ -25,7 +25,8 @@ namespace xios
                (const StdString & filename, bool exist);
             CNc4DataOutput
                (const StdString & filename, bool exist, bool useClassicFormat,
-                MPI_Comm comm_file, bool multifile, bool isCollective=true);
+                MPI_Comm comm_file, bool multifile, bool isCollective = true,
+                const StdString& timeCounterName = "time_counter");
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
             CNc4DataOutput(const CNc4DataOutput * const dataoutput); // Not implemented.

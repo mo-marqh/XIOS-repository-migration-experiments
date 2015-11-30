@@ -375,6 +375,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_time_counter
 
 
+    SUBROUTINE cxios_set_filegroup_time_counter_name(filegroup_hdl, time_counter_name, time_counter_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_counter_name
+      INTEGER  (kind = C_INT)     , VALUE        :: time_counter_name_size
+    END SUBROUTINE cxios_set_filegroup_time_counter_name
+
+    SUBROUTINE cxios_get_filegroup_time_counter_name(filegroup_hdl, time_counter_name, time_counter_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_counter_name
+      INTEGER  (kind = C_INT)     , VALUE        :: time_counter_name_size
+    END SUBROUTINE cxios_get_filegroup_time_counter_name
+
+    FUNCTION cxios_is_defined_filegroup_time_counter_name(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_time_counter_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_time_counter_name
+
+
     SUBROUTINE cxios_set_filegroup_timeseries(filegroup_hdl, timeseries, timeseries_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

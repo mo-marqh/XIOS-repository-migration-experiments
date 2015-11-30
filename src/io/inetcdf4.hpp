@@ -21,7 +21,8 @@ namespace xios
   {
     public:
       /// Constructors ///
-      CINetCDF4(const StdString& filename, const MPI_Comm* comm = NULL, bool multifile = true);
+      CINetCDF4(const StdString& filename, const MPI_Comm* comm = NULL, bool multifile = true,
+                const StdString& timeCounterName = "time_counter");
       CINetCDF4(const CINetCDF4& inetcdf4);       // Not implemented.
       CINetCDF4(const CINetCDF4* const inetcdf4); // Not implemented.
 
@@ -40,6 +41,8 @@ namespace xios
       StdSize getNbOfTimestep(const CVarPath* const path = NULL);
 
       StdString getUnlimitedDimensionName(const CVarPath* const path = NULL);
+
+      const StdString& getTimeCounterName(void) const { return timeCounterName; };
 
       StdString getCoordinatesId(const StdString& name, const CVarPath* const path = NULL);
 
@@ -154,6 +157,7 @@ namespace xios
     private:
       int ncidp; //< Id of the NetCDF file
       bool mpi;  //< Whether parallel file access is used
+      StdString timeCounterName;
   }; // class CINetCDF4
 } // namespace xios
 

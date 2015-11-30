@@ -6,7 +6,7 @@
 
 namespace xios
 {
-  CINetCDF4::CINetCDF4(const StdString& filename, const MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/)
+  CINetCDF4::CINetCDF4(const StdString& filename, const MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/, const StdString& timeCounterName /*= "time_counter"*/)
   {
     // Don't use parallel mode if there is only one process
     if (comm)
@@ -24,6 +24,8 @@ namespace xios
       CNetCdfInterface::openPar(filename, NC_NOWRITE | NC_MPIIO, *comm, MPI_INFO_NULL, this->ncidp);
     else
       CNetCdfInterface::open(filename, NC_NOWRITE, this->ncidp);
+
+    this->timeCounterName = timeCounterName;
   }
 
   CINetCDF4::~CINetCDF4(void)
@@ -358,7 +360,8 @@ namespace xios
 
   bool CINetCDF4::hasTemporalDim(const CVarPath* const path)
   {
-    return (this->getUnlimitedDimension(path) != -1);
+    std::list<StdString> dims = this->getDimensionsList(NULL, path);
+    return (std::find(dims.begin(), dims.end(), timeCounterName) != dims.end());
   }
 
   //---------------------------------------------------------------
@@ -562,9 +565,8 @@ namespace xios
 
   bool CINetCDF4::isTemporal(const StdString& name, const CVarPath* const path)
   {
-    if (!this->hasTemporalDim(path)) return false;
-    std::map<StdString, StdSize> dims = this->getDimensions(&name, path);
-    return (dims.find(this->getUnlimitedDimensionName(path)) != dims.end());
+    std::list<StdString> dims = this->getDimensionsList(&name, path);
+    return (std::find(dims.begin(), dims.end(), timeCounterName) != dims.end());
   }
 
   bool CINetCDF4::is3Dim(const StdString& name, const CVarPath* const path)

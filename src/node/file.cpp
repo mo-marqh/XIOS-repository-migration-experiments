@@ -273,6 +273,7 @@ namespace xios {
       if (allDomainEmpty) MPI_Comm_free(&fileComm);
 
       if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
+      if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
 
     //! Verify state of a file
@@ -424,7 +425,7 @@ namespace xios {
          if (isOpen) data_out->closeFile();
 
         data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat,
-                                                              fileComm, multifile, isCollective));
+                                                              fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
         data_out->writeFile(CFile::get(this));
@@ -524,7 +525,7 @@ namespace xios {
 
       if (isOpen) data_out->closeFile();
 
-      data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective));
+      data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, time_counter_name));
       isOpen = true;
     }
   }

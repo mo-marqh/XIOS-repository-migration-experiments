@@ -26,7 +26,8 @@ namespace xios
 
             /// Constructeurs ///
             CONetCDF4(const StdString& filename, bool append, bool useClassicFormat = false,
-                      const MPI_Comm* comm = NULL, bool multifile = true);
+                      const MPI_Comm* comm = NULL, bool multifile = true,
+                      const StdString& timeCounterName = "time_counter");
 
             CONetCDF4(const CONetCDF4& onetcdf4);       // Not implemented.
             CONetCDF4(const CONetCDF4* const onetcdf4); // Not implemented.
@@ -34,7 +35,7 @@ namespace xios
 
             /// Initialisation ///
             void initialize(const StdString& filename, bool append, bool useClassicFormat,
-                            const MPI_Comm* comm, bool multifile);
+                            const MPI_Comm* comm, bool multifile, const StdString& timeCounterName);
             void close(void);
             void sync(void);
             void definition_start(void);
@@ -92,6 +93,7 @@ namespace xios
             std::vector<StdString> getDimensionsIdList (const StdString* varname);
             int       getUnlimitedDimension(void);
             StdString getUnlimitedDimensionName(void);
+            const StdString& getTimeCounterName(void) const { return timeCounterName; };
 
             void getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective);
 
@@ -118,6 +120,7 @@ namespace xios
             int ncidp;
             bool wmpi;
             map<int,size_t> timeAxis;
+            StdString timeCounterName;
       }; // class CONetCDF4
 
       ///---------------------------------------------------------------

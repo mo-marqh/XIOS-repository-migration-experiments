@@ -12,12 +12,12 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4(const StdString& filename, bool append, bool useClassicFormat,
-                           const MPI_Comm* comm, bool multifile)
+                           const MPI_Comm* comm, bool multifile, const StdString& timeCounterName)
         : path()
         , wmpi(false)
         , useClassicFormat(useClassicFormat)
       {
-         this->initialize(filename, append, useClassicFormat, comm,multifile);
+         this->initialize(filename, append, useClassicFormat, comm, multifile, timeCounterName);
       }
 
       //---------------------------------------------------------------
@@ -29,7 +29,7 @@ namespace xios
       ///--------------------------------------------------------------
 
       void CONetCDF4::initialize(const StdString& filename, bool append, bool useClassicFormat,
-                                 const MPI_Comm* comm, bool multifile)
+                                 const MPI_Comm* comm, bool multifile, const StdString& timeCounterName)
       {
          this->useClassicFormat = useClassicFormat;
 
@@ -73,6 +73,8 @@ namespace xios
          // This is done per variable for the NetCDF4 format.
          if (useClassicFormat)
             CNetCdfInterface::setFill(this->ncidp, false);
+
+         this->timeCounterName = timeCounterName;
       }
 
       void CONetCDF4::close()
@@ -443,7 +445,7 @@ namespace xios
             it  = sizes.begin(), end = sizes.end();
          int i = 0;
 
-         if (iddims.begin()->compare(this->getUnlimitedDimensionName()) == 0)
+         if (iddims.begin()->compare(timeCounterName) == 0)
          {
             sstart.push_back(record);
             scount.push_back(1);

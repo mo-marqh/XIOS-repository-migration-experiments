@@ -21,21 +21,18 @@ namespace xios
             , SuperClassWriter(filename, exist)
             , filename(filename)
       {
-         StdString timeid = StdString("time_counter");
          SuperClass::type = MULTI_FILE;
       }
 
       CNc4DataOutput::CNc4DataOutput
          (const StdString & filename, bool exist, bool useClassicFormat,
-          MPI_Comm comm_file,bool multifile, bool isCollective)
+          MPI_Comm comm_file,bool multifile, bool isCollective, const StdString& timeCounterName)
             : SuperClass()
-            , SuperClassWriter(filename, exist, useClassicFormat, &comm_file, multifile)
+            , SuperClassWriter(filename, exist, useClassicFormat, &comm_file, multifile, timeCounterName)
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
       {
-         StdString timeid = StdString("time_counter");
-
          SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
 
@@ -951,7 +948,7 @@ namespace xios
      {
        try
        {
-        SuperClassWriter::addDimension("time_counter");
+        SuperClassWriter::addDimension(getTimeCounterName());
        }
        catch (CNetCdfException& e)
        {
@@ -981,7 +978,7 @@ namespace xios
          std::vector<StdString> domainList = grid->getDomainList();
          std::vector<StdString> axisList   = grid->getAxisList();
 
-         StdString timeid  = StdString("time_counter");
+         StdString timeid  = getTimeCounterName();
          StdString dimXid,dimYid;
          std::deque<StdString> dimIdList, dimCoordList;
          bool hasArea = false;
@@ -1390,7 +1387,7 @@ namespace xios
         if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisId = "time_instant";
         else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisId = "time_centered";
 
-        StdString timeBoundId("time_counter_bounds");
+        StdString timeBoundId = getTimeCounterName() + "_bounds";
 
         StdString timeAxisBoundId;
         if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisBoundId = "time_instant_bounds";
@@ -1491,7 +1488,7 @@ namespace xios
                    SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
                    if (field->file->time_counter != CFile::time_counter_attr::none)
                    {
-                     SuperClassWriter::writeData(time_counter, string("time_counter"), isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
                      if (field->file->time_counter != CFile::time_counter_attr::record)
                        SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
                    }
@@ -1618,7 +1615,7 @@ namespace xios
                    SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
                    if (field->file->time_counter != CFile::time_counter_attr::none)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_counter, string("time_counter"), isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1, isRoot);
                      if (field->file->time_counter != CFile::time_counter_attr::record)
                        SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
@@ -1658,7 +1655,7 @@ namespace xios
 
          StdString axisid("time_centered") ;
          StdString axisBoundId("time_centered_bounds");
-         StdString timeid("time_counter");
+         StdString timeid(getTimeCounterName());
          StdString timeBoundId("axis_nbounds");
 
          if (field->getOperationTimeType() == func::CFunctor::instant)
@@ -1700,8 +1697,8 @@ namespace xios
            if (field->file->time_counter != CFile::time_counter_attr::none)
            {
              // Adding time_counter
-             axisid = "time_counter";
-             axisBoundId = "time_counter_bounds";
+             axisid = getTimeCounterName();
+             axisBoundId = getTimeCounterName() + "_bounds";
              dims.clear();
              dims.push_back(timeid);
              if (!SuperClassWriter::varExist(axisid))
@@ -1954,7 +1951,7 @@ namespace xios
         std::map<Time, StdSize>::const_iterator it = timeToRecordCache.find(time);
         if (it == timeToRecordCache.end())
         {
-          StdString timeAxisBoundsId("time_counter_bounds");
+          StdString timeAxisBoundsId(getTimeCounterName() + "_bounds");
           if (!SuperClassWriter::varExist(timeAxisBoundsId))
             timeAxisBoundsId = "time_instant_bounds";
 
