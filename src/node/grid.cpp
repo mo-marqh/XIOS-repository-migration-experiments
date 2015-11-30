@@ -942,6 +942,7 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
     numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
+    connectedServerRank_ = ranks;
 
     for (int n = 0; n < ranks.size(); n++)
     {
