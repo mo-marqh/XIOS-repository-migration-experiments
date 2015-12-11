@@ -41,7 +41,7 @@ namespace xios
   }
 
   CFieldFieldArithmeticFilter::CFieldFieldArithmeticFilter(CGarbageCollector& gc, const std::string& op)
-    : CFilter(gc, 1, this)
+    : CFilter(gc, 2, this)
     , op(operatorExpr.getOpFieldField(op))
   { /* Nothing to do */ };
 
