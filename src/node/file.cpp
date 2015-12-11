@@ -553,8 +553,12 @@ namespace xios {
      CContext* context = CContext::getCurrent();
      CContextClient* client=context->client;
 
+     // It would probably be better to call initFile() somehow
      MPI_Comm_dup(client->intraComm, &fileComm);
+     if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
+
      checkFile();
+
      for (int idx = 0; idx < enabledFields.size(); ++idx)
      {
         // First of all, find out which domain and axis associated with this field
@@ -575,7 +579,6 @@ namespace xios {
 
      // Now everything is ok, close it
      close();
-
    }
 
 
