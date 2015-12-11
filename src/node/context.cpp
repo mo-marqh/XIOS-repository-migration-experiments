@@ -1070,7 +1070,7 @@ namespace xios {
 
       if (hasClient)
       {
-        //checkPrefetchingOfEnabledReadModeFiles();
+        checkPrefetchingOfEnabledReadModeFiles();
         garbageCollector.invalidate(calendar->getCurrentDate());
       }
    }
