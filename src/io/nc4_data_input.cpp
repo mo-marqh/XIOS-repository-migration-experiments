@@ -144,6 +144,8 @@ namespace xios
     int realGridDim = 1;
     bool isUnstructuredGrid = SuperClassWriter::isUnstructured(fieldId);
     std::map<StdString, StdSize> dimSizeMap = SuperClassWriter::getDimensions(&fieldId);
+    std::list<StdString> dimList = SuperClassWriter::getDimensionsList(&fieldId);
+    
     realGridDim = SuperClassWriter::isTemporal(fieldId) ? dimSizeMap.size() - 1 : dimSizeMap.size();
     if (isUnstructuredGrid) ++realGridDim;
 
@@ -153,11 +155,20 @@ namespace xios
         << "Verify dimension of grid defined by 'grid_ref' or 'domain_ref'/'axis_ref' and dimension of grid in read file.");
 
     // Remove unlimited dimension from the map, we dont need it anymore
-    if (SuperClassWriter::isTemporal(fieldId)) dimSizeMap.erase(SuperClassWriter::getUnlimitedDimensionName());
+    if (SuperClassWriter::isTemporal(fieldId)) 
+    {
+      dimSizeMap.erase(SuperClassWriter::getUnlimitedDimensionName());
+      dimList.pop_front() ;  // assume time dimension is first
+    }
+    
     int mapSize = dimSizeMap.size() - 1;
     std::list<std::pair<StdString, StdSize> > listDimSize;
+/*
     for (std::map<StdString, StdSize>::const_iterator itMap = dimSizeMap.begin(); itMap != dimSizeMap.end(); ++itMap)
       listDimSize.push_front(*itMap);
+*/
+    for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
+      listDimSize.push_front(*dimSizeMap.find(*it));
 
     // Now process domain and axis
     CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
@@ -273,13 +284,23 @@ namespace xios
     }
     else if (this->isUnstructured(fieldId))
     {
+      /*
       if (domain->i_index.isEmpty())
          ERROR("CNc4DataInput::readDomainAttributeValueFromFile(...)",
               << "Field '" << fieldId << std::endl
               << "Trying to read attributes from unstructured grid."
               << "i_index of domain" << domain->getId() << " is mandatory");
-
+      
       int ni = domain->i_index.numElements();
+*/
+      int ni     = domain->ni;
+      int ibegin = domain->ibegin;
+      if (domain->i_index.isEmpty())
+      {
+        domain->i_index.resize(ni) ;
+        for(int idx = 0; idx < ni; ++idx) domain->i_index(idx)=ibegin+idx ;
+      }
+      
       std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
       nSizeLatLon[0]  = domain->ni_glo.getValue();
       CArray<double,1> globalLonLat(domain->ni_glo.getValue());
