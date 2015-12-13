@@ -77,8 +77,17 @@ void CDomainAlgorithmInterpolate::computeRemap()
   {
     bool isNorthPole = false;
     bool isSouthPole = false;
-    if (std::abs(poleValue - std::abs(domainSrc_->lat_start)) < NumTraits<double>::epsilon()) isNorthPole = true;
-    if (std::abs(poleValue - std::abs(domainSrc_->lat_end)) < NumTraits<double>::epsilon()) isSouthPole = true;
+
+    if (domainSrc_->latvalue_rectilinear_read_from_file.isEmpty())
+    {
+      if (std::abs(poleValue - std::abs(domainSrc_->lat_start)) < NumTraits<double>::epsilon()) isNorthPole = true;
+      if (std::abs(poleValue - std::abs(domainSrc_->lat_end)) < NumTraits<double>::epsilon()) isSouthPole = true;
+    }
+    else
+    {
+      if (std::abs(poleValue - std::abs(domainSrc_->latvalue_rectilinear_read_from_file(0))) < NumTraits<double>::epsilon()) isNorthPole = true;
+      if (std::abs(poleValue - std::abs(domainSrc_->latvalue_rectilinear_read_from_file(domainSrc_->nj_glo-1))) < NumTraits<double>::epsilon()) isSouthPole = true;
+    }
 
     nVertexSrc = constNVertex;
     domainSrc_->fillInRectilinearBoundLonLat(boundsLonSrc, boundsLatSrc, isNorthPole, isSouthPole);

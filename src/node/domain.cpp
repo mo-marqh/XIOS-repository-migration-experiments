@@ -500,21 +500,26 @@ namespace xios {
      if (!latvalue_rectilinear_read_from_file.isEmpty())
      {
        double latStepStart = latvalue_rectilinear_read_from_file(1)-latvalue_rectilinear_read_from_file(0);
-       bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0) - latStepStart/2);
-       double latStepEnd = (latvalue_rectilinear_read_from_file(nj_glo-1)-latvalue_rectilinear_read_from_file(nj_glo-2));
-       bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1) + latStepEnd/2);
-       double bounds_lat_start_pole = bounds_lat_start;
-       double bounds_lat_end_pole   = bounds_lat_end;
-       if (isNorthPole) bounds_lat_start_pole = lat_start;
-       if (isSouthPole) bounds_lat_end_pole   = lat_end;
+       if (isNorthPole) bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0) );
+       else bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0)-latStepStart/2 );
 
+
+       double latStepEnd = (latvalue_rectilinear_read_from_file(nj_glo-1)-latvalue_rectilinear_read_from_file(nj_glo-2));
+       if (isSouthPole) bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
+       else bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1)+latStepEnd/2);
+       
+       if (bounds_lat_start > 90.-1e-3) bounds_lat_start=90 ;
+       if (bounds_lat_start < -90.+1e-3) bounds_lat_start=-90 ;
+       if (bounds_lat_end > 90.-1e-3) bounds_lat_end=90 ;
+       if (bounds_lat_end < -90.+1e-3) bounds_lat_end=-90 ;
+      
        for(j=0;j<nj;++j)
          for(i=0;i<ni;++i)
          {
            k=j*ni+i;
-           boundsLat(1,k) = boundsLat(2,k) = (0 == (jbegin + j)) ? bounds_lat_start_pole
+           boundsLat(1,k) = boundsLat(2,k) = (0 == (jbegin + j)) ? bounds_lat_start
                                                                  : (latvalue_rectilinear_read_from_file(jbegin + j)+latvalue_rectilinear_read_from_file(jbegin + j-1))/2;
-           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) == nj_glo) ? bounds_lat_end_pole
+           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) == nj_glo) ? bounds_lat_end
                                                                  : (latvalue_rectilinear_read_from_file(jbegin + j + 1)+latvalue_rectilinear_read_from_file(jbegin + j))/2;
          }
      }
