@@ -456,93 +456,92 @@ namespace xios {
      }
    }
 
-   void CDomain::fillInRectilinearBoundLonLat(CArray<double,2>& boundsLon, CArray<double,2>& boundsLat,
-                                              bool isNorthPole, bool isSouthPole)
+
+
+   void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
+   {
+	  CContext* context = CContext::getCurrent();
+      CContextClient* client = context->client;
+	  lon_g.resize(ni_glo) ;
+	  lat_g.resize(nj_glo) ;
+	  
+	  
+	  int* ibegin_g = new int[client->clientSize] ;
+	  int* jbegin_g = new int[client->clientSize] ;
+	  int* ni_g = new int[client->clientSize] ;
+	  int* nj_g = new int[client->clientSize] ;
+	  int v ;
+	  v=ibegin ;
+	  MPI_Allgather(&v,1,MPI_INT,ibegin_g,1,MPI_INT,client->intraComm) ;
+	  v=jbegin ;
+	  MPI_Allgather(&v,1,MPI_INT,jbegin_g,1,MPI_INT,client->intraComm) ;
+	  v=ni ;
+	  MPI_Allgather(&v,1,MPI_INT,ni_g,1,MPI_INT,client->intraComm) ;
+	  v=nj ;
+	  MPI_Allgather(&v,1,MPI_INT,nj_g,1,MPI_INT,client->intraComm) ;
+	  
+	  MPI_Allgatherv(lon.dataFirst(),ni,MPI_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,MPI_DOUBLE,client->intraComm) ;
+	  MPI_Allgatherv(lat.dataFirst(),nj,MPI_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,MPI_DOUBLE,client->intraComm) ;
+   
+      delete[] ibegin_g ;
+      delete[] jbegin_g ;
+      delete[] ni_g ;
+      delete[] nj_g ;
+   }
+
+   void CDomain::fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
+                                              CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
    {
      int i,j,k;
+     
      const int nvertexValue = 4;
      boundsLon.resize(nvertexValue,ni*nj);
 
-     if (!lonvalue_rectilinear_read_from_file.isEmpty())
-     {
-       double lonStepStart = lonvalue_rectilinear_read_from_file(1)-lonvalue_rectilinear_read_from_file(0);
-       bounds_lon_start.setValue(lonvalue_rectilinear_read_from_file(0) - lonStepStart/2);
-       double lonStepEnd = (lonvalue_rectilinear_read_from_file(ni_glo-1)-lonvalue_rectilinear_read_from_file(ni_glo-2));
-       bounds_lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1) + lonStepEnd/2);
-       double errorBoundsLon = std::abs(360-std::abs(bounds_lon_end-bounds_lon_start));
-       if (errorBoundsLon > NumTraits<double>::epsilon()) bounds_lon_end.setValue(bounds_lon_start+360);
-       for(j=0;j<nj;++j)
-         for(i=0;i<ni;++i)
-         {
-           k=j*ni+i;
-           boundsLon(0,k) = boundsLon(1,k) = (0 == (ibegin + i)) ? bounds_lon_start
-                                                                 : (lonvalue_rectilinear_read_from_file(ibegin + i)+lonvalue_rectilinear_read_from_file(ibegin + i-1))/2;
-           boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) == ni_glo) ? bounds_lon_end
-                                                                          : (lonvalue_rectilinear_read_from_file(ibegin + i + 1)+lonvalue_rectilinear_read_from_file(ibegin + i))/2;
-         }
-     }
-     else
-     {
-       double boundsLonRange = bounds_lon_end - bounds_lon_start;
-       double lonStep = boundsLonRange/double(ni_glo.getValue());
-       for(j=0;j<nj;++j)
-         for(i=0;i<ni;++i)
-         {
-           k=j*ni+i;
-           boundsLon(0,k) = boundsLon(1,k) = (0 != (ibegin + i)) ? (ibegin + i) * lonStep + bounds_lon_start
-                                                                 : bounds_lon_start;
-           boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) != ni_glo) ? (ibegin + i +1) * lonStep + bounds_lon_start
-                                                                          : bounds_lon_end;
-         }
-     }
+     double lonStepStart = lon(1)-lon(0);
+     bounds_lon_start=lon(0) - lonStepStart/2;
+     double lonStepEnd = lon(ni_glo-1)-lon(ni_glo-2);
+     bounds_lon_end=lon(ni_glo-1) + lonStepEnd/2;
+     double errorBoundsLon = std::abs(360-std::abs(bounds_lon_end-bounds_lon_start));
+     if (errorBoundsLon > NumTraits<double>::epsilon()) bounds_lon_end=bounds_lon_start+360;
+     for(j=0;j<nj;++j)
+       for(i=0;i<ni;++i)
+       {
+         k=j*ni+i;
+         boundsLon(0,k) = boundsLon(1,k) = (0 == (ibegin + i)) ? bounds_lon_start
+                                                               : (lon(ibegin + i)+lon(ibegin + i-1))/2;
+         boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) == ni_glo) ? bounds_lon_end
+                                                                        : (lon(ibegin + i + 1)+lon(ibegin + i))/2;
+       }
+    
 
-     boundsLat.resize(nvertexValue,nj*ni);
-     if (!latvalue_rectilinear_read_from_file.isEmpty())
-     {
-       double latStepStart = latvalue_rectilinear_read_from_file(1)-latvalue_rectilinear_read_from_file(0);
-       if (isNorthPole) bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0) );
-       else bounds_lat_start.setValue(latvalue_rectilinear_read_from_file(0)-latStepStart/2 );
+    boundsLat.resize(nvertexValue,nj*ni);
+    bool isNorthPole, isSouthPole ;
+    if (std::abs(90 - std::abs(lat(0))) < NumTraits<double>::epsilon()) isNorthPole = true;
+    if (std::abs(90 - std::abs(lat(nj_glo-1))) < NumTraits<double>::epsilon()) isSouthPole = true;
 
+    double latStepStart = lat(1)-lat(0);
+    if (isNorthPole) bounds_lat_start=lat(0);
+    else bounds_lat_start=lat(0)-latStepStart/2;
 
-       double latStepEnd = (latvalue_rectilinear_read_from_file(nj_glo-1)-latvalue_rectilinear_read_from_file(nj_glo-2));
-       if (isSouthPole) bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
-       else bounds_lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1)+latStepEnd/2);
+    double latStepEnd = lat(nj_glo-1)-lat(nj_glo-2);
+    if (isSouthPole) bounds_lat_end=lat(nj_glo-1);
+    else bounds_lat_end=lat(nj_glo-1)+latStepEnd/2;
        
-       if (bounds_lat_start > 90.-1e-3) bounds_lat_start=90 ;
-       if (bounds_lat_start < -90.+1e-3) bounds_lat_start=-90 ;
-       if (bounds_lat_end > 90.-1e-3) bounds_lat_end=90 ;
-       if (bounds_lat_end < -90.+1e-3) bounds_lat_end=-90 ;
+// Work arround for small value close to pole, not too good for remapping    
+    if (bounds_lat_start > 90.-1e-3) bounds_lat_start=90 ;
+    if (bounds_lat_start < -90.+1e-3) bounds_lat_start=-90 ;
+    if (bounds_lat_end > 90.-1e-3) bounds_lat_end=90 ;
+    if (bounds_lat_end < -90.+1e-3) bounds_lat_end=-90 ;
       
-       for(j=0;j<nj;++j)
-         for(i=0;i<ni;++i)
-         {
-           k=j*ni+i;
-           boundsLat(1,k) = boundsLat(2,k) = (0 == (jbegin + j)) ? bounds_lat_start
-                                                                 : (latvalue_rectilinear_read_from_file(jbegin + j)+latvalue_rectilinear_read_from_file(jbegin + j-1))/2;
-           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) == nj_glo) ? bounds_lat_end
-                                                                 : (latvalue_rectilinear_read_from_file(jbegin + j + 1)+latvalue_rectilinear_read_from_file(jbegin + j))/2;
-         }
-     }
-     else
-     {
-       double boundsLatRange = bounds_lat_end - bounds_lat_start;
-       double latStep = boundsLatRange/double(nj_glo.getValue());
-       double bounds_lat_start_pole = bounds_lat_start;
-       double bounds_lat_end_pole   = bounds_lat_end;
-       if (isNorthPole) bounds_lat_start_pole = lat_start;
-       if (isSouthPole) bounds_lat_end_pole   = lat_end;
-
-       for(j=0;j<nj;++j)
-         for(i=0;i<ni;++i)
-         {
-           k=j*ni+i;
-           boundsLat(1,k) = boundsLat(2,k) = (0 != (jbegin + j)) ? (jbegin + j) * latStep + bounds_lat_start
-                                                                 : bounds_lat_start_pole;
-           boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) != nj_glo) ? (jbegin + j +1) * latStep + bounds_lat_start
-                                                                 : bounds_lat_end_pole;
-         }
-     }
-
+    for(j=0;j<nj;++j)
+      for(i=0;i<ni;++i)
+      {
+        k=j*ni+i;
+        boundsLat(1,k) = boundsLat(2,k) = (0 == (jbegin + j)) ? bounds_lat_start
+                                                              : (lat(jbegin + j)+lat(jbegin + j-1))/2;
+        boundsLat(0,k) = boundsLat(3,k) = ((jbegin + j +1) == nj_glo) ? bounds_lat_end
+                                                                      : (lat(jbegin + j + 1)+lat(jbegin + j))/2;
+      }
    }
 
    void CDomain::checkDomain(void)
