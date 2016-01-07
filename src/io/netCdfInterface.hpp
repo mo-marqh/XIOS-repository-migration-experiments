@@ -171,7 +171,7 @@ namespace xios
     // Some functions dedude from several special cases
     //! Query the existence of a variable
     static bool isVarExisted(int ncId, const StdString& varName);
-
+    static bool isDimExisted(int ncId, const StdString& dimName);
   };
 }
 

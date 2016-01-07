@@ -996,6 +996,12 @@ bool CNetCdfInterface::isVarExisted(int ncId, const StdString& varName)
    return (NC_NOERR == (nc_inq_varid(ncId, varName.c_str(), &varId)));
 }
 
+bool CNetCdfInterface::isDimExisted(int ncId, const StdString& dimName)
+{
+   int dimId = 0;
+   return (NC_NOERR == (nc_inq_dimid(ncId, dimName.c_str(), &dimId)));
+}
+
 StdString CNetCdfInterface::openMode2String(int oMode)
 {
   StdString modeMes;

@@ -29,7 +29,8 @@ namespace xios
 
     if (SuperClassWriter::isTemporal(fieldId))
     {
-      return SuperClassWriter::getDimensions(&fieldId)[SuperClassWriter::getUnlimitedDimensionName()];
+//      return SuperClassWriter::getDimensions(&fieldId)[SuperClassWriter::getUnlimitedDimensionName()];
+      return SuperClassWriter::getDimensions(&fieldId)[SuperClassWriter::getTimeCounterName()];
     }
 
     return 1;

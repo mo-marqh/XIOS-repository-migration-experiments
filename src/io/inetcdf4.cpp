@@ -26,6 +26,8 @@ namespace xios
       CNetCdfInterface::open(filename, NC_NOWRITE, this->ncidp);
 
     this->timeCounterName = timeCounterName;
+    if (!CNetCdfInterface::isDimExisted(this->ncidp, this->timeCounterName)) this->timeCounterName=this->getUnlimitedDimensionName() ;
+    
   }
 
   CINetCDF4::~CINetCDF4(void)
