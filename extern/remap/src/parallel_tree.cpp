@@ -289,8 +289,9 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	nbSampleNodes /= 2;
 	nbSampleNodes *= 2;
 
-	assert(node.size() > nbSampleNodes);
-	assert(node2.size() > nbSampleNodes);
+//	assert(node.size() > nbSampleNodes);
+//	assert(node2.size() > nbSampleNodes);
+	assert(node.size() + node2.size() > nbSampleNodes);
 	vector<Node> sampleNodes; sampleNodes.reserve(nbSampleNodes);
 
 	vector<int> randomArray1(node.size());
@@ -298,12 +299,34 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	vector<int> randomArray2(node2.size());
 	randomizeArray(randomArray2);
 
-	for (int i = 0; i < nbSampleNodes/2; i++)
-	{
-		sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
-		sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
-	}
+	
+        int s1,s2 ;
+        
+        if (node.size()< nbSampleNodes/2)
+        { 
+          s1 = node.size() ;
+          s2 = nbSampleNodes-s1 ;
+        }
+        else if (node2.size()< nbSampleNodes/2)
+        {
+          s2 = node.size() ;
+          s1 = nbSampleNodes-s2 ;
+        }
+        else
+        {
+          s1=nbSampleNodes/2 ;
+          s2=nbSampleNodes/2 ;
+        }
+        for (int i = 0; i <s1; i++) sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
+        for (int i = 0; i <s2; i++)  sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
 
+/*          
+        for (int i = 0; i < nbSampleNodes/2; i++)
+	{
+          sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
+	  sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
+	}
+*/
 	CTimer::get("buildParallelSampleTree").resume();
 	//sampleTree.buildParallelSampleTree(sampleNodes, cascade);
 	buildSampleTreeCascade(sampleNodes);
