@@ -140,7 +140,7 @@ namespace xios
   template<typename T>
   union TypeToBytes {
     T value;
-    unsigned char bytes[sizeof(value)];
+    unsigned char bytes[sizeof(T)];
   };
 
   template<typename T>

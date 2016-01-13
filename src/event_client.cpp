@@ -7,7 +7,8 @@
 
 namespace xios
 {
-   const size_t CEventClient::headerSize = sizeof(int) + sizeof(size_t) + sizeof(int) + sizeof(classId) + sizeof(typeId);
+   const size_t CEventClient::headerSize = sizeof(int) + sizeof(size_t) + sizeof(int) + sizeof(int) + sizeof(int); // The two last one signify sizeof(classId) and sizeof(typeId)
+
 
    CEventClient::CEventClient(int classId_, int typeId_)
    {
