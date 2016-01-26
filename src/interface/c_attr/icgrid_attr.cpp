@@ -43,76 +43,76 @@ extern "C"
   }
 
 
-  void cxios_set_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int* extent)
+  void cxios_set_grid_mask_1d(grid_Ptr grid_hdl, bool* mask_1d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
-    grid_hdl->mask1.reference(tmp.copy());
+    CArray<bool,1> tmp(mask_1d, shape(extent[0]), neverDeleteData);
+    grid_hdl->mask_1d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask1(grid_Ptr grid_hdl, bool* mask1, int* extent)
+  void cxios_get_grid_mask_1d(grid_Ptr grid_hdl, bool* mask_1d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,1> tmp(mask1, shape(extent[0]), neverDeleteData);
-    tmp=grid_hdl->mask1.getInheritedValue();
+    CArray<bool,1> tmp(mask_1d, shape(extent[0]), neverDeleteData);
+    tmp=grid_hdl->mask_1d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_grid_mask1(grid_Ptr grid_hdl)
+  bool cxios_is_defined_grid_mask_1d(grid_Ptr grid_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = grid_hdl->mask1.hasInheritedValue();
+     bool isDefined = grid_hdl->mask_1d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
 
 
-  void cxios_set_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int* extent)
+  void cxios_set_grid_mask_2d(grid_Ptr grid_hdl, bool* mask_2d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
-    grid_hdl->mask2.reference(tmp.copy());
+    CArray<bool,2> tmp(mask_2d, shape(extent[0], extent[1]), neverDeleteData);
+    grid_hdl->mask_2d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask2(grid_Ptr grid_hdl, bool* mask2, int* extent)
+  void cxios_get_grid_mask_2d(grid_Ptr grid_hdl, bool* mask_2d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,2> tmp(mask2, shape(extent[0], extent[1]), neverDeleteData);
-    tmp=grid_hdl->mask2.getInheritedValue();
+    CArray<bool,2> tmp(mask_2d, shape(extent[0], extent[1]), neverDeleteData);
+    tmp=grid_hdl->mask_2d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_grid_mask2(grid_Ptr grid_hdl)
+  bool cxios_is_defined_grid_mask_2d(grid_Ptr grid_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = grid_hdl->mask2.hasInheritedValue();
+     bool isDefined = grid_hdl->mask_2d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
 
 
-  void cxios_set_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int* extent)
+  void cxios_set_grid_mask_3d(grid_Ptr grid_hdl, bool* mask_3d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
-    grid_hdl->mask3.reference(tmp.copy());
+    CArray<bool,3> tmp(mask_3d, shape(extent[0], extent[1], extent[2]), neverDeleteData);
+    grid_hdl->mask_3d.reference(tmp.copy());
      CTimer::get("XIOS").suspend();
   }
 
-  void cxios_get_grid_mask3(grid_Ptr grid_hdl, bool* mask3, int* extent)
+  void cxios_get_grid_mask_3d(grid_Ptr grid_hdl, bool* mask_3d, int* extent)
   {
     CTimer::get("XIOS").resume();
-    CArray<bool,3> tmp(mask3, shape(extent[0], extent[1], extent[2]), neverDeleteData);
-    tmp=grid_hdl->mask3.getInheritedValue();
+    CArray<bool,3> tmp(mask_3d, shape(extent[0], extent[1], extent[2]), neverDeleteData);
+    tmp=grid_hdl->mask_3d.getInheritedValue();
      CTimer::get("XIOS").suspend();
   }
 
-  bool cxios_is_defined_grid_mask3(grid_Ptr grid_hdl)
+  bool cxios_is_defined_grid_mask_3d(grid_Ptr grid_hdl)
   {
      CTimer::get("XIOS").resume();
-     bool isDefined = grid_hdl->mask3.hasInheritedValue();
+     bool isDefined = grid_hdl->mask_3d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

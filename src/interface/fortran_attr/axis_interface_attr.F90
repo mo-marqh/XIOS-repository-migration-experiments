@@ -129,6 +129,27 @@ MODULE axis_interface_attr
     END FUNCTION cxios_is_defined_axis_data_n
 
 
+    SUBROUTINE cxios_set_axis_index(axis_hdl, index, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: axis_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: index
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_axis_index
+
+    SUBROUTINE cxios_get_axis_index(axis_hdl, index, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: axis_hdl
+      INTEGER (KIND=C_INT)     , DIMENSION(*) :: index
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_axis_index
+
+    FUNCTION cxios_is_defined_axis_index(axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axis_index
+      INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl
+    END FUNCTION cxios_is_defined_axis_index
+
+
     SUBROUTINE cxios_set_axis_long_name(axis_hdl, long_name, long_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axis_hdl

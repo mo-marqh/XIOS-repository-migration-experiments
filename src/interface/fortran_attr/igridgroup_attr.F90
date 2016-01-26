@@ -11,60 +11,60 @@ MODULE igridgroup_attr
 CONTAINS
 
   SUBROUTINE xios(set_gridgroup_attr)  &
-    ( gridgroup_id, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_id, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup))  :: gridgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::gridgroup_id
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask1(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask2(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2_tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask3(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3_tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d_tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_3d(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
 
       CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
       CALL xios(set_gridgroup_attr_hdl_)   &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(set_gridgroup_attr)
 
   SUBROUTINE xios(set_gridgroup_attr_hdl)  &
-    ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask1(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask2(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2_tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask3(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3_tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d_tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_3d(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
 
       CALL xios(set_gridgroup_attr_hdl_)  &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(set_gridgroup_attr_hdl)
 
   SUBROUTINE xios(set_gridgroup_attr_hdl_)   &
-    ( gridgroup_hdl, description_, group_ref_, mask1_, mask2_, mask3_, name_ )
+    ( gridgroup_hdl, description_, group_ref_, mask_1d_, mask_2d_, mask_3d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: group_ref_
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask1_(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1__tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask2_(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2__tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(IN) :: mask3_(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3__tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d_(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d__tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d_(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d__tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_3d_(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
 
       IF (PRESENT(description_)) THEN
@@ -75,22 +75,22 @@ CONTAINS
         CALL cxios_set_gridgroup_group_ref(gridgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
-      IF (PRESENT(mask1_)) THEN
-        ALLOCATE(mask1__tmp(SIZE(mask1_,1)))
-        mask1__tmp = mask1_
-        CALL cxios_set_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, SHAPE(mask1_))
+      IF (PRESENT(mask_1d_)) THEN
+        ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
+        mask_1d__tmp = mask_1d_
+        CALL cxios_set_gridgroup_mask_1d(gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
       ENDIF
 
-      IF (PRESENT(mask2_)) THEN
-        ALLOCATE(mask2__tmp(SIZE(mask2_,1), SIZE(mask2_,2)))
-        mask2__tmp = mask2_
-        CALL cxios_set_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, SHAPE(mask2_))
+      IF (PRESENT(mask_2d_)) THEN
+        ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
+        mask_2d__tmp = mask_2d_
+        CALL cxios_set_gridgroup_mask_2d(gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
       ENDIF
 
-      IF (PRESENT(mask3_)) THEN
-        ALLOCATE(mask3__tmp(SIZE(mask3_,1), SIZE(mask3_,2), SIZE(mask3_,3)))
-        mask3__tmp = mask3_
-        CALL cxios_set_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, SHAPE(mask3_))
+      IF (PRESENT(mask_3d_)) THEN
+        ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
+        mask_3d__tmp = mask_3d_
+        CALL cxios_set_gridgroup_mask_3d(gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -100,60 +100,60 @@ CONTAINS
   END SUBROUTINE xios(set_gridgroup_attr_hdl_)
 
   SUBROUTINE xios(get_gridgroup_attr)  &
-    ( gridgroup_id, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_id, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup))  :: gridgroup_hdl
       CHARACTER(LEN=*), INTENT(IN) ::gridgroup_id
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask2(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2_tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask3(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3_tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d_tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_3d(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
 
       CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
       CALL xios(get_gridgroup_attr_hdl_)   &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(get_gridgroup_attr)
 
   SUBROUTINE xios(get_gridgroup_attr_hdl)  &
-    ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1_tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask2(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2_tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask3(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3_tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d_tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_3d(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d_tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
 
       CALL xios(get_gridgroup_attr_hdl_)  &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(get_gridgroup_attr_hdl)
 
   SUBROUTINE xios(get_gridgroup_attr_hdl_)   &
-    ( gridgroup_hdl, description_, group_ref_, mask1_, mask2_, mask3_, name_ )
+    ( gridgroup_hdl, description_, group_ref_, mask_1d_, mask_2d_, mask_3d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: group_ref_
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask1_(:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask1__tmp(:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask2_(:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask2__tmp(:,:)
-      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask3_(:,:,:)
-      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask3__tmp(:,:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d_(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d__tmp(:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d_(:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_2d__tmp(:,:)
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_3d_(:,:,:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_3d__tmp(:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
 
       IF (PRESENT(description_)) THEN
@@ -164,22 +164,22 @@ CONTAINS
         CALL cxios_get_gridgroup_group_ref(gridgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
-      IF (PRESENT(mask1_)) THEN
-        ALLOCATE(mask1__tmp(SIZE(mask1_,1)))
-        CALL cxios_get_gridgroup_mask1(gridgroup_hdl%daddr, mask1__tmp, SHAPE(mask1_))
-        mask1_ = mask1__tmp
+      IF (PRESENT(mask_1d_)) THEN
+        ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
+        CALL cxios_get_gridgroup_mask_1d(gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        mask_1d_ = mask_1d__tmp
       ENDIF
 
-      IF (PRESENT(mask2_)) THEN
-        ALLOCATE(mask2__tmp(SIZE(mask2_,1), SIZE(mask2_,2)))
-        CALL cxios_get_gridgroup_mask2(gridgroup_hdl%daddr, mask2__tmp, SHAPE(mask2_))
-        mask2_ = mask2__tmp
+      IF (PRESENT(mask_2d_)) THEN
+        ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
+        CALL cxios_get_gridgroup_mask_2d(gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        mask_2d_ = mask_2d__tmp
       ENDIF
 
-      IF (PRESENT(mask3_)) THEN
-        ALLOCATE(mask3__tmp(SIZE(mask3_,1), SIZE(mask3_,2), SIZE(mask3_,3)))
-        CALL cxios_get_gridgroup_mask3(gridgroup_hdl%daddr, mask3__tmp, SHAPE(mask3_))
-        mask3_ = mask3__tmp
+      IF (PRESENT(mask_3d_)) THEN
+        ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
+        CALL cxios_get_gridgroup_mask_3d(gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
+        mask_3d_ = mask_3d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
@@ -189,7 +189,7 @@ CONTAINS
   END SUBROUTINE xios(get_gridgroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_gridgroup_attr)  &
-    ( gridgroup_id, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_id, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup))  :: gridgroup_hdl
@@ -198,23 +198,23 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: description_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask1
-      LOGICAL(KIND=C_BOOL) :: mask1_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask2
-      LOGICAL(KIND=C_BOOL) :: mask2_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask3
-      LOGICAL(KIND=C_BOOL) :: mask3_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d
+      LOGICAL(KIND=C_BOOL) :: mask_1d_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d
+      LOGICAL(KIND=C_BOOL) :: mask_2d_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_3d
+      LOGICAL(KIND=C_BOOL) :: mask_3d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
 
       CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
       CALL xios(is_defined_gridgroup_attr_hdl_)   &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(is_defined_gridgroup_attr)
 
   SUBROUTINE xios(is_defined_gridgroup_attr_hdl)  &
-    ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+    ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
@@ -222,22 +222,22 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: description_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref
       LOGICAL(KIND=C_BOOL) :: group_ref_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask1
-      LOGICAL(KIND=C_BOOL) :: mask1_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask2
-      LOGICAL(KIND=C_BOOL) :: mask2_tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask3
-      LOGICAL(KIND=C_BOOL) :: mask3_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d
+      LOGICAL(KIND=C_BOOL) :: mask_1d_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d
+      LOGICAL(KIND=C_BOOL) :: mask_2d_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_3d
+      LOGICAL(KIND=C_BOOL) :: mask_3d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
 
       CALL xios(is_defined_gridgroup_attr_hdl_)  &
-      ( gridgroup_hdl, description, group_ref, mask1, mask2, mask3, name )
+      ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, name )
 
   END SUBROUTINE xios(is_defined_gridgroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_gridgroup_attr_hdl_)   &
-    ( gridgroup_hdl, description_, group_ref_, mask1_, mask2_, mask3_, name_ )
+    ( gridgroup_hdl, description_, group_ref_, mask_1d_, mask_2d_, mask_3d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(gridgroup)) , INTENT(IN) :: gridgroup_hdl
@@ -245,12 +245,12 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: description__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: group_ref_
       LOGICAL(KIND=C_BOOL) :: group_ref__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask1_
-      LOGICAL(KIND=C_BOOL) :: mask1__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask2_
-      LOGICAL(KIND=C_BOOL) :: mask2__tmp
-      LOGICAL, OPTIONAL, INTENT(OUT) :: mask3_
-      LOGICAL(KIND=C_BOOL) :: mask3__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d_
+      LOGICAL(KIND=C_BOOL) :: mask_1d__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d_
+      LOGICAL(KIND=C_BOOL) :: mask_2d__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_3d_
+      LOGICAL(KIND=C_BOOL) :: mask_3d__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
 
@@ -264,19 +264,19 @@ CONTAINS
         group_ref_ = group_ref__tmp
       ENDIF
 
-      IF (PRESENT(mask1_)) THEN
-        mask1__tmp = cxios_is_defined_gridgroup_mask1(gridgroup_hdl%daddr)
-        mask1_ = mask1__tmp
+      IF (PRESENT(mask_1d_)) THEN
+        mask_1d__tmp = cxios_is_defined_gridgroup_mask_1d(gridgroup_hdl%daddr)
+        mask_1d_ = mask_1d__tmp
       ENDIF
 
-      IF (PRESENT(mask2_)) THEN
-        mask2__tmp = cxios_is_defined_gridgroup_mask2(gridgroup_hdl%daddr)
-        mask2_ = mask2__tmp
+      IF (PRESENT(mask_2d_)) THEN
+        mask_2d__tmp = cxios_is_defined_gridgroup_mask_2d(gridgroup_hdl%daddr)
+        mask_2d_ = mask_2d__tmp
       ENDIF
 
-      IF (PRESENT(mask3_)) THEN
-        mask3__tmp = cxios_is_defined_gridgroup_mask3(gridgroup_hdl%daddr)
-        mask3_ = mask3__tmp
+      IF (PRESENT(mask_3d_)) THEN
+        mask_3d__tmp = cxios_is_defined_gridgroup_mask_3d(gridgroup_hdl%daddr)
+        mask_3d_ = mask_3d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN

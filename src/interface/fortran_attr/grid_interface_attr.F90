@@ -30,67 +30,67 @@ MODULE grid_interface_attr
     END FUNCTION cxios_is_defined_grid_description
 
 
-    SUBROUTINE cxios_set_grid_mask1(grid_hdl, mask1, extent) BIND(C)
+    SUBROUTINE cxios_set_grid_mask_1d(grid_hdl, mask_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask1
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_set_grid_mask1
+    END SUBROUTINE cxios_set_grid_mask_1d
 
-    SUBROUTINE cxios_get_grid_mask1(grid_hdl, mask1, extent) BIND(C)
+    SUBROUTINE cxios_get_grid_mask_1d(grid_hdl, mask_1d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask1
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_1d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_get_grid_mask1
+    END SUBROUTINE cxios_get_grid_mask_1d
 
-    FUNCTION cxios_is_defined_grid_mask1(grid_hdl) BIND(C)
+    FUNCTION cxios_is_defined_grid_mask_1d(grid_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask1
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask_1d
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
-    END FUNCTION cxios_is_defined_grid_mask1
+    END FUNCTION cxios_is_defined_grid_mask_1d
 
 
-    SUBROUTINE cxios_set_grid_mask2(grid_hdl, mask2, extent) BIND(C)
+    SUBROUTINE cxios_set_grid_mask_2d(grid_hdl, mask_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask2
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_set_grid_mask2
+    END SUBROUTINE cxios_set_grid_mask_2d
 
-    SUBROUTINE cxios_get_grid_mask2(grid_hdl, mask2, extent) BIND(C)
+    SUBROUTINE cxios_get_grid_mask_2d(grid_hdl, mask_2d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask2
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_2d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_get_grid_mask2
+    END SUBROUTINE cxios_get_grid_mask_2d
 
-    FUNCTION cxios_is_defined_grid_mask2(grid_hdl) BIND(C)
+    FUNCTION cxios_is_defined_grid_mask_2d(grid_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask2
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask_2d
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
-    END FUNCTION cxios_is_defined_grid_mask2
+    END FUNCTION cxios_is_defined_grid_mask_2d
 
 
-    SUBROUTINE cxios_set_grid_mask3(grid_hdl, mask3, extent) BIND(C)
+    SUBROUTINE cxios_set_grid_mask_3d(grid_hdl, mask_3d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask3
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_3d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_set_grid_mask3
+    END SUBROUTINE cxios_set_grid_mask_3d
 
-    SUBROUTINE cxios_get_grid_mask3(grid_hdl, mask3, extent) BIND(C)
+    SUBROUTINE cxios_get_grid_mask_3d(grid_hdl, mask_3d, extent) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
-      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask3
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_3d
       INTEGER (kind = C_INT), DIMENSION(*)     :: extent
-    END SUBROUTINE cxios_get_grid_mask3
+    END SUBROUTINE cxios_get_grid_mask_3d
 
-    FUNCTION cxios_is_defined_grid_mask3(grid_hdl) BIND(C)
+    FUNCTION cxios_is_defined_grid_mask_3d(grid_hdl) BIND(C)
       USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask3
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask_3d
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
-    END FUNCTION cxios_is_defined_grid_mask3
+    END FUNCTION cxios_is_defined_grid_mask_3d
 
 
     SUBROUTINE cxios_set_grid_name(grid_hdl, name, name_size) BIND(C)

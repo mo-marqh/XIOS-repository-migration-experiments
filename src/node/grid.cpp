@@ -226,7 +226,7 @@ namespace xios {
    void CGrid::checkEligibilityForCompressedOutput()
    {
      // We don't check if the mask is valid here, just if a mask has been defined at this point.
-     isCompressible_ = !mask1.isEmpty() || !mask2.isEmpty() || !mask3.isEmpty();
+     isCompressible_ = !mask_1d.isEmpty() || !mask_2d.isEmpty() || !mask_3d.isEmpty();
    }
 
    void CGrid::checkMaskIndex(bool doSendingIndex)
@@ -277,13 +277,13 @@ namespace xios {
 
       switch (dim) {
         case 1:
-          checkGridMask(mask1, domainMasks, axisMasks, axis_domain_order);
+          checkGridMask(mask_1d, domainMasks, axisMasks, axis_domain_order);
           break;
         case 2:
-          checkGridMask(mask2, domainMasks, axisMasks, axis_domain_order);
+          checkGridMask(mask_2d, domainMasks, axisMasks, axis_domain_order);
           break;
         case 3:
-          checkGridMask(mask3, domainMasks, axisMasks, axis_domain_order);
+          checkGridMask(mask_3d, domainMasks, axisMasks, axis_domain_order);
           break;
 //        case 4:
 //          checkGridMask(mask4, domainMasks, axisMasks, axis_domain_order);
@@ -311,13 +311,13 @@ namespace xios {
 
       switch (dim) {
         case 1:
-          modifyGridMask(mask1, indexToModify);
+          modifyGridMask(mask_1d, indexToModify);
           break;
         case 2:
-          modifyGridMask(mask2, indexToModify);
+          modifyGridMask(mask_2d, indexToModify);
           break;
         case 3:
-          modifyGridMask(mask3, indexToModify);
+          modifyGridMask(mask_3d, indexToModify);
           break;
 
         default:

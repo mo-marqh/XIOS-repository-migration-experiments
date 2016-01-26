@@ -63,13 +63,13 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
   grid->checkMask();
   switch (gridDim) {
     case 1:
-      readGridMaskInfo(grid->mask1);
+      readGridMaskInfo(grid->mask_1d);
       break;
     case 2:
-      readGridMaskInfo(grid->mask2);
+      readGridMaskInfo(grid->mask_2d);
       break;
     case 3:
-      readGridMaskInfo(grid->mask3);
+      readGridMaskInfo(grid->mask_3d);
       break;
     default:
       break;

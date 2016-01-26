@@ -229,11 +229,11 @@ namespace xios {
         this->hasValue = true;
       }
 
-//      StdSize true_size = value.numElements();
-//      if (this->n.getValue() != true_size)
-//        ERROR("CAxis::checkAttributes(void)",
-//              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-//              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+      if (this->index.isEmpty())
+      {
+        index.resize(n);
+        for (int i = 0; i < n; ++i) index(i) = i+begin;
+      }
 
       this->checkData();
       this->checkZoom();
@@ -392,19 +392,19 @@ namespace xios {
     size_t ibegin = this->begin.getValue();
     size_t zoom_end = global_zoom_begin+global_zoom_size-1;
     size_t nZoomCount = 0;
-    for (size_t idx = 0; idx < ni; ++idx)
+    size_t nbIndex = index.numElements();
+    for (size_t idx = 0; idx < nbIndex; ++idx)
     {
-      size_t globalIndex = ibegin + idx;
-
+      size_t globalIndex = index(idx);
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nZoomCount;
     }
 
-    CArray<size_t,1> globalIndexAxis(ni);
+    CArray<size_t,1> globalIndexAxis(nbIndex);
     std::vector<size_t> globalAxisZoom(nZoomCount);
     nZoomCount = 0;
-    for (size_t idx = 0; idx < ni; ++idx)
+    for (size_t idx = 0; idx < nbIndex; ++idx)
     {
-      size_t globalIndex = ibegin + idx;
+      size_t globalIndex = index(idx);
       globalIndexAxis(idx) = globalIndex;
       if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
       {

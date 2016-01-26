@@ -162,6 +162,31 @@ extern "C"
   }
 
 
+  void cxios_set_axis_index(axis_Ptr axis_hdl, int* index, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(index, shape(extent[0]), neverDeleteData);
+    axis_hdl->index.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_index(axis_Ptr axis_hdl, int* index, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<int,1> tmp(index, shape(extent[0]), neverDeleteData);
+    tmp=axis_hdl->index.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_index(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->index.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axis_long_name(axis_Ptr axis_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
