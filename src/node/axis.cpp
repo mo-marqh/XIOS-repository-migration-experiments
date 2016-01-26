@@ -25,7 +25,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
+      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0), hasValue(false)
    {
    }
 
@@ -34,7 +34,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0)
+      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0), hasValue(false)
    {
    }
 
@@ -219,11 +219,21 @@ namespace xios {
       }
       else this->n.setValue(size);
 
-      StdSize true_size = value.numElements();
-      if (this->n.getValue() != true_size)
-        ERROR("CAxis::checkAttributes(void)",
-              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+      if (!this->value.isEmpty())
+      {
+        StdSize true_size = value.numElements();
+        if (this->n.getValue() != true_size)
+          ERROR("CAxis::checkAttributes(void)",
+                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+        this->hasValue = true;
+      }
+
+//      StdSize true_size = value.numElements();
+//      if (this->n.getValue() != true_size)
+//        ERROR("CAxis::checkAttributes(void)",
+//              << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+//              << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
 
       this->checkData();
       this->checkZoom();
@@ -350,7 +360,7 @@ namespace xios {
      if (context->hasClient)
      {
        sendServerAttribut(globalDim, orderPositionInGrid, distType);
-       sendValue(globalDim, orderPositionInGrid, distType);
+       if (hasValue) sendValue(globalDim, orderPositionInGrid, distType);
      }
 
      this->isChecked = true;
@@ -863,8 +873,11 @@ namespace xios {
       zoom_end_srv   = global_zoom_end; //zoom_end;
       zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
     }
-    value_srv.resize(zoom_size_srv);
-    bound_srv.resize(2,zoom_size_srv);
+    if (hasValue)
+    {
+      value_srv.resize(zoom_size_srv);
+      if (hasBounds_)  bound_srv.resize(2,zoom_size_srv);
+    }
   }
 
   bool CAxis::hasTransformation()

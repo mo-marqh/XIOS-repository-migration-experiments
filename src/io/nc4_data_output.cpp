@@ -638,77 +638,81 @@ namespace xios
         try
         {
           SuperClassWriter::addDimension(axisid, zoom_size);
-          dims.push_back(axisid);
-          SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
-
-          if (!axis->name.isEmpty())
-            SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
-
-          if (!axis->standard_name.isEmpty())
-            SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisid);
-
-          if (!axis->long_name.isEmpty())
-            SuperClassWriter::addAttribute("long_name", axis->long_name.getValue(), &axisid);
-
-          if (!axis->unit.isEmpty())
-            SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
-
-          if (!axis->positive.isEmpty())
+          if (axis->hasValue)
           {
-            SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
-            SuperClassWriter::addAttribute("positive",
-                                           (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
-                                           &axisid);
-          }
+            dims.push_back(axisid);
+            SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
 
-          StdString axisBoundsId = axisid + "_bounds";
-          if (!axis->bounds.isEmpty())
-          {
-            dims.push_back("axis_nbounds");
-            SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
-            SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
-          }
+            if (!axis->name.isEmpty())
+              SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
 
-          SuperClassWriter::definition_end();
-          switch (SuperClass::type)
-          {
-            case MULTI_FILE:
+            if (!axis->standard_name.isEmpty())
+              SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisid);
+
+            if (!axis->long_name.isEmpty())
+              SuperClassWriter::addAttribute("long_name", axis->long_name.getValue(), &axisid);
+
+            if (!axis->unit.isEmpty())
+              SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
+
+            if (!axis->positive.isEmpty())
             {
-              CArray<double,1> axis_value(zoom_size_srv);
-              for (int i = 0; i < zoom_size_srv; i++) axis_value(i) = axis->value_srv(i);
-              SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
-
-              if (!axis->bounds.isEmpty())
-                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0);
-
-              SuperClassWriter::definition_start();
-
-              break;
+              SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
+              SuperClassWriter::addAttribute("positive",
+                                             (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
+                                             &axisid);
             }
-            case ONE_FILE:
+
+            StdString axisBoundsId = axisid + "_bounds";
+            if (!axis->bounds.isEmpty())
             {
-              CArray<double,1> axis_value(zoom_size_srv);
-              axis_value = axis->value_srv;
-
-              std::vector<StdSize> start(1), startBounds(2) ;
-              std::vector<StdSize> count(1), countBounds(2) ;
-              start[0] = startBounds[0] = zoom_begin_srv-axis->global_zoom_begin;
-              count[0] = countBounds[0] = zoom_size_srv;
-              startBounds[1] = 0;
-              countBounds[1] = 2;
-              SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
-
-              if (!axis->bounds.isEmpty())
-                SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
-
-              SuperClassWriter::definition_start();
-
-              break;
+              dims.push_back("axis_nbounds");
+              SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
+              SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
             }
-            default :
-              ERROR("CNc4DataOutput::writeDomain(domain)",
-                    << "[ type = " << SuperClass::type << "]"
-                    << " not implemented yet !");
+
+            SuperClassWriter::definition_end();
+
+            switch (SuperClass::type)
+            {
+              case MULTI_FILE:
+              {
+                CArray<double,1> axis_value(zoom_size_srv);
+                for (int i = 0; i < zoom_size_srv; i++) axis_value(i) = axis->value_srv(i);
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+
+                if (!axis->bounds.isEmpty())
+                  SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0);
+
+                SuperClassWriter::definition_start();
+
+                break;
+              }
+              case ONE_FILE:
+              {
+                CArray<double,1> axis_value(zoom_size_srv);
+                axis_value = axis->value_srv;
+
+                std::vector<StdSize> start(1), startBounds(2) ;
+                std::vector<StdSize> count(1), countBounds(2) ;
+                start[0] = startBounds[0] = zoom_begin_srv-axis->global_zoom_begin;
+                count[0] = countBounds[0] = zoom_size_srv;
+                startBounds[1] = 0;
+                countBounds[1] = 2;
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+
+                if (!axis->bounds.isEmpty())
+                  SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+
+                SuperClassWriter::definition_start();
+
+                break;
+              }
+              default :
+                ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)",
+                      << "[ type = " << SuperClass::type << "]"
+                      << " not implemented yet !");
+            }
           }
         }
         catch (CNetCdfException& e)

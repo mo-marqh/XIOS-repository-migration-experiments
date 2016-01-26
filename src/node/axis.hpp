@@ -118,6 +118,7 @@ namespace xios {
         int global_zoom_begin, global_zoom_size;  // The real global zoom begin and zoom size after axis is transformed (zoomed)
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
+        bool hasValue;
 
       private:
          void checkData();
