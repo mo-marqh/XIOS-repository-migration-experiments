@@ -127,8 +127,10 @@ namespace xios {
          void checkTransformations();
          void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
                                  CServerDistributionDescription::ServerDistributionType disType);
-         void sendValue();
-         void computeConnectedServer(void);
+         void sendValue(const std::vector<int>& globalDim, int orderPositionInGrid,
+                        CServerDistributionDescription::ServerDistributionType distType);
+         void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                     CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributedValue();
          void sendNonDistributedValue();
 

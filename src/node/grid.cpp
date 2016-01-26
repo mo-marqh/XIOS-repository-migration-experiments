@@ -418,10 +418,8 @@ namespace xios {
      indexEnd = indexBegin + range - 1;
 
      // Then compute distribution on server side
-     CServerDistributionDescription serverDistributionDescription(globalDim_);
-     serverDistributionDescription.computeServerGlobalIndexInRange(client->serverSize,
-                                                                   std::make_pair<size_t,size_t>(indexBegin, indexEnd),
-                                                                   positionDimensionDistributed_);
+     CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
+     serverDistributionDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), positionDimensionDistributed_);
 
      // Finally, compute index mapping between client(s) and server(s)
      clientServerMap_ = new CClientServerMappingDistributed(serverDistributionDescription.getGlobalIndexRange(),

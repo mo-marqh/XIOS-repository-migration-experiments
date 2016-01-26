@@ -2,7 +2,7 @@
    \file server_distribution_description.hpp
    \author Ha NGUYEN
    \since 04 Jan 2015
-   \date 24 Jul 2015
+   \date 11 Jan 2016
 
    \brief Description of index distribution on server(s).
  */
@@ -12,8 +12,16 @@
 
 namespace xios
 {
-CServerDistributionDescription::CServerDistributionDescription(const std::vector<int>& globalDimensionSize)
-  : nGlobal_(globalDimensionSize), indexBegin_(), dimensionSizes_(), globalIndex_(), vecGlobalIndex_()
+  /*!
+  \param [in] globalDimensionSize global dimension of grid
+  \param [in] nServer number of server
+  \param [in] serType type of server distribution. For now, we can distribute server by band or plan
+  */
+CServerDistributionDescription::CServerDistributionDescription(const std::vector<int>& globalDimensionSize,
+                                                               int nServer,
+                                                               ServerDistributionType serType)
+  : nGlobal_(globalDimensionSize), indexBegin_(), dimensionSizes_(), globalIndex_(),
+    vecGlobalIndex_(), serverType_(serType), nServer_(nServer), positionDimensionDistributed_(1)
 {
 }
 
@@ -22,18 +30,15 @@ CServerDistributionDescription::~CServerDistributionDescription()
 
 /*!
   Compute pre-defined global index distribution of server(s).
-  \param [in] nServer number of server
   \param [in] doComputeGlobalIndex flag to compute global index on each server. By default, false
-  \param [in] serType type of server distribution. For now, we can distribute server by band or plan
+
 */
-void CServerDistributionDescription::computeServerDistribution(int nServer,
-                                                               int positionDimensionDistributed,
-                                                               bool doComputeGlobalIndex,
-                                                               ServerDistributionType serType)
+void CServerDistributionDescription::computeServerDistribution(bool doComputeGlobalIndex,
+                                                               int positionDimensionDistributed)
 {
-  switch (serType) {
+  switch (serverType_) {
     case BAND_DISTRIBUTION:
-      computeBandDistribution(nServer, positionDimensionDistributed);
+      computeBandDistribution(nServer_, positionDimensionDistributed);
       break;
     default:
       break;
@@ -41,11 +46,11 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
 
   if (doComputeGlobalIndex)
   {
-    vecGlobalIndex_.resize(nServer);
+    vecGlobalIndex_.resize(nServer_);
     int dim = nGlobal_.size();
     std::vector<int> currentIndex(dim);
 
-    for (int idxServer = 0; idxServer < nServer; ++idxServer)
+    for (int idxServer = 0; idxServer < nServer_; ++idxServer)
     {
       size_t ssize = 1, idx = 0;
       for (int j = 0; j < dim; ++j) ssize *= dimensionSizes_[idxServer][j];
@@ -91,18 +96,15 @@ void CServerDistributionDescription::computeServerDistribution(int nServer,
 /*!
   Compute global index assigned to a server with a range.E.g: if a grid has 100 points and
   there are 2 servers, the first one takes index from 0 to 49, the second has index from 50 to 99
-  \param [in] nServer number of server
+
   \param [in] indexBeginEnd begining and ending index of range
-  \param [in] serType type of server distribution. For now, we can distribute server by band or plan
 */
-void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer,
-                                                                     const std::pair<size_t, size_t>& indexBeginEnd,
-                                                                     int positionDimensionDistributed,
-                                                                     ServerDistributionType distributionType)
+void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::pair<size_t, size_t>& indexBeginEnd,
+                                                                     int positionDimensionDistributed)
 {
-  switch (distributionType) {
+  switch (serverType_) {
     case BAND_DISTRIBUTION:
-      computeBandDistribution(nServer, positionDimensionDistributed);
+      computeBandDistribution(nServer_, positionDimensionDistributed);
       break;
     default:
       break;
@@ -117,7 +119,7 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer
   int dim = nGlobal_.size();
   std::vector<int> currentIndex(dim);
 
-  for (int idxServer = 0; idxServer < nServer; ++idxServer)
+  for (int idxServer = 0; idxServer < nServer_; ++idxServer)
   {
     size_t ssize = 1, idx = 0;
     for (int j = 0; j < dim; ++j) ssize *= dimensionSizes_[idxServer][j];
@@ -166,10 +168,12 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(int nServer
 void CServerDistributionDescription::computeBandDistribution(int nServer, int positionDimensionDistributed)
 {
   int dim = nGlobal_.size();
-  if (positionDimensionDistributed > dim)
+  positionDimensionDistributed_ = positionDimensionDistributed;
+  if (1 == dim) positionDimensionDistributed_ = 0;
+  if (positionDimensionDistributed_ > dim)
     ERROR("CServerDistributionDescription::computeBandDistribution(int nServer, int positionDimensionDistributed)",
           << "Position of distributed dimension is invalid" << std::endl
-          << "Position of distributed dimension is " << positionDimensionDistributed
+          << "Position of distributed dimension is " << positionDimensionDistributed_
           << "Dimension " << dim)
 
   indexBegin_.resize(nServer);
@@ -186,7 +190,7 @@ void CServerDistributionDescription::computeBandDistribution(int nServer, int po
   std::vector<int> njRangeBegin(nServer,0);
   std::vector<int> njRangeEnd(nServer,0);
 
-  int positionDistributed = (1<dim) ? positionDimensionDistributed : 0;
+  int positionDistributed = (1<dim) ? positionDimensionDistributed_ : 0;
   nGlobTemp = nGlobal_[positionDistributed];
 
   for (int i = 0; i < nServer; ++i)
@@ -258,4 +262,10 @@ const boost::unordered_map<size_t,int>& CServerDistributionDescription::getGloba
 {
   return globalIndex_;
 }
+
+int CServerDistributionDescription::getDimensionDistributed()
+{
+  return ((1<nGlobal_.size()) ? positionDimensionDistributed_ : 0);
+}
+
 } // namespace xios

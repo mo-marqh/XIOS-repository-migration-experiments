@@ -2,7 +2,7 @@
    \file server_distribution_description.hpp
    \author Ha NGUYEN
    \since 04 Jan 2015
-   \date 24 Jul 2015
+   \date 11 Jan 2016
 
    \brief Description of index distribution on server(s).
  */
@@ -29,23 +29,21 @@ class CServerDistributionDescription
     };
 
     /** Default constructor */
-    CServerDistributionDescription(const std::vector<int>& globalDimensionSize);
+    CServerDistributionDescription(const std::vector<int>& globalDimensionSize,
+                                   int nServer,
+                                   ServerDistributionType serType=BAND_DISTRIBUTION);
+
     /** Default destructor */
     virtual ~CServerDistributionDescription();
 
-    void computeServerDistribution(int nServer, int positionDimensionDistributed = 1,
-                                   bool doComputeGlobalIndex = false,
-                                   ServerDistributionType type = BAND_DISTRIBUTION);
-
-    void computeServerGlobalIndexInRange(int nServer,
-                                         const std::pair<size_t, size_t>& indexBeginEnd,
-                                         int positionDimensionDistributed = 1,
-                                         ServerDistributionType = BAND_DISTRIBUTION);
+    void computeServerDistribution(bool doComputeGlobalIndex = false, int positionDimensionDistributed = 1);
+    void computeServerGlobalIndexInRange(const std::pair<size_t, size_t>& indexBeginEnd, int positionDimensionDistributed = 1);
 
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
     const std::vector<CArray<size_t,1> >& getGlobalIndex() const;
     const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
+    int getDimensionDistributed();
 
   protected:
     void computeBandDistribution(int nServer, int positionDimensionDistributed = 1);
@@ -61,6 +59,15 @@ class CServerDistributionDescription
 
     //!< In case we need only global index of one server with specific rank
     boost::unordered_map<size_t,int> globalIndex_;
+
+    //!< Type of distribution on server side
+    ServerDistributionType serverType_;
+
+    //!< Number of server
+    int nServer_;
+
+    //!< Position of dimension distributed on server side (by default, the second dimension)
+    int positionDimensionDistributed_;
 };
 
 } // namespace xios

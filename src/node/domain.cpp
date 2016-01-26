@@ -464,8 +464,8 @@ namespace xios {
       CContextClient* client = context->client;
 	  lon_g.resize(ni_glo) ;
 	  lat_g.resize(nj_glo) ;
-	  
-	  
+
+
 	  int* ibegin_g = new int[client->clientSize] ;
 	  int* jbegin_g = new int[client->clientSize] ;
 	  int* ni_g = new int[client->clientSize] ;
@@ -479,10 +479,10 @@ namespace xios {
 	  MPI_Allgather(&v,1,MPI_INT,ni_g,1,MPI_INT,client->intraComm) ;
 	  v=nj ;
 	  MPI_Allgather(&v,1,MPI_INT,nj_g,1,MPI_INT,client->intraComm) ;
-	  
+
 	  MPI_Allgatherv(lon.dataFirst(),ni,MPI_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,MPI_DOUBLE,client->intraComm) ;
 	  MPI_Allgatherv(lat.dataFirst(),nj,MPI_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,MPI_DOUBLE,client->intraComm) ;
-   
+
       delete[] ibegin_g ;
       delete[] jbegin_g ;
       delete[] ni_g ;
@@ -493,7 +493,7 @@ namespace xios {
                                               CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
    {
      int i,j,k;
-     
+
      const int nvertexValue = 4;
      boundsLon.resize(nvertexValue,ni*nj);
 
@@ -509,7 +509,7 @@ namespace xios {
        bounds_lon_start= (lon(0) + lon(ni_glo-1)-360)/2 ;
        bounds_lon_end= (lon(0) +360 + lon(ni_glo-1))/2 ;
      }
-       
+
      for(j=0;j<nj;++j)
        for(i=0;i<ni;++i)
        {
@@ -519,7 +519,7 @@ namespace xios {
          boundsLon(2,k) = boundsLon(3,k) = ((ibegin + i + 1) == ni_glo) ? bounds_lon_end
                                                                         : (lon(ibegin + i + 1)+lon(ibegin + i))/2;
        }
-    
+
 
     boundsLat.resize(nvertexValue,nj*ni);
     bool isNorthPole=false ;
@@ -545,7 +545,7 @@ namespace xios {
         if ( -90 + bounds_lat_start <= 0.1*std::abs(latStepStart)) bounds_lat_start=-90 ;
       }
     }
-    
+
     double latStepEnd = lat(nj_glo-1)-lat(nj_glo-2);
     if (isSouthPole) bounds_lat_end=lat(nj_glo-1);
     else
@@ -562,8 +562,8 @@ namespace xios {
       {
         if ( -90 + bounds_lat_end <= 0.1*std::abs(latStepEnd)) bounds_lat_end=-90 ;
       }
-    }      
-      
+    }
+
     for(j=0;j<nj;++j)
       for(i=0;i<ni;++i)
       {
@@ -1221,14 +1221,13 @@ namespace xios {
 
   void CDomain::sendServerAttribut(void)
   {
-    CServerDistributionDescription serverDescription(nGlobDomain_);
-
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
 
-    if (isUnstructed_) serverDescription.computeServerDistribution(nbServer,0);
-    else serverDescription.computeServerDistribution(nbServer,1);
+    CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
+    if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
+    else serverDescription.computeServerDistribution(false, 1);
 
     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
@@ -1371,9 +1370,9 @@ namespace xios {
     }
     indexEnd = indexBegin + range - 1;
 
-    CServerDistributionDescription serverDescription(nGlobDomain_);
-    if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
-    else serverDescription.computeServerGlobalIndexInRange(nbServer, std::make_pair<size_t,size_t>(indexBegin, indexEnd), 1);
+    CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
+    if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
+    else serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 1);
 
     CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
                                                                                 client->intraComm);
