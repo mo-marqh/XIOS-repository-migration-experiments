@@ -9,31 +9,31 @@
      <field id="src_field" operation="instant" domain_ref="src_domain"/>
      <field id="dst_field" operation="instant" field_ref="src_field" domain_ref="dst_domain"/>
      <field id="tmp_field" operation="instant" domain_ref="src_domain_regular_tmp"/>
-     <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />
-     <field id="tmp_field_2" operation="instant" domain_ref="domain_src_unstructured" />
+<!--     <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />-->
+<!--     <field id="tmp_field_2" operation="instant" domain_ref="domain_src_unstructured" />-->
      <field id="dst_field_regular" operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular" read_access="true"/>
-     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"/>
+<!--     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"/>-->
    </field_definition>
 
 
    <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-<!--        <field field_ref="src_field" name="field" />-->
+        <field field_ref="src_field" name="field" />
      </file>
      <file id="output_dst" name="output_dst" type="one_file">
-<!--        <field field_ref="dst_field" name="field" />-->
+        <field field_ref="dst_field" name="field" />
      </file>
      <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
-        <field field_ref="dst_field_regular_pole" name="field" />
+<!--        <field field_ref="dst_field_regular_pole" name="field" />-->
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
-<!--        <field field_ref="dst_field_regular" name="field" />-->
+        <field field_ref="dst_field_regular" name="field" />
      </file>
      <file id="output_dst_curvilinear" name="output_dst_curvilinear" type="one_file">
 <!--        <field field_ref="tmp_field_1" operation="instant"/>-->
      </file>
      <file id="output_dst_unstructured" name="output_dst_unstructured" type="one_file">
-        <field field_ref="tmp_field_2" operation="instant"/>
+<!--        <field field_ref="tmp_field_2" operation="instant"/>-->
      </file>
 
      <file id="output_src_regular" name="output_src_regular" mode="read" type="multiple_file">
@@ -44,10 +44,10 @@
      </file>
 
      <file id="output_src_curvilinear" name="output_src_curvilinear" mode="read" type="one_file">
-        <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>
+<!--        <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>-->
      </file>
      <file id="output_unstructured" name="output_unstructured" mode="read" type="one_file">
-        <field id="field_src_unstructred" name="field" domain_ref="domain_src_unstructured" operation="instant"/>
+<!--        <field id="field_src_unstructred" name="field" domain_ref="domain_src_unstructured" operation="instant"/>-->
      </file>
    </file_definition>
 
@@ -61,14 +61,14 @@
 
    <domain_definition>
      <domain id="src_domain" />
-     <domain id="dst_domain" domain_src="src_domain">
+     <domain id="dst_domain">
        <interpolate_domain/>
      </domain>
-     <domain id="dst_domain_regular_pole" domain_src="src_domain" ni_glo="180" nj_glo="90" type="rectilinear">
+     <domain id="dst_domain_regular_pole" ni_glo="180" nj_glo="90" type="rectilinear">
        <generate_rectilinear_domain id="domain_regular_pole"/>
        <interpolate_domain/>
      </domain>
-     <domain id="dst_domain_regular" domain_src="src_domain_regular_tmp" ni_glo="90" nj_glo="45" type="rectilinear">
+     <domain id="dst_domain_regular" ni_glo="90" nj_glo="45" type="rectilinear">
        <generate_rectilinear_domain />
        <interpolate_domain/>
      </domain>

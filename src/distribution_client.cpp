@@ -18,6 +18,7 @@ CDistributionClient::CDistributionClient(int rank, int dims, const CArray<size_t
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
    , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
    , globalDataSendToServer_(), localDataIndexSendToServer_(), localDataIndex_(), localMaskIndex_()
+   , infoIndex_()
 {
 }
 
@@ -29,6 +30,7 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
    , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
    , globalDataSendToServer_(), localDataIndexSendToServer_(), localDataIndex_(), localMaskIndex_()
+   , infoIndex_()
 {
   readDistributionInfo(grid);
   createGlobalIndex();
@@ -175,6 +177,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
 
   // Data_*_index of each dimension
   dataIndex_.resize(this->dims_);
+  infoIndex_.resize(this->dims_);
 
   // A trick to determine position of each domain in domainList
   int domIndex = 0, axisIndex = 0;
@@ -200,6 +203,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue(); //(2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
       dataIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->data_j_index.numElements());
       dataIndex_.at(indexMap_[idx]+1) = domList[domIndex]->data_j_index;
+      infoIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->j_index.numElements());
+      infoIndex_.at(indexMap_[idx]+1) = domList[domIndex]->j_index;
 
       // On the i axis
       nLocal_.at(indexMap_[idx]) = domList[domIndex]->ni.getValue();
@@ -212,6 +217,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
       dataIndex_.at(indexMap_[idx]).resize(domList[domIndex]->data_i_index.numElements());
       dataIndex_.at(indexMap_[idx]) = domList[domIndex]->data_i_index;
+      infoIndex_.at(indexMap_[idx]).resize(domList[domIndex]->i_index.numElements());
+      infoIndex_.at(indexMap_[idx]) = domList[domIndex]->i_index;
 
       dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
       dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
@@ -232,6 +239,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
       dataIndex_.at(indexMap_[idx]).resize(axisList[axisIndex]->data_index.numElements());
       dataIndex_.at(indexMap_[idx]) = axisList[axisIndex]->data_index;
+      infoIndex_.at(indexMap_[idx]).resize(axisList[axisIndex]->index.numElements());
+      infoIndex_.at(indexMap_[idx]) = axisList[axisIndex]->index;
       dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();
       dataDims_.at(idx) = 1;
 
@@ -325,16 +334,16 @@ void CDistributionClient::createGlobalIndex()
 {
   size_t ssize = 1, idx = 0;
   for (int i = 0; i < this->dims_; ++i)
-    ssize *= nLocal_[i];
+  ssize *= nLocal_[i];
 
   this->globalIndex_.resize(ssize);
-  std::vector<int> idxLoop(this->dims_,0);
-  int innnerLoopSize = nLocal_[0];
+  std::vector<int> idxLoop(this->numElement_,0);
+  int innnerLoopSize = infoIndex_[0].numElements();
   while (idx < ssize)
   {
-    for (int i = 0; i < this->dims_; ++i)
+    for (int i = 0; i < this->numElement_; ++i)
     {
-      if (idxLoop[i] == nLocal_[i])
+      if (idxLoop[i] == infoIndex_[indexMap_[i]].numElements())
       {
         idxLoop[i] = 0;
         ++idxLoop[i+1];
@@ -343,18 +352,35 @@ void CDistributionClient::createGlobalIndex()
 
     for (int i = 0; i < innnerLoopSize; ++i)
     {
-      size_t globalIndex = idxLoop[0] + nBeginGlobal_[0];
+      size_t globalIndex = infoIndex_[0](idxLoop[0]);
       size_t mulDim = 1;
-      for (int k = 1; k < this->dims_; ++k)
+      for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
       {
-        mulDim *= nGlob_[k-1];
-        globalIndex += (idxLoop[k] + nBeginGlobal_[k])*mulDim;
+        if (axisDomainOrder_(idxElement))
+        {
+          int jb = (0 == idxElement) ? 1 : 0;
+          for (int j = jb; j <= 1; ++j)
+          {
+            mulDim *= nGlob_[indexMap_[idxElement]+j-1];
+            globalIndex += (infoIndex_[indexMap_[idxElement]+j](idxLoop[idxElement]))*mulDim;
+          }
+        }
+        else
+        {
+          if (0 != idxElement)
+          {
+            mulDim *= nGlob_[indexMap_[idxElement]-1];
+            globalIndex += (infoIndex_[indexMap_[idxElement]](idxLoop[idxElement]))*mulDim;
+          }
+        }
       }
+
       this->globalIndex_(idx) = globalIndex;
       ++idxLoop[0];
       ++idx;
     }
   }
+
 }
 
 
@@ -428,9 +454,6 @@ void CDistributionClient::createGlobalIndexSendToServer()
       }
     }
 
-    int maskIndex = currentIndex[0];
-    for (int j = 0; j < this->dims_; ++j)
-
     // Inner most index
     idxDomain = idxAxis = 0;
     for (int i = 0; i < innerLoopSize; ++i)
@@ -450,13 +473,28 @@ void CDistributionClient::createGlobalIndexSendToServer()
         gridMaskIndex += (currentIndex[k])*mulDimMask;
       }
 
-      if (gridMask_(gridMaskIndex)) //(gridMask_(currentIndex[0], currentIndex[1], currentIndex[2]))
+      if (gridMask_(gridMaskIndex))
       {
         ++indexLocalDataOnClientCount;
         bool isIndexOnServer = true;
-        for (int j = 0; j < this->dims_; ++j)
-          isIndexOnServer = isIndexOnServer && ((currentIndex[j]+nBeginGlobal_[j]) <= nZoomEnd_[j])
-                                            && (nZoomBegin_[j] <= (currentIndex[j]+nBeginGlobal_[j]));
+
+        for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
+        {
+          int actualIdx = 0;
+          if (axisDomainOrder_(idxElement))
+          {
+            actualIdx = currentIndex[indexMap_[idxElement]]+currentIndex[indexMap_[idxElement]+1]*nLocal_[indexMap_[idxElement]];
+            isIndexOnServer = isIndexOnServer && ((infoIndex_[indexMap_[idxElement]](actualIdx)) <= nZoomEnd_[indexMap_[idxElement]])
+                                              && (nZoomBegin_[indexMap_[idxElement]] <= (infoIndex_[indexMap_[idxElement]](actualIdx)))
+                                              && ((infoIndex_[indexMap_[idxElement]+1](actualIdx)) <= nZoomEnd_[indexMap_[idxElement]+1])
+                                              && (nZoomBegin_[indexMap_[idxElement]+1] <= (infoIndex_[indexMap_[idxElement]+1](actualIdx)));
+          }
+          else
+          {
+            isIndexOnServer = isIndexOnServer && ((infoIndex_[indexMap_[idxElement]](currentIndex[indexMap_[idxElement]])) <= nZoomEnd_[indexMap_[idxElement]])
+                                              && (nZoomBegin_[indexMap_[idxElement]] <= (infoIndex_[indexMap_[idxElement]](currentIndex[indexMap_[idxElement]])));
+          }
+        }
         if (isIndexOnServer) ++indexSend2ServerCount;
       }
 
@@ -570,20 +608,51 @@ void CDistributionClient::createGlobalIndexSendToServer()
           gridMask_(gridMaskIndex))
       {
         localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
-
         bool isIndexOnServer = true;
-        for (int j = 0; j < this->dims_; ++j)
-          isIndexOnServer = isIndexOnServer &&
-                            ((currentIndex[j]+nBeginGlobal_[j]) <= nZoomEnd_[j]) &&
-                            (nZoomBegin_[j] <= (currentIndex[j]+nBeginGlobal_[j]));
+        for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
+        {
+          int actualIdx = 0;
+          if (axisDomainOrder_(idxElement))
+          {
+            actualIdx = currentIndex[indexMap_[idxElement]]+currentIndex[indexMap_[idxElement]+1]*nLocal_[indexMap_[idxElement]];
+            isIndexOnServer = isIndexOnServer && ((infoIndex_[indexMap_[idxElement]](actualIdx)) <= nZoomEnd_[indexMap_[idxElement]])
+                                              && (nZoomBegin_[indexMap_[idxElement]] <= (infoIndex_[indexMap_[idxElement]](actualIdx)))
+                                              && ((infoIndex_[indexMap_[idxElement]+1](actualIdx)) <= nZoomEnd_[indexMap_[idxElement]+1])
+                                              && (nZoomBegin_[indexMap_[idxElement]+1] <= (infoIndex_[indexMap_[idxElement]+1](actualIdx)));
+          }
+          else
+          {
+            isIndexOnServer = isIndexOnServer && ((infoIndex_[indexMap_[idxElement]](currentIndex[indexMap_[idxElement]])) <= nZoomEnd_[indexMap_[idxElement]])
+                                              && (nZoomBegin_[indexMap_[idxElement]] <= (infoIndex_[indexMap_[idxElement]](currentIndex[indexMap_[idxElement]])));
+          }
+        }
+
         if (isIndexOnServer)
         {
-          size_t globalIndex = currentIndex[0] + nBeginGlobal_[0];
+          int actualIdx = (axisDomainOrder_(0)) ? currentIndex[0]+currentIndex[1]*nLocal_[0]
+                                                : currentIndex[0];
+          size_t globalIndex = infoIndex_[0](actualIdx); //idxLoop[0] + nBeginGlobal_[0];
           size_t mulDim = 1;
-          for (int k = 1; k < this->dims_; ++k)
+          for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
           {
-            mulDim *= nGlob_[k-1];
-            globalIndex += (currentIndex[k] + nBeginGlobal_[k])*mulDim;
+            if (axisDomainOrder_(idxElement))
+            {
+              actualIdx = currentIndex[indexMap_[idxElement]]+currentIndex[indexMap_[idxElement]+1]*nLocal_[indexMap_[idxElement]];
+              int jb = (0 == idxElement) ? 1 : 0;
+              for (int j = jb; j <= 1; ++j)
+              {
+                mulDim *= nGlob_[indexMap_[idxElement]+j-1];
+                globalIndex += (infoIndex_[indexMap_[idxElement]+j](actualIdx))*mulDim;
+              }
+            }
+            else
+            {
+              if (0 != idxElement)
+              {
+                mulDim *= nGlob_[indexMap_[idxElement]-1];
+                globalIndex += (infoIndex_[indexMap_[idxElement]](currentIndex[indexMap_[idxElement]]))*mulDim;
+              }
+            }
           }
           globalDataSendToServer_[indexSend2ServerCount] = globalIndex;
           localDataIndexSendToServer_[indexSend2ServerCount] = indexLocalDataOnClientCount;

@@ -96,6 +96,7 @@ class CDistributionClient : public CDistribution
     std::vector<int> dataDims_; //!< Data_dim, domain can have data_dim == 1 or 2
     std::vector<int> dataBegin_; //!< Data begin (data_ibegin, data_jbegin, etc)
     std::vector<CArray<int,1> > dataIndex_; //!< Data index
+    std::vector<CArray<int,1> > infoIndex_; //!< i_index, j_index
 
     std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
