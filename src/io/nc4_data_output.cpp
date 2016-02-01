@@ -1857,9 +1857,9 @@ namespace xios
            SuperClassWriter::addAttribute("DOMAIN_size_global", array) ;
            array=ni,nj ;
            SuperClassWriter::addAttribute("DOMAIN_size_local", array) ;
-           array=ibegin,jbegin ;
+           array=ibegin+1,jbegin+1 ;
            SuperClassWriter::addAttribute("DOMAIN_position_first", array) ;
-           array=ibegin+ni-1,jbegin+nj-1 ;
+           array=ibegin+ni-1+1,jbegin+nj-1+1 ;
            SuperClassWriter::addAttribute("DOMAIN_position_last",array) ;
            array=0,0 ;
            SuperClassWriter::addAttribute("DOMAIN_halo_size_start", array) ;
