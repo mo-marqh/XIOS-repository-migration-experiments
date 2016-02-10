@@ -1417,6 +1417,43 @@ Define the reference of the axis.
  This attribute is optional.
 \end_layout
 
+\begin_layout Subsection*
+index: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+1D-array of double
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+DOUBLE PRECISION :: index(:)
+\end_layout
+
+\begin_layout Standard
+Define the global index of axis which the local axis holds.
+ This attribute is optional and the size of the array is equal to 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+n
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Section
 Domain attribute reference
 \end_layout
@@ -1542,6 +1579,7 @@ CHARACTER(LEN=*) :: type
 
 \begin_layout Standard
 Define the type of the grid.
+ This attribute is mandatory.
 \end_layout
 
 \begin_layout Subsection*
@@ -1876,7 +1914,7 @@ nj
 \end_inset
 
 .
- This attribute is mandatory.
+ This attribute is optional.
 \end_layout
 
 \begin_layout Subsection*
@@ -1946,7 +1984,7 @@ nj
 \end_inset
 
 .
- This attribute is mandatory.
+ This attribute is optional.
 \end_layout
 
 \begin_layout Subsection*
@@ -2422,8 +2460,8 @@ INTEGER :: data_nj
 \end_layout
 
 \begin_layout Standard
-Define the size of the field data for the first dimension.
- This attribute is take account only if 
+Define the size of the field data for the second dimension.
+ This attribute is taken account only if 
 \begin_inset Flex Strong
 status collapsed
 
@@ -2560,7 +2598,7 @@ default_value
 
  in the output file.
  This value is useful in case a field is stored linearly in memory.
- 
+ This attribute is optional.
 \end_layout
 
 \begin_layout Subsection*
@@ -2609,11 +2647,89 @@ CHARACTER(LEN=*) :: domain_ref
 
 \begin_layout Standard
 Define the reference of the domain.
- All attributes are inherited from the referenced domain with the classical
+ All attributes are inherited from the referenced domain with the classic
  inheritance mechanism.
  The value assigned to the referenced domain is transmitted to to current
  domain.
  This attribute is optional.
+\end_layout
+
+\begin_layout Subsection*
+i_index: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+1D-array of double
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+DOUBLE PRECISION :: i_index(:)
+\end_layout
+
+\begin_layout Standard
+Define the global index of the first dimension of domain which the local
+ domain holds.
+ This attribute is optional and by default, the size of the array is equal
+ to 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni*nj
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+j_index: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+1D-array of double
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+DOUBLE PRECISION :: j_index(:)
+\end_layout
+
+\begin_layout Standard
+Define the global index of the second dimension of domain which the local
+ domain holds.
+ This attribute is optional and by default, the size of the array is equal
+ to 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni*nj
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -2656,7 +2772,7 @@ Define the description of the grid.
 \end_layout
 
 \begin_layout Subsection*
-mask: 
+mask_1d: 
 \emph on
 1D-array of bool
 \end_layout
@@ -2666,7 +2782,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-LOGICAL :: mask(:)
+LOGICAL :: mask_1d(:)
 \end_layout
 
 \begin_layout Standard
@@ -2687,7 +2803,7 @@ default_value
 \end_layout
 
 \begin_layout Subsection*
-mask: 
+mask_2d: 
 \emph on
 2D-array of bool
 \end_layout
@@ -2697,7 +2813,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-LOGICAL :: mask(:,:)
+LOGICAL :: mask_2d(:,:)
 \end_layout
 
 \begin_layout Standard
@@ -2718,7 +2834,7 @@ default_value
 \end_layout
 
 \begin_layout Subsection*
-mask: 
+mask_3d: 
 \emph on
 3D-array of bool
 \end_layout
@@ -2728,7 +2844,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-LOGICAL :: mask(:,:,:)
+LOGICAL :: mask_3d(:,:,:)
 \end_layout
 
 \begin_layout Standard
@@ -3236,6 +3352,25 @@ grid_ref
 \end_layout
 
 \begin_layout Subsection*
+grid_path: 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: grid_path
+\end_layout
+
+\begin_layout Standard
+Define the way operations passing from a grid to others.
+ This attribute is optional.
+\end_layout
+
+\begin_layout Subsection*
 default_value: 
 \emph on
 double
@@ -3620,6 +3755,25 @@ CHARACTER(LEN=*) :: name
 \begin_layout Standard
 Define the name of the file.
  This attribute is mandatory.
+\end_layout
+
+\begin_layout Subsection*
+description: 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: description
+\end_layout
+
+\begin_layout Standard
+Define the description of the file.
+ This attribute is optional.
 \end_layout
 
 \begin_layout Subsection*
@@ -4030,14 +4184,7 @@ netcdf4
 \series default
 \emph default
 .
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-Note that the 
+ Note that the 
 \series bold
 \emph on
 netcdf4
@@ -4236,6 +4383,25 @@ centered
 \end_layout
 
 \begin_layout Subsection*
+time_counter_name: 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: time_counter_name
+\end_layout
+
+\begin_layout Standard
+Define the name of the time counter.
+ This attribute is optional.
+\end_layout
+
+\begin_layout Subsection*
 timeseries: 
 \emph on
 enumeration { none, only, both, exclusive }
@@ -4246,7 +4412,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-CHARACTER(LEN=*) :: time_counter
+CHARACTER(LEN=*) :: time_series
 \end_layout
 
 \begin_layout Standard
@@ -4325,6 +4491,25 @@ Define the prefix to use for the name of the timeseries files.
 name
 \series default
  will be used.
+\end_layout
+
+\begin_layout Subsection*
+record_offset: 
+\emph on
+integer
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: record_offset
+\end_layout
+
+\begin_layout Standard
+Define offset of record from the beginning record.
+ This attribute is optional, by default, its value is 0.
 \end_layout
 
 \begin_layout Section

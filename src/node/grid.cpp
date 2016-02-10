@@ -263,6 +263,33 @@ namespace xios {
      this->isChecked = true;
    }
 
+   void CGrid::createMask(void)
+   {
+      using namespace std;
+      std::vector<CDomain*> domainP = this->getDomains();
+      std::vector<CAxis*> axisP = this->getAxis();
+      int dim = domainP.size() * 2 + axisP.size();
+
+      std::vector<CArray<bool,1>* > domainMasks(domainP.size());
+      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask_1d);
+      std::vector<CArray<bool,1>* > axisMasks(axisP.size());
+      for (int i = 0; i < axisMasks.size(); ++i) axisMasks[i] = &(axisP[i]->mask);
+
+      switch (dim) {
+        case 1:
+          checkGridMask(mask_1d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        case 2:
+          checkGridMask(mask_2d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        case 3:
+          checkGridMask(mask_3d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        default:
+          break;
+      }
+   }
+
    void CGrid::checkMask(void)
    {
       using namespace std;

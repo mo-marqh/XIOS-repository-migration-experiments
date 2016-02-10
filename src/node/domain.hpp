@@ -94,9 +94,6 @@ namespace xios {
          bool isDistributed(void) const;
          bool isCompressible(void) const;
 
-         int global_zoom_ibegin, global_zoom_ni;
-         int global_zoom_jbegin, global_zoom_nj;
-
          int ni_srv,ibegin_srv,iend_srv ;
          int zoom_ni_srv,zoom_ibegin_srv,zoom_iend_srv ;
 
@@ -123,11 +120,11 @@ namespace xios {
          void sendServerAttribut(void) ;
          void sendLonLatArea(void);
          void computeConnectedServer(void) ;
-         
-         void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, 
+
+         void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);
-         
-         void fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat, 
+
+         void fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                            CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
          void fillInRectilinearLonLat();
 
@@ -169,6 +166,7 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
+         void checkZoom(void);
 
          void checkTransformations();
          void setTransformations(const TransMapTypes&);

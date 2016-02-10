@@ -205,6 +205,7 @@ namespace xios {
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;
          void checkMask(void);
+         void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
 
          void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
@@ -216,7 +217,8 @@ namespace xios {
        void checkGridMask(CArray<bool,N>& gridMask,
                           const std::vector<CArray<bool,1>* >& domainMasks,
                           const std::vector<CArray<bool,1>* >& axisMasks,
-                          const CArray<bool,1>& axisDomainOrder);
+                          const CArray<bool,1>& axisDomainOrder,
+                          bool createMask = false);
         template<int N>
         void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify);
 
@@ -294,7 +296,8 @@ namespace xios {
    void CGrid::checkGridMask(CArray<bool,N>& gridMask,
                              const std::vector<CArray<bool,1>* >& domainMasks,
                              const std::vector<CArray<bool,1>* >& axisMasks,
-                             const CArray<bool,1>& axisDomainOrder)
+                             const CArray<bool,1>& axisDomainOrder,
+                             bool createMask)
    {
      int idx = 0;
      int numElement = axisDomainOrder.numElements();
@@ -318,7 +321,7 @@ namespace xios {
       }
     }
 
-    if (!gridMask.isEmpty())
+    if (!gridMask.isEmpty() && !createMask)
     {
       for (int i = 0; i < dim; ++i)
       {

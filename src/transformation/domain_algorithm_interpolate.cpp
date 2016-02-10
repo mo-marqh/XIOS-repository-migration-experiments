@@ -14,6 +14,7 @@
 #include "client_server_mapping_distributed.hpp"
 #include "netcdf.hpp"
 #include "mapper.hpp"
+#include "mpi_tag.hpp"
 
 namespace xios {
 
@@ -94,7 +95,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
 	{
 	  double step=(domainSrc_->lon_end-domainSrc_->lon_start)/domainSrc_->ni_glo ;
 	  for(int i=0; i<domainSrc_->ni_glo; ++i) lon_g(i)=domainSrc_->lon_start+i*step ;
-	  step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ; 
+	  step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
 	  for(int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
 	}
 	else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
@@ -159,16 +160,16 @@ void CDomainAlgorithmInterpolate::computeRemap()
 	{
 	  double step=(domainDest_->lon_end-domainDest_->lon_start)/domainDest_->ni_glo ;
 	  for(int i=0; i<domainDest_->ni_glo; ++i) lon_g(i)=domainDest_->lon_start+i*step ;
-	  step=(domainDest_->lat_end-domainDest_->lat_start)/domainDest_->nj_glo ; 
+	  step=(domainDest_->lat_end-domainDest_->lat_start)/domainDest_->nj_glo ;
 	  for(int i=0; i<domainDest_->ni_glo; ++i) lat_g(i)=domainDest_->lat_start+i*step ;
 	}
 	else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
     if (std::abs(poleValue - std::abs(lat_g(0))) < NumTraits<double>::epsilon()) isNorthPole = true;
     if (std::abs(poleValue - std::abs(lat_g(domainDest_->nj_glo-1))) < NumTraits<double>::epsilon()) isSouthPole = true;
 
-    
-    
-    
+
+
+
     if (isNorthPole && (0 == domainDest_->jbegin.getValue()))
     {
       int ibegin = domainDest_->ibegin.getValue();
@@ -468,7 +469,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              k,
              MPI_INT,
              itMap->first,
-             7,
+             MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
              client->intraComm,
              &sendRequest.back());
     sendRequest.push_back(MPI_Request());
@@ -476,7 +477,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              k,
              MPI_INT,
              itMap->first,
-             8,
+             MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
              client->intraComm,
              &sendRequest.back());
     sendRequest.push_back(MPI_Request());
@@ -484,7 +485,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              k,
              MPI_DOUBLE,
              itMap->first,
-             9,
+             MPI_DOMAIN_INTERPOLATION_WEIGHT,
              client->intraComm,
              &sendRequest.back());
     sendOffSet += k;
@@ -503,7 +504,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              recvBuffSize,
              MPI_INT,
              MPI_ANY_SOURCE,
-             7,
+             MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
              client->intraComm,
              &recvStatus);
 
@@ -515,7 +516,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              recvBuffSize,
              MPI_INT,
              clientSrcRank,
-             8,
+             MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
              client->intraComm,
              &recvStatus);
 
@@ -523,7 +524,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
              recvBuffSize,
              MPI_DOUBLE,
              clientSrcRank,
-             9,
+             MPI_DOMAIN_INTERPOLATION_WEIGHT,
              client->intraComm,
              &recvStatus);
 

@@ -624,7 +624,7 @@ namespace xios
         int zoom_size_srv  = axis->zoom_size_srv;
         int zoom_begin_srv = axis->zoom_begin_srv;
         int zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv
-                                                              : axis->global_zoom_size;
+                                                              : axis->global_zoom_n;
         int zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv
                                                               : axis->global_zoom_begin;
 

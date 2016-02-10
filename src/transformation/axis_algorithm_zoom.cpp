@@ -61,7 +61,7 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping()
 void CAxisAlgorithmZoom::updateZoom()
 {
   axisDest_->global_zoom_begin = zoomBegin_;
-  axisDest_->global_zoom_size  = zoomSize_;
+  axisDest_->global_zoom_n  = zoomSize_;
 }
 
 /*!

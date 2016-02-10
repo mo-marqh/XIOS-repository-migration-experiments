@@ -316,8 +316,7 @@ zoom_domain: Like zoom functionality in XIOS 1.0, the destination grid is
 \begin_layout Itemize
 interpolation_domain: Implement interpolation from a domain to one another,
  for now XIOS can only do interpolation by reading calculated weight values
- from a file.
- The calculation on the fly will be implemented soon.
+ from a file or calculate the weights on the fly.
 \end_layout
 
 \begin_layout Itemize
@@ -495,7 +494,7 @@ One of the important concepts to grasp in mind in using FORTRAN interface
  With a distributed-memory XIOS, data are broken into disjoint blocks, one
  per client process.
  In the next sections, local describes everything related to a client process,
- whereas global means whole data.
+ whereas global means global data.
  The followings describe the essential parts of domain.
  Details of its attributes and operations can be found in XIOS reference
  guide
@@ -532,7 +531,7 @@ rectilinear: a simple 2-dimensional Cartesian coordinates with two perpendicular
 \begin_layout Itemize
 curvilinear: a 2-dimensional coordinates allows the generality of two axes
  not perpendicular to each other.
- Latitude and longitude have the size equivalent to size of whole domain.
+ Latitude and longitude have the size equivalent to size of local domain.
  
 \end_layout
 
@@ -691,7 +690,8 @@ status open
 
 \begin_layout Plain Layout
 
-CALL xios_set_domain_attr("domain_A",i_index=iIndex, j_index=jIndex)
+CALL xios_set_domain_attr("domain_A",ni_glo=9, nj_glo=9, i_index=iIndex,
+ j_index=jIndex)
 \end_layout
 
 \end_inset
@@ -1029,7 +1029,7 @@ For unstructured mesh, a cell can have different number of vertices than
 \end_layout
 
 \begin_layout Standard
-For curlinear mesh, bounds_lon_2d and bounds_lat_2d provide a convenient
+For curvilinear mesh, bounds_lon_2d and bounds_lat_2d provide a convenient
  way to define longitude and latitude value for the vertex of the cell.
  However, it is possible to use bounds_lon_1d and bounds_lat_1d to describe
  these values.

@@ -31,7 +31,6 @@ namespace xios {
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
-      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
@@ -41,7 +40,6 @@ namespace xios {
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
-      , global_zoom_ni(0), global_zoom_ibegin(0), global_zoom_nj(0), global_zoom_jbegin(0)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
@@ -662,9 +660,19 @@ namespace xios {
          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
      }
      computeNGlobDomain();
+     checkZoom();
+   }
 
-     if (0 == global_zoom_ni) global_zoom_ni = ni_glo;
-     if (0 == global_zoom_nj) global_zoom_nj = nj_glo;
+   void CDomain::checkZoom(void)
+   {
+     if (global_zoom_ibegin.isEmpty())
+      global_zoom_ibegin.setValue(0);
+     if (global_zoom_ni.isEmpty())
+      global_zoom_ni.setValue(ni_glo);
+     if (global_zoom_jbegin.isEmpty())
+      global_zoom_jbegin.setValue(0);
+     if (global_zoom_nj.isEmpty())
+      global_zoom_nj.setValue(nj_glo);
    }
 
    //----------------------------------------------------------------
@@ -1252,7 +1260,7 @@ namespace xios {
         CMessage& msg = msgs.back();
         msg << this->getId() ;
         msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
-        msg << global_zoom_ni << global_zoom_ibegin << global_zoom_nj << global_zoom_jbegin;
+        msg << global_zoom_ni.getValue() << global_zoom_ibegin.getValue() << global_zoom_nj.getValue() << global_zoom_jbegin.getValue();
         msg << isCompressible_;
 
         event.push(*itRank,1,msg);
@@ -1679,9 +1687,15 @@ namespace xios {
   */
   void CDomain::recvServerAttribut(CBufferIn& buffer)
   {
+    int global_zoom_ni_tmp, global_zoom_ibegin_tmp, global_zoom_nj_tmp, global_zoom_jbegin_tmp;
     buffer >> ni_srv >> ibegin_srv >> iend_srv >> nj_srv >> jbegin_srv >> jend_srv
-           >> global_zoom_ni >> global_zoom_ibegin >> global_zoom_nj >> global_zoom_jbegin
+           >> global_zoom_ni_tmp >> global_zoom_ibegin_tmp >> global_zoom_nj_tmp >> global_zoom_jbegin_tmp
            >> isCompressible_;
+
+    global_zoom_ni.setValue(global_zoom_ni_tmp);
+    global_zoom_ibegin.setValue(global_zoom_ibegin_tmp);
+    global_zoom_nj.setValue(global_zoom_nj_tmp);
+    global_zoom_jbegin.setValue(global_zoom_jbegin_tmp);
 
     int zoom_iend = global_zoom_ibegin + global_zoom_ni - 1;
     int zoom_jend = global_zoom_jbegin + global_zoom_nj - 1;

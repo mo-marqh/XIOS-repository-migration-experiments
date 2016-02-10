@@ -25,7 +25,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0), hasValue(false)
+      , transformationMap_(), hasValue(false)
    {
    }
 
@@ -34,7 +34,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), global_zoom_begin(0), global_zoom_size(0), hasValue(false)
+      , transformationMap_(), hasValue(false)
    {
    }
 
@@ -265,7 +265,8 @@ namespace xios {
 
    void CAxis::checkZoom(void)
    {
-     if (0 == global_zoom_size) global_zoom_size = this->n_glo.getValue();
+     if (global_zoom_begin.isEmpty()) global_zoom_begin.setValue(0);
+     if (global_zoom_n.isEmpty()) global_zoom_n.setValue(n_glo.getValue());
    }
 
    void CAxis::checkMask()
@@ -390,7 +391,7 @@ namespace xios {
 
     size_t ni = this->n.getValue();
     size_t ibegin = this->begin.getValue();
-    size_t zoom_end = global_zoom_begin+global_zoom_size-1;
+    size_t zoom_end = global_zoom_begin+global_zoom_n-1;
     size_t nZoomCount = 0;
     size_t nbIndex = index.numElements();
     for (size_t idx = 0; idx < nbIndex; ++idx)
@@ -516,7 +517,7 @@ namespace xios {
     CContextClient* client = context->client;
     CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_VALUE);
 
-    int zoom_end = global_zoom_begin + global_zoom_size - 1;
+    int zoom_end = global_zoom_begin + global_zoom_n - 1;
     int nb = 0;
     for (size_t idx = 0; idx < n; ++idx)
     {
@@ -829,7 +830,7 @@ namespace xios {
         CMessage& msg = msgs.back();
         msg << this->getId();
         msg << ni << begin << end;
-        msg << global_zoom_begin << global_zoom_size;
+        msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
         msg << isCompressible_;
 
         event.push(*itRank,1,msg);
@@ -849,14 +850,14 @@ namespace xios {
 
   void CAxis::recvServerAttribut(CBufferIn& buffer)
   {
-    int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_size_tmp;
+    int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_n_tmp;
 
     buffer >> ni_srv >> begin_srv >> end_srv;
-    buffer >> global_zoom_begin_tmp >> global_zoom_size_tmp;
+    buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;
     buffer >> isCompressible_;
     global_zoom_begin = global_zoom_begin_tmp;
-    global_zoom_size  = global_zoom_size_tmp;
-    int global_zoom_end = global_zoom_begin + global_zoom_size - 1;
+    global_zoom_n  = global_zoom_n_tmp;
+    int global_zoom_end = global_zoom_begin + global_zoom_n - 1;
 
     zoom_begin_srv = global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
     zoom_end_srv   = global_zoom_end < end_srv ? global_zoom_end : end_srv ;

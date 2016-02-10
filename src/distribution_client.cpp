@@ -234,7 +234,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = axisList[axisIndex]->begin.getValue();
       nZoomBegin_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin;
-      nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_size-1;
+      nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
 
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
       dataIndex_.at(indexMap_[idx]).resize(axisList[axisIndex]->data_index.numElements());

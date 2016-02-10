@@ -16,8 +16,8 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=2
-  INTEGER,PARAMETER :: llmInterPolated=5
+  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llmInterPolated=4
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -44,7 +44,6 @@ PROGRAM test_new_features
   CALL init_wait
 
 !!! XIOS Initialization (get the local communicator)
-
   CALL xios_initialize(id,return_comm=comm)
 
   CALL MPI_COMM_RANK(comm,rank,ierr)
@@ -146,7 +145,7 @@ PROGRAM test_new_features
   CALL xios_set_axis_attr("axis_B", n_glo=nj_glo, begin=jbegin, n=nj, value=lval_nj, mask=mask)
   CALL xios_set_axis_attr("axis_C", n_glo=llm, value=lval)
   CALL xios_set_axis_attr("axis_D", n_glo=llm, begin=axisBegin, n=nAxis, value=lvaln)
-  CALL xios_set_axis_attr("axis_G", n_glo=llmInterPolated, value=lvalnInterp, begin=axisterpBegin, n=nAxisinterp)
+  CALL xios_set_axis_attr("axis_E", n_glo=llmInterPolated, value=lvalnInterp, begin=axisterpBegin, n=nAxisinterp)
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat, type='curvilinear')
@@ -205,7 +204,6 @@ PROGRAM test_new_features
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
     CALL xios_send_field("field_Axis",field_Axis)
-
     CALL xios_send_field("field_Two_Axis",field_Two_Axis)
     CALL xios_send_field("field_All_Axis",field_All_Axis)
     tsTemp = ts

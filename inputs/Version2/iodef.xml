@@ -21,16 +21,19 @@
         <field field_ref="field_A" />
      </file>
      <file id="output_Axis" name="output_Axis" type="one_file">
-<!--        <field field_ref="field_Axis" />-->
+        <field field_ref="field_Axis" />
+     </file>
+     <file id="output_Two_Axis" name="output_Two_Axis" type="one_file">
+        <field field_ref="field_Two_Axis" />
      </file>
      <file id="output_All_Axis" name="output_All_Axis" type="one_file">
-<!--        <field field_ref="field_All_Axis" />-->
+        <field field_ref="field_All_Axis" />
      </file>
      <file id="output_Axis_transformed" name="output_Axis_transformed" type="one_file">
-<!--        <field field_ref="field_Axis_transformed" />-->
+        <field field_ref="field_Axis_transformed" />
      </file>
      <file id="output_Axis_transformed_interpolated" name="output_Axis_transformed_interpolated">
-<!--        <field field_ref="field_Axis_transformed_Interpolated" />-->
+        <field field_ref="field_Axis_transformed_Interpolated" />
      </file>
      <file id="output_Domain_transformed_interpolated" name="output_Domain_transformed_interpolated" type="one_file">
         <field field_ref="field_Domain_transformed_Interpolated" />
@@ -45,32 +48,19 @@
      <axis id="axis_B" />
      <axis id="axis_C" />
      <axis id="axis_D" />
-     <axis id="axis_E" axis_ref="axis_A">
-       <inverse_axis />
-     </axis>
-     <axis id="axis_F" axis_ref="axis_B">
-        <inverse_axis />
-        <zoom_axis zoom_begin="0" zoom_size="4" />
-        <inverse_axis />
-     </axis>
-     <axis id="axis_G" axis_ref="axis_D">
+     <axis id="axis_E">
        <interpolate_axis type="polynomial" order="3"/>
      </axis>
-     <axis id="axis_H" axis_ref="axis_C">
-<!--       <inverse_axis />-->
-<!--       <zoom_axis zoom_begin="0" zoom_size="1" />-->
+     <axis id="axis_F" axis_ref="axis_C">
+        <inverse_axis />
+        <zoom_axis begin="0" n="4" />
+        <inverse_axis />
      </axis>
    </axis_definition>
 
    <domain_definition>
      <domain id="domain_A" />
-     <domain id="domain_A_zoom" domain_ref="domain_A">
-<!--       <zoom_domain zoom_ibegin="1" zoom_ni="3" zoom_jbegin="0" zoom_nj="2"/>-->
-       <zoom_domain zoom_ibegin="1" zoom_ni="9" zoom_jbegin="0" zoom_nj="2"/>
-<!--       <zoom_domain zoom_ibegin="0" zoom_ni="2" zoom_jbegin="0" zoom_nj="2"/>-->
-     </domain>
-     <domain id="domain_A_transformed" domain_src="domain_A">
-<!--       <interpolate_from_file_domain file="" />-->
+     <domain id="domain_A_transformed">
        <generate_rectilinear_domain />
      </domain>
    </domain_definition>
@@ -94,18 +84,15 @@
          <axis axis_ref="axis_C" />
        </grid>
        <grid id="grid_Axis_tranformed">
-<!--         <domain domain_ref="domain_A" />-->
-         <domain domain_ref="domain_A_zoom" />
-         <axis axis_ref="axis_H" />
-<!--         <axis axis_ref="axis_E" />-->
-<!--         <axis axis_ref="axis_F" />-->
+         <domain domain_ref="domain_A" />
+         <axis axis_ref="axis_F" />
        </grid>
        <grid id="grid_Domain_tranformed_Interpolated">
          <domain domain_ref="domain_A_transformed" />
-         <axis axis_ref="axis_H" />
+         <axis axis_ref="axis_C" />
        </grid>
        <grid id="grid_Axis_tranformed_Interpolated">
-         <axis axis_ref="axis_G" />
+         <axis axis_ref="axis_E" />
        </grid>
        <grid id="ScalarGrid">
        </grid>

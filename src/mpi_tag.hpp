@@ -13,4 +13,22 @@
 /* Tag for mpi communication to send and receive info in distributed hashed table version 1*/
 #define MPI_DHT_INFO_0 22
 
+/* Tag for mpi communication to send and receive info of current grid source in grid transformation*/
+#define MPI_GRID_TRANSFORMATION_CURRENT_GRID_INDEX 31
+
+/* Tag for mpi communication to send and receive info of current grid source in grid transformation*/
+#define MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_INDEX 32
+
+/* Tag for mpi communication to send and receive info of current grid source in grid transformation*/
+#define MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_WEIGHT 33
+
+/* Tag for mpi communication to send and receive info of DOMAIN in domain interpolation*/
+#define MPI_DOMAIN_INTERPOLATION_DEST_INDEX 7
+
+/* Tag for mpi communication to send and receive info of DOMAIN in domain interpolation*/
+#define MPI_DOMAIN_INTERPOLATION_SRC_INDEX 8
+
+/* Tag for mpi communication to send and receive info of DOMAIN in domain interpolation*/
+#define MPI_DOMAIN_INTERPOLATION_WEIGHT 9
+
 #endif

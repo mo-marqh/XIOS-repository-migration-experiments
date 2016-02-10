@@ -62,6 +62,7 @@ protected:
   void computeFinalTransformationMapping();
   void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
   void updateFinalGridDestination();
+  bool isSpecialTransformation(ETranformationType transType);
 
 protected:
   //! Grid source on transformation
@@ -76,6 +77,12 @@ protected:
 protected:
   //! List of algorithm types and their order
   ListAlgoType listAlgos_;
+
+  //! Number of algorithm
+  int nbAlgos_;
+
+  typedef std::map<size_t, std::vector<std::pair<size_t,double> > > GlobalIndexMap;
+
   // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_
   std::vector<bool> algoTypes_;
 
@@ -95,9 +102,7 @@ protected:
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
 
   //! (Grid) Global index of grid source
-  std::vector<size_t> globalIndexOfCurrentGridSource_;
-  std::vector<size_t> globalIndexOfOriginalGridSource_;
-  CArray<double,1> weightOfGlobalIndexOfOriginalGridSource_;
+  GlobalIndexMap currentGridIndexToOriginalGridIndex_;
 };
 
 }
