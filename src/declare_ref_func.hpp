@@ -53,7 +53,9 @@ void C##type::solveRefInheritance(bool apply)                          \
 void C##type::setAttributesReference(bool apply)                       \
 {                                                                      \
   for (int i = 1; i < refObjects.size(); ++i)                          \
-    refObjects[i]->setAttributes(refObjects[0], apply);                \
+    refObjects[i]->setAttributes(refObjects[i-1], apply);              \
+  if (refObjects.size() > 1)                                           \
+    refObjects[refObjects.size()-1]->removeRefInheritance();           \
 }                                                                      \
                                                                        \
 void C##type::removeRefInheritance()                                   \

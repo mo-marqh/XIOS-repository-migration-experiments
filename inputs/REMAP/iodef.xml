@@ -9,10 +9,10 @@
      <field id="src_field" operation="instant" domain_ref="src_domain"/>
      <field id="dst_field" operation="instant" field_ref="src_field" domain_ref="dst_domain"/>
      <field id="tmp_field" operation="instant" domain_ref="src_domain_regular_tmp"/>
-<!--     <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />-->
-<!--     <field id="tmp_field_2" operation="instant" domain_ref="domain_src_unstructured" />-->
-     <field id="dst_field_regular" operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular" read_access="true"/>
-<!--     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"/>-->
+     <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />
+     <field id="tmp_field_2" operation="instant" grid_ref="src_grid_unstructured" />
+     <field id="dst_field_regular" operation="instant" field_ref="tmp_field_2" grid_ref="dst_grid_regular" read_access="true"/>
+     <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"/>
    </field_definition>
 
 
@@ -24,30 +24,26 @@
         <field field_ref="dst_field" name="field" />
      </file>
      <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
-<!--        <field field_ref="dst_field_regular_pole" name="field" />-->
+        <field field_ref="dst_field_regular_pole" name="field" />
      </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />
      </file>
      <file id="output_dst_curvilinear" name="output_dst_curvilinear" type="one_file">
-<!--        <field field_ref="tmp_field_1" operation="instant"/>-->
+        <field field_ref="tmp_field_1" operation="instant"/>
      </file>
      <file id="output_dst_unstructured" name="output_dst_unstructured" type="one_file">
-<!--        <field field_ref="tmp_field_2" operation="instant"/>-->
-     </file>
-
-     <file id="output_src_regular" name="output_src_regular" mode="read" type="multiple_file">
-<!--        <field id="src_field_regular" name="field" domain_ref="src_domain_regular" operation="instant"/>-->
+        <field field_ref="tmp_field_2" operation="instant"/>
      </file>
      <file id="output_src_regular_tmp" name="output_src_regular_tmp" mode="read" type="one_file">
         <field id="src_field_regular_tmp" name="field" domain_ref="src_domain_regular_tmp" operation="instant"/>
      </file>
 
      <file id="output_src_curvilinear" name="output_src_curvilinear" mode="read" type="one_file">
-<!--        <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>-->
+        <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>
      </file>
      <file id="output_unstructured" name="output_unstructured" mode="read" type="one_file">
-<!--        <field id="field_src_unstructred" name="field" domain_ref="domain_src_unstructured" operation="instant"/>-->
+        <field id="field_src_unstructred" name="field" grid_ref="src_grid_unstructured" operation="instant"/>
      </file>
    </file_definition>
 
@@ -67,13 +63,11 @@
      <domain id="dst_domain_regular_pole" ni_glo="180" nj_glo="90" type="rectilinear">
        <generate_rectilinear_domain id="domain_regular_pole"/>
        <interpolate_domain/>
+<!--       <zoom_domain id="zoom_0" ibegin="0" ni="180" jbegin="0" nj="90"/>-->
      </domain>
      <domain id="dst_domain_regular" ni_glo="90" nj_glo="45" type="rectilinear">
        <generate_rectilinear_domain />
        <interpolate_domain/>
-     </domain>
-     <domain id="src_domain_regular" ni_glo="180" nj_glo="90" type="rectilinear">
-       <generate_rectilinear_domain lat_start="-90" lat_end="90" lon_start="2" lon_end="360" />
      </domain>
      <domain id="src_domain_regular_tmp" type="rectilinear">
        <generate_rectilinear_domain />
@@ -81,7 +75,7 @@
      <domain id="src_domain_curvilinear" type="rectilinear">
        <generate_rectilinear_domain />
      </domain>
-     <domain id="domain_src_unstructured" type="unstructured">
+     <domain id="src_domain_unstructured" type="unstructured">
        <generate_rectilinear_domain />
      </domain>
    </domain_definition>
@@ -90,6 +84,12 @@
     <grid id="src_grid_curvilinear">
       <domain domain_ref="src_domain_curvilinear"/>
       <axis axis_ref="src_axis_curvilinear" />
+    </grid>
+    <grid id="src_grid_unstructured">
+      <domain domain_ref="src_domain_unstructured"/>
+    </grid>
+    <grid id="dst_grid_regular">
+      <domain domain_ref="dst_domain_regular"/>
     </grid>
   </grid_definition>
   </context>

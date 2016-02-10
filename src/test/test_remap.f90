@@ -119,9 +119,6 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
 
-  CALL xios_set_generate_rectilinear_domain_attr("domain_regular_pole", lat_start=dble(-90.0), lat_end=dble(90), &
-                                                 lon_start=dble(2), lon_end=dble(360))
-
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
 
@@ -133,10 +130,11 @@ PROGRAM test_remap
   CALL xios_get_domain_attr("src_domain_curvilinear", ni=src_tmp_ni, nj=src_tmp_nj)
   ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
 
-  CALL xios_get_domain_attr("domain_src_unstructured", ni=src_tmp_ni, nj=src_tmp_nj)
+  CALL xios_get_domain_attr("src_domain_unstructured", ni=src_tmp_ni, nj=src_tmp_nj)
   ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
 
   DO ts=1,1
+
     CALL xios_recv_field("src_field_regular_tmp", tmp_field)
     CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
     CALL xios_recv_field("field_src_unstructred", tmp_field_2)
