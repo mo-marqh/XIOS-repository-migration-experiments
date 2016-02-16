@@ -42,33 +42,7 @@ CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
          << "Grid destination " <<gridDestination_->getId());
   }
 
-//  std::vector<CAxis*> axisSrcTmp = gridSource_->getAxis(), axisSrc;
-//  std::vector<CDomain*> domainSrcTmp = gridSource_->getDomains(), domainSrc;
-//  for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
-//  {
-//    CAxis* axis = CAxis::createAxis();
-//    axis->axis_ref.setValue(axisSrcTmp[idx]->getId());
-//    axis->solveRefInheritance(true);
-//    axis->solveInheritanceTransformation();
-//    axis->checkAttributesOnClient();
-//    axisSrc.push_back(axis);
-//  }
-//
-//  for (int idx = 0; idx < domainSrcTmp.size(); ++idx)
-//  {
-//    CDomain* domain = CDomain::createDomain();
-//    domain->domain_ref.setValue(domainSrcTmp[idx]->getId());
-//    domain->solveRefInheritance(true);
-//    domain->solveInheritanceTransformation();
-//    domain->checkAttributesOnClient();
-//    domainSrc.push_back(domain);
-//  }
-//
-//  gridSource_ = CGrid::createGrid(domainSrc, axisSrc, gridDestination_->axis_domain_order);
-//  gridSource_->computeGridGlobalDimension(domainSrc, axisSrc, gridDestination_->axis_domain_order);
-
   initializeMappingOfOriginalGridSource();
-//  initializeAlgorithms();
 }
 
 /*!

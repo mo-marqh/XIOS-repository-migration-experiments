@@ -910,6 +910,14 @@ namespace xios {
     }
   }
 
+  void CAxis::duplicateTransformation(CAxis* src)
+  {
+    if (src->hasTransformation())
+    {
+      this->setTransformations(src->getAllTransformations());
+    }
+  }
+
   /*!
    * Go through the hierarchy to find the axis from which the transformations must be inherited
    */

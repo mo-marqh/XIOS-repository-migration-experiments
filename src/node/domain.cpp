@@ -1946,6 +1946,14 @@ namespace xios {
     }
   }
 
+  void CDomain::duplicateTransformation(CDomain* src)
+  {
+    if (src->hasTransformation())
+    {
+      this->setTransformations(src->getAllTransformations());
+    }
+  }
+
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */

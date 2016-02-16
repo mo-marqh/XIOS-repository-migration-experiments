@@ -646,6 +646,33 @@ namespace xios {
    all information of active fields are created on server side, e.g: checking mask or index
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
+   void CFile::solveOnlyRefOfEnabledFields(bool sendToServer)
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
+//       this->enabledFields[i]->buildGridTransformationGraph();
+     }
+   }
+
+   void CFile::generateNewTransformationGridDest()
+   {
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->generateNewTransformationGridDest();
+     }
+   }
+
+   /*!
+   \brief Resolve all reference of active fields.
+      In order to know exactly which data each active field has, a search for all its
+   reference to find its parents or/and its base reference object must be done. Moreover
+   during this search, there are some information that can only be sent to server AFTER
+   all information of active fields are created on server side, e.g: checking mask or index
+   \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
+   */
    void CFile::solveAllRefOfEnabledFields(bool sendToServer)
    {
      int size = this->enabledFields.size();

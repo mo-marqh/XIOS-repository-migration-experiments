@@ -33,7 +33,7 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisIds_("", ""), areAllReferenceSolved(false)
+      , domAxisIds_("", ""), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
@@ -44,7 +44,7 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisIds_("", ""), areAllReferenceSolved(false)
+      , domAxisIds_("", ""), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
@@ -491,9 +491,134 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   void CField::solveAllReferenceEnabledField(bool doSending2Sever)
+   void CField::solveOnlyReferenceEnabledField(bool doSending2Server)
    {
      CContext* context = CContext::getCurrent();
+     if (!isReferenceSolved)
+     {
+        isReferenceSolved = true;
+
+        if (context->hasClient)
+        {
+          solveRefInheritance(true);
+          if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField(false);
+        }
+        else if (context->hasServer)
+          solveServerOperation();
+
+        solveGridReference();
+
+       if (context->hasClient)
+       {
+         solveGenerateGrid();
+         buildGridTransformationGraph();
+       }
+     }
+   }
+
+   /*!
+     Build up graph of grids which plays role of destination and source in grid transformation
+     This function should be called before \func solveGridReference()
+   */
+   void CField::buildGridTransformationGraph()
+   {
+     CContext* context = CContext::getCurrent();
+     if (context->hasClient)
+     {
+       if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
+       {
+         grid->addTransGridSource(getDirectFieldReference()->grid);
+       }
+     }
+   }
+
+   /*!
+     Generate a new grid destination if there are more than one grid source pointing to a same grid destination
+   */
+   void CField::generateNewTransformationGridDest()
+   {
+     CContext* context = CContext::getCurrent();
+     if (context->hasClient)
+     {
+       std::map<CGrid*,std::pair<bool,StdString> >& gridSrcMap = grid->getTransGridSource();
+       if (1 < gridSrcMap.size())
+       {
+         // Search for grid source
+         CGrid* gridSrc = grid;
+         CField* currField = this;
+         std::vector<CField*> hieraField;
+
+         while (currField->hasDirectFieldReference() && (gridSrc == grid))
+         {
+           hieraField.push_back(currField);
+           CField* tmp = currField->getDirectFieldReference();
+           currField = tmp;
+           gridSrc = currField->grid;
+         }
+
+         if (gridSrcMap.end() != gridSrcMap.find(gridSrc))
+         {
+           CGrid* gridTmp;
+           std::pair<bool,StdString> newGridDest = gridSrcMap[gridSrc];
+           if (newGridDest.first)
+           {
+             StdString newIdGridDest = newGridDest.second;
+             if (!CGrid::has(newIdGridDest))
+             {
+                ERROR("CGrid* CGrid::generateNewTransformationGridDest()",
+                  << " Something wrong happened! Grid whose id " << newIdGridDest
+                  << "should exist ");
+             }
+             gridTmp = CGrid::get(newIdGridDest);
+           }
+           else
+           {
+             StdString newIdGridDest = CGrid::generateId(gridSrc, grid);
+             gridTmp = CGrid::cloneGrid(newIdGridDest, grid);
+
+             (gridSrcMap[gridSrc]).first = true;
+             (gridSrcMap[gridSrc]).second = newIdGridDest;
+           }
+
+           // Update all descendants
+           for (std::vector<CField*>::iterator it = hieraField.begin(); it != hieraField.end(); ++it)
+           {
+             (*it)->grid = gridTmp;
+             (*it)->updateRef((*it)->grid);
+           }
+         }
+       }
+     }
+   }
+
+   void CField::updateRef(CGrid* grid)
+   {
+     if (!grid_ref.isEmpty()) grid_ref.setValue(grid->getId());
+     else
+     {
+       std::vector<CAxis*> axisTmp = grid->getAxis();
+       std::vector<CDomain*> domainTmp = grid->getDomains();
+       if ((1<axisTmp.size()) || (1<domainTmp.size()))
+         ERROR("void CField::updateRef(CGrid* grid)",
+           << "More than one domain or axis is available for domain_ref/axis_ref of field " << this->getId());
+
+       if ((!domain_ref.isEmpty()) && (domainTmp.empty()))
+         ERROR("void CField::updateRef(CGrid* grid)",
+           << "Incoherent between available domain and domain_ref of field " << this->getId());
+       if ((!axis_ref.isEmpty()) && (axisTmp.empty()))
+         ERROR("void CField::updateRef(CGrid* grid)",
+           << "Incoherent between available axis and axis_ref of field " << this->getId());
+
+       if (!domain_ref.isEmpty()) domain_ref.setValue(domainTmp[0]->getId());
+       if (!axis_ref.isEmpty()) axis_ref.setValue(axisTmp[0]->getId());
+     }
+   }
+
+   void CField::solveAllReferenceEnabledField(bool doSending2Server)
+   {
+     CContext* context = CContext::getCurrent();
+     solveOnlyReferenceEnabledField(doSending2Server);
+
      if (!areAllReferenceSolved)
      {
         areAllReferenceSolved = true;
@@ -508,19 +633,15 @@ namespace xios{
 
         solveGridReference();
      }
-     if (context->hasClient)
-     {
-       solveGenerateGrid();
-     }
 
-     solveGridDomainAxisRef(doSending2Sever);
+     solveGridDomainAxisRef(doSending2Server);
 
      if (context->hasClient)
      {
        solveTransformedGrid();
      }
 
-     solveCheckMaskIndex(doSending2Sever);
+     solveCheckMaskIndex(doSending2Server);
    }
 
    std::map<int, StdSize> CField::getGridAttributesBufferSize()
@@ -772,6 +893,7 @@ namespace xios{
 
         if (!domain_ref.isEmpty())
         {
+          StdString tmp = domain_ref.getValue();
           if (CDomain::has(domain_ref))
             vecDom.push_back(CDomain::get(domain_ref));
           else

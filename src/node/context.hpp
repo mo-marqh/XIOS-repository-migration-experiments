@@ -112,6 +112,7 @@ namespace xios {
          void createFileHeader(void );
          void checkAxisDomainsGridsEligibilityForCompressedOutput();
          void prepareTimeseries(void);
+         void solveOnlyRefOfEnabledFields(bool sendToServer);
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildFilterGraphOfEnabledFields();
          void startPrefetchingOfEnabledReadModeFiles();

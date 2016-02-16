@@ -109,7 +109,11 @@ namespace xios {
          void solveGridReference(void);
          void solveServerOperation(void);
          void solveCheckMaskIndex(bool doSendingIndex);
-         void solveAllReferenceEnabledField(bool doSending2Sever);
+         void solveAllReferenceEnabledField(bool doSending2Server);
+         void solveOnlyReferenceEnabledField(bool doSending2Server);
+         void generateNewTransformationGridDest();
+         void updateRef(CGrid* grid);
+         void buildGridTransformationGraph();
          void solveGridDomainAxisRef(bool checkAtt);
          void solveTransformedGrid();
          void solveGenerateGrid();
@@ -195,6 +199,7 @@ namespace xios {
          string content;
 
          bool areAllReferenceSolved;
+         bool isReferenceSolved;
          std::pair<StdString,StdString> domAxisIds_;
          bool isReadDataRequestPending;
          bool useCompressedOutput;

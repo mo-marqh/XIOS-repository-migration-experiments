@@ -77,6 +77,7 @@ namespace xios {
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
          void redistribute(int nbLocalDomain);
+         void duplicateTransformation(CDomain*);
 
       public:
          const std::set<StdString> & getRelFiles(void) const;

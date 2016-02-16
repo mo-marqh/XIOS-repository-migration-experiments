@@ -31,6 +31,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
+      , gridSrc_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -45,6 +46,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
+      , gridSrc_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -550,6 +552,35 @@ namespace xios {
       return grid;
    }
 
+   CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
+   {
+     std::vector<CAxis*> axisSrcTmp = gridSrc->getAxis(), axisSrc;
+     std::vector<CDomain*> domainSrcTmp = gridSrc->getDomains(), domainSrc;
+     for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
+     {
+       CAxis* axis = CAxis::createAxis();
+       axis->duplicateAttributes(axisSrcTmp[idx]);
+       axis->duplicateTransformation(axisSrcTmp[idx]);
+       axis->solveRefInheritance(true);
+       axis->solveInheritanceTransformation();
+       axisSrc.push_back(axis);
+     }
+
+     for (int idx = 0; idx < domainSrcTmp.size(); ++idx)
+     {
+       CDomain* domain = CDomain::createDomain();
+       domain->duplicateAttributes(domainSrcTmp[idx]);
+       domain->duplicateTransformation(domainSrcTmp[idx]);
+       domain->solveRefInheritance(true);
+       domain->solveInheritanceTransformation();
+       domainSrc.push_back(domain);
+     }
+
+      CGrid* grid = CGrid::createGrid(idNewGrid, domainSrc, axisSrc, gridSrc->axis_domain_order);
+
+      return grid;
+   }
+
    StdString CGrid::generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                const CArray<bool,1>& axisDomainOrder)
    {
@@ -587,6 +618,17 @@ namespace xios {
       }
 
       return id.str();
+   }
+
+   StdString CGrid::generateId(const CGrid* gridSrc, const CGrid* gridDest)
+   {
+     StdString idSrc  = gridSrc->getId();
+     StdString idDest = gridDest->getId();
+
+     std::ostringstream id;
+     id << idSrc << "__" << idDest;
+
+     return id.str();
    }
 
    //----------------------------------------------------------------
@@ -1295,6 +1337,17 @@ namespace xios {
   CGridTransformation* CGrid::getTransformations()
   {
     return transformations_;
+  }
+
+  void CGrid::addTransGridSource(CGrid* gridSrc)
+  {
+    if (gridSrc_.end() == gridSrc_.find(gridSrc))
+      gridSrc_.insert(make_pair(gridSrc,make_pair(false,"")));
+  }
+
+  std::map<CGrid*,std::pair<bool,StdString> >& CGrid::getTransGridSource()
+  {
+    return gridSrc_;
   }
 
   /*!

@@ -126,6 +126,8 @@ namespace xios {
                                   const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
          static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                      const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+         static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
+         static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
       public:
 
@@ -190,6 +192,8 @@ namespace xios {
          void doAutoDistribution(CGrid* transformGridSrc);
          bool isTransformed();
          void setTransformed();
+         void addTransGridSource(CGrid* gridSrc);
+         std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
 
       public:
 
@@ -241,7 +245,7 @@ namespace xios {
 
         void setTransformationAlgorithms();
 
-        std::vector<int> globalDim_;
+
 
       private:
         CDomainGroup* vDomainGroup_;
@@ -266,6 +270,8 @@ namespace xios {
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
         bool hasDomainAxisBaseRef_;
+        std::vector<int> globalDim_;
+        std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

@@ -452,6 +452,20 @@ namespace xios {
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
    }
 
+   void CContext::solveOnlyRefOfEnabledFields(bool sendToServer)
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->solveOnlyRefOfEnabledFields(sendToServer);
+     }
+
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->generateNewTransformationGridDest();
+     }
+   }
+
    void CContext::solveAllRefOfEnabledFields(bool sendToServer)
    {
      int size = this->enabledFiles.size();
@@ -803,6 +817,10 @@ namespace xios {
       // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
       this->readAttributesOfEnabledFieldsInReadModeFiles();
      }
+
+      // Only search and rebuild all reference objects of enable fields, don't transform
+      this->solveOnlyRefOfEnabledFields(false);
+
       // Search and rebuild all reference object of enabled fields
       this->solveAllRefOfEnabledFields(false);
 

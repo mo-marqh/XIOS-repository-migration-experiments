@@ -13,6 +13,7 @@
      <field id="tmp_field_2" operation="instant" grid_ref="src_grid_unstructured" />
      <field id="dst_field_regular" operation="instant" field_ref="tmp_field_2" grid_ref="dst_grid_regular" read_access="true"/>
      <field id="dst_field_regular_pole" operation="instant" field_ref="src_field" domain_ref="dst_domain_regular_pole"/>
+     <field id="dst_field_regular_pole_1" operation="instant" field_ref="tmp_field" domain_ref="dst_domain_regular_pole"/>
    </field_definition>
 
 
@@ -26,6 +27,9 @@
      <file id="out_dst_regular_pole" name="out_dst_regular_pole" type="one_file">
         <field field_ref="dst_field_regular_pole" name="field" />
      </file>
+     <file id="out_dst_regular_pole_1" name="out_dst_regular_pole_1" type="one_file">
+        <field field_ref="dst_field_regular_pole_1" name="field" />
+     </file>
      <file id="output_dst_regular" name="output_dst_regular" type="one_file">
         <field field_ref="dst_field_regular" name="field" />
      </file>
@@ -38,7 +42,6 @@
      <file id="output_src_regular_tmp" name="output_src_regular_tmp" mode="read" type="one_file">
         <field id="src_field_regular_tmp" name="field" domain_ref="src_domain_regular_tmp" operation="instant"/>
      </file>
-
      <file id="output_src_curvilinear" name="output_src_curvilinear" mode="read" type="one_file">
         <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear" operation="instant"/>
      </file>
