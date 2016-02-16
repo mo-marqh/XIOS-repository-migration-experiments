@@ -47,6 +47,7 @@ public:
   CGrid* getGridSource() { return originalGridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
   ListAlgoType getAlgoList() const {return listAlgos_; }
+  int getNbAlgo() { return nbAlgos_; }
 
 protected:
   void computeTransformation();

@@ -354,6 +354,8 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
 */
 void CGridTransformation::computeAll()
 {
+  if (nbAlgos_ < 1) return;
+
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
 

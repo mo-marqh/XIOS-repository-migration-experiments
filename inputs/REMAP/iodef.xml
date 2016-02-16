@@ -7,6 +7,7 @@
 
    <field_definition level="1" >
      <field id="src_field" operation="instant" domain_ref="src_domain"/>
+     <field id="src_field_clone" operation="instant" field_ref="src_field" domain_ref="src_domain_clone"/>
      <field id="dst_field" operation="instant" field_ref="src_field" domain_ref="dst_domain"/>
      <field id="tmp_field" operation="instant" domain_ref="src_domain_regular_tmp"/>
      <field id="tmp_field_1" operation="instant" grid_ref="src_grid_curvilinear" />
@@ -20,6 +21,9 @@
    <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
         <field field_ref="src_field" name="field" />
+     </file>
+     <file id="output_clone" name="output_clone">
+        <field field_ref="src_field_clone" name="field" />
      </file>
      <file id="output_dst" name="output_dst" type="one_file">
         <field field_ref="dst_field" name="field" />
@@ -60,6 +64,7 @@
 
    <domain_definition>
      <domain id="src_domain" />
+     <domain id="src_domain_clone" />
      <domain id="dst_domain">
        <interpolate_domain/>
      </domain>

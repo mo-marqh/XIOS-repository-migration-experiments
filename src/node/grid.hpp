@@ -194,6 +194,7 @@ namespace xios {
          void setTransformed();
          void addTransGridSource(CGrid* gridSrc);
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
+         bool hasTransform();
 
       public:
 
@@ -272,6 +273,7 @@ namespace xios {
         bool hasDomainAxisBaseRef_;
         std::vector<int> globalDim_;
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
+        bool hasTransform_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

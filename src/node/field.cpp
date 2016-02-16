@@ -769,7 +769,7 @@ namespace xios{
 
      std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
-     if (grid && grid != fieldRef->grid)
+     if (grid && grid != fieldRef->grid && grid->hasTransform())
        filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
      else
        filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));

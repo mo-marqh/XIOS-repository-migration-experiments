@@ -31,7 +31,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_()
+      , gridSrc_(), hasTransform_(false)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -46,7 +46,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_()
+      , gridSrc_(), hasTransform_(false)
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -1407,9 +1407,15 @@ namespace xios {
 
     transformations_ = new CGridTransformation(this, transformGridSrc);
     transformations_->computeAll();
+    if (0 < transformations_->getNbAlgo()) hasTransform_ = true;
 
     // Ok, now need to compute index of grid source
     transformGridSrc->checkMaskIndex(false);
+  }
+
+  bool CGrid::hasTransform()
+  {
+    return hasTransform_;
   }
 
   /*!
