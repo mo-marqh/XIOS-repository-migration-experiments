@@ -80,7 +80,7 @@
      <domain id="src_domain_regular_tmp" type="rectilinear">
        <generate_rectilinear_domain />
      </domain>
-     <domain id="src_domain_curvilinear" type="rectilinear">
+     <domain id="src_domain_curvilinear" type="curvilinear">
        <generate_rectilinear_domain />
      </domain>
      <domain id="src_domain_unstructured" type="unstructured">

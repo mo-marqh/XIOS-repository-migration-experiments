@@ -27,7 +27,7 @@ namespace xios
 
     this->timeCounterName = timeCounterName;
     if (!CNetCdfInterface::isDimExisted(this->ncidp, this->timeCounterName)) this->timeCounterName=this->getUnlimitedDimensionName() ;
-    
+
   }
 
   CINetCDF4::~CINetCDF4(void)
@@ -62,7 +62,8 @@ namespace xios
   {
     int varid = 0;
     int grpid = this->getGroup(path);
-    CNetCdfInterface::inqVarId(grpid, varname, varid);
+    if (this->hasVariable(varname, path))
+      CNetCdfInterface::inqVarId(grpid, varname, varid);
     return varid;
   }
 
@@ -343,7 +344,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& varname = *it;
-      if (varname.compare(0, name.size(), name) == 0) return true;
+      if ((varname.compare(0, name.size(), name) == 0) && (0 != name.size()))  return true;
     }
     return false;
   }
@@ -725,6 +726,7 @@ namespace xios
   StdString CINetCDF4::getLonCoordName(const StdString& varname,
                                        const CVarPath* const path)
   {
+    StdString lonName;
     std::list<StdString>::const_iterator itbList, itList, iteList;
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
     itbList = clist.begin(); iteList = clist.end();
@@ -734,14 +736,19 @@ namespace xios
       {
         StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
         if (CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit))
-          return *itList;
+        {
+          lonName = *itList;
+          return lonName;
+        }
       }
     }
+    return lonName;
   }
 
   StdString CINetCDF4::getLatCoordName(const StdString& varname,
                                        const CVarPath* const path)
   {
+    StdString latName;
     std::list<StdString>::const_iterator itbList, itList, iteList;
     std::list<StdString> clist = this->getCoordinatesIdList(varname, path);
     itbList = clist.begin(); iteList = clist.end();
@@ -751,9 +758,13 @@ namespace xios
       {
         StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &(*itList), path);
         if (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit))
-          return *itList;
+        {
+          latName = *itList;
+          return latName;
+        }
       }
     }
+    return latName;
   }
 
   StdString CINetCDF4::getVertCoordName(const StdString& varname,
