@@ -35,7 +35,7 @@ namespace xios
 #else
      {
       error << this->getMessage() << std::endl;
-      abort();
+      MPI_Abort(CXios::globalComm, -1); //abort();
       }
 #endif
    }
