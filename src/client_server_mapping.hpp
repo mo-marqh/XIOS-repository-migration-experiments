@@ -25,7 +25,6 @@ class CClientServerMapping
 {
 public:
   typedef boost::unordered_map<int, std::vector<size_t> > GlobalIndexMap;
-  typedef std::map<int, std::vector<int> > LocalIndexMap;
   public:
     /** Default constructor */
     CClientServerMapping();
@@ -36,28 +35,15 @@ public:
     // Only need global index on client to calculate mapping (supposed client has info of distribution)
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient) = 0;
 
-//    // Simple case, global index on client and index on servers
-//    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-//                                           const std::vector<CArray<size_t,1>* >& globalIndexOnServer);
-
     static std::map<int,int> computeConnectedClients(int nbServer, int nbClient,
                                                      MPI_Comm& clientIntraComm,
                                                      const std::vector<int>& connectedServerRank);
 
     const GlobalIndexMap& getGlobalIndexOnServer() const;
-//    const LocalIndexMap& getLocalIndexSendToServer() const;
-
-  protected:
-//    void defaultComputeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient,
-//                                          const std::vector<CArray<size_t,1>* >& globalIndexOnServer,
-//                                          const CArray<int,1>* localIndexOnClient = 0);
 
   protected:
     //! Global index of data on SERVER, which are calculated by client(s)
     GlobalIndexMap indexGlobalOnServer_;
-
-    //! Index of the local data which will be sent to the corresponding server(s)
-//    LocalIndexMap  localIndexSend2Server_;
 
     //!< Number of clients connected to a server
     std::map<int, int> connectedClients_;

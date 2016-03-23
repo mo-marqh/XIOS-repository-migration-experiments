@@ -391,8 +391,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
 
       // Recalculate the distribution of grid destination
       CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-      const std::vector<size_t>& globalIndexGridDestSendToServer = distributionClientDest.getGlobalDataIndexSendToServer();
-      const std::vector<int>& localIndexGridDestSendToServer = distributionClientDest.getLocalDataIndexSendToServer();
+      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
 
       // ComputeTransformation of global index of each element
       std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
@@ -401,8 +400,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       algo->computeGlobalSourceIndex(elementPosition,
                                      gridDestinationDimensionSize,
                                      gridSrcDimensionSize,
-                                     globalIndexGridDestSendToServer,
-                                     localIndexGridDestSendToServer,
+                                     globalLocalIndexGridDestSendToServer,
                                      globaIndexWeightFromDestToSource);
 
       if (1 < nbAlgos_)
@@ -442,9 +440,9 @@ void CGridTransformation::updateFinalGridDestination()
   //First of all, retrieve info of local mask of grid destination
   CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
   const std::vector<int>& localMaskIndexOnClientDest = distributionClientDest.getLocalMaskIndexOnClient();
-  const std::vector<size_t>& globalIndexOnClientDest = distributionClientDest.getGlobalDataIndexSendToServer();
+  const CDistributionClient::GlobalLocalDataMap& globalIndexOnClientDest = distributionClientDest.getGlobalLocalDataSendToServer();
 
-  std::vector<size_t>::const_iterator itbArr, itArr, iteArr;
+  CDistributionClient::GlobalLocalDataMap::const_iterator itbArr, itArr, iteArr;
   itbArr = globalIndexOnClientDest.begin();
   iteArr = globalIndexOnClientDest.end();
 
@@ -453,9 +451,9 @@ void CGridTransformation::updateFinalGridDestination()
   int maskIndexNum = 0;
   for (itArr = itbArr; itArr != iteArr; ++itArr)
   {
-    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(*itArr))
+    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(itArr->first))
     {
-      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[*itArr];
+      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[itArr->first];
       for (int idx = 0; idx < vecIndex.size(); ++idx)
       {
         if (sfmax == (vecIndex[idx].second).first)
@@ -471,9 +469,9 @@ void CGridTransformation::updateFinalGridDestination()
   maskIndexNum = 0;
   for (itArr = itbArr; itArr != iteArr; ++itArr)
   {
-    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(*itArr))
+    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(itArr->first))
     {
-      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[*itArr];
+      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[itArr->first];
       for (int idx = 0; idx < vecIndex.size(); ++idx)
       {
         if (sfmax == (vecIndex[idx].second).first)
@@ -730,27 +728,7 @@ void CGridTransformation::computeFinalTransformationMapping()
   transformationMap.computeTransformationMapping(currentGridIndexToOriginalGridIndex_);
 
   const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
-  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
-
-//  CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-//  CDistributionClient distributionClientSrc(client->clientRank, originalGridSource_);
-//
-//  const std::vector<size_t>& globalIndexOnClientDest = distributionClientDest.getGlobalDataIndexSendToServer();
-//  const std::vector<size_t>& globalIndexOnClientSrc = distributionClientSrc.getGlobalDataIndexSendToServer();
-
-//  std::vector<size_t>::const_iterator itbArr, itArr, iteArr;
-//  std::vector<int>::const_iterator itIndex, itbIndex, iteIndex;
   CTransformationMapping::ReceivedIndexMap::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
-
-//  std::vector<int> permutIndex;
-//  typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
-//
-//  // Find out local index on grid destination (received)
-//  XIOSAlgorithms::fillInIndex(globalIndexOnClientDest.size(), permutIndex);
-//  XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexOnClientDest, permutIndex);
-//  itbIndex = permutIndex.begin();
-//  iteIndex = permutIndex.end();
-//  BinarySearch searchClientDest(globalIndexOnClientDest);
   itbMapRecv = globalIndexToReceive.begin();
   iteMapRecv = globalIndexToReceive.end();
   for (itMapRecv = itbMapRecv; itMapRecv != iteMapRecv; ++itMapRecv)
@@ -761,29 +739,17 @@ void CGridTransformation::computeFinalTransformationMapping()
     for (int i = 0; i < numGlobalIndex; ++i)
     {
       int vecSize = ((itMapRecv->second)[i]).size();
-//      std::vector<std::pair<int,double> > tmpVec;
       for (int idx = 0; idx < vecSize; ++idx)
       {
         const std::pair<int, std::pair<size_t,double> >& tmpPair = (itMapRecv->second)[i][idx];
         localIndexToReceiveOnGridDest_[sourceRank][i].push_back(make_pair(tmpPair.first, tmpPair.second.second));
-//        size_t globalIndex = (itMapRecv->second)[i][idx].first;
-//        double weight = (itMapRecv->second)[i][idx].second;
-//        if (searchClientDest.search(itbIndex, iteIndex, globalIndex, itIndex))
-//        {
-//          tmpVec.push_back(make_pair(*itIndex, weight));
-//        }
       }
-//      localIndexToReceiveOnGridDest_[sourceRank][i] = tmpVec;
     }
   }
 
   // Find out local index on grid source (to send)
+  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
   CTransformationMapping::SentIndexMap::const_iterator itbMap, itMap, iteMap;
-//  XIOSAlgorithms::fillInIndex(globalIndexOnClientSrc.size(), permutIndex);
-//  XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexOnClientSrc, permutIndex);
-//  itbIndex = permutIndex.begin();
-//  iteIndex = permutIndex.end();
-//  BinarySearch searchClientSrc(globalIndexOnClientSrc);
   itbMap = globalIndexToSend.begin();
   iteMap = globalIndexToSend.end();
   for (itMap = itbMap; itMap != iteMap; ++itMap)
@@ -793,10 +759,7 @@ void CGridTransformation::computeFinalTransformationMapping()
     localIndexToSendFromGridSource_[destRank].resize(vecSize);
     for (int idx = 0; idx < vecSize; ++idx)
     {
-//      if (searchClientSrc.search(itbIndex, iteIndex, itMap->second[idx], itIndex))
-//      {
-        localIndexToSendFromGridSource_[destRank](idx) = itMap->second[idx].first; //*itIndex;
-//      }
+      localIndexToSendFromGridSource_[destRank](idx) = itMap->second[idx].first;
     }
   }
 }

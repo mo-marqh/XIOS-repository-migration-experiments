@@ -458,31 +458,27 @@ namespace xios {
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
      const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
 
-     const std::vector<size_t>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
+     const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
+     CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
      itGlobalMap  = itbGlobalMap = globalIndexOnServer.begin();
      iteGlobalMap = globalIndexOnServer.end();
 
-     typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
-     std::vector<int>::iterator itVec;
-     int nbGlobalIndex = globalIndexSendToServer.size();
      for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
      {
        int serverRank = itGlobalMap->first;
        int indexSize = itGlobalMap->second.size();
-       std::vector<int> permutIndex(indexSize);
-       XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-       XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(itGlobalMap->second, permutIndex);
-       BinarySearch binSearch(itGlobalMap->second);
-       for (int i = 0; i < nbGlobalIndex; ++i)
+       const std::vector<size_t>& indexVec = itGlobalMap->second;
+       for (int idx = 0; idx < indexSize; ++idx)
        {
-         if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexSendToServer[i], itVec))
-         {
-           if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
-             connectedDataSize_[serverRank] = 1;
-           else
-             ++connectedDataSize_[serverRank];
-         }
+          itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
+          if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
+          {
+             if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
+               connectedDataSize_[serverRank] = 1;
+             else
+               ++connectedDataSize_[serverRank];
+          }
        }
      }
 
@@ -787,20 +783,22 @@ namespace xios {
     list<CMessage> listMsg;
     list<CArray<size_t,1> > listOutIndex;
     const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
-    const std::vector<int>& localIndexSendToServer = clientDistribution_->getLocalDataIndexSendToServer();
-    const std::vector<size_t>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
+    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
+    CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
+                                                           iteIndex = globalLocalIndexSendToServer.end();
 
     if (!doGridHaveDataDistributed())
     {
       if (0 == client->clientRank)
       {
-        CArray<size_t,1> outGlobalIndexOnServer(globalIndexSendToServer.size());
-        for (int idx = 0; idx < globalIndexSendToServer.size();++idx)
-          outGlobalIndexOnServer(idx) = globalIndexSendToServer[idx];
-
-        CArray<int,1> outLocalIndexToServer(localIndexSendToServer.size());
-        for (int idx = 0; idx < localIndexSendToServer.size();++idx)
-          outLocalIndexToServer(idx) = localIndexSendToServer[idx];
+        int indexSize = globalLocalIndexSendToServer.size();
+        CArray<size_t,1> outGlobalIndexOnServer(indexSize);
+        CArray<int,1> outLocalIndexToServer(indexSize);
+        for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
+        {
+          outGlobalIndexOnServer(idx) = itIndex->first;
+          outLocalIndexToServer(idx) = itIndex->second;
+        }
 
         for (rank = 0; rank < client->serverSize; ++rank)
         {
@@ -820,31 +818,24 @@ namespace xios {
     }
     else
     {
-      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-      itbGlobalMap = itGlobalMap = globalIndexOnServer.begin();
+      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
+      itGlobalMap = globalIndexOnServer.begin();
       iteGlobalMap = globalIndexOnServer.end();
 
-      int nbGlobalIndex = globalIndexSendToServer.size();
       std::map<int,std::vector<int> >localIndexTmp;
       std::map<int,std::vector<size_t> > globalIndexTmp;
-
-      typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
-      std::vector<int>::iterator itVec;
       for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
       {
         int serverRank = itGlobalMap->first;
         int indexSize = itGlobalMap->second.size();
-        std::vector<int> permutIndex(indexSize);
-        XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-        XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(itGlobalMap->second, permutIndex);
-        BinarySearch binSearch(itGlobalMap->second);
-
-        for (int i = 0; i < nbGlobalIndex; ++i)
+        const std::vector<size_t>& indexVec = itGlobalMap->second;
+        for (int idx = 0; idx < indexSize; ++idx)
         {
-          if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexSendToServer[i], itVec))
+          itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
+          if (iteIndex != itIndex)
           {
-            globalIndexTmp[serverRank].push_back(globalIndexSendToServer[i]);
-            localIndexTmp[serverRank].push_back(localIndexSendToServer[i]);
+            globalIndexTmp[serverRank].push_back(itIndex->first);
+            localIndexTmp[serverRank].push_back(itIndex->second);
           }
         }
       }

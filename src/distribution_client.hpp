@@ -13,6 +13,7 @@
 #include "axis.hpp"
 #include "domain.hpp"
 #include "grid.hpp"
+#include <boost/unordered_map.hpp>
 
 namespace xios {
 
@@ -27,6 +28,9 @@ to calculate the global index of its local data.
 */
 class CDistributionClient : public CDistribution
 {
+public:
+  typedef boost::unordered_map<size_t,int> GlobalLocalDataMap;
+
   public:
     /** Default constructor */
     CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
@@ -36,8 +40,7 @@ class CDistributionClient : public CDistribution
     virtual ~CDistributionClient();
 
     virtual const std::vector<int>& getLocalDataIndexOnClient() const;
-    virtual const std::vector<int>& getLocalDataIndexSendToServer() const;
-    const std::vector<size_t>& getGlobalDataIndexSendToServer() const;
+    const GlobalLocalDataMap& getGlobalLocalDataSendToServer() const;
     const std::vector<int>& getLocalMaskIndexOnClient() const;
 
     std::vector<int> getNGlob() { return nGlob_; }
@@ -71,9 +74,8 @@ class CDistributionClient : public CDistribution
 
   private:
     //!< LocalData index on client
-    std::vector<size_t> globalDataSendToServer_;
+    GlobalLocalDataMap globalLocalDataSendToServerMap_;
     std::vector<int> localDataIndex_;
-    std::vector<int> localDataIndexSendToServer_;
     std::vector<int> localMaskIndex_;
 
   private:
@@ -162,7 +164,6 @@ void CDistributionClient::readGridMaskInfo(const CArray<bool,N>& gridMask)
     ++idx;
   }
 }
-
 
 } // namespace xios
 #endif // __XIOS_DISTRIBUTIONCLIENT_HPP__

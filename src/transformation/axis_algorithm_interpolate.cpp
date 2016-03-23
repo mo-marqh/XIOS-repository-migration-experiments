@@ -27,8 +27,6 @@ CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAx
     this->idAuxInputs_.resize(1);
     this->idAuxInputs_[0] = coordinate_;
   }
-
-//  computeIndexSourceMapping();
 }
 
 /*!
@@ -281,22 +279,18 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     this->transformationWeight_.resize(vecAxisValueSize);
     this->transformationPosition_.resize(vecAxisValueSize);
 
-    const std::vector<size_t>& globalIndexSendToServer = grid->getDistributionClient()->getGlobalDataIndexSendToServer();
-    const std::vector<int>& localDataSendToServer = grid->getDistributionClient()->getLocalDataIndexSendToServer();
-    std::vector<int> permutIndex(globalIndexSendToServer.size());
-    std::vector<int>::iterator itVec;
-    XIOSAlgorithms::fillInIndex(globalIndexSendToServer.size(), permutIndex);
-    XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexSendToServer, permutIndex);
+    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = grid->getDistributionClient()->getGlobalLocalDataSendToServer();
+    CDistributionClient::GlobalLocalDataMap::const_iterator itIndex, iteIndex = globalLocalIndexSendToServer.end();
     size_t axisSrcSize = axisSrc_->index.numElements();
     std::vector<int> globalDimension = grid->getGlobalDimension();
-    XIOSBinarySearchWithIndex<size_t> binSearch(globalIndexSendToServer);
+
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
       size_t axisValueSize = 0;
       for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
       {
         size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
-        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndex, itVec))
+        if (iteIndex != globalLocalIndexSendToServer.find(globalIndex))
         {
           ++axisValueSize;
         }
@@ -307,9 +301,10 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
       for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
       {
         size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
-        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndex, itVec))
+        itIndex = globalLocalIndexSendToServer.find(globalIndex);
+        if (iteIndex != itIndex)
         {
-          vecAxisValue[idx](axisValueSize) = (*dataAuxInputs[0])(localDataSendToServer[*itVec]);
+          vecAxisValue[idx](axisValueSize) = (*dataAuxInputs[0])(itIndex->second);
           ++axisValueSize;
         }
       }

@@ -21,26 +21,17 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
                 then position of axis in grid is 2 (since a domain is considered to contain 2 elements (axis)
   \param[in] gridDestGlobalDim global size of each dimension of grid source (all dimension must have the same size except of the one on which transformation is performed)
   \param[in] gridSrcGlobalDim dimension size of source grid (it should share the same size for all dimension, maybe except the domain on which transformation is performed)
-  \param[in] globalIndexGridDestSendToServer global index of grid destination on the current client to send to server
-  \param[in] localIndexGridSendToServer local index of grid destination on the current client to send to server
+  \param[in] globalLocalIndexGridDestSendToServer global and local index mapping of grid destination on the current client to send to server
   \param[in/out] globaIndexWeightFromDestToSource mapping between transformed global index of grid destination
              and the weighted value as well as global index from grid index source
 */
 void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositionInGrid,
-                                                             const std::vector<int>& gridDestGlobalDim,
-                                                             const std::vector<int>& gridSrcGlobalDim,
-                                                             const std::vector<size_t>& globalIndexGridDestSendToServer,
-                                                             const std::vector<int>& localIndexGridSendToServer,
-                                                             DestinationIndexMap& globaIndexWeightFromDestToSource)
+                                                               const std::vector<int>& gridDestGlobalDim,
+                                                               const std::vector<int>& gridSrcGlobalDim,
+                                                               const GlobalLocalMap& globalLocalIndexGridDestSendToServer,
+                                                               DestinationIndexMap& globaIndexWeightFromDestToSource)
 {
   bool isTransPosEmpty = transformationPosition_.empty();
-  boost::unordered_map<size_t,int> globalLocalIndexDestSendToServerMap;
-  size_t nbGlobalIndexDest = globalIndexGridDestSendToServer.size();
-  for (size_t idx = 0; idx < nbGlobalIndexDest; ++idx)
-  {
-    globalLocalIndexDestSendToServerMap[globalIndexGridDestSendToServer[idx]] = localIndexGridSendToServer[idx];
-  }
-
   for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
     std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
@@ -60,7 +51,6 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     std::vector<std::pair<size_t,int> > globalLocalIndexDest;
     for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
     {
-      boost::unordered_map<size_t,int> globalLocalIndexDestMap;
       if (!isTransPosEmpty)
       {
         this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
@@ -69,7 +59,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                            elementPositionInGrid,
                                                            gridDestGlobalDim,
                                                            gridSrcGlobalDim,
-                                                           globalLocalIndexDestSendToServerMap,
+                                                           globalLocalIndexGridDestSendToServer,
                                                            globalLocalIndexDest,
                                                            globalIndexSrcGrid);
         ++itTransPos;
@@ -82,7 +72,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                            elementPositionInGrid,
                                                            gridDestGlobalDim,
                                                            gridSrcGlobalDim,
-                                                           globalLocalIndexDestSendToServerMap,
+                                                           globalLocalIndexGridDestSendToServer,
                                                            globalLocalIndexDest,
                                                            globalIndexSrcGrid);
       }

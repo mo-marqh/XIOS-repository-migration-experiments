@@ -26,19 +26,17 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   int clientRank = client->clientRank;
 
   CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
-
-  const std::vector<size_t>& globalIndexGridSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
-  const std::vector<int>& localIndexGridSrc = distributionClientSrc.getLocalDataIndexSendToServer();
+  const CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridSrc = distributionClientSrc.getGlobalLocalDataSendToServer();
+  CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexGridSrc.begin(), iteIndex = globalLocalIndexGridSrc.end();
 
   // Mapping of global index and pair containing rank and local index
   CClientClientDHTPairIntInt::Index2InfoTypeMap globalIndexOfServer;
-  int globalIndexSize = globalIndexGridSrc.size();
-  PairIntInt pii;
-  for (int idx = 0; idx < globalIndexSize; ++idx)
+  PairIntInt pairIntInt;
+  for (; itIndex != iteIndex; ++itIndex)
   {
-    pii.first  = clientRank;
-    pii.second = localIndexGridSrc[idx];
-    globalIndexOfServer[globalIndexGridSrc[idx]] = pii; //std::make_pair(clientRank, localIndexGridSrc[idx]);
+    pairIntInt.first  = clientRank;
+    pairIntInt.second = itIndex->second;
+    globalIndexOfServer[itIndex->first] = pairIntInt;
   }
 
   gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfServer,

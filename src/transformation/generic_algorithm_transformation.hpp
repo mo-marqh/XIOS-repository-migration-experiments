@@ -35,8 +35,7 @@ public:
   void computeGlobalSourceIndex(int elementPositionInGrid,
                                 const std::vector<int>& gridDestGlobalDim,
                                 const std::vector<int>& gridSrcGlobalDim,
-                                const std::vector<size_t>& globalIndexGridDestSendToServer,
-                                const std::vector<int>& localIndexGridSendToServer,
+                                const GlobalLocalMap& globalLocalIndexGridDestSendToServer,
                                 DestinationIndexMap& globaIndexWeightFromDestToSource);
 
   std::vector<StdString> getIdAuxInputs();
