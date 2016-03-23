@@ -24,7 +24,7 @@ namespace xios {
 CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
 : gridSource_(source), gridDestination_(destination), originalGridSource_(source),
   algoTypes_(), nbAlgos_(0), currentGridIndexToOriginalGridIndex_(), tempGrids_(),
-  auxInputs_(), dynamicalTransformation_(false)
+  auxInputs_(), dynamicalTransformation_(false), timeStamp_()
 
 {
   //Verify the compatibity between two grids
@@ -355,11 +355,17 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
   -) Calculate the mapping of global index between current grid DESTINATION and ORIGINAL grid SOURCE
   -) Make current grid destination become grid source in the next transformation
 */
-void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs)
+void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs, Time timeStamp)
 {
   if (nbAlgos_ < 1) return;
   if (!auxInputs_.empty() && !dynamicalTransformation_) { dynamicalTransformation_ = true; return; }
-  if (dynamicalTransformation_) DestinationIndexMap().swap(currentGridIndexToOriginalGridIndex_);  // Reset map
+  if (dynamicalTransformation_)
+  {
+    if (timeStamp_.insert(timeStamp).second)
+      DestinationIndexMap().swap(currentGridIndexToOriginalGridIndex_);  // Reset map
+    else
+      return;
+  }
 
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;

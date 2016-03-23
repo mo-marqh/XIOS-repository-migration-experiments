@@ -2,7 +2,7 @@
    \file client_client_dht_template_impl.hpp
    \author Ha NGUYEN
    \since 05 Oct 2015
-   \date 05 Oct 2015
+   \date 23 Mars 2016
 
    \brief Distributed hashed table implementation.
  */

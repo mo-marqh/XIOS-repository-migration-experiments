@@ -86,7 +86,7 @@ namespace xios
       {
         std::vector<CArray<double,1>* > dataAuxInputs(data.size()-1);
         for (size_t idx = 0; idx < dataAuxInputs.size(); ++idx) dataAuxInputs[idx] = &(data[idx+1]->data);
-        gridTransformation->computeAll(dataAuxInputs);
+        gridTransformation->computeAll(dataAuxInputs, packet->timestamp);
       }
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
       apply(data[0]->data, packet->data);

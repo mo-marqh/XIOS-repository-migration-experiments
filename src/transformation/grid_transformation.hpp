@@ -14,6 +14,7 @@
 #include "grid.hpp"
 #include "generic_algorithm_transformation.hpp"
 #include "transformation_enum.hpp"
+#include "duration.hpp"
 
 namespace xios {
 
@@ -41,7 +42,7 @@ public:
   CGridTransformation(CGrid* destination, CGrid* source);
   ~CGridTransformation();
 
-  void computeAll(const std::vector<CArray<double,1>* >& dataAuxInput=std::vector<CArray<double,1>* >());
+  void computeAll(const std::vector<CArray<double,1>* >& dataAuxInput=std::vector<CArray<double,1>* >(), Time timeStamp = 0);
 
   const std::map<int, CArray<int,1> >& getLocalIndexToSendFromGridSource() const;
   const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
@@ -108,6 +109,8 @@ protected:
   std::vector<CGrid*> tempGrids_;
   std::vector<StdString> auxInputs_;
   bool dynamicalTransformation_;
+
+  std::set<Time> timeStamp_; //! Time stamps for auxillary inputs
 };
 
 }
