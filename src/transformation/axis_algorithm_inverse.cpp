@@ -24,7 +24,24 @@ CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axis
            << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
 
-  this->computeIndexSourceMapping();
+//  this->computeIndexSourceMapping();
+}
+
+void CAxisAlgorithmInverse::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+{
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
+
+  int globalIndexSize = axisDestGlobalIndex_.size();
+  for (int idx = 0; idx < globalIndexSize; ++idx)
+  {
+    transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
+    transWeight[axisDestGlobalIndex_[idx]].push_back(1.0);
+  }
+
   int niSrc   = axisSrc_->n.getValue();
   int sizeSrc = axisSrc_->n_glo.getValue();
   if (niSrc != sizeSrc) updateAxisValue();
@@ -34,19 +51,6 @@ CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axis
     {
       axisDest_->value(idx) = axisSrc_->value(sizeSrc-idx-1);
     }
-  }
-}
-
-void CAxisAlgorithmInverse::computeIndexSourceMapping()
-{
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
-
-  int globalIndexSize = axisDestGlobalIndex_.size();
-  for (int idx = 0; idx < globalIndexSize; ++idx)
-  {
-    transMap[axisDestGlobalIndex_[idx]].push_back(axisDestGlobalSize_-axisDestGlobalIndex_[idx]-1);
-    transWeight[axisDestGlobalIndex_[idx]].push_back(1.0);
   }
 }
 
@@ -64,8 +68,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
 
   CTransformationMapping transformationMap(axisDest_, axisSrc_);
 
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
 
   std::map<size_t, std::vector<std::pair<size_t,double> > > globaIndexMapFromDestToSource;
   std::map<int, std::vector<int> >::const_iterator it = transMap.begin(), ite = transMap.end();

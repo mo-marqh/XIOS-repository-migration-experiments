@@ -27,6 +27,7 @@ namespace xios
 
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself
+      size_t inputSlotCount; //!< Number of slot on filter
 
       /*!
        * Generic implementation of the input pin notification function, processes

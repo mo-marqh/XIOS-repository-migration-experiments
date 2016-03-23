@@ -25,7 +25,8 @@ public:
 
   virtual ~CDomainAlgorithmInterpolate() {}
 
-  virtual void computeIndexSourceMapping();
+protected:
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);

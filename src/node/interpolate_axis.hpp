@@ -51,6 +51,8 @@ namespace xios {
 
       virtual void checkValid(CAxis* axisDest);
 
+      std::vector<StdString> checkAuxInputs_();
+
       /// Accesseurs statiques ///
       static StdString GetName(void);
       static StdString GetDefName(void);

@@ -14,6 +14,7 @@
      <field id="field_Axis_transformed_Interpolated"  operation="average" freq_op="3600s" field_ref="field_Axis" grid_ref="grid_Axis_tranformed_Interpolated" />
      <field id="field_Domain_transformed_Interpolated"  operation="average" freq_op="3600s" field_ref="field_A" grid_ref="grid_Domain_tranformed_Interpolated" />
      <field id="field_Scalar" operation="average" freq_op="3600s" grid_ref="ScalarGrid" />
+     <field id="field_Value"  operation="average" freq_op="3600s" grid_ref="grid_A" />
    </field_definition>
 
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
@@ -52,9 +53,10 @@
        <interpolate_axis type="polynomial" order="3"/>
      </axis>
      <axis id="axis_F" axis_ref="axis_C">
-        <inverse_axis />
-        <zoom_axis begin="0" n="4" />
-        <inverse_axis />
+       <interpolate_axis type="polynomial" order="3" coordinate="field_Value"/>
+<!--       <inverse_axis />-->
+<!--        <zoom_axis begin="0" n="4" />-->
+<!--        <inverse_axis />-->
      </axis>
    </axis_definition>
 

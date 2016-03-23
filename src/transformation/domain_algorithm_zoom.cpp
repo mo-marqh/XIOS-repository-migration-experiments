@@ -39,13 +39,13 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
            << "Zoom size is " << zoomNj_ );
   }
 
-  computeIndexSourceMapping();
+//  computeIndexSourceMapping();
 }
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
-void CDomainAlgorithmZoom::computeIndexSourceMapping()
+void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
   int niSource = domainSrc_->ni.getValue();
   int ibeginSource = domainSrc_->ibegin.getValue();
@@ -67,8 +67,15 @@ void CDomainAlgorithmZoom::computeIndexSourceMapping()
 
   int niGlob = domainSrc_->ni_glo.getValue();
   int njGlob = domainSrc_->nj_glo.getValue();
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
+
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
+
+//  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
+//  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
   int domainGlobalIndex;
   for (int j = 0; j < nj; ++j)
   {
@@ -109,7 +116,7 @@ void CDomainAlgorithmZoom::updateDomainDestinationMask()
   int niGlob = domainDest_->ni_glo.getValue();
   int globalIndexMask = 0;
 
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
   std::map<int, std::vector<int> >::const_iterator ite = (transMap).end();
   for (int j = 0; j < njMask; ++j)
   {

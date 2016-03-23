@@ -28,7 +28,7 @@ CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
 {
 }
 
-void CAxisAlgorithmTransformation::computeIndexSourceMapping()
+void CAxisAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
 }
 
@@ -44,6 +44,7 @@ void CAxisAlgorithmTransformation::computeIndexSourceMapping()
 */
 void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(int axisDestGlobalIndex,
                                                                           const std::vector<int>& axisSrcGlobalIndex,
+                                                                          const std::vector<int>& destGlobalIndexPositionInGrid,
                                                                           int axisPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const std::vector<int>& gridSrcGlobalDim,
@@ -51,6 +52,7 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
                                                                           CArray<size_t,1>& globalIndexDestGrid,
                                                                           std::vector<std::vector<size_t> >& globalIndexSrcGrid)
 {
+  bool hasDestGlobalIndexPos = !destGlobalIndexPositionInGrid.empty();
   int globalDim = gridDestGlobalDim.size();
 
   std::vector<size_t> currentIndex(globalDim);
@@ -61,7 +63,11 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
   for (int i = 0; i< globalDim; ++i)
   {
     if (axisPositionInGrid == i) gridAxisGlobalDim[i] = 1;
-    else gridAxisGlobalDim[i] = gridDestGlobalDim[i];
+    else
+    {
+      if (!hasDestGlobalIndexPos) gridAxisGlobalDim[i] = gridDestGlobalDim[i];
+      else gridAxisGlobalDim[i] = 1;
+    }
     ssize *= gridAxisGlobalDim[i];
   }
 
@@ -79,7 +85,21 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
       }
     }
 
-    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
+    int j = 0;
+    for (int i = 0; i < globalDim; ++i)
+    {
+      if (!hasDestGlobalIndexPos) currentIndex[i] = idxLoop[i];
+      else
+      {
+        if (axisPositionInGrid == i) currentIndex[i] = axisDestGlobalIndex;
+        else
+        {
+          currentIndex[i] = destGlobalIndexPositionInGrid[j];
+          ++j;
+        }
+      }
+    }
+
     currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
 
     size_t globIndex = currentIndex[0];
@@ -117,7 +137,20 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
       }
     }
 
-    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
+    int j = 0;
+    for (int i = 0; i < globalDim; ++i)
+    {
+      if (!hasDestGlobalIndexPos) currentIndex[i] = idxLoop[i];
+      else
+      {
+        if (axisPositionInGrid == i) currentIndex[i] = axisDestGlobalIndex;
+        else
+        {
+          currentIndex[i] = destGlobalIndexPositionInGrid[j];
+          ++j;
+        }
+      }
+    }
     currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
 
     size_t globIndex = currentIndex[0];
@@ -149,5 +182,106 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
     ++idxLoop[0];
     ++idx;
   }
+
+
+
+//  int globalDim = gridDestGlobalDim.size();
+//
+//  std::vector<size_t> currentIndex(globalDim);
+//  std::vector<int> gridAxisGlobalDim(globalDim);
+//  std::vector<int> idxLoop(globalDim, 0);
+//
+//  size_t ssize = 1, idx = 0, realGlobalIndexSize = 0;
+//  for (int i = 0; i< globalDim; ++i)
+//  {
+//    if (axisPositionInGrid == i) gridAxisGlobalDim[i] = 1;
+//    else gridAxisGlobalDim[i] = gridDestGlobalDim[i];
+//    ssize *= gridAxisGlobalDim[i];
+//  }
+//
+//  std::vector<size_t>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
+//                                      iteArr = globalIndexGridDestSendToServer.end();
+//
+//  while (idx < ssize)
+//  {
+//    for (int i = 0; i < globalDim-1; ++i)
+//    {
+//      if (idxLoop[i] == gridAxisGlobalDim[i])
+//      {
+//        idxLoop[i] = 0;
+//        ++idxLoop[i+1];
+//      }
+//    }
+//
+//    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
+//    currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
+//
+//    size_t globIndex = currentIndex[0];
+//    size_t mulDim = 1;
+//    for (int k = 1; k < globalDim; ++k)
+//    {
+//      mulDim *= gridDestGlobalDim[k-1];
+//      globIndex += (currentIndex[k])*mulDim;
+//    }
+//
+//    if (std::binary_search(itbArr, iteArr, globIndex)) ++realGlobalIndexSize;
+//    ++idxLoop[0];
+//    ++idx;
+//  }
+//
+//  if (globalIndexDestGrid.numElements() != realGlobalIndexSize)
+//    globalIndexDestGrid.resize(realGlobalIndexSize);
+//
+//  if (realGlobalIndexSize != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(realGlobalIndexSize);
+//  for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
+//    if (globalIndexSrcGrid[i].size() != axisSrcGlobalIndex.size())
+//      globalIndexSrcGrid[i].resize(axisSrcGlobalIndex.size());
+//
+//  size_t realGlobalIndex = 0;
+//  idx = 0;
+//  idxLoop.assign(globalDim, 0);
+//  while (idx < ssize)
+//  {
+//    for (int i = 0; i < globalDim-1; ++i)
+//    {
+//      if (idxLoop[i] == gridAxisGlobalDim[i])
+//      {
+//        idxLoop[i] = 0;
+//        ++idxLoop[i+1];
+//      }
+//    }
+//
+//    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
+//    currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
+//
+//    size_t globIndex = currentIndex[0];
+//    size_t mulDim = 1;
+//    for (int k = 1; k < globalDim; ++k)
+//    {
+//      mulDim *= gridDestGlobalDim[k-1];
+//      globIndex += (currentIndex[k])*mulDim;
+//    }
+//
+//    if (std::binary_search(itbArr, iteArr, globIndex))
+//    {
+//      globalIndexDestGrid(realGlobalIndex) = globIndex;
+//      for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)
+//      {
+//        currentIndex[axisPositionInGrid] = axisSrcGlobalIndex[i];
+//        globIndex = currentIndex[0];
+//        mulDim = 1;
+//        for (int k = 1; k < globalDim; ++k)
+//        {
+//          mulDim *= gridDestGlobalDim[k-1];
+//          globIndex += (currentIndex[k])*mulDim;
+//        }
+//        (globalIndexSrcGrid[realGlobalIndex])[i] = globIndex;
+//      }
+//      ++realGlobalIndex;
+//    }
+//
+//    ++idxLoop[0];
+//    ++idx;
+//  }
 }
 }

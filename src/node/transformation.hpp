@@ -23,8 +23,13 @@ namespace xios {
       CTransformation(void) {}
       virtual void checkValid(T* dest) = 0;
 
+      std::vector<StdString> checkAuxInputs() { return checkAuxInputs_(); }
+
       /// Destructeur ///
       virtual ~CTransformation(void) {}
+
+    protected:
+      virtual std::vector<StdString> checkAuxInputs_() { return std::vector<StdString>(); }
   }; // class CTransformation
 
 } // namespace xios

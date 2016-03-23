@@ -31,10 +31,12 @@ public:
                                 const std::vector<size_t>& globalIndexGridDestSendToServer,
                                 std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource);
 
+  std::vector<StdString> getIdAuxInputs();
+
   /*!
   Compute global index mapping from one element of destination grid to the corresponding element of source grid
   */
-  virtual void computeIndexSourceMapping() = 0;
+  void computeIndexSourceMapping(const std::vector<CArray<double,1>* >& dataAuxInputs = std::vector<CArray<double,1>* >());
 
 protected:
   /*!
@@ -49,6 +51,7 @@ protected:
   */
   virtual void computeGlobalGridIndexFromGlobalIndexElement(int destGlobalIndex,
                                                         const std::vector<int>& srcGlobalIndex,
+                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
                                                         int elementPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const std::vector<int>& gridSrcGlobalDim,
@@ -56,11 +59,19 @@ protected:
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid) = 0;
 
-
+  virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
 
 protected:
-  std::map<int, std::vector<int> > transformationMapping_;
-  std::map<int, std::vector<double> > transformationWeight_;
+  //! Map between global index of destination element and source element
+  std::vector<std::map<int, std::vector<int> > > transformationMapping_;
+  //! Weight corresponding of source to destination
+  std::vector<std::map<int, std::vector<double> > > transformationWeight_;
+  //! Map of global index of destination element and corresponding global index of other elements in the same grid
+  //! By default, one index of an element corresponds to all index of remaining element in the grid. So it's empty
+  std::vector<std::map<int, std::vector<int> > > transformationPosition_;
+
+  //! Id of auxillary inputs which help doing transformation dynamically
+  std::vector<StdString> idAuxInputs_;
 };
 
 }

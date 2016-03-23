@@ -28,13 +28,15 @@ public:
 protected:
   virtual void computeGlobalGridIndexFromGlobalIndexElement(int domainDestGlobalIndex,
                                                         const std::vector<int>& domainSrcGlobalIndex,
+                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
                                                         int domainPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const std::vector<int>& gridSrcGlobalDim,
                                                         const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid);
-  void computeIndexSourceMapping();
+
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);
 
 protected:
   inline void domainGlobalIndex(const int& index, const int& niGlob, const int& njGlob,

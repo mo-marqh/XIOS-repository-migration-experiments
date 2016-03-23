@@ -5,8 +5,8 @@
 
 namespace xios
 {
-  CSpatialTransformFilter::CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine)
-    : CFilter(gc, 1, engine)
+  CSpatialTransformFilter::CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, size_t inputSlotsCount)
+    : CFilter(gc, inputSlotsCount, engine)
   { /* Nothing to do */ }
 
   std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
@@ -23,7 +23,9 @@ namespace xios
     {
       CGridTransformation* gridTransformation = destGrid->getTransformations();
       CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
-      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine));
+      const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
+      size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
+      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, inputCount));
 
       if (!lastFilter)
         lastFilter = filter;
@@ -31,6 +33,13 @@ namespace xios
         filter->connectOutput(firstFilter, 0);
 
       firstFilter = filter;
+      for (size_t idx = 0; idx < auxInputs.size(); ++idx)
+      {
+        CField* fieldAuxInput = CField::get(auxInputs[idx]);
+        fieldAuxInput->buildFilterGraph(gc, false);
+        fieldAuxInput->getInstantDataFilter()->connectOutput(firstFilter,idx+1);
+      }
+
       destGrid = gridTransformation->getGridSource();
     }
     while (destGrid != srcGrid);
@@ -73,6 +82,12 @@ namespace xios
 
     if (packet->status == CDataPacket::NO_ERROR)
     {
+      if (1 < data.size())  // Dynamical transformations
+      {
+        std::vector<CArray<double,1>* > dataAuxInputs(data.size()-1);
+        for (size_t idx = 0; idx < dataAuxInputs.size(); ++idx) dataAuxInputs[idx] = &(data[idx+1]->data);
+        gridTransformation->computeAll(dataAuxInputs);
+      }
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
       apply(data[0]->data, packet->data);
     }

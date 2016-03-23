@@ -24,7 +24,8 @@ public:
 
   virtual ~CAxisAlgorithmInverse() {}
 
-  virtual void computeIndexSourceMapping();
+protected:
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void updateAxisValue();

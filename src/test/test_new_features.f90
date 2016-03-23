@@ -27,11 +27,11 @@ PROGRAM test_new_features
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION,DIMENSION(4,ni_glo,nj_glo) :: bnds_lon_glo, bnds_lat_glo
-  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo)
+  DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo), field_Value_glo(ni_glo,nj_glo,llm)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , &
                                   field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:), lvalnInterp(:), &
                                   lontransformed(:,:), lattransformed(:,:), lon_glotransformed(:,:), lat_glotransformed(:,:), &
-                                  bnds_lon(:,:,:), bnds_lat(:,:,:)
+                                  bnds_lon(:,:,:), bnds_lat(:,:,:), field_value(:,:,:)
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend, nAxis, axisBegin, axisEnd
   INTEGER :: axisterpBegin, nAxisinterp, axisinterpEnd
   INTEGER :: niDomInterp,ibeginDomInterp,iendDomInterp,njDomInterp,jbeginDomInterp,jendDomInterp, niDomGlo, njDomGlo
@@ -67,6 +67,7 @@ PROGRAM test_new_features
       lval_ni_glo(i) = i-1
       DO l=1,llm
         field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
+        field_Value_glo(i,j,l)=l*100
       ENDDO
     ENDDO
     lval_nj_glo(j) = j-1
@@ -79,7 +80,7 @@ PROGRAM test_new_features
   CALL Distribute_index(jbegin, jend, nj, nj_glo, rank, size)
 
   DO j=1,llm
-    lval(j) = j *10
+    lval(j) = j *100
   ENDDO
   axisBegin = 0
   CALL Distribute_index(axisBegin, axisEnd, nAxis, llm, rank, size)
@@ -108,7 +109,7 @@ PROGRAM test_new_features
           lon(ni,nj),lat(ni,nj), lonvalue(ni*nj), &
           lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp), &
           lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp), &
-          bnds_lon(4,ni,nj), bnds_lat(4,ni,nj))
+          bnds_lon(4,ni,nj), bnds_lat(4,ni,nj), field_value(0:ni+1,-1:nj+2,llm))
 
   ALLOCATE(mask(nj))
   DO i = 1, nj
@@ -125,6 +126,7 @@ PROGRAM test_new_features
   lontransformed(:,:) = lon_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   lattransformed(:,:) = lat_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
+  field_value(1:ni,1:nj,:) = field_Value_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_Axis(1:nAxis)  = field_A_glo(1,1,axisBegin+1:axisEnd+1)
   field_Two_Axis(:,1:nj)  = field_A_glo(:,jbegin+1:jend+1,1)
   field_All_Axis(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
@@ -200,9 +202,10 @@ PROGRAM test_new_features
   CALL xios_close_context_definition()
 
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-  DO ts=1,24*10
+  DO ts=1,24*1
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
+    CALL xios_send_field("field_Value",field_value)
     CALL xios_send_field("field_Axis",field_Axis)
     CALL xios_send_field("field_Two_Axis",field_Two_Axis)
     CALL xios_send_field("field_All_Axis",field_All_Axis)

@@ -11,46 +11,50 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "utils.hpp"
+#include "grid.hpp"
+#include "distribution_client.hpp"
 
 namespace xios {
 
 CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
-: CAxisAlgorithmTransformation(axisDestination, axisSource)
+: CAxisAlgorithmTransformation(axisDestination, axisSource), coordinate_(), transPosition_()
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
-  if (order_ >= axisSource->n_glo.getValue())
+  if (!interpAxis->coordinate.isEmpty())
   {
-    ERROR("CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)",
-           << "Order of interpolation is greater than global size of axis source"
-           << "Size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
-           << "Order of interpolation is " << order_ );
+    coordinate_ = interpAxis->coordinate.getValue();
+    this->idAuxInputs_.resize(1);
+    this->idAuxInputs_[0] = coordinate_;
   }
 
-  computeIndexSourceMapping();
+//  computeIndexSourceMapping();
 }
 
 /*!
   Compute the index mapping between axis on grid source and one on grid destination
 */
-void CAxisAlgorithmInterpolate::computeIndexSourceMapping()
+void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  CArray<double,1>& axisValue = axisSrc_->value;
-  CArray<bool,1>& axisMask = axisSrc_->mask;
-
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
-
+  CArray<bool,1>& axisMask = axisSrc_->mask;
   int srcSize  = axisSrc_->n_glo.getValue();
-  int numValue = axisValue.numElements();
+  std::vector<CArray<double,1> > vecAxisValue;
 
-  std::vector<double> recvBuff(srcSize);
-  std::vector<int> indexVec(srcSize);
+  // Fill in axis value from coordinate
+  fillInAxisValue(vecAxisValue, dataAuxInputs);
 
-  retrieveAllAxisValue(recvBuff, indexVec);
-  XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
-  computeInterpolantPoint(recvBuff, indexVec);
+  for (int idx = 0; idx < vecAxisValue.size(); ++idx)
+  {
+    CArray<double,1>& axisValue = vecAxisValue[idx];
+    std::vector<double> recvBuff(srcSize);
+    std::vector<int> indexVec(srcSize);
+    retrieveAllAxisValue(axisValue, axisMask, recvBuff, indexVec);
+    XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
+    computeInterpolantPoint(recvBuff, indexVec, idx);
+  }
 }
 
 /*!
@@ -59,7 +63,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping()
   \param [in] axisValue all value of axis source
   \param [in] indexVec permutation index of axisValue
 */
-void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue, const std::vector<int>& indexVec)
+void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue, const std::vector<int>& indexVec, int transPos)
 {
   std::vector<double>::const_iterator itb = axisValue.begin(), ite = axisValue.end();
   std::vector<double>::const_iterator itLowerBound, itUpperBound, it;
@@ -77,7 +81,6 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
     itLowerBound = std::lower_bound(itb, ite, destValue);
     itUpperBound = std::upper_bound(itb, ite, destValue);
     if ((ite != itUpperBound) && (sfmax == *itUpperBound)) itUpperBound = ite;
-
 
     // If the value is not in the range, that means we'll do extra-polation
     if (ite == itLowerBound) // extra-polation
@@ -117,17 +120,17 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
       interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
     }
   }
-  computeWeightedValueAndMapping(interpolatingIndexValues);
+  computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
 }
 
 /*!
   Compute weight (coeff) of Lagrange's polynomial
   \param [in] interpolatingIndexValues the necessary axis value to calculate the coeffs
 */
-void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues)
+void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
 {
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[transPos];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[transPos];
   std::map<int, std::vector<std::pair<int,double> > >::const_iterator itb = interpolatingIndexValues.begin(), it,
                                                                       ite = interpolatingIndexValues.end();
   int ibegin = axisDest_->begin.getValue();
@@ -137,6 +140,8 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
     double localValue = axisDest_->value(globalIndexDest - ibegin);
     const std::vector<std::pair<int,double> >& interpVal = it->second;
     int interpSize = interpVal.size();
+    transMap[globalIndexDest].resize(interpSize);
+    transWeight[globalIndexDest].resize(interpSize);
     for (int idx = 0; idx < interpSize; ++idx)
     {
       int index = interpVal[idx].first;
@@ -148,8 +153,12 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
         weight *= (localValue - interpVal[k].second);
         weight /= (interpVal[idx].second - interpVal[k].second);
       }
-      transMap[globalIndexDest].push_back(index);
-      transWeight[globalIndexDest].push_back(weight);
+      transMap[globalIndexDest][idx] = index;
+      transWeight[globalIndexDest][idx] = weight;
+      if (!transPosition_.empty())
+      {
+        (this->transformationPosition_[transPos])[globalIndexDest] = transPosition_[transPos];
+      }
     }
   }
 }
@@ -159,11 +168,9 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
   \param [in/out] recvBuff buffer for receiving values (already allocated)
   \param [in/out] indexVec mapping between values and global index of axis
 */
-void CAxisAlgorithmInterpolate::retrieveAllAxisValue(std::vector<double>& recvBuff, std::vector<int>& indexVec)
+void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axisValue, const CArray<bool,1>& axisMask,
+                                                     std::vector<double>& recvBuff, std::vector<int>& indexVec)
 {
-  CArray<double,1>& axisValue = axisSrc_->value;
-  CArray<bool,1>& axisMask = axisSrc_->mask;
-
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
@@ -226,6 +233,87 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(std::vector<double>& recvBu
     delete [] recvIndexBuff;
     delete [] sendIndexBuff;
     delete [] sendValueBuff;
+  }
+}
+
+/*!
+  Fill in axis value dynamically from a field whose grid is composed of a domain and an axis
+  \param [in/out] vecAxisValue vector axis value filled in from input field
+*/
+void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue,
+                                                const std::vector<CArray<double,1>* >& dataAuxInputs)
+{
+  if (coordinate_.empty())
+  {
+    vecAxisValue.resize(1);
+    vecAxisValue[0].resize(axisSrc_->value.numElements());
+    vecAxisValue[0] = axisSrc_->value;
+    this->transformationMapping_.resize(1);
+    this->transformationWeight_.resize(1);
+  }
+  else
+  {
+    CField* field = CField::get(coordinate_);
+    CGrid* grid = field->grid;
+
+    std::vector<CDomain*> domListP = grid->getDomains();
+    std::vector<CAxis*> axisListP = grid->getAxis();
+    if (domListP.empty() || axisListP.empty() || (1 < domListP.size()) || (1 < axisListP.size()))
+      ERROR("CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue)",
+             << "XIOS only supports dynamic interpolation with coordinate (field) associated with grid composed of a domain and an axis"
+             << "Coordinate (field) id = " <<field->getId() << std::endl
+             << "Associated grid id = " << grid->getId());
+
+    CDomain* dom = domListP[0];
+    size_t vecAxisValueSize = dom->i_index.numElements();
+    vecAxisValue.resize(vecAxisValueSize);
+    if (transPosition_.empty())
+    {
+      transPosition_.resize(vecAxisValueSize);
+      for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
+      {
+        transPosition_[idx].resize(2);
+        transPosition_[idx][0] = (dom->i_index)(idx);
+        transPosition_[idx][1] = (dom->j_index)(idx);
+      }
+    }
+    this->transformationMapping_.resize(vecAxisValueSize);
+    this->transformationWeight_.resize(vecAxisValueSize);
+    this->transformationPosition_.resize(vecAxisValueSize);
+
+    const std::vector<size_t>& globalIndexSendToServer = grid->getDistributionClient()->getGlobalDataIndexSendToServer();
+    const std::vector<int>& localDataSendToServer = grid->getDistributionClient()->getLocalDataIndexSendToServer();
+    std::vector<int> permutIndex(globalIndexSendToServer.size());
+    std::vector<int>::iterator itVec;
+    XIOSAlgorithms::fillInIndex(globalIndexSendToServer.size(), permutIndex);
+    XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(globalIndexSendToServer, permutIndex);
+    size_t axisSrcSize = axisSrc_->index.numElements();
+    std::vector<int> globalDimension = grid->getGlobalDimension();
+    XIOSBinarySearchWithIndex<size_t> binSearch(globalIndexSendToServer);
+    for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
+    {
+      size_t axisValueSize = 0;
+      for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
+      {
+        size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
+        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndex, itVec))
+        {
+          ++axisValueSize;
+        }
+      }
+
+      vecAxisValue[idx].resize(axisValueSize);
+      axisValueSize = 0;
+      for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
+      {
+        size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
+        if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndex, itVec))
+        {
+          vecAxisValue[idx](axisValueSize) = (*dataAuxInputs[0])(localDataSendToServer[*itVec]);
+          ++axisValueSize;
+        }
+      }
+    }
   }
 }
 

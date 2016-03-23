@@ -28,13 +28,15 @@ public:
 protected:
   virtual void computeGlobalGridIndexFromGlobalIndexElement(int axisDestGlobalIndex,
                                                         const std::vector<int>& axisSrcGlobalIndex,
+                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
                                                         int axisPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const std::vector<int>& gridSrcGlobalDim,
                                                         const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                         CArray<size_t,1>& globalIndexDestGrid,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid);
-  void computeIndexSourceMapping();
+
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
   //! Global index of an axis on grid destination

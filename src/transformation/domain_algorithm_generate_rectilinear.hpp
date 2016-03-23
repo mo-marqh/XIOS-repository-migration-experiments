@@ -32,7 +32,8 @@ public:
 
   virtual ~CDomainAlgorithmGenerateRectilinear() {}
 
-  virtual void computeIndexSourceMapping();
+protected:
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void computeDistributionGridSource(CGrid* gridSrc);

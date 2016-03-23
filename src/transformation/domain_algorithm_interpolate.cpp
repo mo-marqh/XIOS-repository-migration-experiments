@@ -22,7 +22,7 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
 : CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain)
 {
   interpDomain_->checkValid(domainSource);
-  computeIndexSourceMapping();
+//  computeIndexSourceMapping();
 }
 
 /*!
@@ -350,7 +350,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
-void CDomainAlgorithmInterpolate::computeIndexSourceMapping()
+void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
   if (!interpDomain_->file.isEmpty())
     readRemapInfo();
@@ -380,6 +380,12 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
+
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
 
   boost::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();
@@ -530,8 +536,8 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
 
     for (int idx = 0; idx < countBuff; ++idx)
     {
-      transformationMapping_[*(recvIndexDestBuff + receivedSize + idx)].push_back(*(recvIndexSrcBuff + receivedSize + idx));
-      transformationWeight_[*(recvIndexDestBuff + receivedSize + idx)].push_back(*(recvWeightBuff + receivedSize + idx));
+      transMap[*(recvIndexDestBuff + receivedSize + idx)].push_back(*(recvIndexSrcBuff + receivedSize + idx));
+      transWeight[*(recvIndexDestBuff + receivedSize + idx)].push_back(*(recvWeightBuff + receivedSize + idx));
     }
     receivedSize += countBuff;
   }

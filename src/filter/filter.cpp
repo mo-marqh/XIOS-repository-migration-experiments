@@ -6,6 +6,7 @@ namespace xios
     : CInputPin(gc, inputSlotsCount)
     , COutputPin()
     , engine(engine)
+    , inputSlotCount(inputSlotCount)
   { /* Nothing to do */ }
 
   void CFilter::onInputReady(std::vector<CDataPacketPtr> data)

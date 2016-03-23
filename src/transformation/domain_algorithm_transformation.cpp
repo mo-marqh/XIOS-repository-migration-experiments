@@ -20,7 +20,7 @@ CDomainAlgorithmTransformation::~CDomainAlgorithmTransformation()
 {
 }
 
-void CDomainAlgorithmTransformation::computeIndexSourceMapping()
+void CDomainAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
 }
 
@@ -37,6 +37,7 @@ void CDomainAlgorithmTransformation::computeIndexSourceMapping()
 */
 void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(int domainDestGlobalIndex,
                                                                           const std::vector<int>& domainSrcGlobalIndex,
+                                                                          const std::vector<int>& destGlobalIndexPositionInGrid,
                                                                           int domainPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const std::vector<int>& gridSrcGlobalDim,

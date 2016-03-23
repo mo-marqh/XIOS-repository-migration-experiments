@@ -27,7 +27,8 @@ public:
 
   virtual ~CAxisAlgorithmZoom() {}
 
-  virtual void computeIndexSourceMapping();
+protected:
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void updateAxisDestinationMask();

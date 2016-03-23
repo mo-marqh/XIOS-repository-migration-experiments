@@ -27,7 +27,8 @@ public:
 
   virtual ~CDomainAlgorithmZoom() {}
 
-  virtual void computeIndexSourceMapping();
+protected:
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void updateDomainDestinationMask();

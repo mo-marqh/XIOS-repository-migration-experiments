@@ -40,7 +40,7 @@ public:
   CGridTransformation(CGrid* destination, CGrid* source);
   ~CGridTransformation();
 
-  void computeAll();
+  void computeAll(const std::vector<CArray<double,1>* >& dataAuxInput=std::vector<CArray<double,1>* >());
 
   const std::map<int, CArray<int,1> >& getLocalIndexToSendFromGridSource() const;
   const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
@@ -48,6 +48,7 @@ public:
   CGrid* getGridDestination() { return gridDestination_; }
   ListAlgoType getAlgoList() const {return listAlgos_; }
   int getNbAlgo() { return nbAlgos_; }
+  const std::vector<StdString>& getAuxInputs() const { return auxInputs_; }
 
 protected:
   void computeTransformation();
@@ -59,7 +60,7 @@ protected:
   void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
-  void setUpGrid(int elementPositionInGrid, ETranformationType transType);
+  void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
   void computeFinalTransformationMapping();
   void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
   void updateFinalGridDestination();
@@ -88,7 +89,7 @@ protected:
   std::vector<bool> algoTypes_;
 
   // Mapping between position of an element in grid and its transformation (if any)
-  std::list<CGenericAlgorithmTransformation*> algoTransformation_;
+  std::vector<CGenericAlgorithmTransformation*> algoTransformation_;
 
   //! Mapping of (grid) global index representing tranformation.
   std::map<size_t, std::set<size_t> > globaIndexMapFromDestToSource_;
@@ -104,6 +105,10 @@ protected:
 
   //! (Grid) Global index of grid source
   GlobalIndexMap currentGridIndexToOriginalGridIndex_;
+
+  std::vector<CGrid*> tempGrids_;
+  std::vector<StdString> auxInputs_;
+  bool dynamicalTransformation_;
 };
 
 }

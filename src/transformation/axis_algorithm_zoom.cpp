@@ -26,13 +26,13 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
            << "Zoom size is " << zoomSize_ );
   }
 
-  computeIndexSourceMapping();
+//  computeIndexSourceMapping();
 }
 
 /*!
   Compute the index mapping between axis on grid source and one on grid destination
 */
-void CAxisAlgorithmZoom::computeIndexSourceMapping()
+void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
   StdSize niSource = axisSrc_->n.getValue();
   StdSize ibeginSource = axisSrc_->begin.getValue();
@@ -43,8 +43,12 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping()
   StdSize ni = iend + 1 - ibegin;
   if (iend < ibegin) ni = 0;
 
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
+  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
+
   for (StdSize idx = 0; idx < ni; ++idx)
   {
     transMap[ibegin+idx].push_back(ibegin+idx);
@@ -74,7 +78,7 @@ void CAxisAlgorithmZoom::updateAxisDestinationMask()
   StdSize niMask = axisDest_->mask.numElements();
   StdSize iBeginMask = axisDest_->begin.getValue();
   StdSize globalIndexMask = 0;
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
+  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
   std::map<int, std::vector<int> >::const_iterator ite = (transMap).end();
   for (StdSize idx = 0; idx < niMask; ++idx)
   {

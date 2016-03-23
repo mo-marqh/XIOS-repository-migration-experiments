@@ -10,7 +10,7 @@ namespace xios
   class CSpatialTransformFilterEngine;
 
   /*!
-   * A generic filter with one input slot wrapping any type of spatial transformations.
+   * A generic filter with multiple input slots wrapping any type of spatial transformations.
    */
   class CSpatialTransformFilter : public CFilter
   {
@@ -20,8 +20,9 @@ namespace xios
        *
        * \param gc the associated garbage collector
        * \param engine the engine defining the spatial transformation
+       * \param [in] inputSlotsCount number of input, by default there is only one for field src
        */
-      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine);
+      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, size_t inputSlotsCount = 1);
 
       /*!
        * Builds the filter graph needed to transform the specified source grid into the specified destination grid.

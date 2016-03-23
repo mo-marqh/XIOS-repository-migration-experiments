@@ -11,7 +11,7 @@
 namespace xios {
 
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
- : transformationMapping_(), transformationWeight_()
+ : transformationMapping_(), transformationWeight_(), transformationPosition_(), idAuxInputs_()
 {
 }
 
@@ -31,34 +31,77 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                                              const std::vector<size_t>& globalIndexGridDestSendToServer,
                                                              std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
 {
-  std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_.begin(), itTransMap,
-                                                   iteTransMap = transformationMapping_.end();
-  std::map<int, std::vector<double> >::const_iterator itTransWeight = transformationWeight_.begin();
-  std::vector<std::vector<size_t> > globalIndexSrcGrid;
-  CArray<size_t,1> globalIndexDestGrid;
+  bool isTransPosEmpty = transformationPosition_.empty();
   std::vector<size_t> vecGlobalIndexGridSendToServer(globalIndexGridDestSendToServer.begin(), globalIndexGridDestSendToServer.end());
   std::sort(vecGlobalIndexGridSendToServer.begin(), vecGlobalIndexGridSendToServer.end());
-  for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
+  for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
-    this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
-                                                   itTransMap->second,
-                                                   elementPositionInGrid,
-                                                   gridDestGlobalDim,
-                                                   gridSrcGlobalDim,
-                                                   vecGlobalIndexGridSendToServer,
-                                                   globalIndexDestGrid,
-                                                   globalIndexSrcGrid);
-    size_t globalIndexSize = globalIndexDestGrid.numElements();
-    const std::vector<double>& currentVecWeight = itTransWeight->second;
-    for (size_t idx = 0; idx < globalIndexSize; ++idx)
+    std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
+                                                     iteTransMap = transformationMapping_[idxTrans].end();
+    std::map<int, std::vector<double> >::const_iterator itTransWeight = transformationWeight_[idxTrans].begin();
+
+    // If transformation position exists
+    std::map<int, std::vector<int> >::const_iterator itTransPos, iteTransPos;
+    if (!isTransPosEmpty)
     {
-      size_t globalIndex = globalIndexDestGrid(idx);
-      for (int i = 0; i < globalIndexSrcGrid[idx].size(); ++i)
+      itTransPos  = transformationPosition_[idxTrans].begin(),
+      iteTransPos = transformationPosition_[idxTrans].end();
+    }
+    std::vector<int> emptyTransPos;
+
+    std::vector<std::vector<size_t> > globalIndexSrcGrid;
+    CArray<size_t,1> globalIndexDestGrid;
+//    std::vector<size_t> vecGlobalIndexGridSendToServer(globalIndexGridDestSendToServer.begin(), globalIndexGridDestSendToServer.end());
+//    std::sort(vecGlobalIndexGridSendToServer.begin(), vecGlobalIndexGridSendToServer.end());
+    for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
+    {
+      if (!isTransPosEmpty)
       {
-        globaIndexWeightFromDestToSource[globalIndex].push_back(make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i]));
+        this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
+                                                       itTransMap->second,
+                                                       itTransPos->second,
+                                                       elementPositionInGrid,
+                                                       gridDestGlobalDim,
+                                                       gridSrcGlobalDim,
+                                                       vecGlobalIndexGridSendToServer,
+                                                       globalIndexDestGrid,
+                                                       globalIndexSrcGrid);
+        ++itTransPos;
+      }
+      else
+      {
+        this->computeGlobalGridIndexFromGlobalIndexElement(itTransMap->first,
+                                                       itTransMap->second,
+                                                       emptyTransPos,
+                                                       elementPositionInGrid,
+                                                       gridDestGlobalDim,
+                                                       gridSrcGlobalDim,
+                                                       vecGlobalIndexGridSendToServer,
+                                                       globalIndexDestGrid,
+                                                       globalIndexSrcGrid);
+      }
+      size_t globalIndexSize = globalIndexDestGrid.numElements();
+      const std::vector<double>& currentVecWeight = itTransWeight->second;
+      for (size_t idx = 0; idx < globalIndexSize; ++idx)
+      {
+        size_t globalIndex = globalIndexDestGrid(idx);
+        for (int i = 0; i < globalIndexSrcGrid[idx].size(); ++i)
+        {
+          globaIndexWeightFromDestToSource[globalIndex].push_back(make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i]));
+        }
       }
     }
   }
+}
+
+void CGenericAlgorithmTransformation::computeIndexSourceMapping(const std::vector<CArray<double,1>* >& dataAuxInputs)
+{
+  computeIndexSourceMapping_(dataAuxInputs);
+}
+
+std::vector<StdString> CGenericAlgorithmTransformation::getIdAuxInputs()
+{
+  return idAuxInputs_;
 }
 
 }

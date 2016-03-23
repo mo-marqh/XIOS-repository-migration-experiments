@@ -32,7 +32,7 @@ CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(CDomain
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
-void CDomainAlgorithmGenerateRectilinear::computeIndexSourceMapping()
+void CDomainAlgorithmGenerateRectilinear::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
  /* Nothing to do */
 }
