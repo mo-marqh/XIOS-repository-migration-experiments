@@ -22,8 +22,8 @@ will be redistributed (projected) into size_t space as long as the associated in
 */
 template<typename T, typename H>
 CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const boost::unordered_map<size_t,T>& indexInfoMap,
-                                                      const MPI_Comm& clientIntraComm,
-                                                      int hierarLvl)
+                                                        const MPI_Comm& clientIntraComm,
+                                                        int hierarLvl)
   : index2InfoMapping_(), indexToInfoMappingLevel_()
 {
   this->computeMPICommLevel(clientIntraComm, hierarLvl);
@@ -45,13 +45,6 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMapping(const CArray<size_t,
 {
   int lvl = this->commLevel_.size() - 1;
   computeIndexInfoMappingLevel(indices, this->commLevel_[lvl], lvl);
-  size_t size = indices.numElements();
-  for (size_t idx = 0; idx < size; ++idx)
-  {
-    T& info = indexToInfoMappingLevel_[indices(idx)];
-//    infoIndexMapping_[info].push_back(indices(idx));
-    infoIndexMapping_[indices(idx)] = info;
-  }
 }
 
 /*!
@@ -129,11 +122,10 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   unsigned char* recvBuffInfo = 0;
   int nbIndexReceivedFromOthers = nbIndexToSend;
   if (0 != nbIndexReceivedFromOthers)
-    recvBuffInfo = new unsigned char[nbIndexReceivedFromOthers*infoTypeSize];
+    recvBuffInfo = new unsigned char[nbIndexReceivedFromOthers*ProcessDHTElement<InfoType>::typeSize()];
 
   std::map<int, MPI_Request>::iterator itRequest;
   std::vector<int> demandAlreadyReceived, repondAlreadyReceived;
-
 
   int countIndex = 0;  // Counting of buffer for receiving index
   std::map<int, MPI_Request> requestRecvIndex; // Request returned by MPI_IRecv function about index
@@ -194,18 +186,21 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     indexToInfoMappingLevel_ = index2InfoMapping_;
 
   std::map<int, std::vector<InfoType> > client2ClientInfo;
+  std::vector<unsigned char*> infoToSend(src2Index.size());
   std::list<MPI_Request> sendInfoRequest;
-  std::map<int, std::vector<size_t> >::iterator itbSrc2Idx = src2Index.begin(), itSrc2Idx,
+  std::map<int, std::vector<size_t> >::iterator itSrc2Idx = src2Index.begin(),
                                                 iteSrc2Idx = src2Index.end();
-  for (itSrc2Idx = itbSrc2Idx; itSrc2Idx != iteSrc2Idx; ++itSrc2Idx)
+  for (int i=0; itSrc2Idx != iteSrc2Idx; ++itSrc2Idx, ++i)
   {
     int clientSourceRank = itSrc2Idx->first;
     std::vector<size_t>& srcIdx = itSrc2Idx->second;
+    infoToSend[i] = new unsigned char [srcIdx.size()*ProcessDHTElement<InfoType>::typeSize()];
+    int infoIndex = 0;
     for (int idx = 0; idx < srcIdx.size(); ++idx)
     {
-      client2ClientInfo[clientSourceRank].push_back(indexToInfoMappingLevel_[srcIdx[idx]]);
+      ProcessDHTElement<InfoType>::packElement(indexToInfoMappingLevel_[srcIdx[idx]], infoToSend[i], infoIndex);
     }
-    sendInfoToClients(clientSourceRank, client2ClientInfo[clientSourceRank], commLevel, sendInfoRequest);
+    sendInfoToClients(clientSourceRank, infoToSend[i], infoIndex, commLevel, sendInfoRequest);
   }
 
   boost::unordered_map<size_t,InfoType> indexToInfoMapping;
@@ -239,12 +234,10 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
         int clientSourceRank = statusInfo.MPI_SOURCE;
         unsigned char* beginBuff = infoBuffBegin[clientSourceRank];
         std::vector<size_t>& indexTmp = client2ClientIndex[clientSourceRank];
-        TypeToBytes<InfoType> u;
+        int infoIndex = 0;
         for (int i = 0; i < actualCountInfo; ++i)
         {
-          unsigned char* tmpBeginBuff = beginBuff+i*infoTypeSize;
-          for (size_t idx = 0; idx < infoTypeSize; ++idx) u.bytes[idx] = *(tmpBeginBuff+idx);
-          indexToInfoMapping[indexTmp[i]] = u.value;
+          ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[indexTmp[i]], beginBuff, infoIndex);
         }
         nbSendBuffInfoReceived += actualCountInfo;
         repondAlreadyReceived.push_back(clientSourceRank);
@@ -259,6 +252,7 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   indexToInfoMappingLevel_.swap(indexToInfoMapping);
   if (0 != maxNbIndexDemandedFromOthers) delete [] recvBuffIndex;
   if (0 != nbIndexReceivedFromOthers) delete [] recvBuffInfo;
+  for (int idx = 0; idx < infoToSend.size(); ++idx) delete [] infoToSend[idx];
   delete [] sendBuff;
   delete [] recvBuff;
 }
@@ -345,7 +339,7 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
   MPI_Allreduce(sendNbIndexBuff, recvNbIndexBuff, nbClient, MPI_INT, MPI_SUM, commLevel);
   int recvNbIndexCount = recvNbIndexBuff[clientRank];
   unsigned long* recvIndexBuff = new unsigned long[recvNbIndexCount];
-  unsigned char* recvInfoBuff = new unsigned char[recvNbIndexCount*infoTypeSize];
+  unsigned char* recvInfoBuff = new unsigned char[recvNbIndexCount*ProcessDHTElement<InfoType>::typeSize()];
 
   // If a client holds information about index and the corresponding which don't belong to it,
   // it will send a message to the correct clients.
@@ -355,10 +349,33 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
                                                 iteIndex = client2ClientIndex.end();
   for (; itIndex != iteIndex; ++itIndex)
     sendIndexToClients(itIndex->first, itIndex->second, commLevel, sendRequest);
-  typename std::map<int, std::vector<InfoType> >::iterator itInfo  = client2ClientInfo.begin(),
+  typename std::map<int, std::vector<InfoType> >::iterator itbInfo = client2ClientInfo.begin(), itInfo,
                                                            iteInfo = client2ClientInfo.end();
-  for (; itInfo != iteInfo; ++itInfo)
-    sendInfoToClients(itInfo->first, itInfo->second, commLevel, sendRequest);
+
+  std::vector<int> infoSizeToSend(client2ClientInfo.size(),0);
+  std::vector<unsigned char*> infoToSend(client2ClientInfo.size());
+  itInfo = itbInfo;
+  for (int idx = 0; itInfo != iteInfo; ++itInfo, ++idx)
+  {
+    const std::vector<InfoType>& infoVec = itInfo->second;
+    int infoVecSize = infoVec.size();
+    std::vector<int> infoIndex(infoVecSize);
+    for (int i = 0; i < infoVecSize; ++i)
+    {
+      infoIndex[i] = infoSizeToSend[idx];
+      ProcessDHTElement<InfoType>::packElement(infoVec[i], NULL, infoSizeToSend[idx]);
+    }
+
+    infoToSend[idx] = new unsigned char[infoSizeToSend[idx]];
+    infoSizeToSend[idx] = 0;
+    for (int i = 0; i < infoVecSize; ++i)
+    {
+      ProcessDHTElement<InfoType>::packElement(infoVec[i], infoToSend[idx], infoSizeToSend[idx]);
+    }
+
+    sendInfoToClients(itInfo->first, infoToSend[idx], infoSizeToSend[idx], commLevel, sendRequest);
+  }
+
 
   std::map<int, MPI_Request>::iterator itRequestIndex, itRequestInfo;
   std::map<int, int> countBuffInfo, countBuffIndex;
@@ -423,12 +440,12 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
           (countBuffIndex.end() != countBuffIndex.find(rank)))
       {
         int count = it->second;
-        TypeToBytes<InfoType> u;
+        InfoType infoValue;
+        int infoIndex = 0;
         for (int i = 0; i < count; ++i)
         {
-          unsigned char* tmpBeginBuff = infoBuffBegin[rank]+i*infoTypeSize;
-          for (size_t idx = 0; idx < infoTypeSize; ++idx) u.bytes[idx] = *(tmpBeginBuff+idx);
-          indexToInfoMapping.insert(std::make_pair<size_t,InfoType>(*(indexBuffBegin[rank]+i),u.value));
+          ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuffBegin[rank], infoIndex);
+          indexToInfoMapping.insert(std::make_pair<size_t,InfoType>(*(indexBuffBegin[rank]+i),infoValue));
         }
 
         processedList.push_back(rank);
@@ -447,6 +464,7 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     if (0 == recvNbClient) isFinished = true;
   }
 
+  for (int idx = 0; idx < infoToSend.size(); ++idx) delete [] infoToSend[idx];
   delete [] sendBuff;
   delete [] sendNbIndexBuff;
   delete [] recvBuff;
@@ -562,14 +580,13 @@ void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, std::
   \param [in] requestSendInfo list of sending request
 */
 template<typename T, typename H>
-void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, std::vector<T>& info,
-                                                      const MPI_Comm& clientIntraComm,
-                                                      std::list<MPI_Request>& requestSendInfo)
+void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
+                       const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendInfo)
 {
   MPI_Request request;
   requestSendInfo.push_back(request);
 
-  MPI_Isend(&(info)[0], info.size() * infoTypeSize, MPI_CHAR,
+  MPI_Isend(info, infoSize, MPI_CHAR,
             clientDestRank, MPI_DHT_INFO, clientIntraComm, &(requestSendInfo.back()));
 }
 

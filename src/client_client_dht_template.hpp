@@ -15,7 +15,6 @@
 #include "mpi.hpp"
 #include "policy.hpp"
 #include <boost/unordered_map.hpp>
-//#include "utils.hpp"
 #include "dht_data_types.hpp"
 
 namespace xios
@@ -38,14 +37,13 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     typedef typename boost::unordered_map<size_t,InfoType> Index2InfoTypeMap;
 
   public:
-    /** Default constructor */
     CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoInitMap,
                              const MPI_Comm& clientIntraComm,
                              int hierarLvl = 2);
 
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 
-    const Index2InfoTypeMap& getInfoIndexMap() const {return infoIndexMapping_; }
+    const Index2InfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
 
     /** Default destructor */
     virtual ~CClientClientDHTTemplate();
@@ -73,12 +71,12 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     void probeInfoMessageFromClients(unsigned char* recvIndexServerBuff,
                                      const int recvNbIndexCount,
                                      int& countIndexServer,
-                                     std::map<int, unsigned char*>& indexServerBuffBegin,
+                                     std::map<int, unsigned char*>& infoBuffBegin,
                                      std::map<int, MPI_Request>& requestRecvIndexServer,
                                      const MPI_Comm& intraComm);
 
-    // Send server index to clients
-    void sendInfoToClients(int clientDestRank, std::vector<InfoType>& indexServer,
+    // Send information to clients
+    void sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
                            const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendIndexServer);
 
     // Send global index to clients
@@ -98,11 +96,8 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     //! Mapping of global index to the corresponding client
     Index2InfoTypeMap index2InfoMapping_;
 
-    //! A temporary mapping of index to the corresponding information in each level of hierarchy
+    //! A mapping of index to the corresponding information in each level of hierarchy
     Index2InfoTypeMap indexToInfoMappingLevel_;
-
-    //! Data (information) corresponding to global index
-    Index2InfoTypeMap infoIndexMapping_;
 
     //! intracommuntion of clients
     MPI_Comm intraCommRoot_;
