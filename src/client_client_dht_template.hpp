@@ -15,6 +15,8 @@
 #include "mpi.hpp"
 #include "policy.hpp"
 #include <boost/unordered_map.hpp>
+//#include "utils.hpp"
+#include "dht_data_types.hpp"
 
 namespace xios
 {
@@ -32,23 +34,25 @@ class CClientClientDHTTemplate: public HierarchyPolicy
   public:
     typedef T InfoType;
     static const int infoTypeSize = sizeof(InfoType);
+    typedef typename boost::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
+    typedef typename boost::unordered_map<size_t,InfoType> Index2InfoTypeMap;
 
   public:
     /** Default constructor */
-    CClientClientDHTTemplate(const boost::unordered_map<size_t,T>& indexInfoInitMap,
+    CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoInitMap,
                              const MPI_Comm& clientIntraComm,
                              int hierarLvl = 2);
 
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 
-    const std::map<T, std::vector<size_t> >& getInfoIndexMap() const {return indexGlobalOnServer_; }
+    const Index2InfoTypeMap& getInfoIndexMap() const {return infoIndexMapping_; }
 
     /** Default destructor */
     virtual ~CClientClientDHTTemplate();
 
   protected:
     // Redistribute index and info among clients
-    void computeDistributedIndex(const boost::unordered_map<size_t,T>& indexInfoInitMap,
+    void computeDistributedIndex(const Index2InfoTypeMap& indexInfoInitMap,
                                  const MPI_Comm& intraCommLevel,
                                  int level);
 
@@ -66,10 +70,10 @@ class CClientClientDHTTemplate: public HierarchyPolicy
                                       std::map<int, MPI_Request>& requestRecvIndexGlobal,
                                       const MPI_Comm& intraComm);
 
-    void probeInfoMessageFromClients(InfoType* recvIndexServerBuff,
+    void probeInfoMessageFromClients(unsigned char* recvIndexServerBuff,
                                      const int recvNbIndexCount,
                                      int& countIndexServer,
-                                     std::map<int, InfoType*>& indexServerBuffBegin,
+                                     std::map<int, unsigned char*>& indexServerBuffBegin,
                                      std::map<int, MPI_Request>& requestRecvIndexServer,
                                      const MPI_Comm& intraComm);
 
@@ -92,13 +96,13 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
   protected:
     //! Mapping of global index to the corresponding client
-    boost::unordered_map<size_t,InfoType> index2InfoMapping_;
+    Index2InfoTypeMap index2InfoMapping_;
 
     //! A temporary mapping of index to the corresponding information in each level of hierarchy
-    boost::unordered_map<size_t,InfoType> indexToInfoMappingLevel_;
+    Index2InfoTypeMap indexToInfoMappingLevel_;
 
-    //! Global index of data on SERVER, which are calculated by client(s)
-    std::map<int, std::vector<size_t> > indexGlobalOnServer_;
+    //! Data (information) corresponding to global index
+    Index2InfoTypeMap infoIndexMapping_;
 
     //! intracommuntion of clients
     MPI_Comm intraCommRoot_;
@@ -108,6 +112,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 };
 
 typedef CClientClientDHTTemplate<int> CClientClientDHTInt;
+typedef CClientClientDHTTemplate<PairIntInt> CClientClientDHTPairIntInt;
 
 } // namespace xios
 #endif // __XIOS_CLIENT_CLIENT_DHT_TEMPLATE_HPP__

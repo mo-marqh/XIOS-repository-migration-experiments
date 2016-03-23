@@ -32,8 +32,8 @@ protected:
                                                         int domainPositionInGrid,
                                                         const std::vector<int>& gridDestGlobalDim,
                                                         const std::vector<int>& gridSrcGlobalDim,
-                                                        const std::vector<size_t>& globalIndexGridDestSendToServer,
-                                                        CArray<size_t,1>& globalIndexDestGrid,
+                                                        const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
+                                                        std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
                                                         std::vector<std::vector<size_t> >& globalIndexSrcGrid);
 
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);

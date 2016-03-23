@@ -27,28 +27,33 @@ The same discovering algorithm as the case of client-server is applied to find t
 class CTransformationMapping
 {
 public:
+  typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
+  typedef boost::unordered_map<int,std::vector<std::vector<std::pair<int, std::pair<size_t,double> > > > > ReceivedIndexMap;
+  typedef boost::unordered_map<int,std::vector<std::pair<int, size_t> > > SentIndexMap;
+
+public:
   /** Default constructor */
   CTransformationMapping(CGrid* destination, CGrid* source);
   CTransformationMapping(CAxis* destination, CAxis* source);
 
   ~CTransformationMapping();
 
-  void computeTransformationMapping(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
-  const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& getGlobalIndexReceivedOnGridDestMapping() const;
-  const std::map<int,std::vector<size_t> >& getGlobalIndexSendToGridDestMapping() const;
+  void computeTransformationMapping(const DestinationIndexMap& globaIndexMapFromDestToSource);
+  const ReceivedIndexMap& getGlobalIndexReceivedOnGridDestMapping() const;
+  const SentIndexMap& getGlobalIndexSendToGridDestMapping() const;
 
 protected:
   CGrid* gridSource_;  // Grid source
   CGrid* gridDestination_; // Grid destination demande the necessary global index from grid source
 
   //! Global index mapping of grid source and grid destination between two clients
-  CClientServerMappingDistributed* gridIndexClientClientMapping_;
+  CClientClientDHTPairIntInt* gridIndexClientClientMapping_;
 
   //! Mapping of client rank of grid source and global index received in grid destination
-  std::map<int,std::vector<std::vector<std::pair<size_t,double> > > > globalIndexReceivedOnGridDestMapping_;
+  ReceivedIndexMap globalIndexReceivedOnGridDestMapping_;
 
   //! Mapping of client rank of grid destination and global index to send from grid source
-  std::map<int,std::vector<size_t> > globalIndexSendToGridDestMapping_;
+  SentIndexMap globalIndexSendToGridDestMapping_;
 };
 
 }

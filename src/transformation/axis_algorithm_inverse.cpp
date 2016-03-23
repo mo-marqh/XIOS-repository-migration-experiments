@@ -71,21 +71,23 @@ void CAxisAlgorithmInverse::updateAxisValue()
   std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
   std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
 
-  std::map<size_t, std::vector<std::pair<size_t,double> > > globaIndexMapFromDestToSource;
+  CTransformationMapping::DestinationIndexMap globaIndexMapFromDestToSource;
   std::map<int, std::vector<int> >::const_iterator it = transMap.begin(), ite = transMap.end();
+  int localIndex = 0;
   for (; it != ite; ++it)
   {
-    globaIndexMapFromDestToSource[it->first].push_back(make_pair((it->second)[0], (transWeight[it->first])[0]));
+    globaIndexMapFromDestToSource[it->first].push_back(make_pair(localIndex,make_pair((it->second)[0], (transWeight[it->first])[0])));
+    ++localIndex;
   }
 
   transformationMap.computeTransformationMapping(globaIndexMapFromDestToSource);
 
-  const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
-  const std::map<int,std::vector<size_t> >& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
+  const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
+  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
 
  // Sending global index of original grid source
-  std::map<int,std::vector<size_t> >::const_iterator itbSend = globalIndexToSend.begin(), itSend,
-                                                     iteSend = globalIndexToSend.end();
+  CTransformationMapping::SentIndexMap::const_iterator itbSend = globalIndexToSend.begin(), itSend,
+                                                       iteSend = globalIndexToSend.end();
  int sendBuffSize = 0;
  for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize += (itSend->second).size();
 
@@ -98,11 +100,11 @@ void CAxisAlgorithmInverse::updateAxisValue()
  for (itSend = itbSend; itSend != iteSend; ++itSend)
  {
    int destRank = itSend->first;
-   const std::vector<size_t>& globalIndexOfCurrentGridSourceToSend = itSend->second;
+   const std::vector<std::pair<int,size_t> >& globalIndexOfCurrentGridSourceToSend = itSend->second;
    int countSize = globalIndexOfCurrentGridSourceToSend.size();
    for (int idx = 0; idx < (countSize); ++idx)
    {
-     int index = globalIndexOfCurrentGridSourceToSend[idx] - ibeginSrc;
+     int index = globalIndexOfCurrentGridSourceToSend[idx].first;
      sendBuff[idx+currentBuffPosition] = (axisSrc_->value)(index);
    }
    currentSendBuff = sendBuff + currentBuffPosition;
@@ -111,8 +113,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
  }
 
  // Receiving global index of grid source sending from current grid source
- std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >::const_iterator itbRecv = globalIndexToReceive.begin(), itRecv,
-                                                                                     iteRecv = globalIndexToReceive.end();
+ CTransformationMapping::ReceivedIndexMap::const_iterator itbRecv = globalIndexToReceive.begin(), itRecv,
+                                                          iteRecv = globalIndexToReceive.end();
  int recvBuffSize = 0;
  for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize += (itRecv->second).size();
 

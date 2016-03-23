@@ -41,8 +41,8 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
                                                                           int domainPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const std::vector<int>& gridSrcGlobalDim,
-                                                                          const std::vector<size_t>& globalIndexGridDestSendToServer,
-                                                                          CArray<size_t,1>& globalIndexDestGrid,
+                                                                          const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
+                                                                          std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
                                                                           std::vector<std::vector<size_t> >& globalIndexSrcGrid)
 {
   int globalDim = gridDestGlobalDim.size();
@@ -78,8 +78,8 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
 
   for (int i = 0; i< numElement; ++i) ssize *= gridDomainGlobalDim[i];
 
-  std::vector<size_t>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
-                                      iteArr = globalIndexGridDestSendToServer.end();
+  GlobalLocalMap::const_iterator iteArr = globalLocalIndexDestSendToServerMap.end(), it;
+
   idx = 0;
   while (idx < ssize)
   {
@@ -111,13 +111,13 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    if (std::binary_search(itbArr, iteArr, globIndex)) ++realGlobalIndexSize;
+    if (iteArr != globalLocalIndexDestSendToServerMap.find(globIndex)) ++realGlobalIndexSize;
     ++idxLoop[0];
     ++idx;
   }
 
-  if (globalIndexDestGrid.numElements() != realGlobalIndexSize)
-    globalIndexDestGrid.resize(realGlobalIndexSize);
+  if (globalLocalIndexDestMap.size() != realGlobalIndexSize)
+    globalLocalIndexDestMap.resize(realGlobalIndexSize);
 
   if (realGlobalIndexSize != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(realGlobalIndexSize);
   for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
@@ -157,9 +157,10 @@ void CDomainAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElemen
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    if (std::binary_search(itbArr, iteArr, globIndex))
+    it = globalLocalIndexDestSendToServerMap.find(globIndex);
+    if (iteArr != it)
     {
-      globalIndexDestGrid(realGlobalIndex) = globIndex;
+      globalLocalIndexDestMap[realGlobalIndex] = (std::make_pair(it->first,it->second));
       for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)
       {
         domainGlobalIndex(domainSrcGlobalIndex[i], domainSrcGlobalDim[0], domainSrcGlobalDim[1],

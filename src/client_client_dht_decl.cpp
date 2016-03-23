@@ -12,5 +12,6 @@ namespace xios
 {
 
 template class CClientClientDHTTemplate<int>;
+template class CClientClientDHTTemplate<PairIntInt>;
 
 }

@@ -34,6 +34,7 @@ class CGridTransformation
 {
 public:
   typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
+  typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
 
 public:
   /** Default constructor */
@@ -62,7 +63,7 @@ protected:
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
   void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
   void computeFinalTransformationMapping();
-  void computeTransformationFromOriginalGridSource(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexMapFromDestToSource);
+  void computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource);
   void updateFinalGridDestination();
   bool isSpecialTransformation(ETranformationType transType);
 
@@ -83,8 +84,6 @@ protected:
   //! Number of algorithm
   int nbAlgos_;
 
-  typedef std::map<size_t, std::vector<std::pair<size_t,double> > > GlobalIndexMap;
-
   // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_
   std::vector<bool> algoTypes_;
 
@@ -104,7 +103,7 @@ protected:
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
 
   //! (Grid) Global index of grid source
-  GlobalIndexMap currentGridIndexToOriginalGridIndex_;
+  DestinationIndexMap currentGridIndexToOriginalGridIndex_;
 
   std::vector<CGrid*> tempGrids_;
   std::vector<StdString> auxInputs_;

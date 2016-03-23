@@ -1385,10 +1385,10 @@ namespace xios {
     CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
                                                                                 client->intraComm);
     clientServerMap->computeServerIndexMapping(globalIndexDomain);
-    const std::map<int, std::vector<size_t> >& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
+    const CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
 
-    std::map<int, std::vector<size_t> >::const_iterator it = globalIndexDomainOnServer.begin(),
-                                                       ite = globalIndexDomainOnServer.end();
+    CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
+                                                         ite = globalIndexDomainOnServer.end();
     typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
     std::vector<int>::iterator itVec;
 

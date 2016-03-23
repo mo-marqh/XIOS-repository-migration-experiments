@@ -12,6 +12,9 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "distribution_client.hpp"
+#include "client_client_dht_template.hpp"
+#include "dht_data_types.hpp"
+#include "mpi_tag.hpp"
 
 namespace xios {
 
@@ -25,16 +28,22 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
 
   const std::vector<size_t>& globalIndexGridSrc = distributionClientSrc.getGlobalDataIndexSendToServer(); //gridSource_->getDistributionClient()->getGlobalDataIndexSendToServer();
-  boost::unordered_map<size_t,int> globalIndexOfServer;
+  const std::vector<int>& localIndexGridSrc = distributionClientSrc.getLocalDataIndexSendToServer();
+
+  // Mapping of global index and pair containing rank and local index
+  CClientClientDHTPairIntInt::Index2InfoTypeMap globalIndexOfServer;
   int globalIndexSize = globalIndexGridSrc.size();
+  PairIntInt pii;
   for (int idx = 0; idx < globalIndexSize; ++idx)
   {
-    globalIndexOfServer[globalIndexGridSrc[idx]] = clientRank;
+    pii.first  = clientRank;
+    pii.second = localIndexGridSrc[idx];
+    globalIndexOfServer[globalIndexGridSrc[idx]] = pii; //std::make_pair(clientRank, localIndexGridSrc[idx]);
   }
 
-  gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfServer,
-                                                                      client->intraComm,
-                                                                      true);
+  gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfServer,
+                                                                 client->intraComm,
+                                                                 true);
 }
 
 CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source)
@@ -47,15 +56,18 @@ CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source
   int niSrc     = source->n.getValue();
   int ibeginSrc = source->begin.getValue();
 
-  boost::unordered_map<size_t,int> globalIndexOfAxisSource;
+  CClientClientDHTPairIntInt::Index2InfoTypeMap globalIndexOfAxisSource;
+  PairIntInt pii;
   for (int idx = 0; idx < niSrc; ++idx)
   {
-    globalIndexOfAxisSource[idx+ibeginSrc] = clientRank;
+    pii.first  = clientRank;
+    pii.second = idx;
+    globalIndexOfAxisSource[idx+ibeginSrc] = pii; //std::make_pair(clientRank,idx);
   }
 
-  gridIndexClientClientMapping_ = new CClientServerMappingDistributed(globalIndexOfAxisSource,
-                                                                      client->intraComm,
-                                                                      true);
+  gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfAxisSource,
+                                                                 client->intraComm,
+                                                                 true);
 }
 
 CTransformationMapping::~CTransformationMapping()
@@ -70,88 +82,103 @@ this function tries to find out which clients a client needs to send and receive
   Grid destination and grid source are also distributed among clients but in different manners.
   \param [in] globaIndexWeightFromDestToSource mapping representing the transformations
 */
-void CTransformationMapping::computeTransformationMapping(const std::map<size_t, std::vector<std::pair<size_t,double> > >& globaIndexWeightFromDestToSource)
+void CTransformationMapping::computeTransformationMapping(const DestinationIndexMap& globaIndexWeightFromDestToSource)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
 
-  std::map<size_t, std::vector<std::pair<size_t,double> > >::const_iterator itbMap = globaIndexWeightFromDestToSource.begin(), itMap,
-                                                                            iteMap = globaIndexWeightFromDestToSource.end();
+  DestinationIndexMap::const_iterator itbMap = globaIndexWeightFromDestToSource.begin(), itMap,
+                                      iteMap = globaIndexWeightFromDestToSource.end();
 
   // Not only one index on grid destination can demande two indexes from grid source
   // but an index on grid source has to be sent to two indexes of grid destination
-  std::map<size_t, std::vector<std::pair<size_t,double> > > globalIndexMapFromSrcToDest;
-  std::vector<std::pair<size_t,double> >::const_iterator itbVecPair, itVecPair, iteVecPair;
+  DestinationIndexMap globalIndexMapFromSrcToDest;
+  boost::unordered_map<size_t, int> nbGlobalIndexMapFromSrcToDest;
+  std::vector<std::pair<int, std::pair<size_t,double> > >::const_iterator itbVecPair, itVecPair, iteVecPair;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
     itbVecPair = (itMap->second).begin();
     iteVecPair = (itMap->second).end();
     for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
     {
-      globalIndexMapFromSrcToDest[itVecPair->first].push_back(std::make_pair(itMap->first, itVecPair->second));
+      ++nbGlobalIndexMapFromSrcToDest[(itVecPair->second).first];
+    }
+  }
+
+  for (boost::unordered_map<size_t, int>::const_iterator it = nbGlobalIndexMapFromSrcToDest.begin();
+                                                         it != nbGlobalIndexMapFromSrcToDest.end(); ++it)
+  {
+    globalIndexMapFromSrcToDest[it->first].reserve(it->second);
+  }
+
+  for (itMap = itbMap; itMap != iteMap; ++itMap)
+  {
+    itbVecPair = (itMap->second).begin();
+    iteVecPair = (itMap->second).end();
+    for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
+    {
+      globalIndexMapFromSrcToDest[(itVecPair->second).first].push_back(std::make_pair(itVecPair->first, std::make_pair(itMap->first, (itVecPair->second).second)));
     }
   }
 
   // All global indexes of a client on grid destination
   CArray<size_t,1> globalIndexMap(globalIndexMapFromSrcToDest.size());
-  itbMap = globalIndexMapFromSrcToDest.begin();
-  iteMap = globalIndexMapFromSrcToDest.end();
+  DestinationIndexMap::const_iterator itbMapBoost = globalIndexMapFromSrcToDest.begin(), itMapBoost;
+  DestinationIndexMap::const_iterator iteMapBoost = globalIndexMapFromSrcToDest.end();
   int idx = 0;
-  for (itMap = itbMap; itMap != iteMap; ++itMap)
+  for (itMapBoost = itbMapBoost; itMapBoost != iteMapBoost; ++itMapBoost)
   {
-    globalIndexMap(idx) = itMap->first;
+    globalIndexMap(idx) = itMapBoost->first;
     ++idx;
   }
 
   // Find out on which clients the necessary indexes of grid source are.
-  gridIndexClientClientMapping_->computeServerIndexMapping(globalIndexMap);
-  const std::map<int, std::vector<size_t> >& globalIndexSentFromGridSource = gridIndexClientClientMapping_->getGlobalIndexOnServer();
-  std::map<int, std::vector<size_t> >::const_iterator itbMapSrc = globalIndexSentFromGridSource.begin(), itMapSrc,
-                                                      iteMapSrc = globalIndexSentFromGridSource.end();
+  gridIndexClientClientMapping_->computeIndexInfoMapping(globalIndexMap);
+  const CClientClientDHTPairIntInt::Index2InfoTypeMap& globalIndexSentFromGridSource = gridIndexClientClientMapping_->getInfoIndexMap();
+  CClientClientDHTPairIntInt::Index2InfoTypeMap::const_iterator itbMapSrc = globalIndexSentFromGridSource.begin(), itMapSrc,
+                                                                iteMapSrc = globalIndexSentFromGridSource.end();
   std::vector<size_t>::const_iterator itbVec, itVec, iteVec;
+    // Inform client about the destination to which it needs to send global indexes
+  int nbClient = client->clientSize;
+  std::vector<int> sendNbClientBuff(nbClient,0);
+  std::vector<int> recvNbClientBuff(nbClient,0);
+  std::vector<int> sendIndexBuff(nbClient,0);
+  std::vector<int> recvIndexBuff(nbClient,0);
+  boost::unordered_map<int,std::vector<size_t> > sendIndexMap;
   for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc)
   {
-    int sourceRank = itMapSrc->first;
-    itbVec = (itMapSrc->second).begin();
-    iteVec = (itMapSrc->second).end();
-    for (itVec = itbVec; itVec != iteVec; ++itVec)
-    {
-       (globalIndexReceivedOnGridDestMapping_[sourceRank]).push_back(globalIndexMapFromSrcToDest[*itVec]);
-    }
+    int sourceRank = (itMapSrc->second).first;
+    (globalIndexReceivedOnGridDestMapping_[sourceRank]).push_back(globalIndexMapFromSrcToDest[itMapSrc->first]);
+    sendIndexMap[sourceRank].push_back((itMapSrc->second).second);
+    sendIndexMap[sourceRank].push_back(itMapSrc->first);
+    sendNbClientBuff[sourceRank] = 1;
+    ++sendIndexBuff[sourceRank];
   }
 
-  // Inform client about the destination to which it needs to send global indexes
-  int nbClient = client->clientSize;
-  int* sendBuff = new int[nbClient];
-  int* recvBuff = new int[nbClient];
-  for (int i = 0; i < nbClient; ++i) sendBuff[i] = 0;
-
-  // First of all, inform the number of destination a client needs to send global index
-  for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc) sendBuff[itMapSrc->first] = 1;
-  MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, client->intraComm);
-  int numClientToReceive = recvBuff[client->clientRank];
+  MPI_Allreduce(&sendNbClientBuff[0], &recvNbClientBuff[0], nbClient, MPI_INT, MPI_SUM, client->intraComm);
+  int numClientToReceive = recvNbClientBuff[client->clientRank];
 
   // Then specify the size of receiving buffer, because we use synch send/receive so only necessary to know maximum size
-  for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc) sendBuff[itMapSrc->first] = (itMapSrc->second).size();
-  MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_MAX, client->intraComm);
-
-  int buffSize = recvBuff[client->clientRank];
+  MPI_Allreduce(&sendIndexBuff[0], &recvIndexBuff[0], nbClient, MPI_INT, MPI_MAX, client->intraComm);
+  int buffSize = 2*recvIndexBuff[client->clientRank]; // we send global as well as local index
   unsigned long* recvBuffGlobalIndex;
   if (0 != buffSize) recvBuffGlobalIndex = new unsigned long [buffSize];
 
   std::map<int, MPI_Request> requests;
 
   // Inform all "source clients" about index that they need to send
-  for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc)
+  boost::unordered_map<int,std::vector<size_t> >::const_iterator itSendIndex = sendIndexMap.begin(),
+                                                                 iteSendIndex= sendIndexMap.end();
+  for (; itSendIndex != iteSendIndex; ++itSendIndex)
   {
-    unsigned long* sendPtr = const_cast<unsigned long*>(&(itMapSrc->second)[0]);
+    unsigned long* sendPtr = const_cast<unsigned long*>(&(itSendIndex->second)[0]);
     MPI_Isend(sendPtr,
-              (itMapSrc->second).size(),
+              (itSendIndex->second).size(),
               MPI_UNSIGNED_LONG,
-              itMapSrc->first,
-              11,
+              (itSendIndex->first),
+              MPI_TRANSFORMATION_MAPPING_INDEX,
               client->intraComm,
-              &requests[itMapSrc->first]);
+              &requests[(itSendIndex->first)]);
   }
 
   // Now all the "source clients" try listening messages from other "destination clients"
@@ -164,15 +191,15 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
              buffSize,
              MPI_UNSIGNED_LONG,
              MPI_ANY_SOURCE,
-             11,
+             MPI_TRANSFORMATION_MAPPING_INDEX,
              client->intraComm,
              &status);
 
     MPI_Get_count(&status, MPI_UNSIGNED_LONG, &countBuff);
     int clientDestRank = status.MPI_SOURCE;
-    for (int idx = 0; idx < countBuff; ++idx)
+    for (int idx = 0; idx < countBuff; idx += 2)
     {
-      globalIndexSendToGridDestMapping_[clientDestRank].push_back(recvBuffGlobalIndex[idx]);
+      globalIndexSendToGridDestMapping_[clientDestRank].push_back(std::make_pair<int,size_t>(recvBuffGlobalIndex[idx], recvBuffGlobalIndex[idx+1]));
     }
     ++numClientReceived;
   }
@@ -181,8 +208,6 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
   for (itRequest = requests.begin(); itRequest != requests.end(); ++itRequest)
     MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
 
-  delete [] sendBuff;
-  delete [] recvBuff;
   if (0 != buffSize) delete [] recvBuffGlobalIndex;
 }
 
@@ -191,7 +216,7 @@ void CTransformationMapping::computeTransformationMapping(const std::map<size_t,
 and the corresponding global index to write on grid destination.
   \return global index mapping to receive on grid destination
 */
-const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& CTransformationMapping::getGlobalIndexReceivedOnGridDestMapping() const
+const CTransformationMapping::ReceivedIndexMap& CTransformationMapping::getGlobalIndexReceivedOnGridDestMapping() const
 {
   return globalIndexReceivedOnGridDestMapping_;
 }
@@ -201,7 +226,7 @@ const std::map<int,std::vector<std::vector<std::pair<size_t,double> > > >& CTran
 the corresponding global index to send
   \return global index mapping to send on grid source
 */
-const std::map<int,std::vector<size_t> >& CTransformationMapping::getGlobalIndexSendToGridDestMapping() const
+const CTransformationMapping::SentIndexMap& CTransformationMapping::getGlobalIndexSendToGridDestMapping() const
 {
   return globalIndexSendToGridDestMapping_;
 }

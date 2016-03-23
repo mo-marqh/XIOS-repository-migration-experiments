@@ -416,7 +416,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
   }
 
   domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp);
-  const std::map<int, std::vector<size_t> >& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
+  const CClientServerMapping::GlobalIndexMap& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
 
   //Inform each client number of index they will receive
   int nbClient = client->clientSize;
@@ -428,8 +428,8 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
     recvBuff[i] = 0;
   }
   int sendBuffSize = 0;
-  std::map<int, std::vector<size_t> >::const_iterator itbMap = globalIndexInterpSendToClient.begin(), itMap,
-                                                      iteMap = globalIndexInterpSendToClient.end();
+  CClientServerMapping::GlobalIndexMap::const_iterator itbMap = globalIndexInterpSendToClient.begin(), itMap,
+                                                       iteMap = globalIndexInterpSendToClient.end();
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
     const std::vector<size_t>& tmp = itMap->second;

@@ -48,8 +48,8 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
                                                                           int axisPositionInGrid,
                                                                           const std::vector<int>& gridDestGlobalDim,
                                                                           const std::vector<int>& gridSrcGlobalDim,
-                                                                          const std::vector<size_t>& globalIndexGridDestSendToServer,
-                                                                          CArray<size_t,1>& globalIndexDestGrid,
+                                                                          const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
+                                                                          std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
                                                                           std::vector<std::vector<size_t> >& globalIndexSrcGrid)
 {
   bool hasDestGlobalIndexPos = !destGlobalIndexPositionInGrid.empty();
@@ -71,8 +71,7 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
     ssize *= gridAxisGlobalDim[i];
   }
 
-  std::vector<size_t>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
-                                      iteArr = globalIndexGridDestSendToServer.end();
+  GlobalLocalMap::const_iterator iteArr = globalLocalIndexDestSendToServerMap.end(), it;
 
   while (idx < ssize)
   {
@@ -110,13 +109,13 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    if (std::binary_search(itbArr, iteArr, globIndex)) ++realGlobalIndexSize;
+    if (iteArr != globalLocalIndexDestSendToServerMap.find(globIndex)) ++realGlobalIndexSize;
     ++idxLoop[0];
     ++idx;
   }
 
-  if (globalIndexDestGrid.numElements() != realGlobalIndexSize)
-    globalIndexDestGrid.resize(realGlobalIndexSize);
+  if (globalLocalIndexDestMap.size() != realGlobalIndexSize)
+    globalLocalIndexDestMap.resize(realGlobalIndexSize);
 
   if (realGlobalIndexSize != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(realGlobalIndexSize);
   for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
@@ -161,9 +160,10 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
       globIndex += (currentIndex[k])*mulDim;
     }
 
-    if (std::binary_search(itbArr, iteArr, globIndex))
+    it = globalLocalIndexDestSendToServerMap.find(globIndex);
+    if (iteArr != it)
     {
-      globalIndexDestGrid(realGlobalIndex) = globIndex;
+      globalLocalIndexDestMap[realGlobalIndex] = (std::make_pair(it->first,it->second));
       for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)
       {
         currentIndex[axisPositionInGrid] = axisSrcGlobalIndex[i];
@@ -182,106 +182,5 @@ void CAxisAlgorithmTransformation::computeGlobalGridIndexFromGlobalIndexElement(
     ++idxLoop[0];
     ++idx;
   }
-
-
-
-//  int globalDim = gridDestGlobalDim.size();
-//
-//  std::vector<size_t> currentIndex(globalDim);
-//  std::vector<int> gridAxisGlobalDim(globalDim);
-//  std::vector<int> idxLoop(globalDim, 0);
-//
-//  size_t ssize = 1, idx = 0, realGlobalIndexSize = 0;
-//  for (int i = 0; i< globalDim; ++i)
-//  {
-//    if (axisPositionInGrid == i) gridAxisGlobalDim[i] = 1;
-//    else gridAxisGlobalDim[i] = gridDestGlobalDim[i];
-//    ssize *= gridAxisGlobalDim[i];
-//  }
-//
-//  std::vector<size_t>::const_iterator itbArr = globalIndexGridDestSendToServer.begin(), itArr,
-//                                      iteArr = globalIndexGridDestSendToServer.end();
-//
-//  while (idx < ssize)
-//  {
-//    for (int i = 0; i < globalDim-1; ++i)
-//    {
-//      if (idxLoop[i] == gridAxisGlobalDim[i])
-//      {
-//        idxLoop[i] = 0;
-//        ++idxLoop[i+1];
-//      }
-//    }
-//
-//    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
-//    currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
-//
-//    size_t globIndex = currentIndex[0];
-//    size_t mulDim = 1;
-//    for (int k = 1; k < globalDim; ++k)
-//    {
-//      mulDim *= gridDestGlobalDim[k-1];
-//      globIndex += (currentIndex[k])*mulDim;
-//    }
-//
-//    if (std::binary_search(itbArr, iteArr, globIndex)) ++realGlobalIndexSize;
-//    ++idxLoop[0];
-//    ++idx;
-//  }
-//
-//  if (globalIndexDestGrid.numElements() != realGlobalIndexSize)
-//    globalIndexDestGrid.resize(realGlobalIndexSize);
-//
-//  if (realGlobalIndexSize != globalIndexSrcGrid.size()) globalIndexSrcGrid.resize(realGlobalIndexSize);
-//  for (int i = 0; i < globalIndexSrcGrid.size(); ++i)
-//    if (globalIndexSrcGrid[i].size() != axisSrcGlobalIndex.size())
-//      globalIndexSrcGrid[i].resize(axisSrcGlobalIndex.size());
-//
-//  size_t realGlobalIndex = 0;
-//  idx = 0;
-//  idxLoop.assign(globalDim, 0);
-//  while (idx < ssize)
-//  {
-//    for (int i = 0; i < globalDim-1; ++i)
-//    {
-//      if (idxLoop[i] == gridAxisGlobalDim[i])
-//      {
-//        idxLoop[i] = 0;
-//        ++idxLoop[i+1];
-//      }
-//    }
-//
-//    for (int i = 0; i < globalDim; ++i) currentIndex[i] = idxLoop[i];
-//    currentIndex[axisPositionInGrid] = axisDestGlobalIndex;
-//
-//    size_t globIndex = currentIndex[0];
-//    size_t mulDim = 1;
-//    for (int k = 1; k < globalDim; ++k)
-//    {
-//      mulDim *= gridDestGlobalDim[k-1];
-//      globIndex += (currentIndex[k])*mulDim;
-//    }
-//
-//    if (std::binary_search(itbArr, iteArr, globIndex))
-//    {
-//      globalIndexDestGrid(realGlobalIndex) = globIndex;
-//      for (int i = 0; i < globalIndexSrcGrid[realGlobalIndex].size(); ++i)
-//      {
-//        currentIndex[axisPositionInGrid] = axisSrcGlobalIndex[i];
-//        globIndex = currentIndex[0];
-//        mulDim = 1;
-//        for (int k = 1; k < globalDim; ++k)
-//        {
-//          mulDim *= gridDestGlobalDim[k-1];
-//          globIndex += (currentIndex[k])*mulDim;
-//        }
-//        (globalIndexSrcGrid[realGlobalIndex])[i] = globIndex;
-//      }
-//      ++realGlobalIndex;
-//    }
-//
-//    ++idxLoop[0];
-//    ++idx;
-//  }
 }
 }

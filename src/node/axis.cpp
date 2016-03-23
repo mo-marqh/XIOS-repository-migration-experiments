@@ -432,7 +432,7 @@ namespace xios {
 
     CServerDistributionDescription serverDescriptionGlobal(globalDim, nbServer);
     int distributedDimensionOnServer = serverDescriptionGlobal.getDimensionDistributed();
-    std::map<int, std::vector<size_t> > globalIndexAxisOnServer;
+    CClientServerMapping::GlobalIndexMap globalIndexAxisOnServer;
     if (distributedDimensionOnServer == orderPositionInGrid) // So we have distributed axis on client side and also on server side*
     {
       std::vector<int> nGlobAxis(1);
@@ -471,8 +471,8 @@ namespace xios {
       }
     }
 
-    std::map<int, std::vector<size_t> >::const_iterator it = globalIndexAxisOnServer.begin(),
-                                                       ite = globalIndexAxisOnServer.end();
+    CClientServerMapping::GlobalIndexMap::const_iterator it = globalIndexAxisOnServer.begin(),
+                                                         ite = globalIndexAxisOnServer.end();
     std::vector<size_t>::const_iterator itbVec = (globalAxisZoom).begin(),
                                         iteVec = (globalAxisZoom).end();
     indSrv_.clear();
@@ -504,9 +504,11 @@ namespace xios {
 
     if (!indSrv_.empty())
     {
+      std::map<int, vector<size_t> >::const_iterator itIndSrv  = indSrv_.begin(),
+                                                     iteIndSrv = indSrv_.end();
       connectedServerRank_.clear();
-      for (it = indSrv_.begin(); it != indSrv_.end(); ++it)
-        connectedServerRank_.push_back(it->first);
+      for (; itIndSrv != iteIndSrv; ++itIndSrv)
+        connectedServerRank_.push_back(itIndSrv->first);
     }
     nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
   }

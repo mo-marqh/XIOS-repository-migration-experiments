@@ -456,11 +456,11 @@ namespace xios {
                                                             clientDistribution_->isDataDistributed());
 
      clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
-     const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
+     const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
 
      const std::vector<size_t>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
-     std::map<int, std::vector<size_t> >::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-     itbGlobalMap = itGlobalMap = globalIndexOnServer.begin();
+     CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
+     itGlobalMap  = itbGlobalMap = globalIndexOnServer.begin();
      iteGlobalMap = globalIndexOnServer.end();
 
      typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
@@ -487,8 +487,8 @@ namespace xios {
      }
 
      connectedServerRank_.clear();
-     for (std::map<int, std::vector<size_t> >::const_iterator it = globalIndexOnServer.begin(); it != globalIndexOnServer.end(); ++it) {
-       connectedServerRank_.push_back(it->first);
+     for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
+       connectedServerRank_.push_back(itGlobalMap->first);
      }
 
      nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
@@ -786,7 +786,7 @@ namespace xios {
     int rank;
     list<CMessage> listMsg;
     list<CArray<size_t,1> > listOutIndex;
-    const std::map<int, std::vector<size_t> >& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
+    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
     const std::vector<int>& localIndexSendToServer = clientDistribution_->getLocalDataIndexSendToServer();
     const std::vector<size_t>& globalIndexSendToServer = clientDistribution_->getGlobalDataIndexSendToServer();
 
@@ -820,7 +820,7 @@ namespace xios {
     }
     else
     {
-      std::map<int, std::vector<size_t> >::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
+      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
       itbGlobalMap = itGlobalMap = globalIndexOnServer.begin();
       iteGlobalMap = globalIndexOnServer.end();
 
