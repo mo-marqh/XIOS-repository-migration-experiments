@@ -69,13 +69,17 @@ protected:
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
 
 protected:
+  typedef boost::unordered_map<int, std::vector<int> > TransformationIndexMap;
+  typedef boost::unordered_map<int, std::vector<double> > TransformationWeightMap;
+  typedef boost::unordered_map<int, std::vector<int> > TransformationPositionMap;
+
   //! Map between global index of destination element and source element
-  std::vector<std::map<int, std::vector<int> > > transformationMapping_;
+  std::vector<TransformationIndexMap> transformationMapping_;
   //! Weight corresponding of source to destination
-  std::vector<std::map<int, std::vector<double> > > transformationWeight_;
+  std::vector<TransformationWeightMap> transformationWeight_;
   //! Map of global index of destination element and corresponding global index of other elements in the same grid
   //! By default, one index of an element corresponds to all index of remaining element in the grid. So it's empty
-  std::vector<std::map<int, std::vector<int> > > transformationPosition_;
+  std::vector<TransformationPositionMap> transformationPosition_;
 
   //! Id of auxillary inputs which help doing transformation dynamically
   std::vector<StdString> idAuxInputs_;

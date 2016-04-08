@@ -278,7 +278,7 @@ int CNetCdfInterface::inqVarName(int ncid, int varId, StdString& varName)
 
     sstr << "Error when calling function nc_inq_varname(ncid, varId, varNameBuff)" << std::endl
          << errormsg << std::endl
-         << "Unable to get variable name given its id: " << varId << std::endl;
+         << "Unable to get variable name: "<< varName << " given its id: " << varId << std::endl;
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
@@ -328,7 +328,7 @@ int CNetCdfInterface::inqDimName(int ncid, int dimId, StdString& dimName)
 
     sstr << "Error when calling function nc_inq_dimname(ncid, dimId, fullNameIn)" << std::endl
          << errormsg << std::endl
-         << "Unable to get dimension name given its id: " << dimId << std::endl;
+         << "Unable to get dimension name: " << dimName << " given its id: " << dimId << std::endl;
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
@@ -611,7 +611,7 @@ int CNetCdfInterface::inqAttName(int ncid, int varid, int attnum, StdString& nam
 
     sstr << "Error when calling function nc_inq_attname(ncid, varid, attnum, attName)" << std::endl;
     sstr << errormsg << std::endl;
-    sstr << "Unable to query the name of attribute " << attnum << " given the location id:" << ncid << " and the variable id:" << varid << std::endl;
+    sstr << "Unable to query the name: " << name << " of attribute " << attnum << " given the location id:" << ncid << " and the variable id:" << varid << std::endl;
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }

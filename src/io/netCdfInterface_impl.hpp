@@ -31,9 +31,11 @@ namespace xios
     if (NC_NOERR != status)
     {
       StdStringStream sstr;
+      StdString varName;
       sstr << "Error when calling function ncGetAttType(ncid, varId, attrName.c_str(), data)" << std::endl;
       sstr << nc_strerror(status) << std::endl;
-      sstr << "Unable to read attribute " << attrName << " given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      inqVarName(ncid, varId, varName);
+      sstr << "Unable to read attribute " << attrName << " given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
 
@@ -58,9 +60,11 @@ namespace xios
     if (NC_NOERR != status)
     {
       StdStringStream sstr;
+      StdString varName;
       sstr << "Error when calling function ncPutAttType(ncid, varId, attrName.c_str(), numVal, data)" << std::endl;
       sstr << nc_strerror(status) << std::endl;
-      sstr << "Unable to set attribute " << attrName << " given the location id: " << ncid << " and the variable id: " << varId
+      inqVarName(ncid, varId, varName);
+      sstr << "Unable to set attribute " << attrName << " given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl
            << " with " << numVal << " elements." << std::endl;
       throw CNetCdfException(sstr.str());
     }
@@ -84,9 +88,11 @@ namespace xios
     if (NC_NOERR != status)
     {
       StdStringStream sstr;
+      StdString varName;
       sstr << "Error when calling function ncGetVaraType(ncid, varId, start, count, data)" << std::endl;
       sstr << nc_strerror(status) << std::endl;
-      sstr << "Unable to read data given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      inqVarName(ncid, varId, varName);
+      sstr << "Unable to read data given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
 
@@ -109,9 +115,11 @@ namespace xios
     if (NC_NOERR != status)
     {
       StdStringStream sstr;
+      StdString varName;
       sstr << "Error when calling function ncPutVaraType(ncid, varId, start, count, data)" << std::endl;
       sstr << nc_strerror(status) << std::endl;
-      sstr << "Unable to write data given the location id: " << ncid << " and the variable id: " << varId << std::endl;
+      inqVarName(ncid, varId, varName);
+      sstr << "Unable to write data given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
       throw CNetCdfException(sstr.str());
     }
 

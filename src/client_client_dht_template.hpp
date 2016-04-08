@@ -19,7 +19,7 @@
 
 namespace xios
 {
-template<typename T, class HierarchyPolicy = DivideCommByTwo> class CClientClientDHTTemplate;
+template<typename T, class HierarchyPolicy = DivideAdaptiveComm> class CClientClientDHTTemplate;
 
 /*!
   \class CClientClientDHTTemplate
@@ -60,6 +60,12 @@ class CClientClientDHTTemplate: public HierarchyPolicy
                                       const MPI_Comm& intraCommLevel,
                                       int level);
 
+    void computeSendRecvRank(int level, int rank);
+
+    void sendRecvRank(int level,
+                      const std::vector<int>& sendNbRank, const std::vector<int>& sendNbElements,
+                      int& recvNbRank, int& recvNbElements);
+
   protected:
     void probeIndexMessageFromClients(unsigned long* recvIndexGlobalBuff,
                                       const int recvNbIndexCount,
@@ -80,7 +86,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
                            const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendIndexServer);
 
     // Send global index to clients
-    void sendIndexToClients(int clientDestRank, std::vector<size_t>& indexGlobal,
+    void sendIndexToClients(int clientDestRank, size_t* indices, size_t indiceSize,
                             const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendIndexGlobal);
 
     // Verify sending request
@@ -99,8 +105,9 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     //! A mapping of index to the corresponding information in each level of hierarchy
     Index2InfoTypeMap indexToInfoMappingLevel_;
 
-    //! intracommuntion of clients
-    MPI_Comm intraCommRoot_;
+    std::vector<std::vector<int> > sendRank_;
+
+    std::vector<std::vector<int> > recvRank_;
 
     //! Flag to specify whether data is distributed or not
     bool isDataDistributed_;

@@ -46,8 +46,8 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
 
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
   for (StdSize idx = 0; idx < ni; ++idx)
   {
@@ -78,8 +78,8 @@ void CAxisAlgorithmZoom::updateAxisDestinationMask()
   StdSize niMask = axisDest_->mask.numElements();
   StdSize iBeginMask = axisDest_->begin.getValue();
   StdSize globalIndexMask = 0;
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
-  std::map<int, std::vector<int> >::const_iterator ite = (transMap).end();
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationIndexMap::const_iterator ite = (transMap).end();
   for (StdSize idx = 0; idx < niMask; ++idx)
   {
     globalIndexMask = iBeginMask + idx;

@@ -14,19 +14,7 @@
 
 namespace xios
 {
-  typedef std::pair<int,int> PairIntInt;
-//struct PairIntInt
-//{
-////  PairIntInt(int f, int s) : first(f), second(s) {}
-////  PairIntInt(const PairIntInt& p)
-////  {
-////    this->first = p.first;
-////    this->second=p.second;
-////  }
-//
-//  int first;
-//  int second;
-//};
+typedef std::pair<int,int> PairIntInt;
 
 template<typename T>
 struct ProcessDHTElement

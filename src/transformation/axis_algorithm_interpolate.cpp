@@ -127,8 +127,8 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
 */
 void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
 {
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[transPos];
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[transPos];
+  TransformationIndexMap& transMap = this->transformationMapping_[transPos];
+  TransformationWeightMap& transWeight = this->transformationWeight_[transPos];
   std::map<int, std::vector<std::pair<int,double> > >::const_iterator itb = interpolatingIndexValues.begin(), it,
                                                                       ite = interpolatingIndexValues.end();
   int ibegin = axisDest_->begin.getValue();

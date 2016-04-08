@@ -34,12 +34,12 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   bool isTransPosEmpty = transformationPosition_.empty();
   for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
-    std::map<int, std::vector<int> >::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
+    TransformationIndexMap::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
                                                      iteTransMap = transformationMapping_[idxTrans].end();
-    std::map<int, std::vector<double> >::const_iterator itTransWeight = transformationWeight_[idxTrans].begin();
+    TransformationWeightMap::const_iterator itTransWeight = transformationWeight_[idxTrans].begin();
 
     // If transformation position exists
-    std::map<int, std::vector<int> >::const_iterator itTransPos, iteTransPos;
+    TransformationIndexMap::const_iterator itTransPos, iteTransPos;
     if (!isTransPosEmpty)
     {
       itTransPos  = transformationPosition_[idxTrans].begin(),

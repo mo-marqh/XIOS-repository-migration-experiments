@@ -22,7 +22,6 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
 : CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain)
 {
   interpDomain_->checkValid(domainSource);
-//  computeIndexSourceMapping();
 }
 
 /*!
@@ -384,8 +383,8 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
 
-  std::map<int, std::vector<int> >& transMap = this->transformationMapping_[0];
-  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_[0];
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
   boost::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();

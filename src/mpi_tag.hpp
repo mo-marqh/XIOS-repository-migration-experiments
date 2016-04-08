@@ -13,6 +13,12 @@
 /* Tag for mpi communication to send and receive info in distributed hashed table version 1*/
 #define MPI_DHT_INFO_0 22
 
+/* Tag for mpi communication to send and receive index in distributed hashed table version 1*/
+#define MPI_DHT_INDEX_1 27
+
+/* Tag for mpi communication to send and receive info in distributed hashed table version 1*/
+#define MPI_DHT_INFO_1 24
+
 /* Tag for mpi communication to send and receive info of current grid source in grid transformation*/
 #define MPI_GRID_TRANSFORMATION_CURRENT_GRID_INDEX 31
 
