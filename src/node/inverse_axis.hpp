@@ -53,7 +53,11 @@ namespace xios {
       static StdString GetName(void);
       static StdString GetDefName(void);
       static ENodeType GetType(void);
+
     private:
+      static bool registerTrans();
+      static CTransformation<CAxis>* create(const StdString& id, xml::CXMLNode* node);
+      static bool _dummyRegistered;
 
   }; // class CInverseAxis
 

@@ -16,6 +16,20 @@ namespace xios {
   CZoomAxis::~CZoomAxis(void)
   {}
 
+  CTransformation<CAxis>* CZoomAxis::create(const StdString& id, xml::CXMLNode* node)
+  {
+    CZoomAxis* zoomAxis = CZoomAxisGroup::get("zoom_axis_definition")->createChild(id);
+    if (node) zoomAxis->parse(*node);
+    return static_cast<CTransformation<CAxis>*>(zoomAxis);
+  }
+
+  bool CZoomAxis::registerTrans()
+  {
+    return registerTransformation(TRANS_ZOOM_AXIS, CZoomAxis::create);
+  }
+
+  bool CZoomAxis::_dummyRegistered = CZoomAxis::registerTrans();
+
   //----------------------------------------------------------------
 
   StdString CZoomAxis::GetName(void)    { return StdString("zoom_axis"); }

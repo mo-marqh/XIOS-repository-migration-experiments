@@ -16,6 +16,19 @@ namespace xios {
   CZoomDomain::~CZoomDomain(void)
   {}
 
+  CTransformation<CDomain>* CZoomDomain::create(const StdString& id, xml::CXMLNode* node)
+  {
+    CZoomDomain* zoomDomain = CZoomDomainGroup::get("zoom_domain_definition")->createChild(id);
+    if (node) zoomDomain->parse(*node);
+    return static_cast<CTransformation<CDomain>*>(zoomDomain);
+  }
+
+  bool CZoomDomain::_dummyRegistered = CZoomDomain::registerTrans();
+  bool CZoomDomain::registerTrans()
+  {
+    registerTransformation(TRANS_ZOOM_DOMAIN, CZoomDomain::create);
+  }
+
   //----------------------------------------------------------------
 
   StdString CZoomDomain::GetName(void)    { return StdString("zoom_domain"); }

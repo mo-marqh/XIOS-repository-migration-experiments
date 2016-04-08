@@ -16,6 +16,19 @@ namespace xios {
   CInterpolateDomain::~CInterpolateDomain(void)
   {}
 
+  CTransformation<CDomain>* CInterpolateDomain::create(const StdString& id, xml::CXMLNode* node)
+  {
+    CInterpolateDomain* interpDomain = CInterpolateDomainGroup::get("interpolate_domain_definition")->createChild(id);
+    if (node) interpDomain->parse(*node);
+    return static_cast<CTransformation<CDomain>*>(interpDomain);
+  }
+
+  bool CInterpolateDomain::_dummyRegistered = CInterpolateDomain::registerTrans();
+  bool CInterpolateDomain::registerTrans()
+  {
+    registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
+  }
+
   //----------------------------------------------------------------
 
   StdString CInterpolateDomain::GetName(void)    { return StdString("interpolate_domain"); }

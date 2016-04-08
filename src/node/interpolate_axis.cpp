@@ -17,6 +17,20 @@ namespace xios {
   CInterpolateAxis::~CInterpolateAxis(void)
   {}
 
+  CTransformation<CAxis>* CInterpolateAxis::create(const StdString& id, xml::CXMLNode* node)
+  {
+    CInterpolateAxis* interpAxis = CInterpolateAxisGroup::get("interpolate_axis_definition")->createChild(id);
+    if (node) interpAxis->parse(*node);
+    return static_cast<CTransformation<CAxis>*>(interpAxis);
+  }
+
+  bool CInterpolateAxis::registerTrans()
+  {
+    return registerTransformation(TRANS_INTERPOLATE_AXIS, CInterpolateAxis::create);
+  }
+
+  bool CInterpolateAxis::_dummyRegistered = CInterpolateAxis::registerTrans();
+
   //----------------------------------------------------------------
 
   StdString CInterpolateAxis::GetName(void)    { return StdString("interpolate_axis"); }

@@ -40,8 +40,7 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   }
 
   gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfServer,
-                                                                 client->intraComm,
-                                                                 true);
+                                                                 client->intraComm);
 }
 
 CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source)
@@ -64,8 +63,7 @@ CTransformationMapping::CTransformationMapping(CAxis* destination, CAxis* source
   }
 
   gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfAxisSource,
-                                                                 client->intraComm,
-                                                                 true);
+                                                                 client->intraComm);
 }
 
 CTransformationMapping::~CTransformationMapping()

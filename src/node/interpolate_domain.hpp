@@ -56,7 +56,9 @@ namespace xios {
       static StdString GetDefName(void);
       static ENodeType GetType(void);
     private:
-
+      static bool registerTrans();
+      static CTransformation<CDomain>* create(const StdString& id, xml::CXMLNode* node);
+      static bool _dummyRegistered;
   }; // class CInterpolateDomain
 
   DECLARE_GROUP(CInterpolateDomain);

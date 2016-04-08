@@ -41,6 +41,15 @@ namespace xios {
    CAxis::~CAxis(void)
    { /* Ne rien faire de plus */ }
 
+   std::map<StdString, ETranformationType> CAxis::transformationMapList_ = std::map<StdString, ETranformationType>();
+   bool CAxis::dummyTransformationMapList_ = CAxis::initializeTransformationMap(CAxis::transformationMapList_);
+   bool CAxis::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   {
+     m["zoom_axis"] = TRANS_ZOOM_AXIS;
+     m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
+     m["inverse_axis"] = TRANS_INVERSE_AXIS;
+   }
+
    ///---------------------------------------------------------------
 
    const std::set<StdString> & CAxis::getRelFiles(void) const
@@ -883,6 +892,12 @@ namespace xios {
     }
   }
 
+  CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
+  {
+    transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType,id)));
+    return transformationMap_.back().second;
+  }
+
   bool CAxis::hasTransformation()
   {
     return (!transformationMap_.empty());
@@ -947,32 +962,21 @@ namespace xios {
 
     if (node.goToChildElement())
     {
-      StdString inverseAxisDefRoot("inverse_axis_definition");
-      StdString inverse("inverse_axis");
-      StdString zoomAxisDefRoot("zoom_axis_definition");
-      StdString zoom("zoom_axis");
-      StdString interpAxisDefRoot("interpolate_axis_definition");
-      StdString interp("interpolate_axis");
+      StdString nodeElementName;
       do
       {
         StdString nodeId("");
         if (node.getAttributes().end() != node.getAttributes().find("id"))
         { nodeId = node.getAttributes()["id"]; }
 
-        if (node.getElementName() == inverse) {
-          CInverseAxis* tmp = (CInverseAxisGroup::get(inverseAxisDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_INVERSE_AXIS,tmp));
-        }
-        else if (node.getElementName() == zoom) {
-          CZoomAxis* tmp = (CZoomAxisGroup::get(zoomAxisDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_ZOOM_AXIS,tmp));
-        }
-        else if (node.getElementName() == interp) {
-          CInterpolateAxis* tmp = (CInterpolateAxisGroup::get(interpAxisDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_AXIS,tmp));
+        nodeElementName = node.getElementName();
+        std::map<StdString, ETranformationType>::const_iterator ite = transformationMapList_.end(), it;
+        it = transformationMapList_.find(nodeElementName);
+        if (ite != it)
+        {
+          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CAxis>::createTransformation(it->second,
+                                                                                                               nodeId,
+                                                                                                               &node)));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

@@ -57,6 +57,16 @@ namespace xios {
      return domain;
    }
 
+   std::map<StdString, ETranformationType> CDomain::transformationMapList_ = std::map<StdString, ETranformationType>();
+   bool CDomain::_dummyTransformationMapList = CDomain::initializeTransformationMap(CDomain::transformationMapList_);
+
+   bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   {
+     m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
+     m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
+     m["generate_rectilinear_domain"] = TRANS_GENERATE_RECTILINEAR_DOMAIN;
+   }
+
    const std::set<StdString> & CDomain::getRelFiles(void) const
    {
       return (this->relFiles);
@@ -1905,6 +1915,12 @@ namespace xios {
     }
   }
 
+  CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, const StdString& id)
+  {
+    transformationMap_.push_back(std::make_pair(transType, CTransformation<CDomain>::createTransformation(transType,id)));
+    return transformationMap_.back().second;
+  }
+
   /*!
     Check whether a domain has transformation
     \return true if domain has transformation
@@ -1986,34 +2002,21 @@ namespace xios {
 
     if (node.goToChildElement())
     {
-      StdString zoomDomainDefRoot("zoom_domain_definition");
-      StdString zoom("zoom_domain");
-      StdString interpDomainDefRoot("interpolate_domain_definition");
-      StdString interpFromFile("interpolate_domain");
-      StdString generateRectilinearDefRoot("generate_rectilinear_domain_definition");
-      StdString generateRectilinear("generate_rectilinear_domain");
+      StdString nodeElementName;
       do
       {
         StdString nodeId("");
         if (node.getAttributes().end() != node.getAttributes().find("id"))
         { nodeId = node.getAttributes()["id"]; }
 
-        if (node.getElementName() == zoom) {
-          CZoomDomain* tmp = (CZoomDomainGroup::get(zoomDomainDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_ZOOM_DOMAIN,tmp));
-        }
-        else if (node.getElementName() == interpFromFile)
+        nodeElementName = node.getElementName();
+        std::map<StdString, ETranformationType>::const_iterator ite = transformationMapList_.end(), it;
+        it = transformationMapList_.find(nodeElementName);
+        if (ite != it)
         {
-          CInterpolateDomain* tmp = (CInterpolateDomainGroup::get(interpDomainDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_INTERPOLATE_DOMAIN,tmp));
-        }
-        else if (node.getElementName() == generateRectilinear)
-        {
-          CGenerateRectilinearDomain* tmp = (CGenerateRectilinearDomainGroup::get(generateRectilinearDefRoot))->createChild(nodeId);
-          tmp->parse(node);
-          transformationMap_.push_back(std::make_pair(TRANS_GENERATE_RECTILINEAR_DOMAIN,tmp));
+          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CDomain>::createTransformation(it->second,
+                                                                                                                nodeId,
+                                                                                                                &node)));
         }
       } while (node.goToNextElement()) ;
       node.goToParentElement();

@@ -112,7 +112,8 @@ namespace xios {
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
          void fillInValues(const CArray<double,1>& values);
-         void duplicateTransformation(CAxis*);                   \
+         void duplicateTransformation(CAxis*);
+         CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
@@ -161,6 +162,12 @@ namespace xios {
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
+
+       private:
+         static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
+         static std::map<StdString, ETranformationType> transformationMapList_;
+         static bool dummyTransformationMapList_;
+
          DECLARE_REF_FUNC(Axis,axis)
    }; // class CAxis
 

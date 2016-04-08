@@ -16,7 +16,7 @@ PROGRAM test_new_features
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llm=10
   INTEGER,PARAMETER :: llmInterPolated=4
   DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1
   TYPE(xios_field) :: field_hdl

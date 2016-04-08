@@ -78,6 +78,7 @@ namespace xios {
          TransMapTypes getAllTransformations();
          void redistribute(int nbLocalDomain);
          void duplicateTransformation(CDomain*);
+         CTransformation<CDomain>* addTransformation(ETranformationType transType, const StdString& id="");
 
       public:
          const std::set<StdString> & getRelFiles(void) const;
@@ -196,6 +197,11 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
+
+       private:
+         static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
+         static std::map<StdString, ETranformationType> transformationMapList_;
+         static bool _dummyTransformationMapList;
 
          DECLARE_REF_FUNC(Domain,domain)
 

@@ -8,6 +8,12 @@ MODULE IXML_TREE
    USE IGRID
    USE IDOMAIN
    USE IVARIABLE
+   USE IZOOM_DOMAIN
+   USE IINTERPOLATE_DOMAIN
+   USE IGENERATE_RECTILINEAR_DOMAIN
+   USE IZOOM_AXIS
+   USE IINTERPOLATE_AXIS
+   USE IINVERSE_AXIS
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
@@ -156,6 +162,54 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_domaintogrid
+
+      SUBROUTINE cxios_xml_tree_add_zoomdomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_zoomdomaintodomain
+
+      SUBROUTINE cxios_xml_tree_add_interpolatedomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_interpolatedomaintodomain
+
+      SUBROUTINE cxios_xml_tree_add_generatedomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_generatedomaintodomain
+
+      SUBROUTINE cxios_xml_tree_add_zoomaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_zoomaxistoaxis
+
+      SUBROUTINE cxios_xml_tree_add_interpolateaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_interpolateaxistoaxis
+
+      SUBROUTINE cxios_xml_tree_add_inverseaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_inverseaxistoaxis
 
       SUBROUTINE cxios_xml_tree_show(filename, filename_size) BIND(C)
          USE ISO_C_BINDING
@@ -416,4 +470,82 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_domaintogrid)
+
+   SUBROUTINE xios(add_zoomdomaintodomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))           , INTENT(IN) :: parent_hdl
+      TYPE(txios(zoom_domain))      , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_zoomdomaintodomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_zoomdomaintodomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_zoomdomaintodomain)
+
+   SUBROUTINE xios(add_interpolatedomaintodomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))             , INTENT(IN) :: parent_hdl
+      TYPE(txios(interpolate_domain)) , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL    , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_interpolatedomaintodomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_interpolatedomaintodomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_interpolatedomaintodomain)
+
+   SUBROUTINE xios(add_generatedomaintodomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(generate_rectilinear_domain)) , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL             , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_generatedomaintodomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_generatedomaintodomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_generatedomaintodomain)
+
+   SUBROUTINE xios(add_zoomaxistoaxis)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(zoom_axis))                 , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_zoomaxistoaxis(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_zoomaxistoaxis(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_zoomaxistoaxis)
+
+   SUBROUTINE xios(add_interpolateaxistoaxis)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(interpolate_axis))          , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_interpolateaxistoaxis(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_interpolateaxistoaxis(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_interpolateaxistoaxis)
+
+      SUBROUTINE xios(add_inverseaxistoaxis)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(zoom_axis))                 , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_inverseaxistoaxis(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_inverseaxistoaxis(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_inverseaxistoaxis)
 END MODULE IXML_TREE

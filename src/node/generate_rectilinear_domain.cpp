@@ -16,6 +16,19 @@ namespace xios {
   CGenerateRectilinearDomain::~CGenerateRectilinearDomain(void)
   {}
 
+  CTransformation<CDomain>* CGenerateRectilinearDomain::create(const StdString& id, xml::CXMLNode* node)
+  {
+    CGenerateRectilinearDomain* genDomain = CGenerateRectilinearDomainGroup::get("generate_rectilinear_domain_definition")->createChild(id);
+    if (node) genDomain->parse(*node);
+    return static_cast<CTransformation<CDomain>*>(genDomain);
+  }
+
+  bool CGenerateRectilinearDomain::_dummyRegistered = CGenerateRectilinearDomain::registerTrans();
+  bool CGenerateRectilinearDomain::registerTrans()
+  {
+    registerTransformation(TRANS_GENERATE_RECTILINEAR_DOMAIN, create);
+  }
+
   //----------------------------------------------------------------
 
   StdString CGenerateRectilinearDomain::GetName(void)    { return StdString("generate_rectilinear_domain"); }

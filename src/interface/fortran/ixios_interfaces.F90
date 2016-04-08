@@ -82,7 +82,10 @@ USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_f
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
                       xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), &
                       xios(add_domaingroup), xios(add_fieldgrouptofile), xios(add_variablegrouptofile),    &
-                      xios(add_variablegrouptofield), xios(add_axistogrid), xios(add_domaintogrid)
+                      xios(add_variablegrouptofield), xios(add_axistogrid), xios(add_domaintogrid),        &
+                      xios(add_zoomdomaintodomain), xios(add_interpolatedomaintodomain),                   &
+                      xios(add_generatedomaintodomain), xios(add_zoomaxistoaxis),                          &
+                      xios(add_interpolateaxistoaxis), xios(add_inverseaxistoaxis)
 
 PRIVATE
 
@@ -135,7 +138,9 @@ INTERFACE xios(add_child)
                    xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield), xios(add_axisgroup),  &
                    xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), xios(add_domaingroup),            &
                    xios(add_fieldgrouptofile), xios(add_variablegrouptofile),xios(add_variablegrouptofield),         &
-                   xios(add_axistogrid), xios(add_domaintogrid)
+                   xios(add_axistogrid), xios(add_domaintogrid), xios(add_zoomdomaintodomain),                       &
+                   xios(add_interpolatedomaintodomain), xios(add_generatedomaintodomain),                            &
+                   xios(add_zoomaxistoaxis), xios(add_interpolateaxistoaxis), xios(add_inverseaxistoaxis)
 END INTERFACE xios(add_child)
 
 INTERFACE xios(send_field)
