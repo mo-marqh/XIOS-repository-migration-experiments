@@ -978,12 +978,12 @@ namespace xios {
     return offsetWrittenIndexes_;
   }
 
-  const CDistributionServer* CGrid::getDistributionServer() const
+  CDistributionServer* CGrid::getDistributionServer()
   {
     return serverDistribution_;
   }
 
-  const CDistributionClient* CGrid::getDistributionClient() const
+  CDistributionClient* CGrid::getDistributionClient()
   {
     return clientDistribution_;
   }

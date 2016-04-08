@@ -36,12 +36,14 @@ public:
     CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
     CDistributionClient(int rank, CGrid* grid);
 
+    void createGlobalIndexSendToServer();
+
     /** Default destructor */
     virtual ~CDistributionClient();
 
-    virtual const std::vector<int>& getLocalDataIndexOnClient() const;
-    const GlobalLocalDataMap& getGlobalLocalDataSendToServer() const;
-    const std::vector<int>& getLocalMaskIndexOnClient() const;
+    virtual const std::vector<int>& getLocalDataIndexOnClient();
+    const GlobalLocalDataMap& getGlobalLocalDataSendToServer();
+    const std::vector<int>& getLocalMaskIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
@@ -55,7 +57,6 @@ public:
 
   protected:
     void createGlobalIndex();
-    void createGlobalIndexSendToServer();
     void readDistributionInfo(CGrid* grid);
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
@@ -97,8 +98,8 @@ public:
     std::vector<int> dataNIndex_; //!< Data_n_index in case of domain
     std::vector<int> dataDims_; //!< Data_dim, domain can have data_dim == 1 or 2
     std::vector<int> dataBegin_; //!< Data begin (data_ibegin, data_jbegin, etc)
-    std::vector<CArray<int,1> > dataIndex_; //!< Data index
-    std::vector<CArray<int,1> > infoIndex_; //!< i_index, j_index
+    std::vector<CArray<int,1>* > dataIndex_; //!< Data index
+    std::vector<CArray<int,1>* > infoIndex_; //!< i_index, j_index
 
     std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
@@ -115,6 +116,7 @@ public:
     bool isDataDistributed_;
     int axisNum_;
     int domainNum_;
+    bool isComputed_;
 
   private:
     // Just suppose that grid mask has 3 dimension. Need change

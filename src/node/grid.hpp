@@ -183,8 +183,8 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
-         const CDistributionServer* getDistributionServer() const;
-         const CDistributionClient* getDistributionClient() const;
+         CDistributionServer* getDistributionServer();
+         CDistributionClient* getDistributionClient();
          CGridTransformation* getTransformations();
 
          void transformGrid(CGrid* transformGridSrc);
