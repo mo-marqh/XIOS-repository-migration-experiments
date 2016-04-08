@@ -82,7 +82,7 @@ USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_f
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
                       xios(add_axisgroup), xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), &
                       xios(add_domaingroup), xios(add_fieldgrouptofile), xios(add_variablegrouptofile),    &
-                      xios(add_variablegrouptofield)
+                      xios(add_variablegrouptofield), xios(add_axistogrid), xios(add_domaintogrid)
 
 PRIVATE
 
@@ -134,7 +134,8 @@ INTERFACE xios(add_child)
   MODULE PROCEDURE xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),                &
                    xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield), xios(add_axisgroup),  &
                    xios(add_filegroup), xios(add_gridgroup), xios(add_fieldgroup), xios(add_domaingroup),            &
-                   xios(add_fieldgrouptofile), xios(add_variablegrouptofile),xios(add_variablegrouptofield)
+                   xios(add_fieldgrouptofile), xios(add_variablegrouptofile),xios(add_variablegrouptofield),         &
+                   xios(add_axistogrid), xios(add_domaintogrid)
 END INTERFACE xios(add_child)
 
 INTERFACE xios(send_field)

@@ -309,6 +309,37 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
    }
 
+   void cxios_xml_tree_add_axistogrid
+      (XGridPtr parent_, XAxisPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         *child_ = parent_->addAxis(child_id_str);
+      }
+      else
+      {
+         *child_ = parent_->addAxis();
+      }
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_domaintogrid
+      (XGridPtr parent_, XDomainPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         *child_ = parent_->addDomain(child_id_str);
+      }
+      else
+      {
+         *child_ = parent_->addDomain();
+      }
+      CTimer::get("XIOS").suspend() ;
+   }
 
    // ----------------------- Affichage de l'arborescence ----------------------
 

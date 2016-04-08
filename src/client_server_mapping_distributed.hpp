@@ -34,7 +34,8 @@ class CClientServerMappingDistributed : public CClientServerMapping
   public:
     /** Default constructor */
     CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
-                                    const MPI_Comm& clientIntraComm, bool isDataDistributed = true);
+                                    const MPI_Comm& clientIntraComm,
+                                    bool isDataDistributed = true);
 
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
 

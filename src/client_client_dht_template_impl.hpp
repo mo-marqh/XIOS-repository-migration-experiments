@@ -22,8 +22,7 @@ will be redistributed (projected) into size_t space as long as the associated in
 */
 template<typename T, typename H>
 CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const boost::unordered_map<size_t,T>& indexInfoMap,
-                                                        const MPI_Comm& clientIntraComm,
-                                                        int hierarLvl)
+                                                        const MPI_Comm& clientIntraComm)
   : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_()
 {
   this->computeMPICommLevel();

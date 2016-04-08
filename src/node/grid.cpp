@@ -31,7 +31,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false)
+      , gridSrc_(), hasTransform_(false), order_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -46,7 +46,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false)
+      , gridSrc_(), hasTransform_(false), order_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -1144,11 +1144,17 @@ namespace xios {
 
    CDomain* CGrid::addDomain(const std::string& id)
    {
+     order_.push_back(true);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vDomainGroup_->createChild(id);
    }
 
    CAxis* CGrid::addAxis(const std::string& id)
    {
+     order_.push_back(false);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vAxisGroup_->createChild(id);
    }
 
@@ -1538,9 +1544,6 @@ namespace xios {
   {
     SuperClass::parse(node);
 
-    // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
-    std::vector<bool> order;
-
     if (node.goToChildElement())
     {
       StdString domainName("domain");
@@ -1548,24 +1551,24 @@ namespace xios {
       do
       {
         if (node.getElementName() == domainName) {
-          order.push_back(true);
+          order_.push_back(true);
           this->getVirtualDomainGroup()->parseChild(node);
         }
         if (node.getElementName() == axisName) {
-          order.push_back(false);
+          order_.push_back(false);
           this->getVirtualAxisGroup()->parseChild(node);
         }
       } while (node.goToNextElement());
       node.goToParentElement();
     }
 
-    if (!order.empty())
+    if (!order_.empty())
     {
-      int sizeOrd = order.size();
+      int sizeOrd = order_.size();
       axis_domain_order.resize(sizeOrd);
       for (int i = 0; i < sizeOrd; ++i)
       {
-        axis_domain_order(i) = order[i];
+        axis_domain_order(i) = order_[i];
       }
     }
 

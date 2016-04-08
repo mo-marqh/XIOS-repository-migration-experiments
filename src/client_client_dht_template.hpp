@@ -38,8 +38,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
   public:
     CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoInitMap,
-                             const MPI_Comm& clientIntraComm,
-                             int hierarLvl = 2);
+                             const MPI_Comm& clientIntraComm);
 
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 

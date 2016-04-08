@@ -147,6 +147,8 @@ namespace xios {
          void solveTransformations();
          void solveDomainAxisBaseRef();
 
+         CDomain* addDomain(const std::string& id=StdString());
+         CAxis* addAxis(const std::string& id=StdString());
          void sendAddDomain(const std::string& id="");
          void sendAddAxis(const std::string& id="");
          void sendAllDomains();
@@ -235,9 +237,6 @@ namespace xios {
         void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());
         void setDomainList(const std::vector<CDomain*> domains = std::vector<CDomain*>());
 
-        CDomain* addDomain(const std::string& id);
-        CAxis* addAxis(const std::string& id);
-
         CAxisGroup* getVirtualAxisGroup() const;
         CDomainGroup* getVirtualDomainGroup() const;
 
@@ -274,6 +273,8 @@ namespace xios {
         std::vector<int> globalDim_;
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
+            // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
+        std::vector<bool> order_;
    }; // class CGrid
 
    ///--------------------------------------------------------------

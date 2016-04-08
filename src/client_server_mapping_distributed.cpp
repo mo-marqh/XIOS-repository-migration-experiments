@@ -21,8 +21,7 @@ CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::un
   : CClientServerMapping(), ccDHT_(0)
 {
   ccDHT_ = new CClientClientDHTInt(globalIndexOfServer,
-                                   clientIntraComm,
-                                   isDataDistributed);
+                                   clientIntraComm);
 }
 
 CClientServerMappingDistributed::~CClientServerMappingDistributed()
@@ -38,7 +37,6 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
 {
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
   const boost::unordered_map<size_t,int>& infoIndexMap = (ccDHT_->getInfoIndexMap());
-//  indexGlobalOnServer_ = (ccDHT_->getInfoIndexMap());
   boost::unordered_map<size_t,int>::const_iterator it = infoIndexMap.begin(), ite = infoIndexMap.end();
   for (; it != ite; ++it)
   {
