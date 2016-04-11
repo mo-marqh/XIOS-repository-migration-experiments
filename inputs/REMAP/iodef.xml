@@ -68,7 +68,7 @@
 
    <domain_definition>
      <domain id="src_domain" />
-     <domain id="src_domain_clone" />
+     <domain id="src_domain_clone"/>
      <domain id="dst_domain">
        <interpolate_domain/>
      </domain>
