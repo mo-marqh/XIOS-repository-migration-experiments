@@ -43,107 +43,98 @@ namespace xios {
     const double defaultBndsLatStart = -90;
     const double defaultBndsLatEnd = 90;
 
-    if ((!lon_start.isEmpty() && lon_end.isEmpty()) ||
-        (lon_start.isEmpty() && !lon_end.isEmpty()))
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only longitude start or longitude end attribute is defined." << std::endl
-               << "Must define both: 'lon_start' and 'lon_end'.");
 
-    if ((!lat_start.isEmpty() && lat_end.isEmpty()) ||
-        (lat_start.isEmpty() && !lat_end.isEmpty()))
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only latitude start or latitude end attribute is defined." << std::endl
-               << "Must define both: 'lat_start' and 'lat_end'.");
+    int niGlo = domainDst->ni_glo;
+    int njGlo = domainDst->nj_glo;
 
-    if ((!bounds_lon_start.isEmpty() && bounds_lon_end.isEmpty()) ||
-        (bounds_lon_start.isEmpty() && !bounds_lon_end.isEmpty()))
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only longitude boundary start or longitude boundary end attribute is defined." << std::endl
-               << "Must define both: 'bounds_lon_start' and 'bounds_lon_end'.");
 
-    if ((!bounds_lat_start.isEmpty() && bounds_lat_end.isEmpty()) ||
-        (bounds_lat_start.isEmpty() && !bounds_lat_end.isEmpty()))
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only latitude boundary start or latitude boundary end attribute is defined." << std::endl
-               << "Must define both: 'bounds_lat_start' and 'bounds_lat_end'.");
+    double deltaLon=(defaultBndsLonEnd-defaultBndsLonStart)/niGlo ; 
+    if (!lon_start.isEmpty() && !lon_end.isEmpty() ) deltaLon=(lon_end-lon_start)/(niGlo-1) ;
+    if (!bounds_lon_start.isEmpty() && !bounds_lon_end.isEmpty()) deltaLon=(bounds_lon_end-bounds_lon_start)/niGlo ;
+    if (!lon_start.isEmpty() && !bounds_lon_end.isEmpty()) deltaLon=(bounds_lon_end-bounds_lon_start)/(niGlo-0.5) ;
+    if (!bounds_lon_start.isEmpty() && !lon_end.isEmpty()) deltaLon=(bounds_lon_end-bounds_lon_start)/(niGlo-0.5) ;
 
-    if (!bounds_lon_start.isEmpty() && !lon_start.isEmpty())
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only one longitude boundary attribute or longitude can be used but both 'bounds_lon_start' and 'lon_start' are defined." << std::endl
-               << "Define only one attribute: 'bounds_lon_start' or 'lon_start'.");
-
-    if (!bounds_lat_start.isEmpty() && !lat_start.isEmpty())
-         ERROR("CGenerateRectilinearDomain::checkValid(CDomain* domainDst)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Only one latitude boundary attribute or latitude can be used but both 'bounds_lat_start' and 'lat_start' are defined." << std::endl
-               << "Define only one attribute: 'bounds_lat_start' or 'lat_start'.");
-
-    if (bounds_lon_start.isEmpty() && lon_start.isEmpty())
+    if (lon_start.isEmpty())
     {
-      bounds_lon_start.setValue(defaultBndsLonStart);
-      bounds_lon_end.setValue(defaultBndsLonEnd);
+      if (!bounds_lon_start.isEmpty())      domainDst->lon_start=bounds_lon_start+0.5*deltaLon ;
+      else if (!lon_end.isEmpty())          domainDst->lon_start= lon_end-(niGlo-1.)*deltaLon ;
+      else if (!bounds_lon_end.isEmpty())   domainDst->lon_start=bounds_lon_end-(niGlo-0.5)*deltaLon ;
+      else                                  domainDst->lon_start=defaultBndsLonStart+0.5*deltaLon ;
     }
+    else domainDst->lon_start=lon_start ;
 
-    if (bounds_lat_start.isEmpty() && lat_start.isEmpty())
+    if (bounds_lon_start.isEmpty())
     {
-      bounds_lat_start.setValue(defaultBndsLatStart);
-      bounds_lat_end.setValue(defaultBndsLatEnd);
-    }
+      if (!lon_start.isEmpty())           domainDst->bounds_lon_start=lon_start-0.5*deltaLon ;
+      else if (!lon_end.isEmpty())        domainDst->bounds_lon_start= lon_end-(niGlo-0.5)*deltaLon ;
+      else if (!bounds_lon_end.isEmpty()) domainDst->bounds_lon_start=bounds_lon_end-niGlo*deltaLon ;
+      else                                domainDst->bounds_lon_start=defaultBndsLonStart ;
+    } 
+    else domainDst->bounds_lon_start=bounds_lon_start ;
 
-    if (!bounds_lon_start.isEmpty())
+    if (lon_end.isEmpty())
     {
-      int niGlo = domainDst->ni_glo.getValue();
-
-      double boundsLonRange = bounds_lon_end - bounds_lon_start;
-      double boundsLonStep = boundsLonRange/(double(niGlo));
-      domainDst->bounds_lon_start.setValue(bounds_lon_start);
-      domainDst->bounds_lon_end.setValue(bounds_lon_end);
-      domainDst->lon_start.setValue(bounds_lon_start + boundsLonStep/2);
-      domainDst->lon_end.setValue( bounds_lon_end   - boundsLonStep/2);
+      if (!bounds_lon_end.isEmpty())        domainDst->lon_end=bounds_lon_end-0.5*deltaLon ;
+      else if (!bounds_lon_start.isEmpty()) domainDst->lon_end=bounds_lon_start+(niGlo-0.5)*deltaLon ;
+      else if (!lon_start.isEmpty())        domainDst->lon_end=lon_start+(niGlo-1.)*deltaLon ;
+      else                                  domainDst->lon_end=defaultBndsLonEnd-0.5*deltaLon ;
     }
+    else domainDst->lon_end=lon_end ;    
 
-    if (!bounds_lat_start.isEmpty())
+    if (bounds_lon_end.isEmpty())
     {
-      int njGlo = domainDst->nj_glo.getValue();
-
-      double boundsLatRange = bounds_lat_end - bounds_lat_start;
-      double boundsLatStep = boundsLatRange/(double(njGlo));
-      domainDst->bounds_lat_start.setValue(bounds_lat_start);
-      domainDst->bounds_lat_end.setValue(bounds_lat_end);
-      domainDst->lat_start.setValue(bounds_lat_start + boundsLatStep/2);
-      domainDst->lat_end.setValue(bounds_lat_end   - boundsLatStep/2);
+      if (!lon_end.isEmpty())               domainDst->bounds_lon_end=lon_end+0.5*deltaLon ;
+      else if (!bounds_lon_start.isEmpty()) domainDst->bounds_lon_end=bounds_lon_start+niGlo*deltaLon ;
+      else if (!lon_start.isEmpty())        domainDst->bounds_lon_end=lon_start+(niGlo-0.5)*deltaLon ;
+      else                                  domainDst->bounds_lon_end=defaultBndsLonEnd ;
     }
+    else domainDst->bounds_lon_end=bounds_lon_end;
 
-    if (lon_start.isEmpty() && lat_start.isEmpty()) return;
 
-    if (!lon_start.isEmpty())
+
+
+    double deltaLat=(defaultBndsLatEnd-defaultBndsLatStart)/njGlo ; 
+    if (!lat_start.isEmpty() && !lat_end.isEmpty() ) deltaLat=(lat_end-lat_start)/(njGlo-1) ;
+    if (!bounds_lat_start.isEmpty() && !bounds_lat_end.isEmpty()) deltaLat=(bounds_lat_end-bounds_lat_start)/njGlo ;
+    if (!lat_start.isEmpty() && !bounds_lat_end.isEmpty()) deltaLat=(bounds_lat_end-bounds_lat_start)/(njGlo-0.5) ;
+    if (!bounds_lat_start.isEmpty() && !lat_end.isEmpty()) deltaLat=(bounds_lat_end-bounds_lat_start)/(njGlo-0.5) ;
+
+    if (lat_start.isEmpty())
     {
-      int niGlo = domainDst->ni_glo.getValue();
-
-      double lonRange = lon_end - lon_start;
-      double lonStep = (1 == niGlo) ? lonRange : lonRange/(double(niGlo)-1);
-      domainDst->lon_start.setValue(lon_start);
-      domainDst->lon_end.setValue(lon_end);
-      domainDst->bounds_lon_start.setValue(lon_start - lonStep/2);
-      domainDst->bounds_lon_end.setValue(lon_end   + lonStep/2);
+      if (!bounds_lat_start.isEmpty())      domainDst->lat_start=bounds_lat_start+0.5*deltaLat ;
+      else if (!lat_end.isEmpty())          domainDst->lat_start= lat_end-(njGlo-1.)*deltaLat ;
+      else if (!bounds_lat_end.isEmpty())   domainDst->lat_start=bounds_lat_end-(njGlo-0.5)*deltaLat ;
+      else                                  domainDst->lat_start=defaultBndsLatStart+0.5*deltaLat ;
     }
+    else domainDst->lat_start=lat_start;
 
-    if (!lat_start.isEmpty())
+    if (bounds_lat_start.isEmpty())
     {
-      int njGlo = domainDst->nj_glo.getValue();
-
-      double latRange = lat_end - lat_start;
-      double latStep = (1 == njGlo) ? latRange : latRange/(double(njGlo)-1);
-      domainDst->lat_start.setValue(lat_start);
-      domainDst->lat_end.setValue(lat_end);
-      domainDst->bounds_lat_start.setValue(lat_start - latStep/2);
-      domainDst->bounds_lat_end.setValue(lat_end   + latStep/2);
+      if (!lat_start.isEmpty())           domainDst->bounds_lat_start=lat_start-0.5*deltaLat ;
+      else if (!lat_end.isEmpty())        domainDst->bounds_lat_start= lat_end-(njGlo-0.5)*deltaLat ;
+      else if (!bounds_lat_end.isEmpty()) domainDst->bounds_lat_start=bounds_lat_end-njGlo*deltaLat ;
+      else                                domainDst->bounds_lat_start=defaultBndsLatStart ;
+    } 
+    else domainDst->bounds_lat_start=bounds_lat_start;
+    
+    if (lat_end.isEmpty())
+    {
+      if (!bounds_lat_end.isEmpty())        domainDst->lat_end=bounds_lat_end-0.5*deltaLat ;
+      else if (!bounds_lat_start.isEmpty()) domainDst->lat_end=bounds_lat_start+(njGlo-0.5)*deltaLat ;
+      else if (!lat_start.isEmpty())        domainDst->lat_end=lat_start+(njGlo-1.)*deltaLat ;
+      else                                  domainDst->lat_end=defaultBndsLatEnd-0.5*deltaLat ;
+    }    
+    else domainDst->lat_end=lat_end;
+    
+    if (bounds_lat_end.isEmpty())
+    {
+      if (!lat_end.isEmpty())               domainDst->bounds_lat_end=lat_end+0.5*deltaLat ;
+      else if (!bounds_lat_start.isEmpty()) domainDst->bounds_lat_end=bounds_lat_start+njGlo*deltaLat ;
+      else if (!lat_start.isEmpty())        domainDst->bounds_lat_end=lat_start+(njGlo-0.5)*deltaLat ;
+      else                                  domainDst->bounds_lat_end=defaultBndsLatEnd ;
     }
+    else domainDst->bounds_lat_end=bounds_lat_end;
+
   }
 
 }
