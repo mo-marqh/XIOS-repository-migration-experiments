@@ -2,7 +2,7 @@
    \file client_client_dht_template.hpp
    \author Ha NGUYEN
    \since 01 Oct 2015
-   \date 06 Oct 2015
+   \date 15 April 2016
 
    \brief Distributed hashed table implementation.
  */
@@ -63,39 +63,29 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
     void sendRecvRank(int level,
                       const std::vector<int>& sendNbRank, const std::vector<int>& sendNbElements,
-                      int& recvNbRank, int& recvNbElements);
+                      std::vector<int>& recvNbRank, std::vector<int>& recvNbElements);
 
   protected:
-    void probeIndexMessageFromClients(unsigned long* recvIndexGlobalBuff,
-                                      const int recvNbIndexCount,
-                                      int& countIndexGlobal,
-                                      std::map<int, unsigned long*>& indexGlobalBuffBegin,
-                                      std::map<int, MPI_Request>& requestRecvIndexGlobal,
-                                      const MPI_Comm& intraComm);
-
-    void probeInfoMessageFromClients(unsigned char* recvIndexServerBuff,
-                                     const int recvNbIndexCount,
-                                     int& countIndexServer,
-                                     std::map<int, unsigned char*>& infoBuffBegin,
-                                     std::map<int, MPI_Request>& requestRecvIndexServer,
-                                     const MPI_Comm& intraComm);
-
     // Send information to clients
     void sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
-                           const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendIndexServer);
+                           const MPI_Comm& clientIntraComm,
+                           std::vector<MPI_Request>& requestSendInfo);
+
+    void recvInfoFromClients(int clientSrcRank, unsigned char* info, int infoSize,
+                            const MPI_Comm& clientIntraComm,
+                            std::vector<MPI_Request>& requestRecvInfo);
 
     // Send global index to clients
     void sendIndexToClients(int clientDestRank, size_t* indices, size_t indiceSize,
-                            const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendIndexGlobal);
+                            const MPI_Comm& clientIntraComm,
+                            std::vector<MPI_Request>& requestSendIndexGlobal);
 
-    // Verify sending request
-    void testSendRequest(std::list<MPI_Request>& sendRequest);
+    void recvIndexFromClients(int clientSrcRank, size_t* indices, size_t indiceSize,
+                             const MPI_Comm& clientIntraComm,
+                             std::vector<MPI_Request>& requestRecvIndex);
 
-    // Compute size of receiving buffer for global index
-    int computeBuffCountIndex(MPI_Request& requestRecv);
-
-    // Compute size of receiving buffer for server index
-    int computeBuffCountInfo(MPI_Request& requestRecv);
+    void sendRecvOnReturn(const std::vector<int>& sendNbRank, std::vector<int>& sendNbElements,
+                          const std::vector<int>& recvNbRank, std::vector<int>& recvNbElements);
 
   protected:
     //! Mapping of global index to the corresponding client

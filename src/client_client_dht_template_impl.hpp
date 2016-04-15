@@ -107,171 +107,173 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     {
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
       {
-        client2ClientIndex[indexClient+groupRankBegin][sendNbIndexBuff[indexClient]] = index;;
+        client2ClientIndex[indexClient+groupRankBegin][sendNbIndexBuff[indexClient]] = index;
         ++sendNbIndexBuff[indexClient];
       }
     }
   }
 
-  int recvNbClient, recvNbIndexCount;
+  std::vector<int> recvRankClient, recvNbIndexClientCount;
   sendRecvRank(level, sendBuff, sendNbIndexBuff,
-               recvNbClient, recvNbIndexCount);
+               recvRankClient, recvNbIndexClientCount);
 
-  std::map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
-                                                iteIndex = client2ClientIndex.end();
+  int recvNbIndexCount = 0;
+  for (int idx = 0; idx < recvNbIndexClientCount.size(); ++idx)
+    recvNbIndexCount += recvNbIndexClientCount[idx];
 
-  std::list<MPI_Request> sendIndexRequest;
-  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-     sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, sendIndexRequest);
+  unsigned long* recvIndexBuff;
+  if (0 != recvNbIndexCount)
+    recvIndexBuff = new unsigned long[recvNbIndexCount];
 
-  int nbDemandingClient = recvNbClient; //recvBuff[clientRank],
-  int nbSendBuffInfoReceived = 0;
-
-  // Receiving demand as well as the responds from other clients
-  // The demand message contains global index; meanwhile the responds have server index information
-  // Buffer to receive demand from other clients, it can be allocated or not depending whether it has demand(s)
-  // There are some cases we demand duplicate index so need to determine maxium size of demanding buffer
-  unsigned long* recvBuffIndex = 0;
-  int maxNbIndexDemandedFromOthers = recvNbIndexCount;
-  if (0 != maxNbIndexDemandedFromOthers)
-    recvBuffIndex = new unsigned long[maxNbIndexDemandedFromOthers];
-
-  // Buffer to receive respond from other clients, it can be allocated or not depending whether it demands other clients
-  unsigned char* recvBuffInfo = 0;
-  int nbIndexReceivedFromOthers = nbIndexToSend;
-  if (0 != nbIndexReceivedFromOthers)
-    recvBuffInfo = new unsigned char[nbIndexReceivedFromOthers*ProcessDHTElement<InfoType>::typeSize()];
-
-  std::map<int, MPI_Request>::iterator itRequest;
-  std::vector<int> demandAlreadyReceived, repondAlreadyReceived;
-
-  int countIndex = 0;  // Counting of buffer for receiving index
-  std::map<int, MPI_Request> requestRecvIndex; // Request returned by MPI_IRecv function about index
-
-  // Mapping client rank and the beginning position of receiving buffer for message of index from this client
-  std::map<int, unsigned long*> indexBuffBegin;
-
-  std::map<int,std::vector<size_t> > src2Index; // Temporary mapping contains info of demand (source and associate index) in curren level
-
-  CArray<size_t,1> tmpGlobalIndexOnClient(maxNbIndexDemandedFromOthers);
-
-  int k = 0;
-  while ((0 < nbDemandingClient) || (!sendIndexRequest.empty()))
+  std::vector<MPI_Request> request;
+  std::vector<int>::iterator itbRecvIndex = recvRankClient.begin(), itRecvIndex,
+                             iteRecvIndex = recvRankClient.end(),
+                           itbRecvNbIndex = recvNbIndexClientCount.begin(),
+                           itRecvNbIndex;
+  int currentIndex = 0;
+  int nbRecvClient = recvRankClient.size();
+  for (int idx = 0; idx < nbRecvClient; ++idx)
   {
-    // Just check whether a client has any demand from other clients.
-    // If it has, then it should send responds to these client(s)
-    probeIndexMessageFromClients(recvBuffIndex, maxNbIndexDemandedFromOthers,
-                                 countIndex, indexBuffBegin,
-                                 requestRecvIndex, commLevel);
-    if (0 < nbDemandingClient)
-    {
-      for (itRequest = requestRecvIndex.begin();
-           itRequest != requestRecvIndex.end(); ++itRequest)
-      {
-        int flagIndexGlobal, count;
-        MPI_Status statusIndexGlobal;
-
-        MPI_Test(&(itRequest->second), &flagIndexGlobal, &statusIndexGlobal);
-        if (true == flagIndexGlobal)
-        {
-          MPI_Get_count(&statusIndexGlobal, MPI_UNSIGNED_LONG, &count);
-          int clientSourceRank = statusIndexGlobal.MPI_SOURCE;
-          unsigned long* beginBuff = indexBuffBegin[clientSourceRank];
-          for (int i = 0; i < count; ++i)
-          {
-            src2Index[clientSourceRank].push_back(*(beginBuff+i));
-            tmpGlobalIndexOnClient(k) = *(beginBuff+i);
-            ++k;
-          }
-          --nbDemandingClient;
-
-          demandAlreadyReceived.push_back(clientSourceRank);
-        }
-      }
-      for (int i = 0; i< demandAlreadyReceived.size(); ++i)
-        requestRecvIndex.erase(demandAlreadyReceived[i]);
-    }
-
-    testSendRequest(sendIndexRequest);
+    if (0 != recvNbIndexClientCount[idx])
+      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
+    currentIndex += recvNbIndexClientCount[idx];
   }
 
+  std::map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
+                                    iteIndex = client2ClientIndex.end();
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
+    sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
+
+  std::vector<MPI_Status> status(request.size());
+  MPI_Waitall(request.size(), &request[0], &status[0]);
+
+  CArray<size_t,1>* tmpGlobalIndex;
+  if (0 != recvNbIndexCount)
+    tmpGlobalIndex = new CArray<size_t,1>(recvIndexBuff, shape(recvNbIndexCount), neverDeleteData);
+  else
+    tmpGlobalIndex = new CArray<size_t,1>();
+
+  // OK, we go to the next level and do something recursive
   if (0 < level)
   {
     --level;
-    computeIndexInfoMappingLevel(tmpGlobalIndexOnClient, this->internalComm_, level);
+    computeIndexInfoMappingLevel(*tmpGlobalIndex, this->internalComm_, level);
   }
-  else
-    indexToInfoMappingLevel_ = index2InfoMapping_;
+  else // Now, we are in the last level where necessary mappings are.
+    indexToInfoMappingLevel_= (index2InfoMapping_);
 
-  std::map<int, std::vector<InfoType> > client2ClientInfo;
-  std::vector<unsigned char*> infoToSend(src2Index.size());
-  std::list<MPI_Request> sendInfoRequest;
-  std::map<int, std::vector<size_t> >::iterator itSrc2Idx = src2Index.begin(),
-                                                iteSrc2Idx = src2Index.end();
-  for (int i=0; itSrc2Idx != iteSrc2Idx; ++itSrc2Idx, ++i)
+  typename Index2InfoTypeMap::const_iterator iteIndexToInfoMap = indexToInfoMappingLevel_.end(), itIndexToInfoMap;
+  std::vector<int> sendNbIndexOnReturn(nbRecvClient,0);
+  currentIndex = 0;
+  for (int idx = 0; idx < nbRecvClient; ++idx)
   {
-    int clientSourceRank = itSrc2Idx->first;
-    std::vector<size_t>& srcIdx = itSrc2Idx->second;
-    infoToSend[i] = new unsigned char [srcIdx.size()*ProcessDHTElement<InfoType>::typeSize()];
-    int infoIndex = 0;
-    for (int idx = 0; idx < srcIdx.size(); ++idx)
+    for (int i = 0; i < recvNbIndexClientCount[idx]; ++i)
     {
-      ProcessDHTElement<InfoType>::packElement(indexToInfoMappingLevel_[srcIdx[idx]], infoToSend[i], infoIndex);
+      itIndexToInfoMap = indexToInfoMappingLevel_.find(*(recvIndexBuff+currentIndex+i));
+      if (iteIndexToInfoMap != itIndexToInfoMap) ++sendNbIndexOnReturn[idx];
     }
-    sendInfoToClients(clientSourceRank, infoToSend[i], infoIndex, commLevel, sendInfoRequest);
+    currentIndex += recvNbIndexClientCount[idx];
   }
+
+  std::vector<int> recvRankOnReturn(client2ClientIndex.size());
+  std::vector<int> recvNbIndexOnReturn(client2ClientIndex.size(),0);
+  int indexIndex = 0;
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex, ++indexIndex)
+  {
+    recvRankOnReturn[indexIndex] = itIndex->first;
+  }
+  sendRecvOnReturn(recvRankClient, sendNbIndexOnReturn,
+                   recvRankOnReturn, recvNbIndexOnReturn);
+
+  int recvNbIndexCountOnReturn = 0;
+  for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
+    recvNbIndexCountOnReturn += recvNbIndexOnReturn[idx];
+
+  unsigned long* recvIndexBuffOnReturn;
+  unsigned char* recvInfoBuffOnReturn;
+  if (0 != recvNbIndexCountOnReturn)
+  {
+    recvIndexBuffOnReturn = new unsigned long[recvNbIndexCountOnReturn];
+    recvInfoBuffOnReturn = new unsigned char[recvNbIndexCountOnReturn*ProcessDHTElement<InfoType>::typeSize()];
+  }
+
+  std::vector<MPI_Request> requestOnReturn;
+  currentIndex = 0;
+  for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
+  {
+    if (0 != recvNbIndexOnReturn[idx])
+    {
+      recvIndexFromClients(recvRankOnReturn[idx], recvIndexBuffOnReturn+currentIndex, recvNbIndexOnReturn[idx], commLevel, requestOnReturn);
+      recvInfoFromClients(recvRankOnReturn[idx],
+                          recvInfoBuffOnReturn+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
+                          recvNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(),
+                          commLevel, requestOnReturn);
+    }
+    currentIndex += recvNbIndexOnReturn[idx];
+  }
+
+  std::map<int,unsigned char*> client2ClientInfoOnReturn;
+  std::map<int,size_t*> client2ClientIndexOnReturn;
+  currentIndex = 0;
+  for (int idx = 0; idx < nbRecvClient; ++idx)
+  {
+    if (0 != sendNbIndexOnReturn[idx])
+    {
+      int rank = recvRankClient[idx];
+      client2ClientIndexOnReturn[rank] = new unsigned long [sendNbIndexOnReturn[idx]];
+      client2ClientInfoOnReturn[rank] = new unsigned char [sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize()];
+      unsigned char* tmpInfoPtr = client2ClientInfoOnReturn[rank];
+      int infoIndex = 0;
+      int nb = 0;
+      for (int i = 0; i < recvNbIndexClientCount[idx]; ++i)
+      {
+        itIndexToInfoMap = indexToInfoMappingLevel_.find(*(recvIndexBuff+currentIndex+i));
+        if (iteIndexToInfoMap != itIndexToInfoMap)
+        {
+          client2ClientIndexOnReturn[rank][nb] = itIndexToInfoMap->first;
+          ProcessDHTElement<InfoType>::packElement(itIndexToInfoMap->second, tmpInfoPtr, infoIndex);
+          ++nb;
+        }
+      }
+
+      sendIndexToClients(rank, client2ClientIndexOnReturn[rank],
+                         sendNbIndexOnReturn[idx], commLevel, requestOnReturn);
+      sendInfoToClients(rank, client2ClientInfoOnReturn[rank],
+                        sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(), commLevel, requestOnReturn);
+    }
+    currentIndex += recvNbIndexClientCount[idx];
+  }
+
+  std::vector<MPI_Status> statusOnReturn(requestOnReturn.size());
+  MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
 
   boost::unordered_map<size_t,InfoType> indexToInfoMapping;
-  int countInfo = 0; // Counting of buffer for receiving server index
-  std::map<int, MPI_Request> requestRecvInfo;
-
-  // Mapping client rank and the begining position of receiving buffer for message of server index from this client
-  std::map<int, unsigned char*> infoBuffBegin;
-
-  while ((!sendInfoRequest.empty()) || (nbSendBuffInfoReceived < nbIndexReceivedFromOthers))
+  int infoIndex = 0;
+  for (int idx = 0; idx < recvNbIndexCountOnReturn; ++idx)
   {
-    testSendRequest(sendInfoRequest);
-
-    // In some cases, a client need to listen respond from other clients about server information
-    // Ok, with the information, a client can fill in its server-global index map.
-    probeInfoMessageFromClients(recvBuffInfo, nbIndexReceivedFromOthers,
-                                countInfo, infoBuffBegin,
-                                requestRecvInfo, commLevel);
-    for (itRequest = requestRecvInfo.begin();
-         itRequest != requestRecvInfo.end();
-         ++itRequest)
-    {
-      int flagInfo, count;
-      MPI_Status statusInfo;
-
-      MPI_Test(&(itRequest->second), &flagInfo, &statusInfo);
-      if (true == flagInfo)
-      {
-        MPI_Get_count(&statusInfo, MPI_CHAR, &count);
-        int actualCountInfo = count/infoTypeSize;
-        int clientSourceRank = statusInfo.MPI_SOURCE;
-        unsigned char* beginBuff = infoBuffBegin[clientSourceRank];
-        size_t* indexTmp = client2ClientIndex[clientSourceRank];
-        int infoIndex = 0;
-        for (int i = 0; i < actualCountInfo; ++i)
-        {
-          ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[indexTmp[i]], beginBuff, infoIndex);
-        }
-        nbSendBuffInfoReceived += actualCountInfo;
-        repondAlreadyReceived.push_back(clientSourceRank);
-      }
-    }
-
-    for (int i = 0; i< repondAlreadyReceived.size(); ++i)
-      requestRecvInfo.erase(repondAlreadyReceived[i]);
-    repondAlreadyReceived.resize(0);
+    ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[recvIndexBuffOnReturn[idx]], recvInfoBuffOnReturn, infoIndex);
   }
 
-  indexToInfoMappingLevel_.swap(indexToInfoMapping);
-  if (0 != maxNbIndexDemandedFromOthers) delete [] recvBuffIndex;
-  if (0 != nbIndexReceivedFromOthers) delete [] recvBuffInfo;
-  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex) delete [] itIndex->second;
-  for (int idx = 0; idx < infoToSend.size(); ++idx) delete [] infoToSend[idx];
+  indexToInfoMappingLevel_ = (indexToInfoMapping);
+  if (0 != recvNbIndexCount) delete [] recvIndexBuff;
+  for (std::map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
+                                            it != client2ClientIndex.end(); ++it)
+      delete [] it->second;
+  delete tmpGlobalIndex;
+
+  if (0 != recvNbIndexCountOnReturn)
+  {
+    delete [] recvIndexBuffOnReturn;
+    delete [] recvInfoBuffOnReturn;
+  }
+
+  for (std::map<int,unsigned char*>::const_iterator it = client2ClientInfoOnReturn.begin();
+                                                    it != client2ClientInfoOnReturn.end(); ++it)
+      delete [] it->second;
+
+  for (std::map<int,size_t*>::const_iterator it = client2ClientIndexOnReturn.begin();
+                                            it != client2ClientIndexOnReturn.end(); ++it)
+      delete [] it->second;
 }
 
 /*!
@@ -296,8 +298,9 @@ void CClientClientDHTTemplate<T,H>::computeHashIndex(std::vector<size_t>& hashed
 
 /*!
   Compute distribution of global index for servers
-  Each client already holds a piece of information and its attached index.
-This information will be redistributed among processes by projecting indices into size_t space.
+  Each client already holds a piece of information and its associated index.
+This information will be redistributed among processes by projecting indices into size_t space,
+the corresponding information will be also distributed on size_t space.
 After the redistribution, each client holds rearranged index and its corresponding information.
   \param [in] indexInfoMap index and its corresponding info (usually server index)
   \param [in] commLevel communicator of current level
@@ -368,118 +371,81 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
 
   // Calculate from how many clients each client receive message.
   // Calculate size of buffer for receiving message
-  int recvNbClient, recvNbIndexCount;
+  std::vector<int> recvRankClient, recvNbIndexClientCount;
   sendRecvRank(level, sendBuff, sendNbIndexBuff,
-               recvNbClient, recvNbIndexCount);
+               recvRankClient, recvNbIndexClientCount);
+
+  int recvNbIndexCount = 0;
+  for (int idx = 0; idx < recvNbIndexClientCount.size(); ++idx)
+    recvNbIndexCount += recvNbIndexClientCount[idx];
+
+  unsigned long* recvIndexBuff;
+  unsigned char* recvInfoBuff;
+  if (0 != recvNbIndexCount)
+  {
+    recvIndexBuff = new unsigned long[recvNbIndexCount];
+    recvInfoBuff = new unsigned char[recvNbIndexCount*ProcessDHTElement<InfoType>::typeSize()];
+  }
 
   // If a client holds information about index and the corresponding which don't belong to it,
   // it will send a message to the correct clients.
   // Contents of the message are index and its corresponding informatioin
-  std::list<MPI_Request> sendRequest;
+  std::vector<MPI_Request> request;
+  int currentIndex = 0;
+  int nbRecvClient = recvRankClient.size();
+  for (int idx = 0; idx < nbRecvClient; ++idx)
+  {
+    if (0 != recvNbIndexClientCount[idx])
+    {
+      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
+      recvInfoFromClients(recvRankClient[idx],
+                          recvInfoBuff+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
+                          recvNbIndexClientCount[idx]*ProcessDHTElement<InfoType>::typeSize(),
+                          commLevel, request);
+    }
+    currentIndex += recvNbIndexClientCount[idx];
+  }
+
   std::map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
                                     iteIndex = client2ClientIndex.end();
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-    sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, sendRequest);
+    sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
   std::map<int, unsigned char*>::iterator itbInfo = client2ClientInfo.begin(), itInfo,
                                           iteInfo = client2ClientInfo.end();
   for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo)
-    sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, sendRequest);
+    sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, request);
 
-
-  unsigned long* recvIndexBuff = new unsigned long[recvNbIndexCount];
-  unsigned char* recvInfoBuff = new unsigned char[recvNbIndexCount*ProcessDHTElement<InfoType>::typeSize()];
-
-  std::map<int, MPI_Request>::iterator itRequestIndex, itRequestInfo;
-  std::map<int, int> countBuffInfo, countBuffIndex;
-  std::vector<int> processedList;
-
-  bool isFinished = (0 == recvNbClient) ? true : false;
-
-  // Counting of buffer for receiving global index
-  int countIndex = 0;
-
-  // Counting of buffer for receiving server index
-  int countInfo = 0;
-
-  // Request returned by MPI_IRecv function about global index
-  std::map<int, MPI_Request> requestRecvIndex, requestRecvInfo;
-
-  // Mapping client rank and the beginning position of receiving buffer for message of global index from this client
-  std::map<int, unsigned long*> indexBuffBegin;
-
-  // Mapping client rank and the begining position of receiving buffer for message of server index from this client
-  std::map<int, unsigned char*> infoBuffBegin;
+  std::vector<MPI_Status> status(request.size());
+  MPI_Waitall(request.size(), &request[0], &status[0]);
 
   boost::unordered_map<size_t,InfoType> indexToInfoMapping;
-
-  // Now each client trys to listen to demand from others.
-  // If they have message, it processes: pushing global index and corresponding server to its map
-  while (!isFinished || (!sendRequest.empty()))
+  currentIndex = 0;
+  InfoType infoValue;
+  int infoIndex = 0;
+  unsigned char* infoBuff = recvInfoBuff;
+  for (int idx = 0; idx < nbRecvClient; ++idx)
   {
-    testSendRequest(sendRequest);
-    probeIndexMessageFromClients(recvIndexBuff, recvNbIndexCount,
-                                 countIndex, indexBuffBegin,
-                                 requestRecvIndex, commLevel);
-    // Processing complete request
-    for (itRequestIndex = requestRecvIndex.begin();
-         itRequestIndex != requestRecvIndex.end();
-         ++itRequestIndex)
+    int count = recvNbIndexClientCount[idx];
+    for (int i = 0; i < count; ++i)
     {
-      int rank = itRequestIndex->first;
-      int count = computeBuffCountIndex(itRequestIndex->second);
-      if (0 != count)
-        countBuffIndex[rank] = count;
+      ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuff, infoIndex);
+      indexToInfoMapping[*(recvIndexBuff+currentIndex+i)] = infoValue;
     }
-
-    probeInfoMessageFromClients(recvInfoBuff, recvNbIndexCount,
-                                countInfo, infoBuffBegin,
-                                requestRecvInfo, commLevel);
-    for (itRequestInfo = requestRecvInfo.begin();
-         itRequestInfo != requestRecvInfo.end();
-         ++itRequestInfo)
-    {
-      int rank = itRequestInfo->first;
-      int count = computeBuffCountInfo(itRequestInfo->second);
-      if (0 != count)
-        countBuffInfo[rank] = count;
-    }
-
-    for (std::map<int, int>::iterator it = countBuffIndex.begin();
-                                      it != countBuffIndex.end(); ++it)
-    {
-      int rank = it->first;
-      if ((countBuffInfo.end() != countBuffInfo.find(rank)) &&
-          (countBuffIndex.end() != countBuffIndex.find(rank)))
-      {
-        int count = it->second;
-        InfoType infoValue;
-        int infoIndex = 0;
-        for (int i = 0; i < count; ++i)
-        {
-          ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuffBegin[rank], infoIndex);
-          indexToInfoMapping.insert(std::make_pair<size_t,InfoType>(*(indexBuffBegin[rank]+i),infoValue));
-        }
-
-        processedList.push_back(rank);
-        --recvNbClient;
-      }
-    }
-
-    for (int i = 0; i < processedList.size(); ++i)
-    {
-      requestRecvInfo.erase(processedList[i]);
-      requestRecvIndex.erase(processedList[i]);
-      countBuffIndex.erase(processedList[i]);
-      countBuffInfo.erase(processedList[i]);
-    }
-
-    if (0 == recvNbClient) isFinished = true;
+    currentIndex += count;
   }
 
-  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex) delete [] itIndex->second;
-  for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo) delete [] itInfo->second;
-  delete [] recvIndexBuff;
-  delete [] recvInfoBuff;
+  if (0 != recvNbIndexCount)
+  {
+    delete [] recvIndexBuff;
+    delete [] recvInfoBuff;
+  }
+  for (std::map<int,unsigned char*>::const_iterator it = client2ClientInfo.begin();
+                                                    it != client2ClientInfo.end(); ++it)
+      delete [] it->second;
+
+  for (std::map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
+                                            it != client2ClientIndex.end(); ++it)
+      delete [] it->second;
 
   // Ok, now do something recursive
   if (0 < level)
@@ -488,92 +454,21 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     computeDistributedIndex(indexToInfoMapping, this->internalComm_, level);
   }
   else
-    index2InfoMapping_ = indexToInfoMapping;
-}
-
-/*!
-  Probe and receive message containg global index from other clients.
-  Each client can send a message of global index to other clients to fulfill their maps.
-Each client probes message from its queue then if the message is ready, it will be put into the receiving buffer
-  \param [in] recvIndexBuff buffer dedicated for receiving global index
-  \param [in] recvNbIndexCount size of the buffer
-  \param [in] countIndex number of received index
-  \param [in] indexBuffBegin beginning of index buffer for each source rank
-  \param [in] requestRecvIndex request of receving index
-  \param [in] intraComm communicator
-*/
-template<typename T, typename H>
-void CClientClientDHTTemplate<T,H>::probeIndexMessageFromClients(unsigned long* recvIndexBuff,
-                                                                 const int recvNbIndexCount,
-                                                                 int& countIndex,
-                                                                 std::map<int, unsigned long*>& indexBuffBegin,
-                                                                 std::map<int, MPI_Request>& requestRecvIndex,
-                                                                 const MPI_Comm& intraComm)
-{
-  MPI_Status statusIndexGlobal;
-  int flagIndexGlobal, count;
-
-  // Probing for global index
-  MPI_Iprobe(MPI_ANY_SOURCE, MPI_DHT_INDEX, intraComm, &flagIndexGlobal, &statusIndexGlobal);
-  if ((true == flagIndexGlobal) && (countIndex < recvNbIndexCount))
-  {
-    MPI_Get_count(&statusIndexGlobal, MPI_UNSIGNED_LONG, &count);
-    indexBuffBegin.insert(std::make_pair<int, unsigned long*>(statusIndexGlobal.MPI_SOURCE, recvIndexBuff+countIndex));
-    MPI_Irecv(recvIndexBuff+countIndex, count, MPI_UNSIGNED_LONG,
-              statusIndexGlobal.MPI_SOURCE, MPI_DHT_INDEX, intraComm,
-              &requestRecvIndex[statusIndexGlobal.MPI_SOURCE]);
-    countIndex += count;
-  }
-}
-
-/*!
-  Probe and receive message containg server index from other clients.
-  Each client can send a message of server index to other clients to fulfill their maps.
-Each client probes message from its queue then if the message is ready, it will be put into the receiving buffer
-  \param [in] recvInfoBuff buffer dedicated for receiving server index
-  \param [in] recvNbIndexCount size of the buffer
-  \param [in] countInfo number of received info
-  \param [in] infoBuffBegin beginning of index buffer for each source rank
-  \param [in] requestRecvInfo request of receving index
-  \param [in] intraComm communicator
-*/
-template<typename T, typename H>
-void CClientClientDHTTemplate<T,H>::probeInfoMessageFromClients(unsigned char* recvInfoBuff,
-                                                                const int recvNbIndexCount,
-                                                                int& countInfo,
-                                                                std::map<int, unsigned char*>& infoBuffBegin,
-                                                                std::map<int, MPI_Request>& requestRecvInfo,
-                                                                const MPI_Comm& intraComm)
-{
-  MPI_Status statusInfo;
-  int flagInfo, count;
-
-  // Probing for server index
-  MPI_Iprobe(MPI_ANY_SOURCE, MPI_DHT_INFO, intraComm, &flagInfo, &statusInfo);
-  if ((true == flagInfo) && (countInfo < recvNbIndexCount))
-  {
-    MPI_Get_count(&statusInfo, MPI_CHAR, &count);
-    unsigned char* beginInfoBuff = recvInfoBuff+countInfo*infoTypeSize;
-    infoBuffBegin.insert(std::make_pair<int, unsigned char*>(statusInfo.MPI_SOURCE, beginInfoBuff));
-    MPI_Irecv(beginInfoBuff, count, MPI_CHAR,
-              statusInfo.MPI_SOURCE, MPI_DHT_INFO, intraComm,
-              &requestRecvInfo[statusInfo.MPI_SOURCE]);
-
-    countInfo += count/infoTypeSize;
-  }
+    index2InfoMapping_ = (indexToInfoMapping);
 }
 
 /*!
   Send message containing index to clients
   \param [in] clientDestRank rank of destination client
   \param [in] indices index to send
+  \param [in] indiceSize size of index array to send
   \param [in] clientIntraComm communication group of client
   \param [in] requestSendIndex list of sending request
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, size_t* indices, size_t indiceSize,
                                                        const MPI_Comm& clientIntraComm,
-                                                       std::list<MPI_Request>& requestSendIndex)
+                                                       std::vector<MPI_Request>& requestSendIndex)
 {
   MPI_Request request;
   requestSendIndex.push_back(request);
@@ -582,15 +477,35 @@ void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, size_
 }
 
 /*!
+  Receive message containing index to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] indices index to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestRecvIndex list of receiving request
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::recvIndexFromClients(int clientSrcRank, size_t* indices, size_t indiceSize,
+                                                         const MPI_Comm& clientIntraComm,
+                                                         std::vector<MPI_Request>& requestRecvIndex)
+{
+  MPI_Request request;
+  requestRecvIndex.push_back(request);
+  MPI_Irecv(indices, indiceSize, MPI_UNSIGNED_LONG,
+            clientSrcRank, MPI_DHT_INDEX, clientIntraComm, &(requestRecvIndex.back()));
+}
+
+/*!
   Send message containing information to clients
   \param [in] clientDestRank rank of destination client
-  \param [in] info server index to send
+  \param [in] info info array to send
+  \param [in] infoSize info array size to send
   \param [in] clientIntraComm communication group of client
   \param [in] requestSendInfo list of sending request
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
-                       const MPI_Comm& clientIntraComm, std::list<MPI_Request>& requestSendInfo)
+                                                      const MPI_Comm& clientIntraComm,
+                                                      std::vector<MPI_Request>& requestSendInfo)
 {
   MPI_Request request;
   requestSendInfo.push_back(request);
@@ -600,74 +515,28 @@ void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsign
 }
 
 /*!
-  Verify status of sending request
-  \param [in] sendRequest sending request to verify
+  Receive message containing information from other clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] info info array to receive
+  \param [in] infoSize info array size to receive
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestRecvInfo list of sending request
 */
 template<typename T, typename H>
-void CClientClientDHTTemplate<T,H>::testSendRequest(std::list<MPI_Request>& sendRequest)
+void CClientClientDHTTemplate<T,H>::recvInfoFromClients(int clientSrcRank, unsigned char* info, int infoSize,
+                                                        const MPI_Comm& clientIntraComm,
+                                                        std::vector<MPI_Request>& requestRecvInfo)
 {
-  int flag = 0;
-  MPI_Status status;
-  std::list<MPI_Request>::iterator itRequest;
-  int sizeListRequest = sendRequest.size();
-  int idx = 0;
-  while (idx < sizeListRequest)
-  {
-    bool isErased = false;
-    for (itRequest = sendRequest.begin(); itRequest != sendRequest.end(); ++itRequest)
-    {
-      MPI_Test(&(*itRequest), &flag, &status);
-      if (true == flag)
-      {
-        isErased = true;
-        break;
-      }
-    }
-    if (true == isErased) sendRequest.erase(itRequest);
-    ++idx;
-  }
+  MPI_Request request;
+  requestRecvInfo.push_back(request);
+
+  MPI_Irecv(info, infoSize, MPI_CHAR,
+            clientSrcRank, MPI_DHT_INFO, clientIntraComm, &(requestRecvInfo.back()));
 }
 
 /*!
-  Compute size of message containing global index
-  \param[in] requestRecv request of message
-*/
-template<typename T, typename H>
-int CClientClientDHTTemplate<T,H>::computeBuffCountIndex(MPI_Request& requestRecv)
-{
-  int flag, count = 0;
-  MPI_Status status;
-
-  MPI_Test(&requestRecv, &flag, &status);
-  if (true == flag)
-  {
-    MPI_Get_count(&status, MPI_UNSIGNED_LONG, &count);
-  }
-
-  return count;
-}
-
-/*!
-  Compute size of message containing server index
-  \param[in] requestRecv request of message
-*/
-template<typename T, typename H>
-int CClientClientDHTTemplate<T,H>::computeBuffCountInfo(MPI_Request& requestRecv)
-{
-  int flag, count = 0;
-  MPI_Status status;
-
-  MPI_Test(&requestRecv, &flag, &status);
-  if (true == flag)
-  {
-    MPI_Get_count(&status, MPI_CHAR, &count);
-  }
-
-  return (count/infoTypeSize);
-}
-
-/*!
-  Compute how many processes one process needs to send to and from how many processes it will receive
+  Compute how many processes one process needs to send to and from how many processes it will receive.
+  This computation is only based on hierachical structure of distributed hash table (e.x: number of processes)
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::computeSendRecvRank(int level, int rank)
@@ -720,13 +589,51 @@ void CClientClientDHTTemplate<T,H>::computeSendRecvRank(int level, int rank)
 }
 
 /*!
+  Compute number of clients as well as corresponding number of elements each client will receive on returning searching result
+  \param [in] sendNbRank Rank of clients to send to
+  \param [in] sendNbElements Number of elements each client to send to
+  \param [in] receiveNbRank Rank of clients to receive from
+  \param [out] recvNbElements Number of elements each client to send to
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::sendRecvOnReturn(const std::vector<int>& sendNbRank, std::vector<int>& sendNbElements,
+                                                     const std::vector<int>& recvNbRank, std::vector<int>& recvNbElements)
+{
+  recvNbElements.resize(recvNbRank.size());
+  std::vector<MPI_Request> request(sendNbRank.size()+recvNbRank.size());
+  std::vector<MPI_Status> requestStatus(sendNbRank.size()+recvNbRank.size());
+
+  int nRequest = 0;
+  for (int idx = 0; idx < recvNbRank.size(); ++idx)
+  {
+    MPI_Irecv(&recvNbElements[0]+idx, 1, MPI_INT,
+              recvNbRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+    ++nRequest;
+  }
+
+  for (int idx = 0; idx < sendNbRank.size(); ++idx)
+  {
+    MPI_Isend(&sendNbElements[0]+idx, 1, MPI_INT,
+              sendNbRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+    ++nRequest;
+  }
+
+  MPI_Waitall(sendNbRank.size()+recvNbRank.size(), &request[0], &requestStatus[0]);
+}
+
+/*!
   Send and receive number of process each process need to listen to as well as number
-  of index it will receive
+  of index it will receive during the initalization phase
+  \param [in] level current level
+  \param [in] sendNbRank Rank of clients to send to
+  \param [in] sendNbElements Number of elements each client to send to
+  \param [out] receiveNbRank Rank of clients to receive from
+  \param [out] recvNbElements Number of elements each client to send to
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
                                                  const std::vector<int>& sendNbRank, const std::vector<int>& sendNbElements,
-                                                 int& recvNbRank, int& recvNbElements)
+                                                 std::vector<int>& recvNbRank, std::vector<int>& recvNbElements)
 {
   int groupBegin = this->getGroupBegin()[level];
 
@@ -734,11 +641,20 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
   std::vector<int>& sendRank = sendRank_[level];
   std::vector<int>& recvRank = recvRank_[level];
   int sendBuffSize = sendRank.size();
-  int* sendBuff = new int [sendBuffSize*2];
-  std::vector<MPI_Request> request(sendBuffSize);
-  std::vector<MPI_Status> requestStatus(sendBuffSize);
+  std::vector<int> sendBuff(sendBuffSize*2);
   int recvBuffSize = recvRank.size();
-  int* recvBuff = new int [2];
+  std::vector<int> recvBuff(recvBuffSize*2,0);
+
+  std::vector<MPI_Request> request(sendBuffSize+recvBuffSize);
+  std::vector<MPI_Status> requestStatus(sendBuffSize+recvBuffSize);
+
+  int nRequest = 0;
+  for (int idx = 0; idx < recvBuffSize; ++idx)
+  {
+    MPI_Irecv(&recvBuff[0]+2*idx, 2, MPI_INT,
+              recvRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+    ++nRequest;
+  }
 
   for (int idx = 0; idx < sendBuffSize; ++idx)
   {
@@ -750,26 +666,22 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
   for (int idx = 0; idx < sendBuffSize; ++idx)
   {
     MPI_Isend(&sendBuff[idx*2], 2, MPI_INT,
-              sendRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[idx]);
+              sendRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+    ++nRequest;
   }
 
-  MPI_Status status;
+  MPI_Waitall(sendBuffSize+recvBuffSize, &request[0], &requestStatus[0]);
   int nbRecvRank = 0, nbRecvElements = 0;
+  recvNbRank.clear();
+  recvNbElements.clear();
   for (int idx = 0; idx < recvBuffSize; ++idx)
   {
-    MPI_Recv(recvBuff, 2, MPI_INT,
-             recvRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &status);
-    nbRecvRank += *(recvBuff);
-    nbRecvElements += *(recvBuff+1);
+    if (0 != recvBuff[2*idx])
+    {
+      recvNbRank.push_back(recvRank[idx]);
+      recvNbElements.push_back(recvBuff[2*idx+1]);
+    }
   }
-
-  MPI_Waitall(sendBuffSize, &request[0], &requestStatus[0]);
-
-  recvNbRank = nbRecvRank;
-  recvNbElements = nbRecvElements;
-
-  delete [] sendBuff;
-  delete [] recvBuff;
 }
 
 }
