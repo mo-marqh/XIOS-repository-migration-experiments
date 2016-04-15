@@ -316,7 +316,7 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_variabletofile)(parent_hdl, child_hdl, child_id)
       TYPE(txios(file))            , INTENT(IN) :: parent_hdl
-      TYPE(txios(variable))           , INTENT(OUT):: child_hdl
+      TYPE(txios(variable))        , INTENT(OUT):: child_hdl
       CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN
@@ -329,8 +329,8 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_variabletofield)(parent_hdl, child_hdl, child_id)
       TYPE(txios(field))            , INTENT(IN) :: parent_hdl
-      TYPE(txios(variable))           , INTENT(OUT):: child_hdl
-      CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
+      TYPE(txios(variable))         , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN
          CALL cxios_xml_tree_add_variabletofield(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
@@ -408,8 +408,8 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_fieldgrouptofile)(parent_hdl, child_hdl, child_id)
       TYPE(txios(file))            , INTENT(IN) :: parent_hdl
-      TYPE(txios(fieldgroup))     , INTENT(OUT):: child_hdl
-      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+      TYPE(txios(fieldgroup))      , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN
          CALL cxios_xml_tree_add_fieldgrouptofile(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
@@ -421,8 +421,8 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_variablegrouptofile)(parent_hdl, child_hdl, child_id)
       TYPE(txios(file))            , INTENT(IN) :: parent_hdl
-      TYPE(txios(variablegroup))     , INTENT(OUT):: child_hdl
-      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+      TYPE(txios(variablegroup))   , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN
          CALL cxios_xml_tree_add_variablegrouptofile(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
@@ -434,7 +434,7 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_variablegrouptofield)(parent_hdl, child_hdl, child_id)
       TYPE(txios(field))            , INTENT(IN) :: parent_hdl
-      TYPE(txios(variablegroup))     , INTENT(OUT):: child_hdl
+      TYPE(txios(variablegroup))    , INTENT(OUT):: child_hdl
       CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN
@@ -536,9 +536,9 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_interpolateaxistoaxis)
 
-      SUBROUTINE xios(add_inverseaxistoaxis)(parent_hdl, child_hdl, child_id)
+   SUBROUTINE xios(add_inverseaxistoaxis)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
-      TYPE(txios(zoom_axis))                 , INTENT(OUT):: child_hdl
+      TYPE(txios(inverse_axis))              , INTENT(OUT):: child_hdl
       CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN

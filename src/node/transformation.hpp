@@ -42,7 +42,7 @@ namespace xios {
   }; // class CTransformation
 
   template<typename T>
-  CTransformation<T>::CallBackMap* CTransformation<T>::transformationCreationCallBacks_ = 0; //CTransformation<T>::CallBackMap();
+  typename CTransformation<T>::CallBackMap* CTransformation<T>::transformationCreationCallBacks_ = 0; //CTransformation<T>::CallBackMap();
 
   template<typename T>
   CTransformation<T>* CTransformation<T>::createTransformation(ETranformationType transType, const StdString& id, xml::CXMLNode* node)
