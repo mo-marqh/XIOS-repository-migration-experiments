@@ -449,12 +449,7 @@ void CGridTransformation::computeTransformationMapping(const DestinationIndexMap
     recvTmp[sourceRank].resize(numGlobalIndex);
     for (int i = 0; i < numGlobalIndex; ++i)
     {
-      int vecSize = ((itMapRecv->second)[i]).size();
-      for (int idx = 0; idx < vecSize; ++idx)
-      {
-        const std::pair<int, std::pair<size_t,double> >& tmpPair = (itMapRecv->second)[i][idx];
-        recvTmp[sourceRank][i].push_back(make_pair(tmpPair.first, tmpPair.second.second));
-      }
+      recvTmp[sourceRank][i] = make_pair((itMapRecv->second)[i].localIndex,(itMapRecv->second)[i].weight);
     }
   }
 

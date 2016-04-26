@@ -28,7 +28,15 @@ class CTransformationMapping
 {
 public:
   typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
-  typedef boost::unordered_map<int,std::vector<std::vector<std::pair<int, std::pair<size_t,double> > > > > ReceivedIndexMap;
+  struct ReceivedIndex {
+    ReceivedIndex(int l, size_t g, double w) : localIndex(l),globalIndex(g), weight(w) {}
+    ReceivedIndex() : localIndex(0), globalIndex(0), weight(0.0) {}
+    int localIndex;
+    size_t globalIndex;
+    double weight;
+  };
+
+  typedef boost::unordered_map<int,std::vector<ReceivedIndex> > ReceivedIndexMap;
   typedef boost::unordered_map<int,std::vector<std::pair<int, size_t> > > SentIndexMap;
 
 public:

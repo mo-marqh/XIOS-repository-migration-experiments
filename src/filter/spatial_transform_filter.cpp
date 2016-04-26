@@ -168,14 +168,10 @@ namespace xios
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
         int countSize = itRecv->second.size();
+        const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
         for (int idx = 0; idx < countSize; ++idx)
         {
-          const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second[idx];
-          int numIndex = localIndex_p.size();
-          for (int i = 0; i < numIndex; ++i)
-          {
-            dataCurrentDest(localIndex_p[i].first) += *(recvBuff+currentBuff+idx) * localIndex_p[i].second;
-          }
+          dataCurrentDest(localIndex_p[idx].first) += *(recvBuff+currentBuff+idx) * localIndex_p[idx].second;
         }
         currentBuff += countSize;
       }

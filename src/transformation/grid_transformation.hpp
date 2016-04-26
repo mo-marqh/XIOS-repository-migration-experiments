@@ -37,7 +37,8 @@ public:
   typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
   typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
   typedef std::map<int, CArray<int,1> > SendingIndexGridSourceMap;
-  typedef std::map<int,std::vector<std::vector<std::pair<int,double> > > > RecvIndexGridDestinationMap;
+  typedef std::map<int,std::vector<std::pair<int,double> > > RecvIndexGridDestinationMap;
+//  typedef std::map<int,std::vector<std::vector<std::pair<int,double> > > > RecvIndexGridDestinationMap;
 
 public:
   /** Default constructor */

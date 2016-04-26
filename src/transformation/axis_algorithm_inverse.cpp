@@ -138,12 +138,14 @@ void CAxisAlgorithmInverse::updateAxisValue()
    int countSize = (itRecv->second).size();
    for (int idx = 0; idx < countSize; ++idx, ++currentRecvBuff)
    {
-     int ssize = (itRecv->second)[idx].size();
-     for (int i = 0; i < ssize; ++i)
-     {
-       int index = ((itRecv->second)[idx][i]).first - ibeginDest;
-       (axisDest_->value)(index) = *currentRecvBuff;
-     }
+     int index = ((itRecv->second)[idx]).localIndex - ibeginDest;
+     (axisDest_->value)(index) = *currentRecvBuff;
+//     int ssize = (itRecv->second)[idx].size();
+//     for (int i = 0; i < ssize; ++i)
+//     {
+//       int index = ((itRecv->second)[idx][i]).first - ibeginDest;
+//       (axisDest_->value)(index) = *currentRecvBuff;
+//     }
    }
  }
 

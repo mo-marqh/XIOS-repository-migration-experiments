@@ -88,44 +88,24 @@ void CTransformationMapping::computeTransformationMapping(const DestinationIndex
 
   // Not only one index on grid destination can demande two indexes from grid source
   // but an index on grid source has to be sent to two indexes of grid destination
-  DestinationIndexMap globalIndexMapFromSrcToDest;
-  boost::unordered_map<size_t, int> nbGlobalIndexMapFromSrcToDest;
+  size_t nbGlobalIndexSrc = 0;
+  for (itMap = itbMap; itMap != iteMap; ++itMap)
+  {
+    nbGlobalIndexSrc += (itMap->second).size();
+  }
+
+  CArray<size_t,1> globalIndexMap(nbGlobalIndexSrc);
   std::vector<std::pair<int, std::pair<size_t,double> > >::const_iterator itbVecPair, itVecPair, iteVecPair;
+  size_t idxSrc = 0;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
     itbVecPair = (itMap->second).begin();
     iteVecPair = (itMap->second).end();
     for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
     {
-      ++nbGlobalIndexMapFromSrcToDest[(itVecPair->second).first];
+      globalIndexMap(idxSrc) = itVecPair->second.first;
+      ++idxSrc;
     }
-  }
-
-  for (boost::unordered_map<size_t, int>::const_iterator it = nbGlobalIndexMapFromSrcToDest.begin();
-                                                         it != nbGlobalIndexMapFromSrcToDest.end(); ++it)
-  {
-    globalIndexMapFromSrcToDest[it->first].reserve(it->second);
-  }
-
-  for (itMap = itbMap; itMap != iteMap; ++itMap)
-  {
-    itbVecPair = (itMap->second).begin();
-    iteVecPair = (itMap->second).end();
-    for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
-    {
-      globalIndexMapFromSrcToDest[(itVecPair->second).first].push_back(std::make_pair(itVecPair->first, std::make_pair(itMap->first, (itVecPair->second).second)));
-    }
-  }
-
-  // All global indexes of a client on grid destination
-  CArray<size_t,1> globalIndexMap(globalIndexMapFromSrcToDest.size());
-  DestinationIndexMap::const_iterator itbMapBoost = globalIndexMapFromSrcToDest.begin(), itMapBoost;
-  DestinationIndexMap::const_iterator iteMapBoost = globalIndexMapFromSrcToDest.end();
-  int idx = 0;
-  for (itMapBoost = itbMapBoost; itMapBoost != iteMapBoost; ++itMapBoost)
-  {
-    globalIndexMap(idx) = itMapBoost->first;
-    ++idx;
   }
 
   // Find out on which clients the necessary indexes of grid source are.
@@ -133,29 +113,62 @@ void CTransformationMapping::computeTransformationMapping(const DestinationIndex
   const CClientClientDHTPairIntInt::Index2InfoTypeMap& globalIndexSentFromGridSource = gridIndexClientClientMapping_->getInfoIndexMap();
   CClientClientDHTPairIntInt::Index2InfoTypeMap::const_iterator itbMapSrc = globalIndexSentFromGridSource.begin(), itMapSrc,
                                                                 iteMapSrc = globalIndexSentFromGridSource.end();
-  std::vector<size_t>::const_iterator itbVec, itVec, iteVec;
-    // Inform client about the destination to which it needs to send global indexes
+  size_t currentIndexSrc;
   int nbClient = client->clientSize;
+  std::vector<int> nbIndexEachClient(nbClient,0);
   std::vector<int> sendNbClientBuff(nbClient,0);
-  std::vector<int> recvNbClientBuff(nbClient,0);
-  std::vector<int> sendIndexBuff(nbClient,0);
-  std::vector<int> recvIndexBuff(nbClient,0);
-  boost::unordered_map<int,std::vector<size_t> > sendIndexMap;
-  for (itMapSrc = itbMapSrc; itMapSrc != iteMapSrc; ++itMapSrc)
+  for (idxSrc = 0; idxSrc < nbGlobalIndexSrc; ++idxSrc)
   {
-    int sourceRank = (itMapSrc->second).first;
-    (globalIndexReceivedOnGridDestMapping_[sourceRank]).push_back(globalIndexMapFromSrcToDest[itMapSrc->first]);
-    sendIndexMap[sourceRank].push_back((itMapSrc->second).second);
-    sendIndexMap[sourceRank].push_back(itMapSrc->first);
-    sendNbClientBuff[sourceRank] = 1;
-    ++sendIndexBuff[sourceRank];
+    currentIndexSrc = globalIndexMap(idxSrc);
+    itMapSrc = globalIndexSentFromGridSource.find(currentIndexSrc);
+    if (iteMapSrc != itMapSrc)
+    {
+      ++nbIndexEachClient[itMapSrc->second.first];
+    }
   }
 
+  boost::unordered_map<int,size_t* > sendIndexMap;
+  for (int idx = 0; idx < nbClient; ++idx)
+  {
+    if (0 != nbIndexEachClient[idx])
+    {
+      globalIndexReceivedOnGridDestMapping_[idx].resize(nbIndexEachClient[idx]);
+      sendIndexMap[idx] = new unsigned long [2*nbIndexEachClient[idx]];
+      nbIndexEachClient[idx] = 0;
+      sendNbClientBuff[idx] = 1;
+    }
+  }
+
+  int srcRank;
+  for (itMap = itbMap; itMap != iteMap; ++itMap)
+  {
+    itbVecPair = (itMap->second).begin();
+    iteVecPair = (itMap->second).end();
+    for (itVecPair = itbVecPair; itVecPair != iteVecPair; ++itVecPair)
+    {
+      currentIndexSrc = itVecPair->second.first;
+      itMapSrc = globalIndexSentFromGridSource.find(currentIndexSrc);
+      if (iteMapSrc != itMapSrc)
+      {
+        srcRank = (itMapSrc->second).first;
+        int& ind = nbIndexEachClient[srcRank];
+        globalIndexReceivedOnGridDestMapping_[srcRank][ind] = ReceivedIndex(itVecPair->first, itMap->first, itVecPair->second.second);
+        sendIndexMap[srcRank][2*ind] = (itMapSrc->second).second;
+        sendIndexMap[srcRank][2*ind+1] = itMapSrc->first;
+        ++ind;
+      }
+    }
+  }
+
+  std::vector<int> recvNbClientBuff(nbClient,0);
   MPI_Allreduce(&sendNbClientBuff[0], &recvNbClientBuff[0], nbClient, MPI_INT, MPI_SUM, client->intraComm);
   int numClientToReceive = recvNbClientBuff[client->clientRank];
 
   // Then specify the size of receiving buffer, because we use synch send/receive so only necessary to know maximum size
-  MPI_Allreduce(&sendIndexBuff[0], &recvIndexBuff[0], nbClient, MPI_INT, MPI_MAX, client->intraComm);
+  std::vector<int> recvIndexBuff(nbClient,0);
+  MPI_Allreduce(&nbIndexEachClient[0], &recvIndexBuff[0], nbClient, MPI_INT, MPI_MAX, client->intraComm);
+  std::vector<size_t>::const_iterator itbVec, itVec, iteVec;
+
   int buffSize = 2*recvIndexBuff[client->clientRank]; // we send global as well as local index
   unsigned long* recvBuffGlobalIndex;
   if (0 != buffSize) recvBuffGlobalIndex = new unsigned long [buffSize];
@@ -163,13 +176,12 @@ void CTransformationMapping::computeTransformationMapping(const DestinationIndex
   std::map<int, MPI_Request> requests;
 
   // Inform all "source clients" about index that they need to send
-  boost::unordered_map<int,std::vector<size_t> >::const_iterator itSendIndex = sendIndexMap.begin(),
-                                                                 iteSendIndex= sendIndexMap.end();
+  boost::unordered_map<int,size_t* >::const_iterator itSendIndex = sendIndexMap.begin(),
+                                                     iteSendIndex= sendIndexMap.end();
   for (; itSendIndex != iteSendIndex; ++itSendIndex)
   {
-    unsigned long* sendPtr = const_cast<unsigned long*>(&(itSendIndex->second)[0]);
-    MPI_Isend(sendPtr,
-              (itSendIndex->second).size(),
+    MPI_Isend((itSendIndex->second),
+              2*nbIndexEachClient[itSendIndex->first],
               MPI_UNSIGNED_LONG,
               (itSendIndex->first),
               MPI_TRANSFORMATION_MAPPING_INDEX,
@@ -193,9 +205,12 @@ void CTransformationMapping::computeTransformationMapping(const DestinationIndex
 
     MPI_Get_count(&status, MPI_UNSIGNED_LONG, &countBuff);
     int clientDestRank = status.MPI_SOURCE;
-    for (int idx = 0; idx < countBuff; idx += 2)
+    int sizeMap = countBuff/2;
+    globalIndexSendToGridDestMapping_[clientDestRank].resize(sizeMap);
+    for (int idx = 0, i = 0; idx < countBuff; idx += 2, ++i)
     {
-      globalIndexSendToGridDestMapping_[clientDestRank].push_back(std::make_pair<int,size_t>(recvBuffGlobalIndex[idx], recvBuffGlobalIndex[idx+1]));
+      globalIndexSendToGridDestMapping_[clientDestRank][i].first = recvBuffGlobalIndex[idx];
+      globalIndexSendToGridDestMapping_[clientDestRank][i].second = recvBuffGlobalIndex[idx+1];
     }
     ++numClientReceived;
   }
@@ -205,6 +220,8 @@ void CTransformationMapping::computeTransformationMapping(const DestinationIndex
     MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
 
   if (0 != buffSize) delete [] recvBuffGlobalIndex;
+  for (itSendIndex = sendIndexMap.begin(); itSendIndex != iteSendIndex; ++itSendIndex)
+    delete [] itSendIndex->second;
 }
 
 /*!
