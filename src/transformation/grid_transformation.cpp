@@ -409,346 +409,51 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
                                      globalLocalIndexGridDestSendToServer,
                                      globaIndexWeightFromDestToSource);
 
+      // Compute transformation of global indexes among grids
+      computeTransformationMapping(globaIndexWeightFromDestToSource);
+
       if (1 < nbAlgos_)
       {
-        // Compute transformation of global indexes among grids
-        computeTransformationFromOriginalGridSource(globaIndexWeightFromDestToSource);
-
         // Now grid destination becomes grid source in a new transformation
         if (nbAgloTransformation != (nbAlgos_-1)) setUpGrid(elementPositionInGrid, transType, nbAgloTransformation);
       }
-      else
-      {
-        currentGridIndexToOriginalGridIndex_.swap(globaIndexWeightFromDestToSource);
-      }
-
       ++nbAgloTransformation;
     }
   }
-
-  if (0 != nbAgloTransformation)
-  {
-    updateFinalGridDestination();
-    computeFinalTransformationMapping();
-  }
-}
-
-
-/*!
-  After applying the algorithms, there are some informations on grid destination needing change, for now, there are:
-   +) mask
-*/
-void CGridTransformation::updateFinalGridDestination()
-{
-  CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-
-  //First of all, retrieve info of local mask of grid destination
-  CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-  const std::vector<int>& localMaskIndexOnClientDest = distributionClientDest.getLocalMaskIndexOnClient();
-  const CDistributionClient::GlobalLocalDataMap& globalIndexOnClientDest = distributionClientDest.getGlobalLocalDataSendToServer();
-
-  CDistributionClient::GlobalLocalDataMap::const_iterator itbArr, itArr, iteArr;
-  itbArr = globalIndexOnClientDest.begin();
-  iteArr = globalIndexOnClientDest.end();
-
-  DestinationIndexMap::const_iterator iteGlobalMap = currentGridIndexToOriginalGridIndex_.end();
-  const size_t sfmax = NumTraits<unsigned long>::sfmax();
-  int maskIndexNum = 0;
-  for (itArr = itbArr; itArr != iteArr; ++itArr)
-  {
-    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(itArr->first))
-    {
-      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[itArr->first];
-      for (int idx = 0; idx < vecIndex.size(); ++idx)
-      {
-        if (sfmax == (vecIndex[idx].second).first)
-        {
-          ++maskIndexNum;
-          break;
-        }
-      }
-    }
-  }
-
-  CArray<int,1> maskIndexToModify(maskIndexNum);
-  maskIndexNum = 0;
-  for (itArr = itbArr; itArr != iteArr; ++itArr)
-  {
-    if (iteGlobalMap != currentGridIndexToOriginalGridIndex_.find(itArr->first))
-    {
-      const std::vector<std::pair<int, std::pair<size_t,double> > >& vecIndex = currentGridIndexToOriginalGridIndex_[itArr->first];
-      for (int idx = 0; idx < vecIndex.size(); ++idx)
-      {
-        if (sfmax == (vecIndex[idx].second).first)
-        {
-          int localIdx = std::distance(itbArr, itArr);
-          maskIndexToModify(maskIndexNum) = localMaskIndexOnClientDest[localIdx];
-          ++maskIndexNum;
-          break;
-        }
-      }
-    }
-  }
-
-  gridDestination_->modifyMask(maskIndexToModify);
 }
 
 /*!
-  A transformation from a grid source to grid destination often passes several intermediate grids, which play a role of
-temporary grid source and/or grid destination. This function makes sure that global index of original grid source are mapped correctly to
-the final grid destination
+  Compute exchange index between grid source and grid destination
+  \param [in] globalIndexWeightFromDestToSource global index mapping between grid destination and grid source
 */
-void CGridTransformation::computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource)
+void CGridTransformation::computeTransformationMapping(const DestinationIndexMap& globalIndexWeightFromDestToSource)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
-
-  if (currentGridIndexToOriginalGridIndex_.empty())
-  {
-    currentGridIndexToOriginalGridIndex_ = globaIndexMapFromDestToSource;
-    return;
-  }
 
   CTransformationMapping transformationMap(gridDestination_, gridSource_);
 
-    // Then compute transformation mapping among clients
-  transformationMap.computeTransformationMapping(globaIndexMapFromDestToSource);
-
-  const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
-  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
-
- // Sending global index of original grid source
-  CTransformationMapping::SentIndexMap::const_iterator itbSend = globalIndexToSend.begin(), itSend,
-                                                       iteSend = globalIndexToSend.end();
- int sendBuffSize = 0;
- for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize += (itSend->second).size();
- // We use the first element of each block to send number of element in this block
- sendBuffSize += globalIndexToSend.size();
-
-
- typedef unsigned long Scalar;
- Scalar* sendBuff, *currentSendBuff;
- if (0 != sendBuffSize) sendBuff = new Scalar [sendBuffSize];
- for (StdSize idx = 0; idx < sendBuffSize; ++idx) sendBuff[idx] = NumTraits<Scalar>::sfmax();
-
- std::map<int, MPI_Request> requestsCurrentGrid, requestsOriginalGridGlobalIndex, requestsOriginalGridLocalIndex, requestsWeightGrid;
- DestinationIndexMap::const_iterator iteGlobalIndex = currentGridIndexToOriginalGridIndex_.end();
-
-  // Only send global index of original source corresponding to non-masked index
-  // Use first position of each block to specify the number of elemnt in this block
- int globalIndexOriginalSrcSendBuffSize = 0;
- int currentBuffPosition = 0;
- for (itSend = itbSend; itSend != iteSend; ++itSend)
- {
-   int destRank = itSend->first;
-   const std::vector<std::pair<int, size_t> >& globalIndexOfCurrentGridSourceToSend = itSend->second;
-   int countSize  = globalIndexOfCurrentGridSourceToSend.size();
-   size_t countBlock = 0;
-   for (int idx = 0; idx < countSize; ++idx)
-   {
-     size_t index = globalIndexOfCurrentGridSourceToSend[idx].second;
-     if (iteGlobalIndex != currentGridIndexToOriginalGridIndex_.find(index))
-     {
-       globalIndexOriginalSrcSendBuffSize += currentGridIndexToOriginalGridIndex_[index].size() + 1; // 1 for number of elements in this block
-       sendBuff[idx+currentBuffPosition+1] = index;
-       countBlock += currentGridIndexToOriginalGridIndex_[index].size() + 1;
-     }
-   }
-   sendBuff[currentBuffPosition] = countBlock;
-   currentSendBuff = sendBuff + currentBuffPosition;
-   MPI_Isend(currentSendBuff, countSize +1, MPI_UNSIGNED_LONG, destRank, MPI_GRID_TRANSFORMATION_CURRENT_GRID_INDEX, client->intraComm, &requestsCurrentGrid[destRank]);
-   currentBuffPosition += countSize + 1;
- }
-
- Scalar* sendOriginalGlobalIndexBuff, *currentOriginalGlobalIndexSendBuff;
- if (0 != globalIndexOriginalSrcSendBuffSize) sendOriginalGlobalIndexBuff = new Scalar [globalIndexOriginalSrcSendBuffSize];
- double* sendOriginalWeightBuff, *currentOriginalWeightSendBuff;
- if (0 != globalIndexOriginalSrcSendBuffSize) sendOriginalWeightBuff = new double [globalIndexOriginalSrcSendBuffSize];
-
- currentBuffPosition = 0;
- for (itSend = itbSend; itSend != iteSend; ++itSend)
- {
-   int destRank = itSend->first;
-   const std::vector<std::pair<int, size_t> >& globalIndexOfCurrentGridSourceToSend = itSend->second;
-   int countSize = globalIndexOfCurrentGridSourceToSend.size();
-   int increaseStep = 0;
-   for (int idx = 0; idx < countSize; ++idx)
-   {
-     size_t index = globalIndexOfCurrentGridSourceToSend[idx].second;
-     if (iteGlobalIndex != currentGridIndexToOriginalGridIndex_.find(index))
-     {
-       size_t vectorSize = currentGridIndexToOriginalGridIndex_[index].size();
-       sendOriginalGlobalIndexBuff[currentBuffPosition+increaseStep]  = vectorSize;
-       sendOriginalWeightBuff[currentBuffPosition+increaseStep] = (double)vectorSize;
-       const std::vector<std::pair<int, std::pair<size_t,double> > >& indexWeightPair = currentGridIndexToOriginalGridIndex_[index];
-       for (size_t i = 0; i < vectorSize; ++i)
-       {
-         ++increaseStep;
-         sendOriginalGlobalIndexBuff[currentBuffPosition+increaseStep]  = (indexWeightPair[i].second).first;
-         sendOriginalWeightBuff[currentBuffPosition+increaseStep] = (indexWeightPair[i].second).second;
-       }
-       ++increaseStep;
-     }
-   }
-
-   currentOriginalGlobalIndexSendBuff = sendOriginalGlobalIndexBuff + currentBuffPosition;
-   currentOriginalWeightSendBuff = sendOriginalWeightBuff + currentBuffPosition;
-   if (0 != increaseStep)
-   {
-     MPI_Isend(currentOriginalGlobalIndexSendBuff, increaseStep, MPI_UNSIGNED_LONG, destRank,
-               MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_GLOBAL_INDEX, client->intraComm, &requestsOriginalGridGlobalIndex[destRank]);
-     MPI_Isend(currentOriginalWeightSendBuff, increaseStep, MPI_DOUBLE, destRank,
-               MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_WEIGHT, client->intraComm, &requestsWeightGrid[destRank]);
-   }
-   currentBuffPosition += increaseStep;
- }
-
-
- // Receiving global index of grid source sending from current grid source
- CTransformationMapping::ReceivedIndexMap::const_iterator itbRecv = globalIndexToReceive.begin(), itRecv,
-                                                          iteRecv = globalIndexToReceive.end();
- int recvBuffSize = 0;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize += (itRecv->second).size();
- recvBuffSize += globalIndexToReceive.size();
-
- Scalar* recvBuff, *currentRecvBuff;
- if (0 != recvBuffSize) recvBuff = new Scalar [recvBuffSize];
- for (StdSize idx = 0; idx < recvBuffSize; ++idx) recvBuff[idx] = NumTraits<Scalar>::sfmax();
-
- std::map<int,int> countBlockMap;
- int globalIndexOriginalSrcRecvBuffSize = 0;
- int currentRecvBuffPosition = 0;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
- {
-   MPI_Status status;
-   int srcRank = itRecv->first;
-   int countSize = (itRecv->second).size();
-   currentRecvBuff = recvBuff + currentRecvBuffPosition;
-   MPI_Recv(currentRecvBuff, countSize +1, MPI_UNSIGNED_LONG, srcRank, MPI_GRID_TRANSFORMATION_CURRENT_GRID_INDEX, client->intraComm, &status);
-   globalIndexOriginalSrcRecvBuffSize += *currentRecvBuff;
-   countBlockMap[srcRank] = *currentRecvBuff;
-   currentRecvBuffPosition += countSize +1;
- }
-
- Scalar* recvOriginalGlobalIndexBuff, *currentOriginalGlobalIndexRecvBuff;
- if (0 != globalIndexOriginalSrcRecvBuffSize) recvOriginalGlobalIndexBuff = new Scalar [globalIndexOriginalSrcRecvBuffSize];
- double* recvOriginalWeightBuff, *currentOriginalWeightRecvBuff;
- if (0 != globalIndexOriginalSrcRecvBuffSize) recvOriginalWeightBuff = new double [globalIndexOriginalSrcRecvBuffSize];
-
- int countBlock = 0;
- currentRecvBuffPosition = 0;
- currentBuffPosition = 0;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
- {
-   MPI_Status statusGlobalIndex, statusLocalIndex, statusWeight;
-   int srcRank = itRecv->first;
-   countBlock = countBlockMap[srcRank];
-   currentOriginalGlobalIndexRecvBuff = recvOriginalGlobalIndexBuff + currentBuffPosition;
-   currentOriginalWeightRecvBuff = recvOriginalWeightBuff + currentBuffPosition;
-   if (0 != countBlock)
-   {
-     MPI_Recv(currentOriginalGlobalIndexRecvBuff, countBlock, MPI_UNSIGNED_LONG, srcRank, MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_GLOBAL_INDEX, client->intraComm, &statusGlobalIndex);
-     MPI_Recv(currentOriginalWeightRecvBuff, countBlock, MPI_DOUBLE, srcRank, MPI_GRID_TRANSFORMATION_ORIGINAL_GRID_WEIGHT, client->intraComm, &statusWeight);
-   }
-   currentBuffPosition += countBlock;
- }
-
- // We process everything in here, even case of masked index
- // The way to process masked index needs discussing
- const size_t sfmax = NumTraits<unsigned long>::sfmax();
- DestinationIndexMap currentToOriginalTmp;
-
- currentRecvBuffPosition = 0;
- currentRecvBuff = recvBuff;
- currentOriginalGlobalIndexRecvBuff  = recvOriginalGlobalIndexBuff;
- currentOriginalWeightRecvBuff = recvOriginalWeightBuff;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
- {
-   int countBlockRank = countBlockMap[itRecv->first];
-
-   ++currentRecvBuff;  // it's very subtle here, pay attention
-   int countSize = (itRecv->second).size();
-   for (int idx = 0; idx < countSize; ++idx)
-   {
-      ++currentRecvBuff;
-     int ssize = (itRecv->second)[idx].size();
-     if (sfmax != *currentRecvBuff)
-     {
-       if (0 != countBlockRank)
-       {
-         countBlock = *(currentOriginalGlobalIndexRecvBuff+currentRecvBuffPosition);
-         for (int i = 0; i < ssize; ++i)
-         {
-           for (int j = 0; j < countBlock; ++j)
-           {
-             size_t globalOriginalIndex = *(currentOriginalGlobalIndexRecvBuff+currentRecvBuffPosition+j+1);
-             int currentGridLocalIndex = (itRecv->second)[idx][i].first;
-             double weightGlobal = *(currentOriginalWeightRecvBuff+currentRecvBuffPosition+j+1) * (itRecv->second)[idx][i].second.second;
-             currentToOriginalTmp[(itRecv->second)[idx][i].second.first].push_back(make_pair(currentGridLocalIndex,make_pair(globalOriginalIndex,weightGlobal)));
-           }
-         }
-         currentRecvBuffPosition += countBlock+1;
-       }
-     }
-//     else
-//     {
-//       for (int i = 0; i < ssize; ++i)
-//       {
-//         currentToOriginalTmp[(itRecv->second)[idx][i].first].push_back(make_pair(sfmax,1.0));
-//       }
-//     }
-   }
- }
-
- currentGridIndexToOriginalGridIndex_.swap(currentToOriginalTmp);
-
- std::map<int, MPI_Request>::iterator itRequest;
- for (itRequest = requestsCurrentGrid.begin(); itRequest != requestsCurrentGrid.end(); ++itRequest)
-   MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
- for (itRequest = requestsOriginalGridGlobalIndex.begin(); itRequest != requestsOriginalGridGlobalIndex.end(); ++itRequest)
-   MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
- for (itRequest = requestsWeightGrid.begin(); itRequest != requestsWeightGrid.end(); ++itRequest)
-   MPI_Wait(&itRequest->second, MPI_STATUS_IGNORE);
-
- if (0 != sendBuffSize) delete [] sendBuff;
- if (0 != recvBuffSize) delete [] recvBuff;
- if (0 != globalIndexOriginalSrcSendBuffSize) delete [] sendOriginalGlobalIndexBuff;
- if (0 != globalIndexOriginalSrcSendBuffSize) delete [] sendOriginalWeightBuff;
- if (0 != globalIndexOriginalSrcRecvBuffSize) delete [] recvOriginalGlobalIndexBuff;
- if (0 != globalIndexOriginalSrcRecvBuffSize) delete [] recvOriginalWeightBuff;
-}
-
-/*!
-  Compute transformation mapping between grid source and grid destination
-  The transformation between grid source and grid destination is represented in form of mapping between global index
-of two grids. Then local index mapping between data on each grid will be found out thanks to these global indexes
-*/
-void CGridTransformation::computeFinalTransformationMapping()
-{
-  CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-
-  CTransformationMapping transformationMap(gridDestination_, originalGridSource_);
-
-  transformationMap.computeTransformationMapping(currentGridIndexToOriginalGridIndex_);
+  transformationMap.computeTransformationMapping(globalIndexWeightFromDestToSource);
 
   const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
   CTransformationMapping::ReceivedIndexMap::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
   itbMapRecv = globalIndexToReceive.begin();
   iteMapRecv = globalIndexToReceive.end();
+  nbLocalIndexOnGridDest_.push_back(globalIndexWeightFromDestToSource.size());
+  localIndexToReceiveOnGridDest_.push_back(RecvIndexGridDestinationMap());
+  RecvIndexGridDestinationMap& recvTmp = localIndexToReceiveOnGridDest_.back();
   for (itMapRecv = itbMapRecv; itMapRecv != iteMapRecv; ++itMapRecv)
   {
     int sourceRank = itMapRecv->first;
     int numGlobalIndex = (itMapRecv->second).size();
-    localIndexToReceiveOnGridDest_[sourceRank].resize(numGlobalIndex);
+    recvTmp[sourceRank].resize(numGlobalIndex);
     for (int i = 0; i < numGlobalIndex; ++i)
     {
       int vecSize = ((itMapRecv->second)[i]).size();
       for (int idx = 0; idx < vecSize; ++idx)
       {
         const std::pair<int, std::pair<size_t,double> >& tmpPair = (itMapRecv->second)[i][idx];
-        localIndexToReceiveOnGridDest_[sourceRank][i].push_back(make_pair(tmpPair.first, tmpPair.second.second));
+        recvTmp[sourceRank][i].push_back(make_pair(tmpPair.first, tmpPair.second.second));
       }
     }
   }
@@ -758,14 +463,16 @@ void CGridTransformation::computeFinalTransformationMapping()
   CTransformationMapping::SentIndexMap::const_iterator itbMap, itMap, iteMap;
   itbMap = globalIndexToSend.begin();
   iteMap = globalIndexToSend.end();
+  localIndexToSendFromGridSource_.push_back(SendingIndexGridSourceMap());
+  SendingIndexGridSourceMap& tmpSend = localIndexToSendFromGridSource_.back();
   for (itMap = itbMap; itMap != iteMap; ++itMap)
   {
     int destRank = itMap->first;
     int vecSize = itMap->second.size();
-    localIndexToSendFromGridSource_[destRank].resize(vecSize);
+    tmpSend[destRank].resize(vecSize);
     for (int idx = 0; idx < vecSize; ++idx)
     {
-      localIndexToSendFromGridSource_[destRank](idx) = itMap->second[idx].first;
+      tmpSend[destRank](idx) = itMap->second[idx].first;
     }
   }
 }
@@ -790,7 +497,7 @@ bool CGridTransformation::isSpecialTransformation(ETranformationType transType)
   Local index of data which need sending from the grid source
   \return local index of data
 */
-const std::map<int, CArray<int,1> >& CGridTransformation::getLocalIndexToSendFromGridSource() const
+const std::list<CGridTransformation::SendingIndexGridSourceMap>& CGridTransformation::getLocalIndexToSendFromGridSource() const
 {
   return localIndexToSendFromGridSource_;
 }
@@ -799,9 +506,14 @@ const std::map<int, CArray<int,1> >& CGridTransformation::getLocalIndexToSendFro
   Local index of data which will be received on the grid destination
   \return local index of data
 */
-const std::map<int,std::vector<std::vector<std::pair<int,double> > > >& CGridTransformation::getLocalIndexToReceiveOnGridDest() const
+const std::list<CGridTransformation::RecvIndexGridDestinationMap>& CGridTransformation::getLocalIndexToReceiveOnGridDest() const
 {
   return localIndexToReceiveOnGridDest_;
+}
+
+const std::list<size_t>& CGridTransformation::getNbLocalIndexToReceiveOnGridDest() const
+{
+  return nbLocalIndexOnGridDest_;
 }
 
 }

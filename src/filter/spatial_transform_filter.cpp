@@ -99,75 +99,101 @@ namespace xios
   {
     CContextClient* client = CContext::getCurrent()->client;
 
-    const std::map<int, CArray<int,1> >& localIndexToSend = gridTransformation->getLocalIndexToSendFromGridSource();
-    const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& localIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
+    const std::list<CGridTransformation::SendingIndexGridSourceMap>& listLocalIndexSend = gridTransformation->getLocalIndexToSendFromGridSource();
+    const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
+    const std::list<size_t>& listNbLocalIndexToReceive = gridTransformation->getNbLocalIndexToReceiveOnGridDest();
 
-    dataDest = 0.0;
+    CArray<double,1> dataCurrentDest(dataSrc.copy());
 
-    // Sending data from field sources to do transformations
-    std::map<int, CArray<int,1> >::const_iterator itbSend = localIndexToSend.begin(), itSend,
-                                                  iteSend = localIndexToSend.end();
-    int idxSendBuff = 0;
-    std::vector<double*> sendBuff(localIndexToSend.size());
-    for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
+    std::list<CGridTransformation::SendingIndexGridSourceMap>::const_iterator itListSend  = listLocalIndexSend.begin(),
+                                                                              iteListSend = listLocalIndexSend.end();
+    std::list<CGridTransformation::RecvIndexGridDestinationMap>::const_iterator itListRecv = listLocalIndexToReceive.begin();
+    std::list<size_t>::const_iterator itNbListRecv = listNbLocalIndexToReceive.begin();
+
+    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv)
     {
-      if (0 != itSend->second.numElements())
-        sendBuff[idxSendBuff] = new double[itSend->second.numElements()];
-    }
+      CArray<double,1> dataCurrentSrc(dataCurrentDest);
+      const CGridTransformation::SendingIndexGridSourceMap& localIndexToSend = *itListSend;
 
-    idxSendBuff = 0;
-    std::vector<MPI_Request> sendRequest;
-    for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
-    {
-      int destRank = itSend->first;
-      const CArray<int,1>& localIndex_p = itSend->second;
-      int countSize = localIndex_p.numElements();
-      for (int idx = 0; idx < countSize; ++idx)
+      // Sending data from field sources to do transformations
+      std::map<int, CArray<int,1> >::const_iterator itbSend = localIndexToSend.begin(), itSend,
+                                                    iteSend = localIndexToSend.end();
+      int idxSendBuff = 0;
+      std::vector<double*> sendBuff(localIndexToSend.size());
+      for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
       {
-        sendBuff[idxSendBuff][idx] = dataSrc(localIndex_p(idx));
+        if (0 != itSend->second.numElements())
+          sendBuff[idxSendBuff] = new double[itSend->second.numElements()];
       }
-      sendRequest.push_back(MPI_Request());
-      MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRequest.back());
-    }
 
-    // Receiving data on destination fields
-    std::map<int,std::vector<std::vector<std::pair<int,double> > > >::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
-                                                                                     iteRecv = localIndexToReceive.end();
-    int recvBuffSize = 0;
-    for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize = (recvBuffSize < itRecv->second.size())
-                                                                     ? itRecv->second.size() : recvBuffSize;
-    double* recvBuff;
-    if (0 != recvBuffSize) recvBuff = new double[recvBuffSize];
-    for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
-    {
-      MPI_Status status;
-      int srcRank = itRecv->first;
-      int countSize = itRecv->second.size();
-      MPI_Recv(recvBuff, recvBuffSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &status);
-      int countBuff = 0;
-      MPI_Get_count(&status, MPI_DOUBLE, &countBuff);
-      if (countBuff != countSize)
-        ERROR("CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)",
-              "Incoherent between the received size and expected size");
-      for (int idx = 0; idx < countSize; ++idx)
+      idxSendBuff = 0;
+      std::vector<MPI_Request> sendRecvRequest;
+      for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
       {
-        const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second[idx];
-        int numIndex = localIndex_p.size();
-        for (int i = 0; i < numIndex; ++i)
+        int destRank = itSend->first;
+        const CArray<int,1>& localIndex_p = itSend->second;
+        int countSize = localIndex_p.numElements();
+        for (int idx = 0; idx < countSize; ++idx)
         {
-          dataDest(localIndex_p[i].first) += recvBuff[idx] * localIndex_p[i].second;
+          sendBuff[idxSendBuff][idx] = dataCurrentSrc(localIndex_p(idx));
         }
+        sendRecvRequest.push_back(MPI_Request());
+        MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
       }
-    }
 
+      // Receiving data on destination fields
+      const CGridTransformation::RecvIndexGridDestinationMap& localIndexToReceive = *itListRecv;
+      CGridTransformation::RecvIndexGridDestinationMap::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
+                                                                       iteRecv = localIndexToReceive.end();
+      int recvBuffSize = 0;
+      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize += itRecv->second.size(); //(recvBuffSize < itRecv->second.size())
+                                                                       //? itRecv->second.size() : recvBuffSize;
+      double* recvBuff;
+      if (0 != recvBuffSize) recvBuff = new double[recvBuffSize];
+      int currentBuff = 0;
+      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
+      {
+        int srcRank = itRecv->first;
+        int countSize = itRecv->second.size();
+        sendRecvRequest.push_back(MPI_Request());
+        MPI_Irecv(recvBuff + currentBuff, countSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &sendRecvRequest.back());
+        currentBuff += countSize;
+      }
+      std::vector<MPI_Status> status(sendRecvRequest.size());
+      MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
 
-    if (!sendRequest.empty()) MPI_Waitall(sendRequest.size(), &sendRequest[0], MPI_STATUSES_IGNORE);
-    idxSendBuff = 0;
-    for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
-    {
-      if (0 != itSend->second.numElements())
-        delete [] sendBuff[idxSendBuff];
+      dataCurrentDest.resize(*itNbListRecv);
+      dataCurrentDest = 0.0;
+      currentBuff = 0;
+      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
+      {
+        int countSize = itRecv->second.size();
+        for (int idx = 0; idx < countSize; ++idx)
+        {
+          const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second[idx];
+          int numIndex = localIndex_p.size();
+          for (int i = 0; i < numIndex; ++i)
+          {
+            dataCurrentDest(localIndex_p[i].first) += *(recvBuff+currentBuff+idx) * localIndex_p[i].second;
+          }
+        }
+        currentBuff += countSize;
+      }
+
+      idxSendBuff = 0;
+      for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
+      {
+        if (0 != itSend->second.numElements())
+          delete [] sendBuff[idxSendBuff];
+      }
+      if (0 != recvBuffSize) delete [] recvBuff;
     }
-    if (0 != recvBuffSize) delete [] recvBuff;
+    if (dataCurrentDest.numElements() != dataDest.numElements())
+    ERROR("CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)",
+          "Incoherent between the received size and expected size" <<
+          "Expected size: " << dataDest.numElements() <<
+          "Received size: " << dataCurrentDest.numElements());
+
+    dataDest = dataCurrentDest;
   }
 } // namespace xios

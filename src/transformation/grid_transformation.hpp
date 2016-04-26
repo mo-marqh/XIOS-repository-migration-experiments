@@ -36,6 +36,8 @@ class CGridTransformation
 public:
   typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
   typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
+  typedef std::map<int, CArray<int,1> > SendingIndexGridSourceMap;
+  typedef std::map<int,std::vector<std::vector<std::pair<int,double> > > > RecvIndexGridDestinationMap;
 
 public:
   /** Default constructor */
@@ -44,8 +46,10 @@ public:
 
   void computeAll(const std::vector<CArray<double,1>* >& dataAuxInput=std::vector<CArray<double,1>* >(), Time timeStamp = 0);
 
-  const std::map<int, CArray<int,1> >& getLocalIndexToSendFromGridSource() const;
-  const std::map<int, std::vector<std::vector<std::pair<int,double> > > >& getLocalIndexToReceiveOnGridDest() const;
+  const std::list<SendingIndexGridSourceMap>& getLocalIndexToSendFromGridSource() const;
+  const std::list<RecvIndexGridDestinationMap>& getLocalIndexToReceiveOnGridDest() const;
+  const std::list<size_t>& getNbLocalIndexToReceiveOnGridDest() const;
+
   CGrid* getGridSource() { return originalGridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
   ListAlgoType getAlgoList() const {return listAlgos_; }
@@ -63,9 +67,10 @@ protected:
   void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
   void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
-  void computeFinalTransformationMapping();
-  void computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource);
-  void updateFinalGridDestination();
+//  void computeFinalTransformationMapping();
+//  void computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource);
+  void computeTransformationMapping(const DestinationIndexMap& globalIndexWeightFromDestToSource);
+//  void updateFinalGridDestination();
   bool isSpecialTransformation(ETranformationType transType);
 
 protected:
@@ -95,10 +100,13 @@ protected:
   std::map<size_t, std::set<size_t> > globaIndexMapFromDestToSource_;
 
   //! Local index of data to send from grid source
-  std::map<int, CArray<int,1> > localIndexToSendFromGridSource_;
+  std::list<SendingIndexGridSourceMap> localIndexToSendFromGridSource_;
 
   //! Local index of data to receive on grid destination
-  std::map<int,std::vector<std::vector<std::pair<int,double> > > > localIndexToReceiveOnGridDest_;
+  std::list<RecvIndexGridDestinationMap> localIndexToReceiveOnGridDest_;
+
+  //! Number of local index of data to receive on grid destination
+  std::list<size_t> nbLocalIndexOnGridDest_;
 
   //! Position of axis and domain in grid
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
