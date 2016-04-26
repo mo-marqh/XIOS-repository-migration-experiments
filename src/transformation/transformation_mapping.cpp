@@ -30,16 +30,18 @@ CTransformationMapping::CTransformationMapping(CGrid* destination, CGrid* source
   CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexGridSrc.begin(), iteIndex = globalLocalIndexGridSrc.end();
 
   // Mapping of global index and pair containing rank and local index
-  CClientClientDHTPairIntInt::Index2InfoTypeMap globalIndexOfServer;
+  CClientClientDHTPairIntInt::Index2InfoTypeMap globalIndexOfClientSrc;
+  globalIndexOfClientSrc.rehash(std::ceil(globalLocalIndexGridSrc.size()/globalIndexOfClientSrc.max_load_factor()));
+
   PairIntInt pairIntInt;
   for (; itIndex != iteIndex; ++itIndex)
   {
     pairIntInt.first  = clientRank;
     pairIntInt.second = itIndex->second;
-    globalIndexOfServer[itIndex->first] = pairIntInt;
+    globalIndexOfClientSrc[itIndex->first] = pairIntInt;
   }
 
-  gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfServer,
+  gridIndexClientClientMapping_ = new CClientClientDHTPairIntInt(globalIndexOfClientSrc,
                                                                  client->intraComm);
 }
 

@@ -116,6 +116,8 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::
      ERROR("CServerDistributionDescription::computeServerGlobalIndexInRange",
            << "Index begin is larger than index end");
 
+  globalIndex_.rehash(std::ceil((indexEnd-indexBegin+1)/globalIndex_.max_load_factor()));
+
   int dim = nGlobal_.size();
   std::vector<int> currentIndex(dim);
 
@@ -152,7 +154,7 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::
           globalIndex += (currentIndex[k])*mulDim;
         }
         if ((indexBegin <= globalIndex) && (globalIndex <= indexEnd))
-          globalIndex_.insert(std::make_pair<size_t,int>(globalIndex, idxServer));
+          globalIndex_[globalIndex] = idxServer;
         ++idx;
       }
       idxLoop[0] += innerLoopSize;

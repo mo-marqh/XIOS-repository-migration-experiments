@@ -20,10 +20,13 @@ namespace xios {
   */
 class CGenericAlgorithmTransformation
 {
+protected:
+  typedef std::vector<std::pair<int, std::pair<size_t,double> > > DestinationGlobalIndex;
 public:
   // Stupid global index map, it must be replaced by tuple
   // Mapping between global index map of DESTINATION and its local index with pair of global index of SOURCE and weights
-  typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
+  typedef boost::unordered_map<size_t, DestinationGlobalIndex> DestinationIndexMap;
+
 protected:
   typedef boost::unordered_map<size_t,int> GlobalLocalMap;
 

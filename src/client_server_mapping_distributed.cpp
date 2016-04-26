@@ -37,10 +37,27 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
 {
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
   const boost::unordered_map<size_t,int>& infoIndexMap = (ccDHT_->getInfoIndexMap());
-  boost::unordered_map<size_t,int>::const_iterator it = infoIndexMap.begin(), ite = infoIndexMap.end();
-  for (; it != ite; ++it)
+  boost::unordered_map<size_t,int>::const_iterator itb = infoIndexMap.begin(), ite = infoIndexMap.end(), it;
+  std::vector<size_t> nbInfoIndex(ccDHT_->getNbClient(),0);
+
+  for (it = itb; it != ite; ++it)
   {
-    indexGlobalOnServer_[it->second].push_back(it->first);
+    ++nbInfoIndex[it->second];
+  }
+
+  for (int idx = 0; idx < nbInfoIndex.size(); ++idx)
+  {
+    if (0 != nbInfoIndex[idx])
+    {
+      indexGlobalOnServer_[idx].resize(nbInfoIndex[idx]);
+      nbInfoIndex[idx] = 0;
+    }
+  }
+
+  for (it = itb; it != ite; ++it)
+  {
+    indexGlobalOnServer_[it->second][nbInfoIndex[it->second]] = (it->first);
+    ++nbInfoIndex[it->second];
   }
 }
 

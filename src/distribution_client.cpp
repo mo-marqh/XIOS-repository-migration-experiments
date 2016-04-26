@@ -16,7 +16,7 @@ CDistributionClient::CDistributionClient(int rank, int dims, const CArray<size_t
    , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_()
    , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
-   , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
+   , isDataDistributed_(true), axisNum_(0), domainNum_(0)
    , localDataIndex_(), localMaskIndex_()
    , globalLocalDataSendToServerMap_()
    , infoIndex_(), isComputed_(false)
@@ -29,14 +29,13 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_()
    , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
    , gridMask_(), localDomainIndex_(), localAxisIndex_(), indexMap_(), indexDomainData_(), indexAxisData_()
-   , isDataDistributed_(true), axisNum_(0), domainNum_(0), nIndexDomain_(), nIndexAxis_()
+   , isDataDistributed_(true), axisNum_(0), domainNum_(0)
    , localDataIndex_(), localMaskIndex_()
    , globalLocalDataSendToServerMap_()
    , infoIndex_(), isComputed_(false)
 {
   readDistributionInfo(grid);
   createGlobalIndex();
-//  createGlobalIndexSendToServer();
 }
 
 CDistributionClient::~CDistributionClient()
@@ -77,37 +76,6 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
       break;
     default:
       break;
-  }
-}
-
-void CDistributionClient::readDomainIndex(const std::vector<CDomain*>& domList)
-{
-  int domainSize = domList.size();
-  nIndexDomain_.resize(domainSize);
-
-  for (int k = 0; k < domainSize; ++k)
-  {
-    nIndexDomain_[k].resize(2);
-    int ni = domList[k]->ni;
-    int nj = domList[k]->nj;
-    nIndexDomain_[k][0].resize(ni*nj);
-    nIndexDomain_[k][1].resize(ni*nj);
-    nIndexDomain_[k][0] = domList[k]->i_index;
-    nIndexDomain_[k][1] = domList[k]->j_index;
-  }
-}
-
-void CDistributionClient::readAxisIndex(const std::vector<CAxis*>& axisList)
-{
-  int axisSize = axisList.size();
-  nIndexAxis_.resize(axisSize);
-
-  for (int k = 0; k < axisSize; ++k)
-  {
-    int n = axisList[k]->n;
-    nIndexAxis_[k].resize(n);
-    for (int i = 0; i < n; ++i)
-      nIndexAxis_[k](i) = i;
   }
 }
 
@@ -203,9 +171,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
       dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue(); //(2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
-//      dataIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->data_j_index.numElements());
       dataIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->data_j_index);
-//      infoIndex_.at(indexMap_[idx]+1).resize(domList[domIndex]->j_index.numElements());
       infoIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->j_index);
 
       // On the i axis
@@ -217,9 +183,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
 
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
-//      dataIndex_.at(indexMap_[idx]).resize(domList[domIndex]->data_i_index.numElements());
       dataIndex_.at(indexMap_[idx]) = &(domList[domIndex]->data_i_index);
-//      infoIndex_.at(indexMap_[idx]).resize(domList[domIndex]->i_index.numElements());
       infoIndex_.at(indexMap_[idx]) = &(domList[domIndex]->i_index);
 
       dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
@@ -239,9 +203,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
 
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
-//      dataIndex_.at(indexMap_[idx]).resize(axisList[axisIndex]->data_index.numElements());
       dataIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->data_index);
-//      infoIndex_.at(indexMap_[idx]).resize(axisList[axisIndex]->index.numElements());
       infoIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->index);
       dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();
       dataDims_.at(idx) = 1;
@@ -252,8 +214,6 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
     }
     ++idx;
   }
-  readDomainIndex(domList);
-  readAxisIndex(axisList);
 }
 
 /*!
@@ -510,6 +470,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   // Now allocate these arrays
   localDataIndex_.resize(indexLocalDataOnClientCount);
   localMaskIndex_.resize(indexSend2ServerCount);
+  globalLocalDataSendToServerMap_.rehash(std::ceil(indexSend2ServerCount/globalLocalDataSendToServerMap_.max_load_factor())); //globalLocalDataSendToServerMap_.reserve(indexSend2ServerCount);
 
   // We need to loop with data index
   idxLoop.assign(numElement_,0);

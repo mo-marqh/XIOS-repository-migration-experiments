@@ -82,11 +82,14 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       for (size_t idx = 0; it != ite; ++it, ++idx)
       {
         size_t srcGridSize = globalIndexSrcGrid[idx].size();
-//        globaIndexWeightFromDestToSource[(it->first)].reserve(srcGridSize);
-        globaIndexWeightFromDestToSource[(it->first)].resize(srcGridSize);
+//        globaIndexWeightFromDestToSource[(it->first)].resize(srcGridSize);
+        DestinationGlobalIndex& tmp = globaIndexWeightFromDestToSource[(it->first)];
+        tmp.resize(srcGridSize);
         for (int i = 0; i < srcGridSize; ++i)
         {
-          globaIndexWeightFromDestToSource[(it->first)][i] = (make_pair(it->second, make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i])));
+          tmp[i].first = it->second;
+          tmp[i].second = make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i]);
+//          globaIndexWeightFromDestToSource[(it->first)][i] = (make_pair(it->second, make_pair(globalIndexSrcGrid[idx][i], currentVecWeight[i])));
         }
       }
     }

@@ -11,7 +11,7 @@
 namespace xios {
 
 CClientServerMapping::CClientServerMapping()
-  : indexGlobalOnServer_(), connectedClients_() //, localIndexSend2Server_()
+  : indexGlobalOnServer_()
 {
 }
 

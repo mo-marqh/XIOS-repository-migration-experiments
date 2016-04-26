@@ -44,6 +44,8 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
     const Index2InfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
 
+    int getNbClient() { return nbClient_; }
+
     /** Default destructor */
     virtual ~CClientClientDHTTemplate();
 
@@ -100,6 +102,9 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
     //! Flag to specify whether data is distributed or not
     bool isDataDistributed_;
+
+    //! Number of client
+    int nbClient_;
 };
 
 typedef CClientClientDHTTemplate<int> CClientClientDHTInt;

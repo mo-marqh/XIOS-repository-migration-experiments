@@ -23,8 +23,9 @@ will be redistributed (projected) into size_t space as long as the associated in
 template<typename T, typename H>
 CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const boost::unordered_map<size_t,T>& indexInfoMap,
                                                         const MPI_Comm& clientIntraComm)
-  : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_()
+  : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_(), nbClient_(0)
 {
+  MPI_Comm_size(clientIntraComm, &nbClient_);
   this->computeMPICommLevel();
   int nbLvl = this->getNbLevel();
   sendRank_.resize(nbLvl);
@@ -87,7 +88,7 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     ++sendNbIndexBuff[indexClient];
   }
 
-  std::map<int, size_t* > client2ClientIndex;
+  boost::unordered_map<int, size_t* > client2ClientIndex;
   for (int idx = 0; idx < nbClient; ++idx)
   {
     if (0 != sendNbIndexBuff[idx])
@@ -139,8 +140,8 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     currentIndex += recvNbIndexClientCount[idx];
   }
 
-  std::map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
-                                    iteIndex = client2ClientIndex.end();
+  boost::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
+                                                iteIndex = client2ClientIndex.end();
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
     sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
 
@@ -212,8 +213,8 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     currentIndex += recvNbIndexOnReturn[idx];
   }
 
-  std::map<int,unsigned char*> client2ClientInfoOnReturn;
-  std::map<int,size_t*> client2ClientIndexOnReturn;
+  boost::unordered_map<int,unsigned char*> client2ClientInfoOnReturn;
+  boost::unordered_map<int,size_t*> client2ClientIndexOnReturn;
   currentIndex = 0;
   for (int idx = 0; idx < nbRecvClient; ++idx)
   {
@@ -248,16 +249,17 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
 
   boost::unordered_map<size_t,InfoType> indexToInfoMapping;
+  indexToInfoMapping.rehash(std::ceil(recvNbIndexCountOnReturn/indexToInfoMapping.max_load_factor()));
   int infoIndex = 0;
   for (int idx = 0; idx < recvNbIndexCountOnReturn; ++idx)
   {
     ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[recvIndexBuffOnReturn[idx]], recvInfoBuffOnReturn, infoIndex);
   }
 
-  indexToInfoMappingLevel_ = (indexToInfoMapping);
+  indexToInfoMappingLevel_.swap(indexToInfoMapping); //indexToInfoMappingLevel_ = (indexToInfoMapping);
   if (0 != recvNbIndexCount) delete [] recvIndexBuff;
-  for (std::map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
-                                            it != client2ClientIndex.end(); ++it)
+  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
+                                                        it != client2ClientIndex.end(); ++it)
       delete [] it->second;
   delete tmpGlobalIndex;
 
@@ -267,11 +269,11 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     delete [] recvInfoBuffOnReturn;
   }
 
-  for (std::map<int,unsigned char*>::const_iterator it = client2ClientInfoOnReturn.begin();
-                                                    it != client2ClientInfoOnReturn.end(); ++it)
+  for (boost::unordered_map<int,unsigned char*>::const_iterator it = client2ClientInfoOnReturn.begin();
+                                                               it != client2ClientInfoOnReturn.end(); ++it)
       delete [] it->second;
 
-  for (std::map<int,size_t*>::const_iterator it = client2ClientIndexOnReturn.begin();
+  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndexOnReturn.begin();
                                             it != client2ClientIndexOnReturn.end(); ++it)
       delete [] it->second;
 }
@@ -341,8 +343,8 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     }
   }
 
-  std::map<int, size_t*> client2ClientIndex;
-  std::map<int, unsigned char*> client2ClientInfo;
+  boost::unordered_map<int, size_t*> client2ClientIndex;
+  boost::unordered_map<int, unsigned char*> client2ClientInfo;
   for (int idx = 0; idx < nbClient; ++idx)
   {
     if (0 != sendNbIndexBuff[idx])
@@ -406,12 +408,12 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     currentIndex += recvNbIndexClientCount[idx];
   }
 
-  std::map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
-                                    iteIndex = client2ClientIndex.end();
+  boost::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
+                                                iteIndex = client2ClientIndex.end();
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
     sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
-  std::map<int, unsigned char*>::iterator itbInfo = client2ClientInfo.begin(), itInfo,
-                                          iteInfo = client2ClientInfo.end();
+  boost::unordered_map<int, unsigned char*>::iterator itbInfo = client2ClientInfo.begin(), itInfo,
+                                                      iteInfo = client2ClientInfo.end();
   for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo)
     sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, request);
 
@@ -419,6 +421,7 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
   MPI_Waitall(request.size(), &request[0], &status[0]);
 
   boost::unordered_map<size_t,InfoType> indexToInfoMapping;
+  indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
   currentIndex = 0;
   InfoType infoValue;
   int infoIndex = 0;
@@ -439,12 +442,12 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     delete [] recvIndexBuff;
     delete [] recvInfoBuff;
   }
-  for (std::map<int,unsigned char*>::const_iterator it = client2ClientInfo.begin();
-                                                    it != client2ClientInfo.end(); ++it)
+  for (boost::unordered_map<int,unsigned char*>::const_iterator it = client2ClientInfo.begin();
+                                                               it != client2ClientInfo.end(); ++it)
       delete [] it->second;
 
-  for (std::map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
-                                            it != client2ClientIndex.end(); ++it)
+  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
+                                                        it != client2ClientIndex.end(); ++it)
       delete [] it->second;
 
   // Ok, now do something recursive
@@ -454,7 +457,7 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unorder
     computeDistributedIndex(indexToInfoMapping, this->internalComm_, level);
   }
   else
-    index2InfoMapping_ = (indexToInfoMapping);
+    index2InfoMapping_.swap(indexToInfoMapping); //index2InfoMapping_ = (indexToInfoMapping);
 }
 
 /*!

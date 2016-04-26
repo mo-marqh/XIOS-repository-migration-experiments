@@ -44,9 +44,6 @@ public:
   protected:
     //! Global index of data on SERVER, which are calculated by client(s)
     GlobalIndexMap indexGlobalOnServer_;
-
-    //!< Number of clients connected to a server
-    std::map<int, int> connectedClients_;
 };
 
 } // namespace xios

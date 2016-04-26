@@ -61,8 +61,6 @@ public:
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
                               const CArray<bool,1>& axisDomainOrder);
-    void readDomainIndex(const std::vector<CDomain*>& domList);
-    void readAxisIndex(const std::vector<CAxis*>& axisList);
   private:
     //! Create local index of a domain
     void createLocalDomainDataIndex();
@@ -91,8 +89,6 @@ public:
     std::vector<int> nBeginGlobal_; //!< Begin index of each dimension (e.x: ibegin, jbegin, ...)
     std::vector<int> nZoomBegin_; //!< Begin index of zoom of each dimension
     std::vector<int> nZoomEnd_; //!< End index of zoom of each dimension
-    std::vector<std::vector<CArray<int,1> > > nIndexDomain_; //!< Local index of each domain dimension (e.x: i_index, j_index)
-    std::vector<CArray<int,1> > nIndexAxis_;
 
     // Data_n_index of domain or axis (For now, axis uses its size as data_n_index
     std::vector<int> dataNIndex_; //!< Data_n_index in case of domain
