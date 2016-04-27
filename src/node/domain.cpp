@@ -544,13 +544,13 @@ namespace xios {
       bounds_lat_start=lat(0)-latStepStart/2;
       if (bounds_lat_start >= 90 ) bounds_lat_start=90 ;
       else if (bounds_lat_start <= -90 ) bounds_lat_start=-90 ;
-      else if (bounds_lat_start <= 90 && bounds_lat_start >= lon(0))
+      else if (bounds_lat_start <= 90 && bounds_lat_start >= lat(0))
       {
-        if ( 90-bounds_lat_start <= 0.1*std::abs(latStepStart)) bounds_lat_start=90 ;
+        if ( std::abs(90-bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=90 ;
       }
-      else if (bounds_lat_start >= -90 && bounds_lat_start <= lon(0))
+      else if (bounds_lat_start >= -90 && bounds_lat_start <= lat(0))
       {
-        if ( -90 + bounds_lat_start <= 0.1*std::abs(latStepStart)) bounds_lat_start=-90 ;
+        if ( std::abs(-90 - bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=-90 ;
       }
     }
 
@@ -562,13 +562,13 @@ namespace xios {
 
       if (bounds_lat_end >= 90 ) bounds_lat_end=90 ;
       else if (bounds_lat_end <= -90 ) bounds_lat_end=-90 ;
-      else if (bounds_lat_end <= 90 && bounds_lat_end >= lon(nj_glo-1))
+      else if (bounds_lat_end <= 90 && bounds_lat_end >= lat(nj_glo-1))
       {
-        if ( 90-bounds_lat_end <= 0.1*std::abs(latStepEnd)) bounds_lat_end=90 ;
+        if ( std::abs(90-bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=90 ;
       }
-      else if (bounds_lat_end >= -90 && bounds_lat_end <= lon(nj_glo-1))
+      else if (bounds_lat_end >= -90 && bounds_lat_end <= lat(nj_glo-1))
       {
-        if ( -90 + bounds_lat_end <= 0.1*std::abs(latStepEnd)) bounds_lat_end=-90 ;
+        if ( std::abs(-90 - bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=-90 ;
       }
     }
 
