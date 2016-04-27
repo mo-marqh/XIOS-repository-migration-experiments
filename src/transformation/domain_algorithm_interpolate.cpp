@@ -37,6 +37,10 @@ void CDomainAlgorithmInterpolate::computeRemap()
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
 	int orderInterp = interpDomain_->order.getValue();
+  bool renormalize ;
+
+  if (interpDomain_->renormalize.isEmpty()) renormalize=true;
+  else renormalize = interpDomain_->renormalize;
 
   const double poleValue = 90.0;
   const int constNVertex = 4; // Value by default number of vertex for rectangular domain
@@ -83,21 +87,21 @@ void CDomainAlgorithmInterpolate::computeRemap()
     if (!domainSrc_->lonvalue_1d.isEmpty() && !domainSrc_->latvalue_1d.isEmpty())
     {
 		domainSrc_->AllgatherRectilinearLonLat(domainSrc_->lonvalue_1d,domainSrc_->latvalue_1d, lon_g,lat_g) ;
-	}
-	else if (! domainSrc_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainSrc_->lonvalue_rectilinear_read_from_file.isEmpty() )
+	  }
+	  else if (! domainSrc_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainSrc_->lonvalue_rectilinear_read_from_file.isEmpty() )
     {
 	  	lat_g=domainSrc_->latvalue_rectilinear_read_from_file ;
 	  	lon_g=domainSrc_->lonvalue_rectilinear_read_from_file ;
-	}
-	else if (!domainSrc_->lon_start.isEmpty() && !domainSrc_->lon_end.isEmpty() &&
+	  }
+	  else if (!domainSrc_->lon_start.isEmpty() && !domainSrc_->lon_end.isEmpty() &&
 	         !domainSrc_->lat_start.isEmpty() && !domainSrc_->lat_end.isEmpty())
-	{
-	  double step=(domainSrc_->lon_end-domainSrc_->lon_start)/domainSrc_->ni_glo ;
-	  for(int i=0; i<domainSrc_->ni_glo; ++i) lon_g(i)=domainSrc_->lon_start+i*step ;
-	  step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
-	  for(int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
-	}
-	else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
+	  {
+	    double step=(domainSrc_->lon_end-domainSrc_->lon_start)/domainSrc_->ni_glo ;
+	    for(int i=0; i<domainSrc_->ni_glo; ++i) lon_g(i)=domainSrc_->lon_start+i*step ;
+	    step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
+	    for(int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
+	  }
+	  else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
 
     nVertexSrc = constNVertex;
     domainSrc_->fillInRectilinearBoundLonLat(lon_g,lat_g, boundsLonSrc, boundsLatSrc);
@@ -227,9 +231,59 @@ void CDomainAlgorithmInterpolate::computeRemap()
   // Calculate weight index
   Mapper mapper(client->intraComm);
   mapper.setVerbosity(PROGRESS) ;
-  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0], globalSrc);
-  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0], globalDst);
-  std::vector<double> timings = mapper.computeWeights(orderInterp);
+
+  
+  // supress masked data for the source
+  int nSrcLocalUnmasked = 0 ;
+  for (int idx=0 ; idx < nSrcLocal; idx++) if (domainSrc_-> mask_1d(idx)) ++nSrcLocalUnmasked ;
+
+  CArray<double,2> boundsLonSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
+  CArray<double,2> boundsLatSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
+  long int * globalSrcUnmasked = new long int [nSrcLocalUnmasked];
+
+  nSrcLocalUnmasked=0 ;
+  for (int idx=0 ; idx < nSrcLocal; idx++)
+  {
+    if (domainSrc_-> mask_1d(idx))
+    {
+      for(int n=0;n<nVertexSrc;++n)
+      {
+        boundsLonSrcUnmasked(n,nSrcLocalUnmasked) = boundsLonSrc(n,idx) ;
+        boundsLatSrcUnmasked(n,nSrcLocalUnmasked) = boundsLatSrc(n,idx) ;
+      }
+      globalSrcUnmasked[nSrcLocalUnmasked]=globalSrc[idx] ;
+      ++nSrcLocalUnmasked ;
+    }
+  }
+
+  int nDstLocalUnmasked = 0 ;
+  for (int idx=0 ; idx < nDstLocal; idx++) if (domainDest_-> mask_1d(idx)) ++nDstLocalUnmasked ;
+
+  CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
+  CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
+  long int * globalDstUnmasked = new long int [nDstLocalUnmasked];
+
+  nDstLocalUnmasked=0 ;
+  for (int idx=0 ; idx < nDstLocal; idx++)
+  {
+    if (domainDest_-> mask_1d(idx))
+    {
+      for(int n=0;n<nVertexDest;++n)
+      {
+        boundsLonDestUnmasked(n,nDstLocalUnmasked) = boundsLonDest(n,idx) ;
+        boundsLatDestUnmasked(n,nDstLocalUnmasked) = boundsLatDest(n,idx) ;
+      }
+      globalDstUnmasked[nDstLocalUnmasked]=globalDst[idx] ;
+      ++nDstLocalUnmasked ;
+    }
+  }
+  
+//  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0], globalSrc);
+  mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
+//  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0], globalDst);
+  mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
+
+  std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize);
 
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   std::map<int,std::vector<std::pair<int,double> > >::const_iterator iteNorthPole = interpMapValueNorthPole.end(),
@@ -274,7 +328,10 @@ void CDomainAlgorithmInterpolate::computeRemap()
   exchangeRemapInfo(interpMapValue);
 
   delete [] globalSrc;
+  delete [] globalSrcUnmasked;
   delete [] globalDst;
+  delete [] globalDstUnmasked;
+
 }
 
 void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair<int,double> > >& interMapValuePole,
