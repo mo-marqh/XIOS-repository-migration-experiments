@@ -33,7 +33,7 @@ public:
 
        /** @param trgElts are the elements of the unstructured target grid
            Returns the timings for substeps: */
-       vector<double> computeWeights(int interpOrder);
+       vector<double> computeWeights(int interpOrder, bool renormalize=false);
        int getNbWeights(void) { return nWeights ; }
 /*
        void getWeigths(double* weights, double* sourceInd, double* targetInd) ;
@@ -50,7 +50,7 @@ public:
 
 private:
        /** @return number of weights (local to cpu) */
-       int remap(Elt* elements, int nbElements, int order);
+       int remap(Elt* elements, int nbElements, int order, bool renormalize=false);
 
        void buildMeshTopology();
        void computeGrads();

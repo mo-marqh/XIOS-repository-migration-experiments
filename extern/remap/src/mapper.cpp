@@ -108,7 +108,7 @@ void Mapper::getTargetValue(double* val)
   for(int i=0;i<size;++i) val[i]=targetElements[i].val ;
 }
 
-vector<double> Mapper::computeWeights(int interpOrder)
+vector<double> Mapper::computeWeights(int interpOrder, bool renormalize)
 {
 	vector<double> timings;
 	int mpiSize, mpiRank;
@@ -151,7 +151,7 @@ vector<double> Mapper::computeWeights(int interpOrder)
 
 	if (mpiRank == 0 && verbose) cout << "Remapping..." << endl;
 	tic = cputime();
-	nWeights = remap(&targetElements[0], targetElements.size(), interpOrder);
+	nWeights = remap(&targetElements[0], targetElements.size(), interpOrder, renormalize);
 	timings.push_back(cputime() - tic);
 
   for (int i = 0; i < targetElements.size(); i++) targetElements[i].delete_intersections();
@@ -165,7 +165,7 @@ vector<double> Mapper::computeWeights(int interpOrder)
    @param nbElements is the size of the elements array.
    @param order is the order of interpolaton (must be 1 or 2).
 */
-int Mapper::remap(Elt *elements, int nbElements, int order)
+int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 {
 	int mpiSize, mpiRank;
 	MPI_Comm_size(communicator, &mpiSize);
@@ -280,12 +280,14 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 				if (order == 2)
 				{
 					sendGrad[rank][jj] = sstree.localElements[recvElement[rank][j]].grad;
+//          cout<<"grad  "<<jj<<"  "<<recvElement[rank][j]<<"  "<<sendGrad[rank][jj]<<" "<<sstree.localElements[recvElement[rank][j]].grad<<endl ;
 					sendNeighIds[rank][jj] = sstree.localElements[recvElement[rank][j]].src_id;
 					jj++;
 					for (int i = 0; i < NMAX; i++)
 					{
 						sendGrad[rank][jj] = sstree.localElements[recvElement[rank][j]].gradNeigh[i];
-						sendNeighIds[rank][jj] = sstree.localElements[recvElement[rank][j]].neighId[i];
+//            cout<<"grad  "<<jj<<"  "<<sendGrad[rank][jj]<<" "<<sstree.localElements[recvElement[rank][j]].grad<<endl ;
+            sendNeighIds[rank][jj] = sstree.localElements[recvElement[rank][j]].neighId[i];
 						jj++;
 					}
 				}
@@ -367,16 +369,20 @@ int Mapper::remap(Elt *elements, int nbElements, int order)
 				{
 					int kk = n1 * (NMAX + 1) + k;
 					GloId neighID = recvNeighIds[rank][kk];
-					if (neighID.ind == -1) break;
-					wgt_map[neighID] +=
-						w * scalarprod(recvGrad[rank][kk], (*it)->x);
+					if (neighID.ind != -1)  wgt_map[neighID] += w * scalarprod(recvGrad[rank][kk], (*it)->x);
 				}
 
 			}
 		}
-		for (map<GloId,double>::iterator it = wgt_map.begin(); it != wgt_map.end(); it++)
+
+    double renorm=0;
+    if (renormalize) 
+      for (map<GloId,double>::iterator it = wgt_map.begin(); it != wgt_map.end(); it++) renorm+=it->second / e.area;
+    else renorm=1. ;
+
+    for (map<GloId,double>::iterator it = wgt_map.begin(); it != wgt_map.end(); it++)
 		{
-			this->remapMatrix[i] = it->second / e.area;
+			this->remapMatrix[i] = (it->second / e.area) / renorm;
 			this->srcAddress[i] = it->first.ind;
 			this->srcRank[i] = it->first.rank;
 			this->dstAddress[i] = j;
@@ -668,11 +674,13 @@ void Mapper::buildMeshTopology()
 			set_neighbour(*elt, *elt2);
 		}
 
+/*
 		for (int i = 0; i < elt->n; i++)
 		{
 			if (elt->neighbour[i] == NOT_FOUND)
 				error_exit("neighbour not found");
 		}
+*/
 	}
 }
 
