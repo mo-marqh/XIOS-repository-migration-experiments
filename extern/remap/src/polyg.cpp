@@ -50,6 +50,7 @@ Coord barycentre(const Coord *x, int n)
 		bc = bc + x[i];
 	/* both distances can be equal down to roundoff when norm(bc) < mashineepsilon 
 	   which can occur when weighted with tiny area */
+
 	assert(squaredist(bc, proj(bc)) <= squaredist(bc, proj(bc * (-1.0))));
 	//if (squaredist(bc, proj(bc)) > squaredist(bc, proj(bc * (-1.0)))) return proj(bc * (-1.0));
 
@@ -265,21 +266,24 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos)
 
 int packIntersectionSize(const Elt& elt) 
 {
-	return elt.is.size() * (2*sizeof(int)+ sizeof(GloId) + 4*sizeof(double));
+	return elt.is.size() * (2*sizeof(int)+ sizeof(GloId) + 5*sizeof(double));
 }
 
 void packIntersection(const Elt& e, char* buffer,int& pos) 
 {
-	for (list<Polyg *>::const_iterator it = e.is.begin(); it != e.is.end(); ++it)
+  for (list<Polyg *>::const_iterator it = e.is.begin(); it != e.is.end(); ++it)
 	{
 		*((int *) &(buffer[0])) += 1;
 
 		*((int *) &(buffer[pos])) = e.id.ind;
 		pos += sizeof(int);
 
+    *((double *) &(buffer[pos])) = e.area;
+    pos += sizeof(double);
+
 		*((GloId *) &(buffer[pos])) = (*it)->id;
 		pos += sizeof(GloId);
-
+  
 		*((int *) &(buffer[pos])) = (*it)->n;
 		pos += sizeof(int);
 		*((double *) &(buffer[pos])) = (*it)->area;
@@ -294,6 +298,7 @@ void unpackIntersection(Elt* e, const char* buffer)
 {
 	int ind;
 	int pos = 0;
+  
 	int n = *((int *) & (buffer[pos]));
 	pos += sizeof(int);
 	for (int i = 0; i < n; i++)
@@ -302,6 +307,10 @@ void unpackIntersection(Elt* e, const char* buffer)
 		pos+=sizeof(int);
 
 		Elt& elt= e[ind];
+
+    elt.area=*((double *) & (buffer[pos]));
+		pos += sizeof(double);
+
 		Polyg *polygon = new Polyg;
 
 		polygon->id =  *((GloId *) & (buffer[pos]));

@@ -23,8 +23,10 @@ double intersect_ym(Elt *a, Elt *b)
 
   vector<Coord> srcPolygon ;
   createGreatCirclePolygon(*b, srcGrid.pole, srcPolygon) ;
+//  b->area=polygonarea(&srcPolygon[0],srcPolygon.size()) ;
   vector<Coord> dstPolygon ;
   createGreatCirclePolygon(*a, tgtGrid.pole, dstPolygon) ;
+  a->area=polygonarea(&dstPolygon[0],dstPolygon.size()) ; // just for target
 
 // compute coordinates of the polygons into the gnomonique plane tangent to barycenter C of dst polygon
 // transform system coordinate : Z axis along OC
@@ -108,18 +110,15 @@ double intersect_ym(Elt *a, Elt *b)
   clip.Execute(ctIntersection, intersection);
 
   double area=0 ;
-  if (intersection.size()==1)
+
+  for(int ni=0;ni<intersection.size(); ni++)
   {
-// go back into real coordinate on the sphere
-    Coord* intersectPolygon=new Coord[intersection[0].size()] ;
-//    Coord* intersect2D=new Coord[intersection[0].size()] ;
-    for(int n=0; n < intersection[0].size(); n++)
+    // go back into real coordinate on the sphere
+    Coord* intersectPolygon=new Coord[intersection[ni].size()] ;
+    for(int n=0; n < intersection[ni].size(); n++)
     {
-      double x=intersection[0][n].X/xscale+xoffset ;
-      double y=intersection[0][n].Y/yscale+yoffset ;
-//      intersect2D[n].x=x  ;
-//      intersect2D[n].y=y  ;
-//      intersect2D[n].z=1. ;
+      double x=intersection[ni][n].X/xscale+xoffset ;
+      double y=intersection[ni][n].Y/yscale+yoffset ;
 
       intersectPolygon[n]=Ox*x+Oy*y+Oz ;
       intersectPolygon[n]=intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
@@ -127,9 +126,9 @@ double intersect_ym(Elt *a, Elt *b)
 
 // remove redondants vertex
     int nv=0 ;
-    for(int n=0; n < intersection[0].size(); n++)
+    for(int n=0; n < intersection[ni].size(); n++)
     {
-      if (norm(intersectPolygon[n]-intersectPolygon[(n+1)%intersection[0].size()])>fusion_vertex)
+      if (norm(intersectPolygon[n]-intersectPolygon[(n+1)%intersection[ni].size()])>fusion_vertex)
       {
         intersectPolygon[nv]=intersectPolygon[n] ;
         nv++ ;
@@ -150,13 +149,8 @@ double intersect_ym(Elt *a, Elt *b)
        (a->is).push_back(is);
        (b->is).push_back(is);
        area=is->area ;
-     }
-     delete[] intersectPolygon ;
-  }
-  else if (intersection.size()>1)
-  {
-
-    cout<<"Intersection Size > 1 : "<< intersection.size()<<endl ;
+    }
+    delete[] intersectPolygon ;
   }
 
   delete[] a_gno ;
