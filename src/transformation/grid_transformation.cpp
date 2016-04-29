@@ -412,6 +412,9 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       // Compute transformation of global indexes among grids
       computeTransformationMapping(globaIndexWeightFromDestToSource);
 
+      // Update number of local index on each transformation
+      nbLocalIndexOnGridDest_.push_back(globalLocalIndexGridDestSendToServer.size());
+
       if (1 < nbAlgos_)
       {
         // Now grid destination becomes grid source in a new transformation
@@ -439,7 +442,6 @@ void CGridTransformation::computeTransformationMapping(const DestinationIndexMap
   CTransformationMapping::ReceivedIndexMap::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
   itbMapRecv = globalIndexToReceive.begin();
   iteMapRecv = globalIndexToReceive.end();
-  nbLocalIndexOnGridDest_.push_back(globalIndexWeightFromDestToSource.size());
   localIndexToReceiveOnGridDest_.push_back(RecvIndexGridDestinationMap());
   RecvIndexGridDestinationMap& recvTmp = localIndexToReceiveOnGridDest_.back();
   for (itMapRecv = itbMapRecv; itMapRecv != iteMapRecv; ++itMapRecv)
