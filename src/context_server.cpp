@@ -180,6 +180,11 @@ namespace xios
         }
         else if (!CServer::eventScheduler || CServer::eventScheduler->queryEvent(currentTimeLine,hashId) )
         {
+         // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
+         // The best way to properly solve this problem will be to use the event scheduler also in attached mode
+         // for now just set up a MPI barrier
+         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ; 
+
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
          CTimer::get("Process events").suspend();
