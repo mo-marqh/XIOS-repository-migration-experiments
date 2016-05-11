@@ -143,12 +143,16 @@ double intersect_ym(Elt *a, Elt *b)
        is->x = exact_barycentre(intersectPolygon,nv);
        is->area = polygonarea(intersectPolygon,nv) ;
 //        if (is->area < 1e-12) cout<<"Small intersection : "<<is->area<<endl ;
-       is->id = b->id; /* intersection holds id of corresponding source element (see Elt class definition for details about id) */
-       is->src_id = b->src_id;
-       is->n = nv;
-       (a->is).push_back(is);
-       (b->is).push_back(is);
-       area=is->area ;
+       if (is->area==0.) delete is ;
+       else
+       {  
+         is->id = b->id; /* intersection holds id of corresponding source element (see Elt class definition for details about id) */
+         is->src_id = b->src_id;
+         is->n = nv;
+         (a->is).push_back(is);
+         (b->is).push_back(is);
+         area=is->area ;
+       }
     }
     delete[] intersectPolygon ;
   }

@@ -39,8 +39,9 @@ Coord crossprod(const Coord &a, const Coord &b)
 /* arc distance (along great circle) */
 double arcdist(const Coord &x, const Coord &y)
 { // et angles aigus non orientes
-	Coord n = crossprod(x, y);
-	double a = asin(norm(n));
+	double n = norm(crossprod(x, y));
+  if (n>1.) n=1. ;
+	double a = asin(n);
 	if (squaredist(x,y) > 2.0) a = M_PI - a;
 	return a;
 }

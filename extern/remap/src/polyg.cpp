@@ -130,8 +130,8 @@ double triarea(Coord& A, Coord& B, Coord& C)
 	double c = ds(A, B);
 	double s = 0.5 * (a + b + c);
 	double t = tan(0.5*s) * tan(0.5*(s - a)) * tan(0.5*(s - b)) * tan(0.5*(s - c));
-	assert(t >= 0);
-//        if (t<0) return 0. ;
+//	assert(t >= 0);
+  if (t<1e-20) return 0. ;
 	return 4 * atan(sqrt(t));
 }
 
