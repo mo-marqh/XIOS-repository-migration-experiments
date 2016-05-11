@@ -283,7 +283,14 @@ namespace xios{
     bool requestData = (currentDate >= lastDataRequestedFromServer + file->output_freq.getValue());
 
     if (requestData)
+    {
+      cout<<"currentDate : "<<currentDate<<endl ;
+      cout<<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
+      cout<<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
+      cout<<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
+     
       sendReadDataRequest();
+    }
 
     return requestData;
   }
@@ -334,14 +341,16 @@ namespace xios{
         }
 
         getRelFile()->checkFile();
-        this->incrementNStep();
-
         if (!nstepMax)
         {
           nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
         }
+        
+        this->incrementNStep();
 
-        if (getNStep() > nstepMax)
+
+
+        if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
           return false;
 
         getRelFile()->getDataInput()->readFieldData(CField::get(this));

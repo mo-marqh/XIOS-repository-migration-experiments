@@ -54,7 +54,7 @@ namespace xios
     switch (SuperClass::type)
     {
       case MULTI_FILE:
-        SuperClassWriter::getData(fieldData, fieldId, isCollective, field->getNStep() - 1);
+        SuperClassWriter::getData(fieldData, fieldId, isCollective, (field->getNStep() - 1)%field->nstepMax );
         break;
       case ONE_FILE:
       {
@@ -115,7 +115,7 @@ namespace xios
            }
         }
 
-        SuperClassWriter::getData(fieldData, fieldId, isCollective, field->getNStep() - 1, &start, &count);
+        SuperClassWriter::getData(fieldData, fieldId, isCollective, (field->getNStep() - 1)%field->nstepMax, &start, &count);
         break;
       }
     }
