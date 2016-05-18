@@ -285,21 +285,34 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	int assignLevel = 2;
 	int nbSampleNodes = 2*ipow(MAX_NODE_SZ + 1, assignLevel);
 
+
+  long int nb1, nb2, nb, nbTot ;
+  nb1=node.size() ; nb2=node.size() ;
+  nb=nb1+nb2 ;
+  MPI_Allreduce(&nb, &nbTot, 1, MPI_LONG, MPI_SUM, communicator) ;
+  int commSize ;
+  MPI_Comm_size(communicator,&commSize) ;
+  
 	// make multiple of two
 	nbSampleNodes /= 2;
 	nbSampleNodes *= 2;
+  assert( nbTot > nbSampleNodes*commSize) ;
+    
+  int nbSampleNodes1 = nbSampleNodes * (nb1*commSize)/(1.*nbTot) +1 ;
+  int nbSampleNodes2 = nbSampleNodes * (nb2*commSize)/(1.*nbTot) +1 ;
+  
 
 //	assert(node.size() > nbSampleNodes);
 //	assert(node2.size() > nbSampleNodes);
-	assert(node.size() + node2.size() > nbSampleNodes);
-	vector<Node> sampleNodes; sampleNodes.reserve(nbSampleNodes);
+//	assert(node.size() + node2.size() > nbSampleNodes);
+	vector<Node> sampleNodes; sampleNodes.reserve(nbSampleNodes1+nbSampleNodes2);
 
 	vector<int> randomArray1(node.size());
 	randomizeArray(randomArray1);
 	vector<int> randomArray2(node2.size());
 	randomizeArray(randomArray2);
 
-	
+/*	
         int s1,s2 ;
         
         if (node.size()< nbSampleNodes/2)
@@ -317,8 +330,9 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
           s1=nbSampleNodes/2 ;
           s2=nbSampleNodes/2 ;
         }
-        for (int i = 0; i <s1; i++) sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
-        for (int i = 0; i <s2; i++)  sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
+*/
+        for (int i = 0; i <nbSampleNodes1; i++) sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
+        for (int i = 0; i <nbSampleNodes2; i++) sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
 
 /*          
         for (int i = 0; i < nbSampleNodes/2; i++)
