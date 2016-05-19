@@ -298,8 +298,8 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	nbSampleNodes *= 2;
   assert( nbTot > nbSampleNodes*commSize) ;
     
-  int nbSampleNodes1 = nbSampleNodes * (nb1*commSize)/(1.*nbTot) +1 ;
-  int nbSampleNodes2 = nbSampleNodes * (nb2*commSize)/(1.*nbTot) +1 ;
+  int nbSampleNodes1 = nbSampleNodes * (nb1*commSize)/(1.*nbTot) ;
+  int nbSampleNodes2 = nbSampleNodes * (nb2*commSize)/(1.*nbTot) ;
   
 
 //	assert(node.size() > nbSampleNodes);
