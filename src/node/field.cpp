@@ -211,7 +211,7 @@ namespace xios{
 
     CContext* context = CContext::getCurrent();
     const CDate& currDate = context->getCalendar()->getCurrentDate();
-    const CDate opeDate      = last_operation_srv + freq_operation_srv;
+    const CDate opeDate      = last_operation_srv +freq_op + freq_operation_srv - freq_op;
     const CDate writeDate    = last_Write_srv     + freq_write_srv;
 
     if (opeDate <= currDate)

@@ -66,7 +66,7 @@ namespace xios
         packet->data = tmpData;
 
         isFirstOperation = false;
-        nextOperationDate = nextOperationDate + opFreq;
+        nextOperationDate = nextOperationDate + samplingFreq + opFreq - samplingFreq;
       }
     }
 
