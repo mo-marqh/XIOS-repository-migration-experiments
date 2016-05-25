@@ -15,17 +15,17 @@
 
 namespace xios
 {
-class DivideCommByTwo
-{
-protected:
-  void computeMPICommLevel(const MPI_Comm& mpiCommRoot, int levels);
-
-protected:
-  std::vector<MPI_Comm> commLevel_;
-private:
-  // Divide MPI communicator on each level recursively
-  void divideMPICommLevel(const MPI_Comm& mpiCommLevel, int level);
-};
+//class DivideCommByTwo
+//{
+//protected:
+//  void computeMPICommLevel(const MPI_Comm& mpiCommRoot, int levels);
+//
+//protected:
+//  std::vector<MPI_Comm> commLevel_;
+//private:
+//  // Divide MPI communicator on each level recursively
+//  void divideMPICommLevel(const MPI_Comm& mpiCommLevel, int level);
+//};
 
 class DivideAdaptiveComm
 {
