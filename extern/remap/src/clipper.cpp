@@ -2587,7 +2587,7 @@ void Clipper::ProcessHorizontal(TEdge *horzEdge)
     eMaxPair = GetMaximaPair(eLastHorz);
 
   MaximaList::const_iterator maxIt;
-  MaximaList::const_reverse_iterator maxRit;
+  MaximaList::reverse_iterator maxRit;
   if (m_Maxima.size() > 0)
   {
       //get the first maxima in range (X) ...

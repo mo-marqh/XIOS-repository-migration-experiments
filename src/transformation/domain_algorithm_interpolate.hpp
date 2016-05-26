@@ -34,7 +34,7 @@ private:
                    int nbGlobalPointOnPole);
   void computeRemap();
   void readRemapInfo();
-  void exchangeRemapInfo(const std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
+  void exchangeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
 private:
   CInterpolateDomain* interpDomain_;
 

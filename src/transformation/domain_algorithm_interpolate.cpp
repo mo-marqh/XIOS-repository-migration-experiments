@@ -232,7 +232,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   Mapper mapper(client->intraComm);
   mapper.setVerbosity(PROGRESS) ;
 
-  
+
   // supress masked data for the source
   int nSrcLocalUnmasked = 0 ;
   for (int idx=0 ; idx < nSrcLocal; idx++) if (domainSrc_-> mask_1d(idx)) ++nSrcLocalUnmasked ;
@@ -277,7 +277,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
       ++nDstLocalUnmasked ;
     }
   }
-  
+
 //  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0], globalSrc);
   mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
 //  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0], globalDst);
@@ -431,7 +431,7 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
 /*!
   Read remap information from file then distribute it among clients
 */
-void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -492,7 +492,8 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
     int sizeIndex = 0, mapSize = (itMap->second).size();
     for (int idx = 0; idx < mapSize; ++idx)
     {
-      sizeIndex += interpMapValue.at((itMap->second)[idx]).size();
+//      sizeIndex += interpMapValue.at((itMap->second)[idx]).size();
+      sizeIndex += (interpMapValue[(int)(itMap->second)[idx]]).size();
     }
     sendBuff[itMap->first] = sizeIndex;
     sendBuffSize += sizeIndex;
@@ -515,7 +516,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(const std::map<int,std::vect
     int k = 0;
     for (int idx = 0; idx < mapSize; ++idx)
     {
-      const std::vector<std::pair<int,double> >& interpMap = interpMapValue.at(indexToSend[idx]);
+      std::vector<std::pair<int,double> >& interpMap = interpMapValue[(int)indexToSend[idx]]; //interpMapValue.at(indexToSend[idx]);
       for (int i = 0; i < interpMap.size(); ++i)
       {
         sendIndexDestBuff[l] = indexToSend[idx];
