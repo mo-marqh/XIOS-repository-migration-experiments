@@ -692,7 +692,7 @@ namespace xios {
     CContextClient* client=context->client;
 
     storeIndex_client.resize(1);
-    storeIndex_client[0] = 0;
+    storeIndex_client(0) = 0;
     if (0 == client->clientRank)
     {
       for (int rank = 0; rank < client->serverSize; ++rank)

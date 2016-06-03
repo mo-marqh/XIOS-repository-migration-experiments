@@ -282,6 +282,7 @@ namespace xios
          int varid = 0;
          std::vector<int> dimids;
          std::vector<StdSize> dimsizes;
+         int dimSize = dim.size();
          StdSize size;
          StdSize totalSize;
          StdSize maxSize = 1024 * 1024 * 256; // == 2GB/8 if output double
@@ -313,7 +314,8 @@ namespace xios
               if (totalSize >= maxSize) *it = 1;
             }
 
-            CNetCdfInterface::defVarChunking(grpid, varid, NC_CHUNKED, &dimsizes[0]);
+            int storageType = (0 == dimSize) ? NC_CONTIGUOUS : NC_CHUNKED;
+            CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
          }
 
@@ -440,39 +442,49 @@ namespace xios
                                         const std::vector<StdSize>* count)
       {
          std::vector<std::size_t> sizes  = this->getDimensions(name);
-         std::vector<std::string> iddims = this->getDimensionsIdList (&name);
-         std::vector<std::size_t>::const_iterator
-            it  = sizes.begin(), end = sizes.end();
-         int i = 0;
-
-         if (iddims.begin()->compare(timeCounterName) == 0)
+         if (sizes.size()==0) 
          {
-            sstart.push_back(record);
+            array_size=1 ;
+            sstart.push_back(0);
             scount.push_back(1);
-            if ((start == NULL) &&
-                (count == NULL)) i++;
-            it++;
          }
-
-         for (;it != end; it++)
+         else
          {
-            if ((start != NULL) && (count != NULL))
-            {
-               sstart.push_back((*start)[i]);
-               scount.push_back((*count)[i]);
-               array_size *= (*count)[i];
-               i++;
-            }
-            else
-            {
-               sstart.push_back(0);
-               scount.push_back(sizes[i]);
-               array_size *= sizes[i];
-               i++;
-            }
-         }
+           std::vector<std::string> iddims = this->getDimensionsIdList (&name);
+           std::vector<std::size_t>::const_iterator
+           it  = sizes.begin(), end = sizes.end();
+           int i = 0;
 
+           if (iddims.begin()->compare(timeCounterName) == 0)
+           {
+             sstart.push_back(record);
+             scount.push_back(1);
+              if ((start == NULL) &&
+                  (count == NULL)) i++;
+              it++;
+           }
+
+           for (;it != end; it++)
+           {
+              if ((start != NULL) && (count != NULL))
+              {
+                 sstart.push_back((*start)[i]);
+                 scount.push_back((*count)[i]);
+                 array_size *= (*count)[i];
+                 i++;
+              }
+              else
+              {
+                 sstart.push_back(0);
+                 scount.push_back(sizes[i]);
+                 array_size *= sizes[i];
+                 i++;
+              }
+           }
+
+         }
       }
+
 
       template <>
       void CONetCDF4::writeData_(int grpid, int varid,
