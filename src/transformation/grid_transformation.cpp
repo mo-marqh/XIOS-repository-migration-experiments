@@ -362,7 +362,12 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
   if (dynamicalTransformation_)
   {
     if (timeStamp_.insert(timeStamp).second)
+    {
       DestinationIndexMap().swap(currentGridIndexToOriginalGridIndex_);  // Reset map
+      std::list<size_t>().swap(nbLocalIndexOnGridDest_);
+      std::list<SendingIndexGridSourceMap>().swap(localIndexToSendFromGridSource_);
+      std::list<RecvIndexGridDestinationMap>().swap(localIndexToReceiveOnGridDest_);
+    }      
     else
       return;
   }
