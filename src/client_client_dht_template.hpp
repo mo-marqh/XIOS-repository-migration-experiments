@@ -47,6 +47,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 
     const Index2VectorInfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
+    Index2VectorInfoTypeMap& getInfoIndexMap() {return indexToInfoMappingLevel_; }
     int getNbClient() { return nbClient_; }
 
     /** Default destructor */

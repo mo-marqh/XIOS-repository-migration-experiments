@@ -7,9 +7,10 @@
    \brief Algorithm for inversing an axis..
  */
 #include "axis_algorithm_inverse.hpp"
-#include "transformation_mapping.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "axis.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
 
@@ -21,7 +22,7 @@ CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axis
     ERROR("CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)",
            << "Two axis have different global size"
            << "Size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
-           << "Size of axis destionation " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
+           << "Size of axis destination " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
 }
 
@@ -60,97 +61,196 @@ void CAxisAlgorithmInverse::updateAxisValue()
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int nbClient = client->clientSize;
 
   int niSrc     = axisSrc_->n.getValue();
   int ibeginSrc = axisSrc_->begin.getValue();
+  int nSrc = axisSrc_->index.numElements();
 
-  CTransformationMapping transformationMap(axisDest_, axisSrc_);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  CTransformationMapping::DestinationIndexMap globaIndexMapFromDestToSource;
-  TransformationIndexMap::const_iterator it = transMap.begin(), ite = transMap.end();
-  int localIndex = 0;
-  for (; it != ite; ++it)
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
+  for (int idx = 0; idx < nSrc; ++idx)
   {
-    globaIndexMapFromDestToSource[it->first].push_back(make_pair(localIndex,make_pair((it->second)[0], (transWeight[it->first])[0])));
+    if ((axisSrc_->mask)(idx))
+    {
+      globalIndex2ProcRank[(axisSrc_->index)(idx)].resize(1);
+      globalIndex2ProcRank[(axisSrc_->index)(idx)][0] = clientRank;
+    }
+  }
+
+  typedef boost::unordered_map<size_t, std::vector<double> > GlobalIndexMapFromSrcToDest;
+  GlobalIndexMapFromSrcToDest globalIndexMapFromSrcToDest;
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationIndexMap::const_iterator itb = transMap.begin(), ite = transMap.end(), it;
+  CArray<size_t,1> globalSrcIndex(transMap.size());
+  int localIndex = 0;
+  for (it = itb; it != ite; ++it)
+  {
+    size_t srcIndex = it->second[0];
+    globalIndexMapFromSrcToDest[srcIndex].resize(1);
+    globalIndexMapFromSrcToDest[srcIndex][0] = it->first;
+    globalSrcIndex(localIndex) = srcIndex;
     ++localIndex;
   }
 
-  transformationMap.computeTransformationMapping(globaIndexMapFromDestToSource);
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  dhtIndexProcRank.computeIndexInfoMapping(globalSrcIndex);
+  CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+  boost::unordered_map<int, std::vector<size_t> > globalSrcIndexSendToProc;
+  for (int idx = 0; idx < localIndex; ++idx)
+  {
+    size_t tmpIndex = globalSrcIndex(idx);
+    if (1 == computedGlobalIndexOnProc.count(tmpIndex))
+    {
+      std::vector<int>& tmpVec = computedGlobalIndexOnProc[tmpIndex];
+      globalSrcIndexSendToProc[tmpVec[0]].push_back(tmpIndex);
+    }
+  }
 
-  const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
-  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
 
- // Sending global index of original grid source
-  CTransformationMapping::SentIndexMap::const_iterator itbSend = globalIndexToSend.begin(), itSend,
-                                                       iteSend = globalIndexToSend.end();
- int sendBuffSize = 0;
- for (itSend = itbSend; itSend != iteSend; ++itSend) sendBuffSize += (itSend->second).size();
+  boost::unordered_map<int, std::vector<size_t> >::const_iterator itbIndex = globalSrcIndexSendToProc.begin(), itIndex,
+                                                                  iteIndex = globalSrcIndexSendToProc.end();
+  std::map<int,int> sendRankSizeMap,recvRankSizeMap;
+  int connectedClient = globalSrcIndexSendToProc.size();
+  int* recvCount=new int[nbClient];
+  int* displ=new int[nbClient];
+  int* sendRankBuff=new int[connectedClient];
+  int* sendSizeBuff=new int[connectedClient];
+  int n = 0;
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex, ++n)
+  {
+    sendRankBuff[n] = itIndex->first;
+    int sendSize = itIndex->second.size();
+    sendSizeBuff[n] = sendSize;
+    sendRankSizeMap[itIndex->first] = sendSize;
+  }
+  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
 
- typedef double Scalar;
- Scalar* sendBuff, *currentSendBuff;
- if (0 != sendBuffSize) sendBuff = new Scalar[sendBuffSize];
- for (StdSize idx = 0; idx < sendBuffSize; ++idx) sendBuff[idx] = NumTraits<Scalar>::sfmax();
+  displ[0]=0 ;
+  for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
+  int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
+  int* recvRankBuff=new int[recvSize];
+  int* recvSizeBuff=new int[recvSize];
+  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,client->intraComm);
+  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,client->intraComm);
+  for (int i = 0; i < nbClient; ++i)
+  {
+    int currentPos = displ[i];
+    for (int j = 0; j < recvCount[i]; ++j)
+      if (recvRankBuff[currentPos+j] == clientRank)
+      {
+        recvRankSizeMap[i] = recvSizeBuff[currentPos+j];
+      }
+  }
 
- int currentBuffPosition = 0;
- for (itSend = itbSend; itSend != iteSend; ++itSend)
- {
-   int destRank = itSend->first;
-   const std::vector<std::pair<int,size_t> >& globalIndexOfCurrentGridSourceToSend = itSend->second;
-   int countSize = globalIndexOfCurrentGridSourceToSend.size();
-   for (int idx = 0; idx < (countSize); ++idx)
-   {
-     int index = globalIndexOfCurrentGridSourceToSend[idx].first;
-     sendBuff[idx+currentBuffPosition] = (axisSrc_->value)(index);
-   }
-   currentSendBuff = sendBuff + currentBuffPosition;
-   MPI_Send(currentSendBuff, countSize, MPI_DOUBLE, destRank, 14, client->intraComm);
-   currentBuffPosition += countSize;
- }
+  // Sending global index of grid source to corresponding process as well as the corresponding mask
+  std::vector<MPI_Request> requests;
+  std::vector<MPI_Status> status;
+  boost::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
+  boost::unordered_map<int, double* > sendValueToDest;
+  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
+  {
+    int recvRank = itRecv->first;
+    int recvSize = itRecv->second;
+    recvGlobalIndexSrc[recvRank] = new unsigned long [recvSize];
+    sendValueToDest[recvRank] = new double [recvSize];
 
- // Receiving global index of grid source sending from current grid source
- CTransformationMapping::ReceivedIndexMap::const_iterator itbRecv = globalIndexToReceive.begin(), itRecv,
-                                                          iteRecv = globalIndexToReceive.end();
- int recvBuffSize = 0;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize += (itRecv->second).size();
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
+  }
 
- Scalar* recvBuff, *currentRecvBuff;
- if (0 != recvBuffSize) recvBuff = new Scalar [recvBuffSize];
- for (StdSize idx = 0; idx < recvBuffSize; ++idx) recvBuff[idx] = NumTraits<Scalar>::sfmax();
+  boost::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
+  boost::unordered_map<int, double* > recvValueFromSrc;
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
+  {
+    int sendRank = itIndex->first;
+    int sendSize = sendRankSizeMap[sendRank];
+    const std::vector<size_t>& sendIndexMap = itIndex->second;
+    std::vector<size_t>::const_iterator itbSend = sendIndexMap.begin(), iteSend = sendIndexMap.end(), itSend;
+    sendGlobalIndexSrc[sendRank] = new unsigned long [sendSize];
+    recvValueFromSrc[sendRank] = new double [sendSize];
+    int countIndex = 0;
+    for (itSend = itbSend; itSend != iteSend; ++itSend)
+    {
+      sendGlobalIndexSrc[sendRank][countIndex] = *itSend;
+      ++countIndex;
+    }
 
- int currentRecvBuffPosition = 0;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
- {
-   MPI_Status status;
-   int srcRank = itRecv->first;
-   int countSize = (itRecv->second).size();
-   currentRecvBuff = recvBuff + currentRecvBuffPosition;
-   MPI_Recv(currentRecvBuff, countSize, MPI_DOUBLE, srcRank, 14, client->intraComm, &status);
-   currentRecvBuffPosition += countSize;
- }
+    // Send global index source and mask
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
+  }
 
- int ibeginDest = axisDest_->begin.getValue();
- currentRecvBuff = recvBuff;
- for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
- {
-   int countSize = (itRecv->second).size();
-   for (int idx = 0; idx < countSize; ++idx, ++currentRecvBuff)
-   {
-     int index = ((itRecv->second)[idx]).localIndex - ibeginDest;
-     (axisDest_->value)(index) = *currentRecvBuff;
-//     int ssize = (itRecv->second)[idx].size();
-//     for (int i = 0; i < ssize; ++i)
-//     {
-//       int index = ((itRecv->second)[idx][i]).first - ibeginDest;
-//       (axisDest_->value)(index) = *currentRecvBuff;
-//     }
-   }
- }
+  status.resize(requests.size());
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
- if (0 != sendBuffSize) delete [] sendBuff;
- if (0 != recvBuffSize) delete [] recvBuff;
+
+  std::vector<MPI_Request>().swap(requests);
+  std::vector<MPI_Status>().swap(status);
+
+  // Okie, on destination side, we will wait for information of masked index of source
+  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
+  {
+    int recvRank = itSend->first;
+    int recvSize = itSend->second;
+
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvValueFromSrc[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+  }
+
+  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
+  {
+    int recvRank = itRecv->first;
+    int recvSize = itRecv->second;
+    double* sendValue = sendValueToDest[recvRank];
+    unsigned long* recvIndexSrc = recvGlobalIndexSrc[recvRank];
+    int realSendSize = 0;
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      size_t globalIndex = *(recvIndexSrc+idx);
+      int localIndex = globalIndex - ibeginSrc;
+      *(sendValue + idx) = axisSrc_->value(localIndex);
+    }
+    // Okie, now inform the destination which source index are masked
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendValueToDest[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+  }
+  status.resize(requests.size());
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
+
+
+  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
+  {
+    int recvRank = itSend->first;
+    int recvSize = itSend->second;
+
+    double* recvValue = recvValueFromSrc[recvRank];
+    unsigned long* recvIndex = sendGlobalIndexSrc[recvRank];
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      size_t globalIndex = *(recvIndex+idx);
+      int localIndex = globalIndex - axisDest_->begin;
+      axisDest_->value(localIndex) = *(recvValue + idx);
+    }
+  }
+
+  delete [] recvCount;
+  delete [] displ;
+  delete [] sendRankBuff;
+  delete [] recvRankBuff;
+  delete [] sendSizeBuff;
+  delete [] recvSizeBuff;
+
+  boost::unordered_map<int, double* >::const_iterator itChar;
+  for (itChar = sendValueToDest.begin(); itChar != sendValueToDest.end(); ++itChar)
+    delete [] itChar->second;
+  for (itChar = recvValueFromSrc.begin(); itChar != recvValueFromSrc.end(); ++itChar)
+    delete [] itChar->second;
+  boost::unordered_map<int, unsigned long* >::const_iterator itLong;
+  for (itLong = sendGlobalIndexSrc.begin(); itLong != sendGlobalIndexSrc.end(); ++itLong)
+    delete [] itLong->second;
+  for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)
+    delete [] itLong->second;
 }
 
 }
