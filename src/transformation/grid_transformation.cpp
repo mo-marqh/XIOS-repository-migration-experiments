@@ -135,8 +135,13 @@ For now, one approach is to do these combinely but maybe this needs changing.
 void CGridTransformation::initializeAxisAlgorithms(int axisPositionInGrid)
 {
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
+  std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
   if (!axisListDestP.empty())
   {
+    // If source and destination grid share the same axis
+    if (axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]] ==
+        axisListSrcP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]) return;
+
     if (axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]->hasTransformation())
     {
       CAxis::TransMapTypes trans = axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]->getAllTransformations();
@@ -164,8 +169,13 @@ In general, each domain can have several transformations performed on itself.
 void CGridTransformation::initializeDomainAlgorithms(int domPositionInGrid)
 {
   std::vector<CDomain*> domListDestP = gridDestination_->getDomains();
+  std::vector<CDomain*> domListSrcP = gridSource_->getDomains();
   if (!domListDestP.empty())
   {
+    // If source and destination grid share the same domain
+    if (domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]] ==
+        domListSrcP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]) return;
+
     if (domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]->hasTransformation())
     {
       CDomain::TransMapTypes trans = domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]->getAllTransformations();
@@ -290,8 +300,6 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
   if (!tempGridDests_.empty() && (getNbAlgo() == tempGridDests_.size()))
   {
     tempGridDests_.resize(0);
-//    tmpGridDestination_ = tempGridDests_[nbTransformation];
-//    return;
   }
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis(), axisDst;
@@ -345,8 +353,6 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
   if (!tempGridSrcs_.empty() && (getNbAlgo()-1) == tempGridSrcs_.size())
   {
     tempGridSrcs_.resize(0);
-//    gridSource_ = tempGridSrcs_[nbTransformation];
-//    return;
   }
 
   std::vector<CAxis*> axisListDestP = tmpGridDestination_->getAxis();
@@ -405,26 +411,6 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
       domainSrc.push_back(domain);
     }
   }
-
-//  for (int idx = 0; idx < axisListSrcP.size(); ++idx)
-//  {
-//    CAxis* axis = CAxis::createAxis();
-//    if (axisIndex != idx) axis->axis_ref.setValue(axisListSrcP[idx]->getId());
-//    else axis->axis_ref.setValue(axisListDestP[idx]->getId());
-//    axis->solveRefInheritance(true);
-//    axis->checkAttributesOnClient();
-//    axisSrc.push_back(axis);
-//  }
-//
-//  for (int idx = 0; idx < domListSrcP.size(); ++idx)
-//  {
-//    CDomain* domain = CDomain::createDomain();
-//    if (domainIndex != idx) domain->domain_ref.setValue(domListSrcP[idx]->getId());
-//    else domain->domain_ref.setValue(domListDestP[idx]->getId());
-//    domain->solveRefInheritance(true);
-//    domain->checkAttributesOnClient();
-//    domainSrc.push_back(domain);
-//  }
 
   gridSource_ = CGrid::createGrid(domainSrc, axisSrc, tmpGridDestination_->axis_domain_order);
   gridSource_->computeGridGlobalDimension(domainSrc, axisSrc, tmpGridDestination_->axis_domain_order);
