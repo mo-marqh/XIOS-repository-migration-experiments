@@ -35,14 +35,19 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     static const int infoTypeSize = sizeof(InfoType);
     typedef typename boost::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
     typedef typename boost::unordered_map<size_t,InfoType> Index2InfoTypeMap;
+    typedef typename boost::unordered_map<size_t,std::vector<InfoType> > Index2VectorInfoTypeMap;
 
   public:
     CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoInitMap,
                              const MPI_Comm& clientIntraComm);
 
+    CClientClientDHTTemplate(const Index2VectorInfoTypeMap& indexInfoInitMap,
+                             const MPI_Comm& clientIntraComm);
+
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 
-    const Index2InfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
+//    const Index2InfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
+    const Index2VectorInfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
 
     int getNbClient() { return nbClient_; }
 
@@ -54,6 +59,11 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     void computeDistributedIndex(const Index2InfoTypeMap& indexInfoInitMap,
                                  const MPI_Comm& intraCommLevel,
                                  int level);
+
+    void computeDistributedIndex(const Index2VectorInfoTypeMap& indexInfoInitMap,
+                                 const MPI_Comm& intraCommLevel,
+                                 int level);
+
 
     void computeHashIndex(std::vector<size_t>& indexClientHash, int nbClient);
 
@@ -91,10 +101,12 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
   protected:
     //! Mapping of global index to the corresponding client
-    Index2InfoTypeMap index2InfoMapping_;
+//    Index2InfoTypeMap index2InfoMapping_;
+    Index2VectorInfoTypeMap index2InfoMapping_;
 
     //! A mapping of index to the corresponding information in each level of hierarchy
-    Index2InfoTypeMap indexToInfoMappingLevel_;
+//    Index2InfoTypeMap indexToInfoMappingLevel_;
+    Index2VectorInfoTypeMap indexToInfoMappingLevel_;
 
     std::vector<std::vector<int> > sendRank_;
 

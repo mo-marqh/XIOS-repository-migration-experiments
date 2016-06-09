@@ -36,13 +36,13 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
-  const boost::unordered_map<size_t,int>& infoIndexMap = (ccDHT_->getInfoIndexMap());
-  boost::unordered_map<size_t,int>::const_iterator itb = infoIndexMap.begin(), ite = infoIndexMap.end(), it;
+  const CClientClientDHTInt::Index2VectorInfoTypeMap& infoIndexMap = (ccDHT_->getInfoIndexMap());
+  CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = infoIndexMap.begin(), ite = infoIndexMap.end(), it;
   std::vector<size_t> nbInfoIndex(ccDHT_->getNbClient(),0);
 
   for (it = itb; it != ite; ++it)
   {
-    ++nbInfoIndex[it->second];
+    ++nbInfoIndex[it->second[0]];
   }
 
   for (int idx = 0; idx < nbInfoIndex.size(); ++idx)
@@ -56,8 +56,8 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
 
   for (it = itb; it != ite; ++it)
   {
-    indexGlobalOnServer_[it->second][nbInfoIndex[it->second]] = (it->first);
-    ++nbInfoIndex[it->second];
+    indexGlobalOnServer_[it->second[0]][nbInfoIndex[it->second[0]]] = (it->first);
+    ++nbInfoIndex[it->second[0]];
   }
 }
 
