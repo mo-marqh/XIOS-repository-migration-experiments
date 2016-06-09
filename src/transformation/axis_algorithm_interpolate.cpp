@@ -273,8 +273,6 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
       {
         transPosition_[idx].resize(1);
         transPosition_[idx][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
-//        transPosition_[idx][0] = (dom->i_index)(idx);
-//        transPosition_[idx][1] = (dom->j_index)(idx);
       }
     }
     this->transformationMapping_.resize(vecAxisValueSize);

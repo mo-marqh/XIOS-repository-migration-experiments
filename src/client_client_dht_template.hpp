@@ -33,7 +33,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
   public:
     typedef T InfoType;
     static const int infoTypeSize = sizeof(InfoType);
-    typedef typename boost::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
+//    typedef typename boost::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
     typedef typename boost::unordered_map<size_t,InfoType> Index2InfoTypeMap;
     typedef typename boost::unordered_map<size_t,std::vector<InfoType> > Index2VectorInfoTypeMap;
 
@@ -46,9 +46,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
     void computeIndexInfoMapping(const CArray<size_t,1>& indices);
 
-//    const Index2InfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
     const Index2VectorInfoTypeMap& getInfoIndexMap() const {return indexToInfoMappingLevel_; }
-
     int getNbClient() { return nbClient_; }
 
     /** Default destructor */
@@ -101,15 +99,15 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
   protected:
     //! Mapping of global index to the corresponding client
-//    Index2InfoTypeMap index2InfoMapping_;
     Index2VectorInfoTypeMap index2InfoMapping_;
 
     //! A mapping of index to the corresponding information in each level of hierarchy
-//    Index2InfoTypeMap indexToInfoMappingLevel_;
     Index2VectorInfoTypeMap indexToInfoMappingLevel_;
 
+    //! Rank of client to send on each DHT level
     std::vector<std::vector<int> > sendRank_;
 
+    //! Rank of client to receive on each DHT level
     std::vector<std::vector<int> > recvRank_;
 
     //! Flag to specify whether data is distributed or not

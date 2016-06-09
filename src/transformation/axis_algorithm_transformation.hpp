@@ -10,10 +10,10 @@
 #define __XIOS_AXIS_ALGORITHM_TRANSFORMATION_HPP__
 
 #include "generic_algorithm_transformation.hpp"
-#include "axis.hpp"
 
 namespace xios {
 
+class CAxis;
 /*!
   \class CAxisAlgorithmTransformation
   Algorithms for axis.
@@ -26,20 +26,10 @@ public:
   virtual ~CAxisAlgorithmTransformation();
 
 protected:
-  virtual void computeGlobalGridIndexFromGlobalIndexElement(int axisDestGlobalIndex,
-                                                        const std::vector<int>& axisSrcGlobalIndex,
-                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
-                                                        int axisPositionInGrid,
-                                                        const std::vector<int>& gridDestGlobalDim,
-                                                        const std::vector<int>& gridSrcGlobalDim,
-                                                        const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
-                                                        std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
-                                                        std::vector<std::vector<size_t> >& globalIndexSrcGrid);
-
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
-  void computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
-                                  CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
+  virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
+                                          CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
 
 protected:
   //! Global index of an axis on grid destination

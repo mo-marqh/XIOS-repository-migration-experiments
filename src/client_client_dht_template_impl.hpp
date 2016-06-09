@@ -204,7 +204,6 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
       itIndexToInfoMap = indexToInfoMappingLevel_.find(*(recvIndexBuff+currentIndex+i));
       if (iteIndexToInfoMap != itIndexToInfoMap)
         sendNbIndexOnReturn[idx] += itIndexToInfoMap->second.size();
-//        ++sendNbIndexOnReturn[idx];
     }
     currentIndex += recvNbIndexClientCount[idx];
   }
@@ -293,10 +292,9 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   {
     ProcessDHTElement<InfoType>::unpackElement(unpackedInfo, recvInfoBuffOnReturn, infoIndex);
     indexToInfoMapping[recvIndexBuffOnReturn[idx]].push_back(unpackedInfo);
-//    ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[recvIndexBuffOnReturn[idx]], recvInfoBuffOnReturn, infoIndex);
   }
 
-  indexToInfoMappingLevel_.swap(indexToInfoMapping); //indexToInfoMappingLevel_ = (indexToInfoMapping);
+  indexToInfoMappingLevel_.swap(indexToInfoMapping);
   if (0 != recvNbIndexCount) delete [] recvIndexBuff;
   for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
                                                         it != client2ClientIndex.end(); ++it)
@@ -317,235 +315,6 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
                                             it != client2ClientIndexOnReturn.end(); ++it)
       delete [] it->second;
 }
-
-///*!
-//    Compute mapping between indices and information corresponding to these indices
-//for each level of hierarchical DHT. Recursive function
-//   \param [in] indices indices a proc has
-//   \param [in] commLevel communicator of current level
-//   \param [in] level current level
-//*/
-//template<typename T, typename H>
-//void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<size_t,1>& indices,
-//                                                                 const MPI_Comm& commLevel,
-//                                                                 int level)
-//{
-//  int clientRank;
-//  MPI_Comm_rank(commLevel,&clientRank);
-//  int groupRankBegin = this->getGroupBegin()[level];
-//  int nbClient = this->getNbInGroup()[level];
-//  std::vector<size_t> hashedIndex;
-//  computeHashIndex(hashedIndex, nbClient);
-//
-//  size_t ssize = indices.numElements(), hashedVal;
-//
-//  std::vector<size_t>::const_iterator itbClientHash = hashedIndex.begin(), itClientHash,
-//                                      iteClientHash = hashedIndex.end();
-//  std::vector<int> sendBuff(nbClient,0);
-//  std::vector<int> sendNbIndexBuff(nbClient,0);
-//
-//  // Number of global index whose mapping server are on other clients
-//  int nbIndexToSend = 0;
-//  size_t index;
-//  HashXIOS<size_t> hashGlobalIndex;
-//  for (int i = 0; i < ssize; ++i)
-//  {
-//    index = indices(i);
-//    hashedVal  = hashGlobalIndex(index);
-//    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
-//    int indexClient = std::distance(itbClientHash, itClientHash)-1;
-//    ++sendNbIndexBuff[indexClient];
-//  }
-//
-//  boost::unordered_map<int, size_t* > client2ClientIndex;
-//  for (int idx = 0; idx < nbClient; ++idx)
-//  {
-//    if (0 != sendNbIndexBuff[idx])
-//    {
-//      client2ClientIndex[idx+groupRankBegin] = new unsigned long [sendNbIndexBuff[idx]];
-//      nbIndexToSend += sendNbIndexBuff[idx];
-//      sendBuff[idx] = 1;
-//      sendNbIndexBuff[idx] = 0;
-//    }
-//  }
-//
-//  for (int i = 0; i < ssize; ++i)
-//  {
-//    index = indices(i);
-//    hashedVal  = hashGlobalIndex(index);
-//    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
-//    {
-//      int indexClient = std::distance(itbClientHash, itClientHash)-1;
-//      {
-//        client2ClientIndex[indexClient+groupRankBegin][sendNbIndexBuff[indexClient]] = index;
-//        ++sendNbIndexBuff[indexClient];
-//      }
-//    }
-//  }
-//
-//  std::vector<int> recvRankClient, recvNbIndexClientCount;
-//  sendRecvRank(level, sendBuff, sendNbIndexBuff,
-//               recvRankClient, recvNbIndexClientCount);
-//
-//  int recvNbIndexCount = 0;
-//  for (int idx = 0; idx < recvNbIndexClientCount.size(); ++idx)
-//    recvNbIndexCount += recvNbIndexClientCount[idx];
-//
-//  unsigned long* recvIndexBuff;
-//  if (0 != recvNbIndexCount)
-//    recvIndexBuff = new unsigned long[recvNbIndexCount];
-//
-//  std::vector<MPI_Request> request;
-//  std::vector<int>::iterator itbRecvIndex = recvRankClient.begin(), itRecvIndex,
-//                             iteRecvIndex = recvRankClient.end(),
-//                           itbRecvNbIndex = recvNbIndexClientCount.begin(),
-//                           itRecvNbIndex;
-//  int currentIndex = 0;
-//  int nbRecvClient = recvRankClient.size();
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    if (0 != recvNbIndexClientCount[idx])
-//      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
-//    currentIndex += recvNbIndexClientCount[idx];
-//  }
-//
-//  boost::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
-//                                                iteIndex = client2ClientIndex.end();
-//  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-//    sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
-//
-//  std::vector<MPI_Status> status(request.size());
-//  MPI_Waitall(request.size(), &request[0], &status[0]);
-//
-//  CArray<size_t,1>* tmpGlobalIndex;
-//  if (0 != recvNbIndexCount)
-//    tmpGlobalIndex = new CArray<size_t,1>(recvIndexBuff, shape(recvNbIndexCount), neverDeleteData);
-//  else
-//    tmpGlobalIndex = new CArray<size_t,1>();
-//
-//  // OK, we go to the next level and do something recursive
-//  if (0 < level)
-//  {
-//    --level;
-//    computeIndexInfoMappingLevel(*tmpGlobalIndex, this->internalComm_, level);
-//  }
-//  else // Now, we are in the last level where necessary mappings are.
-//    indexToInfoMappingLevel_= (index2InfoMapping_);
-//
-//  typename Index2InfoTypeMap::const_iterator iteIndexToInfoMap = indexToInfoMappingLevel_.end(), itIndexToInfoMap;
-//  std::vector<int> sendNbIndexOnReturn(nbRecvClient,0);
-//  currentIndex = 0;
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    for (int i = 0; i < recvNbIndexClientCount[idx]; ++i)
-//    {
-//      itIndexToInfoMap = indexToInfoMappingLevel_.find(*(recvIndexBuff+currentIndex+i));
-//      if (iteIndexToInfoMap != itIndexToInfoMap) ++sendNbIndexOnReturn[idx];
-//    }
-//    currentIndex += recvNbIndexClientCount[idx];
-//  }
-//
-//  std::vector<int> recvRankOnReturn(client2ClientIndex.size());
-//  std::vector<int> recvNbIndexOnReturn(client2ClientIndex.size(),0);
-//  int indexIndex = 0;
-//  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex, ++indexIndex)
-//  {
-//    recvRankOnReturn[indexIndex] = itIndex->first;
-//  }
-//  sendRecvOnReturn(recvRankClient, sendNbIndexOnReturn,
-//                   recvRankOnReturn, recvNbIndexOnReturn);
-//
-//  int recvNbIndexCountOnReturn = 0;
-//  for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
-//    recvNbIndexCountOnReturn += recvNbIndexOnReturn[idx];
-//
-//  unsigned long* recvIndexBuffOnReturn;
-//  unsigned char* recvInfoBuffOnReturn;
-//  if (0 != recvNbIndexCountOnReturn)
-//  {
-//    recvIndexBuffOnReturn = new unsigned long[recvNbIndexCountOnReturn];
-//    recvInfoBuffOnReturn = new unsigned char[recvNbIndexCountOnReturn*ProcessDHTElement<InfoType>::typeSize()];
-//  }
-//
-//  std::vector<MPI_Request> requestOnReturn;
-//  currentIndex = 0;
-//  for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
-//  {
-//    if (0 != recvNbIndexOnReturn[idx])
-//    {
-//      recvIndexFromClients(recvRankOnReturn[idx], recvIndexBuffOnReturn+currentIndex, recvNbIndexOnReturn[idx], commLevel, requestOnReturn);
-//      recvInfoFromClients(recvRankOnReturn[idx],
-//                          recvInfoBuffOnReturn+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
-//                          recvNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(),
-//                          commLevel, requestOnReturn);
-//    }
-//    currentIndex += recvNbIndexOnReturn[idx];
-//  }
-//
-//  boost::unordered_map<int,unsigned char*> client2ClientInfoOnReturn;
-//  boost::unordered_map<int,size_t*> client2ClientIndexOnReturn;
-//  currentIndex = 0;
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    if (0 != sendNbIndexOnReturn[idx])
-//    {
-//      int rank = recvRankClient[idx];
-//      client2ClientIndexOnReturn[rank] = new unsigned long [sendNbIndexOnReturn[idx]];
-//      client2ClientInfoOnReturn[rank] = new unsigned char [sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize()];
-//      unsigned char* tmpInfoPtr = client2ClientInfoOnReturn[rank];
-//      int infoIndex = 0;
-//      int nb = 0;
-//      for (int i = 0; i < recvNbIndexClientCount[idx]; ++i)
-//      {
-//        itIndexToInfoMap = indexToInfoMappingLevel_.find(*(recvIndexBuff+currentIndex+i));
-//        if (iteIndexToInfoMap != itIndexToInfoMap)
-//        {
-//          client2ClientIndexOnReturn[rank][nb] = itIndexToInfoMap->first;
-//          ProcessDHTElement<InfoType>::packElement(itIndexToInfoMap->second, tmpInfoPtr, infoIndex);
-//          ++nb;
-//        }
-//      }
-//
-//      sendIndexToClients(rank, client2ClientIndexOnReturn[rank],
-//                         sendNbIndexOnReturn[idx], commLevel, requestOnReturn);
-//      sendInfoToClients(rank, client2ClientInfoOnReturn[rank],
-//                        sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(), commLevel, requestOnReturn);
-//    }
-//    currentIndex += recvNbIndexClientCount[idx];
-//  }
-//
-//  std::vector<MPI_Status> statusOnReturn(requestOnReturn.size());
-//  MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
-//
-//  boost::unordered_map<size_t,InfoType> indexToInfoMapping;
-//  indexToInfoMapping.rehash(std::ceil(recvNbIndexCountOnReturn/indexToInfoMapping.max_load_factor()));
-//  int infoIndex = 0;
-//  for (int idx = 0; idx < recvNbIndexCountOnReturn; ++idx)
-//  {
-//    ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[recvIndexBuffOnReturn[idx]], recvInfoBuffOnReturn, infoIndex);
-//  }
-//
-//  indexToInfoMappingLevel_.swap(indexToInfoMapping); //indexToInfoMappingLevel_ = (indexToInfoMapping);
-//  if (0 != recvNbIndexCount) delete [] recvIndexBuff;
-//  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
-//                                                        it != client2ClientIndex.end(); ++it)
-//      delete [] it->second;
-//  delete tmpGlobalIndex;
-//
-//  if (0 != recvNbIndexCountOnReturn)
-//  {
-//    delete [] recvIndexBuffOnReturn;
-//    delete [] recvInfoBuffOnReturn;
-//  }
-//
-//  for (boost::unordered_map<int,unsigned char*>::const_iterator it = client2ClientInfoOnReturn.begin();
-//                                                               it != client2ClientInfoOnReturn.end(); ++it)
-//      delete [] it->second;
-//
-//  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndexOnReturn.begin();
-//                                            it != client2ClientIndexOnReturn.end(); ++it)
-//      delete [] it->second;
-//}
 
 /*!
   Compute the hash index distribution of whole size_t space then each client will have a range of this distribution
@@ -688,39 +457,17 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
-//  boost::unordered_map<size_t,int> tmpInfoSize;
-//  tmpInfoSize.rehash(std::ceil(currentIndex/tmpInfoSize.max_load_factor()));
-//  currentIndex = 0;
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    int count = recvNbIndexClientCount[idx];
-//    for (int i = 0; i < count; ++i)
-//    {
-//      ++tmpInfoSize[*(recvIndexBuff+currentIndex+i)];
-//    }
-//    currentIndex += count;
-//  }
-//
-//  for (boost::unordered_map<size_t,int>::iterator it=tmpInfoSize.begin(); it != tmpInfoSize.end(); ++it)
-//  {
-//    indexToInfoMapping[it->first].resize(it->second);
-//    it->second = 0;
-//  }
-
   currentIndex = 0;
   InfoType infoValue;
   int infoIndex = 0;
   unsigned char* infoBuff = recvInfoBuff;
   for (int idx = 0; idx < nbRecvClient; ++idx)
   {
-//    size_t index;
+    size_t index;
     int count = recvNbIndexClientCount[idx];
     for (int i = 0; i < count; ++i)
     {
-//      index = *(recvIndexBuff+currentIndex+i);
       ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuff, infoIndex);
-//      ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[index][tmpInfoSize[index]], infoBuff, infoIndex);
-//      ++tmpInfoSize[index];
       indexToInfoMapping[*(recvIndexBuff+currentIndex+i)].push_back(infoValue);
     }
     currentIndex += count;
@@ -748,168 +495,6 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   else
     index2InfoMapping_.swap(indexToInfoMapping);
 }
-
-///*!
-//  Compute distribution of global index for servers
-//  Each client already holds a piece of information and its associated index.
-//This information will be redistributed among processes by projecting indices into size_t space,
-//the corresponding information will be also distributed on size_t space.
-//After the redistribution, each client holds rearranged index and its corresponding information.
-//  \param [in] indexInfoMap index and its corresponding info (usually server index)
-//  \param [in] commLevel communicator of current level
-//  \param [in] level current level
-//*/
-//template<typename T, typename H>
-//void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const boost::unordered_map<size_t,T>& indexInfoMap,
-//                                                            const MPI_Comm& commLevel,
-//                                                            int level)
-//{
-//  int clientRank;
-//  MPI_Comm_rank(commLevel,&clientRank);
-//  computeSendRecvRank(level, clientRank);
-//
-//  int groupRankBegin = this->getGroupBegin()[level];
-//  int nbClient = this->getNbInGroup()[level];
-//  std::vector<size_t> hashedIndex;
-//  computeHashIndex(hashedIndex, nbClient);
-//
-//  std::vector<int> sendBuff(nbClient,0);
-//  std::vector<int> sendNbIndexBuff(nbClient,0);
-//  std::vector<size_t>::const_iterator itbClientHash = hashedIndex.begin(), itClientHash,
-//                                      iteClientHash = hashedIndex.end();
-//  typename boost::unordered_map<size_t,InfoType>::const_iterator itb = indexInfoMap.begin(),it,
-//                                                                 ite = indexInfoMap.end();
-//  HashXIOS<size_t> hashGlobalIndex;
-//
-//  // Compute size of sending and receving buffer
-//  for (it = itb; it != ite; ++it)
-//  {
-//    size_t hashIndex = hashGlobalIndex(it->first);
-//    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
-//    {
-//      int indexClient = std::distance(itbClientHash, itClientHash)-1;
-//      {
-//        ++sendNbIndexBuff[indexClient];
-//      }
-//    }
-//  }
-//
-//  boost::unordered_map<int, size_t*> client2ClientIndex;
-//  boost::unordered_map<int, unsigned char*> client2ClientInfo;
-//  for (int idx = 0; idx < nbClient; ++idx)
-//  {
-//    if (0 != sendNbIndexBuff[idx])
-//    {
-//      client2ClientIndex[idx+groupRankBegin] = new unsigned long [sendNbIndexBuff[idx]];
-//      client2ClientInfo[idx+groupRankBegin] = new unsigned char [sendNbIndexBuff[idx]*ProcessDHTElement<InfoType>::typeSize()];
-//      sendNbIndexBuff[idx] = 0;
-//      sendBuff[idx] = 1;
-//    }
-//  }
-//
-//  std::vector<int> sendNbInfo(nbClient,0);
-//  for (it = itb; it != ite; ++it)
-//  {
-//    size_t hashIndex = hashGlobalIndex(it->first);
-//    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
-//    {
-//      int indexClient = std::distance(itbClientHash, itClientHash)-1;
-//      {
-//        client2ClientIndex[indexClient + groupRankBegin][sendNbIndexBuff[indexClient]] = it->first;;
-//        ProcessDHTElement<InfoType>::packElement(it->second, client2ClientInfo[indexClient + groupRankBegin], sendNbInfo[indexClient]);
-//        ++sendNbIndexBuff[indexClient];
-//      }
-//    }
-//  }
-//
-//  // Calculate from how many clients each client receive message.
-//  // Calculate size of buffer for receiving message
-//  std::vector<int> recvRankClient, recvNbIndexClientCount;
-//  sendRecvRank(level, sendBuff, sendNbIndexBuff,
-//               recvRankClient, recvNbIndexClientCount);
-//
-//  int recvNbIndexCount = 0;
-//  for (int idx = 0; idx < recvNbIndexClientCount.size(); ++idx)
-//    recvNbIndexCount += recvNbIndexClientCount[idx];
-//
-//  unsigned long* recvIndexBuff;
-//  unsigned char* recvInfoBuff;
-//  if (0 != recvNbIndexCount)
-//  {
-//    recvIndexBuff = new unsigned long[recvNbIndexCount];
-//    recvInfoBuff = new unsigned char[recvNbIndexCount*ProcessDHTElement<InfoType>::typeSize()];
-//  }
-//
-//  // If a client holds information about index and the corresponding which don't belong to it,
-//  // it will send a message to the correct clients.
-//  // Contents of the message are index and its corresponding informatioin
-//  std::vector<MPI_Request> request;
-//  int currentIndex = 0;
-//  int nbRecvClient = recvRankClient.size();
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    if (0 != recvNbIndexClientCount[idx])
-//    {
-//      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
-//      recvInfoFromClients(recvRankClient[idx],
-//                          recvInfoBuff+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
-//                          recvNbIndexClientCount[idx]*ProcessDHTElement<InfoType>::typeSize(),
-//                          commLevel, request);
-//    }
-//    currentIndex += recvNbIndexClientCount[idx];
-//  }
-//
-//  boost::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
-//                                                iteIndex = client2ClientIndex.end();
-//  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-//    sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
-//  boost::unordered_map<int, unsigned char*>::iterator itbInfo = client2ClientInfo.begin(), itInfo,
-//                                                      iteInfo = client2ClientInfo.end();
-//  for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo)
-//    sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, request);
-//
-//  std::vector<MPI_Status> status(request.size());
-//  MPI_Waitall(request.size(), &request[0], &status[0]);
-//
-//  boost::unordered_map<size_t,InfoType> indexToInfoMapping;
-//  indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
-//  currentIndex = 0;
-//  InfoType infoValue;
-//  int infoIndex = 0;
-//  unsigned char* infoBuff = recvInfoBuff;
-//  for (int idx = 0; idx < nbRecvClient; ++idx)
-//  {
-//    int count = recvNbIndexClientCount[idx];
-//    for (int i = 0; i < count; ++i)
-//    {
-//      ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuff, infoIndex);
-//      indexToInfoMapping[*(recvIndexBuff+currentIndex+i)] = infoValue;
-//    }
-//    currentIndex += count;
-//  }
-//
-//  if (0 != recvNbIndexCount)
-//  {
-//    delete [] recvIndexBuff;
-//    delete [] recvInfoBuff;
-//  }
-//  for (boost::unordered_map<int,unsigned char*>::const_iterator it = client2ClientInfo.begin();
-//                                                               it != client2ClientInfo.end(); ++it)
-//      delete [] it->second;
-//
-//  for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
-//                                                        it != client2ClientIndex.end(); ++it)
-//      delete [] it->second;
-//
-//  // Ok, now do something recursive
-//  if (0 < level)
-//  {
-//    --level;
-//    computeDistributedIndex(indexToInfoMapping, this->internalComm_, level);
-//  }
-//  else
-//    index2InfoMapping_.swap(indexToInfoMapping); //index2InfoMapping_ = (indexToInfoMapping);
-//}
 
 /*!
   Send message containing index to clients
@@ -1106,7 +691,7 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
   for (int idx = 0; idx < recvBuffSize; ++idx)
   {
     MPI_Irecv(&recvBuff[0]+2*idx, 2, MPI_INT,
-              recvRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+              recvRank[idx], MPI_DHT_INDEX_0, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
 
@@ -1120,7 +705,7 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
   for (int idx = 0; idx < sendBuffSize; ++idx)
   {
     MPI_Isend(&sendBuff[idx*2], 2, MPI_INT,
-              sendRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
+              sendRank[idx], MPI_DHT_INDEX_0, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
 

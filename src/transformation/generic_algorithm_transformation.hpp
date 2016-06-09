@@ -46,12 +46,6 @@ public:
 
   virtual ~CGenericAlgorithmTransformation() {}
 
-//  void computeGlobalSourceIndex(int elementPositionInGrid,
-//                                const std::vector<int>& gridDestGlobalDim,
-//                                const std::vector<int>& gridSrcGlobalDim,
-//                                const GlobalLocalMap& globalLocalIndexGridDestSendToServer,
-//                                DestinationIndexMap& globaIndexWeightFromDestToSource);
-
   void computeGlobalSourceIndex(int elementPositionInGrid,
                                CGrid* gridSrc,
                                CGrid* gridDst,
@@ -65,31 +59,17 @@ public:
   void computeIndexSourceMapping(const std::vector<CArray<double,1>* >& dataAuxInputs = std::vector<CArray<double,1>* >());
 
 protected:
-  /*!
-  Compute an array of global index from a global index on an element
-    \param[in] destGlobalIndex global index on an element of destination grid
-    \param[in] srcGlobalIndex global index(es) on an element of source grid (which are needed by one index on element destination)
-    \param[in] elementPositionInGrid position of the element in the grid (for example: a grid with one domain and one axis, position of domain is 1, position of axis is 2)
-    \param[in] gridDestGlobalDim dimension size of destination grid (it should share the same size for all dimension, maybe except the element on which transformation is performed)
-    \param[in] globalLocalIndexDestSendToServerMap pair of global index and local index of destination grid which are to be sent to server(s), this array is already acsending sorted
-    \param[in/out] globalLocalIndexDestMap array of global index (for 2d grid, this array maybe a line, for 3d, this array may represent a plan). It should be preallocated
-    \param[in/out] globalIndexSrcGrid array of global index of source grid (for 2d grid, this array is a line, for 3d, this array represents a plan). It should be preallocated
-  */
-  virtual void computeGlobalGridIndexFromGlobalIndexElement(int destGlobalIndex,
-                                                        const std::vector<int>& srcGlobalIndex,
-                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
-                                                        int elementPositionInGrid,
-                                                        const std::vector<int>& gridDestGlobalDim,
-                                                        const std::vector<int>& gridSrcGlobalDim,
-                                                        const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
-                                                        std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
-                                                        std::vector<std::vector<size_t> >& globalIndexSrcGrid) = 0;
-
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
 
+  /*!
+  Compute proc which contains global index of an element
+    \param[in] globalElementIndex demanding global index of an element of source grid
+    \param[out] globalElementIndexOnProc Proc contains the demanding global index
+  */
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalElementIndex,
                                           CClientClientDHTInt::Index2VectorInfoTypeMap& globalElementIndexOnProc) = 0;
 
+protected:
   void computeGlobalGridIndexMapping(int elementPositionInGrid,
                                      const std::vector<int>& srcRank,
                                      boost::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
@@ -117,7 +97,7 @@ protected:
   //! By default, one index of an element corresponds to all index of remaining element in the grid. So it's empty
   std::vector<TransformationPositionMap> transformationPosition_;
 
-  //! Id of auxillary inputs which help doing transformation dynamically
+  //! Id of auxillary inputs which helps doing transformation dynamically
   std::vector<StdString> idAuxInputs_;
 };
 

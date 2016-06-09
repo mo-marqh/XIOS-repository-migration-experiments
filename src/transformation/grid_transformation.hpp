@@ -11,7 +11,6 @@
 
 #include <map>
 #include <vector>
-#include "grid.hpp"
 #include "generic_algorithm_transformation.hpp"
 #include "transformation_enum.hpp"
 #include "duration.hpp"
@@ -24,9 +23,8 @@ class CGrid;
   \class CGridTransformation
   This class is an interface for all transformations to interact with the rest of XIOS.
 The class, firstly, tries to get all information relating to requested transformations by retrieving directly from grid.
-Then with all these information, all necessary transformations will be created by generic class \class CGenericAlgorithmTransformation.
-Because there are information exchange among clients to accomplish the transformations (e.g: some index need retrieving from other clients),
-this class uses class \class CTransformationMapping to fulfill this demand.
+Secondly, with all these information, all necessary transformations will be created by generic class \class CGenericAlgorithmTransformation.
+Then this class accomplishes the transformations by exchanging information among clients (e.g: some index need retrieving index from other clients),
 For each transformation, a new temporary grid source is created.
 For a consequential transformations (e.g: inversing -> zoom -> inversing -> ...),
 the grid destination of current transformation will be grid source of the next transformation
@@ -62,16 +60,13 @@ protected:
   void initializeAlgorithms();
   void initializeAxisAlgorithms(int axisPositionInGrid);
   void initializeDomainAlgorithms(int domPositionInGrid);
-  void initializeMappingOfOriginalGridSource();
+  void initializeTransformations();
 
   void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
   void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
-//  void computeFinalTransformationMapping();
-//  void computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource);
   void computeTransformationMapping(const SourceDestinationIndexMap& globalIndexWeightFromSrcToDest);
-//  void updateFinalGridDestination();
   bool isSpecialTransformation(ETranformationType transType);
 
 protected:
@@ -111,9 +106,6 @@ protected:
 
   //! Position of axis and domain in grid
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
-
-  //! (Grid) Global index of grid source
-  DestinationIndexMap currentGridIndexToOriginalGridIndex_;
 
   std::vector<CGrid*> tempGrids_;
   std::vector<StdString> auxInputs_;

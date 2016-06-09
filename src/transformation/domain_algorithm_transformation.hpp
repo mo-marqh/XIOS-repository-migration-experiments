@@ -27,23 +27,10 @@ public:
   virtual ~CDomainAlgorithmTransformation();
 
 protected:
-  virtual void computeGlobalGridIndexFromGlobalIndexElement(int domainDestGlobalIndex,
-                                                        const std::vector<int>& domainSrcGlobalIndex,
-                                                        const std::vector<int>& destGlobalIndexPositionInGrid,
-                                                        int domainPositionInGrid,
-                                                        const std::vector<int>& gridDestGlobalDim,
-                                                        const std::vector<int>& gridSrcGlobalDim,
-                                                        const GlobalLocalMap& globalLocalIndexDestSendToServerMap,
-                                                        std::vector<std::pair<size_t,int> >& globalLocalIndexDestMap,
-                                                        std::vector<std::vector<size_t> >& globalIndexSrcGrid);
-
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);
 
-  void computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
+  virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
                                   CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
-protected:
-  inline void domainGlobalIndex(const int& index, const int& niGlob, const int& njGlob,
-                                int& iIndex, int& jIndex);
 
 protected:
     //! Domain on grid destination
