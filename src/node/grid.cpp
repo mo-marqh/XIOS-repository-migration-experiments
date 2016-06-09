@@ -31,7 +31,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_()
+      , gridSrc_(), hasTransform_(false), order_(), globalIndexOnServer_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -46,7 +46,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_()
+      , gridSrc_(), hasTransform_(false), order_(), globalIndexOnServer_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -408,6 +408,13 @@ namespace xios {
 
    //---------------------------------------------------------------
 
+   /*!
+     Compute the global index of grid to send to server as well as the connected server of the current client.
+     First of all, from the local data on each element of grid, we can calculate their local index which also allows us to know
+     their global index. We can have a map of global index of grid and local index that each client holds
+     Then, each client holds a piece of information about the distribution of servers, which permits to compute the connected server(s)
+     of the current client.
+   */
    void CGrid::computeIndex(void)
    {
      CContext* context = CContext::getCurrent();
@@ -433,36 +440,20 @@ namespace xios {
      }
 
      // Compute mapping between client and server
-     size_t globalSizeIndex = 1, indexBegin, indexEnd;
-     int range, clientSize = client->clientSize;
-     for (int i = 0; i < globalDim_.size(); ++i) globalSizeIndex *= globalDim_[i];
-     indexBegin = 0;
-     for (int i = 0; i < clientSize; ++i)
-     {
-       range = globalSizeIndex / clientSize;
-       if (i < (globalSizeIndex%clientSize)) ++range;
-       if (i == client->clientRank) break;
-       indexBegin += range;
-     }
-     indexEnd = indexBegin + range - 1;
-
-     // Then compute distribution on server side
+     std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
      CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
-     serverDistributionDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), positionDimensionDistributed_);
-
-     // Finally, compute index mapping between client(s) and server(s)
-     clientServerMap_ = new CClientServerMappingDistributed(serverDistributionDescription.getGlobalIndexRange(),
-                                                            client->intraComm,
-                                                            clientDistribution_->isDataDistributed());
-
-     clientServerMap_->computeServerIndexMapping(clientDistribution_->getGlobalIndex());
-     const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
+     serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
+                                                                client->clientRank,
+                                                                client->clientSize,
+                                                                axis_domain_order,
+                                                                positionDimensionDistributed_);
+     computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
 
      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
      CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-     itGlobalMap  = itbGlobalMap = globalIndexOnServer.begin();
-     iteGlobalMap = globalIndexOnServer.end();
+     itGlobalMap  = itbGlobalMap = globalIndexOnServer_.begin();
+     iteGlobalMap = globalIndexOnServer_.end();
 
      for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
      {
@@ -490,6 +481,162 @@ namespace xios {
      nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
    }
 
+   /*!
+      Compute the global of (client) grid to send to server with the global index of each element of grid
+      Each element of grid has its own global index associated to a groups of server. We only search for the global index of each element whose
+      server is the same, then calculate the global index of grid. This way can reduce so much the time for executing DHT, which only needs to run
+      on each element whose size is much smaller than one of whole grid.
+      \param [in] indexServerOnElement global index of each element and the rank of server associated with these index
+      \param [out] globalIndexOnServer global index of grid and its corresponding rank of server.
+   */
+   void CGrid::computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+                                     CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
+   {
+     CContext* context = CContext::getCurrent();
+     CContextClient* client = context->client;
+     int serverSize = client->serverSize;
+     std::vector<CDomain*> domList = getDomains();
+     std::vector<CAxis*> axisList = getAxis();
+
+     // Some pre-calculations of global index on each element of current grid.
+     int nbElement = axis_domain_order.numElements();
+     std::vector<CArray<size_t,1> > globalIndexElement(nbElement);
+     int domainIdx = 0, axisIdx = 0;
+     std::vector<size_t> elementNGlobal(nbElement);
+     elementNGlobal[0] = 1;
+     size_t globalSize = 1;
+     for (int idx = 0; idx < nbElement; ++idx)
+     {
+       elementNGlobal[idx] = globalSize;
+       size_t elementSize;
+       size_t elementGlobalSize = 1;
+       if (axis_domain_order(idx))
+       {
+         elementSize = domList[domainIdx]->i_index.numElements();
+         globalIndexElement[idx].resize(elementSize);
+         for (int jdx = 0; jdx < elementSize; ++jdx)
+         {
+           globalIndexElement[idx](jdx) = (domList[domainIdx]->i_index)(jdx) + domList[domainIdx]->ni_glo * (domList[domainIdx]->j_index)(jdx);
+         }
+         elementGlobalSize = domList[domainIdx]->ni_glo.getValue() * domList[domainIdx]->nj_glo.getValue();
+         ++domainIdx;
+       }
+       else
+       {
+         elementSize = axisList[axisIdx]->index.numElements();
+         globalIndexElement[idx].resize(elementSize);
+         for (int jdx = 0; jdx < elementSize; ++jdx)
+         {
+           globalIndexElement[idx](jdx) = (axisList[axisIdx]->index)(jdx);
+         }
+         elementGlobalSize = axisList[axisIdx]->n_glo.getValue();
+         ++axisIdx;
+       }
+       globalSize *= elementGlobalSize;
+     }
+
+     std::vector<std::vector<bool> > elementOnServer(nbElement, std::vector<bool>(serverSize, false));
+     std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
+     for (int idx = 0; idx < nbElement; ++idx)
+     {
+       std::vector<int> nbIndexOnServer(serverSize,0);
+       const boost::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
+       const CArray<size_t,1>& globalIndexElementOnClient = globalIndexElement[idx];
+       CClientClientDHTInt clientClientDHT(indexServerElement, client->intraComm);
+       clientClientDHT.computeIndexInfoMapping(globalIndexElementOnClient);
+       const CClientClientDHTInt::Index2VectorInfoTypeMap& globalIndexElementOnServerMap = clientClientDHT.getInfoIndexMap();
+       CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = globalIndexElementOnServerMap.begin(),
+                                                                    ite = globalIndexElementOnServerMap.end(), it;
+       for (it = itb; it != ite; ++it)
+       {
+         const std::vector<int>& tmp = it->second;
+         for (int i = 0; i < tmp.size(); ++i)
+         {
+           ++nbIndexOnServer[tmp[i]];
+         }
+       }
+
+       for (int i = 0; i < serverSize; ++i)
+       {
+         if (0 != nbIndexOnServer[i])
+         {
+           globalElementIndexOnServer[idx][i].resize(nbIndexOnServer[i]);
+           nbIndexOnServer[i] = 0;
+           elementOnServer[idx][i] = true;
+         }
+       }
+
+       for (it = itb; it != ite; ++it)
+       {
+         const std::vector<int>& tmp = it->second;
+         for (int i = 0; i < tmp.size(); ++i)
+         {
+           globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer[tmp[i]]] = it->first;
+           ++nbIndexOnServer[tmp[i]];
+         }
+       }
+     }
+
+    // Determine server which contain global source index
+    std::vector<bool> intersectedProc(serverSize, true);
+    for (int idx = 0; idx < nbElement; ++idx)
+    {
+      std::transform(elementOnServer[idx].begin(), elementOnServer[idx].end(),
+                     intersectedProc.begin(), intersectedProc.begin(),
+                     std::logical_and<bool>());
+    }
+
+    std::vector<int> srcRank;
+    for (int idx = 0; idx < serverSize; ++idx)
+    {
+      if (intersectedProc[idx]) srcRank.push_back(idx);
+    }
+
+    // Compute the global index of grid from global index of each element.
+    for (int i = 0; i < srcRank.size(); ++i)
+    {
+      size_t ssize = 1;
+      int rankSrc = srcRank[i];
+      std::vector<std::vector<size_t>* > globalIndexOfElementTmp(nbElement);
+      std::vector<size_t> currentIndex(nbElement,0);
+      for (int idx = 0; idx < nbElement; ++idx)
+      {
+        ssize *= (globalElementIndexOnServer[idx][rankSrc]).size();
+        globalIndexOfElementTmp[idx] = &(globalElementIndexOnServer[idx][rankSrc]);
+      }
+      globalIndexOnServer[rankSrc].resize(ssize);
+
+      std::vector<int> idxLoop(nbElement,0);
+      int innnerLoopSize = (globalIndexOfElementTmp[0])->size();
+      size_t idx = 0;
+      while (idx < ssize)
+      {
+        for (int ind = 0; ind < nbElement; ++ind)
+        {
+          if (idxLoop[ind] == (globalIndexOfElementTmp[ind])->size())
+          {
+            idxLoop[ind] = 0;
+            ++idxLoop[ind+1];
+          }
+
+          currentIndex[ind] = (*(globalIndexOfElementTmp[ind]))[idxLoop[ind]];
+        }
+
+        for (int ind = 0; ind < innnerLoopSize; ++ind)
+        {
+          currentIndex[0] = (*globalIndexOfElementTmp[0])[ind];
+          size_t globalSrcIndex = 0;
+          for (int idxElement = 0; idxElement < nbElement; ++idxElement)
+          {
+            globalSrcIndex += currentIndex[idxElement] * elementNGlobal[idxElement];
+          }
+          globalIndexOnServer[rankSrc][idx] = globalSrcIndex;
+          ++idx;
+          ++idxLoop[0];
+        }
+      }
+    }
+   }
    //----------------------------------------------------------------
 
    CGrid* CGrid::createGrid(CDomain* domain)
@@ -782,7 +929,8 @@ namespace xios {
     int rank;
     list<CMessage> listMsg;
     list<CArray<size_t,1> > listOutIndex;
-    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
+//    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
+//    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
     const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
     CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
                                                            iteIndex = globalLocalIndexSendToServer.end();
@@ -819,8 +967,8 @@ namespace xios {
     else
     {
       CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
-      itGlobalMap = globalIndexOnServer.begin();
-      iteGlobalMap = globalIndexOnServer.end();
+      itGlobalMap = globalIndexOnServer_.begin();
+      iteGlobalMap = globalIndexOnServer_.end();
 
       std::map<int,std::vector<int> >localIndexTmp;
       std::map<int,std::vector<size_t> > globalIndexTmp;

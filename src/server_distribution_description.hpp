@@ -38,6 +38,11 @@ class CServerDistributionDescription
 
     void computeServerDistribution(bool doComputeGlobalIndex = false, int positionDimensionDistributed = 1);
     void computeServerGlobalIndexInRange(const std::pair<size_t, size_t>& indexBeginEnd, int positionDimensionDistributed = 1);
+    void computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+                                      int rank,
+                                      int clientSize,
+                                      const CArray<bool,1>& axisDomainOrder,
+                                      int positionDimensionDistributed = 1);
 
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
@@ -48,6 +53,11 @@ class CServerDistributionDescription
   protected:
     void computeBandDistribution(int nServer, int positionDimensionDistributed = 1);
     void computePlanDistribution(int nServer);
+    void computeRangeProcIndex(int clientRank,
+                               int clientSize,
+                               int rangeProcSize,
+                               int& rangeBegin,
+                               int& rangeSize);
 
   private:
     std::vector<std::vector<int> > indexBegin_;     //!< Begin index of each dimension

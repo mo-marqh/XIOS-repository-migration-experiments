@@ -96,8 +96,8 @@ void CServerDistributionDescription::computeServerDistribution(bool doComputeGlo
 /*!
   Compute global index assigned to a server with a range.E.g: if a grid has 100 points and
   there are 2 servers, the first one takes index from 0 to 49, the second has index from 50 to 99
-
   \param [in] indexBeginEnd begining and ending index of range
+  \param [in] positionDimensionDistributed dimension of server on which we make the cut.
 */
 void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::pair<size_t, size_t>& indexBeginEnd,
                                                                      int positionDimensionDistributed)
@@ -160,7 +160,128 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::
       idxLoop[0] += innerLoopSize;
     }
   }
+}
 
+/*!
+  Compute the global index of grid elements (domain, axis) and their associated server rank.
+  Each client knows the general distribution of servers and from which they can compute the pieces of information to hold
+  \param [out] indexServerOnElement global index of each element as well as the corresponding server which contains these indices
+  \param [in] clientRank rank of client
+  \param [in] clientSize number of client
+  \param [in] axisDomainOrder the order of element in grid (true for domain, false for axis)
+  \param [in] positionDimensionDistributed dimension of server on which we make the cut.
+*/
+void CServerDistributionDescription::computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+                                                                  int clientRank,
+                                                                  int clientSize,
+                                                                  const CArray<bool,1>& axisDomainOrder,
+                                                                  int positionDimensionDistributed)
+{
+  switch (serverType_) {
+    case BAND_DISTRIBUTION:
+      computeBandDistribution(nServer_, positionDimensionDistributed);
+      break;
+    default:
+      break;
+  }
+
+  int nbElement = axisDomainOrder.numElements();
+  indexServerOnElement.resize(nbElement);
+  int idx = 0;
+  std::vector<int> idxMap(nbElement);
+  for (int i = 0; i < nbElement; ++i)
+  {
+    idxMap[i] = idx;
+    if (true == axisDomainOrder(i)) idx += 2;
+    else ++idx;
+  }
+
+  for (int idxServer = 0; idxServer < nServer_; ++idxServer)
+  {
+    std::vector<int> elementDimension(4);
+    for (int i = 0; i < nbElement; ++i)
+    {
+      int elementSize = 1;
+      if (axisDomainOrder(i))
+      {
+        elementSize *= dimensionSizes_[idxServer][idxMap[i]] * dimensionSizes_[idxServer][idxMap[i]+1];
+        elementDimension[0] = indexBegin_[idxServer][idxMap[i]];
+        elementDimension[1] = indexBegin_[idxServer][idxMap[i]+1];
+        elementDimension[2] = dimensionSizes_[idxServer][idxMap[i]];
+        elementDimension[3] = dimensionSizes_[idxServer][idxMap[i]+1];
+      }
+
+      else
+      {
+        elementSize *= dimensionSizes_[idxServer][idxMap[i]];
+        elementDimension[0] = indexBegin_[idxServer][idxMap[i]];
+        elementDimension[1] = 0;
+        elementDimension[2] = dimensionSizes_[idxServer][idxMap[i]];
+        elementDimension[3] = 1;
+      }
+
+      int rangeBegin, rangeSize;
+      computeRangeProcIndex(clientRank, clientSize, elementSize, rangeBegin, rangeSize);
+
+      size_t globalIndexElement;
+      idx = 0; int idxRange = 0;
+      for (int k = 0; k < elementDimension[3]; ++k)
+        for (int l = 0; l < elementDimension[2]; ++l)
+        {
+          globalIndexElement = (l+elementDimension[0]) + (k+elementDimension[1])*elementDimension[2];
+          if ((rangeBegin <= idx) && (idxRange < rangeSize))
+          {
+            indexServerOnElement[i][globalIndexElement].push_back(idxServer);
+            ++idxRange;
+          }
+          ++idx;
+        }
+    }
+  }
+}
+
+/*!
+  Compute a range of index on server which a client holds
+  For a range of index on a specific server, each client can hold a piece of the index range
+  If the range size is smaller than the number of client, there are some clients holding the same index
+  \param [in] clientRank rank of client
+  \param [in] clientSize number of client
+  \param [in] rangeProcSize index range size
+  \param [out] rangeBegin begin of range index a client holds
+  \param [out] rangeSize size of range index a client holds
+*/
+void CServerDistributionDescription::computeRangeProcIndex(int clientRank,
+                                                           int clientSize,
+                                                           int rangeProcSize,
+                                                           int& rangeBegin,
+                                                           int& rangeSize)
+{
+  if (rangeProcSize < clientSize)
+  {
+    int rangeIndex = 0;
+    for (int idx = 0; idx < clientSize; ++idx)
+    {
+      if (idx == clientRank)
+      {
+        rangeBegin = rangeIndex;
+        rangeSize = 1;
+      }
+      ++rangeIndex;
+      if (rangeIndex == rangeProcSize) rangeIndex = 0;
+    }
+    return;
+  }
+
+  int range, indexBegin = 0;
+  for (int i = 0; i < clientSize; ++i)
+  {
+    range = rangeProcSize / clientSize;
+    if (i < (rangeProcSize%clientSize)) ++range;
+    if (i == clientRank) break;
+    indexBegin += range;
+  }
+  rangeBegin = indexBegin;
+  rangeSize = range;
 }
 
 /*!

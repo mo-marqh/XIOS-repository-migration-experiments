@@ -241,10 +241,9 @@ namespace xios {
         CDomainGroup* getVirtualDomainGroup() const;
 
         void checkAttributesAfterTransformation();
-
-
         void setTransformationAlgorithms();
-
+        void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+                                   CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
 
 
       private:
@@ -273,6 +272,7 @@ namespace xios {
         std::vector<int> globalDim_;
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
+        CClientServerMapping::GlobalIndexMap globalIndexOnServer_;
             // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
         std::vector<bool> order_;
    }; // class CGrid
