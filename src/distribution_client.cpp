@@ -407,6 +407,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
     for (int i = 0; i < innerLoopSize; ++i)
     {
       int gridMaskIndex = 0;
+      currentIndex[0] = elementLocalIndex_[0](i);
       for (int k = 0; k < this->numElement_; ++k)
       {
         gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
