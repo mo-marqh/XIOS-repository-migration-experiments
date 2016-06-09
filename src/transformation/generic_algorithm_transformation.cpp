@@ -200,8 +200,8 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     computeGlobalGridIndexMapping(elementPositionInGrid,
                                   srcRank,
                                   src2DstMap,
-                                  gridDst,
                                   gridSrc,
+                                  gridDst,
                                   globalElementIndexOnProc,
                                   globaIndexWeightFromSrcToDst);
   }

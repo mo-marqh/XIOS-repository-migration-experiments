@@ -19,7 +19,7 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:), tmp_field_2(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:), tmp_field_2(:), src_field_3D(:,:), lval(:), lval1(:), src_field_pression(:,:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;
   INTEGER :: src_ibegin, dst_ibegin;
@@ -33,6 +33,7 @@ PROGRAM test_remap
   INTEGER :: varid
   INTEGER :: ts
   INTEGER :: i
+  INTEGER,PARAMETER :: llm=5, interpolatedLlm = 4
 
   CALL MPI_INIT(ierr)
   CALL init_wait
@@ -64,6 +65,10 @@ PROGRAM test_remap
   ALLOCATE(src_boundslon(src_nvertex,src_ni))
   ALLOCATE(src_boundslat(src_nvertex,src_ni))
   ALLOCATE(src_field(src_ni))
+  ALLOCATE(src_field_3D(src_ni,llm))
+  ALLOCATE(src_field_pression(src_ni,llm))
+  ALLOCATE(lval(llm))
+  ALLOCATE(lval1(interpolatedLlm))
 
   ierr=NF90_INQ_VARID(ncid,"lon",varid)
   ierr=NF90_GET_VAR(ncid,varid, src_lon, start=(/src_ibegin+1/),count=(/src_ni/))
@@ -75,7 +80,19 @@ PROGRAM test_remap
   ierr=NF90_GET_VAR(ncid,varid, src_boundslat, start=(/1,src_ibegin+1/),count=(/src_nvertex,src_ni/))
   ierr=NF90_INQ_VARID(ncid,"val",varid)
   ierr=NF90_GET_VAR(ncid,varid, src_field, start=(/src_ibegin+1/),count=(/src_ni/))
+  DO i=1,src_ni
+    src_field_3D(i,:) = src_field(i)
+  ENDDO
 
+  DO i=1,llm
+    lval(i) = i*100
+    src_field_pression(:,i) = i * 100
+    src_field_3D(:,i) = src_field_3D(:,i) + i * 10
+  ENDDO
+
+  DO i=1,interpolatedLlm
+    lval1(i) = i*10 + 2
+  ENDDO
 
   ierr=NF90_OPEN(dst_file, NF90_NOWRITE, ncid)
   ierr=NF90_INQ_VARID(ncid,"bounds_lon",varid)
@@ -107,6 +124,7 @@ PROGRAM test_remap
   ierr=NF90_INQ_VARID(ncid,"bounds_lat",varid)
   ierr=NF90_GET_VAR(ncid,varid, dst_boundslat, start=(/1,dst_ibegin+1/),count=(/dst_nvertex,dst_ni/))
 
+
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
   CALL xios_set_current_context(ctx_hdl)
@@ -119,6 +137,8 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("src_domain_clone", lonvalue_1D=src_lon, latvalue_1D=src_lat, &
                             bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
 
+  CALL xios_set_axis_attr("src_axis", n_glo=llm, value=lval)
+
   CALL xios_set_domain_attr("dst_domain", ni_glo=dst_ni_glo, ibegin=dst_ibegin, ni=dst_ni, type="unstructured")
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
@@ -127,26 +147,28 @@ PROGRAM test_remap
   CALL xios_set_timestep(dtime)
 
   CALL xios_close_context_definition()
-  CALL xios_get_domain_attr("src_domain_regular_tmp", ni=src_tmp_ni, nj=src_tmp_nj)
-  ALLOCATE(tmp_field(src_tmp_ni*src_tmp_nj))
+!  CALL xios_get_domain_attr("src_domain_regular_tmp", ni=src_tmp_ni, nj=src_tmp_nj)
+!  ALLOCATE(tmp_field(src_tmp_ni*src_tmp_nj))
+!
+!  CALL xios_get_axis_attr("src_axis_curvilinear", n=src_tmp_n)
+!  CALL xios_get_domain_attr("src_domain_curvilinear", ni=src_tmp_ni, nj=src_tmp_nj)
+!  ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
 
-  CALL xios_get_axis_attr("src_axis_curvilinear", n=src_tmp_n)
-  CALL xios_get_domain_attr("src_domain_curvilinear", ni=src_tmp_ni, nj=src_tmp_nj)
-  ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
+!  CALL xios_get_domain_attr("src_domain_unstructured", ni=src_tmp_ni, nj=src_tmp_nj)
+!  ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
 
-  CALL xios_get_domain_attr("src_domain_unstructured", ni=src_tmp_ni, nj=src_tmp_nj)
-  ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
+  DO ts=1,5
 
-  DO ts=1,1
-
-    CALL xios_recv_field("src_field_regular_tmp", tmp_field)
-    CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
-    CALL xios_recv_field("field_src_unstructred", tmp_field_2)
+!    CALL xios_recv_field("src_field_regular_tmp", tmp_field)
+!    CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
+!    CALL xios_recv_field("field_src_unstructred", tmp_field_2)
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field",src_field)
-    CALL xios_send_field("tmp_field",tmp_field)
-    CALL xios_send_field("tmp_field_1",tmp_field_1)
-    CALL xios_send_field("tmp_field_2",tmp_field_2)
+    CALL xios_send_field("src_field_3D",src_field_3D)
+    CALL xios_send_field("src_field_3D_pression",src_field_pression)
+!    CALL xios_send_field("tmp_field",tmp_field)
+!    CALL xios_send_field("tmp_field_1",tmp_field_1)
+!    CALL xios_send_field("tmp_field_2",tmp_field_2)
     CALL wait_us(5000) ;
   ENDDO
 
@@ -154,7 +176,7 @@ PROGRAM test_remap
 
   DEALLOCATE(src_lon, src_lat, src_boundslon,src_boundslat, src_field)
   DEALLOCATE(dst_lon, dst_lat, dst_boundslon,dst_boundslat)
-  DEALLOCATE(tmp_field, tmp_field_1, tmp_field_2)
+!  DEALLOCATE(tmp_field, tmp_field_1, tmp_field_2)
 
   CALL MPI_COMM_FREE(comm, ierr)
 

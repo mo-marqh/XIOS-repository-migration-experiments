@@ -48,6 +48,7 @@ public:
   const std::list<SendingIndexGridSourceMap>& getLocalIndexToSendFromGridSource() const;
   const std::list<RecvIndexGridDestinationMap>& getLocalIndexToReceiveOnGridDest() const;
   const std::list<size_t>& getNbLocalIndexToReceiveOnGridDest() const;
+  const std::list<std::vector<bool> >& getLocalMaskIndexOnGridDest() const;
 
   CGrid* getGridSource() { return originalGridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
@@ -65,7 +66,8 @@ protected:
   void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
-  void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
+  void setUpGridSource(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
+  void setUpGridDestination(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
   void computeTransformationMapping(const SourceDestinationIndexMap& globalIndexWeightFromSrcToDest);
   bool isSpecialTransformation(ETranformationType transType);
 
@@ -74,7 +76,7 @@ protected:
   CGrid* gridSource_;
 
   //! Grid destination on transformation
-  CGrid* gridDestination_;
+  CGrid* gridDestination_, *tmpGridDestination_;
 
   //! The grid source of the first transformation (original grid source)
   CGrid* originalGridSource_;
@@ -103,11 +105,12 @@ protected:
 
   //! Number of local index of data to receive on grid destination
   std::list<size_t> nbLocalIndexOnGridDest_;
+  std::list<std::vector<bool> > localMaskOnGridDest_;
 
   //! Position of axis and domain in grid
   std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
 
-  std::vector<CGrid*> tempGrids_;
+  std::vector<CGrid*> tempGridSrcs_, tempGridDests_;
   std::vector<StdString> auxInputs_;
   bool dynamicalTransformation_;
 
