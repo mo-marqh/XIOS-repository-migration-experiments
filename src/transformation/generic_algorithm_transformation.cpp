@@ -286,12 +286,13 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
 
       for (int ind = 0; ind < innnerLoopSize; ++ind)
       {
-        currentIndexSrc[0] = (globalElementIndexOnProc[0])[rankSrc][ind];
+        currentIndexDst[0] = currentIndexSrc[0] = (globalElementIndexOnProc[0])[rankSrc][ind];
         int globalElementDstIndexSize = 0;
         if (1 == src2DstMap.count(currentIndexSrc[elementPositionInGrid]))
         {
           globalElementDstIndexSize = src2DstMap[currentIndexSrc[elementPositionInGrid]].size();
         }
+
         std::vector<size_t> globalDstVecIndex(globalElementDstIndexSize,0);
         size_t globalSrcIndex = 0;
         for (int idxElement = 0; idxElement < nbElement; ++idxElement)
