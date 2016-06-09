@@ -104,13 +104,19 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   int nbIndexToSend = 0;
   size_t index;
   HashXIOS<size_t> hashGlobalIndex;
+  boost::unordered_map<size_t,int> nbIndices;
+  nbIndices.rehash(std::ceil(ssize/nbIndices.max_load_factor()));
   for (int i = 0; i < ssize; ++i)
   {
     index = indices(i);
-    hashedVal  = hashGlobalIndex(index);
-    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
-    int indexClient = std::distance(itbClientHash, itClientHash)-1;
-    ++sendNbIndexBuff[indexClient];
+    if (0 == nbIndices.count(index))
+    {
+      hashedVal  = hashGlobalIndex(index);
+      itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
+      int indexClient = std::distance(itbClientHash, itClientHash)-1;
+      ++sendNbIndexBuff[indexClient];
+      nbIndices[index] = 1;
+    }
   }
 
   boost::unordered_map<int, size_t* > client2ClientIndex;
@@ -128,14 +134,14 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   for (int i = 0; i < ssize; ++i)
   {
     index = indices(i);
-    hashedVal  = hashGlobalIndex(index);
-    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
+    if (1 == nbIndices[index])
     {
+      hashedVal  = hashGlobalIndex(index);
+      itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashedVal);
       int indexClient = std::distance(itbClientHash, itClientHash)-1;
-      {
-        client2ClientIndex[indexClient+groupRankBegin][sendNbIndexBuff[indexClient]] = index;
-        ++sendNbIndexBuff[indexClient];
-      }
+      client2ClientIndex[indexClient+groupRankBegin][sendNbIndexBuff[indexClient]] = index;
+      ++sendNbIndexBuff[indexClient];
+      ++nbIndices[index];
     }
   }
 
@@ -596,18 +602,10 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   // Compute size of sending and receving buffer
   for (it = itb; it != ite; ++it)
   {
-    int infoVecSize = it->second.size();
-    for (int idx = 0; idx < infoVecSize; ++idx)
-    {
-      size_t hashIndex = hashGlobalIndex(it->first);
-      itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
-      {
-        int indexClient = std::distance(itbClientHash, itClientHash)-1;
-        {
-          ++sendNbIndexBuff[indexClient];
-        }
-      }
-    }
+    size_t hashIndex = hashGlobalIndex(it->first);
+    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
+    int indexClient = std::distance(itbClientHash, itClientHash)-1;
+    sendNbIndexBuff[indexClient] += it->second.size();
   }
 
   boost::unordered_map<int, size_t*> client2ClientIndex;
@@ -627,19 +625,15 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   for (it = itb; it != ite; ++it)
   {
     const std::vector<InfoType>& infoTmp = it->second;
+    size_t hashIndex = hashGlobalIndex(it->first);
+    itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
+    int indexClient = std::distance(itbClientHash, itClientHash)-1;
     for (int idx = 0; idx < infoTmp.size(); ++idx)
     {
-      size_t hashIndex = hashGlobalIndex(it->first);
-      itClientHash = std::upper_bound(itbClientHash, iteClientHash, hashIndex);
-      {
-        int indexClient = std::distance(itbClientHash, itClientHash)-1;
-        {
-          client2ClientIndex[indexClient + groupRankBegin][sendNbIndexBuff[indexClient]] = it->first;;
-//          ProcessDHTElement<InfoType>::packElement(it->second, client2ClientInfo[indexClient + groupRankBegin], sendNbInfo[indexClient]);
-          ProcessDHTElement<InfoType>::packElement(infoTmp[idx], client2ClientInfo[indexClient + groupRankBegin], sendNbInfo[indexClient]);
-          ++sendNbIndexBuff[indexClient];
-        }
-      }
+      client2ClientIndex[indexClient + groupRankBegin][sendNbIndexBuff[indexClient]] = it->first;;
+  //          ProcessDHTElement<InfoType>::packElement(it->second, client2ClientInfo[indexClient + groupRankBegin], sendNbInfo[indexClient]);
+      ProcessDHTElement<InfoType>::packElement(infoTmp[idx], client2ClientInfo[indexClient + groupRankBegin], sendNbInfo[indexClient]);
+      ++sendNbIndexBuff[indexClient];
     }
   }
 
@@ -694,17 +688,39 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
+//  boost::unordered_map<size_t,int> tmpInfoSize;
+//  tmpInfoSize.rehash(std::ceil(currentIndex/tmpInfoSize.max_load_factor()));
+//  currentIndex = 0;
+//  for (int idx = 0; idx < nbRecvClient; ++idx)
+//  {
+//    int count = recvNbIndexClientCount[idx];
+//    for (int i = 0; i < count; ++i)
+//    {
+//      ++tmpInfoSize[*(recvIndexBuff+currentIndex+i)];
+//    }
+//    currentIndex += count;
+//  }
+//
+//  for (boost::unordered_map<size_t,int>::iterator it=tmpInfoSize.begin(); it != tmpInfoSize.end(); ++it)
+//  {
+//    indexToInfoMapping[it->first].resize(it->second);
+//    it->second = 0;
+//  }
+
   currentIndex = 0;
   InfoType infoValue;
   int infoIndex = 0;
   unsigned char* infoBuff = recvInfoBuff;
   for (int idx = 0; idx < nbRecvClient; ++idx)
   {
+//    size_t index;
     int count = recvNbIndexClientCount[idx];
     for (int i = 0; i < count; ++i)
     {
+//      index = *(recvIndexBuff+currentIndex+i);
       ProcessDHTElement<InfoType>::unpackElement(infoValue, infoBuff, infoIndex);
-//      indexToInfoMapping[*(recvIndexBuff+currentIndex+i)] = infoValue;
+//      ProcessDHTElement<InfoType>::unpackElement(indexToInfoMapping[index][tmpInfoSize[index]], infoBuff, infoIndex);
+//      ++tmpInfoSize[index];
       indexToInfoMapping[*(recvIndexBuff+currentIndex+i)].push_back(infoValue);
     }
     currentIndex += count;
