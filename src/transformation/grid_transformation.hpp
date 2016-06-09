@@ -38,7 +38,7 @@ public:
   typedef boost::unordered_map<size_t, std::vector<std::pair<int, std::pair<size_t,double> > > > DestinationIndexMap;
   typedef std::map<int, CArray<int,1> > SendingIndexGridSourceMap;
   typedef std::map<int,std::vector<std::pair<int,double> > > RecvIndexGridDestinationMap;
-//  typedef std::map<int,std::vector<std::vector<std::pair<int,double> > > > RecvIndexGridDestinationMap;
+  typedef CGenericAlgorithmTransformation::SourceDestinationIndexMap SourceDestinationIndexMap;
 
 public:
   /** Default constructor */
@@ -70,7 +70,7 @@ protected:
   void setUpGrid(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
 //  void computeFinalTransformationMapping();
 //  void computeTransformationFromOriginalGridSource(const DestinationIndexMap& globaIndexMapFromDestToSource);
-  void computeTransformationMapping(const DestinationIndexMap& globalIndexWeightFromDestToSource);
+  void computeTransformationMapping(const SourceDestinationIndexMap& globalIndexWeightFromSrcToDest);
 //  void updateFinalGridDestination();
   bool isSpecialTransformation(ETranformationType transType);
 

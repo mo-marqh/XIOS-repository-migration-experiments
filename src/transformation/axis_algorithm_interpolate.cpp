@@ -264,15 +264,17 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
 
     CDomain* dom = domListP[0];
     size_t vecAxisValueSize = dom->i_index.numElements();
+    int niGlobDom = dom->ni_glo.getValue();
     vecAxisValue.resize(vecAxisValueSize);
     if (transPosition_.empty())
     {
       transPosition_.resize(vecAxisValueSize);
       for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
       {
-        transPosition_[idx].resize(2);
-        transPosition_[idx][0] = (dom->i_index)(idx);
-        transPosition_[idx][1] = (dom->j_index)(idx);
+        transPosition_[idx].resize(1);
+        transPosition_[idx][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
+//        transPosition_[idx][0] = (dom->i_index)(idx);
+//        transPosition_[idx][1] = (dom->j_index)(idx);
       }
     }
     this->transformationMapping_.resize(vecAxisValueSize);

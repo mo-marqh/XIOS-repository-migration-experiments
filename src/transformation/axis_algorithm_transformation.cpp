@@ -10,6 +10,9 @@
 #include "axis_algorithm_transformation.hpp"
 #include "axis_algorithm_inverse.hpp"
 #include "axis_algorithm_zoom.hpp"
+#include "context.hpp"
+#include "context_client.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
 
@@ -26,6 +29,58 @@ CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestinatio
 
 CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
 {
+}
+
+void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
+                                                              boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int clientSize = client->clientSize;
+
+  size_t globalIndex;
+  int nIndexSize = axisSrc_->index.numElements();
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
+  globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+  for (int idx = 0; idx < nIndexSize; ++idx)
+  {
+    globalIndex = axisSrc_->index(idx);
+    globalIndex2ProcRank[globalIndex].push_back(clientRank);
+  }
+
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  dhtIndexProcRank.computeIndexInfoMapping(globalAxisIndex);
+
+  std::vector<int> countIndex(clientSize,0);
+  const CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+  CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = computedGlobalIndexOnProc.begin(), it,
+                                                               ite = computedGlobalIndexOnProc.end();
+  for (it = itb; it != ite; ++it)
+  {
+    const std::vector<int>& procList = it->second;
+    for (int idx = 0; idx < procList.size(); ++idx) ++countIndex[procList[idx]];
+  }
+
+  globalAxisIndexOnProc.rehash(std::ceil(clientSize/globalAxisIndexOnProc.max_load_factor()));
+  for (int idx = 0; idx < clientSize; ++idx)
+  {
+    if (0 != countIndex[idx])
+    {
+      globalAxisIndexOnProc[idx].resize(countIndex[idx]);
+      countIndex[idx] = 0;
+    }
+  }
+
+  for (it = itb; it != ite; ++it)
+  {
+    const std::vector<int>& procList = it->second;
+    for (int idx = 0; idx < procList.size(); ++idx)
+    {
+      globalAxisIndexOnProc[procList[idx]][countIndex[procList[idx]]] = it->first;
+      ++countIndex[procList[idx]];
+    }
+  }
 }
 
 void CAxisAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)

@@ -38,6 +38,8 @@ protected:
 
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);
 
+  void computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
+                                  boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
 protected:
   inline void domainGlobalIndex(const int& index, const int& niGlob, const int& njGlob,
                                 int& iIndex, int& jIndex);

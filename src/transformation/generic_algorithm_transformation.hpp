@@ -14,6 +14,10 @@
 #include "array_new.hpp"
 
 namespace xios {
+  class CGrid;
+  class CDomain;
+  class CAxis;
+
   /*!
   \class CGenericAlgorithmTransformation
   This class defines the interface for all other inherted algorithms class
@@ -26,20 +30,31 @@ public:
   // Stupid global index map, it must be replaced by tuple
   // Mapping between global index map of DESTINATION and its local index with pair of global index of SOURCE and weights
   typedef boost::unordered_map<size_t, DestinationGlobalIndex> DestinationIndexMap;
+  //
+  typedef boost::unordered_map<int, boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > > > SourceDestinationIndexMap;
 
 protected:
   typedef boost::unordered_map<size_t,int> GlobalLocalMap;
+protected:
+  typedef boost::unordered_map<int, std::vector<int> > TransformationIndexMap;
+  typedef boost::unordered_map<int, std::vector<double> > TransformationWeightMap;
+  typedef boost::unordered_map<int, std::vector<int> > TransformationPositionMap;
 
 public:
   CGenericAlgorithmTransformation();
 
   virtual ~CGenericAlgorithmTransformation() {}
 
+//  void computeGlobalSourceIndex(int elementPositionInGrid,
+//                                const std::vector<int>& gridDestGlobalDim,
+//                                const std::vector<int>& gridSrcGlobalDim,
+//                                const GlobalLocalMap& globalLocalIndexGridDestSendToServer,
+//                                DestinationIndexMap& globaIndexWeightFromDestToSource);
+
   void computeGlobalSourceIndex(int elementPositionInGrid,
-                                const std::vector<int>& gridDestGlobalDim,
-                                const std::vector<int>& gridSrcGlobalDim,
-                                const GlobalLocalMap& globalLocalIndexGridDestSendToServer,
-                                DestinationIndexMap& globaIndexWeightFromDestToSource);
+                               CGrid* gridSrc,
+                               CGrid* gridDst,
+                               SourceDestinationIndexMap& globaIndexWeightFromSrcToDst);
 
   std::vector<StdString> getIdAuxInputs();
 
@@ -71,11 +86,28 @@ protected:
 
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
 
-protected:
-  typedef boost::unordered_map<int, std::vector<int> > TransformationIndexMap;
-  typedef boost::unordered_map<int, std::vector<double> > TransformationWeightMap;
-  typedef boost::unordered_map<int, std::vector<int> > TransformationPositionMap;
+  virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalElementIndex,
+                                          boost::unordered_map<int,std::vector<size_t> >& globalElementIndexOnProc) = 0;
 
+  void computeGlobalGridIndexMapping(int elementPositionInGrid,
+                                     const std::vector<int>& srcRank,
+                                     boost::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
+                                     CGrid* gridDst,
+                                     CGrid* gridSrc,
+                                     std::vector<boost::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
+                                     SourceDestinationIndexMap& globaIndexWeightFromSrcToDst);
+
+  void computeExchangeDomainIndex(CDomain* domainDst,
+                                  CDomain* domainSrc,
+                                  CArray<size_t,1>& destGlobalIndexPositionInGrid,
+                                  boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
+
+  void computeExchangeAxisIndex(CAxis* axisDst,
+                                CAxis* axisSrc,
+                                CArray<size_t,1>& destGlobalIndexPositionInGrid,
+                                boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc);
+
+protected:
   //! Map between global index of destination element and source element
   std::vector<TransformationIndexMap> transformationMapping_;
   //! Weight corresponding of source to destination

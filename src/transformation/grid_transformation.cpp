@@ -93,14 +93,16 @@ void CGridTransformation::initializeAlgorithms()
   {
     if (false == (gridDestination_->axis_domain_order)(i))
     {
-      axisPositionInGrid.push_back(idx);
-      ++idx;
+      axisPositionInGrid.push_back(i);
+//      axisPositionInGrid.push_back(idx);
+//      ++idx;
     }
     else
     {
-      ++idx;
-      domPositionInGrid.push_back(idx);
-      ++idx;
+      domPositionInGrid.push_back(i);
+//      ++idx;
+//      domPositionInGrid.push_back(idx);
+//      ++idx;
     }
   }
 
@@ -119,14 +121,16 @@ void CGridTransformation::initializeAlgorithms()
   {
     if (false == (gridDestination_->axis_domain_order)(i))
     {
-      initializeAxisAlgorithms(idx);
-      ++idx;
+      initializeAxisAlgorithms(i);
+//      initializeAxisAlgorithms(idx);
+//      ++idx;
     }
     else
     {
-      ++idx;
-      initializeDomainAlgorithms(idx);
-      ++idx;
+      initializeDomainAlgorithms(i);
+//      ++idx;
+//      initializeDomainAlgorithms(idx);
+//      ++idx;
     }
   }
 }
@@ -355,6 +359,76 @@ void CGridTransformation::setUpGrid(int elementPositionInGrid, ETranformationTyp
   -) Calculate the mapping of global index between current grid DESTINATION and ORIGINAL grid SOURCE
   -) Make current grid destination become grid source in the next transformation
 */
+//void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs, Time timeStamp)
+//{
+//  if (nbAlgos_ < 1) return;
+//  if (!auxInputs_.empty() && !dynamicalTransformation_) { dynamicalTransformation_ = true; return; }
+//  if (dynamicalTransformation_)
+//  {
+//    if (timeStamp_.insert(timeStamp).second)
+//      DestinationIndexMap().swap(currentGridIndexToOriginalGridIndex_);  // Reset map
+//    else
+//      return;
+//  }
+//
+//  CContext* context = CContext::getCurrent();
+//  CContextClient* client = context->client;
+//
+//  ListAlgoType::const_iterator itb = listAlgos_.begin(),
+//                               ite = listAlgos_.end(), it;
+//
+//  CGenericAlgorithmTransformation* algo = 0;
+//  int nbAgloTransformation = 0; // Only count for executed transformation. Generate domain is a special one, not executed in the list
+//  for (it = itb; it != ite; ++it)
+//  {
+//    int elementPositionInGrid = it->first;
+//    ETranformationType transType = (it->second).first;
+//    int transformationOrder = (it->second).second;
+//    DestinationIndexMap globaIndexWeightFromDestToSource;
+//
+//    // First of all, select an algorithm
+//    if (!dynamicalTransformation_ || (algoTransformation_.size() < listAlgos_.size()))
+//    {
+//      selectAlgo(elementPositionInGrid, transType, transformationOrder, algoTypes_[std::distance(itb, it)]);
+//      algo = algoTransformation_.back();
+//    }
+//    else
+//      algo = algoTransformation_[std::distance(itb, it)];
+//
+//    if (0 != algo) // Only registered transformation can be executed
+//    {
+//      algo->computeIndexSourceMapping(dataAuxInputs);
+//
+//      // Recalculate the distribution of grid destination
+//      CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
+//      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
+//
+//      // ComputeTransformation of global index of each element
+//      std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
+//      std::vector<int> gridSrcDimensionSize = gridSource_->getGlobalDimension();
+//      int elementPosition = it->first;
+//      algo->computeGlobalSourceIndex(elementPosition,
+//                                     gridDestinationDimensionSize,
+//                                     gridSrcDimensionSize,
+//                                     globalLocalIndexGridDestSendToServer,
+//                                     globaIndexWeightFromDestToSource);
+//
+//      // Compute transformation of global indexes among grids
+//      computeTransformationMapping(globaIndexWeightFromDestToSource);
+//
+//      // Update number of local index on each transformation
+//      nbLocalIndexOnGridDest_.push_back(globalLocalIndexGridDestSendToServer.size());
+//
+//      if (1 < nbAlgos_)
+//      {
+//        // Now grid destination becomes grid source in a new transformation
+//        if (nbAgloTransformation != (nbAlgos_-1)) setUpGrid(elementPositionInGrid, transType, nbAgloTransformation);
+//      }
+//      ++nbAgloTransformation;
+//    }
+//  }
+//}
+
 void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs, Time timeStamp)
 {
   if (nbAlgos_ < 1) return;
@@ -385,7 +459,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     int elementPositionInGrid = it->first;
     ETranformationType transType = (it->second).first;
     int transformationOrder = (it->second).second;
-    DestinationIndexMap globaIndexWeightFromDestToSource;
+    SourceDestinationIndexMap globaIndexWeightFromSrcToDst;
 
     // First of all, select an algorithm
     if (!dynamicalTransformation_ || (algoTransformation_.size() < listAlgos_.size()))
@@ -400,25 +474,15 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     {
       algo->computeIndexSourceMapping(dataAuxInputs);
 
-      // Recalculate the distribution of grid destination
-      CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
-      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
-
       // ComputeTransformation of global index of each element
-      std::vector<int> gridDestinationDimensionSize = gridDestination_->getGlobalDimension();
-      std::vector<int> gridSrcDimensionSize = gridSource_->getGlobalDimension();
       int elementPosition = it->first;
       algo->computeGlobalSourceIndex(elementPosition,
-                                     gridDestinationDimensionSize,
-                                     gridSrcDimensionSize,
-                                     globalLocalIndexGridDestSendToServer,
-                                     globaIndexWeightFromDestToSource);
+                                     gridSource_,
+                                     gridDestination_,
+                                     globaIndexWeightFromSrcToDst);
 
       // Compute transformation of global indexes among grids
-      computeTransformationMapping(globaIndexWeightFromDestToSource);
-
-      // Update number of local index on each transformation
-      nbLocalIndexOnGridDest_.push_back(globalLocalIndexGridDestSendToServer.size());
+      computeTransformationMapping(globaIndexWeightFromSrcToDst);
 
       if (1 < nbAlgos_)
       {
@@ -434,50 +498,275 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
   Compute exchange index between grid source and grid destination
   \param [in] globalIndexWeightFromDestToSource global index mapping between grid destination and grid source
 */
-void CGridTransformation::computeTransformationMapping(const DestinationIndexMap& globalIndexWeightFromDestToSource)
+void CGridTransformation::computeTransformationMapping(const SourceDestinationIndexMap& globaIndexWeightFromSrcToDst)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
+  int nbClient = client->clientSize;
+  int clientRank = client->clientRank;
 
-  CTransformationMapping transformationMap(gridDestination_, gridSource_);
+  // Recalculate the distribution of grid destination
+  CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
+  CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
+  // Update number of local index on each transformation
+  nbLocalIndexOnGridDest_.push_back(globalLocalIndexGridDestSendToServer.size());
 
-  transformationMap.computeTransformationMapping(globalIndexWeightFromDestToSource);
-
-  const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
-  CTransformationMapping::ReceivedIndexMap::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
-  itbMapRecv = globalIndexToReceive.begin();
-  iteMapRecv = globalIndexToReceive.end();
-  localIndexToReceiveOnGridDest_.push_back(RecvIndexGridDestinationMap());
-  RecvIndexGridDestinationMap& recvTmp = localIndexToReceiveOnGridDest_.back();
-  for (itMapRecv = itbMapRecv; itMapRecv != iteMapRecv; ++itMapRecv)
+  // Find out number of index sent from grid source and number of index received on grid destination
+  SourceDestinationIndexMap::const_iterator itbIndex = globaIndexWeightFromSrcToDst.begin(),
+                                            iteIndex = globaIndexWeightFromSrcToDst.end(), itIndex;
+  typedef boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > > SendIndexMap;
+  std::map<int,int> sendRankSizeMap,recvRankSizeMap;
+  int connectedClient = globaIndexWeightFromSrcToDst.size();
+  int* recvCount=new int[nbClient];
+  int* displ=new int[nbClient];
+  int* sendRankBuff=new int[connectedClient];
+  int* sendSizeBuff=new int[connectedClient];
+  int n = 0;
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex, ++n)
   {
-    int sourceRank = itMapRecv->first;
-    int numGlobalIndex = (itMapRecv->second).size();
-    recvTmp[sourceRank].resize(numGlobalIndex);
-    for (int i = 0; i < numGlobalIndex; ++i)
+    sendRankBuff[n] = itIndex->first;
+    const SendIndexMap& sendIndexMap = itIndex->second;
+    SendIndexMap::const_iterator itbSend = sendIndexMap.begin(), iteSend = sendIndexMap.end(), itSend;
+    int sendSize = 0;
+    for (itSend = itbSend; itSend != iteSend; ++itSend)
     {
-      recvTmp[sourceRank][i] = make_pair((itMapRecv->second)[i].localIndex,(itMapRecv->second)[i].weight);
+      sendSize += itSend->second.size();
     }
+    sendSizeBuff[n] = sendSize;
+    sendRankSizeMap[itIndex->first] = sendSize;
+  }
+  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
+
+  displ[0]=0 ;
+  for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
+  int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
+  int* recvRankBuff=new int[recvSize];
+  int* recvSizeBuff=new int[recvSize];
+  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,client->intraComm);
+  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,client->intraComm);
+  for (int i = 0; i < nbClient; ++i)
+  {
+    int currentPos = displ[i];
+    for (int j = 0; j < recvCount[i]; ++j)
+      if (recvRankBuff[currentPos+j] == clientRank)
+      {
+        recvRankSizeMap[i] = recvSizeBuff[currentPos+j];
+      }
   }
 
-  // Find out local index on grid source (to send)
-  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
-  CTransformationMapping::SentIndexMap::const_iterator itbMap, itMap, iteMap;
-  itbMap = globalIndexToSend.begin();
-  iteMap = globalIndexToSend.end();
+
+
+  // Sending global index of grid source to corresponding process as well as the corresponding mask
+  std::vector<MPI_Request> requests;
+  std::vector<MPI_Status> status;
+  boost::unordered_map<int, unsigned char* > recvMaskDst;
+  boost::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
+  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
+  {
+    int recvRank = itRecv->first;
+    int recvSize = itRecv->second;
+    recvMaskDst[recvRank] = new unsigned char [recvSize];
+    recvGlobalIndexSrc[recvRank] = new unsigned long [recvSize];
+
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 47, client->intraComm, &requests.back());
+  }
+
+  boost::unordered_map<int, CArray<size_t,1> > globalIndexDst;
+  boost::unordered_map<int, CArray<double,1> > weightDst;
+  boost::unordered_map<int, unsigned char* > sendMaskDst;
+  boost::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
+  for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
+  {
+    int sendRank = itIndex->first;
+    int sendSize = sendRankSizeMap[sendRank];
+    const SendIndexMap& sendIndexMap = itIndex->second;
+    SendIndexMap::const_iterator itbSend = sendIndexMap.begin(), iteSend = sendIndexMap.end(), itSend;
+    globalIndexDst[sendRank].resize(sendSize);
+    weightDst[sendRank].resize(sendSize);
+    sendMaskDst[sendRank] = new unsigned char [sendSize];
+    sendGlobalIndexSrc[sendRank] = new unsigned long [sendSize];
+    int countIndex = 0;
+    for (itSend = itbSend; itSend != iteSend; ++itSend)
+    {
+      const std::vector<std::pair<size_t,double> >& dstWeight = itSend->second;
+      for (int idx = 0; idx < dstWeight.size(); ++idx)
+      {
+        globalIndexDst[sendRank](countIndex) = dstWeight[idx].first;
+        weightDst[sendRank](countIndex) = dstWeight[idx].second;
+        if (0 < globalLocalIndexGridDestSendToServer.count(dstWeight[idx].first))
+          sendMaskDst[sendRank][countIndex] = 1;
+        else
+          sendMaskDst[sendRank][countIndex] = 0;
+        sendGlobalIndexSrc[sendRank][countIndex] = itSend->first;
+        ++countIndex;
+      }
+    }
+
+    // Send global index source and mask
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendMaskDst[sendRank], sendSize, MPI_UNSIGNED_CHAR, sendRank, 47, client->intraComm, &requests.back());
+  }
+
+  status.resize(requests.size());
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
+
+  // Okie, now use the mask to identify which index source we need to send, then also signal the destination which masked index we will return
+  std::vector<MPI_Request>().swap(requests);
+  std::vector<MPI_Status>().swap(status);
+  // Okie, on destination side, we will wait for information of masked index of source
+  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
+  {
+    int recvRank = itSend->first;
+    int recvSize = itSend->second;
+
+    requests.push_back(MPI_Request());
+    MPI_Irecv(sendMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, client->intraComm, &requests.back());
+  }
+
+  // Ok, now we fill in local index of grid source (we even count for masked index)
+  CDistributionClient distributionClientSrc(client->clientRank, gridSource_);
+  CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridSrcSendToServer = distributionClientSrc.getGlobalLocalDataSendToServer();
   localIndexToSendFromGridSource_.push_back(SendingIndexGridSourceMap());
   SendingIndexGridSourceMap& tmpSend = localIndexToSendFromGridSource_.back();
-  for (itMap = itbMap; itMap != iteMap; ++itMap)
+  for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
   {
-    int destRank = itMap->first;
-    int vecSize = itMap->second.size();
-    tmpSend[destRank].resize(vecSize);
-    for (int idx = 0; idx < vecSize; ++idx)
+    int recvRank = itRecv->first;
+    int recvSize = itRecv->second;
+    unsigned char* recvMask = recvMaskDst[recvRank];
+    unsigned long* recvIndexSrc = recvGlobalIndexSrc[recvRank];
+    int realSendSize = 0;
+    for (int idx = 0; idx < recvSize; ++idx)
     {
-      tmpSend[destRank](idx) = itMap->second[idx].first;
+      if (0 != (*(recvMask+idx))) // OKie, now we have a demand from non-masked index destination
+        if (0 < globalLocalIndexGridSrcSendToServer.count(*(recvIndexSrc+idx))) // check whether index source is masked
+         ++realSendSize;
+        else // inform the destination that this index is masked
+         *(recvMask+idx) = 0;
+    }
+
+    tmpSend[recvRank].resize(realSendSize);
+    realSendSize = 0;
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      if (0 != (*(recvMask+idx))) // OKie, now we have a demand from non-masked index destination
+      {
+        tmpSend[recvRank](realSendSize) = globalLocalIndexGridSrcSendToServer[*(recvIndexSrc+idx)];
+         ++realSendSize;
+      }
+    }
+
+    // Okie, now inform the destination which source index are masked
+    requests.push_back(MPI_Request());
+    MPI_Isend(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 48, client->intraComm, &requests.back());
+  }
+  status.resize(requests.size());
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
+
+  // Cool, now we can fill in local index of grid destination (counted for masked index)
+  localIndexToReceiveOnGridDest_.push_back(RecvIndexGridDestinationMap());
+  RecvIndexGridDestinationMap& recvTmp = localIndexToReceiveOnGridDest_.back();
+  for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
+  {
+    int recvRank = itSend->first;
+    int recvSize = itSend->second;
+    unsigned char* recvMask = sendMaskDst[recvRank];
+
+    CArray<size_t,1>& recvIndexDst = globalIndexDst[recvRank];
+    CArray<double,1>& recvWeightDst = weightDst[recvRank];
+    int realRecvSize = 0;
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      if (0 != *(recvMask+idx)) // OKie, now we have a non-masked index destination
+         ++realRecvSize;
+    }
+
+    int localIndexDst;
+    recvTmp[recvRank].resize(realRecvSize);
+    realRecvSize = 0;
+    for (int idx = 0; idx < recvSize; ++idx)
+    {
+      if (0 != *(recvMask+idx)) // OKie, now we have a demand from non-masked index destination
+      {
+        recvTmp[recvRank][realRecvSize].first = globalLocalIndexGridDestSendToServer[recvIndexDst(idx)];
+        recvTmp[recvRank][realRecvSize].second = recvWeightDst(idx);
+         ++realRecvSize;
+      }
     }
   }
+
+  delete [] recvCount;
+  delete [] displ;
+  delete [] sendRankBuff;
+  delete [] recvRankBuff;
+  delete [] sendSizeBuff;
+  delete [] recvSizeBuff;
+
+  boost::unordered_map<int, unsigned char* >::const_iterator itChar;
+  for (itChar = sendMaskDst.begin(); itChar != sendMaskDst.end(); ++itChar)
+    delete [] itChar->second;
+  for (itChar = recvMaskDst.begin(); itChar != recvMaskDst.end(); ++itChar)
+    delete [] itChar->second;
+  boost::unordered_map<int, unsigned long* >::const_iterator itLong;
+  for (itLong = sendGlobalIndexSrc.begin(); itLong != sendGlobalIndexSrc.end(); ++itLong)
+    delete [] itLong->second;
+  for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)
+    delete [] itLong->second;
+
 }
+
+///*!
+//  Compute exchange index between grid source and grid destination
+//  \param [in] globalIndexWeightFromDestToSource global index mapping between grid destination and grid source
+//*/
+//void CGridTransformation::computeTransformationMapping(const DestinationIndexMap& globalIndexWeightFromDestToSource)
+//{
+//  CContext* context = CContext::getCurrent();
+//  CContextClient* client = context->client;
+//
+//  CTransformationMapping transformationMap(gridDestination_, gridSource_);
+//
+//  transformationMap.computeTransformationMapping(globalIndexWeightFromDestToSource);
+//
+//  const CTransformationMapping::ReceivedIndexMap& globalIndexToReceive = transformationMap.getGlobalIndexReceivedOnGridDestMapping();
+//  CTransformationMapping::ReceivedIndexMap::const_iterator itbMapRecv, itMapRecv, iteMapRecv;
+//  itbMapRecv = globalIndexToReceive.begin();
+//  iteMapRecv = globalIndexToReceive.end();
+//  localIndexToReceiveOnGridDest_.push_back(RecvIndexGridDestinationMap());
+//  RecvIndexGridDestinationMap& recvTmp = localIndexToReceiveOnGridDest_.back();
+//  for (itMapRecv = itbMapRecv; itMapRecv != iteMapRecv; ++itMapRecv)
+//  {
+//    int sourceRank = itMapRecv->first;
+//    int numGlobalIndex = (itMapRecv->second).size();
+//    recvTmp[sourceRank].resize(numGlobalIndex);
+//    for (int i = 0; i < numGlobalIndex; ++i)
+//    {
+//      recvTmp[sourceRank][i] = make_pair((itMapRecv->second)[i].localIndex,(itMapRecv->second)[i].weight);
+//    }
+//  }
+//
+//  // Find out local index on grid source (to send)
+//  const CTransformationMapping::SentIndexMap& globalIndexToSend = transformationMap.getGlobalIndexSendToGridDestMapping();
+//  CTransformationMapping::SentIndexMap::const_iterator itbMap, itMap, iteMap;
+//  itbMap = globalIndexToSend.begin();
+//  iteMap = globalIndexToSend.end();
+//  localIndexToSendFromGridSource_.push_back(SendingIndexGridSourceMap());
+//  SendingIndexGridSourceMap& tmpSend = localIndexToSendFromGridSource_.back();
+//  for (itMap = itbMap; itMap != iteMap; ++itMap)
+//  {
+//    int destRank = itMap->first;
+//    int vecSize = itMap->second.size();
+//    tmpSend[destRank].resize(vecSize);
+//    for (int idx = 0; idx < vecSize; ++idx)
+//    {
+//      tmpSend[destRank](idx) = itMap->second[idx].first;
+//    }
+//  }
+//}
 
 bool CGridTransformation::isSpecialTransformation(ETranformationType transType)
 {

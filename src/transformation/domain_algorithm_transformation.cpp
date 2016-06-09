@@ -8,6 +8,9 @@
  */
 
 #include "domain_algorithm_transformation.hpp"
+#include "context.hpp"
+#include "context_client.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
 
@@ -22,6 +25,63 @@ CDomainAlgorithmTransformation::~CDomainAlgorithmTransformation()
 
 void CDomainAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
+}
+
+void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
+                                                                boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int clientSize = client->clientSize;
+
+  int niGlob = domainSrc_->ni_glo.getValue();
+  int njGlob = domainSrc_->nj_glo.getValue();
+  size_t globalIndex;
+  int nIndexSize = domainSrc_->i_index.numElements(), i_ind, j_ind;
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
+  globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+  for (int idx = 0; idx < nIndexSize; ++idx)
+  {
+    i_ind=domainSrc_->i_index(idx) ;
+    j_ind=domainSrc_->j_index(idx) ;
+
+    globalIndex = i_ind + j_ind * niGlob;
+    globalIndex2ProcRank[globalIndex].push_back(clientRank);
+  }
+
+  CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+  dhtIndexProcRank.computeIndexInfoMapping(globalDomainIndex);
+
+  std::vector<int> countIndex(clientSize,0);
+  const CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+  CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = computedGlobalIndexOnProc.begin(), it,
+                                                               ite = computedGlobalIndexOnProc.end();
+  for (it = itb; it != ite; ++it)
+  {
+    const std::vector<int>& procList = it->second;
+    for (int idx = 0; idx < procList.size(); ++idx) ++countIndex[procList[idx]];
+  }
+
+  globalDomainIndexOnProc.rehash(std::ceil(clientSize/globalDomainIndexOnProc.max_load_factor()));
+  for (int idx = 0; idx < clientSize; ++idx)
+  {
+    if (0 != countIndex[idx])
+    {
+      globalDomainIndexOnProc[idx].resize(countIndex[idx]);
+      countIndex[idx] = 0;
+    }
+  }
+
+  for (it = itb; it != ite; ++it)
+  {
+    const std::vector<int>& procList = it->second;
+    for (int idx = 0; idx < procList.size(); ++idx)
+    {
+      globalDomainIndexOnProc[procList[idx]][countIndex[procList[idx]]] = it->first;
+      ++countIndex[procList[idx]];
+    }
+  }
 }
 
 /*!
