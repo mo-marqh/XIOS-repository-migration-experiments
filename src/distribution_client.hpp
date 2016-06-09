@@ -42,7 +42,7 @@ public:
     virtual ~CDistributionClient();
 
     virtual const std::vector<int>& getLocalDataIndexOnClient();
-    const GlobalLocalDataMap& getGlobalLocalDataSendToServer();
+    GlobalLocalDataMap& getGlobalLocalDataSendToServer();
     const std::vector<int>& getLocalMaskIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
@@ -100,13 +100,13 @@ public:
     std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask
 
-    std::vector<std::vector<int> > localDomainIndex_;
-    std::vector<std::vector<int> > localAxisIndex_;
     std::vector<int> indexMap_; //!< Mapping element index to dimension index
-
-    // The correct index of a domain has true value, the ghost one has false value
-    std::vector<std::vector<bool> > indexDomainData_;
-    std::vector<std::vector<bool> > indexAxisData_;
+    std::vector<CArray<int,1> > elementLocalIndex_;  //!< Local index of each element
+    std::vector<CArray<size_t,1> > elementGlobalIndex_; //!< Global index of each element
+    std::vector<CArray<bool,1> > elementIndexData_; //!< // The correct index of a domain has true value, the ghost one has false value
+    std::vector<CArray<bool,1> > elementZoomMask_; //!< Only zoomed region are true
+    std::vector<size_t> elementNLocal_;
+    std::vector<size_t> elementNGlobal_;
 
     //!< (Only for grid with one axis or scalar)Flag to determine whether data is distributed or not
     bool isDataDistributed_;
