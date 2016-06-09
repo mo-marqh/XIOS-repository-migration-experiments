@@ -32,7 +32,7 @@ CAxisAlgorithmTransformation::~CAxisAlgorithmTransformation()
 }
 
 void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
-                                                              boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc)
+                                                              CClientClientDHTInt::Index2VectorInfoTypeMap& globalAxisIndexOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -46,41 +46,45 @@ void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_
   for (int idx = 0; idx < nIndexSize; ++idx)
   {
     globalIndex = axisSrc_->index(idx);
-    globalIndex2ProcRank[globalIndex].push_back(clientRank);
+    globalIndex2ProcRank[globalIndex].resize(1);
+    globalIndex2ProcRank[globalIndex][0] = clientRank;
+//    globalIndex2ProcRank[globalIndex].push_back(clientRank);
   }
 
   CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
   dhtIndexProcRank.computeIndexInfoMapping(globalAxisIndex);
 
-  std::vector<int> countIndex(clientSize,0);
-  const CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
-  CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = computedGlobalIndexOnProc.begin(), it,
-                                                               ite = computedGlobalIndexOnProc.end();
-  for (it = itb; it != ite; ++it)
-  {
-    const std::vector<int>& procList = it->second;
-    for (int idx = 0; idx < procList.size(); ++idx) ++countIndex[procList[idx]];
-  }
-
-  globalAxisIndexOnProc.rehash(std::ceil(clientSize/globalAxisIndexOnProc.max_load_factor()));
-  for (int idx = 0; idx < clientSize; ++idx)
-  {
-    if (0 != countIndex[idx])
-    {
-      globalAxisIndexOnProc[idx].resize(countIndex[idx]);
-      countIndex[idx] = 0;
-    }
-  }
-
-  for (it = itb; it != ite; ++it)
-  {
-    const std::vector<int>& procList = it->second;
-    for (int idx = 0; idx < procList.size(); ++idx)
-    {
-      globalAxisIndexOnProc[procList[idx]][countIndex[procList[idx]]] = it->first;
-      ++countIndex[procList[idx]];
-    }
-  }
+//  std::vector<int> countIndex(clientSize,0);
+//  const CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+  globalAxisIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+//
+//  CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = computedGlobalIndexOnProc.begin(), it,
+//                                                               ite = computedGlobalIndexOnProc.end();
+//  for (it = itb; it != ite; ++it)
+//  {
+//    const std::vector<int>& procList = it->second;
+//    for (int idx = 0; idx < procList.size(); ++idx) ++countIndex[procList[idx]];
+//  }
+//
+//  globalAxisIndexOnProc.rehash(std::ceil(clientSize/globalAxisIndexOnProc.max_load_factor()));
+//  for (int idx = 0; idx < clientSize; ++idx)
+//  {
+//    if (0 != countIndex[idx])
+//    {
+//      globalAxisIndexOnProc[idx].resize(countIndex[idx]);
+//      countIndex[idx] = 0;
+//    }
+//  }
+//
+//  for (it = itb; it != ite; ++it)
+//  {
+//    const std::vector<int>& procList = it->second;
+//    for (int idx = 0; idx < procList.size(); ++idx)
+//    {
+//      globalAxisIndexOnProc[procList[idx]][countIndex[procList[idx]]] = it->first;
+//      ++countIndex[procList[idx]];
+//    }
+//  }
 }
 
 void CAxisAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)

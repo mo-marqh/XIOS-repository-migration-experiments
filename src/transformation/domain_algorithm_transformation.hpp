@@ -10,10 +10,11 @@
 #define __XIOS_DOMAIN_ALGORITHM_TRANSFORMATION_HPP__
 
 #include "generic_algorithm_transformation.hpp"
-#include "domain.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
 
+class CDomain;
 /*!
   \class CDomainAlgorithmTransformation
   Algorithms for domain.
@@ -39,7 +40,7 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);
 
   void computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
-                                  boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
+                                  CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
 protected:
   inline void domainGlobalIndex(const int& index, const int& niGlob, const int& njGlob,
                                 int& iIndex, int& jIndex);

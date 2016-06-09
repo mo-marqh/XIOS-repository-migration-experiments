@@ -39,7 +39,7 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
   void computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
-                                  boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
+                                  CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
 
 protected:
   //! Global index of an axis on grid destination

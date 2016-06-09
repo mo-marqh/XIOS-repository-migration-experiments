@@ -12,6 +12,7 @@
 #include <map>
 #include <set>
 #include "array_new.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
   class CGrid;
@@ -87,7 +88,7 @@ protected:
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
 
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalElementIndex,
-                                          boost::unordered_map<int,std::vector<size_t> >& globalElementIndexOnProc) = 0;
+                                          CClientClientDHTInt::Index2VectorInfoTypeMap& globalElementIndexOnProc) = 0;
 
   void computeGlobalGridIndexMapping(int elementPositionInGrid,
                                      const std::vector<int>& srcRank,
