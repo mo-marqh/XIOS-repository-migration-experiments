@@ -20,9 +20,10 @@ namespace xios
        *
        * \param gc the associated garbage collector
        * \param engine the engine defining the spatial transformation
+       * \param outputValue default value of output pin
        * \param [in] inputSlotsCount number of input, by default there is only one for field src
        */
-      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, size_t inputSlotsCount = 1);
+      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, double outputValue, size_t inputSlotsCount = 1);
 
       /*!
        * Builds the filter graph needed to transform the specified source grid into the specified destination grid.
@@ -33,7 +34,17 @@ namespace xios
        * \return the first and the last filters of the filter graph
        */
       static std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
-      buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid);
+      buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, double defaultValue);
+
+    protected:
+      /*!
+        Overriding this function to process transformations with auxillary inputs
+      */
+      void virtual onInputReady(std::vector<CDataPacketPtr> data);
+
+    protected:
+      //! Default value of output pin
+      double outputDefaultValue;
   }; // class CSpatialTransformFilter
 
   /*!
@@ -55,9 +66,20 @@ namespace xios
        * Applies the grid transformation to the input data and returns the result.
        *
        * \param data a vector of packets corresponding to each slot (one in this case)
+       * \param [in] defaultValue default value of output data
+       * \return the result of the grid transformation
+       */
+      CDataPacketPtr applyFilter(std::vector<CDataPacketPtr> data, double defaultValue = 0);
+
+       /*!
+       * Applies the grid transformation to the input data and returns the result.
+       *
+       * \param data a vector of packets corresponding to each slot (one in this case)
        * \return the result of the grid transformation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+
+
 
     protected:
       /*!

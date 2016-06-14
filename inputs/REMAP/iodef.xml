@@ -4,7 +4,7 @@
  <context id="test">
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-28 15:00:00 + 1d" />
    <field_definition level="1" >
-     <field id="src_field" operation="instant" domain_ref="src_domain"/>
+     <field id="src_field" operation="instant" domain_ref="src_domain_clone"/>
      <field id="src_field_3D" operation="instant" domain_ref="src_domain" axis_ref="src_axis"/>
      <field id="src_field_3D_interp" operation="instant" field_ref="src_field_3D" axis_ref="dst_axis"/>
      <field id="src_field_3D_pression" operation="instant" grid_ref="src_grid_3D"/>
@@ -23,10 +23,10 @@
 
    <file_definition type="one_file" par_access="collective" output_freq="1ts" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-<!--        <field field_ref="src_field" name="field" />-->
+        <field field_ref="src_field" name="field" />
      </file>
-     <file id="output_3D" name="output_3D">
-        <field field_ref="src_field_3D" name="field" />
+     <file id="output_2D" name="output_2D">
+        <field field_ref="src_field" name="field"  domain_ref="dst_domain_regular_pole" default_value="10.e+5"/>
      </file>
     <file id="output_3D_pression" name="output_3D_pression">
         <field field_ref="src_field_3D_pression" name="field" />

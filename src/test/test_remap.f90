@@ -20,6 +20,7 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:), tmp_field_2(:), src_field_3D(:,:), lval(:), lval1(:), src_field_pression(:,:)
+  LOGICAL,ALLOCATABLE :: src_mask_2D(:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;
   INTEGER :: src_ibegin, dst_ibegin;
@@ -66,6 +67,7 @@ PROGRAM test_remap
   ALLOCATE(src_boundslat(src_nvertex,src_ni))
   ALLOCATE(src_field(src_ni))
   ALLOCATE(src_field_3D(src_ni,llm))
+  ALLOCATE(src_mask_2D(src_ni))
   ALLOCATE(src_field_pression(src_ni,llm))
   ALLOCATE(lval(llm))
   ALLOCATE(lval1(interpolatedLlm))
@@ -82,6 +84,11 @@ PROGRAM test_remap
   ierr=NF90_GET_VAR(ncid,varid, src_field, start=(/src_ibegin+1/),count=(/src_ni/))
   DO i=1,src_ni
     src_field_3D(i,:) = src_field(i)
+    IF (MOD(i,10)==0) THEN
+      src_mask_2D(i)=.FALSE.
+    ELSE
+      src_mask_2D(i)=.TRUE.
+    ENDIF
   ENDDO
 
   DO i=1,llm
@@ -135,7 +142,8 @@ PROGRAM test_remap
 
   CALL xios_set_domain_attr("src_domain_clone", ni_glo=src_ni_glo, ibegin=src_ibegin, ni=src_ni, type="unstructured")
   CALL xios_set_domain_attr("src_domain_clone", lonvalue_1D=src_lon, latvalue_1D=src_lat, &
-                            bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
+                            bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex, &
+                            mask_1d=src_mask_2D)
 
   CALL xios_set_axis_attr("src_axis", n_glo=llm, value=lval)
 

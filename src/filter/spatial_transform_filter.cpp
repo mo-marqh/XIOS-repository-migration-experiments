@@ -5,12 +5,12 @@
 
 namespace xios
 {
-  CSpatialTransformFilter::CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, size_t inputSlotsCount)
-    : CFilter(gc, inputSlotsCount, engine)
+  CSpatialTransformFilter::CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, double outputValue, size_t inputSlotsCount)
+    : CFilter(gc, inputSlotsCount, engine), outputDefaultValue(outputValue)
   { /* Nothing to do */ }
 
   std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
-  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid)
+  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, double defaultValue)
   {
     if (!srcGrid || !destGrid)
       ERROR("std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >"
@@ -25,7 +25,7 @@ namespace xios
       CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
       const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
       size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
-      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, inputCount));
+      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
       if (!lastFilter)
         lastFilter = filter;
@@ -45,6 +45,14 @@ namespace xios
     while (destGrid != srcGrid);
 
     return std::make_pair(firstFilter, lastFilter);
+  }
+
+  void CSpatialTransformFilter::onInputReady(std::vector<CDataPacketPtr> data)
+  {
+    CSpatialTransformFilterEngine* spaceFilter = static_cast<CSpatialTransformFilterEngine*>(engine);
+    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue);
+    if (outputPacket)
+      deliverOuput(outputPacket);
   }
 
   CSpatialTransformFilterEngine::CSpatialTransformFilterEngine(CGridTransformation* gridTransformation)
@@ -75,6 +83,11 @@ namespace xios
 
   CDataPacketPtr CSpatialTransformFilterEngine::apply(std::vector<CDataPacketPtr> data)
   {
+    /* Nothing to do */
+  }
+
+  CDataPacketPtr CSpatialTransformFilterEngine::applyFilter(std::vector<CDataPacketPtr> data, double defaultValue)
+  {
     CDataPacketPtr packet(new CDataPacket);
     packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
@@ -89,6 +102,7 @@ namespace xios
         gridTransformation->computeAll(dataAuxInputs, packet->timestamp);
       }
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
+      packet->data = defaultValue;
       apply(data[0]->data, packet->data);
     }
 
@@ -99,9 +113,14 @@ namespace xios
   {
     CContextClient* client = CContext::getCurrent()->client;
 
+    // Get default value for output data
+    double defaultValue = 0.0;
+    if (0 != dataDest.numElements()) defaultValue = dataDest(0);
+
     const std::list<CGridTransformation::SendingIndexGridSourceMap>& listLocalIndexSend = gridTransformation->getLocalIndexToSendFromGridSource();
     const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
     const std::list<size_t>& listNbLocalIndexToReceive = gridTransformation->getNbLocalIndexToReceiveOnGridDest();
+    const std::list<std::vector<bool> >& listLocalIndexMaskOnDest = gridTransformation->getLocalMaskIndexOnGridDest();
 
     CArray<double,1> dataCurrentDest(dataSrc.copy());
 
@@ -109,8 +128,9 @@ namespace xios
                                                                               iteListSend = listLocalIndexSend.end();
     std::list<CGridTransformation::RecvIndexGridDestinationMap>::const_iterator itListRecv = listLocalIndexToReceive.begin();
     std::list<size_t>::const_iterator itNbListRecv = listNbLocalIndexToReceive.begin();
+    std::list<std::vector<bool> >::const_iterator itLocalMaskIndexOnDest = listLocalIndexMaskOnDest.begin();
 
-    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv)
+    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv, ++itLocalMaskIndexOnDest)
     {
       CArray<double,1> dataCurrentSrc(dataCurrentDest);
       const CGridTransformation::SendingIndexGridSourceMap& localIndexToSend = *itListSend;
@@ -163,7 +183,11 @@ namespace xios
       MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
 
       dataCurrentDest.resize(*itNbListRecv);
-      dataCurrentDest = 0.0;
+      const std::vector<bool>& localMaskDest = *itLocalMaskIndexOnDest;
+      for (int i = 0; i < localMaskDest.size(); ++i)
+        if (localMaskDest[i]) dataCurrentDest(i) = 0.0;
+        else dataCurrentDest(i) = defaultValue;
+
       currentBuff = 0;
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {

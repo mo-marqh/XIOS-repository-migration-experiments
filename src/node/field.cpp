@@ -288,7 +288,7 @@ namespace xios{
       cout<<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
       cout<<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
       cout<<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
-     
+
       sendReadDataRequest();
     }
 
@@ -345,7 +345,7 @@ namespace xios{
         {
           nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
         }
-        
+
         this->incrementNStep();
 
 
@@ -779,7 +779,12 @@ namespace xios{
      std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
      if (grid && grid != fieldRef->grid && grid->hasTransform())
-       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid);
+     {
+       double defaultValue = 0.0;
+       if (!default_value.isEmpty()) defaultValue = this->default_value;
+       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
+     }
+
      else
        filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
 

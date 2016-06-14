@@ -437,6 +437,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       std::list<SendingIndexGridSourceMap>().swap(localIndexToSendFromGridSource_);
       std::list<RecvIndexGridDestinationMap>().swap(localIndexToReceiveOnGridDest_);
       std::list<size_t>().swap(nbLocalIndexOnGridDest_);
+      std::list<std::vector<bool> >().swap(localMaskOnGridDest_);
     }
     else
       return;
@@ -457,12 +458,8 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     int transformationOrder = (it->second).second;
     SourceDestinationIndexMap globaIndexWeightFromSrcToDst;
 
-//    if (1 < nbAlgos_)
-//    {
-//      // Create a temporary grid destination which contains transformed element of grid destination and
-//      // non-transformed elements fo grid source
-////      if (nbAgloTransformation != (nbAlgos_-1)) setUpGridDestination(elementPositionInGrid, transType, nbAgloTransformation);
-//    }
+    // Create a temporary grid destination which contains transformed element of grid destination and
+    // non-transformed elements fo grid source
     setUpGridDestination(elementPositionInGrid, transType, nbAgloTransformation);
 
     // First of all, select an algorithm
@@ -511,9 +508,7 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
 
   // Recalculate the distribution of grid destination
   CDistributionClient distributionClientDest(client->clientRank, tmpGridDestination_);
-//  CDistributionClient distributionClientDest(client->clientRank, gridDestination_);
   CDistributionClient::GlobalLocalDataMap& globalLocalIndexGridDestSendToServer = distributionClientDest.getGlobalLocalDataSendToServer();
-  const std::vector<int>& localMask = distributionClientDest.getLocalMaskIndexOnClient();
 
   // Update number of local index on each transformation
   size_t nbLocalIndex = globalLocalIndexGridDestSendToServer.size();
@@ -521,10 +516,6 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
   localMaskOnGridDest_.push_back(std::vector<bool>());
   std::vector<bool>& tmpMask = localMaskOnGridDest_.back();
   tmpMask.resize(nbLocalIndex,false);
-//  for (int idx = 0; idx < nbLocalIndex; ++idx)
-//  {
-//    tmpMask[localMask[idx]] = true;
-//  }
 
   // Find out number of index sent from grid source and number of index received on grid destination
   SourceDestinationIndexMap::const_iterator itbIndex = globaIndexWeightFromSrcToDst.begin(),
@@ -707,6 +698,7 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
       {
         recvTmp[recvRank][realRecvSize].first = globalLocalIndexGridDestSendToServer[recvIndexDst(idx)];
         recvTmp[recvRank][realRecvSize].second = recvWeightDst(idx);
+        tmpMask[globalLocalIndexGridDestSendToServer[recvIndexDst(idx)]] = true;
          ++realRecvSize;
       }
     }
