@@ -440,7 +440,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   ssize = 1; for (int i = 0; i < numElement_; ++i) ssize *= dataNIndex_[i];
   innerLoopSize = dataNIndex_[0];
   int countLocalData = 0;
-  std::vector<int> correctOuterIndex(numElement_,0);
+  std::vector<int> correctIndexOfElement(numElement_,0);
   bool isOuterIndexCorrect = true;
   while (idx < ssize)
   {
@@ -449,9 +449,9 @@ void CDistributionClient::createGlobalIndexSendToServer()
       if (idxLoop[i] == dataNIndex_[i])
       {
         idxLoop[i] = 0;
-        correctOuterIndex[i] = 0;
+        correctIndexOfElement[i] = 0;
         ++idxLoop[i+1];
-        if (isOuterIndexCorrect) ++correctOuterIndex[i+1];
+        if (isOuterIndexCorrect) ++correctIndexOfElement[i+1];
       }
     }
 
@@ -462,8 +462,8 @@ void CDistributionClient::createGlobalIndexSendToServer()
     {
       if (elementIndexData_[i](idxLoop[i]))
       {
-        currentIndex[i] = elementLocalIndex_[i](correctOuterIndex[i]);
-        currentGlobalIndex[i] = elementGlobalIndex_[i](correctOuterIndex[i]);
+        currentIndex[i] = elementLocalIndex_[i](correctIndexOfElement[i]);
+        currentGlobalIndex[i] = elementGlobalIndex_[i](correctIndexOfElement[i]);
         isIndexElementDataCorrect &= true;
       }
       else isIndexElementDataCorrect = false;
@@ -471,52 +471,56 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
     isOuterIndexCorrect = isIndexElementDataCorrect;
 
-    // Inner most index
-    int correctIndexElement = 0;
-    for (int i = 0; i < innerLoopSize; ++i)
+    if (isOuterIndexCorrect)
     {
-      bool isCurrentIndexDataCorrect = isOuterIndexCorrect;
-      if (elementIndexData_[0](i))
+      // Inner most index
+      int correctIndexInnerElement = 0;
+      for (int i = 0; i < innerLoopSize; ++i)
       {
-        currentIndex[0] = elementLocalIndex_[0](correctIndexElement);
-        currentGlobalIndex[0] = elementGlobalIndex_[0](correctIndexElement);
-        isCurrentIndexDataCorrect &= true;
-        ++correctIndexElement;
-      }
-      else isCurrentIndexDataCorrect = false;
-
-      if (isCurrentIndexDataCorrect)
-      {
-        int gridMaskIndex = 0;
-        for (int k = 0; k < this->numElement_; ++k)
+        bool isCurrentIndexDataCorrect = isOuterIndexCorrect;
+        if (elementIndexData_[0](i))
         {
-          gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
+          currentIndex[0] = elementLocalIndex_[0](correctIndexInnerElement);
+          currentGlobalIndex[0] = elementGlobalIndex_[0](correctIndexInnerElement);
+          isCurrentIndexDataCorrect &= true;
+          ++correctIndexInnerElement;
         }
+        else isCurrentIndexDataCorrect = false;
 
-        if (gridMask_(gridMaskIndex))
+        if (isCurrentIndexDataCorrect)
         {
-          localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
-          bool isIndexOnServer = true;
-          for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
+          int gridMaskIndex = 0;
+          for (int k = 0; k < this->numElement_; ++k)
           {
-            isIndexOnServer = isIndexOnServer && elementZoomMask_[idxElement](idxLoop[idxElement]);
+            gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
           }
 
-          if (isIndexOnServer)
+          if (gridMask_(gridMaskIndex))
           {
-            size_t globalIndex = 0;
-            for (int k = 0; k < numElement_; ++k)
+            localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
+            bool isIndexOnServer = true;
+            for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
             {
-              globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
+              isIndexOnServer = isIndexOnServer && elementZoomMask_[idxElement](correctIndexOfElement[idxElement]);
             }
-            globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
-            localMaskIndex_[indexSend2ServerCount] = gridMaskIndex;
-            ++indexSend2ServerCount;
+
+            if (isIndexOnServer)
+            {
+              size_t globalIndex = 0;
+              for (int k = 0; k < numElement_; ++k)
+              {
+                globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
+              }
+              globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
+              localMaskIndex_[indexSend2ServerCount] = gridMaskIndex;
+              ++indexSend2ServerCount;
+            }
+            ++indexLocalDataOnClientCount;
           }
-          ++indexLocalDataOnClientCount;
         }
+        ++countLocalData;
+        correctIndexOfElement[0] = correctIndexInnerElement;;
       }
-      ++countLocalData;
     }
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
