@@ -356,9 +356,51 @@ namespace xios {
       if (!allDomainEmpty)
       {
          StdString filename = getFileOutputName();
+         if (!name_suffix.isEmpty()) filename+=name_suffix.getValue();
+
+// determine splitting format in the file name  : firstPart%start_date%middlePart%end_date%lastPart
+
+         std::string strStartDate="%start_date%" ;
+         std::string strEndDate="%end_date%" ;
+
+         std::string firstPart ;
+         std::string middlePart ;
+         std::string lastPart ;
+         size_t pos1, pos2 ;
+         bool hasStartDate=false ;
+         bool hasEndDate=false ;   
+                  
+         pos1=filename.find(strStartDate) ;
+         if (pos1!=std::string::npos)
+         {
+           firstPart=filename.substr(0,pos1) ;
+           pos1+=strStartDate.size() ;
+           hasStartDate=true ;
+         }
+         else pos1=0 ;
+
+         pos2=filename.find(strEndDate,pos1) ;
+         if (pos2!=std::string::npos)
+         {
+           middlePart=filename.substr(pos1,pos2-pos1) ;
+           cout<<pos2<<endl ;
+           pos2+=strEndDate.size() ;
+           lastPart=filename.substr(pos2,filename.size()-pos2) ;
+           hasEndDate=true ;
+         }
+         else middlePart=filename.substr(pos1,filename.size()) ;
+
+         if (!hasStartDate && !hasEndDate)
+         {
+           hasStartDate=true ;
+           hasEndDate=true;
+           firstPart=middlePart ;
+           middlePart="-" ;
+         }
+//   
+         cout<<"filename : "<<filename<<"  firstPart : "<<firstPart<<"  middlePart : "<<middlePart<<"  lastPart : "<<lastPart<<endl ;  
+         cout<<" hasStartDate : "<<hasStartDate<<"  hasEndDate :"<<hasEndDate ;
          StdOStringStream oss;
-         oss << filename;
-         if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
 
          if (!split_freq.isEmpty())
          {
@@ -376,11 +418,16 @@ namespace xios {
            }
            else splitFormat = split_freq_format;
 
-           oss << "_" << lastSplit.getStr(splitFormat) << "-" << splitEnd.getStr(splitFormat);
+           oss << firstPart ;
+           if (hasStartDate) oss << lastSplit.getStr(splitFormat) ;
+           oss << middlePart ;
+           if (hasEndDate) oss << splitEnd.getStr(splitFormat);
+           oss << lastPart ;
 
            context->registryOut->setKey("splitStart", lastSplit);
            context->registryOut->setKey("splitEnd",   splitEnd);
          }
+         else oss<<firstPart<<lastPart ;
 
         bool append = !this->append.isEmpty() && this->append.getValue();
 
