@@ -398,8 +398,6 @@ namespace xios {
            middlePart="-" ;
          }
 //   
-         cout<<"filename : "<<filename<<"  firstPart : "<<firstPart<<"  middlePart : "<<middlePart<<"  lastPart : "<<lastPart<<endl ;  
-         cout<<" hasStartDate : "<<hasStartDate<<"  hasEndDate :"<<hasEndDate ;
          StdOStringStream oss;
 
          if (!split_freq.isEmpty())
