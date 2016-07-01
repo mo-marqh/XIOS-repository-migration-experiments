@@ -12,12 +12,14 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       CONetCDF4::CONetCDF4(const StdString& filename, bool append, bool useClassicFormat,
+							bool useCFConvention,
                            const MPI_Comm* comm, bool multifile, const StdString& timeCounterName)
         : path()
         , wmpi(false)
         , useClassicFormat(useClassicFormat)
+        , useCFConvention(useCFConvention)
       {
-         this->initialize(filename, append, useClassicFormat, comm, multifile, timeCounterName);
+         this->initialize(filename, append, useClassicFormat, useCFConvention, comm, multifile, timeCounterName);
       }
 
       //---------------------------------------------------------------
@@ -28,10 +30,11 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-      void CONetCDF4::initialize(const StdString& filename, bool append, bool useClassicFormat,
+      void CONetCDF4::initialize(const StdString& filename, bool append, bool useClassicFormat, bool useCFConvention, 
                                  const MPI_Comm* comm, bool multifile, const StdString& timeCounterName)
       {
          this->useClassicFormat = useClassicFormat;
+         this->useCFConvention = useCFConvention;
 
          int mode = useClassicFormat ? 0 : NC_NETCDF4;
 
@@ -283,6 +286,7 @@ namespace xios
          std::vector<int> dimids;
          std::vector<StdSize> dimsizes;
          int dimSize = dim.size();
+         
          StdSize size;
          StdSize totalSize;
          StdSize maxSize = 1024 * 1024 * 256; // == 2GB/8 if output double
@@ -291,7 +295,7 @@ namespace xios
 
          std::vector<StdString>::const_iterator it = dim.begin(), end = dim.end();
 
-         for (; it != end; it++)
+         for (int idx = 0; it != end; it++, ++idx)
          {
             const StdString& dimid = *it;
             dimids.push_back(this->getDimension(dimid));
@@ -313,7 +317,6 @@ namespace xios
               totalSize *= *it;
               if (totalSize >= maxSize) *it = 1;
             }
-
             int storageType = (0 == dimSize) ? NC_CONTIGUOUS : NC_CHUNKED;
             CNetCdfInterface::defVarChunking(grpid, varid, storageType, &dimsizes[0]);
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
@@ -567,6 +570,12 @@ namespace xios
       {
          int grpid = this->getCurrentGroup();
          return CNetCdfInterface::isVarExisted(grpid, varname);
+      }
+
+      bool CONetCDF4::dimExist(const StdString& dimname)
+      {
+         int grpid = this->getCurrentGroup();
+         return CNetCdfInterface::isDimExisted(grpid, dimname);
       }
 
       void CONetCDF4::sync(void)

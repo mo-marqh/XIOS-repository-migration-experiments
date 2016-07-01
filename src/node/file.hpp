@@ -12,8 +12,6 @@
 #include "attribute_enum_impl.hpp"
 #include "mpi.hpp"
 
-
-
 namespace xios {
 
    /// ////////////////////// Déclarations ////////////////////// ///

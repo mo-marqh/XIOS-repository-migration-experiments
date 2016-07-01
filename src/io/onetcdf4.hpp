@@ -26,6 +26,7 @@ namespace xios
 
             /// Constructeurs ///
             CONetCDF4(const StdString& filename, bool append, bool useClassicFormat = false,
+            		  bool useCFConvention = true,
                       const MPI_Comm* comm = NULL, bool multifile = true,
                       const StdString& timeCounterName = "time_counter");
 
@@ -34,7 +35,7 @@ namespace xios
 
 
             /// Initialisation ///
-            void initialize(const StdString& filename, bool append, bool useClassicFormat,
+            void initialize(const StdString& filename, bool append, bool useClassicFormat, bool useCFConvention,
                             const MPI_Comm* comm, bool multifile, const StdString& timeCounterName);
             void close(void);
             void sync(void);
@@ -98,8 +99,10 @@ namespace xios
             void getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective);
 
             bool varExist(const StdString& varname);
+            bool dimExist(const StdString& dimname);
 
             bool useClassicFormat; //!< If true, NetCDF4 will use the classic NetCDF3 format
+            bool useCFConvention;  //!< If true data is written in the CF convention otherwise in UGRID
 
       //----------------------------------------------------------------
 

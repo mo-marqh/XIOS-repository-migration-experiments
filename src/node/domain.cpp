@@ -34,7 +34,9 @@ namespace xios {
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
-   { /* Ne rien faire de plus */ }
+   {
+	   mesh = new CMesh();
+	}
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
@@ -43,10 +45,13 @@ namespace xios {
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
-   { /* Ne rien faire de plus */ }
+   {
+	   mesh = new CMesh();
+	}
 
    CDomain::~CDomain(void)
    {
+	   delete mesh;
    }
 
    ///---------------------------------------------------------------
@@ -72,8 +77,7 @@ namespace xios {
       return (this->relFiles);
    }
 
-   //----------------------------------------------------------------
-
+  
    const std::vector<int>& CDomain::getIndexesToWrite(void) const
    {
      return indexesToWrite;
@@ -201,18 +205,15 @@ namespace xios {
       return isCompressible_;
    }
 
-   //----------------------------------------------------------------
-
    void CDomain::addRelFile(const StdString & filename)
    {
       this->relFiles.insert(filename);
    }
-
+  
    void CDomain::addRelFileCompressed(const StdString& filename)
    {
       this->relFilesCompressed.insert(filename);
    }
-
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
    StdString CDomain::GetDefName(void){ return (CDomain::GetName()); }

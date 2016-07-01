@@ -18,7 +18,7 @@
 
 namespace xios {
 
-   /// ////////////////////// Définitions ////////////////////// ///
+   /// ////////////////////// Dfinitions ////////////////////// ///
 
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
@@ -139,23 +139,23 @@ namespace xios {
 
       for ( it = this->enabledFields.begin(); it != this->enabledFields.end(); it++ )
       {
-         if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est défini ...
+         if (!(*it)->enabled.isEmpty()) // Si l'attribut 'enabled' est dfini ...
          {
             if (! (*it)->enabled.getValue()) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
-         else // Si l'attribut 'enabled' n'est pas défini ...
+         else // Si l'attribut 'enabled' n'est pas dfini ...
          {
             if (!default_enabled) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
 
-         if (!(*it)->level.isEmpty()) // Si l'attribut 'level' est défini ...
+         if (!(*it)->level.isEmpty()) // Si l'attribut 'level' est dfini ...
          {
             if ((*it)->level.getValue() > _outputlevel) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
          }
-         else // Si l'attribut 'level' n'est pas défini ...
+         else // Si l'attribut 'level' n'est pas dfini ...
          {
             if (default_level > _outputlevel) continue;
 //            { it--; this->enabledFields.erase(it+1); continue; }
@@ -167,7 +167,7 @@ namespace xios {
          newEnabledFields.push_back(*it);
          // Le champ est finalement actif, on y ajoute sa propre reference.
 //         (*it)->refObject.push_back(*it);
-         // Le champ est finalement actif, on y ajoute la référence au champ de base.
+         // Le champ est finalement actif, on y ajoute la rfrence au champ de base.
          (*it)->setRelFile(CFile::get(this));
       }
       enabledFields = newEnabledFields;
@@ -430,6 +430,7 @@ namespace xios {
         bool append = !this->append.isEmpty() && this->append.getValue();
 
          bool useClassicFormat = !format.isEmpty() && format == format_attr::netcdf4_classic;
+         bool useCFConvention = convention.isEmpty() || convention == convention_attr::CF;
 
          bool multifile = true;
          if (!type.isEmpty())
@@ -469,7 +470,7 @@ namespace xios {
 
          if (isOpen) data_out->closeFile();
 
-        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat,
+        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat, useCFConvention,
                                                               fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
@@ -769,7 +770,7 @@ namespace xios {
 
    void CFile::solveFieldRefInheritance(bool apply)
    {
-      // Résolution des héritages par référence de chacun des champs contenus dans le fichier.
+      // Rsolution des hritages par rfrence de chacun des champs contenus dans le fichier.
       std::vector<CField*> allF = this->getAllFields();
       for (unsigned int i = 0; i < allF.size(); i++)
          allF[i]->solveRefInheritance(apply);

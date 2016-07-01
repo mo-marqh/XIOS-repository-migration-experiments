@@ -16,6 +16,8 @@
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
 
+#include "mesh.hpp"
+
 namespace xios {
 
    /// ////////////////////// Déclarations ////////////////////// ///
@@ -23,6 +25,7 @@ namespace xios {
    class CDomainGroup;
    class CDomainAttributes;
    class CDomain;
+   class CFile;
 
    ///--------------------------------------------------------------
 
@@ -38,6 +41,7 @@ namespace xios {
       : public CObjectTemplate<CDomain>
       , public CDomainAttributes
    {
+
          enum EEventId
          {
            EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, EVENT_ID_AREA
@@ -60,7 +64,9 @@ namespace xios {
          CDomain(const CDomain * const domain); // Not implemented yet.
 
          static CDomain* createDomain();
-
+         
+         CMesh* mesh;
+        
          virtual void parse(xml::CXMLNode & node);
 
          /// Vérifications ///
@@ -216,4 +222,4 @@ namespace xios {
 
 } // namespace xios
 
-#endif // __XIOS_CDomain__
+#endif //__XIOS_CDomain__
