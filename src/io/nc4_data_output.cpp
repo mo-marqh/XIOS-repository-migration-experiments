@@ -20,7 +20,7 @@ namespace xios
             , SuperClassWriter(filename, exist)
             , filename(filename)
       {
-		SuperClass::type = MULTI_FILE;
+    SuperClass::type = MULTI_FILE;
       }
 
       CNc4DataOutput::CNc4DataOutput
@@ -32,11 +32,11 @@ namespace xios
             , filename(filename)
             , isCollective(isCollective)
       {
-		SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
+    SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
 
       CNc4DataOutput::~CNc4DataOutput(void)
-	  { /* Ne rien faire de plus */ }
+    { /* Ne rien faire de plus */ }
 
       ///--------------------------------------------------------------
 
@@ -51,10 +51,10 @@ namespace xios
       {
          if (domain->type == CDomain::type_attr::unstructured)
          {
-			 if (SuperClassWriter::useCFConvention)
-				writeUnstructuredDomain(domain) ;
-			else
-				writeUnstructuredDomainUgrid(domain) ;
+       if (SuperClassWriter::useCFConvention)
+        writeUnstructuredDomain(domain) ;
+      else
+        writeUnstructuredDomainUgrid(domain) ;
            return ;
          }
 
@@ -433,294 +433,294 @@ namespace xios
          domain->addRelFile(this->filename);
       }
 
-	  //--------------------------------------------------------------
+    //--------------------------------------------------------------
 
-		void CNc4DataOutput::writeUnstructuredDomainUgrid(CDomain* domain)
-		{
-			CContext* context = CContext::getCurrent() ;
-			CContextServer* server=context->server ;
+    void CNc4DataOutput::writeUnstructuredDomainUgrid(CDomain* domain)
+    {
+      CContext* context = CContext::getCurrent() ;
+      CContextServer* server=context->server ;
 
-			if (domain->IsWritten(this->filename)) return;
-			domain->checkAttributes();
-			if (domain->isEmpty())
-				if (SuperClass::type==MULTI_FILE) return ;
+      if (domain->IsWritten(this->filename)) return;
+      domain->checkAttributes();
+      if (domain->isEmpty())
+        if (SuperClass::type==MULTI_FILE) return ;
 
-			std::vector<StdString> dim0;
-			StdString domid = domain->getDomainOutputName();
-			StdString domainName = domain->name;
+      std::vector<StdString> dim0;
+      StdString domid = domain->getDomainOutputName();
+      StdString domainName = domain->name;
 
-			if (domain->mesh->isWritten(domainName)) domain->mesh = CMesh::getMesh;
+      if (domain->mesh->isWritten(domainName)) domain->mesh = CMesh::getMesh;
 
-			domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
-			//domain->mesh->createMeshEpsilon(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
+      //domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
+      domain->mesh->createMeshEpsilon(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
 
-			StdString node_x = domainName + "_node_x";
-			StdString node_y = domainName + "_node_y";
+      StdString node_x = domainName + "_node_x";
+      StdString node_y = domainName + "_node_y";
 
-			StdString edge_x = domainName + "_edge_x";
-			StdString edge_y = domainName + "_edge_y";
-			StdString edge_nodes = domainName + "_edge_nodes";
+      StdString edge_x = domainName + "_edge_x";
+      StdString edge_y = domainName + "_edge_y";
+      StdString edge_nodes = domainName + "_edge_nodes";
 
-			StdString face_x = domainName + "_face_x";
-			StdString face_y = domainName + "_face_y";
-			StdString face_nodes = domainName + "_face_nodes";
+      StdString face_x = domainName + "_face_x";
+      StdString face_y = domainName + "_face_y";
+      StdString face_nodes = domainName + "_face_nodes";
 
-			StdString dimNode = "n" + domainName + "_node";
-			StdString dimEdge = "n" + domainName + "_edge";
-			StdString dimFace = "n" + domainName + "_face";
-			StdString dimVertex = "n" + domainName + "_vertex";
-			StdString dimTwo = "Two";
+      StdString dimNode = "n" + domainName + "_node";
+      StdString dimEdge = "n" + domainName + "_edge";
+      StdString dimFace = "n" + domainName + "_face";
+      StdString dimVertex = "n" + domainName + "_vertex";
+      StdString dimTwo = "Two";
 
-			if (!SuperClassWriter::dimExist(dimTwo)) SuperClassWriter::addDimension(dimTwo, 2);
-			if (!isWrittenDomain(domid))
-			{
-				dim0.clear();
-				SuperClassWriter::addVariable(domainName, NC_INT, dim0);
-				SuperClassWriter::addAttribute("cf_role", StdString("mesh_topology"), &domainName);
-				SuperClassWriter::addAttribute("node_coordinates", node_x + " " + node_y, &domainName);
-			}
+      if (!SuperClassWriter::dimExist(dimTwo)) SuperClassWriter::addDimension(dimTwo, 2);
+      if (!isWrittenDomain(domid))
+      {
+        dim0.clear();
+        SuperClassWriter::addVariable(domainName, NC_INT, dim0);
+        SuperClassWriter::addAttribute("cf_role", StdString("mesh_topology"), &domainName);
+        SuperClassWriter::addAttribute("node_coordinates", node_x + " " + node_y, &domainName);
+      }
 
-			try
-			{
-				switch (SuperClass::type)
-				{
-					case (ONE_FILE) :
-					{
-						// Adding nodes
-						if (domain->nvertex == 1)
-						{
-							if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
-							{
-								SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
-								dim0.clear();
-								dim0.push_back(dimNode);
-								SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-								SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
-							}
-						} // domain->nvertex == 1
+      try
+      {
+        switch (SuperClass::type)
+        {
+          case (ONE_FILE) :
+          {
+            // Adding nodes
+            if (domain->nvertex == 1)
+            {
+              if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
+              {
+                SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
+                dim0.clear();
+                dim0.push_back(dimNode);
+                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
+                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
+              }
+            } // domain->nvertex == 1
 
-						// Adding edges and nodes, if nodes have not been defined previously
-						if (domain->nvertex == 2)
-						{
-							// Nodes
-							if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
-							{
-								SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
-								dim0.clear();
-								dim0.push_back(dimNode);
-								SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-								SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
-							}
-							// Edges
-							if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
-							{
-								SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
-								SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
-								SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdges);
-								dim0.clear();
-								dim0.push_back(dimEdge);
-								SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-								SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
-								dim0.clear();
-								dim0.push_back(dimEdge);
-								dim0.push_back(dimTwo);
-								SuperClassWriter::addVariable(edge_nodes, NC_INT, dim0);
-								SuperClassWriter::addAttribute("cf_role", StdString("edge_node_connectivity"), &edge_nodes);
-								SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
-								SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
-							}
-						} // domain->nvertex == 2
+            // Adding edges and nodes, if nodes have not been defined previously
+            if (domain->nvertex == 2)
+            {
+              // Nodes
+              if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
+              {
+                SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
+                dim0.clear();
+                dim0.push_back(dimNode);
+                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
+                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
+              }
+              // Edges
+              if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
+              {
+                SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
+                SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
+                SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdges);
+                dim0.clear();
+                dim0.push_back(dimEdge);
+                SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
+                SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
+                dim0.clear();
+                dim0.push_back(dimEdge);
+                dim0.push_back(dimTwo);
+                SuperClassWriter::addVariable(edge_nodes, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("edge_node_connectivity"), &edge_nodes);
+                SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
+                SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
+              }
+            } // domain->nvertex == 2
 
-						// Adding faces, edges, and nodes, if edges and nodes have not been defined previously
-						if (domain->nvertex > 2)
-						{
-							// Nodes
-							if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
-							{
-								SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
-								dim0.clear();
-								dim0.push_back(dimNode);
-								SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-								SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
-							}
-							// Edges
-							if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
-							{
-								SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
-								SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
-								SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdges);
-								dim0.clear();
-								dim0.push_back(dimEdge);
-								SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-								SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
-								dim0.clear();
-								dim0.push_back(dimEdge);
-								dim0.push_back(dimTwo);
-								SuperClassWriter::addVariable(edge_nodes, NC_INT, dim0);
-								SuperClassWriter::addAttribute("cf_role", StdString("edge_node_connectivity"), &edge_nodes);
-								SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
-								SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
-							}
-							// Faces
-								SuperClassWriter::addAttribute("face_coordinates", face_x + " " + face_y, &domainName);
-								SuperClassWriter::addAttribute("face_node_connectivity", face_nodes, &domainName);
-								SuperClassWriter::addDimension(dimFace, domain->mesh->nbFaces);
-								SuperClassWriter::addDimension(dimVertex, domain->mesh->nvertex);
-								dim0.clear();
-								dim0.push_back(dimFace);
-								SuperClassWriter::addVariable(face_x, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &face_x);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh faces."), &face_x);
-								SuperClassWriter::addAttribute("units", StdString("degrees_east"), &face_x);
-								SuperClassWriter::addVariable(face_y, NC_FLOAT, dim0);
-								SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &face_y);
-								SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh faces."), &face_y);
-								SuperClassWriter::addAttribute("units", StdString("degrees_north"), &face_y);
-								dim0.clear();
-								dim0.push_back(dimFace);
-								dim0.push_back(dimVertex);
-								SuperClassWriter::addVariable(face_nodes, NC_INT, dim0);
-								SuperClassWriter::addAttribute("cf_role", StdString("face_node_connectivity"), &face_nodes);
-								SuperClassWriter::addAttribute("long_name", StdString("Maps every face to its corner nodes."), &face_nodes);
-								SuperClassWriter::addAttribute("start_index", 0, &face_nodes);
-						} // domain->nvertex > 2
+            // Adding faces, edges, and nodes, if edges and nodes have not been defined previously
+            if (domain->nvertex > 2)
+            {
+              // Nodes
+              if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
+              {
+                SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
+                dim0.clear();
+                dim0.push_back(dimNode);
+                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Longitude of mesh nodes."), &node_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
+                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
+              }
+              // Edges
+              if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
+              {
+                SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
+                SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
+                SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdges);
+                dim0.clear();
+                dim0.push_back(dimEdge);
+                SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
+                SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
+                dim0.clear();
+                dim0.push_back(dimEdge);
+                dim0.push_back(dimTwo);
+                SuperClassWriter::addVariable(edge_nodes, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("edge_node_connectivity"), &edge_nodes);
+                SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
+                SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
+              }
+              // Faces
+                SuperClassWriter::addAttribute("face_coordinates", face_x + " " + face_y, &domainName);
+                SuperClassWriter::addAttribute("face_node_connectivity", face_nodes, &domainName);
+                SuperClassWriter::addDimension(dimFace, domain->mesh->nbFaces);
+                SuperClassWriter::addDimension(dimVertex, domain->mesh->nvertex);
+                dim0.clear();
+                dim0.push_back(dimFace);
+                SuperClassWriter::addVariable(face_x, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &face_x);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic longitude of mesh faces."), &face_x);
+                SuperClassWriter::addAttribute("units", StdString("degrees_east"), &face_x);
+                SuperClassWriter::addVariable(face_y, NC_FLOAT, dim0);
+                SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &face_y);
+                SuperClassWriter::addAttribute("longname_name", StdString("Characteristic latitude of mesh faces."), &face_y);
+                SuperClassWriter::addAttribute("units", StdString("degrees_north"), &face_y);
+                dim0.clear();
+                dim0.push_back(dimFace);
+                dim0.push_back(dimVertex);
+                SuperClassWriter::addVariable(face_nodes, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("face_node_connectivity"), &face_nodes);
+                SuperClassWriter::addAttribute("long_name", StdString("Maps every face to its corner nodes."), &face_nodes);
+                SuperClassWriter::addAttribute("start_index", 0, &face_nodes);
+            } // domain->nvertex > 2
 
-						SuperClassWriter::definition_end();
+            SuperClassWriter::definition_end();
 
-						if (!isWrittenDomain(domid))
-						{
-							if (domain->nvertex == 1)
-							{
-								SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-							}
-							else if (domain->nvertex == 2)
+            if (!isWrittenDomain(domid))
+            {
+              if (domain->nvertex == 1)
+              {
+                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+              }
+              else if (domain->nvertex == 2)
                             {
-								SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
+                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
                             }
-							else
-							{
-								SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
-								SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
-							}
-							setWrittenDomain(domid);
-						} // !isWrittenDomain
-						else
-						{
-							if (domain->nvertex == 1)
-							{
+              else
+              {
+                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
+                SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
+              }
+              setWrittenDomain(domid);
+            } // !isWrittenDomain
+            else
+            {
+              if (domain->nvertex == 1)
+              {
                                 if ( (!domain->mesh->edgesAreWritten) && (!domain->mesh->facesAreWritten) )
-								{
-									SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-									SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-								}
-							}
-							if (domain->nvertex == 2)
-							{
+                {
+                  SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                  SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                }
+              }
+              if (domain->nvertex == 2)
+              {
                                 if (!domain->mesh->facesAreWritten)
-								{
-									if (!domain->mesh->nodesAreWritten)
-									{
-										SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-										SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-									}
-									SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
-									SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
-									SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
-								}
-							}	
-							if (domain->nvertex > 2)
-							{
-								if (!domain->mesh->edgesAreWritten)
-								{
-									if (!domain->mesh->nodesAreWritten)
-									{
-										SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-										SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
-									}
-									SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
-									SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
-									SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
-								}
-								SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
-								SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
-							}
-						}// isWrittenDomain
+                {
+                  if (!domain->mesh->nodesAreWritten)
+                  {
+                    SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                    SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                  }
+                  SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
+                  SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
+                  SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
+                }
+              }  
+              if (domain->nvertex > 2)
+              {
+                if (!domain->mesh->edgesAreWritten)
+                {
+                  if (!domain->mesh->nodesAreWritten)
+                  {
+                    SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
+                    SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                  }
+                  SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0);
+                  SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0);
+                  SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes);
+                }
+                SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
+              }
+            }// isWrittenDomain
 
-						SuperClassWriter::definition_start();
+            SuperClassWriter::definition_start();
 
-						break;
-					} // ONE_FILE
+            break;
+          } // ONE_FILE
 
-					case (MULTI_FILE) :
-					{
-						break;
-					}
+          case (MULTI_FILE) :
+          {
+            break;
+          }
 
-					default :
-					ERROR("CNc4DataOutput::writeDomain(domain)",
-					<< "[ type = " << SuperClass::type << "]"
-					<< " not implemented yet !");
-					} // switch
-				} // try
+          default :
+          ERROR("CNc4DataOutput::writeDomain(domain)",
+          << "[ type = " << SuperClass::type << "]"
+          << " not implemented yet !");
+          } // switch
+        } // try
 
-				catch (CNetCdfException& e)
-				{
-					StdString msg("On writing the domain : ");
-					msg.append(domid); msg.append("\n");
-					msg.append("In the context : ");
-					msg.append(context->getId()); msg.append("\n");
-					msg.append(e.what());
-					ERROR("CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)", << msg);
-				}
+        catch (CNetCdfException& e)
+        {
+          StdString msg("On writing the domain : ");
+          msg.append(domid); msg.append("\n");
+          msg.append("In the context : ");
+          msg.append(context->getId()); msg.append("\n");
+          msg.append(e.what());
+          ERROR("CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)", << msg);
+        }
 
-	domain->addRelFile(this->filename);
-	}
+  domain->addRelFile(this->filename);
+  }
 
-	  //--------------------------------------------------------------
+    //--------------------------------------------------------------
 
-	  void CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)
+    void CNc4DataOutput::writeUnstructuredDomain(CDomain* domain)
       {
          CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
@@ -1314,39 +1314,39 @@ namespace xios
                  break ;
                case CDomain::type_attr::unstructured:
                {
-				   if (SuperClassWriter::useCFConvention)
-				   {
-						dimXid     = StdString("cell").append(appendDomId);
-						dimIdList.push_back(dimXid);
-						dimCoordList.push_back(StdString("lon").append(appendDomId));
-						dimCoordList.push_back(StdString("lat").append(appendDomId));
-					}
-				   else
-				   {
-						StdString domainName = domain->name;
-						if (domain->nvertex == 1)
-						{
-							dimXid     = "n" + domainName + "_node";
-							dimIdList.push_back(dimXid);
-							dimCoordList.push_back(StdString(domainName + "_node_x"));
-							dimCoordList.push_back(StdString(domainName + "_node_y"));
-						}
-						else if (domain->nvertex == 2)
-						{
-							dimXid     = "n" + domainName + "_edge";
-							dimIdList.push_back(dimXid);
-							dimCoordList.push_back(StdString(domainName + "_edge_x"));
-							dimCoordList.push_back(StdString(domainName + "_edge_y"));
-						}
-						else
-						{
-							dimXid     = "n" + domainName + "_face";
-							dimIdList.push_back(dimXid);
-							dimCoordList.push_back(StdString(domainName + "_face_x"));
-							dimCoordList.push_back(StdString(domainName + "_face_y"));
-						}
-					}  // ugrid convention
-				}  // case unstructured domain
+           if (SuperClassWriter::useCFConvention)
+           {
+            dimXid     = StdString("cell").append(appendDomId);
+            dimIdList.push_back(dimXid);
+            dimCoordList.push_back(StdString("lon").append(appendDomId));
+            dimCoordList.push_back(StdString("lat").append(appendDomId));
+          }
+           else
+           {
+            StdString domainName = domain->name;
+            if (domain->nvertex == 1)
+            {
+              dimXid     = "n" + domainName + "_node";
+              dimIdList.push_back(dimXid);
+              dimCoordList.push_back(StdString(domainName + "_node_x"));
+              dimCoordList.push_back(StdString(domainName + "_node_y"));
+            }
+            else if (domain->nvertex == 2)
+            {
+              dimXid     = "n" + domainName + "_edge";
+              dimIdList.push_back(dimXid);
+              dimCoordList.push_back(StdString(domainName + "_edge_x"));
+              dimCoordList.push_back(StdString(domainName + "_edge_y"));
+            }
+            else
+            {
+              dimXid     = "n" + domainName + "_face";
+              dimIdList.push_back(dimXid);
+              dimCoordList.push_back(StdString(domainName + "_face_x"));
+              dimCoordList.push_back(StdString(domainName + "_face_y"));
+            }
+          }  // ugrid convention
+        }  // case unstructured domain
              }
 
              if (domain->hasArea)
@@ -1540,269 +1540,8 @@ namespace xios
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeField_(CField* field)", << msg);
          }
-      }
+      } // writeField_()
 
-      //--------------------------------------------------------------
-/*
-      void CNc4DataOutput::writeField_(CField* field)
-      {
-         CContext* context = CContext::getCurrent() ;
-         CContextServer* server=context->server ;
-
-         std::vector<StdString> dims, coodinates;
-         CGrid* grid = field->grid;
-         if (!grid->doGridHaveDataToWrite())
-          if (SuperClass::type==MULTI_FILE) return ;
-
-         CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0;
-         std::vector<StdString> domainList = grid->getDomainList();
-         std::vector<StdString> axisList   = grid->getAxisList();
-
-         StdString timeid  = getTimeCounterName();
-         StdString dimXid,dimYid;
-         std::deque<StdString> dimIdList, dimCoordList;
-         bool hasArea = false;
-         StdString cellMeasures = "area:";
-         bool compressedOutput = !field->indexed_output.isEmpty() && field->indexed_output;
-
-         for (int i = 0; i < numElement; ++i)
-         {
-           if (axisDomainOrder(i))
-           {
-             CDomain* domain = CDomain::get(domainList[idxDomain]);
-             StdString domId = domain->getDomainOutputName();
-             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
-
-             if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
-             {
-               dimIdList.push_back(domId + "_points");
-               field->setUseCompressedOutput();
-             }
-
-             switch (domain->type)
-             {
-               case CDomain::type_attr::curvilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("x").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("y").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
-                 dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
-                 break ;
-               case CDomain::type_attr::rectilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("lon").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("lat").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 break ;
-               case CDomain::type_attr::unstructured:
-                 dimXid     = StdString("cell").append(appendDomId);
-                 dimIdList.push_back(dimXid);
-                 dimCoordList.push_back(StdString("lon").append(appendDomId));
-                 dimCoordList.push_back(StdString("lat").append(appendDomId));
-                 break ;
-             }
-             if (domain->hasArea)
-             {
-               hasArea = true;
-               cellMeasures += " area" + appendDomId;
-             }
-             ++idxDomain;
-           }
-           else
-           {
-             CAxis* axis = CAxis::get(axisList[idxAxis]);
-             StdString axisId = axis->getAxisOutputName();
-
-             if (compressedOutput && axis->isCompressible())
-             {
-               dimIdList.push_back(axisId + "_points");
-               field->setUseCompressedOutput();
-             }
-             else
-               dimIdList.push_back(axisId);
-
-             dimCoordList.push_back(axisId);
-             ++idxAxis;
-           }
-         }
-
-
-//         StdString lonid_loc = (server->intraCommSize > 1)
-//                             ? StdString("lon").append(appendDomid).append("_local")
-//                             : lonid;
-//         StdString latid_loc = (server->intraCommSize > 1)
-//                             ? StdString("lat").append(appendDomid).append("_local")
-//                             : latid;
-
-         StdString fieldid = field->getFieldOutputName();
-
-//         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
-//         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
-//          bool isCurvilinear = domain->isCurvilinear ;
-
-         nc_type type ;
-         if (field->prec.isEmpty()) type =  NC_FLOAT ;
-         else
-         {
-           if (field->prec==2) type = NC_SHORT ;
-           else if (field->prec==4)  type =  NC_FLOAT ;
-           else if (field->prec==8)   type =  NC_DOUBLE ;
-         }
-
-         bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
-
-         if (wtime)
-         {
-
-            //StdOStringStream oss;
-           // oss << "time_" << field->operation.getValue()
-           //     << "_" << field->getRelFile()->output_freq.getValue();
-          //oss
-            if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
-            else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
-            dims.push_back(timeid);
-         }
-
-         if (compressedOutput && grid->isCompressible())
-         {
-           dims.push_back(grid->getId() + "_points");
-           field->setUseCompressedOutput();
-         }
-         else
-         {
-           while (!dimIdList.empty())
-           {
-             dims.push_back(dimIdList.back());
-             dimIdList.pop_back();
-           }
-         }
-
-         while (!dimCoordList.empty())
-         {
-           coodinates.push_back(dimCoordList.back());
-           dimCoordList.pop_back();
-         }
-
-         try
-         {
-           SuperClassWriter::addVariable(fieldid, type, dims);
-
-           if (!field->standard_name.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("standard_name",  field->standard_name.getValue(), &fieldid);
-
-           if (!field->long_name.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("long_name", field->long_name.getValue(), &fieldid);
-
-           if (!field->unit.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("units", field->unit.getValue(), &fieldid);
-
-            if (!field->valid_min.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("valid_min", field->valid_min.getValue(), &fieldid);
-
-           if (!field->valid_max.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("valid_max", field->valid_max.getValue(), &fieldid);
-
-            if (!field->scale_factor.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("scale_factor", field->scale_factor.getValue(), &fieldid);
-
-             if (!field->add_offset.isEmpty())
-              SuperClassWriter::addAttribute
-                 ("add_offset", field->add_offset.getValue(), &fieldid);
-
-           SuperClassWriter::addAttribute
-                 ("online_operation", field->operation.getValue(), &fieldid);
-
-          // write child variables as attributes
-
-
-           vector<CVariable*> listVars = field->getAllVariables() ;
-           for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
-
-
-           if (wtime)
-           {
-              CDuration freqOp = field->freq_op.getValue();
-              freqOp.solveTimeStep(*context->calendar);
-              StdString freqOpStr = freqOp.toStringUDUnits();
-              SuperClassWriter::addAttribute("interval_operation", freqOpStr, &fieldid);
-
-              CDuration freqOut = field->getRelFile()->output_freq.getValue();
-              freqOut.solveTimeStep(*context->calendar);
-              SuperClassWriter::addAttribute("interval_write", freqOut.toStringUDUnits(), &fieldid);
-
-              StdString cellMethods = "time: ";
-              if (field->operation.getValue() == "instant") cellMethods += "point";
-              else if (field->operation.getValue() == "average") cellMethods += "mean";
-              else if (field->operation.getValue() == "accumulate") cellMethods += "sum";
-              else cellMethods += field->operation;
-              if (freqOp.resolve(*context->calendar) != freqOut.resolve(*context->calendar))
-                cellMethods += " (interval: " + freqOpStr + ")";
-              SuperClassWriter::addAttribute("cell_methods", cellMethods, &fieldid);
-           }
-
-           if (hasArea)
-             SuperClassWriter::addAttribute("cell_measures", cellMeasures, &fieldid);
-
-           if (!field->default_value.isEmpty())
-           {
-              double default_value = field->default_value.getValue();
-              float fdefault_value = (float)default_value;
-              if (type == NC_DOUBLE)
-                 SuperClassWriter::setDefaultValue(fieldid, &default_value);
-              else
-                 SuperClassWriter::setDefaultValue(fieldid, &fdefault_value);
-           }
-           else
-              SuperClassWriter::setDefaultValue(fieldid, (double*)NULL);
-
-            if (field->compression_level.isEmpty())
-              field->compression_level = field->file->compression_level.isEmpty() ? 0 : field->file->compression_level;
-            SuperClassWriter::setCompressionLevel(fieldid, field->compression_level);
-
-           {  // Ecriture des coordonnes
-
-              StdString coordstr; //boost::algorithm::join(coodinates, " ")
-              std::vector<StdString>::iterator
-                 itc = coodinates.begin(), endc = coodinates.end();
-
-              for (; itc!= endc; itc++)
-              {
-                 StdString & coord = *itc;
-                 if (itc+1 != endc)
-                       coordstr.append(coord).append(" ");
-                 else  coordstr.append(coord);
-              }
-
-              SuperClassWriter::addAttribute("coordinates", coordstr, &fieldid);
-
-           }
-         }
-         catch (CNetCdfException& e)
-         {
-           StdString msg("On writing field : ");
-           msg.append(fieldid); msg.append("\n");
-           msg.append("In the context : ");
-           msg.append(context->getId()); msg.append("\n");
-           msg.append(e.what());
-           ERROR("CNc4DataOutput::writeField_(CField* field)", << msg);
-         }
-      }
-
-*/
       //--------------------------------------------------------------
 
       void CNc4DataOutput::writeFile_ (CFile* file)
@@ -1816,7 +1555,7 @@ namespace xios
 
          try
          {
-		   if (SuperClassWriter::useCFConvention)
+       if (SuperClassWriter::useCFConvention)
              this->writeFileAttributes(filename, description,
                                        StdString("CF-1.5"),
                                        StdString("An IPSL model"),
