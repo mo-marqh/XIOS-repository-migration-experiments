@@ -78,7 +78,8 @@ Coord gradient(Elt& elt, Elt **neighElts)
   Coord edgeNormal ;
   double area=0 ;
   int k ;
-
+  int count=0 ;
+  
   for (int j = 0; j < elt.n; j++)
   {
     f_i = elt.val;
@@ -107,10 +108,15 @@ Coord gradient(Elt& elt, Elt **neighElts)
   // area of the polygon whoes vertices are the barycentres the neighbours 
 
     area+=polygonarea(neighBaryc, 3) ;
+    count++ ;
 
   }
-  grad=grad*(1./area) ;
-  return grad - elt.x * scalarprod(elt.x, grad);
+  if (count>0) 
+  {
+    grad=grad*(1./area) ;
+    return grad - elt.x * scalarprod(elt.x, grad);
+  }
+  else return grad ;
 }
 
 
