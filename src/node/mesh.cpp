@@ -34,11 +34,11 @@ namespace xios {
  * Returns a pointer to a mesh. If a mesh has not been created, creates it and adds its name to the list of meshes meshList.
  * \param [in] meshName  The name of a mesh ("name" attribute of a domain).
  */
-  CMesh::CMesh* CMesh::getMesh (StdString meshName)
+  CMesh* CMesh::getMesh (StdString meshName)
   {
     if ( CMesh::meshList.find(meshName) == CMesh::meshList.end() )
     {
-      CMesh::CMesh newMesh;
+      CMesh newMesh;
       CMesh::meshList.insert( make_pair(meshName, newMesh) );
 
     }
