@@ -25,35 +25,24 @@ namespace xios {
   {
   }
 
-  std::map <StdString, CMesh*> CMesh::meshList = std::map <StdString, CMesh*>();
-  CMesh* CMesh::getMesh;
+  std::map <StdString, CMesh> CMesh::meshList = std::map <StdString, CMesh>();
+  //CMesh* CMesh::getMesh;
 
 ///---------------------------------------------------------------
 /*!
- * \fn bool CMesh::isWritten (StdString meshName)
- * Checks if a mesh has been written, updates the list of meshes stored in meshList
+ * \fn bool CMesh::getMesh (StdString meshName)
+ * Returns a pointer to a mesh. If a mesh has not been created, creates it and adds its name to the list of meshes meshList.
  * \param [in] meshName  The name of a mesh ("name" attribute of a domain).
  */
-  bool CMesh::isWritten (StdString meshName)
+  CMesh::CMesh* CMesh::getMesh (StdString meshName)
   {
-    if ( CMesh::meshList.begin() != CMesh::meshList.end() )
+    if ( CMesh::meshList.find(meshName) == CMesh::meshList.end() )
     {
-      if ( CMesh::meshList.find(meshName) != CMesh::meshList.end() )
-      {
-        CMesh::getMesh = meshList[meshName];
-        return true;
-      }
-      else
-      {
-        CMesh::meshList.insert( make_pair(meshName, this) );
-        return false;
-      }
+      CMesh::CMesh newMesh;
+      CMesh::meshList.insert( make_pair(meshName, newMesh) );
+
     }
-    else
-    {
-      CMesh::meshList.insert( make_pair(meshName, this) );
-      return false;
-    }
+    return &meshList[meshName];
   }
 
 ///----------------------------------------------------------------
@@ -70,7 +59,7 @@ namespace xios {
  * Returns its index if a node exists; otherwise adds the node and returns -1.
  * Precision check is implemented with two hash values for each dimension, longitude and latitude.
  * \param [in] lon Node longitude in degrees.
- * \param [in] lat Node latitude in degress ranged from 0 to 360.
+ * \param [in] lat Node latitude in degrees ranged from 0 to 360.
  * \return node index if a node exists; -1 otherwise
  */
   size_t CMesh::nodeIndex (double lon, double lat)
@@ -144,8 +133,9 @@ namespace xios {
  * \fn void CMesh::hashDblDbl (double lon, double lat)
  * Creates two hash values for each dimension, longitude and latitude.
  * \param [in] lon Node longitude in degrees.
- * \param [in] lat Node latitude in degress ranged from 0 to 360.
+ * \param [in] lat Node latitude in degrees ranged from 0 to 360.
  */
+
   void hashDblDbl (double lon, double lat)
   {
     double minBoundLon = 0. ;
@@ -216,7 +206,7 @@ namespace xios {
  * \param [in] lonvalue  Array of longitudes.
  * \param [in] latvalue  Array of latitudes.
  * \param [in] bounds_lon Array of boundary longitudes. Its size depends on the element type.
- * \param [in] bounds_lat Array of boundarry latitudes. Its size depends on the element type.
+ * \param [in] bounds_lat Array of boundary latitudes. Its size depends on the element type.
  */
   void CMesh::createMesh(const CArray<double, 1>& lonvalue, const CArray<double, 1>& latvalue,
             const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat)
@@ -356,7 +346,7 @@ namespace xios {
  * \param [in] lonvalue  Array of longitudes.
  * \param [in] latvalue  Array of latitudes.
  * \param [in] bounds_lon Array of boundary longitudes. Its size depends on the element type.
- * \param [in] bounds_lat Array of boundarry latitudes. Its size depends on the element type.
+ * \param [in] bounds_lat Array of boundary latitudes. Its size depends on the element type.
  */
   void CMesh::createMeshEpsilon(const CArray<double, 1>& lonvalue, const CArray<double, 1>& latvalue,
             const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat)

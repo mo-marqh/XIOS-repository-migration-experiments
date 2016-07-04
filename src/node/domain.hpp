@@ -66,6 +66,7 @@ namespace xios {
          static CDomain* createDomain();
          
          CMesh* mesh;
+         void assignMesh(const StdString);
         
          virtual void parse(xml::CXMLNode & node);
 

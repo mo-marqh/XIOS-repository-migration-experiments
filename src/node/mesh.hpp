@@ -8,6 +8,7 @@
 #define __XIOS_CMesh__
  
 #include "array_new.hpp"
+#include "client_client_dht_template.hpp"
 
 namespace xios {
   
@@ -52,15 +53,14 @@ namespace xios {
       void createMesh(const CArray<double, 1>&, const CArray<double, 1>&, 
             const CArray<double, 2>&, const CArray<double, 2>& );
                         
-      void createMeshEpsilon(const CArray<double, 1>&, const CArray<double, 1>&, 
+      void createMeshEpsilon(const CArray<double, 1>&, const CArray<double, 1>&,
             const CArray<double, 2>&, const CArray<double, 2>& );
             
-      bool isWritten (StdString);    
-      static CMesh* getMesh;
-          
-       private:
+      static CMesh* getMesh(StdString);
 
-      static std::map <StdString, CMesh*> meshList;
+    private:
+
+      static std::map <StdString, CMesh> meshList;
 
       size_t nodeIndex (double, double);      
       boost::unordered_map <size_t, size_t> hashed_map_nodes;

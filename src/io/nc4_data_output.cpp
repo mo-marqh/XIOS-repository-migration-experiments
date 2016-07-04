@@ -49,14 +49,14 @@ namespace xios
 
       void CNc4DataOutput::writeDomain_(CDomain* domain)
       {
-         if (domain->type == CDomain::type_attr::unstructured)
-         {
-       if (SuperClassWriter::useCFConvention)
-        writeUnstructuredDomain(domain) ;
-      else
-        writeUnstructuredDomainUgrid(domain) ;
-           return ;
-         }
+        if (domain->type == CDomain::type_attr::unstructured)
+        {
+          if (SuperClassWriter::useCFConvention)
+            writeUnstructuredDomain(domain) ;
+          else
+            writeUnstructuredDomainUgrid(domain) ;
+          return ;
+        }
 
          CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
@@ -65,7 +65,7 @@ namespace xios
          domain->checkAttributes();
 
          if (domain->isEmpty())
-           if (SuperClass::type==MULTI_FILE) return ;
+           if (SuperClass::type==MULTI_FILE) return;
 
          std::vector<StdString> dim0, dim1;
          StdString domid = domain->getDomainOutputName();
@@ -448,9 +448,7 @@ namespace xios
       std::vector<StdString> dim0;
       StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
-
-      if (domain->mesh->isWritten(domainName)) domain->mesh = CMesh::getMesh;
-
+      domain->assignMesh(domainName);
       //domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
       domain->mesh->createMeshEpsilon(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
 
@@ -649,7 +647,7 @@ namespace xios
             {
               if (domain->nvertex == 1)
               {
-                                if ( (!domain->mesh->edgesAreWritten) && (!domain->mesh->facesAreWritten) )
+                if ( (!domain->mesh->edgesAreWritten) && (!domain->mesh->facesAreWritten) )
                 {
                   SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
                   SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
@@ -657,7 +655,7 @@ namespace xios
               }
               if (domain->nvertex == 2)
               {
-                                if (!domain->mesh->facesAreWritten)
+                if (!domain->mesh->facesAreWritten)
                 {
                   if (!domain->mesh->nodesAreWritten)
                   {
