@@ -233,9 +233,20 @@ void CDomainAlgorithmInterpolate::computeRemap()
   mapper.setVerbosity(PROGRESS) ;
 
 
+  CArray<bool,1> localMask(nSrcLocal) ;
+  localMask=false ;
+  size_t ndata=domainSrc_->data_i_index.numElements() ;
+  for (int idx=0; idx < ndata; ++idx)
+  {
+    size_t ind = domainSrc_->data_j_index(idx)*domainSrc_->ni+domainSrc_->data_i_index(idx) ;
+    localMask(ind)=domainSrc_->mask_1d(ind) ;
+  }
+     
+     
   // supress masked data for the source
   int nSrcLocalUnmasked = 0 ;
-  for (int idx=0 ; idx < nSrcLocal; idx++) if (domainSrc_-> mask_1d(idx)) ++nSrcLocalUnmasked ;
+  for (int idx=0 ; idx < nSrcLocal; idx++) if (localMask(idx)) ++nSrcLocalUnmasked ;
+
 
   CArray<double,2> boundsLonSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
   CArray<double,2> boundsLatSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
@@ -244,7 +255,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   nSrcLocalUnmasked=0 ;
   for (int idx=0 ; idx < nSrcLocal; idx++)
   {
-    if (domainSrc_-> mask_1d(idx))
+    if (localMask(idx))
     {
       for(int n=0;n<nVertexSrc;++n)
       {
@@ -256,8 +267,17 @@ void CDomainAlgorithmInterpolate::computeRemap()
     }
   }
 
+  localMask.resize(nDstLocal) ;
+  localMask=false ;
+  ndata=domainDest_->data_i_index.numElements() ;
+  for (int idx=0; idx < ndata; ++idx)
+  {
+    size_t ind = domainDest_->data_j_index(idx)*domainDest_->ni+domainDest_->data_i_index(idx) ;
+    localMask(ind)=domainDest_->mask_1d(ind) ;
+  }
+     
   int nDstLocalUnmasked = 0 ;
-  for (int idx=0 ; idx < nDstLocal; idx++) if (domainDest_-> mask_1d(idx)) ++nDstLocalUnmasked ;
+  for (int idx=0 ; idx < nDstLocal; idx++) if (localMask(idx)) ++nDstLocalUnmasked ;
 
   CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
   CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
@@ -266,7 +286,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   nDstLocalUnmasked=0 ;
   for (int idx=0 ; idx < nDstLocal; idx++)
   {
-    if (domainDest_-> mask_1d(idx))
+    if (localMask(idx))
     {
       for(int n=0;n<nVertexDest;++n)
       {
@@ -278,9 +298,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
     }
   }
 
-//  mapper.setSourceMesh(boundsLonSrc.dataFirst(), boundsLatSrc.dataFirst(), nVertexSrc, nSrcLocal, &srcPole[0], globalSrc);
   mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
-//  mapper.setTargetMesh(boundsLonDest.dataFirst(), boundsLatDest.dataFirst(), nVertexDest, nDstLocal, &dstPole[0], globalDst);
   mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
 
   std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize);
