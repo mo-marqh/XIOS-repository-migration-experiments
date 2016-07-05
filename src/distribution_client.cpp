@@ -187,9 +187,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomBegin_.at((indexMap_[idx]+1)) = domList[domIndex]->global_zoom_jbegin;
       nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
-      dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue(); //(2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
-//      dataIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->data_j_index);
-//      infoIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->j_index);
+      dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue();
       dataIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->data_j_index);
       infoIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->j_index);
 
@@ -202,8 +200,6 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
 
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
-//      dataIndex_.at(indexMap_[idx]) = &(domList[domIndex]->data_i_index);
-//      infoIndex_.at(indexMap_[idx]) = &(domList[domIndex]->i_index);
       dataIndex_.at(indexMap_[idx]).reference(domList[domIndex]->data_i_index);
       infoIndex_.at(indexMap_[idx]).reference(domList[domIndex]->i_index);
 
@@ -226,8 +222,6 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
 
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
-//      dataIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->data_index);
-//      infoIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->index);
       dataIndex_.at(indexMap_[idx]).reference(axisList[axisIndex]->data_index);
       infoIndex_.at(indexMap_[idx]).reference(axisList[axisIndex]->index);
       dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();

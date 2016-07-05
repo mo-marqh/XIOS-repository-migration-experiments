@@ -119,14 +119,10 @@ namespace xios {
          static CGrid* createGrid(CDomain* domain, CAxis* axis);
          static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const CArray<int,1>& axisDomainOrder = CArray<int,1>());
-//         static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-//                                  const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                   const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder);
-//         static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-//                                     const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                      const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
@@ -205,6 +201,8 @@ namespace xios {
          void doAutoDistribution(CGrid* transformGridSrc);
          bool isTransformed();
          void setTransformed();
+         bool isGenerated();
+         void setGenerated();
          void addTransGridSource(CGrid* gridSrc);
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
@@ -282,6 +280,7 @@ namespace xios {
         std::set<std::string> relFilesCompressed;
 
         bool isTransformed_;
+        bool isGenerated_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
         bool hasDomainAxisBaseRef_;

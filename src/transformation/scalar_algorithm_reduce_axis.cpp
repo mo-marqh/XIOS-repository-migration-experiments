@@ -7,9 +7,6 @@
    \brief Algorithm for reduce an axis to a scalar
  */
 #include "scalar_algorithm_reduce_axis.hpp"
-//#include "context.hpp"
-//#include "context_client.hpp"
-//#include "client_client_dht_template.hpp"
 #include "axis.hpp"
 #include "scalar.hpp"
 #include "reduce_axis_to_scalar.hpp"

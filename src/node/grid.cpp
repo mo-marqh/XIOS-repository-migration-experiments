@@ -33,7 +33,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_(), globalIndexOnServer_()
+      , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -51,7 +51,7 @@ namespace xios {
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
-      , gridSrc_(), hasTransform_(false), order_(), globalIndexOnServer_()
+      , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
@@ -706,40 +706,6 @@ namespace xios {
      return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
    }
 
-//   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-//                            const CArray<int,1>& axisDomainOrder)
-//   {
-//      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
-//        ERROR("CGrid* CGrid::createGrid(...)",
-//              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
-//              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
-//
-//      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
-//      grid->setDomainList(domains);
-//      grid->setAxisList(axis);
-//
-//      // By default, domains are always the first elements of a grid
-//      if (0 == axisDomainOrder.numElements())
-//      {
-//        int size = domains.size() + axis.size();
-//        grid->axis_domain_order.resize(size);
-//        for (int i = 0; i < size; ++i)
-//        {
-//          if (i < domains.size()) grid->axis_domain_order(i) = 2;
-//          else grid->axis_domain_order(i) = 1;
-//        }
-//      }
-//      else
-//      {
-//        grid->axis_domain_order.resize(axisDomainOrder.numElements());
-//        grid->axis_domain_order = axisDomainOrder;
-//      }
-//
-//      grid->solveDomainAxisRefInheritance(true);
-//
-//      return grid;
-//   }
-
    CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
    {
@@ -1039,8 +1005,6 @@ namespace xios {
     int rank;
     list<CMessage> listMsg;
     list<CArray<size_t,1> > listOutIndex;
-//    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
-//    const CClientServerMapping::GlobalIndexMap& globalIndexOnServer = clientServerMap_->getGlobalIndexOnServer();
     const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
     CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
                                                            iteIndex = globalLocalIndexSendToServer.end();
@@ -1734,8 +1698,21 @@ namespace xios {
       }
     }
 
+    if (isGenerated()) return;
+    setGenerated();
+
     CGridGenerate gridGenerate(this, transformGridSrc);
     gridGenerate.completeGrid();
+  }
+
+  bool CGrid::isGenerated()
+  {
+    return isGenerated_;
+  }
+
+  void CGrid::setGenerated()
+  {
+    isGenerated_ = true;
   }
 
   void CGrid::transformGrid(CGrid* transformGridSrc)
