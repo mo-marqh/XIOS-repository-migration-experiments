@@ -29,6 +29,7 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
+                                          int elementType,
                                           CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
 
 protected:

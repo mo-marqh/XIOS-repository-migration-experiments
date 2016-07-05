@@ -42,12 +42,14 @@ void CAxisAlgorithmTransformation::computeIndexSourceMapping_(const std::vector<
   \param [out] globalAxisIndexOnProc processes which contain the corresponding global index of axis source
 */
 void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalAxisIndex,
+                                                              int elementType,
                                                               CClientClientDHTInt::Index2VectorInfoTypeMap& globalAxisIndexOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
+
 
   size_t globalIndex;
   int nIndexSize = axisSrc_->index.numElements();

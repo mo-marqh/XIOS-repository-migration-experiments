@@ -64,6 +64,10 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
   int gridDim = domList.size() * 2 + axisList.size();
   grid->checkMask();
   switch (gridDim) {
+    case 0:
+      gridMask_.resize(1);
+      gridMask_(0) = true;
+      break;
     case 1:
       readGridMaskInfo(grid->mask_1d);
       break;
@@ -415,6 +419,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   isComputed_ = true;
   createLocalDomainDataIndex();
   createLocalAxisDataIndex();
+  createLocalScalarDataIndex();
 
   int idxDomain = 0, idxAxis = 0;
   std::vector<int> eachElementSize(numElement_);
@@ -578,54 +583,6 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
 void CDistributionClient::createGlobalIndex()
 {
-//  size_t ssize = 1, idx = 0;
-//  for (int i = 0; i < this->dims_; ++i)
-//  ssize *= nLocal_[i];
-//
-//  this->globalIndex_.resize(ssize);
-//  std::vector<int> idxLoop(this->numElement_,0);
-//  int innnerLoopSize = (infoIndex_[0]).numElements();
-//  while (idx < ssize)
-//  {
-//    for (int i = 0; i < this->numElement_; ++i)
-////    {
-//      if (idxLoop[i] == (infoIndex_[indexMap_[i]]).numElements())
-//      {
-//        idxLoop[i] = 0;
-//        ++idxLoop[i+1];
-//      }
-//    }
-//
-//    for (int i = 0; i < innnerLoopSize; ++i)
-//    {
-//      size_t globalIndex = (infoIndex_[0])(idxLoop[0]);
-//      size_t mulDim = 1;
-//      for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
-//      {
-//        if (axisDomainOrder_(idxElement))
-//        {
-//          int jb = (0 == idxElement) ? 1 : 0;
-//          for (int j = jb; j <= 1; ++j)
-//          {
-//            mulDim *= nGlob_[indexMap_[idxElement]+j-1];
-//            globalIndex += ((infoIndex_[indexMap_[idxElement]+j])(idxLoop[idxElement]))*mulDim;
-//          }
-//        }
-//        else
-//        {
-//          if (0 != idxElement)
-//          {
-//            mulDim *= nGlob_[indexMap_[idxElement]-1];
-//            globalIndex += ((infoIndex_[indexMap_[idxElement]])(idxLoop[idxElement]))*mulDim;
-//          }
-//        }
-//      }
-//
-//      this->globalIndex_(idx) = globalIndex;
-//      ++idxLoop[0];
-//      ++idx;
-//    }
-//  }
 }
 
 /*!

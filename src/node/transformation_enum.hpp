@@ -11,7 +11,8 @@ namespace xios
         TRANS_INTERPOLATE_AXIS = 2,
         TRANS_ZOOM_DOMAIN = 3,
         TRANS_INTERPOLATE_DOMAIN = 4,
-        TRANS_GENERATE_RECTILINEAR_DOMAIN = 5
+        TRANS_GENERATE_RECTILINEAR_DOMAIN = 5,
+        TRANS_REDUCE_AXIS_TO_SCALAR = 6
       } ETranformationType;
 
 } // namespace xios

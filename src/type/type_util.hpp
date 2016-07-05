@@ -33,6 +33,8 @@ namespace xios
     class CGenerateRectilinearDomainGroup;
     class CScalar;
     class CScalarGroup;
+    class CReduceAxisToScalar;
+    class CReduceAxisToScalarGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -83,6 +85,8 @@ namespace xios
   macro(CGenerateRectilinearDomainGroup)
   macro(CScalar)
   macro(CScalarGroup)
+  macro(CReduceAxisToScalar)
+  macro(CReduceAxisToScalarGroup)
 #undef macro
 }
 

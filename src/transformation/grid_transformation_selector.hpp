@@ -41,6 +41,7 @@ public:
   ListAlgoType getAlgoList() const { return listAlgos_; }
   int getNbAlgo() { return nbNormalAlgos_; }
   const std::vector<StdString>& getAuxInputs() const { return auxInputs_; }
+  const std::vector<CGenericAlgorithmTransformation*>& getAlgos() const { return algoTransformation_; }
 
 protected:
   void initializeAlgorithms();
@@ -79,7 +80,7 @@ protected:
   // Mapping between position of an element in grid and its transformation (if any)
   std::vector<CGenericAlgorithmTransformation*> algoTransformation_;
 
-  //! Position of axis and domain in grid
+  //! Position of scalar, axis and domain in grid
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
 

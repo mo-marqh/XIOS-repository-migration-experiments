@@ -33,6 +33,7 @@ void CDomainAlgorithmTransformation::computeIndexSourceMapping_(const std::vecto
   \param [out] globalDomainIndexOnProc processes which contain the corresponding global index of domain source
 */
 void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
+                                                                int elementType,
                                                                 CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc)
 {
   CContext* context = CContext::getCurrent();

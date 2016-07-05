@@ -67,6 +67,7 @@ namespace xios
             void addRelFile(const StdString& filename);
             bool IsWritten(const StdString& filename) const;
             void checkAttributesOnClient();
+            virtual void parse(xml::CXMLNode & node);
 
          public:
            bool hasTransformation();
@@ -74,6 +75,7 @@ namespace xios
            TransMapTypes getAllTransformations();
            void duplicateTransformation(CScalar*);
            CTransformation<CScalar>* addTransformation(ETranformationType transType, const StdString& id="");
+
          private:
            std::set<StdString> relFiles;
 
@@ -81,7 +83,13 @@ namespace xios
             TransMapTypes transformationMap_;
             void checkTransformations();
             void setTransformations(const TransMapTypes&);
-         private:
+
+       private:
+           static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
+           static std::map<StdString, ETranformationType> transformationMapList_;
+           static bool dummyTransformationMapList_;
+
+
             DECLARE_REF_FUNC(Scalar,scalar)
 
       }; // class CVar

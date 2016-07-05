@@ -25,5 +25,6 @@ namespace xios
     macro( InterpolateDomain )
     macro( GenerateRectilinearDomain )
     macro( Scalar )
+    macro( ReduceAxisToScalar )
   }
 }

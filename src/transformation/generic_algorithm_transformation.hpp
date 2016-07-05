@@ -18,6 +18,7 @@ namespace xios {
   class CGrid;
   class CDomain;
   class CAxis;
+  class CScalar;
 
   /*!
   \class CGenericAlgorithmTransformation
@@ -51,6 +52,18 @@ public:
                                CGrid* gridDst,
                                SourceDestinationIndexMap& globaIndexWeightFromSrcToDst);
 
+    /*!
+    Apply a reduction operation on local data.
+    \param [in] localIndex vector contains local index of local data output and the corresponding weight
+    \param [in] dataInput Pointer to the first element of data input array (in form of buffer)
+    \param [in/out] dataOut Array contains local data
+    \param [in/out] flagInitial vector of boolean to mark the local index already initialized. True means there is a need for initalization
+  */
+  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
+                     const double* dataInput,
+                     CArray<double,1>& dataOut,
+                     std::vector<bool>& flagInitial);
+
   std::vector<StdString> getIdAuxInputs();
 
   /*!
@@ -64,9 +77,11 @@ protected:
   /*!
   Compute proc which contains global index of an element
     \param[in] globalElementIndex demanding global index of an element of source grid
+    \param[in] elementType type of source element, 2: domain, 1: axis and 0: scalar
     \param[out] globalElementIndexOnProc Proc contains the demanding global index
   */
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalElementIndex,
+                                          int elementType,
                                           CClientClientDHTInt::Index2VectorInfoTypeMap& globalElementIndexOnProc) = 0;
 
 protected:
@@ -88,6 +103,13 @@ protected:
                                 CArray<size_t,1>& destGlobalIndexPositionInGrid,
                                 boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc);
 
+  void computeExchangeScalarIndex(CScalar* scalarDst,
+                                  CScalar* scalarSrc,
+                                  CArray<size_t,1>& destGlobalIndexPositionInGrid,
+                                  boost::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc);
+
+  void computePositionElements(CGrid* dst, CGrid* src);
+
 protected:
   //! Map between global index of destination element and source element
   std::vector<TransformationIndexMap> transformationMapping_;
@@ -99,6 +121,9 @@ protected:
 
   //! Id of auxillary inputs which helps doing transformation dynamically
   std::vector<StdString> idAuxInputs_;
+
+  std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
+  std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
 };
 
 }

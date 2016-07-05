@@ -26,6 +26,13 @@ namespace xios {
    CScalar::~CScalar(void)
    { /* Ne rien faire de plus */ }
 
+   std::map<StdString, ETranformationType> CScalar::transformationMapList_ = std::map<StdString, ETranformationType>();
+   bool CScalar::dummyTransformationMapList_ = CScalar::initializeTransformationMap(CScalar::transformationMapList_);
+   bool CScalar::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   {
+     m["reduce_axis"] = TRANS_REDUCE_AXIS_TO_SCALAR;
+   }
+
    StdString CScalar::GetName(void)   { return (StdString("scalar")); }
    StdString CScalar::GetDefName(void){ return (CScalar::GetName()); }
    ENodeType CScalar::GetType(void)   { return (eScalar); }
@@ -48,10 +55,6 @@ namespace xios {
 
    void CScalar::checkAttributes(void)
    {
-//      if (this->value.isEmpty())
-//      {
-//        this->value.setValue(0);
-//      }
    }
 
   void CScalar::checkAttributesOnClient()
@@ -123,6 +126,36 @@ namespace xios {
         refScalar[i]->setTransformations(scalar->getAllTransformations());
   }
 
+  /*!
+    Parse children nodes of a scalar in xml file.
+    \param node child node to process
+  */
+  void CScalar::parse(xml::CXMLNode & node)
+  {
+    SuperClass::parse(node);
+
+    if (node.goToChildElement())
+    {
+      StdString nodeElementName;
+      do
+      {
+        StdString nodeId("");
+        if (node.getAttributes().end() != node.getAttributes().find("id"))
+        { nodeId = node.getAttributes()["id"]; }
+
+        nodeElementName = node.getElementName();
+        std::map<StdString, ETranformationType>::const_iterator ite = transformationMapList_.end(), it;
+        it = transformationMapList_.find(nodeElementName);
+        if (ite != it)
+        {
+          transformationMap_.push_back(std::make_pair(it->second, CTransformation<CScalar>::createTransformation(it->second,
+                                                                                                                 nodeId,
+                                                                                                                 &node)));
+        }
+      } while (node.goToNextElement()) ;
+      node.goToParentElement();
+    }
+  }
 
   // Definition of some macros
   DEFINE_REF_FUNC(Scalar,scalar)

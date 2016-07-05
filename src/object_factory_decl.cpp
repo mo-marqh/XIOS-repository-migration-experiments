@@ -32,6 +32,7 @@ namespace xios
   macro(CInterpolateDomain)
   macro(CGenerateRectilinearDomain)
   macro(CScalar)
+  macro(CReduceAxisToScalar)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -47,4 +48,5 @@ namespace xios
   macro(CInterpolateDomainGroup)
   macro(CGenerateRectilinearDomainGroup)
   macro(CScalarGroup)
+  macro(CReduceAxisToScalarGroup)
 }

@@ -18,6 +18,65 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
 {
 }
 
+void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,double> >& localIndex,
+                                            const double* dataInput,
+                                            CArray<double,1>& dataOut,
+                                            std::vector<bool>& flagInitial)
+{
+  int nbLocalIndex = localIndex.size();
+  for (int idx = 0; idx < nbLocalIndex; ++idx)
+  {
+    dataOut(localIndex[idx].first) = *(dataInput + idx) * localIndex[idx].second;
+  }
+}
+
+void CGenericAlgorithmTransformation::computePositionElements(CGrid* dst, CGrid* src)
+{
+  int idxScalar = 0, idxAxis = 0, idxDomain = 0;
+  CArray<int,1> axisDomainOrderDst = dst->axis_domain_order;
+  for (int i = 0; i < axisDomainOrderDst.numElements(); ++i)
+  {
+    int dimElement = axisDomainOrderDst(i);
+    if (2 == dimElement)
+    {
+      elementPositionInGridDst2DomainPosition_[i] = idxDomain;
+      ++idxDomain;
+    }
+    else if (1 == dimElement)
+    {
+      elementPositionInGridDst2AxisPosition_[i] = idxAxis;
+      ++idxAxis;
+    }
+    else
+    {
+      elementPositionInGridDst2ScalarPosition_[i] = idxScalar;
+      ++idxScalar;
+    }
+  }
+
+  idxScalar = idxAxis = idxDomain = 0;
+  CArray<int,1> axisDomainOrderSrc = src->axis_domain_order;
+  for (int i = 0; i < axisDomainOrderSrc.numElements(); ++i)
+  {
+    int dimElement = axisDomainOrderSrc(i);
+    if (2 == dimElement)
+    {
+      elementPositionInGridSrc2DomainPosition_[i] = idxDomain;
+      ++idxDomain;
+    }
+    else if (1 == dimElement)
+    {
+      elementPositionInGridSrc2AxisPosition_[i] = idxAxis;
+      ++idxAxis;
+    }
+    else
+    {
+      elementPositionInGridSrc2ScalarPosition_[i] = idxScalar;
+      ++idxScalar;
+    }
+  }
+}
+
 /*!
   This function computes the global indexes of grid source, which the grid destination is in demand.
   \param[in] elementPositionInGrid position of an element in a grid .E.g: if grid is composed of domain and axis (in order),
@@ -81,11 +140,16 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     }
   }
 
+  // compute position of elements on grids
+  computePositionElements(gridDst, gridSrc);
+  std::vector<CScalar*> scalarListDestP = gridDst->getScalars();
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   CArray<int,1> axisDomainDstOrder = gridDst->axis_domain_order;
+  std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
+  CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
 
   // Find out global index source of transformed element on corresponding process.
   std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc(axisDomainDstOrder.numElements());
@@ -94,12 +158,12 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   for (int idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
   {
     if (idx == elementPositionInGrid)
-      computeExchangeGlobalIndex(indexSrc, globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
+      computeExchangeGlobalIndex(indexSrc, axisDomainSrcOrder(idx), globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
     if (2 == axisDomainDstOrder(idx)) // It's domain
     {
       if (idx != elementPositionInGrid)
-        computeExchangeDomainIndex(domainListDestP[domainIndex],
-                                   domainListSrcP[domainIndex],
+        computeExchangeDomainIndex(domainListDestP[elementPositionInGridDst2DomainPosition_[idx]],
+                                   domainListSrcP[elementPositionInGridSrc2DomainPosition_[idx]],
                                    transPos,
                                    globalElementIndexOnProc[idx]);
       ++domainIndex;
@@ -108,11 +172,20 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     else if (1 == axisDomainDstOrder(idx))//it's an axis
     {
       if (idx != elementPositionInGrid)
-        computeExchangeAxisIndex(axisListDestP[axisIndex],
-                                 axisListSrcP[axisIndex],
+        computeExchangeAxisIndex(axisListDestP[elementPositionInGridDst2AxisPosition_[idx]],
+                                 axisListSrcP[elementPositionInGridSrc2AxisPosition_[idx]],
                                  transPos,
                                  globalElementIndexOnProc[idx]);
       ++axisIndex;
+
+    }
+    else //it's a scalar
+    {
+      if (idx != elementPositionInGrid)
+        computeExchangeScalarIndex(scalarListDestP[elementPositionInGridDst2ScalarPosition_[idx]],
+                                   scalarListSrcP[elementPositionInGridSrc2ScalarPosition_[idx]],
+                                   transPos,
+                                   globalElementIndexOnProc[idx]);
 
     }
   }
@@ -268,7 +341,7 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
   for (int idx = 0; idx < nbElement; ++idx)
   {
     nGlobDst[idx] = globalDstSize;
-    int elementDimension = axisDomainSrcOrder(idx);
+    int elementDimension = axisDomainDstOrder(idx);
 
     // If this is a domain
     if (2 == elementDimension)
@@ -353,6 +426,30 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
       }
       idx += innnerLoopSize;
     }
+  }
+}
+
+/*!
+  Find out proc and global index of axis source which axis destination is on demande
+  \param[in] scalar Scalar destination
+  \param[in] scalar Scalar source
+  \param[in] destGlobalIndexPositionInGrid Relative position of axis corresponds to other element of grid.
+  \param[out] globalScalarIndexOnProc Global index of axis source on different procs
+*/
+void CGenericAlgorithmTransformation::computeExchangeScalarIndex(CScalar* scalarDst,
+                                                                 CScalar* scalarSrc,
+                                                                 CArray<size_t,1>& destGlobalIndexPositionInGrid,
+                                                                 boost::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  int clientSize = client->clientSize;
+
+  globalScalarIndexOnProc.rehash(std::ceil(clientSize/globalScalarIndexOnProc.max_load_factor()));
+  for (int idx = 0; idx < clientSize; ++idx)
+  {
+    globalScalarIndexOnProc[idx].push_back(0);
   }
 }
 

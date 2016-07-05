@@ -7,6 +7,8 @@
    \brief Interface for all transformations.
  */
 #include "grid_transformation.hpp"
+#include "reduce_axis_to_scalar.hpp"
+#include "scalar_algorithm_reduce_axis.hpp"
 #include "axis_algorithm_inverse.hpp"
 #include "axis_algorithm_zoom.hpp"
 #include "axis_algorithm_interpolate.hpp"
@@ -41,7 +43,31 @@ CGridTransformation::~CGridTransformation()
 */
 void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
+  int scalarSrcIndex = -1, axisSrcIndex = -1, domainSrcIndex = -1;
+  std::vector<CScalar*> scaListDestP = gridDestination_->getScalars();
+  std::vector<CScalar*> scaListSrcP  = gridSource_->getScalars();
+  std::vector<CAxis*> axisListSrcP   = gridSource_->getAxis();
+  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
 
+  int scalarDstIndex =  elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
+  CScalar::TransMapTypes trans = scaListDestP[scalarDstIndex]->getAllTransformations();
+  CScalar::TransMapTypes::const_iterator it = trans.begin();
+
+  for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
+
+  CReduceAxisToScalar* reduceAxis = 0;
+  CGenericAlgorithmTransformation* algo = 0;
+  switch (transType)
+  {
+    case TRANS_REDUCE_AXIS_TO_SCALAR:
+      reduceAxis = dynamic_cast<CReduceAxisToScalar*> (it->second);
+      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
+      algo = new CScalarAlgorithmReduceScalar(scaListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis);
+      break;
+    default:
+      break;
+  }
+  algoTransformation_.push_back(algo);
 }
 
 /*!
@@ -52,11 +78,13 @@ void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranforma
 */
 void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
+  int axisSrcIndex = -1, domainSrcIndex = -1;
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
+  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
 
-  int axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
-  CAxis::TransMapTypes trans = axisListDestP[axisIndex]->getAllTransformations();
+  int axisDstIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
+  CAxis::TransMapTypes trans = axisListDestP[axisDstIndex]->getAllTransformations();
   CAxis::TransMapTypes::const_iterator it = trans.begin();
 
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
@@ -68,14 +96,17 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
   {
     case TRANS_INTERPOLATE_AXIS:
       interpAxis = dynamic_cast<CInterpolateAxis*> (it->second);
-      algo = new CAxisAlgorithmInterpolate(axisListDestP[axisIndex], axisListSrcP[axisIndex], interpAxis);
+      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
+      algo = new CAxisAlgorithmInterpolate(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpAxis);
       break;
     case TRANS_ZOOM_AXIS:
       zoomAxis = dynamic_cast<CZoomAxis*> (it->second);
-      algo = new CAxisAlgorithmZoom(axisListDestP[axisIndex], axisListSrcP[axisIndex], zoomAxis);
+      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
+      algo = new CAxisAlgorithmZoom(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis);
       break;
     case TRANS_INVERSE_AXIS:
-      algo = new CAxisAlgorithmInverse(axisListDestP[axisIndex], axisListSrcP[axisIndex]);
+      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
+      algo = new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex]);
       break;
     default:
       break;
@@ -159,6 +190,10 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
     case TRANS_INVERSE_AXIS:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
+
+    case TRANS_REDUCE_AXIS_TO_SCALAR:
+      scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
+      break;
     default:
       break;
   }
@@ -232,6 +267,10 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
+      break;
+
+    case TRANS_REDUCE_AXIS_TO_SCALAR:
+      scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
       break;
     default:
       break;

@@ -30,7 +30,8 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&);
 
   virtual void computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
-                                  CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
+                                          int elementType,
+                                          CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc);
 
 protected:
     //! Domain on grid destination

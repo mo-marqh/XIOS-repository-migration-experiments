@@ -16,6 +16,7 @@
 #include "interpolate_domain.hpp"
 #include "generate_rectilinear_domain.hpp"
 #include "scalar.hpp"
+#include "reduce_axis_to_scalar.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

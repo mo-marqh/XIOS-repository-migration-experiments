@@ -121,6 +121,7 @@ namespace xios
     const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
     const std::list<size_t>& listNbLocalIndexToReceive = gridTransformation->getNbLocalIndexToReceiveOnGridDest();
     const std::list<std::vector<bool> >& listLocalIndexMaskOnDest = gridTransformation->getLocalMaskIndexOnGridDest();
+    const std::vector<CGenericAlgorithmTransformation*>& listAlgos = gridTransformation->getAlgos();
 
     CArray<double,1> dataCurrentDest(dataSrc.copy());
 
@@ -129,8 +130,9 @@ namespace xios
     std::list<CGridTransformation::RecvIndexGridDestinationMap>::const_iterator itListRecv = listLocalIndexToReceive.begin();
     std::list<size_t>::const_iterator itNbListRecv = listNbLocalIndexToReceive.begin();
     std::list<std::vector<bool> >::const_iterator itLocalMaskIndexOnDest = listLocalIndexMaskOnDest.begin();
+    std::vector<CGenericAlgorithmTransformation*>::const_iterator itAlgo = listAlgos.begin();
 
-    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv, ++itLocalMaskIndexOnDest)
+    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv, ++itLocalMaskIndexOnDest, ++itAlgo)
     {
       CArray<double,1> dataCurrentSrc(dataCurrentDest);
       const CGridTransformation::SendingIndexGridSourceMap& localIndexToSend = *itListSend;
@@ -188,15 +190,21 @@ namespace xios
         if (localMaskDest[i]) dataCurrentDest(i) = 0.0;
         else dataCurrentDest(i) = defaultValue;
 
+      std::vector<bool> localInitFlag(dataCurrentDest.size(), true);
       currentBuff = 0;
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
         int countSize = itRecv->second.size();
         const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
-        for (int idx = 0; idx < countSize; ++idx)
-        {
-          dataCurrentDest(localIndex_p[idx].first) += *(recvBuff+currentBuff+idx) * localIndex_p[idx].second;
-        }
+//        for (int idx = 0; idx < countSize; ++idx)
+//        {
+//          dataCurrentDest(localIndex_p[idx].first) += *(recvBuff+currentBuff+idx) * localIndex_p[idx].second;
+//        }
+        (*itAlgo)->apply(localIndex_p,
+                         recvBuff+currentBuff,
+                         dataCurrentDest,
+                         localInitFlag);
+
         currentBuff += countSize;
       }
 

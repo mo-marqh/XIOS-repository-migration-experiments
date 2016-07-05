@@ -25,7 +25,8 @@ namespace xios
          eZoomDomain,
          eInterpolateDomain,
          eGenerateRectilinearDomain,
-         eScalar
+         eScalar,
+         eReduceAxisToScalar
 
       } ENodeType;
 
