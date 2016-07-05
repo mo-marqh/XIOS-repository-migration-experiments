@@ -33,9 +33,14 @@ protected:
     scalarType = 0, axisType = 1, domainType = 2
   };
 
+protected:
+  enum TransformationType {
+    special = 0, normal = 1
+  };
+
 public:
   /** Default constructor */
-  CGridTransformationSelector(CGrid* destination, CGrid* source);
+  CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type = normal);
   virtual ~CGridTransformationSelector();
 
   ListAlgoType getAlgoList() const { return listAlgos_; }
@@ -48,7 +53,7 @@ protected:
   void initializeDomainAlgorithms(int domPositionInGrid);
   void initializeAxisAlgorithms(int axisPositionInGrid);
   void initializeScalarAlgorithms(int scalarPositionInGrid);
-  void initializeTransformations();
+  void initializeTransformations(TransformationType type);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, AlgoType algo);
   bool isSpecialTransformation(ETranformationType transType);
 

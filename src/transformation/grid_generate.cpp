@@ -13,7 +13,7 @@
 
 namespace xios {
 CGridGenerate::CGridGenerate(CGrid* destination, CGrid* source)
-  : CGridTransformationSelector(destination, source)
+  : CGridTransformationSelector(destination, source, special)
 {
 }
 

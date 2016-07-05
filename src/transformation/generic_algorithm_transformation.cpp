@@ -26,7 +26,7 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
   int nbLocalIndex = localIndex.size();
   for (int idx = 0; idx < nbLocalIndex; ++idx)
   {
-    dataOut(localIndex[idx].first) = *(dataInput + idx) * localIndex[idx].second;
+    dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
   }
 }
 

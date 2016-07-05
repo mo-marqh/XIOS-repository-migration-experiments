@@ -12,7 +12,7 @@
 
 namespace xios {
 
-CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source)
+CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)
  : gridSource_(source), gridDestination_(destination),
   listAlgos_(), algoTypes_(), nbNormalAlgos_(0), nbSpecialAlgos_(0), auxInputs_()
 {
@@ -25,7 +25,7 @@ CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGr
        << "Two grids have different number of elements"
        << "Number of elements of grid source " <<gridSource_->getId() << " is " << gridSource_->axis_domain_order.numElements()  << std::endl
        << "Number of elements of grid destination " <<gridDestination_->getId() << " is " << numElement);
-  initializeTransformations();
+  initializeTransformations(type);
 }
 
 /*!
@@ -34,18 +34,35 @@ CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGr
 Because at the end of the series, we need to know about the index mapping between the final grid destination and original grid source,
 for each transformation, we need to make sure that the current "temporary source" maps its global index correctly to the original one.
 */
-void CGridTransformationSelector::initializeTransformations()
+void CGridTransformationSelector::initializeTransformations(TransformationType type)
 {
   // Initialize algorithms
   initializeAlgorithms();
-  ListAlgoType::const_iterator itb = listAlgos_.begin(),
-                               ite = listAlgos_.end(), it;
+  ListAlgoType::iterator itb = listAlgos_.begin(),
+                         ite = listAlgos_.end(), it;
 
   for (it = itb; it != ite; ++it)
   {
     ETranformationType transType = (it->second).first;
-    if (!isSpecialTransformation(transType)) ++nbNormalAlgos_;
-    else ++nbSpecialAlgos_;
+    if (!isSpecialTransformation(transType))
+    {
+      ++nbNormalAlgos_;
+      if (special == type)
+      {
+        it = listAlgos_.erase(it);
+        --it;
+      }
+    }
+    else
+    {
+      ++nbSpecialAlgos_;
+      if (normal == type)
+      {
+        it = listAlgos_.erase(it);
+        --it;
+      }
+    }
+
   }
 }
 
