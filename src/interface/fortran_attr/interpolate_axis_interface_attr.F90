@@ -9,6 +9,27 @@ MODULE interpolate_axis_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_interpolate_axis_coordinate(interpolate_axis_hdl, coordinate, coordinate_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_axis_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: coordinate
+      INTEGER  (kind = C_INT)     , VALUE        :: coordinate_size
+    END SUBROUTINE cxios_set_interpolate_axis_coordinate
+
+    SUBROUTINE cxios_get_interpolate_axis_coordinate(interpolate_axis_hdl, coordinate, coordinate_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_axis_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: coordinate
+      INTEGER  (kind = C_INT)     , VALUE        :: coordinate_size
+    END SUBROUTINE cxios_get_interpolate_axis_coordinate
+
+    FUNCTION cxios_is_defined_interpolate_axis_coordinate(interpolate_axis_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_axis_coordinate
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_axis_hdl
+    END FUNCTION cxios_is_defined_interpolate_axis_coordinate
+
+
     SUBROUTINE cxios_set_interpolate_axis_order(interpolate_axis_hdl, order) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_axis_hdl

@@ -14,18 +14,7 @@
 #include "icutil.hpp"
 #include "timer.hpp"
 #include "context.hpp"
-#include "grid.hpp"
-#include "file.hpp"
-#include "field.hpp"
-#include "axis.hpp"
-#include "domain.hpp"
-#include "variable.hpp"
-#include "zoom_domain.hpp"
-#include "interpolate_domain.hpp"
-#include "generate_rectilinear_domain.hpp"
-#include "zoom_axis.hpp"
-#include "interpolate_axis.hpp"
-#include "inverse_axis.hpp"
+#include "node_type.hpp"
 
 extern "C"
 {
@@ -47,6 +36,9 @@ extern "C"
    typedef xios::CDomain      * XDomainPtr;
    typedef xios::CDomainGroup * XDomainGroupPtr;
 
+   typedef xios::CScalar      * XScalarPtr;
+   typedef xios::CScalarGroup * XScalarGroupPtr;
+
    typedef xios::CAxis      * XAxisPtr;
    typedef xios::CAxisGroup * XAxisGroupPtr;
 
@@ -62,6 +54,9 @@ extern "C"
    typedef xios::CZoomAxis                *  XZoomAxisPtr;
    typedef xios::CInterpolateAxis         *  XInterpolateAxisPtr;
    typedef xios::CInverseAxis             *  XInverseAxisPtr;
+
+   typedef xios::CTransformation<CScalar>   *  XTransformationScalarPtr;
+   typedef xios::CReduceAxisToScalar        *  XReduceAxisToScalarPtr;
 
    // ----------------------- Ajout d'enfant à un parent -----------------------
 
@@ -115,6 +110,22 @@ extern "C"
 
    void cxios_xml_tree_add_axis
       (XAxisGroupPtr parent_, XAxisPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         *child_ = parent_->createChild(child_id_str) ;
+      }
+      else
+      {
+         *child_ = parent_->createChild() ;
+      }
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_scalar
+      (XScalarGroupPtr parent_, XScalarPtr * child_, const char * child_id, int child_id_size)
    {
       std::string child_id_str;
       CTimer::get("XIOS").resume() ;
@@ -245,6 +256,22 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
    }
 
+   void cxios_xml_tree_add_scalargroup
+      (XScalarGroupPtr parent_, XScalarGroupPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         *child_ = parent_->createChildGroup(child_id_str) ;
+      }
+      else
+      {
+         *child_ = parent_->createChildGroup() ;
+      }
+      CTimer::get("XIOS").suspend() ;
+   }
+
    void cxios_xml_tree_add_axisgroup
       (XAxisGroupPtr parent_, XAxisGroupPtr * child_, const char * child_id, int child_id_size)
    {
@@ -321,6 +348,22 @@ extern "C"
       else
       {
          *child_ = parent_->addVariableGroup();
+      }
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_scalartogrid
+      (XGridPtr parent_, XScalarPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         *child_ = parent_->addScalar(child_id_str);
+      }
+      else
+      {
+         *child_ = parent_->addScalar();
       }
       CTimer::get("XIOS").suspend() ;
    }
@@ -462,6 +505,24 @@ extern "C"
          tmpChild_ = parent_->addTransformation(TRANS_INVERSE_AXIS);
       }
       *child_ = static_cast<XInverseAxisPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_reduceaxistoscalartoscalar
+      (XScalarPtr parent_, XReduceAxisToScalarPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationScalarPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_AXIS_TO_SCALAR, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_AXIS_TO_SCALAR);
+      }
+      *child_ = static_cast<XReduceAxisToScalarPtr>(tmpChild_);
       CTimer::get("XIOS").suspend() ;
    }
 

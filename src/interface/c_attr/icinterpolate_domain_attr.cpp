@@ -64,4 +64,27 @@ extern "C"
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
+
+
+  void cxios_set_interpolate_domain_renormalize(interpolate_domain_Ptr interpolate_domain_hdl, bool renormalize)
+  {
+    CTimer::get("XIOS").resume();
+    interpolate_domain_hdl->renormalize.setValue(renormalize);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_domain_renormalize(interpolate_domain_Ptr interpolate_domain_hdl, bool* renormalize)
+  {
+    CTimer::get("XIOS").resume();
+    *renormalize = interpolate_domain_hdl->renormalize.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_domain_renormalize(interpolate_domain_Ptr interpolate_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_domain_hdl->renormalize.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
 }

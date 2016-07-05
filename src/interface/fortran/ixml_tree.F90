@@ -2,6 +2,7 @@
 
 MODULE IXML_TREE
    USE, INTRINSIC :: ISO_C_BINDING
+   USE ISCALAR
    USE IAXIS
    USE IFILE
    USE IFIELD
@@ -14,6 +15,7 @@ MODULE IXML_TREE
    USE IZOOM_AXIS
    USE IINTERPOLATE_AXIS
    USE IINVERSE_AXIS
+   USE IREDUCE_AXIS_TO_SCALAR
 
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
@@ -40,6 +42,14 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_file
+
+      SUBROUTINE cxios_xml_tree_add_scalar(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_scalar
 
       SUBROUTINE cxios_xml_tree_add_axis(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -107,6 +117,14 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_filegroup
 
+      SUBROUTINE cxios_xml_tree_add_scalargroup(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_scalargroup
+
       SUBROUTINE cxios_xml_tree_add_axisgroup(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
          INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
@@ -146,6 +164,14 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_variablegrouptofield
+
+      SUBROUTINE cxios_xml_tree_add_scalartogrid(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_scalartogrid
 
       SUBROUTINE cxios_xml_tree_add_axistogrid(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -211,6 +237,14 @@ MODULE IXML_TREE
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_inverseaxistoaxis
 
+      SUBROUTINE cxios_xml_tree_add_reduceaxistoscalartoscalar(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_reduceaxistoscalartoscalar
+
       SUBROUTINE cxios_xml_tree_show(filename, filename_size) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR), DIMENSION(*) :: filename
@@ -234,6 +268,18 @@ MODULE IXML_TREE
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
+   SUBROUTINE xios(add_scalar)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(scalargroup))     , INTENT(IN) :: parent_hdl
+      TYPE(txios(scalar))          , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_scalar(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_scalar(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_scalar)
 
    SUBROUTINE xios(add_axis)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axisgroup))     , INTENT(IN) :: parent_hdl
@@ -340,6 +386,18 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_variabletofield)
 
+   SUBROUTINE xios(add_scalargroup)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(scalargroup))      , INTENT(IN) :: parent_hdl
+      TYPE(txios(scalargroup))      , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL, INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_scalargroup(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_scalargroup(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_scalargroup)
 
    SUBROUTINE xios(add_axisgroup)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axisgroup))      , INTENT(IN) :: parent_hdl
@@ -445,6 +503,19 @@ MODULE IXML_TREE
 
    END SUBROUTINE xios(add_variablegrouptofield)
 
+   SUBROUTINE xios(add_scalartogrid)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(grid))             , INTENT(IN) :: parent_hdl
+      TYPE(txios(scalar))           , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL  , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_scalartogrid(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_scalartogrid(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_scalartogrid)
+
    SUBROUTINE xios(add_axistogrid)(parent_hdl, child_hdl, child_id)
       TYPE(txios(grid))             , INTENT(IN) :: parent_hdl
       TYPE(txios(axis))             , INTENT(OUT):: child_hdl
@@ -548,4 +619,17 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_inverseaxistoaxis)
+
+   SUBROUTINE xios(add_reduceaxistoscalartoscalar)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(inverse_axis))              , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_reduceaxistoscalartoscalar(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_reduceaxistoscalartoscalar(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_reduceaxistoscalartoscalar)
 END MODULE IXML_TREE

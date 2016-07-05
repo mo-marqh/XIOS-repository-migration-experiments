@@ -411,6 +411,27 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_read_access
 
 
+    SUBROUTINE cxios_set_fieldgroup_scalar_ref(fieldgroup_hdl, scalar_ref, scalar_ref_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: scalar_ref
+      INTEGER  (kind = C_INT)     , VALUE        :: scalar_ref_size
+    END SUBROUTINE cxios_set_fieldgroup_scalar_ref
+
+    SUBROUTINE cxios_get_fieldgroup_scalar_ref(fieldgroup_hdl, scalar_ref, scalar_ref_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: scalar_ref
+      INTEGER  (kind = C_INT)     , VALUE        :: scalar_ref_size
+    END SUBROUTINE cxios_get_fieldgroup_scalar_ref
+
+    FUNCTION cxios_is_defined_fieldgroup_scalar_ref(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_scalar_ref
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_scalar_ref
+
+
     SUBROUTINE cxios_set_fieldgroup_scale_factor(fieldgroup_hdl, scale_factor) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

@@ -67,6 +67,12 @@ USE iaxis_attr, ONLY : xios(set_axis_attr), xios(get_axis_attr), xios(is_defined
 
 USE iaxisgroup_attr, ONLY : xios(set_axisgroup_attr), xios(get_axisgroup_attr), xios(is_defined_axisgroup_attr)
 
+USE iscalar, ONLY : txios(scalar), txios(scalargroup), xios(is_valid_scalar), xios(is_valid_scalargroup)
+
+USE iscalar_attr, ONLY : xios(set_scalar_attr), xios(get_scalar_attr), xios(is_defined_scalar_attr)
+
+USE iscalargroup_attr, ONLY : xios(set_scalargroup_attr), xios(get_scalargroup_attr), xios(is_defined_scalargroup_attr)
+
 USE izoom_axis, ONLY : txios(zoom_axis), xios(is_valid_zoom_axis)
 
 USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr), xios(get_zoom_axis_attr), xios(is_defined_zoom_axis_attr)
@@ -94,6 +100,10 @@ USE igenerate_rectilinear_domain, ONLY : txios(generate_rectilinear_domain), xio
 USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr), &
                                               xios(get_generate_rectilinear_domain_attr), &
                                               xios(is_defined_generate_rectilinear_domain_attr)
+USE ireduce_axis_to_scalar, ONLY : txios(reduce_axis_to_scalar), xios(is_valid_reduce_axis_to_scalar)
+
+USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr), xios(get_reduce_axis_to_scalar_attr), &
+                                        xios(is_defined_reduce_axis_to_scalar_attr)
 
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
                             xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)

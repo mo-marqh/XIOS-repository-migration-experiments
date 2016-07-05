@@ -63,6 +63,29 @@ extern "C"
   }
 
 
+  void cxios_set_filegroup_cyclic(filegroup_Ptr filegroup_hdl, bool cyclic)
+  {
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->cyclic.setValue(cyclic);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_cyclic(filegroup_Ptr filegroup_hdl, bool* cyclic)
+  {
+    CTimer::get("XIOS").resume();
+    *cyclic = filegroup_hdl->cyclic.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_cyclic(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->cyclic.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_filegroup_description(filegroup_Ptr filegroup_hdl, const char * description, int description_size)
   {
     std::string description_str;

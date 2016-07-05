@@ -17,6 +17,32 @@ extern "C"
 {
   typedef xios::CInterpolateAxis* interpolate_axis_Ptr;
 
+  void cxios_set_interpolate_axis_coordinate(interpolate_axis_Ptr interpolate_axis_hdl, const char * coordinate, int coordinate_size)
+  {
+    std::string coordinate_str;
+    if (!cstr2string(coordinate, coordinate_size, coordinate_str)) return;
+    CTimer::get("XIOS").resume();
+    interpolate_axis_hdl->coordinate.setValue(coordinate_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_axis_coordinate(interpolate_axis_Ptr interpolate_axis_hdl, char * coordinate, int coordinate_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(interpolate_axis_hdl->coordinate.getInheritedValue(), coordinate, coordinate_size))
+      ERROR("void cxios_get_interpolate_axis_coordinate(interpolate_axis_Ptr interpolate_axis_hdl, char * coordinate, int coordinate_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_axis_coordinate(interpolate_axis_Ptr interpolate_axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_axis_hdl->coordinate.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_interpolate_axis_order(interpolate_axis_Ptr interpolate_axis_hdl, int order)
   {
     CTimer::get("XIOS").resume();

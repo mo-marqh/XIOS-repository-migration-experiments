@@ -4,12 +4,6 @@
 #include "attribute_template.hpp"
 #include "object_template.hpp"
 #include "group_template.hpp"
-//#include "context.hpp"
-//#include "file.hpp"
-//#include "zoom_domain.hpp"
-//#include "zoom_axis.hpp"
-//#include "interpolate_axis.hpp"
-//#include "interpolate_domain.hpp"
 #include "node_type.hpp"
 
 int main (int argc, char ** argv, char ** UNUSED (env))
@@ -19,6 +13,8 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   CContext* context=CContext::create("interface");
   CCalendarWrapper calendarWrapper;
+  CScalar scalar;
+  CScalarGroup scalargroup;
   CAxis axis;
   CAxisGroup axisgroup;
   CField field;
@@ -33,17 +29,42 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CFile afile;
   CFileGroup filegroup;
 
+  CInterpolateDomain interpolateDomain;
   CZoomDomain zoomDomain;
-  CZoomAxis zoomAxis;
+  CGenerateRectilinearDomain genDomain;
 
   CInterpolateAxis interpolateAxis;
-  CInterpolateDomain interpolateDomain;
-
-  CGenerateRectilinearDomain genDomain;
+  CZoomAxis zoomAxis;
   CInverseAxis inverseAxis;
+
+  CReduceAxisToScalar reduceAxisToScalar;
 
   ostringstream oss;
   ofstream file;
+
+  file.open((path+"scalar_interface_attr.F90").c_str());
+  scalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icscalar_attr.cpp").c_str());
+  scalar.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iscalar_attr.F90").c_str());
+  scalar.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"scalargroup_interface_attr.F90").c_str());
+  scalargroup.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icscalargroup_attr.cpp").c_str());
+  scalargroup.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iscalargroup_attr.F90").c_str());
+  scalargroup.generateFortranInterface(file);
+  file.close();
 
   file.open((path+"axis_interface_attr.F90").c_str());
   axis.generateFortran2003Interface(file);
@@ -278,6 +299,18 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"iinverse_axis_attr.F90").c_str());
   inverseAxis.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"reduce_axis_to_scalar_interface_attr.F90").c_str());
+  reduceAxisToScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreduce_axis_to_scalar_attr.cpp").c_str());
+  reduceAxisToScalar.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireduce_axis_to_scalar_attr.F90").c_str());
+  reduceAxisToScalar.generateFortranInterface(file);
   file.close();
 
   file.open((path+"context_interface_attr.F90").c_str());

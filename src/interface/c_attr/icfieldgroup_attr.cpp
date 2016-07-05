@@ -534,6 +534,32 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_scalar_ref(fieldgroup_Ptr fieldgroup_hdl, const char * scalar_ref, int scalar_ref_size)
+  {
+    std::string scalar_ref_str;
+    if (!cstr2string(scalar_ref, scalar_ref_size, scalar_ref_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->scalar_ref.setValue(scalar_ref_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_scalar_ref(fieldgroup_Ptr fieldgroup_hdl, char * scalar_ref, int scalar_ref_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->scalar_ref.getInheritedValue(), scalar_ref, scalar_ref_size))
+      ERROR("void cxios_get_fieldgroup_scalar_ref(fieldgroup_Ptr fieldgroup_hdl, char * scalar_ref, int scalar_ref_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_scalar_ref(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->scalar_ref.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_scale_factor(fieldgroup_Ptr fieldgroup_hdl, double scale_factor)
   {
     CTimer::get("XIOS").resume();

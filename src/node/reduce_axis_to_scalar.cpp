@@ -18,7 +18,7 @@ namespace xios {
 
   CTransformation<CScalar>* CReduceAxisToScalar::create(const StdString& id, xml::CXMLNode* node)
   {
-    CReduceAxisToScalar* reduceAxis = CReduceAxisToScalarGroup::get("reduce_axis_definition")->createChild(id);
+    CReduceAxisToScalar* reduceAxis = CReduceAxisToScalarGroup::get("reduce_axis_to_scalar_definition")->createChild(id);
     if (node) reduceAxis->parse(*node);
     return static_cast<CTransformation<CScalar>*>(reduceAxis);
   }
@@ -32,8 +32,8 @@ namespace xios {
 
   //----------------------------------------------------------------
 
-  StdString CReduceAxisToScalar::GetName(void)    { return StdString("reduce_axis"); }
-  StdString CReduceAxisToScalar::GetDefName(void) { return StdString("reduce_axis"); }
+  StdString CReduceAxisToScalar::GetName(void)    { return StdString("reduce_axis_to_scalar"); }
+  StdString CReduceAxisToScalar::GetDefName(void) { return StdString("reduce_axis_to_scalar"); }
   ENodeType CReduceAxisToScalar::GetType(void)    { return eReduceAxisToScalar; }
 
   void CReduceAxisToScalar::checkValid(CScalar* scalarDst)
