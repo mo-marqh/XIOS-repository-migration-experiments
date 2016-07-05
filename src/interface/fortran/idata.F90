@@ -324,21 +324,19 @@ MODULE IDATA
    END SUBROUTINE xios(solve_inheritance)
 
    ! Send field functions
-   SUBROUTINE xios(send_scalar_r8)(fieldid, data_k8)
+   SUBROUTINE xios(send_field_r8_0d)(fieldid, data_k8)
    IMPLICIT NONE
       CHARACTER(len = *) , INTENT(IN) :: fieldid
       REAL     (kind = 8), INTENT(IN) :: data_k8
       CALL cxios_write_data_k80(fieldid, len(fieldid), data_k8, 1)
-   END SUBROUTINE xios(send_scalar_r8)
+   END SUBROUTINE xios(send_field_r8_0d)
 
-   SUBROUTINE xios(send_scalar_r4)(fieldid, data_k4)
+   SUBROUTINE xios(send_field_r4_0d)(fieldid, data_k4)
    IMPLICIT NONE
       CHARACTER(len = *) , INTENT(IN) :: fieldid
       REAL     (kind = 4), INTENT(IN) :: data_k4
       CALL cxios_write_data_k40(fieldid, len(fieldid), data_k4, 1)
-   END SUBROUTINE xios(send_scalar_r4)
-
-
+   END SUBROUTINE xios(send_field_r4_0d)
 
    SUBROUTINE xios(send_field_r8_1d)(fieldid, data1d_k8)
    IMPLICIT NONE

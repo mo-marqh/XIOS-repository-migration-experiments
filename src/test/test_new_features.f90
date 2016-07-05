@@ -210,7 +210,7 @@ PROGRAM test_new_features
     CALL xios_send_field("field_Two_Axis",field_Two_Axis)
     CALL xios_send_field("field_All_Axis",field_All_Axis)
     tsTemp = ts
-    CALL xios_send_scalar("field_Scalar", tsTemp)
+    CALL xios_send_field("field_Scalar", tsTemp)
     CALL wait_us(5000) ;
   ENDDO
 

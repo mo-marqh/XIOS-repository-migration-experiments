@@ -40,7 +40,7 @@
         <field field_ref="field_Domain_transformed_Interpolated" />
      </file>
      <file id="output_Scalar" name="output_Scalar" type="one_file">
-<!--        <field field_ref="field_Scalar" />-->
+        <field field_ref="field_Scalar" />
      </file>
    </file_definition>
 
