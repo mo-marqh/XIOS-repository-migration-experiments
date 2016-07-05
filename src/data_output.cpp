@@ -15,7 +15,7 @@ namespace xios
 
       void CDataOutput::writeGrid(CGrid* grid, bool allowCompressedOutput /*= false*/)
       {
-        this->writeGrid(grid->getDomains(), grid->getAxis());
+        this->writeGrid(grid->getDomains(), grid->getAxis(), grid->getScalars());
 
         if (allowCompressedOutput)
           writeGridCompressed_(grid);
@@ -57,6 +57,16 @@ namespace xios
         int aSize = axis.size();
         for (int i = 0; i < domSize; ++i) this->writeDomain_(domains[i]);
         for (int i = 0; i < aSize; ++i) this->writeAxis_(axis[i]);
+      }
+
+      void CDataOutput::writeGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, std::vector<CScalar*> scalars)
+      {
+        int domSize = domains.size();
+        int aSize = axis.size();
+        int sSize = scalars.size();
+        for (int i = 0; i < domSize; ++i) this->writeDomain_(domains[i]);
+        for (int i = 0; i < aSize; ++i) this->writeAxis_(axis[i]);
+        for (int i = 0; i < sSize; ++i) this->writeScalar_(scalars[i]);
       }
 
       //----------------------------------------------------------------

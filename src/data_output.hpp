@@ -43,6 +43,7 @@ namespace xios
             void writeGrid(CDomain* domain, CAxis* axis);
             void writeGrid(CDomain* domain);
             void writeGrid(std::vector<CDomain*> domain, std::vector<CAxis*> axis);
+            void writeGrid(std::vector<CDomain*> domains, std::vector<CAxis*> axis, std::vector<CScalar*> scalars);
 
             virtual void writeFile_     (CFile*      file)   = 0;
             virtual void writeAttribute_(CVariable*  var)    = 0;
@@ -52,6 +53,7 @@ namespace xios
             virtual void writeFieldData_(CField*     field)  = 0;
             virtual void writeDomain_   (CDomain*    domain) = 0;
             virtual void writeAxis_     (CAxis*      axis)   = 0;
+            virtual void writeScalar_   (CScalar*    scalar) = 0;
             virtual void writeGridCompressed_(CGrid* grid)   = 0;
             virtual void writeTimeDimension_(void)           = 0;
             virtual void writeTimeAxis_ (CField*     field,

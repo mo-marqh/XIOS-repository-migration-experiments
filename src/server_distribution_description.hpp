@@ -41,7 +41,7 @@ class CServerDistributionDescription
     void computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                       int rank,
                                       int clientSize,
-                                      const CArray<bool,1>& axisDomainOrder,
+                                      const CArray<int,1>& axisDomainOrder,
                                       int positionDimensionDistributed = 1);
 
     std::vector<std::vector<int> > getServerIndexBegin() const;

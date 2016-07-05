@@ -20,6 +20,7 @@ namespace xios {
 class CGrid;
 class CDomain;
 class CAxis;
+class CScalar;
 
 /*!
   \class CDistributionClient
@@ -60,13 +61,17 @@ public:
     void readDistributionInfo(CGrid* grid);
     void readDistributionInfo(const std::vector<CDomain*>& domList,
                               const std::vector<CAxis*>& axisList,
-                              const CArray<bool,1>& axisDomainOrder);
+                              const std::vector<CScalar*>& scalarList,
+                              const CArray<int,1>& axisDomainOrder);
   private:
     //! Create local index of a domain
     void createLocalDomainDataIndex();
 
     //! Create local index of an axis
     void createLocalAxisDataIndex();
+
+    //! Create local index of a scalar
+    void createLocalScalarDataIndex();
 
     template<int N>
     void readGridMaskInfo(const CArray<bool,N>& gridMask);
@@ -81,7 +86,7 @@ public:
     /*! Domains and axis are considered elements.
      * A grid composed of 1 domain and 1 axis has 2 elements */
     int numElement_;
-    CArray<bool,1> axisDomainOrder_; //!< Order of axis and domain of a grid
+    CArray<int,1> axisDomainOrder_; //!< Order of axis and domain of a grid
 
     std::vector<int> nLocal_; //!< Local size of each dimension (ni, nj, etc, ...)
     std::vector<int> nGlob_; //!< Global size of each dimension (e.x: ni_glo, nj_glo, etc, ...)
@@ -94,8 +99,8 @@ public:
     std::vector<int> dataNIndex_; //!< Data_n_index in case of domain
     std::vector<int> dataDims_; //!< Data_dim, domain can have data_dim == 1 or 2
     std::vector<int> dataBegin_; //!< Data begin (data_ibegin, data_jbegin, etc)
-    std::vector<CArray<int,1>* > dataIndex_; //!< Data index
-    std::vector<CArray<int,1>* > infoIndex_; //!< i_index, j_index
+    std::vector<CArray<int,1> > dataIndex_; //!< Data index
+    std::vector<CArray<int,1> > infoIndex_; //!< i_index, j_index
 
     std::vector<CArray<bool,1> > domainMasks_; //!< Domain mask
     std::vector<CArray<bool,1> > axisMasks_; //!< Axis mask

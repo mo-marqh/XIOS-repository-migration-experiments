@@ -168,13 +168,13 @@ void CServerDistributionDescription::computeServerGlobalIndexInRange(const std::
   \param [out] indexServerOnElement global index of each element as well as the corresponding server which contains these indices
   \param [in] clientRank rank of client
   \param [in] clientSize number of client
-  \param [in] axisDomainOrder the order of element in grid (true for domain, false for axis)
+  \param [in] axisDomainOrder the order of element in grid (2 for domain, 1 for axis, 0 for scalar)
   \param [in] positionDimensionDistributed dimension of server on which we make the cut.
 */
 void CServerDistributionDescription::computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                                                   int clientRank,
                                                                   int clientSize,
-                                                                  const CArray<bool,1>& axisDomainOrder,
+                                                                  const CArray<int,1>& axisDomainOrder,
                                                                   int positionDimensionDistributed)
 {
   switch (serverType_) {
@@ -192,7 +192,7 @@ void CServerDistributionDescription::computeServerGlobalByElement(std::vector<bo
   for (int i = 0; i < nbElement; ++i)
   {
     idxMap[i] = idx;
-    if (true == axisDomainOrder(i)) idx += 2;
+    if (2 == axisDomainOrder(i)) idx += 2;
     else ++idx;
   }
 
@@ -202,7 +202,7 @@ void CServerDistributionDescription::computeServerGlobalByElement(std::vector<bo
     for (int i = 0; i < nbElement; ++i)
     {
       int elementSize = 1;
-      if (axisDomainOrder(i))
+      if (2 == axisDomainOrder(i))
       {
         elementSize *= dimensionSizes_[idxServer][idxMap[i]] * dimensionSizes_[idxServer][idxMap[i]+1];
         elementDimension[0] = indexBegin_[idxServer][idxMap[i]];
@@ -211,12 +211,20 @@ void CServerDistributionDescription::computeServerGlobalByElement(std::vector<bo
         elementDimension[3] = dimensionSizes_[idxServer][idxMap[i]+1];
       }
 
-      else
+      else if (1 == axisDomainOrder(i))
       {
         elementSize *= dimensionSizes_[idxServer][idxMap[i]];
         elementDimension[0] = indexBegin_[idxServer][idxMap[i]];
         elementDimension[1] = 0;
         elementDimension[2] = dimensionSizes_[idxServer][idxMap[i]];
+        elementDimension[3] = 1;
+      }
+      else
+      {
+        elementSize *= dimensionSizes_[idxServer][idxMap[i]];
+        elementDimension[0] = 0;
+        elementDimension[1] = 0;
+        elementDimension[2] = 1;
         elementDimension[3] = 1;
       }
 

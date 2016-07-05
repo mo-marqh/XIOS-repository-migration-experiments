@@ -55,15 +55,10 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
 {
   std::vector<CDomain*> domList = grid->getDomains();
   std::vector<CAxis*> axisList = grid->getAxis();
-  CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+  std::vector<CScalar*> scalarList = grid->getScalars();
+  CArray<int,1> axisDomainOrder = grid->axis_domain_order;
 
-  std::vector<CDomain*>::iterator itbDom, iteDom, itDom;
-  std::vector<CAxis*>::iterator itbAxis, iteAxis, itAxis;
-
-  itbDom  = itDom  = domList.begin();  iteDom  = domList.end();
-  itbAxis = itAxis = axisList.begin(); iteAxis = axisList.end();
-
-  readDistributionInfo(domList, axisList, axisDomainOrder);
+  readDistributionInfo(domList, axisList, scalarList, axisDomainOrder);
 
   // Then check mask of grid
   int gridDim = domList.size() * 2 + axisList.size();
@@ -91,12 +86,14 @@ the distribution between clients and servers. Till now, every data structure of 
 like before, e.g: data_n_index to make sure a compability, however, it should be changed?
   \param [in] domList List of domains of grid
   \param [in] axisList List of axis of grid
-  \param [in] axisDomainOrder order of axis and domain inside a grid. True if domain, false if axis
+  \param [in] scalarList List of scalar of grid
+  \param [in] axisDomainOrder order of axis and domain inside a grid. 2 if domain, 1 if axis and zero if scalar
 //  \param [in] gridMask Mask of grid, for now, keep it 3 dimension, but it needs changing
 */
 void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domList,
                                                const std::vector<CAxis*>& axisList,
-                                               const CArray<bool,1>& axisDomainOrder)
+                                               const std::vector<CScalar*>& scalarList,
+                                               const CArray<int,1>& axisDomainOrder)
 {
   domainNum_ = domList.size();
   axisNum_   = axisList.size();
@@ -128,7 +125,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   for (int i = 0; i < numElement_; ++i)
   {
     indexMap_[i] = idx;
-    if (true == axisDomainOrder(i))
+    if (2 == axisDomainOrder(i))
     {
       ++(this->dims_);
       idx += 2;
@@ -154,7 +151,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   infoIndex_.resize(this->dims_);
 
   // A trick to determine position of each domain in domainList
-  int domIndex = 0, axisIndex = 0;
+  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
   idx = 0;
 
   elementLocalIndex_.resize(numElement_);
@@ -171,12 +168,12 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   // Update all the vectors above
   for (idx = 0; idx < numElement_; ++idx)
   {
-    bool isDomain = axisDomainOrder(idx);
+    int eleDim = axisDomainOrder(idx);
     elementNLocal_[idx] = localSize;
     elementNGlobal_[idx] = globalSize;
 
     // If this is a domain
-    if (isDomain)
+    if (2 == eleDim)
     {
       // On the j axis
       nLocal_.at(indexMap_[idx]+1) = domList[domIndex]->nj.getValue();
@@ -187,8 +184,10 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
       dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue(); //(2 == domList[domIndex]->data_dim) ? domList[domIndex]->data_jbegin.getValue() : -1;
-      dataIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->data_j_index);
-      infoIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->j_index);
+//      dataIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->data_j_index);
+//      infoIndex_.at(indexMap_[idx]+1) = &(domList[domIndex]->j_index);
+      dataIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->data_j_index);
+      infoIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->j_index);
 
       // On the i axis
       nLocal_.at(indexMap_[idx]) = domList[domIndex]->ni.getValue();
@@ -199,8 +198,10 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
 
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
-      dataIndex_.at(indexMap_[idx]) = &(domList[domIndex]->data_i_index);
-      infoIndex_.at(indexMap_[idx]) = &(domList[domIndex]->i_index);
+//      dataIndex_.at(indexMap_[idx]) = &(domList[domIndex]->data_i_index);
+//      infoIndex_.at(indexMap_[idx]) = &(domList[domIndex]->i_index);
+      dataIndex_.at(indexMap_[idx]).reference(domList[domIndex]->data_i_index);
+      infoIndex_.at(indexMap_[idx]).reference(domList[domIndex]->i_index);
 
       dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
       dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
@@ -211,7 +212,7 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       globalSize *= nGlob_.at(indexMap_[idx]+1)* nGlob_.at(indexMap_[idx]);
       ++domIndex;
     }
-    else // So it's an axis
+    else if (1 == eleDim)// So it's an axis
     {
       nLocal_.at(indexMap_[idx]) = axisList[axisIndex]->n.getValue();
       nGlob_.at(indexMap_[idx]) = axisList[axisIndex]->n_glo.getValue();
@@ -221,8 +222,10 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
 
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
-      dataIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->data_index);
-      infoIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->index);
+//      dataIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->data_index);
+//      infoIndex_.at(indexMap_[idx]) = &(axisList[axisIndex]->index);
+      dataIndex_.at(indexMap_[idx]).reference(axisList[axisIndex]->data_index);
+      infoIndex_.at(indexMap_[idx]).reference(axisList[axisIndex]->index);
       dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();
       dataDims_.at(idx) = 1;
 
@@ -232,6 +235,28 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       globalSize *= nGlob_.at(indexMap_[idx]);
 
       ++axisIndex;
+    }
+    else // scalar
+    {
+      nLocal_.at(indexMap_[idx]) = 1;
+      nGlob_.at(indexMap_[idx]) = 1;
+      nBeginLocal_.at(indexMap_[idx]) = 0;
+      nBeginGlobal_.at(indexMap_[idx]) = 1;
+      nZoomBegin_.at((indexMap_[idx])) = 0;
+      nZoomEnd_.at((indexMap_[idx])) = 0;
+
+      dataBegin_.at(indexMap_[idx]) = 0;
+      dataIndex_.at(indexMap_[idx]).resize(1); dataIndex_.at(indexMap_[idx])(0) = 0;
+      infoIndex_.at(indexMap_[idx]).resize(1); infoIndex_.at(indexMap_[idx])(0) = 0;
+      dataNIndex_.at(idx) = 1;
+      dataDims_.at(idx) = 1;
+
+      isDataDistributed_ |= false;
+
+      localSize *= nLocal_.at(indexMap_[idx]);
+      globalSize *= nGlob_.at(indexMap_[idx]);
+
+      ++scalarIndex;
     }
   }
 }
@@ -247,14 +272,14 @@ void CDistributionClient::createLocalDomainDataIndex()
   int idxDomain = 0;
   for (int i = 0; i < axisDomainOrder_.numElements(); ++i)
   {
-    if (axisDomainOrder_(i))
+    if (2 == axisDomainOrder_(i))
     {
       elementIndexData_[i].resize(dataNIndex_[i]);
       elementIndexData_[i] = false;
       int iIdx, jIdx = 0, count = 0, localIndex;
       for (int j = 0; j < dataNIndex_[i]; ++j)
       {
-        iIdx = getDomainIndex((*dataIndex_[indexMap_[i]])(j), (*dataIndex_[indexMap_[i]+1])(j),
+        iIdx = getDomainIndex((dataIndex_[indexMap_[i]])(j), (dataIndex_[indexMap_[i]+1])(j),
                               dataBegin_[indexMap_[i]], dataBegin_[indexMap_[i]+1],
                               dataDims_[i], nLocal_[indexMap_[i]], jIdx);
 
@@ -280,15 +305,15 @@ void CDistributionClient::createLocalDomainDataIndex()
       {
         if (tmpIndexElementData(j))
         {
-          iIdx = getDomainIndex((*dataIndex_[indexMap_[i]])(j), (*dataIndex_[indexMap_[i]+1])(j),
+          iIdx = getDomainIndex((dataIndex_[indexMap_[i]])(j), (dataIndex_[indexMap_[i]+1])(j),
                                 dataBegin_[indexMap_[i]], dataBegin_[indexMap_[i]+1],
                                 dataDims_[i], nLocal_[indexMap_[i]], jIdx);
           localIndex = tmpLocalElementIndex(count) = iIdx + jIdx * nLocal_[indexMap_[i]];
-          tmpGlobalElementIndex(count) = (*infoIndex_[indexMap_[i]])(localIndex) + ((*infoIndex_[indexMap_[i]+1])(localIndex))*nGlob_[indexMap_[i]];
-          if ((((*infoIndex_[indexMap_[i]])(localIndex)) <= nZoomEnd_[indexMap_[i]])
-             && (nZoomBegin_[indexMap_[i]] <= ((*infoIndex_[indexMap_[i]])(localIndex)))
-             && (((*infoIndex_[indexMap_[i]+1])(localIndex)) <= nZoomEnd_[indexMap_[i]+1])
-             && (nZoomBegin_[indexMap_[i]+1] <= ((*infoIndex_[indexMap_[i]+1])(localIndex))))
+          tmpGlobalElementIndex(count) = (infoIndex_[indexMap_[i]])(localIndex) + ((infoIndex_[indexMap_[i]+1])(localIndex))*nGlob_[indexMap_[i]];
+          if ((((infoIndex_[indexMap_[i]])(localIndex)) <= nZoomEnd_[indexMap_[i]])
+             && (nZoomBegin_[indexMap_[i]] <= ((infoIndex_[indexMap_[i]])(localIndex)))
+             && (((infoIndex_[indexMap_[i]+1])(localIndex)) <= nZoomEnd_[indexMap_[i]+1])
+             && (nZoomBegin_[indexMap_[i]+1] <= ((infoIndex_[indexMap_[i]+1])(localIndex))))
           {
             tmpZoomMaskElement(count) = true;
           }
@@ -308,14 +333,14 @@ void CDistributionClient::createLocalAxisDataIndex()
   int idxAxis = 0;
   for (int i = 0; i < axisDomainOrder_.numElements(); ++i)
   {
-    if (!axisDomainOrder_(i))
+    if (1 == axisDomainOrder_(i))
     {
       elementIndexData_[i].resize(dataNIndex_[i]);
       elementIndexData_[i] = false;
       int iIdx = 0, count = 0, localIndex = 0;
       for (int j = 0; j < dataNIndex_[i]; ++j)
       {
-        iIdx = getAxisIndex((*dataIndex_[indexMap_[i]])(j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
+        iIdx = getAxisIndex((dataIndex_[indexMap_[i]])(j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
         if ((iIdx >= nBeginLocal_[indexMap_[i]]) &&
            (iIdx < nLocal_[indexMap_[i]]) && (axisMasks_[idxAxis](iIdx)))
         {
@@ -337,10 +362,10 @@ void CDistributionClient::createLocalAxisDataIndex()
       {
         if (tmpIndexElementData(j))
         {
-          iIdx = tmpLocalElementIndex(count) = getAxisIndex((*dataIndex_[indexMap_[i]])(j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
-          tmpGlobalElementIndex(count) = (*infoIndex_[indexMap_[i]])(iIdx);
-          if ((((*infoIndex_[indexMap_[i]])(iIdx)) <= nZoomEnd_[indexMap_[i]])
-             && (nZoomBegin_[indexMap_[i]] <= ((*infoIndex_[indexMap_[i]])(iIdx))))
+          iIdx = tmpLocalElementIndex(count) = getAxisIndex((dataIndex_[indexMap_[i]])(j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
+          tmpGlobalElementIndex(count) = (infoIndex_[indexMap_[i]])(iIdx);
+          if ((((infoIndex_[indexMap_[i]])(iIdx)) <= nZoomEnd_[indexMap_[i]])
+             && (nZoomBegin_[indexMap_[i]] <= ((infoIndex_[indexMap_[i]])(iIdx))))
           {
             tmpZoomMaskElement(count) = true;
           }
@@ -348,6 +373,30 @@ void CDistributionClient::createLocalAxisDataIndex()
         }
       }
       ++idxAxis;
+    }
+  }
+}
+
+/*!
+  Create local index of scalar.
+*/
+void CDistributionClient::createLocalScalarDataIndex()
+{
+  int idxAxis = 0;
+  for (int i = 0; i < axisDomainOrder_.numElements(); ++i)
+  {
+    if (0 == axisDomainOrder_(i))
+    {
+      elementIndexData_[i].resize(dataNIndex_[i]);
+      elementIndexData_[i] = true;
+      int count = 1;
+
+      elementLocalIndex_[i].resize(count);
+      elementLocalIndex_[i] = 0;
+      elementGlobalIndex_[i].resize(count);
+      elementGlobalIndex_[i] = 0;
+      elementZoomMask_[i].resize(count);
+      elementZoomMask_[i] = true;
     }
   }
 }
@@ -529,55 +578,54 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
 void CDistributionClient::createGlobalIndex()
 {
-  size_t ssize = 1, idx = 0;
-  for (int i = 0; i < this->dims_; ++i)
-  ssize *= nLocal_[i];
-
-  this->globalIndex_.resize(ssize);
-  std::vector<int> idxLoop(this->numElement_,0);
-  int innnerLoopSize = (*infoIndex_[0]).numElements();
-  while (idx < ssize)
-  {
-    for (int i = 0; i < this->numElement_; ++i)
-    {
-      if (idxLoop[i] == (*infoIndex_[indexMap_[i]]).numElements())
-      {
-        idxLoop[i] = 0;
-        ++idxLoop[i+1];
-      }
-    }
-
-    for (int i = 0; i < innnerLoopSize; ++i)
-    {
-      size_t globalIndex = (*infoIndex_[0])(idxLoop[0]);
-      size_t mulDim = 1;
-      for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
-      {
-        if (axisDomainOrder_(idxElement))
-        {
-          int jb = (0 == idxElement) ? 1 : 0;
-          for (int j = jb; j <= 1; ++j)
-          {
-            mulDim *= nGlob_[indexMap_[idxElement]+j-1];
-            globalIndex += ((*infoIndex_[indexMap_[idxElement]+j])(idxLoop[idxElement]))*mulDim;
-          }
-        }
-        else
-        {
-          if (0 != idxElement)
-          {
-            mulDim *= nGlob_[indexMap_[idxElement]-1];
-            globalIndex += ((*infoIndex_[indexMap_[idxElement]])(idxLoop[idxElement]))*mulDim;
-          }
-        }
-      }
-
-      this->globalIndex_(idx) = globalIndex;
-      ++idxLoop[0];
-      ++idx;
-    }
-  }
-
+//  size_t ssize = 1, idx = 0;
+//  for (int i = 0; i < this->dims_; ++i)
+//  ssize *= nLocal_[i];
+//
+//  this->globalIndex_.resize(ssize);
+//  std::vector<int> idxLoop(this->numElement_,0);
+//  int innnerLoopSize = (infoIndex_[0]).numElements();
+//  while (idx < ssize)
+//  {
+//    for (int i = 0; i < this->numElement_; ++i)
+////    {
+//      if (idxLoop[i] == (infoIndex_[indexMap_[i]]).numElements())
+//      {
+//        idxLoop[i] = 0;
+//        ++idxLoop[i+1];
+//      }
+//    }
+//
+//    for (int i = 0; i < innnerLoopSize; ++i)
+//    {
+//      size_t globalIndex = (infoIndex_[0])(idxLoop[0]);
+//      size_t mulDim = 1;
+//      for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
+//      {
+//        if (axisDomainOrder_(idxElement))
+//        {
+//          int jb = (0 == idxElement) ? 1 : 0;
+//          for (int j = jb; j <= 1; ++j)
+//          {
+//            mulDim *= nGlob_[indexMap_[idxElement]+j-1];
+//            globalIndex += ((infoIndex_[indexMap_[idxElement]+j])(idxLoop[idxElement]))*mulDim;
+//          }
+//        }
+//        else
+//        {
+//          if (0 != idxElement)
+//          {
+//            mulDim *= nGlob_[indexMap_[idxElement]-1];
+//            globalIndex += ((infoIndex_[indexMap_[idxElement]])(idxLoop[idxElement]))*mulDim;
+//          }
+//        }
+//      }
+//
+//      this->globalIndex_(idx) = globalIndex;
+//      ++idxLoop[0];
+//      ++idx;
+//    }
+//  }
 }
 
 /*!

@@ -48,6 +48,7 @@ namespace xios
             /// Ecriture ///
             virtual void writeDomain_   (CDomain* domain);
             virtual void writeAxis_     (CAxis* axis);
+            virtual void writeScalar_   (CScalar* scalar);
             virtual void writeGridCompressed_(CGrid* grid);
             virtual void writeTimeDimension_(void);
             virtual void writeField_    (CField* field);
@@ -105,11 +106,13 @@ namespace xios
             bool isWrittenCompressedDomain(const std::string& domainName) const;
             bool isWrittenAxis(const std::string& axisName) const;
             bool isWrittenCompressedAxis(const std::string& axisName) const;
+            bool isWrittenScalar(const std::string& scalarName) const;
 
             void setWrittenDomain(const std::string& domainName);
             void setWrittenCompressedDomain(const std::string& domainName);
             void setWrittenAxis(const std::string& axisName);
             void setWrittenCompressedAxis(const std::string& axisName);
+            void setWrittenScalar(const std::string& scalarName);
 
             /// Propriétés privées ///
             MPI_Comm comm_file;
@@ -118,6 +121,7 @@ namespace xios
 
             std::set<std::string> writtenDomains, writtenCompressedDomains;
             std::set<std::string> writtenAxis, writtenCompressedAxis;
+            std::set<std::string> writtenScalar;
       }; // class CNc4DataOutput
 
 } // namespace xios

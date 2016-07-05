@@ -81,7 +81,7 @@ namespace xios
 
         std::vector<StdSize> start, count;
 
-        CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+        CArray<int,1> axisDomainOrder = grid->axis_domain_order;
         std::vector<StdString> domainList = grid->getDomainList();
         std::vector<StdString> axisList   = grid->getAxisList();
         int numElement = axisDomainOrder.numElements();
@@ -93,7 +93,7 @@ namespace xios
 
         for (int i = numElement - 1; i >= 0; --i)
         {
-          if (axisDomainOrder(i))
+          if (2 == axisDomainOrder(i))
           {
             CDomain* domain = CDomain::get(domainList[idxDomain]);
             if ((domain->type) != CDomain::type_attr::unstructured)
@@ -107,7 +107,7 @@ namespace xios
             --idx ;
             --idxDomain;
           }
-          else
+          else if (1 == axisDomainOrder(i))
           {
             start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
             count.push_back(nZoomSizeServer[idx]);
@@ -172,7 +172,7 @@ namespace xios
       listDimSize.push_front(*dimSizeMap.find(*it));
 
     // Now process domain and axis
-    CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+    CArray<int,1> axisDomainOrder = grid->axis_domain_order;
     int numElement = domainP.size() + axisP.size();
     int elementPosition = 0;
     int idxDomain = 0, idxAxis = 0;
@@ -180,7 +180,7 @@ namespace xios
     std::pair<std::set<StdString>::iterator,bool> it;
     for (int i = 0; i < numElement; ++i)
     {
-      if(axisDomainOrder(i))
+      if(2 == axisDomainOrder(i))
       {
         if (readAttributeValues)
         {
@@ -196,7 +196,7 @@ namespace xios
         if (isUnstructuredGrid) ++elementPosition;
         else elementPosition += 2;
       }
-      else
+      else if (1 == axisDomainOrder(i))
       {
         if (readAttributeValues)
         {

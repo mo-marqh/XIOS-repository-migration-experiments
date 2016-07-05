@@ -183,7 +183,7 @@ namespace xios
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ; 
+         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ;
 
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
@@ -237,6 +237,8 @@ namespace xios
     else if (event.classId==CDomainGroup::GetType()) CDomainGroup::dispatchEvent(event);
     else if (event.classId==CAxis::GetType()) CAxis::dispatchEvent(event);
     else if (event.classId==CAxisGroup::GetType()) CAxisGroup::dispatchEvent(event);
+    else if (event.classId==CScalar::GetType()) CScalar::dispatchEvent(event);
+    else if (event.classId==CScalarGroup::GetType()) CScalarGroup::dispatchEvent(event);
     else if (event.classId==CGrid::GetType()) CGrid::dispatchEvent(event);
     else if (event.classId==CGridGroup::GetType()) CGridGroup::dispatchEvent(event);
     else if (event.classId==CField::GetType()) CField::dispatchEvent(event);

@@ -1026,6 +1026,7 @@ namespace xios {
        CGrid::get(*it)->sendAllAttributesToServer();
        CGrid::get(*it)->sendAllDomains();
        CGrid::get(*it)->sendAllAxis();
+       CGrid::get(*it)->sendAllScalars();
      }
    }
 
@@ -1033,8 +1034,7 @@ namespace xios {
    //! Client side: Send information of reference domain and axis of active fields
    void CContext::sendRefDomainsAxis()
    {
-     std::set<StdString> domainIds;
-     std::set<StdString> axisIds;
+     std::set<StdString> domainIds, axisIds, scalarIds;
 
      // Find all reference domain and axis of all active fields
      int numEnabledFiles = this->enabledFiles.size();
@@ -1044,15 +1044,28 @@ namespace xios {
        int numEnabledFields = enabledFields.size();
        for (int j = 0; j < numEnabledFields; ++j)
        {
-         const std::pair<StdString, StdString>& prDomAxisId = enabledFields[j]->getRefDomainAxisIds();
-         if ("" != prDomAxisId.first) domainIds.insert(prDomAxisId.first);
-         if ("" != prDomAxisId.second) axisIds.insert(prDomAxisId.second);
+         const std::vector<StdString>& prDomAxisScalarId = enabledFields[j]->getRefDomainAxisIds();
+         if ("" != prDomAxisScalarId[0]) domainIds.insert(prDomAxisScalarId[0]);
+         if ("" != prDomAxisScalarId[1]) axisIds.insert(prDomAxisScalarId[1]);
+         if ("" != prDomAxisScalarId[2]) scalarIds.insert(prDomAxisScalarId[2]);
        }
      }
 
      // Create all reference axis on server side
-     std::set<StdString>::iterator itDom, itAxis;
+     std::set<StdString>::iterator itDom, itAxis, itScalar;
      std::set<StdString>::const_iterator itE;
+
+     StdString scalarDefRoot("scalar_definition");
+     CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
+     itE = scalarIds.end();
+     for (itScalar = scalarIds.begin(); itScalar != itE; ++itScalar)
+     {
+       if (!itScalar->empty())
+       {
+         scalarPtr->sendCreateChild(*itScalar);
+         CScalar::get(*itScalar)->sendAllAttributesToServer();
+       }
+     }
 
      StdString axiDefRoot("axis_definition");
      CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);

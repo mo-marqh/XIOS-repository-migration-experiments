@@ -25,7 +25,9 @@ namespace xios {
    CGrid::CGrid(void)
       : CObjectTemplate<CGrid>(), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
-      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+      , vDomainGroup_(), domList_(), isDomListSet(false)
+      , vAxisGroup_(), axisList_(), isAxisListSet(false)
+      , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
@@ -35,12 +37,15 @@ namespace xios {
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
+     setVirtualScalarGroup();
    }
 
    CGrid::CGrid(const StdString& id)
       : CObjectTemplate<CGrid>(id), CGridAttributes()
       , isChecked(false), isDomainAxisChecked(false)
-      , vDomainGroup_(), vAxisGroup_(), axisList_(), isAxisListSet(false), isDomListSet(false)
+      , vDomainGroup_(), domList_(), isDomListSet(false)
+      , vAxisGroup_(), axisList_(), isAxisListSet(false)
+      , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
@@ -50,6 +55,7 @@ namespace xios {
    {
      setVirtualDomainGroup();
      setVirtualAxisGroup();
+     setVirtualScalarGroup();
    }
 
    CGrid::~CGrid(void)
@@ -200,15 +206,23 @@ namespace xios {
    {
      if (this->isDomainAxisChecked) return;
 
+     this->solveScalarRef(areAttributesChecked);
      this->solveAxisRef(areAttributesChecked);
      this->solveDomainRef(areAttributesChecked);
-     computeGridGlobalDimension(getDomains(), getAxis(), axis_domain_order);
+     computeGridGlobalDimension(getDomains(), getAxis(), getScalars(), axis_domain_order);
      this->isDomainAxisChecked = areAttributesChecked;
    }
 
    void CGrid::solveDomainAxisBaseRef()
    {
      if (this->hasDomainAxisBaseRef_) return;
+     // Account for the scalar attributes
+     std::vector<CScalar*> scalarList = getScalars();
+     for (size_t i = 0; i < scalarList.size(); ++i)
+     {
+       scalarList[i]->setAttributesReference();
+     }
+
      // Account for the axis attributes
      std::vector<CAxis*> axisList = getAxis();
      for (size_t i = 0; i < axisList.size(); ++i)
@@ -222,6 +236,7 @@ namespace xios {
      {
        domList[i]->setAttributesReference();
      }
+
      this->hasDomainAxisBaseRef_ = true;
    }
 
@@ -382,12 +397,13 @@ namespace xios {
         axisPositionInGrid_.resize(0);
         for (int i = 0; i < axis_domain_order.numElements(); ++i)
         {
-          if (false == axis_domain_order(i))
+          int elementDimension = axis_domain_order(i);
+          if (1 == elementDimension)
           {
             axisPositionInGrid_.push_back(idx);
             ++idx;
           }
-          else idx += 2;
+          else if (2 == elementDimension) idx += 2;
         }
 
         for (int i = 0; i < axisListP.size(); ++i)
@@ -396,7 +412,23 @@ namespace xios {
             axisListP[i]->sendCheckedAttributes(globalDim_,axisPositionInGrid_[i]);
           else
             axisListP[i]->checkAttributesOnClient();
-          ++idx;
+        }
+      }
+   }
+
+   //---------------------------------------------------------------
+
+   void CGrid::solveScalarRef(bool sendAtt)
+   {
+      setScalarList();
+      std::vector<CScalar*> scalarListP = this->getScalars();
+      if (!scalarListP.empty())
+      {
+        for (int i = 0; i < scalarListP.size(); ++i)
+        {
+          /*Nothing to do for now */
+//          if (sendAtt) scalarListP[i]->sendCheckedAttributes();
+//          else scalarListP[i]->checkAttributesOnClient();
         }
       }
    }
@@ -501,7 +533,7 @@ namespace xios {
      // Some pre-calculations of global index on each element of current grid.
      int nbElement = axis_domain_order.numElements();
      std::vector<CArray<size_t,1> > globalIndexElement(nbElement);
-     int domainIdx = 0, axisIdx = 0;
+     int domainIdx = 0, axisIdx = 0, scalarIdx = 0;
      std::vector<size_t> elementNGlobal(nbElement);
      elementNGlobal[0] = 1;
      size_t globalSize = 1;
@@ -510,7 +542,7 @@ namespace xios {
        elementNGlobal[idx] = globalSize;
        size_t elementSize;
        size_t elementGlobalSize = 1;
-       if (axis_domain_order(idx))
+       if (2 == axis_domain_order(idx))
        {
          elementSize = domList[domainIdx]->i_index.numElements();
          globalIndexElement[idx].resize(elementSize);
@@ -521,7 +553,7 @@ namespace xios {
          elementGlobalSize = domList[domainIdx]->ni_glo.getValue() * domList[domainIdx]->nj_glo.getValue();
          ++domainIdx;
        }
-       else
+       else if (1 == axis_domain_order(idx))
        {
          elementSize = axisList[axisIdx]->index.numElements();
          globalIndexElement[idx].resize(elementSize);
@@ -531,6 +563,12 @@ namespace xios {
          }
          elementGlobalSize = axisList[axisIdx]->n_glo.getValue();
          ++axisIdx;
+       }
+       else
+       {
+         globalIndexElement[idx].resize(1);
+         globalIndexElement[idx](0) = 0;
+         elementGlobalSize = 1;
        }
        globalSize *= elementGlobalSize;
      }
@@ -656,15 +694,56 @@ namespace xios {
    }
 
    CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                            const CArray<bool,1>& axisDomainOrder)
+                            const CArray<int,1>& axisDomainOrder)
    {
-      return createGrid(generateId(domains, axis, axisDomainOrder), domains, axis, axisDomainOrder);
+     std::vector<CScalar*> vecScalar;
+     return createGrid(generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
    }
 
-   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                            const CArray<bool,1>& axisDomainOrder)
+   CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
    {
-      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
+     return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
+   }
+
+//   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+//                            const CArray<int,1>& axisDomainOrder)
+//   {
+//      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
+//        ERROR("CGrid* CGrid::createGrid(...)",
+//              << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
+//              << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
+//
+//      CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
+//      grid->setDomainList(domains);
+//      grid->setAxisList(axis);
+//
+//      // By default, domains are always the first elements of a grid
+//      if (0 == axisDomainOrder.numElements())
+//      {
+//        int size = domains.size() + axis.size();
+//        grid->axis_domain_order.resize(size);
+//        for (int i = 0; i < size; ++i)
+//        {
+//          if (i < domains.size()) grid->axis_domain_order(i) = 2;
+//          else grid->axis_domain_order(i) = 1;
+//        }
+//      }
+//      else
+//      {
+//        grid->axis_domain_order.resize(axisDomainOrder.numElements());
+//        grid->axis_domain_order = axisDomainOrder;
+//      }
+//
+//      grid->solveDomainAxisRefInheritance(true);
+//
+//      return grid;
+//   }
+
+   CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                            const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   {
+      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
         ERROR("CGrid* CGrid::createGrid(...)",
               << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
               << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
@@ -672,16 +751,26 @@ namespace xios {
       CGrid* grid = CGridGroup::get("grid_definition")->createChild(id);
       grid->setDomainList(domains);
       grid->setAxisList(axis);
+      grid->setScalarList(scalars);
 
       // By default, domains are always the first elements of a grid
       if (0 == axisDomainOrder.numElements())
       {
-        int size = domains.size() + axis.size();
+        int size = domains.size() + axis.size() + scalars.size();
+        int nb = 0;
         grid->axis_domain_order.resize(size);
         for (int i = 0; i < size; ++i)
         {
-          if (i < domains.size()) grid->axis_domain_order(i) = true;
-          else grid->axis_domain_order(i) = false;
+          if (i < domains.size()) {
+            grid->axis_domain_order(i) = 2;
+
+          }
+          else if ((scalars.size() < (size-nb)) < size) {
+            grid->axis_domain_order(i) = 1;
+          }
+          else
+            grid->axis_domain_order(i) = 0;
+          ++nb;
         }
       }
       else
@@ -697,17 +786,9 @@ namespace xios {
 
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
    {
-     std::vector<CAxis*> axisSrcTmp = gridSrc->getAxis(), axisSrc;
      std::vector<CDomain*> domainSrcTmp = gridSrc->getDomains(), domainSrc;
-     for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
-     {
-       CAxis* axis = CAxis::createAxis();
-       axis->duplicateAttributes(axisSrcTmp[idx]);
-       axis->duplicateTransformation(axisSrcTmp[idx]);
-       axis->solveRefInheritance(true);
-       axis->solveInheritanceTransformation();
-       axisSrc.push_back(axis);
-     }
+     std::vector<CAxis*> axisSrcTmp = gridSrc->getAxis(), axisSrc;
+     std::vector<CScalar*> scalarSrcTmp = gridSrc->getScalars(), scalarSrc;
 
      for (int idx = 0; idx < domainSrcTmp.size(); ++idx)
      {
@@ -719,24 +800,45 @@ namespace xios {
        domainSrc.push_back(domain);
      }
 
-      CGrid* grid = CGrid::createGrid(idNewGrid, domainSrc, axisSrc, gridSrc->axis_domain_order);
+     for (int idx = 0; idx < axisSrcTmp.size(); ++idx)
+     {
+       CAxis* axis = CAxis::createAxis();
+       axis->duplicateAttributes(axisSrcTmp[idx]);
+       axis->duplicateTransformation(axisSrcTmp[idx]);
+       axis->solveRefInheritance(true);
+       axis->solveInheritanceTransformation();
+       axisSrc.push_back(axis);
+     }
+
+     for (int idx = 0; idx < scalarSrcTmp.size(); ++idx)
+     {
+       CScalar* scalar = CScalar::createScalar();
+       scalar->duplicateAttributes(scalarSrcTmp[idx]);
+       scalar->duplicateTransformation(scalarSrcTmp[idx]);
+       scalar->solveRefInheritance(true);
+       scalar->solveInheritanceTransformation();
+       scalarSrc.push_back(scalar);
+     }
+
+      CGrid* grid = CGrid::createGrid(idNewGrid, domainSrc, axisSrc, scalarSrc, gridSrc->axis_domain_order);
 
       return grid;
    }
 
    StdString CGrid::generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                               const CArray<bool,1>& axisDomainOrder)
+                               const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
    {
-      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size()))
+      if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
         ERROR("CGrid* CGrid::generateId(...)",
               << "The size of axisDomainOrder (" << axisDomainOrder.numElements()
               << ") is not coherent with the number of elements (" << domains.size() + axis.size() <<").");
 
       std::ostringstream id;
 
-      if (domains.empty() && axis.empty())
-        id << "__scalar_grid__";
-      else
+      if (domains.empty() && axis.empty() && !scalars.empty())
+        id << "__scalar_";
+
+      if (0 != (domains.size() + axis.size() + scalars.size()))
       {
         id << "__grid";
 
@@ -744,16 +846,19 @@ namespace xios {
         {
           for (size_t i = 0; i < domains.size(); ++i) id << "_" << domains[i]->getId();
           for (size_t i = 0; i < axis.size(); ++i) id << "_" << axis[i]->getId();
+          for (size_t i = 0; i < scalars.size(); ++i) id << "_" << scalars[i]->getId();
         }
         else
         {
-          size_t iDomain = 0, iAxis = 0;
+          size_t iDomain = 0, iAxis = 0, iScalar = 0;
           for (size_t i = 0; i < axisDomainOrder.numElements(); ++i)
           {
-            if (axisDomainOrder(i))
+            if (2 == axisDomainOrder(i))
               id << "_" << domains[iDomain++]->getId();
-            else
+            else if (1 == axisDomainOrder(i))
               id << "_" << axis[iAxis++]->getId();
+            else
+              id << "_" << scalars[iScalar++]->getId();
           }
         }
 
@@ -784,6 +889,11 @@ namespace xios {
    CAxisGroup* CGrid::getVirtualAxisGroup() const
    {
      return this->vAxisGroup_;
+   }
+
+   CScalarGroup* CGrid::getVirtualScalarGroup() const
+   {
+     return this->vScalarGroup_;
    }
 
    void CGrid::outputField(int rank, const CArray<double, 1>& stored, double* field)
@@ -1036,13 +1146,14 @@ namespace xios {
 
   void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
                                          const std::vector<CAxis*>& axis,
-                                         const CArray<bool,1>& axisDomainOrder)
+                                         const std::vector<CScalar*>& scalars,
+                                         const CArray<int,1>& axisDomainOrder)
   {
-    globalDim_.resize(domains.size()*2+axis.size());
-    int idx = 0, idxDomain = 0, idxAxis = 0;
+    globalDim_.resize(domains.size()*2+axis.size()+scalars.size());
+    int idx = 0, idxDomain = 0, idxAxis = 0, idxScalar = 0;
     for (int i = 0; i < axisDomainOrder.numElements(); ++i)
     {
-      if (axisDomainOrder(i))
+      if (2 == axisDomainOrder(i))
       {
         if (!(domains[idxDomain]->type.isEmpty()) && (domains[idxDomain]->type==CDomain::type_attr::unstructured))
         {
@@ -1059,10 +1170,16 @@ namespace xios {
         ++idxDomain;
         idx += 2;
       }
-      else
+      else if (1 == axisDomainOrder(i))
       {
         globalDim_[idx] = axis[idxAxis]->n_glo.getValue();
         ++idxAxis;
+        ++idx;
+      }
+      else
+      {
+        globalDim_[idx] = 1;
+        ++idxScalar;
         ++idx;
       }
     }
@@ -1178,7 +1295,7 @@ namespace xios {
         for (int i = 0; i < numElement; ++i)
         {
           indexMap[i] = idx;
-          if (true == axis_domain_order(i))
+          if (2 == axis_domain_order(i))
           {
             ++ssize;
             idx += 2;
@@ -1187,13 +1304,13 @@ namespace xios {
             ++idx;
         }
 
-        int axisId = 0, domainId = 0;
+        int axisId = 0, domainId = 0, scalarId = 0;
         std::vector<CDomain*> domainList = getDomains();
         std::vector<CAxis*> axisList = getAxis();
         std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
         for (int i = 0; i < numElement; ++i)
         {
-          if (axis_domain_order(i))
+          if (2 == axis_domain_order(i)) //domain
           {
             nZoomBegin[indexMap[i]] = domainList[domainId]->zoom_ibegin_srv;
             nZoomSize[indexMap[i]]  = domainList[domainId]->zoom_ni_srv;
@@ -1206,13 +1323,21 @@ namespace xios {
             nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
             ++domainId;
           }
-          else
+          else if (1 == axis_domain_order(i)) // axis
           {
             nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
             nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
             nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
             nGlob[indexMap[i]] = axisList[axisId]->n_glo;
             ++axisId;
+          }
+          else // scalar
+          {
+            nZoomBegin[indexMap[i]] = 0;
+            nZoomSize[indexMap[i]]  = 1;
+            nZoomBeginGlobal[indexMap[i]] = 0;
+            nGlob[indexMap[i]] = 1;
+            ++scalarId;
           }
         }
         dataSize = 1;
@@ -1280,6 +1405,11 @@ namespace xios {
            recvAddAxis(event);
            return true;
            break;
+
+         case EVENT_ID_ADD_SCALAR :
+           recvAddScalar(event);
+           return true;
+           break;
         default :
           ERROR("bool CDomain::dispatchEvent(CEventServer& event)",
                 << "Unknown Event");
@@ -1292,7 +1422,7 @@ namespace xios {
 
    CDomain* CGrid::addDomain(const std::string& id)
    {
-     order_.push_back(true);
+     order_.push_back(2);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vDomainGroup_->createChild(id);
@@ -1300,10 +1430,18 @@ namespace xios {
 
    CAxis* CGrid::addAxis(const std::string& id)
    {
-     order_.push_back(false);
+     order_.push_back(1);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vAxisGroup_->createChild(id);
+   }
+
+   CScalar* CGrid::addScalar(const std::string& id)
+   {
+     order_.push_back(0);
+     axis_domain_order.resize(order_.size());
+     for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
+     return vScalarGroup_->createChild(id);
    }
 
    //! Change virtual field group to a new one
@@ -1318,6 +1456,12 @@ namespace xios {
       this->vAxisGroup_ = newVAxisGroup;
    }
 
+   //! Change virtual variable group to new one
+   void CGrid::setVirtualScalarGroup(CScalarGroup* newVScalarGroup)
+   {
+      this->vScalarGroup_ = newVScalarGroup;
+   }
+
    //----------------------------------------------------------------
    //! Create virtual field group, which is done normally on initializing file
    void CGrid::setVirtualDomainGroup(void)
@@ -1329,6 +1473,12 @@ namespace xios {
    void CGrid::setVirtualAxisGroup(void)
    {
       this->setVirtualAxisGroup(CAxisGroup::create());
+   }
+
+   //! Create virtual variable group, which is done normally on initializing file
+   void CGrid::setVirtualScalarGroup(void)
+   {
+      this->setVirtualScalarGroup(CScalarGroup::create());
    }
 
    /*!
@@ -1371,6 +1521,33 @@ namespace xios {
        CContextClient* client=context->client;
 
        CEventClient event(this->getType(),EVENT_ID_ADD_AXIS);
+       if (client->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getId();
+         msg<<id;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         client->sendEvent(event);
+       }
+       else client->sendEvent(event);
+    }
+   }
+
+   /*!
+   \brief Send a message to create a scalar on server side
+   \param[in] id String identity of scalar that will be created on server
+   */
+   void CGrid::sendAddScalar(const string& id)
+   {
+    CContext* context=CContext::getCurrent();
+
+    if (! context->hasServer )
+    {
+       CContextClient* client=context->client;
+
+       CEventClient event(this->getType(),EVENT_ID_ADD_SCALAR);
        if (client->isServerLeader())
        {
          CMessage msg;
@@ -1433,6 +1610,30 @@ namespace xios {
       addAxis(id);
    }
 
+   /*!
+   \brief Receive a message annoucing the creation of an scalar on server side
+   \param[in] event Received event
+   */
+   void CGrid::recvAddScalar(CEventServer& event)
+   {
+
+      CBufferIn* buffer = event.subEvents.begin()->buffer;
+      string id;
+      *buffer >> id;
+      get(id)->recvAddScalar(*buffer);
+   }
+
+   /*!
+   \brief Receive a message annoucing the creation of an scalar on server side
+   \param[in] buffer Buffer containing message
+   */
+   void CGrid::recvAddScalar(CBufferIn& buffer)
+   {
+      string id;
+      buffer >> id;
+      addScalar(id);
+   }
+
   /*!
   \brief Solve domain and axis references
   As field, domain and axis can refer to other domains or axis. In order to inherit correctly
@@ -1465,6 +1666,18 @@ namespace xios {
       {
         pAxis->solveRefInheritance(apply);
         pAxis->solveInheritanceTransformation();
+      }
+    }
+
+    setScalarList();
+    it = scalarList_.begin(); itE = scalarList_.end();
+    for (; it != itE; ++it)
+    {
+      CScalar* pScalar = CScalar::get(*it);
+      if (context->hasClient)
+      {
+        pScalar->solveRefInheritance(apply);
+        pScalar->solveInheritanceTransformation();
       }
     }
   }
@@ -1512,12 +1725,12 @@ namespace xios {
       }
       else
       {
-        int ssize = axis_domain_order.numElements();
-        for (int i = 0; i < ssize; ++i)
-          if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-            ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-                  << "Grids " << this->getId() << " and " << transformGridSrc->getId()
-                  << " don't have elements in the same order");
+//        int ssize = axis_domain_order.numElements();
+//        for (int i = 0; i < ssize; ++i)
+//          if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
+//            ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
+//                  << "Grids " << this->getId() << " and " << transformGridSrc->getId()
+//                  << " don't have elements in the same order");
       }
     }
 
@@ -1542,12 +1755,12 @@ namespace xios {
     }
     else
     {
-      int ssize = axis_domain_order.numElements();
-      for (int i = 0; i < ssize; ++i)
-        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
-                << " don't have elements in the same order");
+//      int ssize = axis_domain_order.numElements();
+//      for (int i = 0; i < ssize; ++i)
+//        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
+//          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
+//                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
+//                << " don't have elements in the same order");
     }
 
     transformations_ = new CGridTransformation(this, transformGridSrc);
@@ -1588,6 +1801,19 @@ namespace xios {
       for (int i =0; i < axisList_.size(); ++i) aList.push_back(CAxis::get(axisList_[i]));
 
     return aList;
+  }
+
+  /*!
+  \brief Get the list of  axis pointers
+  \return list of axis pointers
+  */
+  std::vector<CScalar*> CGrid::getScalars()
+  {
+    std::vector<CScalar*> sList;
+    if (!scalarList_.empty())
+      for (int i =0; i < scalarList_.size(); ++i) sList.push_back(CScalar::get(scalarList_[i]));
+
+    return sList;
   }
 
   /*!
@@ -1646,6 +1872,33 @@ namespace xios {
   }
 
   /*!
+  \brief Set scalar(s) of a grid from a list
+  \param[in] scalars list of scalars
+  */
+  void CGrid::setScalarList(const std::vector<CScalar*> scalars)
+  {
+    if (isScalarListSet) return;
+    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
+    if (!scalars.empty() && sList.empty())
+    {
+      for (int i = 0; i < scalars.size(); ++i)
+        this->getVirtualScalarGroup()->addChild(scalars[i]);
+      sList = this->getVirtualScalarGroup()->getAllChildren();
+    }
+
+    if (!sList.empty())
+    {
+      int sizeScalar = sList.size();
+      scalarList_.resize(sizeScalar);
+      for (int i = 0; i < sizeScalar; ++i)
+      {
+        scalarList_[i] = sList[i]->getId();
+      }
+      isScalarListSet = true;
+    }
+  }
+
+  /*!
   \brief Get list of id of domains
   \return id list of domains
   */
@@ -1665,6 +1918,19 @@ namespace xios {
     return axisList_;
   }
 
+  /*!
+  \brief Get list of id of scalar
+  \return id list of scalar
+  */
+  std::vector<StdString> CGrid::getScalarList()
+  {
+    setScalarList();
+    return scalarList_;
+  }
+
+  /*!
+    Send all attributes of domains from client to server
+  */
   void CGrid::sendAllDomains()
   {
     std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
@@ -1676,6 +1942,9 @@ namespace xios {
     }
   }
 
+  /*!
+    Send all attributes of axis from client to server
+  */
   void CGrid::sendAllAxis()
   {
     std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
@@ -1688,6 +1957,24 @@ namespace xios {
     }
   }
 
+  /*!
+    Send all attributes of scalars from client to server
+  */
+  void CGrid::sendAllScalars()
+  {
+    std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
+    int sSize = sList.size();
+
+    for (int i = 0; i < sSize; ++i)
+    {
+      sendAddScalar(sList[i]->getId());
+      sList[i]->sendAllAttributesToServer();
+    }
+  }
+
+  /*!
+    Parse a grid, for now, it contains only domain, axis and scalar
+  */
   void CGrid::parse(xml::CXMLNode& node)
   {
     SuperClass::parse(node);
@@ -1696,15 +1983,20 @@ namespace xios {
     {
       StdString domainName("domain");
       StdString axisName("axis");
+      StdString scalarName("scalar");
       do
       {
         if (node.getElementName() == domainName) {
-          order_.push_back(true);
+          order_.push_back(2);
           this->getVirtualDomainGroup()->parseChild(node);
         }
         if (node.getElementName() == axisName) {
-          order_.push_back(false);
+          order_.push_back(1);
           this->getVirtualAxisGroup()->parseChild(node);
+        }
+        if (node.getElementName() == scalarName) {
+          order_.push_back(0);
+          this->getVirtualScalarGroup()->parseChild(node);
         }
       } while (node.goToNextElement());
       node.goToParentElement();
@@ -1722,5 +2014,6 @@ namespace xios {
 
     setDomainList();
     setAxisList();
+    setScalarList();
    }
 } // namespace xios

@@ -8,6 +8,7 @@
 #include "declare_group.hpp"
 #include "domain.hpp"
 #include "axis.hpp"
+#include "scalar.hpp"
 #include "array_new.hpp"
 #include "attribute_array.hpp"
 #include "distribution_server.hpp"
@@ -23,6 +24,7 @@ namespace xios {
    class CGridAttributes;
    class CDomainGroup;
    class CAxisGroup;
+   class CScalarGroup;
    class CGrid;
    class CDistributionClient;
    class CDistributionServer;
@@ -54,12 +56,7 @@ namespace xios {
 
          enum EEventId
          {
-           EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS
-         };
-
-         enum EElementType
-         {
-           GRID_ONLY_AXIS, GRID_ONLY_DOMAIN, GRID_AXIS_DOMAIN
+           EVENT_ID_INDEX, EVENT_ID_ADD_DOMAIN, EVENT_ID_ADD_AXIS, EVENT_ID_ADD_SCALAR
          };
 
          /// Constructeurs ///
@@ -121,11 +118,17 @@ namespace xios {
          static CGrid* createGrid(CDomain* domain);
          static CGrid* createGrid(CDomain* domain, CAxis* axis);
          static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                                  const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+                                  const CArray<int,1>& axisDomainOrder = CArray<int,1>());
+//         static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+//                                  const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static CGrid* createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                                  const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+                                  const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
+         static CGrid* createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+                                  const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder);
+//         static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
+//                                     const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
-                                     const CArray<bool,1>& axisDomainOrder = CArray<bool,1>());
+                                     const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder = CArray<int,1>());
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
          static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
@@ -143,21 +146,27 @@ namespace xios {
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
+         void solveScalarRef(bool checkAtt);
          void solveDomainAxisRefInheritance(bool apply = true);
          void solveTransformations();
          void solveDomainAxisBaseRef();
 
          CDomain* addDomain(const std::string& id=StdString());
          CAxis* addAxis(const std::string& id=StdString());
+         CScalar* addScalar(const std::string& id=StdString());
          void sendAddDomain(const std::string& id="");
          void sendAddAxis(const std::string& id="");
+         void sendAddScalar(const std::string& id="");
          void sendAllDomains();
          void sendAllAxis();
+         void sendAllScalars();
 
          static void recvAddDomain(CEventServer& event);
          void recvAddDomain(CBufferIn& buffer);
          static void recvAddAxis(CEventServer& event);
          void recvAddAxis(CBufferIn& buffer);
+         static void recvAddScalar(CEventServer& event);
+         void recvAddScalar(CBufferIn& buffer);
 
          static bool dispatchEvent(CEventServer& event);
          static void recvIndex(CEventServer& event);
@@ -171,8 +180,10 @@ namespace xios {
          std::map<int, StdSize> getDataBufferSize(const std::string& id = "");
          std::vector<StdString> getDomainList();
          std::vector<StdString> getAxisList();
+         std::vector<StdString> getScalarList();
          std::vector<CDomain*> getDomains();
          std::vector<CAxis*> getAxis();
+         std::vector<CScalar*> getScalars();
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
          bool isScalarGrid() const;
@@ -217,14 +228,15 @@ namespace xios {
 
          void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
                                          const std::vector<CAxis*>& axis,
-                                         const CArray<bool,1>& axisDomainOrder);
+                                         const std::vector<CScalar*>& scalars,
+                                         const CArray<int,1>& axisDomainOrder);
 
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
                           const std::vector<CArray<bool,1>* >& domainMasks,
                           const std::vector<CArray<bool,1>* >& axisMasks,
-                          const CArray<bool,1>& axisDomainOrder,
+                          const CArray<int,1>& axisDomainOrder,
                           bool createMask = false);
         template<int N>
         void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify);
@@ -233,24 +245,28 @@ namespace xios {
         void setVirtualDomainGroup();
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
         void setVirtualAxisGroup();
+        void setVirtualScalarGroup(CScalarGroup* newVScalarGroup);
+        void setVirtualScalarGroup();
 
-        void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());
         void setDomainList(const std::vector<CDomain*> domains = std::vector<CDomain*>());
+        void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());
+        void setScalarList(const std::vector<CScalar*> scalars = std::vector<CScalar*>());
 
-        CAxisGroup* getVirtualAxisGroup() const;
         CDomainGroup* getVirtualDomainGroup() const;
+        CAxisGroup* getVirtualAxisGroup() const;
+        CScalarGroup* getVirtualScalarGroup() const;
 
         void checkAttributesAfterTransformation();
         void setTransformationAlgorithms();
         void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
 
-
       private:
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
-        std::vector<std::string> axisList_, domList_;
-        bool isAxisListSet, isDomListSet;
+        CScalarGroup* vScalarGroup_;
+        std::vector<std::string> axisList_, domList_, scalarList_;
+        bool isAxisListSet, isDomListSet, isScalarListSet;
 
         CDistributionClient* clientDistribution_;
         CDistributionServer* serverDistribution_;
@@ -274,7 +290,7 @@ namespace xios {
         bool hasTransform_;
         CClientServerMapping::GlobalIndexMap globalIndexOnServer_;
             // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
-        std::vector<bool> order_;
+        std::vector<int> order_;
    }; // class CGrid
 
    ///--------------------------------------------------------------
@@ -305,7 +321,7 @@ namespace xios {
    void CGrid::checkGridMask(CArray<bool,N>& gridMask,
                              const std::vector<CArray<bool,1>* >& domainMasks,
                              const std::vector<CArray<bool,1>* >& axisMasks,
-                             const CArray<bool,1>& axisDomainOrder,
+                             const CArray<int,1>& axisDomainOrder,
                              bool createMask)
    {
      int idx = 0;
@@ -319,15 +335,16 @@ namespace xios {
     for (int i = 0; i < numElement; ++i)
     {
       indexMap[i] = idx;
-      if (true == axisDomainOrder(i)) {
+      if (2 == axisDomainOrder(i)) {
           eachDimSize[indexMap[i]]   = domainP[idxDomain]->ni;
           eachDimSize[indexMap[i]+1] = domainP[idxDomain]->nj;
           idx += 2; ++idxDomain;
       }
-      else {
+      else if (1 == axisDomainOrder(i)) {
         eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
         ++idx; ++idxAxis;
       }
+      else ++idx;
     }
 
     if (!gridMask.isEmpty() && !createMask)
@@ -364,12 +381,12 @@ namespace xios {
       bool maskValue = true;
       for (int i = 0; i < numElement; ++i)
       {
-        if (axisDomainOrder(i))
+        if (2 == axisDomainOrder(i))
         {
           maskValue = maskValue && (*domainMasks[idxDomain])(idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]]);
           ++idxDomain;
         }
-        else
+        else if (1 == axisDomainOrder(i))
         {
           maskValue = maskValue && (*axisMasks[idxAxis])(idxLoop[indexMap[i]]);
           ++idxAxis;

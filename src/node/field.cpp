@@ -33,7 +33,7 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisIds_("", ""), areAllReferenceSolved(false), isReferenceSolved(false)
+      , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
@@ -44,7 +44,7 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisIds_("", ""), areAllReferenceSolved(false), isReferenceSolved(false)
+      , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
    { setVirtualVariableGroup(); }
@@ -888,22 +888,23 @@ namespace xios{
 
    void CField::solveGridReference(void)
    {
-      if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty())
+      if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty() && scalar_ref.isEmpty())
       {
         ERROR("CField::solveGridReference(void)",
               << "A grid must be defined for field '" << getFieldOutputName() << "' .");
       }
-      else if (!grid_ref.isEmpty() && (!domain_ref.isEmpty() || !axis_ref.isEmpty()))
+      else if (!grid_ref.isEmpty() && (!domain_ref.isEmpty() || !axis_ref.isEmpty() || !scalar_ref.isEmpty()))
       {
         ERROR("CField::solveGridReference(void)",
-              << "Field '" << getFieldOutputName() << "' has both a grid and a domain/axis." << std::endl
-              << "Please define either 'grid_ref' or 'domain_ref'/'axis_ref'.");
+              << "Field '" << getFieldOutputName() << "' has both a grid and a domain/axis/scalar." << std::endl
+              << "Please define either 'grid_ref' or 'domain_ref'/'axis_ref'/'scalar_ref'.");
       }
 
       if (grid_ref.isEmpty())
       {
         std::vector<CDomain*> vecDom;
         std::vector<CAxis*> vecAxis;
+        std::vector<CScalar*> vecScalar;
 
         if (!domain_ref.isEmpty())
         {
@@ -924,12 +925,21 @@ namespace xios{
                   << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
         }
 
+        if (!scalar_ref.isEmpty())
+        {
+          if (CScalar::has(scalar_ref))
+            vecScalar.push_back(CScalar::get(scalar_ref));
+          else
+            ERROR("CField::solveGridReference(void)",
+                  << "Invalid reference to scalar '" << scalar_ref.getValue() << "'.");
+        }
+
         // Warning: the gridId shouldn't be set as the grid_ref since it could be inherited
-        StdString gridId = CGrid::generateId(vecDom, vecAxis);
+        StdString gridId = CGrid::generateId(vecDom, vecAxis, vecScalar);
         if (CGrid::has(gridId))
           this->grid = CGrid::get(gridId);
         else
-          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis);
+          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis, vecScalar);
       }
       else
       {
@@ -1137,7 +1147,7 @@ namespace xios{
    of a field. In some cases, only domain exists but axis doesn't
    \return pair of Domain and Axis id
    */
-   const std::pair<StdString,StdString>& CField::getRefDomainAxisIds()
+   const std::vector<StdString>& CField::getRefDomainAxisIds()
    {
      CGrid* cgPtr = getRelGrid();
      if (NULL != cgPtr)
@@ -1147,17 +1157,24 @@ namespace xios{
        {
          std::vector<StdString> domainList = cgPtr->getDomainList();
          it = std::find(domainList.begin(), domainList.end(), domain_ref.getValue());
-         if (domainList.end() != it) domAxisIds_.first = *it;
+         if (domainList.end() != it) domAxisScalarIds_[0] = *it;
        }
 
        if (!axis_ref.isEmpty())
        {
          std::vector<StdString> axisList = cgPtr->getAxisList();
          it = std::find(axisList.begin(), axisList.end(), axis_ref.getValue());
-         if (axisList.end() != it) domAxisIds_.second = *it;
+         if (axisList.end() != it) domAxisScalarIds_[1] = *it;
+       }
+
+       if (!scalar_ref.isEmpty())
+       {
+         std::vector<StdString> scalarList = cgPtr->getScalarList();
+         it = std::find(scalarList.begin(), scalarList.end(), scalar_ref.getValue());
+         if (scalarList.end() != it) domAxisScalarIds_[2] = *it;
        }
      }
-     return (domAxisIds_);
+     return (domAxisScalarIds_);
    }
 
    CVariable* CField::addVariable(const string& id)

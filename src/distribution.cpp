@@ -20,11 +20,6 @@ CDistribution::CDistribution(int rank, int dims, const CArray<size_t,1>& globalI
 CDistribution::~CDistribution()
 { /* Nothing to do */ }
 
-const CArray<size_t,1>& CDistribution::getGlobalIndex() const
-{
-  return globalIndex_;
-}
-
 int CDistribution::getDims() const
 {
   return dims_;

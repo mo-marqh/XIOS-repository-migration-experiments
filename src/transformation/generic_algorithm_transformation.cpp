@@ -83,7 +83,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
 
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
-  CArray<bool,1> axisDomainDstOrder = gridDst->axis_domain_order;
+  CArray<int,1> axisDomainDstOrder = gridDst->axis_domain_order;
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
 
@@ -95,7 +95,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   {
     if (idx == elementPositionInGrid)
       computeExchangeGlobalIndex(indexSrc, globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
-    if (axisDomainDstOrder(idx)) // It's domain
+    if (2 == axisDomainDstOrder(idx)) // It's domain
     {
       if (idx != elementPositionInGrid)
         computeExchangeDomainIndex(domainListDestP[domainIndex],
@@ -105,7 +105,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       ++domainIndex;
 
     }
-    else //it's an axis
+    else if (1 == axisDomainDstOrder(idx))//it's an axis
     {
       if (idx != elementPositionInGrid)
         computeExchangeAxisIndex(axisListDestP[axisIndex],
@@ -225,35 +225,66 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
                                                                    std::vector<boost::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
                                                                    SourceDestinationIndexMap& globaIndexWeightFromSrcToDst)
 {
-  std::vector<CAxis*> axisListDestP = gridDst->getAxis();
-  std::vector<CDomain*> domainListDestP = gridDst->getDomains();
-  CArray<bool,1> axisDomainDstOrder = gridDst->axis_domain_order;
-  std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
-  CArray<bool,1> axisDomainSrcOrder = gridDst->axis_domain_order;
+  std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
+  std::vector<CScalar*> scalarListSrcP = gridSrc->getScalars();
+  CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
+
   size_t nbElement = axisDomainSrcOrder.numElements();
-  std::vector<size_t> nGlobSrc(nbElement), nGlobDst(nbElement);
-  size_t globalSrcSize = 1, globalDstSize = 1;
-  int domainIndex = 0;
-  int axisIndex = 0;
+  std::vector<size_t> nGlobSrc(nbElement);
+  size_t globalSrcSize = 1;
+  int domainIndex = 0, axisIndex = 0, scalarIndex = 0;
   for (int idx = 0; idx < nbElement; ++idx)
   {
     nGlobSrc[idx] = globalSrcSize;
-    nGlobDst[idx] = globalDstSize;
-    bool isDomain = axisDomainSrcOrder(idx);
+    int elementDimension = axisDomainSrcOrder(idx);
 
     // If this is a domain
-    if (isDomain)
+    if (2 == elementDimension)
     {
       globalSrcSize *= domainListSrcP[domainIndex]->nj_glo.getValue() * domainListSrcP[domainIndex]->ni_glo.getValue();
+      ++domainIndex;
+    }
+    else if (1 == elementDimension) // So it's an axis
+    {
+      globalSrcSize *= axisListSrcP[axisIndex]->n_glo.getValue();
+      ++axisIndex;
+    }
+    else
+    {
+      globalSrcSize *= 1;
+      ++scalarIndex;
+    }
+  }
+
+  std::vector<CDomain*> domainListDestP = gridDst->getDomains();
+  std::vector<CAxis*> axisListDestP = gridDst->getAxis();
+  std::vector<CScalar*> scalarListDestP = gridDst->getScalars();
+  CArray<int,1> axisDomainDstOrder = gridDst->axis_domain_order;
+
+  std::vector<size_t> nGlobDst(nbElement);
+  size_t globalDstSize = 1;
+  domainIndex = axisIndex = scalarIndex = 0;
+  for (int idx = 0; idx < nbElement; ++idx)
+  {
+    nGlobDst[idx] = globalDstSize;
+    int elementDimension = axisDomainSrcOrder(idx);
+
+    // If this is a domain
+    if (2 == elementDimension)
+    {
       globalDstSize *= domainListDestP[domainIndex]->nj_glo.getValue() * domainListDestP[domainIndex]->ni_glo.getValue();
       ++domainIndex;
     }
-    else // So it's an axis
+    else if (1 == elementDimension) // So it's an axis
     {
-      globalSrcSize *= axisListSrcP[axisIndex]->n_glo.getValue();
       globalDstSize *= axisListDestP[axisIndex]->n_glo.getValue();
       ++axisIndex;
+    }
+    else
+    {
+      globalDstSize *= 1;
+      ++scalarIndex;
     }
   }
 

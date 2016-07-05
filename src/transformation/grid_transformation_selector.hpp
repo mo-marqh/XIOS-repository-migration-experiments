@@ -1,0 +1,91 @@
+/*!
+   \file grid_transformation.hpp
+   \author Ha NGUYEN
+   \since 23 June 2016
+   \date 23 June 2016
+
+   \brief Helper class to select different transformations.
+ */
+#ifndef __XIOS_GRID_TRANSFORMATION_SELECTOR_HPP__
+#define __XIOS_GRID_TRANSFORMATION_SELECTOR_HPP__
+
+#include <map>
+#include <vector>
+#include "generic_algorithm_transformation.hpp"
+#include "transformation_enum.hpp"
+#include "duration.hpp"
+
+namespace xios {
+
+class CGrid;
+
+/*!
+  \class CGridTransformationSelector
+  This class is a helper class to chose a algorithm (transformation) from the alogrithm list of
+specific grid.
+*/
+class CGridTransformationSelector
+{
+public:
+  typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
+protected:
+  enum AlgoType {
+    scalarType = 0, axisType = 1, domainType = 2
+  };
+
+public:
+  /** Default constructor */
+  CGridTransformationSelector(CGrid* destination, CGrid* source);
+  virtual ~CGridTransformationSelector();
+
+  ListAlgoType getAlgoList() const { return listAlgos_; }
+  int getNbAlgo() { return nbNormalAlgos_; }
+  const std::vector<StdString>& getAuxInputs() const { return auxInputs_; }
+
+protected:
+  void initializeAlgorithms();
+  void initializeDomainAlgorithms(int domPositionInGrid);
+  void initializeAxisAlgorithms(int axisPositionInGrid);
+  void initializeScalarAlgorithms(int scalarPositionInGrid);
+  void initializeTransformations();
+  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, AlgoType algo);
+  bool isSpecialTransformation(ETranformationType transType);
+
+protected:
+  virtual void selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder) = 0;
+  virtual void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder) = 0;
+  virtual void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder) = 0;
+
+protected:
+  //! Grid source on transformation
+  CGrid* gridSource_;
+
+  //! Grid destination on transformation
+  CGrid* gridDestination_;
+
+protected:
+  //! List of algorithm types and their order
+  ListAlgoType listAlgos_;
+
+  //! Number of normal algorithm
+  int nbNormalAlgos_;
+
+  //! Number of special algorithms (such as generate_rectilinear_grid)
+  int nbSpecialAlgos_;
+
+  // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_
+  std::vector<AlgoType> algoTypes_;
+
+  // Mapping between position of an element in grid and its transformation (if any)
+  std::vector<CGenericAlgorithmTransformation*> algoTransformation_;
+
+  //! Position of axis and domain in grid
+  std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
+  std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
+
+  std::vector<StdString> auxInputs_;
+  std::set<Time> timeStamp_; //! Time stamps for auxillary inputs
+};
+
+}
+#endif // __XIOS_GRID_TRANSFORMATION_SELECTOR_HPP__

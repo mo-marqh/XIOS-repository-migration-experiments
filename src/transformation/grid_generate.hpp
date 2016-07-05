@@ -11,7 +11,7 @@
 
 #include "xios_spl.hpp"
 #include "transformation_enum.hpp"
-#include "generic_algorithm_transformation.hpp"
+#include "grid_transformation_selector.hpp"
 
 namespace xios {
 
@@ -24,46 +24,19 @@ then the generated grid plays the destination in a transformation. Not only some
 automatically but it also have a distribution which might be different from one of grid source.
 This class only plays a role of interface between XIOS and specific algorithm of auto filling-in and auto distributing on sub-component
 */
-class CGridGenerate
+class CGridGenerate : public CGridTransformationSelector
 {
-public:
-  typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
-
 public:
   /** Default constructor */
   CGridGenerate(CGrid* destination, CGrid* source = 0);
   ~CGridGenerate();
 
   void completeGrid();
-  ListAlgoType getAlgoList() const {return listAlgos_; }
 
 protected:
-  void initializeAlgorithms();
-  void initializeAxisAlgorithms(int axisPositionInGrid);
-  void initializeDomainAlgorithms(int domPositionInGrid);
-
-  void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
-  void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
-  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo);
-
-protected:
-  //! Grid source on transformation
-  CGrid* gridSource_;
-
-  //! Grid destination on transformation
-  CGrid* gridDestination_;
-
-protected:
-  //! List of algorithm types and their order
-  ListAlgoType listAlgos_;
-  // true if domain algorithm and false if axis algorithm (can be replaced by tuple with listAlgos_
-  std::vector<bool> algoTypes_;
-
-  // Mapping between position of an element in grid and its transformation (if any)
-  std::list<CGenericAlgorithmTransformation*> algoTransformation_;
-
-  //! Position of axis and domain in grid
-  std::map<int, int> elementPosition2AxisPositionInGrid_, elementPosition2DomainPositionInGrid_;
+  virtual void selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
+  virtual void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
+  virtual void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
 };
 
 }

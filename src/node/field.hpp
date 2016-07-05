@@ -176,7 +176,7 @@ namespace xios {
         void sendAddAllVariables();
 
 
-        const std::pair<StdString, StdString>& getRefDomainAxisIds();
+        const std::vector<StdString>& getRefDomainAxisIds();
 
       public:
          /// Propriétés privées ///
@@ -200,7 +200,7 @@ namespace xios {
 
          bool areAllReferenceSolved;
          bool isReferenceSolved;
-         std::pair<StdString,StdString> domAxisIds_;
+         std::vector<StdString> domAxisScalarIds_;
          bool isReadDataRequestPending;
          bool useCompressedOutput;
 

@@ -1013,6 +1013,83 @@ namespace xios
         axis->addRelFile(this->filename);
      }
 
+      void CNc4DataOutput::writeScalar_(CScalar* scalar)
+      {
+        if (scalar->IsWritten(this->filename)) return;
+        scalar->checkAttributes();
+        int scalarSize = 1;
+
+        StdString scalaId = scalar->getScalarOutputName();
+        if (isWrittenAxis(scalaId)) return ;
+        else setWrittenAxis(scalaId);
+
+        try
+        {
+          if (!scalar->value.isEmpty())
+          {
+//            dims.push_back(scalaId);
+            std::vector<StdString> dims;
+            SuperClassWriter::addVariable(scalaId, NC_FLOAT, dims);
+
+            if (!scalar->name.isEmpty())
+              SuperClassWriter::addAttribute("name", scalar->name.getValue(), &scalaId);
+
+            if (!scalar->standard_name.isEmpty())
+              SuperClassWriter::addAttribute("standard_name", scalar->standard_name.getValue(), &scalaId);
+
+            if (!scalar->long_name.isEmpty())
+              SuperClassWriter::addAttribute("long_name", scalar->long_name.getValue(), &scalaId);
+
+            if (!scalar->unit.isEmpty())
+              SuperClassWriter::addAttribute("units", scalar->unit.getValue(), &scalaId);
+
+            SuperClassWriter::definition_end();
+
+            switch (SuperClass::type)
+            {
+              case MULTI_FILE:
+              {
+                CArray<double,1> scalarValue(scalarSize);
+                scalarValue(0) = scalar->value;
+                SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0);
+                SuperClassWriter::definition_start();
+
+                break;
+              }
+              case ONE_FILE:
+              {
+                CArray<double,1> scalarValue(scalarSize);
+                scalarValue(0) = scalar->value;
+
+                std::vector<StdSize> start(1);
+                std::vector<StdSize> count(1);
+                start[0] = 0;
+                count[0] = 1;
+                SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0, &start, &count);
+                SuperClassWriter::definition_start();
+
+                break;
+              }
+              default :
+                ERROR("CNc4DataOutput::writeAxis_(CAxis* scalar)",
+                      << "[ type = " << SuperClass::type << "]"
+                      << " not implemented yet !");
+            }
+          }
+        }
+        catch (CNetCdfException& e)
+        {
+          StdString msg("On writing the scalar : ");
+          msg.append(scalaId); msg.append("\n");
+          msg.append("In the context : ");
+          CContext* context = CContext::getCurrent() ;
+          msg.append(context->getId()); msg.append("\n");
+          msg.append(e.what());
+          ERROR("CNc4DataOutput::writeScalar_(CScalar* scalar)", << msg);
+        }
+        scalar->addRelFile(this->filename);
+     }
+
      //--------------------------------------------------------------
 
      void CNc4DataOutput::writeGridCompressed_(CGrid* grid)
@@ -1021,10 +1098,11 @@ namespace xios
 
        try
        {
-         CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
          std::vector<StdString> domainList = grid->getDomainList();
          std::vector<StdString> axisList   = grid->getAxisList();
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0;
+         std::vector<StdString> scalarList = grid->getScalarList();
+         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
 
          std::vector<StdString> dims;
 
@@ -1041,7 +1119,7 @@ namespace xios
            StdOStringStream compress;
            for (int i = numElement - 1; i >= 0; --i)
            {
-             if (axisDomainOrder(i))
+             if (2 == axisDomainOrder(i))
              {
                CDomain* domain = CDomain::get(domainList[domainList.size() - idxDomain - 1]);
                StdString domId = domain->getDomainOutputName();
@@ -1061,11 +1139,17 @@ namespace xios
                }
                ++idxDomain;
              }
-             else
+             else if (1 == axisDomainOrder(i))
              {
                CAxis* axis = CAxis::get(axisList[axisList.size() - idxAxis - 1]);
                compress << axis->getAxisOutputName();
                ++idxAxis;
+             }
+             else
+             {
+               CScalar* scalar = CScalar::get(scalarList[scalarList.size() - idxScalar - 1]);
+               compress << scalar->getScalarOutputName();
+               ++idxScalar;
              }
 
              if (i != 0) compress << ' ';
@@ -1114,7 +1198,7 @@ namespace xios
              StdSize nbIndexes, totalNbIndexes, offset;
              int firstGlobalIndex;
 
-             if (axisDomainOrder(i))
+             if (2 == axisDomainOrder(i))
              {
                CDomain* domain = CDomain::get(domainList[idxDomain]);
                StdString domId = domain->getDomainOutputName();
@@ -1153,7 +1237,7 @@ namespace xios
                setWrittenCompressedDomain(domId);
                ++idxDomain;
              }
-             else
+             else if (1 == axisDomainOrder(i))
              {
                CAxis* axis = CAxis::get(axisList[idxAxis]);
                StdString axisId = axis->getAxisOutputName();
@@ -1180,6 +1264,9 @@ namespace xios
                axis->addRelFileCompressed(this->filename);
                setWrittenCompressedAxis(axisId);
                ++idxAxis;
+             }
+             else
+             {
              }
 
              if (!varId.empty())
@@ -1262,10 +1349,11 @@ namespace xios
          if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type==MULTI_FILE) return ;
 
-         CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0;
+         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
          std::vector<StdString> domainList = grid->getDomainList();
          std::vector<StdString> axisList   = grid->getAxisList();
+         std::vector<StdString> scalarList = grid->getScalarList();
 
          StdString timeid  = getTimeCounterName();
          StdString dimXid,dimYid;
@@ -1276,7 +1364,7 @@ namespace xios
 
          for (int i = 0; i < numElement; ++i)
          {
-           if (axisDomainOrder(i))
+           if (2 == axisDomainOrder(i))
            {
              CDomain* domain = CDomain::get(domainList[idxDomain]);
              StdString domId = domain->getDomainOutputName();
@@ -1354,7 +1442,7 @@ namespace xios
              }
              ++idxDomain;
            }
-           else
+           else if (1 == axisDomainOrder(i))
            {
              CAxis* axis = CAxis::get(axisList[idxAxis]);
              StdString axisId = axis->getAxisOutputName();
@@ -1370,6 +1458,10 @@ namespace xios
              dimCoordList.push_back(axisId);
              ++idxAxis;
            }
+           else // scalar
+           {
+             /* Do nothing here */
+           }
          }
 
 /*
@@ -1381,10 +1473,6 @@ namespace xios
                              : latid;
 */
          StdString fieldid = field->getFieldOutputName();
-
-//         unsigned int ssize = domain->zoom_ni_loc.getValue() * domain->zoom_nj_loc.getValue();
-//         bool isCurvilinear = (domain->lonvalue.getValue()->size() == ssize);
-//          bool isCurvilinear = domain->isCurvilinear ;
 
          nc_type type ;
          if (field->prec.isEmpty()) type =  NC_FLOAT ;
@@ -1838,7 +1926,7 @@ namespace xios
                   }
                   else
                   {
-                    CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+                    CArray<int,1> axisDomainOrder = grid->axis_domain_order;
                     std::vector<StdString> domainList = grid->getDomainList();
                     std::vector<StdString> axisList   = grid->getAxisList();
                     int numElement = axisDomainOrder.numElements();
@@ -1851,7 +1939,7 @@ namespace xios
 
                     for (int i = numElement - 1; i >= 0; --i)
                     {
-                      if (axisDomainOrder(i))
+                      if (2 == axisDomainOrder(i))
                       {
                         CDomain* domain = CDomain::get(domainList[idxDomain]);
 
@@ -1875,7 +1963,7 @@ namespace xios
                         }
                         --idxDomain;
                       }
-                      else
+                      else if (1 == axisDomainOrder(i))
                       {
                         CAxis* axis = CAxis::get(axisList[idxAxis]);
 
@@ -1899,7 +1987,7 @@ namespace xios
                 else
                 {
 
-                  CArray<bool,1> axisDomainOrder = grid->axis_domain_order;
+                  CArray<int,1> axisDomainOrder = grid->axis_domain_order;
                   std::vector<StdString> domainList = grid->getDomainList();
                   std::vector<StdString> axisList   = grid->getAxisList();
                   int numElement = axisDomainOrder.numElements();
@@ -1911,7 +1999,7 @@ namespace xios
 
                   for (int i = numElement - 1; i >= 0; --i)
                   {
-                    if (axisDomainOrder(i))
+                    if (2 == axisDomainOrder(i))
                     {
                       CDomain* domain = CDomain::get(domainList[idxDomain]);
                       if ((domain->type) != CDomain::type_attr::unstructured)
@@ -1925,12 +2013,21 @@ namespace xios
                       --idx ;
                       --idxDomain;
                     }
-                    else
+                    else if (1 == axisDomainOrder(i))
                     {
                       start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
                       count.push_back(nZoomSizeServer[idx]);
                       --idx;
-                     }
+                    }
+                    else
+                    {
+                      if (1 == axisDomainOrder.numElements())
+                      {
+                        start.push_back(0);
+                        count.push_back(1);
+                      }
+                      --idx;
+                    }
                   }
                 }
 
@@ -2321,6 +2418,11 @@ namespace xios
         return (this->writtenCompressedAxis.find(axisName) != this->writtenCompressedAxis.end());
       }
 
+      bool CNc4DataOutput::isWrittenScalar(const std::string& scalarName) const
+      {
+        return (this->writtenScalar.find(scalarName) != this->writtenScalar.end());
+      }
+
       void CNc4DataOutput::setWrittenDomain(const std::string& domainName)
       {
         this->writtenDomains.insert(domainName);
@@ -2339,5 +2441,10 @@ namespace xios
       void CNc4DataOutput::setWrittenCompressedAxis(const std::string& axisName)
       {
         this->writtenCompressedAxis.insert(axisName);
+      }
+
+      void CNc4DataOutput::setWrittenScalar(const std::string& scalarName)
+      {
+        this->writtenScalar.insert(scalarName);
       }
 } // namespace xios

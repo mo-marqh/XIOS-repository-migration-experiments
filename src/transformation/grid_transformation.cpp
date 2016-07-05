@@ -22,198 +22,32 @@
 
 namespace xios {
 CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
-: gridSource_(source), gridDestination_(destination), tmpGridDestination_(destination),
-  originalGridSource_(source), algoTypes_(), nbAlgos_(0), tempGridSrcs_(), tempGridDests_(),
-  auxInputs_(), dynamicalTransformation_(false), timeStamp_()
-
+ : CGridTransformationSelector(destination, source),
+  tmpGridDestination_(destination), originalGridSource_(source),
+  tempGridSrcs_(), tempGridDests_(),
+  dynamicalTransformation_(false), timeStamp_()
 {
-  //Verify the compatibity between two grids
-  int numElement = gridDestination_->axis_domain_order.numElements();
-  if (numElement != gridSource_->axis_domain_order.numElements())
-    ERROR("CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)",
-       << "Two grids have different number of elements"
-       << "Number of elements of grid source " <<gridSource_->getId() << " is " << gridSource_->axis_domain_order.numElements()  << std::endl
-       << "Number of elements of grid destination " <<gridDestination_->getId() << " is " << numElement);
-
-  for (int i = 0; i < numElement; ++i)
-  {
-    if (gridDestination_->axis_domain_order(i) != gridSource_->axis_domain_order(i))
-      ERROR("CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)",
-         << "Transformed grid and its grid source have incompatible elements"
-         << "Grid source " <<gridSource_->getId() << std::endl
-         << "Grid destination " <<gridDestination_->getId());
-  }
-
-  initializeTransformations();
-}
-
-/*!
-  Initialize the mapping between the first grid source and the original one
-  In a series of transformation, for each step, there is a need to "create" a new grid that plays a role of "temporary" source.
-Because at the end of the series, we need to know about the index mapping between the final grid destination and original grid source,
-for each transformation, we need to make sure that the current "temporary source" maps its global index correctly to the original one.
-*/
-void CGridTransformation::initializeTransformations()
-{
-  CContext* context = CContext::getCurrent();
-  CContextClient* client = context->client;
-
-  // Initialize algorithms
-  initializeAlgorithms();
-
-  ListAlgoType::const_iterator itb = listAlgos_.begin(),
-                               ite = listAlgos_.end(), it;
-
-  for (it = itb; it != ite; ++it)
-  {
-    ETranformationType transType = (it->second).first;
-    if (!isSpecialTransformation(transType)) ++nbAlgos_;
-  }
 }
 
 CGridTransformation::~CGridTransformation()
 {
-  std::vector<CGenericAlgorithmTransformation*>::const_iterator itb = algoTransformation_.begin(), it,
-                                                                ite = algoTransformation_.end();
-  for (it = itb; it != ite; ++it) delete (*it);
 }
 
 /*!
-  Initialize the algorithms (transformations)
-*/
-void CGridTransformation::initializeAlgorithms()
-{
-  std::vector<int> axisPositionInGrid;
-  std::vector<int> domPositionInGrid;
-  std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
-  std::vector<CDomain*> domListDestP = gridDestination_->getDomains();
-
-  int idx = 0;
-  for (int i = 0; i < gridDestination_->axis_domain_order.numElements(); ++i)
-  {
-    if (false == (gridDestination_->axis_domain_order)(i))
-    {
-      axisPositionInGrid.push_back(i);
-    }
-    else
-    {
-      domPositionInGrid.push_back(i);
-    }
-  }
-
-  for (int i = 0; i < axisListDestP.size(); ++i)
-  {
-    elementPosition2AxisPositionInGrid_[axisPositionInGrid[i]] = i;
-  }
-
-  for (int i = 0; i < domListDestP.size(); ++i)
-  {
-    elementPosition2DomainPositionInGrid_[domPositionInGrid[i]] = i;
-  }
-
-  idx = 0;
-  for (int i = 0; i < gridDestination_->axis_domain_order.numElements(); ++i)
-  {
-    if (false == (gridDestination_->axis_domain_order)(i))
-    {
-      initializeAxisAlgorithms(i);
-    }
-    else
-    {
-      initializeDomainAlgorithms(i);
-    }
-  }
-}
-
-/*!
-  Initialize the algorithms corresponding to transformation info contained in each axis.
-If an axis has transformations, these transformations will be represented in form of vector of CTransformation pointers
-In general, each axis can have several transformations performed on itself. However, should they be done seperately or combinely (of course in order)?
-For now, one approach is to do these combinely but maybe this needs changing.
-\param [in] axisPositionInGrid position of an axis in grid. (for example: a grid with one domain and one axis, position of domain is 1, position of axis is 2)
-*/
-void CGridTransformation::initializeAxisAlgorithms(int axisPositionInGrid)
-{
-  std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
-  std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
-  if (!axisListDestP.empty())
-  {
-    // If source and destination grid share the same axis
-    if (axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]] ==
-        axisListSrcP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]) return;
-
-    if (axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]->hasTransformation())
-    {
-      CAxis::TransMapTypes trans = axisListDestP[elementPosition2AxisPositionInGrid_[axisPositionInGrid]]->getAllTransformations();
-      CAxis::TransMapTypes::const_iterator itb = trans.begin(), it,
-                                           ite = trans.end();
-      int transformationOrder = 0;
-      for (it = itb; it != ite; ++it)
-      {
-        listAlgos_.push_back(std::make_pair(axisPositionInGrid, std::make_pair(it->first, transformationOrder)));
-        algoTypes_.push_back(false);
-        ++transformationOrder;
-        std::vector<StdString> auxInput = (it->second)->checkAuxInputs();
-        for (int idx = 0; idx < auxInput.size(); ++idx) auxInputs_.push_back(auxInput[idx]);
-      }
-    }
-  }
-}
-
-/*!
-  Initialize the algorithms corresponding to transformation info contained in each domain.
-If a domain has transformations, they will be represented in form of vector of CTransformation pointers
-In general, each domain can have several transformations performed on itself.
-\param [in] domPositionInGrid position of a domain in grid. (for example: a grid with one domain and one axis, position of domain is 1, position of axis is 2)
-*/
-void CGridTransformation::initializeDomainAlgorithms(int domPositionInGrid)
-{
-  std::vector<CDomain*> domListDestP = gridDestination_->getDomains();
-  std::vector<CDomain*> domListSrcP = gridSource_->getDomains();
-  if (!domListDestP.empty())
-  {
-    // If source and destination grid share the same domain
-    if (domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]] ==
-        domListSrcP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]) return;
-
-    if (domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]->hasTransformation())
-    {
-      CDomain::TransMapTypes trans = domListDestP[elementPosition2DomainPositionInGrid_[domPositionInGrid]]->getAllTransformations();
-      CDomain::TransMapTypes::const_iterator itb = trans.begin(), it,
-                                             ite = trans.end();
-      int transformationOrder = 0;
-      for (it = itb; it != ite; ++it)
-      {
-        listAlgos_.push_back(std::make_pair(domPositionInGrid, std::make_pair(it->first, transformationOrder)));
-        algoTypes_.push_back(true);
-        ++transformationOrder;
-        std::vector<StdString> auxInput = (it->second)->checkAuxInputs();
-        for (int idx = 0; idx < auxInput.size(); ++idx) auxInputs_.push_back(auxInput[idx]);
-      }
-    }
-  }
-
-}
-
-/*!
-  Select algorithm correspoding to its transformation type and its position in each element
-  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 1 (because it contains 2 basic elements)
-                                             and position of axis is 2
-  \param [in] transType transformation type, for now we have Zoom_axis, inverse_axis
+  Select algorithm of a scalar correspoding to its transformation type and its position in each element
+  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
+  \param [in] transType transformation type, for now we have
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
-  \param [in] isDomainAlgo flag to specify type of algorithm (for domain or axis)
 */
-void CGridTransformation::selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, bool isDomainAlgo)
+void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
-   if (isDomainAlgo) selectDomainAlgo(elementPositionInGrid, transType, transformationOrder);
-   else selectAxisAlgo(elementPositionInGrid, transType, transformationOrder);
+
 }
 
 /*!
   Select algorithm of an axis correspoding to its transformation type and its position in each element
-  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 1 (because it contains 2 basic elements)
-                                             and position of axis is 2
-  \param [in] transType transformation type, for now we have Zoom_axis, inverse_axis
+  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
+  \param [in] transType transformation type, for now we have zoom_axis, inverse_axis, interpolate_axis
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
@@ -221,7 +55,7 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
 
-  int axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
+  int axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
   CAxis::TransMapTypes trans = axisListDestP[axisIndex]->getAllTransformations();
   CAxis::TransMapTypes::const_iterator it = trans.begin();
 
@@ -247,14 +81,12 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
       break;
   }
   algoTransformation_.push_back(algo);
-
 }
 
 /*!
   Select algorithm of a domain correspoding to its transformation type and its position in each element
-  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 1 (because it contains 2 basic elements)
-                                             and position of axis is 2
-  \param [in] transType transformation type, for now we have Zoom_axis, inverse_axis
+  \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
+  \param [in] transType transformation type, for now we have zoom_domain, interpolate_domain
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
@@ -262,7 +94,7 @@ void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranforma
   std::vector<CDomain*> domainListDestP = gridDestination_->getDomains();
   std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
 
-  int domainIndex =  elementPosition2DomainPositionInGrid_[elementPositionInGrid];
+  int domainIndex =  elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
   CDomain::TransMapTypes trans = domainListDestP[domainIndex]->getAllTransformations();
   CDomain::TransMapTypes::const_iterator it = trans.begin();
 
@@ -301,43 +133,64 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
   {
     tempGridDests_.resize(0);
   }
+
+  std::vector<CScalar*> scalarListDestP = gridDestination_->getScalars();
+  std::vector<CScalar*> scalarListSrcP = gridSource_->getScalars(), scalarDst;
+
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis(), axisDst;
 
   std::vector<CDomain*> domListDestP = gridDestination_->getDomains();
   std::vector<CDomain*> domListSrcP = gridSource_->getDomains(), domainDst;
 
-  int axisIndex = -1, domainIndex = -1;
+  CArray<int,1> axisDomainOrderSrc = gridSource_->axis_domain_order;
+  CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
+
+  int scalarIndex = -1, axisIndex = -1, domainIndex = -1;
   switch (transType)
   {
     case TRANS_INTERPOLATE_DOMAIN:
     case TRANS_ZOOM_DOMAIN:
-      domainIndex = elementPosition2DomainPositionInGrid_[elementPositionInGrid];
+      domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
       break;
 
     case TRANS_INTERPOLATE_AXIS:
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
-      axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
+      axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
     default:
       break;
   }
 
-  for (int idx = 0; idx < axisListSrcP.size(); ++idx)
+  for (int idx = 0; idx < axisDomainOrderDst.numElements(); ++idx)
   {
-    CAxis* axis = (axisIndex != idx) ? axisListSrcP[idx] : axisListDestP[idx];
-    axisDst.push_back(axis);
+    int dimElementDst = axisDomainOrderDst(idx);
+    if (2 == dimElementDst)
+    {
+      if (elementPositionInGrid == idx)
+        domainDst.push_back(domListDestP[domainIndex]);
+      else
+        domainDst.push_back(domListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]);
+    }
+    else if (1 == dimElementDst)
+    {
+      if (elementPositionInGrid == idx)
+        axisDst.push_back(axisListDestP[axisIndex]);
+      else
+        axisDst.push_back(axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]);
+    }
+    else
+    {
+      if (elementPositionInGrid == idx)
+        scalarDst.push_back(scalarListDestP[scalarIndex]);
+      else
+        scalarDst.push_back(scalarListSrcP[elementPositionInGridSrc2ScalarPosition_[elementPositionInGrid]]);
+    }
   }
 
-  for (int idx = 0; idx < domListSrcP.size(); ++idx)
-  {
-    CDomain* domain = (domainIndex != idx) ? domListSrcP[idx] : domListDestP[idx];
-    domainDst.push_back(domain);
-  }
-
-  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, gridDestination_->axis_domain_order);
-  tmpGridDestination_->computeGridGlobalDimension(domainDst, axisDst, gridDestination_->axis_domain_order);
+  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, gridDestination_->axis_domain_order);
+  tmpGridDestination_->computeGridGlobalDimension(domainDst, axisDst, scalarDst, gridDestination_->axis_domain_order);
   tempGridDests_.push_back(tmpGridDestination_);
 }
 
@@ -355,65 +208,84 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
     tempGridSrcs_.resize(0);
   }
 
+  std::vector<CScalar*> scalarListDestP = tmpGridDestination_->getScalars();
+  std::vector<CScalar*> scalarListSrcP = gridSource_->getScalars(), scalarSrc;
+
   std::vector<CAxis*> axisListDestP = tmpGridDestination_->getAxis();
   std::vector<CAxis*> axisListSrcP = gridSource_->getAxis(), axisSrc;
 
   std::vector<CDomain*> domListDestP = tmpGridDestination_->getDomains();
   std::vector<CDomain*> domListSrcP = gridSource_->getDomains(), domainSrc;
 
-  int axisIndex = -1, domainIndex = -1;
+  CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
+
+  int axisIndex = -1, domainIndex = -1, scalarIndex = -1;
+  int axisListIndex = 0, domainListIndex = 0, scalarListIndex = 0;
   switch (transType)
   {
     case TRANS_INTERPOLATE_DOMAIN:
     case TRANS_ZOOM_DOMAIN:
-      domainIndex = elementPosition2DomainPositionInGrid_[elementPositionInGrid];
+      domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
       break;
 
     case TRANS_INTERPOLATE_AXIS:
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
-      axisIndex =  elementPosition2AxisPositionInGrid_[elementPositionInGrid];
+      axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
     default:
       break;
   }
 
-  for (int idx = 0; idx < axisListSrcP.size(); ++idx)
+  for (int idx = 0; idx < axisDomainOrderDst.numElements(); ++idx)
   {
-    if (axisIndex != idx)
+    int dimElementDst = axisDomainOrderDst(idx);
+    if (2 == dimElementDst)
     {
-      CAxis* axis = axisListDestP[idx];
-      axisSrc.push_back(axis);
+      if (elementPositionInGrid == idx)
+        domainSrc.push_back(domListDestP[domainIndex]);
+      else
+      {
+        CDomain* domain = CDomain::createDomain();
+        domain->domain_ref.setValue(domListDestP[domainListIndex]->getId());
+        domain->solveRefInheritance(true);
+        domain->checkAttributesOnClient();
+        domainSrc.push_back(domain);
+      }
+      ++domainListIndex;
+    }
+    else if (1 == dimElementDst)
+    {
+      if (elementPositionInGrid == idx)
+        axisSrc.push_back(axisListDestP[axisIndex]);
+      else
+      {
+        CAxis* axis = CAxis::createAxis();
+        axis->axis_ref.setValue(axisListDestP[axisListIndex]->getId());
+        axis->solveRefInheritance(true);
+        axis->checkAttributesOnClient();
+        axisSrc.push_back(axis);
+      }
+      ++axisListIndex;
     }
     else
     {
-      CAxis* axis = CAxis::createAxis();
-      axis->axis_ref.setValue(axisListDestP[idx]->getId());
-      axis->solveRefInheritance(true);
-      axis->checkAttributesOnClient();
-      axisSrc.push_back(axis);
+      if (elementPositionInGrid == idx)
+        scalarSrc.push_back(scalarListDestP[scalarIndex]);
+      else
+      {
+        CScalar* scalar = CScalar::createScalar();
+        scalar->scalar_ref.setValue(scalarListDestP[scalarListIndex]->getId());
+        scalar->solveRefInheritance(true);
+        scalar->checkAttributesOnClient();
+        scalarSrc.push_back(scalar);
+      }
+      ++scalarListIndex;
     }
   }
 
-  for (int idx = 0; idx < domListSrcP.size(); ++idx)
-  {
-    if (domainIndex != idx)
-    {
-      CDomain* domain = domListDestP[idx];
-      domainSrc.push_back(domain);
-    }
-    else
-    {
-      CDomain* domain = CDomain::createDomain();
-      domain->domain_ref.setValue(domListDestP[idx]->getId());
-      domain->solveRefInheritance(true);
-      domain->checkAttributesOnClient();
-      domainSrc.push_back(domain);
-    }
-  }
-
-  gridSource_ = CGrid::createGrid(domainSrc, axisSrc, tmpGridDestination_->axis_domain_order);
-  gridSource_->computeGridGlobalDimension(domainSrc, axisSrc, tmpGridDestination_->axis_domain_order);
+  gridSource_ = CGrid::createGrid(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);
+  gridSource_->computeGridGlobalDimension(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);
 
   tempGridSrcs_.push_back(gridSource_);
 }
@@ -428,7 +300,7 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
 */
 void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs, Time timeStamp)
 {
-  if (nbAlgos_ < 1) return;
+  if (nbNormalAlgos_ < 1) return;
   if (!auxInputs_.empty() && !dynamicalTransformation_) { dynamicalTransformation_ = true; return; }
   if (dynamicalTransformation_)
   {
@@ -485,10 +357,10 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       // Compute transformation of global indexes among grids
       computeTransformationMapping(globaIndexWeightFromSrcToDst);
 
-      if (1 < nbAlgos_)
+      if (1 < nbNormalAlgos_)
       {
         // Now grid destination becomes grid source in a new transformation
-        if (nbAgloTransformation != (nbAlgos_-1)) setUpGridSource(elementPositionInGrid, transType, nbAgloTransformation);
+        if (nbAgloTransformation != (nbNormalAlgos_-1)) setUpGridSource(elementPositionInGrid, transType, nbAgloTransformation);
       }
       ++nbAgloTransformation;
     }
@@ -722,22 +594,6 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
   for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)
     delete [] itLong->second;
 
-}
-
-bool CGridTransformation::isSpecialTransformation(ETranformationType transType)
-{
-  bool res;
-  switch (transType)
-  {
-    case TRANS_GENERATE_RECTILINEAR_DOMAIN:
-     res = true;
-     break;
-    default:
-     res = false;
-     break;
-  }
-
-  return res;
 }
 
 /*!

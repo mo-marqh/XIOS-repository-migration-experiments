@@ -31,6 +31,8 @@ namespace xios
     class CInterpolateDomainGroup;
     class CGenerateRectilinearDomain;
     class CGenerateRectilinearDomainGroup;
+    class CScalar;
+    class CScalarGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -79,6 +81,8 @@ namespace xios
   macro(CInterpolateDomainGroup)
   macro(CGenerateRectilinearDomain)
   macro(CGenerateRectilinearDomainGroup)
+  macro(CScalar)
+  macro(CScalarGroup)
 #undef macro
 }
 
