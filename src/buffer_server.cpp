@@ -8,7 +8,7 @@ namespace xios
 
   CServerBuffer::CServerBuffer(StdSize buffSize)
   {
-    size = 2 * buffSize;
+    size = 3 * buffSize;
     first = 0;
     current = 1;
     end = size;
