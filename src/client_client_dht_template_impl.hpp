@@ -12,6 +12,17 @@
 
 namespace xios
 {
+template<typename T, typename H>
+CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const MPI_Comm& clientIntraComm)
+  : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_(), nbClient_(0)
+{
+  MPI_Comm_size(clientIntraComm, &nbClient_);
+  this->computeMPICommLevel();
+  int nbLvl = this->getNbLevel();
+  sendRank_.resize(nbLvl);
+  recvRank_.resize(nbLvl);
+}
+
 /*!
   Constructor with initial distribution information and the corresponding index
   Each client (process) holds a piece of information as well as the attached index, the index

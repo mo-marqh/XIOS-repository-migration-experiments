@@ -54,6 +54,11 @@ class CClientClientDHTTemplate: public HierarchyPolicy
     virtual ~CClientClientDHTTemplate();
 
   protected:
+    CClientClientDHTTemplate(const MPI_Comm& clientIntraComm);
+
+  protected:
+
+
     // Redistribute index and info among clients
     void computeDistributedIndex(const Index2InfoTypeMap& indexInfoInitMap,
                                  const MPI_Comm& intraCommLevel,
