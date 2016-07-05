@@ -36,13 +36,26 @@ namespace xios {
  */
   CMesh* CMesh::getMesh (StdString meshName)
   {
-    if ( CMesh::meshList.find(meshName) == CMesh::meshList.end() )
+    if ( CMesh::meshList.begin() != CMesh::meshList.end() )
+    {
+      for (std::map<StdString, CMesh>::iterator it=CMesh::meshList.begin(); it!=CMesh::meshList.end(); ++it)
+      {
+        if (it->first == meshName)
+          return &meshList[meshName];
+        else
+        {
+          CMesh newMesh;
+          CMesh::meshList.insert( make_pair(meshName, newMesh) );
+          return &meshList[meshName];
+        }
+      }
+    }
+    else
     {
       CMesh newMesh;
       CMesh::meshList.insert( make_pair(meshName, newMesh) );
-
+      return &meshList[meshName];
     }
-    return &meshList[meshName];
   }
 
 ///----------------------------------------------------------------
