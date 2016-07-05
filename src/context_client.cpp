@@ -132,7 +132,7 @@ namespace xios
       map<int,CClientBuffer*>::iterator it;
       list<CClientBuffer*>::iterator itBuffer;
       list<CBufferOut*>  retBuffer;
-      bool free;
+      bool areBuffersFree;
 
       for (itServer = serverList.begin(); itServer != serverList.end(); itServer++)
       {
@@ -144,20 +144,20 @@ namespace xios
         }
         bufferList.push_back(it->second);
       }
-      free = false;
 
       CTimer::get("Blocking time").resume();
-      while (!free)
+      do
       {
-        free = true;
+        areBuffersFree = true;
         for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+          areBuffersFree &= (*itBuffer)->isBufferFree(*itSize);
+
+        if (!areBuffersFree)
         {
-          (*itBuffer)->checkBuffer();
-         free &= (*itBuffer)->isBufferFree(*itSize);
-        }
-        if (!free)
+          checkBuffers();
           context->server->listen();
-      }
+        }
+      } while (!areBuffersFree);
       CTimer::get("Blocking time").suspend();
 
       for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
