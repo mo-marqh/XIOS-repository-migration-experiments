@@ -895,7 +895,48 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
+   void CDomain::computeLocalMask(void)
+   {
+     localMask.resize(ni*nj) ;
+     localMask=false ;
+     size_t zoom_ibegin=global_zoom_ibegin ;
+     size_t zoom_iend=global_zoom_ibegin+global_zoom_ni-1 ;
+     size_t zoom_jbegin=global_zoom_jbegin ;
+     size_t zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
 
+     
+     size_t dn=data_i_index.numElements() ;
+     int i,j ;
+     size_t k,ind ;
+     
+     for(k=0;k<dn;k++)
+     {
+       if (data_dim==2)
+       {
+          i=data_i_index(k)+data_ibegin ;
+          j=data_j_index(k)+data_jbegin ;
+       }
+       else
+       {
+          i=(data_i_index(k)+data_ibegin)%ni ;
+          j=(data_i_index(k)+data_ibegin)/ni ;          
+       }
+
+       if (i>=0 && i<ni && j>=0 && j<nj)
+         if (i+ibegin>=zoom_ibegin && i+ibegin<=zoom_iend && j+jbegin>=zoom_jbegin && j+jbegin<=zoom_jend)
+         {
+           ind=i+ni*j ;
+           localMask(ind)=mask_1d(ind) ;
+         }
+     }
+   }
+       
+         
+     
+
+     
+
+   
    void CDomain::checkEligibilityForCompressedOutput(void)
    {
      // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
@@ -1187,6 +1228,7 @@ namespace xios {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
+         this->computeLocalMask() ;
       }
       else
       { // Côté serveur uniquement
@@ -1226,6 +1268,7 @@ namespace xios {
          this->checkMask();
          this->checkDomainData();
          this->checkCompression();
+         this->computeLocalMask() ;
 
       }
       else

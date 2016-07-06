@@ -158,7 +158,7 @@ namespace xios {
 
          static ENodeType GetType(void);
          const std::map<int, vector<size_t> >& getIndexServer() const;
-         CArray<int, 2> local_mask;
+         CArray<bool, 1> localMask;
          bool isCurvilinear ;
          bool hasBounds ;
          bool hasArea;
@@ -176,6 +176,7 @@ namespace xios {
          void checkArea(void);
          void checkLonLat();
          void checkZoom(void);
+         void computeLocalMask(void) ;
 
          void checkTransformations();
          void setTransformations(const TransMapTypes&);

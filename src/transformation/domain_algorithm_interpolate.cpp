@@ -232,20 +232,10 @@ void CDomainAlgorithmInterpolate::computeRemap()
   Mapper mapper(client->intraComm);
   mapper.setVerbosity(PROGRESS) ;
 
-
-  CArray<bool,1> localMask(nSrcLocal) ;
-  localMask=false ;
-  size_t ndata=domainSrc_->data_i_index.numElements() ;
-  for (int idx=0; idx < ndata; ++idx)
-  {
-    size_t ind = domainSrc_->data_j_index(idx)*domainSrc_->ni+domainSrc_->data_i_index(idx) ;
-    localMask(ind)=domainSrc_->mask_1d(ind) ;
-  }
-     
      
   // supress masked data for the source
   int nSrcLocalUnmasked = 0 ;
-  for (int idx=0 ; idx < nSrcLocal; idx++) if (localMask(idx)) ++nSrcLocalUnmasked ;
+  for (int idx=0 ; idx < nSrcLocal; idx++) if (domainSrc_->localMask(idx)) ++nSrcLocalUnmasked ;
 
 
   CArray<double,2> boundsLonSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
@@ -255,7 +245,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   nSrcLocalUnmasked=0 ;
   for (int idx=0 ; idx < nSrcLocal; idx++)
   {
-    if (localMask(idx))
+    if (domainSrc_->localMask(idx))
     {
       for(int n=0;n<nVertexSrc;++n)
       {
@@ -267,17 +257,9 @@ void CDomainAlgorithmInterpolate::computeRemap()
     }
   }
 
-  localMask.resize(nDstLocal) ;
-  localMask=false ;
-  ndata=domainDest_->data_i_index.numElements() ;
-  for (int idx=0; idx < ndata; ++idx)
-  {
-    size_t ind = domainDest_->data_j_index(idx)*domainDest_->ni+domainDest_->data_i_index(idx) ;
-    localMask(ind)=domainDest_->mask_1d(ind) ;
-  }
-     
+
   int nDstLocalUnmasked = 0 ;
-  for (int idx=0 ; idx < nDstLocal; idx++) if (localMask(idx)) ++nDstLocalUnmasked ;
+  for (int idx=0 ; idx < nDstLocal; idx++) if (domainDest_->localMask(idx)) ++nDstLocalUnmasked ;
 
   CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
   CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
@@ -286,7 +268,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   nDstLocalUnmasked=0 ;
   for (int idx=0 ; idx < nDstLocal; idx++)
   {
-    if (localMask(idx))
+    if (domainDest_->localMask(idx))
     {
       for(int n=0;n<nVertexDest;++n)
       {
