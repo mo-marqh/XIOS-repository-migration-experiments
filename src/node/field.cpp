@@ -905,12 +905,16 @@ namespace xios{
         std::vector<CDomain*> vecDom;
         std::vector<CAxis*> vecAxis;
         std::vector<CScalar*> vecScalar;
-
+        std::vector<int> axisDomainOrderTmp;
+        
         if (!domain_ref.isEmpty())
         {
           StdString tmp = domain_ref.getValue();
           if (CDomain::has(domain_ref))
+          {
             vecDom.push_back(CDomain::get(domain_ref));
+            axisDomainOrderTmp.push_back(2);
+          }
           else
             ERROR("CField::solveGridReference(void)",
                   << "Invalid reference to domain '" << domain_ref.getValue() << "'.");
@@ -919,7 +923,10 @@ namespace xios{
         if (!axis_ref.isEmpty())
         {
           if (CAxis::has(axis_ref))
+          {
             vecAxis.push_back(CAxis::get(axis_ref));
+            axisDomainOrderTmp.push_back(1);
+          }
           else
             ERROR("CField::solveGridReference(void)",
                   << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
@@ -928,18 +935,27 @@ namespace xios{
         if (!scalar_ref.isEmpty())
         {
           if (CScalar::has(scalar_ref))
+          {
             vecScalar.push_back(CScalar::get(scalar_ref));
+            axisDomainOrderTmp.push_back(0);
+          }
           else
             ERROR("CField::solveGridReference(void)",
                   << "Invalid reference to scalar '" << scalar_ref.getValue() << "'.");
         }
+        
+        CArray<int,1> axisDomainOrder(axisDomainOrderTmp.size());
+        for (int idx = 0; idx < axisDomainOrderTmp.size(); ++idx)
+        {
+          axisDomainOrder(idx) = axisDomainOrderTmp[idx];
+        }
 
         // Warning: the gridId shouldn't be set as the grid_ref since it could be inherited
-        StdString gridId = CGrid::generateId(vecDom, vecAxis, vecScalar);
+        StdString gridId = CGrid::generateId(vecDom, vecAxis, vecScalar,axisDomainOrder);
         if (CGrid::has(gridId))
           this->grid = CGrid::get(gridId);
         else
-          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis, vecScalar);
+          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis, vecScalar,axisDomainOrder);
       }
       else
       {
