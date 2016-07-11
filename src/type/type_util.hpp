@@ -35,6 +35,10 @@ namespace xios
     class CScalarGroup;
     class CReduceAxisToScalar;
     class CReduceAxisToScalarGroup;
+    class CReduceDomainToAxis;
+    class CReduceDomainToAxisGroup;
+    class CExtractDomainToAxis;
+    class CExtractDomainToAxisGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -87,6 +91,10 @@ namespace xios
   macro(CScalarGroup)
   macro(CReduceAxisToScalar)
   macro(CReduceAxisToScalarGroup)
+  macro(CReduceDomainToAxis)
+  macro(CReduceDomainToAxisGroup)
+  macro(CExtractDomainToAxis)
+  macro(CExtractDomainToAxisGroup)
 #undef macro
 }
 

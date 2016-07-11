@@ -2,6 +2,7 @@
 #include "sum.hpp"
 #include "min.hpp"
 #include "max.hpp"
+#include "extract.hpp"
 
 namespace xios {
 
@@ -18,6 +19,9 @@ bool CReductionAlgorithm::initReductionOperation(std::map<StdString,EReductionTy
 
   m["max"] = TRANS_REDUCE_MAX;
   CMaxReductionAlgorithm::registerTrans();
+
+  m["extract"] = TRANS_REDUCE_EXTRACT;
+  CExtractReductionAlgorithm::registerTrans();
 }
 
 bool CReductionAlgorithm::_dummyInit = CReductionAlgorithm::initReductionOperation(CReductionAlgorithm::ReductionOperations);

@@ -18,7 +18,7 @@ PROGRAM test_new_features
   INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=10
   INTEGER,PARAMETER :: llmInterPolated=4
-  DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1
+  DOUBLE PRECISION  :: lval(llm)=1, tsTemp, lvalInterPolated(llmInterPolated)=1, nlev(nj_glo)=10
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
@@ -28,7 +28,7 @@ PROGRAM test_new_features
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION,DIMENSION(4,ni_glo,nj_glo) :: bnds_lon_glo, bnds_lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm), lval_ni_glo(ni_glo), lval_nj_glo(nj_glo), field_Value_glo(ni_glo,nj_glo,llm)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_All_Axis(:,:,:), lonvalue(:) , &
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), field_A_2D(:,:), field_All_Axis(:,:,:), lonvalue(:) , &
                                   field_Axis(:), lvaln(:), lval_ni(:), lval_nj(:), field_Two_Axis(:,:), lvalnInterp(:), &
                                   lontransformed(:,:), lattransformed(:,:), lon_glotransformed(:,:), lat_glotransformed(:,:), &
                                   bnds_lon(:,:,:), bnds_lat(:,:,:), field_value(:,:,:)
@@ -105,7 +105,7 @@ PROGRAM test_new_features
   jbeginDomInterp = 0
   CALL Distribute_index(jbeginDomInterp, jendDomInterp, njDomInterp, njDomGlo, rank, size)
 
-  ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
+  ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_A_2D(0:ni+1,-1:nj+2), field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
           lon(ni,nj),lat(ni,nj), lonvalue(ni*nj), &
           lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp), &
           lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp), &
@@ -126,6 +126,7 @@ PROGRAM test_new_features
   lontransformed(:,:) = lon_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   lattransformed(:,:) = lat_glotransformed(ibeginDomInterp+1:iendDomInterp+1,jbeginDomInterp+1:jendDomInterp+1)
   field_A(1:ni,1:nj,:) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
+  field_A_2D(1:ni,1:nj) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,1)
   field_value(1:ni,1:nj,:) = field_Value_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_Axis(1:nAxis)  = field_A_glo(1,1,axisBegin+1:axisEnd+1)
   field_Two_Axis(:,1:nj)  = field_A_glo(:,jbegin+1:jend+1,1)
@@ -148,6 +149,8 @@ PROGRAM test_new_features
   CALL xios_set_axis_attr("axis_C", n_glo=llm, value=lval)
   CALL xios_set_axis_attr("axis_D", n_glo=llm, begin=axisBegin, n=nAxis, value=lvaln)
   CALL xios_set_axis_attr("axis_E", n_glo=llmInterPolated, value=lvalnInterp, begin=axisterpBegin, n=nAxisinterp)
+  CALL xios_set_axis_attr("axis_G", n_glo=nj_glo, value=nlev)
+
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj)
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat, type='curvilinear')
@@ -205,6 +208,7 @@ PROGRAM test_new_features
   DO ts=1,24*1
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
+    CALL xios_send_field("field_A_2D",field_A_2D)
     CALL xios_send_field("field_Value",field_value)
     CALL xios_send_field("field_Axis",field_Axis)
     CALL xios_send_field("field_Two_Axis",field_Two_Axis)

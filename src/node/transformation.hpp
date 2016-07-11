@@ -21,7 +21,7 @@ namespace xios {
     public :
       /// Constructeurs ///
       CTransformation(void) {}
-      virtual void checkValid(T* dest) = 0;
+      virtual void checkValid(T* dest) {}
 
       std::vector<StdString> checkAuxInputs() { return checkAuxInputs_(); }
       static CTransformation<T>* createTransformation(ETranformationType transType, const StdString& id, xml::CXMLNode* node=0);

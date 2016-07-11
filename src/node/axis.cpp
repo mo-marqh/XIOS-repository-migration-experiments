@@ -48,6 +48,8 @@ namespace xios {
      m["zoom_axis"] = TRANS_ZOOM_AXIS;
      m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
      m["inverse_axis"] = TRANS_INVERSE_AXIS;
+     m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_AXIS;
+     m["extract_domain"] = TRANS_EXTRACT_DOMAIN_TO_AXIS;
    }
 
    ///---------------------------------------------------------------
@@ -921,10 +923,10 @@ namespace xios {
   {
     TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
                                   ite = transformationMap_.end();
-    for (it = itb; it != ite; ++it)
-    {
-      (it->second)->checkValid(this);
-    }
+//    for (it = itb; it != ite; ++it)
+//    {
+//      (it->second)->checkValid(this);
+//    }
   }
 
   void CAxis::duplicateTransformation(CAxis* src)

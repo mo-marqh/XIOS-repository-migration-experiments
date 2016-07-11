@@ -91,10 +91,10 @@ namespace xios {
   {
     TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
                                   ite = transformationMap_.end();
-    for (it = itb; it != ite; ++it)
-    {
-      (it->second)->checkValid(this);
-    }
+//    for (it = itb; it != ite; ++it)
+//    {
+//      (it->second)->checkValid(this);
+//    }
   }
 
   void CScalar::duplicateTransformation(CScalar* src)

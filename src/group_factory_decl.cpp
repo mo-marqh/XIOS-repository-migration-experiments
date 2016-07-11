@@ -32,4 +32,6 @@ namespace xios
   macro(CGenerateRectilinearDomainGroup)
   macro(CScalarGroup)
   macro(CReduceAxisToScalarGroup)
+  macro(CReduceDomainToAxisGroup)
+  macro(CExtractDomainToAxisGroup)
 }

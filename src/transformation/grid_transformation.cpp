@@ -7,16 +7,9 @@
    \brief Interface for all transformations.
  */
 #include "grid_transformation.hpp"
-#include "reduce_axis_to_scalar.hpp"
-#include "scalar_algorithm_reduce_axis.hpp"
-#include "axis_algorithm_inverse.hpp"
-#include "axis_algorithm_zoom.hpp"
-#include "axis_algorithm_interpolate.hpp"
-#include "domain_algorithm_zoom.hpp"
-#include "domain_algorithm_interpolate.hpp"
+#include "algo_types.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
-#include "axis_algorithm_transformation.hpp"
 #include "distribution_client.hpp"
 #include "mpi_tag.hpp"
 #include "grid.hpp"
@@ -91,6 +84,8 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
 
   CZoomAxis* zoomAxis = 0;
   CInterpolateAxis* interpAxis = 0;
+  CReduceDomainToAxis* reduceDomain = 0;
+  CExtractDomainToAxis* extractDomain = 0;
   CGenericAlgorithmTransformation* algo = 0;
   switch (transType)
   {
@@ -107,6 +102,16 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
     case TRANS_INVERSE_AXIS:
       axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
       algo = new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex]);
+      break;
+    case TRANS_REDUCE_DOMAIN_TO_AXIS:
+      reduceDomain = dynamic_cast<CReduceDomainToAxis*> (it->second);
+      domainSrcIndex = elementPositionInGridSrc2DomainPosition_[elementPositionInGrid];
+      algo = new CAxisAlgorithmReduceDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], reduceDomain);
+      break;
+    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
+      extractDomain = dynamic_cast<CExtractDomainToAxis*> (it->second);
+      domainSrcIndex = elementPositionInGridSrc2DomainPosition_[elementPositionInGrid];
+      algo = new CAxisAlgorithmExtractDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain);
       break;
     default:
       break;
@@ -188,6 +193,8 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
     case TRANS_INTERPOLATE_AXIS:
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
+    case TRANS_REDUCE_DOMAIN_TO_AXIS:
+    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
 
@@ -266,6 +273,8 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
     case TRANS_INTERPOLATE_AXIS:
     case TRANS_ZOOM_AXIS:
     case TRANS_INVERSE_AXIS:
+    case TRANS_REDUCE_DOMAIN_TO_AXIS:
+    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
 

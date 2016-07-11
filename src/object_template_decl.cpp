@@ -20,6 +20,8 @@ namespace xios
   template class CObjectTemplate<CGenerateRectilinearDomain>;
   template class CObjectTemplate<CScalar>;
   template class CObjectTemplate<CReduceAxisToScalar>;
+  template class CObjectTemplate<CReduceDomainToAxis>;
+  template class CObjectTemplate<CExtractDomainToAxis>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -36,4 +38,6 @@ namespace xios
   template class CObjectTemplate<CGenerateRectilinearDomainGroup>;
   template class CObjectTemplate<CScalarGroup>;
   template class CObjectTemplate<CReduceAxisToScalarGroup>;
+  template class CObjectTemplate<CReduceDomainToAxisGroup>;
+  template class CObjectTemplate<CExtractDomainToAxisGroup>;
 }

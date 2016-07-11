@@ -82,7 +82,7 @@ namespace xios {
       return (this->relFiles);
    }
 
-  
+
    const std::vector<int>& CDomain::getIndexesToWrite(void) const
    {
      return indexesToWrite;
@@ -214,7 +214,7 @@ namespace xios {
    {
       this->relFiles.insert(filename);
    }
-  
+
    void CDomain::addRelFileCompressed(const StdString& filename)
    {
       this->relFilesCompressed.insert(filename);
@@ -2005,10 +2005,10 @@ namespace xios {
   {
     TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
                                   ite = transformationMap_.end();
-    for (it = itb; it != ite; ++it)
-    {
-      (it->second)->checkValid(this);
-    }
+//    for (it = itb; it != ite; ++it)
+//    {
+//      (it->second)->checkValid(this);
+//    }
   }
 
   void CDomain::duplicateTransformation(CDomain* src)

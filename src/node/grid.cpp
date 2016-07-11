@@ -1687,15 +1687,6 @@ namespace xios {
              << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
              << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
       }
-      else
-      {
-//        int ssize = axis_domain_order.numElements();
-//        for (int i = 0; i < ssize; ++i)
-//          if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-//            ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-//                  << "Grids " << this->getId() << " and " << transformGridSrc->getId()
-//                  << " don't have elements in the same order");
-      }
     }
 
     if (isGenerated()) return;

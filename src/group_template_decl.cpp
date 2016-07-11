@@ -21,5 +21,7 @@ namespace xios
   macro(GenerateRectilinearDomain)
   macro(Scalar)
   macro(ReduceAxisToScalar)
+  macro(ReduceDomainToAxis)
+  macro(ExtractDomainToAxis)
 
 }

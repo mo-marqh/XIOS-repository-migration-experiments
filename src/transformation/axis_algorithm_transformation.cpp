@@ -18,7 +18,18 @@
 namespace xios {
 
 CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource)
- : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource)
+ : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(axisSource), domainSrc_(0)
+{
+  axisDestGlobalSize_ = axisDestination->n_glo.getValue();
+  int niDest = axisDestination->n.getValue();
+  int ibeginDest = axisDestination->begin.getValue();
+
+  for (int idx = 0; idx < niDest; ++idx)
+    if ((axisDestination->mask)(idx)) axisDestGlobalIndex_.push_back(ibeginDest+idx);
+}
+
+CAxisAlgorithmTransformation::CAxisAlgorithmTransformation(CAxis* axisDestination, CDomain* domainSource)
+ : CGenericAlgorithmTransformation(), axisDest_(axisDestination), axisSrc_(0), domainSrc_(domainSource)
 {
   axisDestGlobalSize_ = axisDestination->n_glo.getValue();
   int niDest = axisDestination->n.getValue();
@@ -50,14 +61,23 @@ void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
 
-
   size_t globalIndex;
-  int nIndexSize = axisSrc_->index.numElements();
+  int nIndexSize = 0;
+  if (2 == elementType) nIndexSize = domainSrc_->i_index.numElements();
+  else if (1 == elementType) nIndexSize = axisSrc_->index.numElements();
   CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
   globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
   for (int idx = 0; idx < nIndexSize; ++idx)
   {
-    globalIndex = axisSrc_->index(idx);
+    if (2 == elementType)
+    {
+      globalIndex = domainSrc_->i_index(idx) + domainSrc_->j_index(idx) * domainSrc_->ni_glo;
+    }
+    else if (1 == elementType)
+    {
+      globalIndex = axisSrc_->index(idx);
+    }
+
     globalIndex2ProcRank[globalIndex].resize(1);
     globalIndex2ProcRank[globalIndex][0] = clientRank;
   }
