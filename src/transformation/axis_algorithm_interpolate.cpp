@@ -43,15 +43,17 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
 
   // Fill in axis value from coordinate
   fillInAxisValue(vecAxisValue, dataAuxInputs);
+  std::vector<double> valueSrc(srcSize);
+  std::vector<double> recvBuff(srcSize);
+  std::vector<int> indexVec(srcSize);
 
   for (int idx = 0; idx < vecAxisValue.size(); ++idx)
   {
     CArray<double,1>& axisValue = vecAxisValue[idx];
-    std::vector<double> recvBuff(srcSize);
-    std::vector<int> indexVec(srcSize);
     retrieveAllAxisValue(axisValue, axisMask, recvBuff, indexVec);
     XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
-    computeInterpolantPoint(recvBuff, indexVec, idx);
+    for (int i = 0; i < srcSize; ++i) valueSrc[i] = recvBuff[indexVec[i]];
+    computeInterpolantPoint(valueSrc, idx);
   }
 }
 
@@ -59,13 +61,12 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
   Compute the interpolant points
   Assume that we have all value of axis source, with these values, need to calculate weight (coeff) of Lagrange polynomial
   \param [in] axisValue all value of axis source
-  \param [in] indexVec permutation index of axisValue
+  \param [in] tranPos position of axis on a domain
 */
-void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue, const std::vector<int>& indexVec, int transPos)
+void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue, int transPos)
 {
   std::vector<double>::const_iterator itb = axisValue.begin(), ite = axisValue.end();
   std::vector<double>::const_iterator itLowerBound, itUpperBound, it;
-  std::vector<int>::const_iterator itbVec = indexVec.begin(), itVec;
   const double sfmax = NumTraits<double>::sfmax();
 
   int ibegin = axisDest_->begin.getValue();
@@ -115,7 +116,7 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
     for (it = itLowerBound; it != itUpperBound; ++it)
     {
       int index = std::distance(itb, it);
-      interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
+      interpolatingIndexValues[idx+ibegin].push_back(make_pair(index,*it));
     }
   }
   computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
@@ -185,7 +186,11 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axi
         recvBuff[idx] = axisValue(idx);
         indexVec[idx] = idx;
       }
-      else recvBuff[idx] = NumTraits<double>::sfmax();
+      else
+      {
+        recvBuff[idx] = NumTraits<double>::sfmax();
+        indexVec[idx] = -1;
+      }
     }
 
   }

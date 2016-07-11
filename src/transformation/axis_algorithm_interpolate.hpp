@@ -32,7 +32,7 @@ protected:
 private:
   void retrieveAllAxisValue(const CArray<double,1>& axisValue, const CArray<bool,1>& axisMask,
                             std::vector<double>& recvBuff, std::vector<int>& indexVec);
-  void computeInterpolantPoint(const std::vector<double>& recvBuff, const std::vector<int>& indexVec, int transPos = 0);
+  void computeInterpolantPoint(const std::vector<double>& recvBuff, int transPos = 0);
   void computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos = 0);
   void fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue,
                        const std::vector<CArray<double,1>* >& dataAuxInputs);
@@ -45,4 +45,5 @@ private:
 };
 
 }
+
 #endif // __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
