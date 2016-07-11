@@ -13,10 +13,11 @@
 namespace xios {
 
 CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)
- : gridSource_(source), gridDestination_(destination),
+ : gridSource_(source), gridDestination_(destination), isSameGrid_(false),
   listAlgos_(), algoTypes_(), nbNormalAlgos_(0), nbSpecialAlgos_(0), auxInputs_()
 {
-  if (0 == source) gridSource_ = gridDestination_;
+  if (0 == source)
+  {  gridSource_ = gridDestination_; isSameGrid_ = true; }
 
   //Verify the compatibity between two grids
   int numElement = gridDestination_->axis_domain_order.numElements();
@@ -161,7 +162,7 @@ void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionI
 
     // If source and destination grid share the same scalar
     if ((-1 != scalarDstPos) && (-1 != scalarSrcPos) &&
-        (scalarListDestP[scalarDstPos] == scalarListSrcP[scalarSrcPos])) return;
+        (scalarListDestP[scalarDstPos] == scalarListSrcP[scalarSrcPos]) && !isSameGrid_) return;
 
     if (scalarListDestP[scalarDstPos]->hasTransformation())
     {
@@ -202,7 +203,7 @@ void CGridTransformationSelector::initializeAxisAlgorithms(int axisPositionInGri
 
     // If source and destination grid share the same axis
     if ((-1 != axisDstPos) && (-1 != axisSrcPos) &&
-        (axisListDestP[axisDstPos] == axisListSrcP[axisSrcPos])) return;
+        (axisListDestP[axisDstPos] == axisListSrcP[axisSrcPos]) && !isSameGrid_) return;
 
     if (axisListDestP[axisDstPos]->hasTransformation())
     {
@@ -242,7 +243,7 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
 
     // If source and destination grid share the same domain
     if ((-1 != domDstPos) && (-1 != domSrcPos) &&
-        (domListDestP[domDstPos] == domListSrcP[domSrcPos])) return;
+        (domListDestP[domDstPos] == domListSrcP[domSrcPos]) && !isSameGrid_) return;
 
     if (domListDestP[domDstPos]->hasTransformation())
     {

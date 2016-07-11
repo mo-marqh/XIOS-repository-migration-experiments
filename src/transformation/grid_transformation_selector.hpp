@@ -69,6 +69,9 @@ protected:
   //! Grid destination on transformation
   CGrid* gridDestination_;
 
+  //! Grid source and grid destination it's the same
+  bool isSameGrid_;
+
 protected:
   //! List of algorithm types and their order
   ListAlgoType listAlgos_;
