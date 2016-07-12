@@ -287,7 +287,7 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 
 
   long int nb1, nb2, nb, nbTot ;
-  nb1=node.size() ; nb2=node.size() ;
+  nb1=node.size() ; nb2=node2.size() ;
   nb=nb1+nb2 ;
   MPI_Allreduce(&nb, &nbTot, 1, MPI_LONG, MPI_SUM, communicator) ;
   int commSize ;
@@ -296,7 +296,7 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
 	// make multiple of two
 	nbSampleNodes /= 2;
 	nbSampleNodes *= 2;
-  assert( nbTot > nbSampleNodes*commSize) ;
+//  assert( nbTot > nbSampleNodes*commSize) ;
     
   int nbSampleNodes1 = nbSampleNodes * (nb1*commSize)/(1.*nbTot) ;
   int nbSampleNodes2 = nbSampleNodes * (nb2*commSize)/(1.*nbTot) ;
@@ -331,8 +331,8 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
           s2=nbSampleNodes/2 ;
         }
 */
-        for (int i = 0; i <nbSampleNodes1; i++) sampleNodes.push_back(Node(node[randomArray1[i]].centre,  node[randomArray1[i]].radius, NULL));
-        for (int i = 0; i <nbSampleNodes2; i++) sampleNodes.push_back(Node(node2[randomArray2[i]].centre, node2[randomArray2[i]].radius, NULL));
+        for (int i = 0; i <nbSampleNodes1; i++) sampleNodes.push_back(Node(node[randomArray1[i%nb1]].centre,  node[randomArray1[i%nb1]].radius, NULL));
+        for (int i = 0; i <nbSampleNodes2; i++) sampleNodes.push_back(Node(node2[randomArray2[i%nb2]].centre, node2[randomArray2[i%nb2]].radius, NULL));
 
 /*          
         for (int i = 0; i < nbSampleNodes/2; i++)
