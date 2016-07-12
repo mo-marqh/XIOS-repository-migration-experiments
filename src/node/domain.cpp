@@ -511,19 +511,27 @@ namespace xios {
      const int nvertexValue = 4;
      boundsLon.resize(nvertexValue,ni*nj);
 
-     double lonStepStart = lon(1)-lon(0);
-     bounds_lon_start=lon(0) - lonStepStart/2;
-     double lonStepEnd = lon(ni_glo-1)-lon(ni_glo-2);
-     bounds_lon_end=lon(ni_glo-1) + lonStepEnd/2;
-     double errorBoundsLon = std::abs(360-std::abs(bounds_lon_end-bounds_lon_start));
-
-     // if errorBoundsLon is reasonably small (0.1 x cell size) consider it as closed in longitude
-     if (errorBoundsLon < std::abs(lonStepStart)*1e-1 || errorBoundsLon < std::abs(lonStepEnd)*1e-1 )
+     if (ni_glo>1)
      {
-       bounds_lon_start= (lon(0) + lon(ni_glo-1)-360)/2 ;
-       bounds_lon_end= (lon(0) +360 + lon(ni_glo-1))/2 ;
-     }
+       double lonStepStart = lon(1)-lon(0);
+       bounds_lon_start=lon(0) - lonStepStart/2;
+       double lonStepEnd = lon(ni_glo-1)-lon(ni_glo-2);
+       bounds_lon_end=lon(ni_glo-1) + lonStepEnd/2;
+       double errorBoundsLon = std::abs(360-std::abs(bounds_lon_end-bounds_lon_start));
 
+       // if errorBoundsLon is reasonably small (0.1 x cell size) consider it as closed in longitude
+       if (errorBoundsLon < std::abs(lonStepStart)*1e-1 || errorBoundsLon < std::abs(lonStepEnd)*1e-1 )
+       {
+         bounds_lon_start= (lon(0) + lon(ni_glo-1)-360)/2 ;
+         bounds_lon_end= (lon(0) +360 + lon(ni_glo-1))/2 ;
+       }
+     }
+     else
+     {
+       if (bounds_lon_start.isEmpty()) bounds_lon_start=-180. ;
+       if (bounds_lon_end.isEmpty()) bounds_lon_end=180.-1e-8 ;
+     }
+     
      for(j=0;j<nj;++j)
        for(i=0;i<ni;++i)
        {
@@ -543,39 +551,47 @@ namespace xios {
 
     // lat boundaries beyond pole the assimilate it to pole
     // lat boundarie is relativelly close to pole (0.1 x cell size) assimilate it to pole
-    double latStepStart = lat(1)-lat(0);
-    if (isNorthPole) bounds_lat_start=lat(0);
-    else
+    if (nj_glo>1)
     {
-      bounds_lat_start=lat(0)-latStepStart/2;
-      if (bounds_lat_start >= 90 ) bounds_lat_start=90 ;
-      else if (bounds_lat_start <= -90 ) bounds_lat_start=-90 ;
-      else if (bounds_lat_start <= 90 && bounds_lat_start >= lat(0))
+      double latStepStart = lat(1)-lat(0);
+      if (isNorthPole) bounds_lat_start=lat(0);
+      else
       {
-        if ( std::abs(90-bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=90 ;
+        bounds_lat_start=lat(0)-latStepStart/2;
+        if (bounds_lat_start >= 90 ) bounds_lat_start=90 ;
+        else if (bounds_lat_start <= -90 ) bounds_lat_start=-90 ;
+        else if (bounds_lat_start <= 90 && bounds_lat_start >= lat(0))
+        {
+          if ( std::abs(90-bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=90 ;
+        }
+        else if (bounds_lat_start >= -90 && bounds_lat_start <= lat(0))
+        {
+          if ( std::abs(-90 - bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=-90 ;
+        }
       }
-      else if (bounds_lat_start >= -90 && bounds_lat_start <= lat(0))
+
+      double latStepEnd = lat(nj_glo-1)-lat(nj_glo-2);
+      if (isSouthPole) bounds_lat_end=lat(nj_glo-1);
+      else
       {
-        if ( std::abs(-90 - bounds_lat_start) <= 0.1*std::abs(latStepStart)) bounds_lat_start=-90 ;
+        bounds_lat_end=lat(nj_glo-1)+latStepEnd/2;
+
+        if (bounds_lat_end >= 90 ) bounds_lat_end=90 ;
+        else if (bounds_lat_end <= -90 ) bounds_lat_end=-90 ;
+        else if (bounds_lat_end <= 90 && bounds_lat_end >= lat(nj_glo-1))
+        {
+          if ( std::abs(90-bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=90 ;
+        }
+        else if (bounds_lat_end >= -90 && bounds_lat_end <= lat(nj_glo-1))
+        {
+          if ( std::abs(-90 - bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=-90 ;
+        }
       }
     }
-
-    double latStepEnd = lat(nj_glo-1)-lat(nj_glo-2);
-    if (isSouthPole) bounds_lat_end=lat(nj_glo-1);
     else
     {
-      bounds_lat_end=lat(nj_glo-1)+latStepEnd/2;
-
-      if (bounds_lat_end >= 90 ) bounds_lat_end=90 ;
-      else if (bounds_lat_end <= -90 ) bounds_lat_end=-90 ;
-      else if (bounds_lat_end <= 90 && bounds_lat_end >= lat(nj_glo-1))
-      {
-        if ( std::abs(90-bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=90 ;
-      }
-      else if (bounds_lat_end >= -90 && bounds_lat_end <= lat(nj_glo-1))
-      {
-        if ( std::abs(-90 - bounds_lat_end) <= 0.1*std::abs(latStepEnd)) bounds_lat_end=-90 ;
-      }
+      if (bounds_lat_start.isEmpty()) bounds_lon_start=-90. ;
+      if (bounds_lat_end.isEmpty()) bounds_lat_end=90 ;
     }
 
     for(j=0;j<nj;++j)
