@@ -8,7 +8,8 @@
 #define __XIOS_CMesh__
  
 #include "array_new.hpp"
-#include "client_client_dht_template.hpp"
+#include "client_client_dht_template_impl.hpp"
+#include "dht_auto_indexing.hpp"
 
 namespace xios {
   
@@ -34,7 +35,7 @@ namespace xios {
       int nbEdges;
       int nbFaces;
       int nvertex;  
-      
+
       bool nodesAreWritten;
       bool edgesAreWritten;
       bool facesAreWritten;
@@ -49,11 +50,14 @@ namespace xios {
       CArray<double, 1> face_lon;
       CArray<double, 1> face_lat;
       CArray<int, 2> face_nodes;
+      CArray<int, 2> face_edges;
+      CArray<int, 2> edge_faces;
+      CArray<int, 2> face_faces;
 
       void createMesh(const CArray<double, 1>&, const CArray<double, 1>&, 
             const CArray<double, 2>&, const CArray<double, 2>& );
                         
-      void createMeshEpsilon(const CArray<double, 1>&, const CArray<double, 1>&,
+      void createMeshEpsilon(const MPI_Comm&, const CArray<double, 1>&, const CArray<double, 1>&,
             const CArray<double, 2>&, const CArray<double, 2>& );
             
       static CMesh* getMesh(StdString);
@@ -61,11 +65,12 @@ namespace xios {
     private:
 
       static std::map <StdString, CMesh> meshList;
+      vector<size_t> createHashes (double, double);
 
-      size_t nodeIndex (double, double);      
-      boost::unordered_map <size_t, size_t> hashed_map_nodes;
-      boost::unordered_map <pair<double,double>, int> map_nodes;
-      boost::unordered_map <pair<int,int>, int> map_edges;
+      size_t nodeIndex (double, double);                           // redundant in parallel version with epsilon precision
+      boost::unordered_map <size_t, size_t> hashed_map_nodes;      // redundant in parallel version with epsilon precision
+      boost::unordered_map <pair<double,double>, int> map_nodes;   // redundant in parallel version with epsilon precision
+      boost::unordered_map <pair<int,int>, int> map_edges;         // redundant in parallel version with epsilon precision
 
   }; 
 
