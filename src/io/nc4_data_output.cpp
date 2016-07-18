@@ -449,8 +449,8 @@ namespace xios
       StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
       domain->assignMesh(domainName);
-      //domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
-      domain->mesh->createMeshEpsilon(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
+      domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
+      //domain->mesh->createMeshEpsilon(server->intraComm, domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
 
       StdString node_x = domainName + "_node_x";
       StdString node_y = domainName + "_node_y";
@@ -462,6 +462,9 @@ namespace xios
       StdString face_x = domainName + "_face_x";
       StdString face_y = domainName + "_face_y";
       StdString face_nodes = domainName + "_face_nodes";
+      StdString face_edges = domainName + "_face_edges";
+      StdString edge_faces = domainName + "_edge_face_links";
+      StdString face_faces = domainName + "_face_links";
 
       StdString dimNode = "n" + domainName + "_node";
       StdString dimEdge = "n" + domainName + "_edge";
@@ -489,7 +492,7 @@ namespace xios
             {
               if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
               {
-                SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
+                SuperClassWriter::addDimension(dimNode, domain->ni_glo);
                 dim0.clear();
                 dim0.push_back(dimNode);
                 SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
@@ -506,7 +509,6 @@ namespace xios
             // Adding edges and nodes, if nodes have not been defined previously
             if (domain->nvertex == 2)
             {
-              // Nodes
               if (!SuperClassWriter::varExist(node_x) || !SuperClassWriter::varExist(node_y))
               {
                 SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodes);
@@ -521,7 +523,6 @@ namespace xios
                 SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
               }
-              // Edges
               if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
               {
                 SuperClassWriter::addAttribute("edge_node_connectivity", edge_nodes, &domainName);
@@ -565,7 +566,6 @@ namespace xios
                 SuperClassWriter::addAttribute("longname_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
               }
-              // Edges
               if (!SuperClassWriter::varExist(edge_x) || !SuperClassWriter::varExist(edge_y))
               {
                 SuperClassWriter::addAttribute("edge_coordinates", edge_x + " " + edge_y, &domainName);
@@ -589,7 +589,6 @@ namespace xios
                 SuperClassWriter::addAttribute("long_name", StdString("Maps every edge/link to two nodes that it connects."), &edge_nodes);
                 SuperClassWriter::addAttribute("start_index", 0, &edge_nodes);
               }
-              // Faces
                 SuperClassWriter::addAttribute("face_coordinates", face_x + " " + face_y, &domainName);
                 SuperClassWriter::addAttribute("face_node_connectivity", face_nodes, &domainName);
                 SuperClassWriter::addDimension(dimFace, domain->mesh->nbFaces);
@@ -611,16 +610,54 @@ namespace xios
                 SuperClassWriter::addAttribute("cf_role", StdString("face_node_connectivity"), &face_nodes);
                 SuperClassWriter::addAttribute("long_name", StdString("Maps every face to its corner nodes."), &face_nodes);
                 SuperClassWriter::addAttribute("start_index", 0, &face_nodes);
+                dim0.clear();
+                dim0.push_back(dimFace);
+                dim0.push_back(dimVertex);
+                SuperClassWriter::addVariable(face_edges, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("face_edge_connectivity"), &face_edges);
+                SuperClassWriter::addAttribute("long_name", StdString("Maps every face to its edges."), &face_edges);
+                SuperClassWriter::addAttribute("start_index", 0, &face_edges);
+                dim0.clear();
+                dim0.push_back(dimEdge);
+                dim0.push_back(dimTwo);
+                SuperClassWriter::addVariable(edge_faces, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("edge_face connectivity"), &edge_faces);
+                SuperClassWriter::addAttribute("long_name", StdString("neighbor faces for edges"), &edge_faces);
+                SuperClassWriter::addAttribute("start_index", 0, &edge_faces);
+                SuperClassWriter::addAttribute("_FillValue", -999, &edge_faces);
+                SuperClassWriter::addAttribute("comment", StdString("missing neighbor faces are indicated using _FillValue"), &edge_faces);
+                dim0.clear();
+                dim0.push_back(dimFace);
+                dim0.push_back(dimVertex);
+                SuperClassWriter::addVariable(face_faces, NC_INT, dim0);
+                SuperClassWriter::addAttribute("cf_role", StdString("face_face connectivity"), &face_faces);
+                SuperClassWriter::addAttribute("long_name", StdString("Indicates which other faces neighbor each face"), &face_faces);
+                SuperClassWriter::addAttribute("start_index", 0, &face_faces);
+                SuperClassWriter::addAttribute("flag_values", -1, &face_faces);
+                SuperClassWriter::addAttribute("flag_meanings", StdString("out_of_mesh"), &face_faces);
             } // domain->nvertex > 2
 
             SuperClassWriter::definition_end();
+
+            std::vector<StdSize> start(1) ;
+            std::vector<StdSize> count(1) ;
+            if (domain->isEmpty())
+             {
+               start[0]=0 ;
+               count[0]=0 ;
+             }
+             else
+             {
+               start[0]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
+               count[0]=domain->zoom_ni_srv ;
+             }
 
             if (!isWrittenDomain(domid))
             {
               if (domain->nvertex == 1)
               {
-                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0);
-                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0);
+                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &start, &count);
+                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &start, &count);
               }
               else if (domain->nvertex == 2)
                             {
@@ -640,6 +677,9 @@ namespace xios
                 SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
                 SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
                 SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
+                SuperClassWriter::writeData(domain->mesh->face_edges, face_edges);
+                SuperClassWriter::writeData(domain->mesh->edge_faces, edge_faces);
+                SuperClassWriter::writeData(domain->mesh->face_faces, face_faces);
               }
               setWrittenDomain(domid);
             } // !isWrittenDomain
@@ -683,6 +723,9 @@ namespace xios
                 SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0);
                 SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0);
                 SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes);
+                SuperClassWriter::writeData(domain->mesh->face_edges, face_edges);
+                SuperClassWriter::writeData(domain->mesh->edge_faces, edge_faces);
+                SuperClassWriter::writeData(domain->mesh->face_faces, face_faces);
               }
             }// isWrittenDomain
 
@@ -735,7 +778,6 @@ namespace xios
          else setWrittenDomain(domid);
 
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
-
 
          StdString dimXid = StdString("cell").append(appendDomid);
          StdString dimVertId = StdString("nvertex").append(appendDomid);
