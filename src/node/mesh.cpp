@@ -432,7 +432,7 @@ namespace xios {
     {
       nbNodes = lonvalue.numElements();
 
-      CClientClientDHTSizet::Index2VectorInfoTypeMap hash2Idx;      // map <hash, idx>
+//      CClientClientDHTSizet::Index2VectorInfoTypeMap hash2Idx;      // map <hash, idx>
       vector<size_t> hashValues(4);                                 // temporary vector for storing hashes for each node
       vector<size_t> globalIndexes(nbNodes);                        // Probably a map ?
       CArray<size_t,1> hashList(nbNodes*4);                         // Do I need it?
@@ -485,9 +485,9 @@ namespace xios {
 //      }
 
       // Unique global indexing
-      CDHTAutoIndexing dhtSizetIdx = CDHTAutoIndexing(idxList, comm);
-      CClientClientDHTSizet* pDhtSizet = &dhtSizetIdx;
-      pDhtSizet->computeIndexInfoMapping(idxList);
+//      CDHTAutoIndexing dhtSizetIdx = CDHTAutoIndexing(idxList, comm);
+//      CClientClientDHTSizet* pDhtSizet = &dhtSizetIdx;
+//      pDhtSizet->computeIndexInfoMapping(idxList);
 
       //globalIndexes = dhtSizetIdx.getGlobalIndex();
 
