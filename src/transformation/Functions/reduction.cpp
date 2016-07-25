@@ -29,7 +29,7 @@ bool CReductionAlgorithm::_dummyInit = CReductionAlgorithm::initReductionOperati
 CReductionAlgorithm* CReductionAlgorithm::createOperation(EReductionType reduceType)
 {
   int reduceTypeInt = reduceType;
-  typename CallBackMap::const_iterator it = (*reductionCreationCallBacks_).find(reduceType);
+  CallBackMap::const_iterator it = (*reductionCreationCallBacks_).find(reduceType);
   if ((*reductionCreationCallBacks_).end() == it)
   {
      ERROR("CReductionAlgorithm::createOperation(EReductionType reduceType)",
