@@ -622,7 +622,7 @@ MODULE IXML_TREE
 
    SUBROUTINE xios(add_reduceaxistoscalartoscalar)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl
-      TYPE(txios(inverse_axis))              , INTENT(OUT):: child_hdl
+      TYPE(txios(reduce_axis_to_scalar))     , INTENT(OUT):: child_hdl
       CHARACTER(len = *), OPTIONAL           , INTENT(IN) :: child_id
 
       IF (PRESENT(child_id)) THEN

@@ -86,7 +86,9 @@ USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_doma
 
 USE ireduce_axis_to_scalar, ONLY : xios(get_reduce_axis_to_scalar_handle)
 
-USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr_hdl), xios(get_reduce_axis_to_scalar_attr_hdl), xios(is_defined_reduce_axis_to_scalar_attr_hdl)
+USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr_hdl), &
+                                        xios(get_reduce_axis_to_scalar_attr_hdl), &
+                                        xios(is_defined_reduce_axis_to_scalar_attr_hdl)
 
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),   &
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &

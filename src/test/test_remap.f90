@@ -19,7 +19,9 @@ PROGRAM test_remap
   DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field(:), tmp_field(:), tmp_field_1(:), tmp_field_2(:), src_field_3D(:,:), lval(:), lval1(:), src_field_pression(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field(:)
+  DOUBLE PRECISION,ALLOCATABLE :: tmp_field(:), tmp_field_1(:), tmp_field_2(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field_3D(:,:), lval(:), lval1(:), src_field_pression(:,:)
   LOGICAL,ALLOCATABLE :: src_mask_2D(:)
   INTEGER :: src_ni_glo, dst_ni_glo;
   INTEGER :: src_nvertex, dst_nvertex;

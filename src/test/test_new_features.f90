@@ -105,7 +105,8 @@ PROGRAM test_new_features
   jbeginDomInterp = 0
   CALL Distribute_index(jbeginDomInterp, jendDomInterp, njDomInterp, njDomGlo, rank, size)
 
-  ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_A_2D(0:ni+1,-1:nj+2), field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
+  ALLOCATE(field_A(0:ni+1,-1:nj+2,llm), field_A_2D(0:ni+1,-1:nj+2), &
+          field_Two_Axis(ni_glo,1:nj), field_Axis(nAxis), field_All_Axis(1:ni,1:nj,llm), &
           lon(ni,nj),lat(ni,nj), lonvalue(ni*nj), &
           lvaln(nAxis), lval_ni(ni), lval_nj(nj), lvalnInterp(nAxisinterp), &
           lontransformed(niDomInterp, njDomInterp), lattransformed(niDomInterp, njDomInterp), &
