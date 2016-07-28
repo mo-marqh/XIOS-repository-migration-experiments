@@ -274,14 +274,18 @@ namespace xios {
 #undef DECLARE_NODE_PAR
 
      std::map<int, StdSize> bufferSize = getAttributesBufferSize();
-     std::map<int, StdSize>::iterator it, ite = bufferSize.end();
-     for (it = bufferSize.begin(); it != ite; ++it)
-       if (it->second < minBufferSize) it->second = minBufferSize;
-
      std::map<int, StdSize> dataBufferSize = getDataBufferSize();
-     ite = dataBufferSize.end();
+
+     std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
      for (it = dataBufferSize.begin(); it != ite; ++it)
        if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
+
+     ite = bufferSize.end();
+     for (it = bufferSize.begin(); it != ite; ++it)
+     {
+       it->second *= CXios::bufferSizeFactor;
+       if (it->second < minBufferSize) it->second = minBufferSize;
+     }
 
      if (client->isServerLeader())
      {
