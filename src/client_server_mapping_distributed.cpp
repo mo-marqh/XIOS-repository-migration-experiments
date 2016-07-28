@@ -44,7 +44,7 @@ void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<siz
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
   const CClientClientDHTInt::Index2VectorInfoTypeMap& infoIndexMap = (ccDHT_->getInfoIndexMap());
   CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = infoIndexMap.begin(), ite = infoIndexMap.end(), it;
-  std::vector<size_t> nbInfoIndex(nbServer,0);
+  std::vector<size_t> nbInfoIndex(std::max(ccDHT_->getNbClient(),nbServer),0);
 
   for (it = itb; it != ite; ++it)
   {
