@@ -399,6 +399,7 @@ namespace xios {
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
     int range, clientSize = client->clientSize;
+    int rank = client->clientRank;
 
     size_t ni = this->n.getValue();
     size_t ibegin = this->begin.getValue();
@@ -452,14 +453,22 @@ namespace xios {
       size_t globalSizeIndex = 1, indexBegin, indexEnd;
       for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
       indexBegin = 0;
-      for (int i = 0; i < clientSize; ++i)
+      if (globalSizeIndex <= clientSize)
       {
-        range = globalSizeIndex / clientSize;
-        if (i < (globalSizeIndex%clientSize)) ++range;
-        if (i == client->clientRank) break;
-        indexBegin += range;
+        indexBegin = rank%globalSizeIndex;
+        indexEnd = indexBegin;
       }
-      indexEnd = indexBegin + range - 1;
+      else
+      {
+        for (int i = 0; i < clientSize; ++i)
+        {
+          range = globalSizeIndex / clientSize;
+          if (i < (globalSizeIndex%clientSize)) ++range;
+          if (i == client->clientRank) break;
+          indexBegin += range;
+        }
+        indexEnd = indexBegin + range - 1;
+      }
 
       CServerDistributionDescription serverDescription(nGlobAxis, nbServer);
       serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd));

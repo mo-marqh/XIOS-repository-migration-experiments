@@ -12,6 +12,8 @@
 #include <boost/functional/hash.hpp>
 #include "utils.hpp"
 #include "mpi_tag.hpp"
+#include "context.hpp"
+#include "context_client.hpp"
 
 namespace xios
 {
@@ -35,10 +37,14 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 */
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
+  CContext* context=CContext::getCurrent() ;
+  CContextClient* client=context->client ;
+  int nbServer=client->serverSize;
+
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
   const CClientClientDHTInt::Index2VectorInfoTypeMap& infoIndexMap = (ccDHT_->getInfoIndexMap());
   CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = infoIndexMap.begin(), ite = infoIndexMap.end(), it;
-  std::vector<size_t> nbInfoIndex(ccDHT_->getNbClient(),0);
+  std::vector<size_t> nbInfoIndex(nbServer,0);
 
   for (it = itb; it != ite; ++it)
   {

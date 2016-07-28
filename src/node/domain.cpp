@@ -531,7 +531,7 @@ namespace xios {
        if (bounds_lon_start.isEmpty()) bounds_lon_start=-180. ;
        if (bounds_lon_end.isEmpty()) bounds_lon_end=180.-1e-8 ;
      }
-     
+
      for(j=0;j<nj;++j)
        for(i=0;i<ni;++i)
        {
@@ -920,11 +920,11 @@ namespace xios {
      size_t zoom_jbegin=global_zoom_jbegin ;
      size_t zoom_jend=global_zoom_jbegin+global_zoom_nj-1 ;
 
-     
+
      size_t dn=data_i_index.numElements() ;
      int i,j ;
      size_t k,ind ;
-     
+
      for(k=0;k<dn;k++)
      {
        if (data_dim==2)
@@ -935,7 +935,7 @@ namespace xios {
        else
        {
           i=(data_i_index(k)+data_ibegin)%ni ;
-          j=(data_i_index(k)+data_ibegin)/ni ;          
+          j=(data_i_index(k)+data_ibegin)/ni ;
        }
 
        if (i>=0 && i<ni && j>=0 && j<nj)
@@ -946,13 +946,13 @@ namespace xios {
          }
      }
    }
-       
-         
-     
 
-     
 
-   
+
+
+
+
+
    void CDomain::checkEligibilityForCompressedOutput(void)
    {
      // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
@@ -1357,6 +1357,7 @@ namespace xios {
     CContext* context=CContext::getCurrent() ;
     CContextClient* client=context->client ;
     int nbServer=client->serverSize;
+    int rank = client->clientRank;
     bool doComputeGlobalIndexServer = true;
 
     int i,j,i_ind,j_ind, nbIndex;
@@ -1444,14 +1445,22 @@ namespace xios {
     int range, clientSize = client->clientSize;
     for (int i = 0; i < nGlobDomain_.size(); ++i) globalSizeIndex *= nGlobDomain_[i];
     indexBegin = 0;
-    for (int i = 0; i < clientSize; ++i)
+    if (globalSizeIndex <= clientSize)
     {
-      range = globalSizeIndex / clientSize;
-      if (i < (globalSizeIndex%clientSize)) ++range;
-      if (i == client->clientRank) break;
-      indexBegin += range;
+      indexBegin = rank%globalSizeIndex;
+      indexEnd = indexBegin;
     }
-    indexEnd = indexBegin + range - 1;
+    else
+    {
+      for (int i = 0; i < clientSize; ++i)
+      {
+        range = globalSizeIndex / clientSize;
+        if (i < (globalSizeIndex%clientSize)) ++range;
+        if (i == client->clientRank) break;
+        indexBegin += range;
+      }
+      indexEnd = indexBegin + range - 1;
+    }
 
     CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
     if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
