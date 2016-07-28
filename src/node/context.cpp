@@ -836,23 +836,26 @@ namespace xios {
    {
      std::map<int, StdSize> attributesSize;
 
-     size_t numEnabledFiles = this->enabledFiles.size();
-     for (size_t i = 0; i < numEnabledFiles; ++i)
+     if (hasClient)
      {
-       CFile* file = this->enabledFiles[i];
-
-       std::vector<CField*> enabledFields = file->getEnabledFields();
-       size_t numEnabledFields = enabledFields.size();
-       for (size_t j = 0; j < numEnabledFields; ++j)
+       size_t numEnabledFiles = this->enabledFiles.size();
+       for (size_t i = 0; i < numEnabledFiles; ++i)
        {
-         const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
-         std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-         for (; it != itE; ++it)
+         CFile* file = this->enabledFiles[i];
+
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         size_t numEnabledFields = enabledFields.size();
+         for (size_t j = 0; j < numEnabledFields; ++j)
          {
-           // If attributesSize[it->first] does not exist, it will be zero-initialized
-           // so we can use it safely without checking for its existance
-           if (attributesSize[it->first] < it->second)
-             attributesSize[it->first] = it->second;
+           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+           for (; it != itE; ++it)
+           {
+             // If attributesSize[it->first] does not exist, it will be zero-initialized
+             // so we can use it safely without checking for its existance
+             if (attributesSize[it->first] < it->second)
+               attributesSize[it->first] = it->second;
+           }
          }
        }
      }
