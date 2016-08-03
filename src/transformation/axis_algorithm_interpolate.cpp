@@ -271,49 +271,66 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
 
     CDomain* dom = domListP[0];
     size_t vecAxisValueSize = dom->i_index.numElements();
+    size_t vecAxisValueSizeWithMask = 0;
+    for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
+    {
+      if (dom->mask_1d(idx)) ++vecAxisValueSizeWithMask;
+    }
+
     int niGlobDom = dom->ni_glo.getValue();
-    vecAxisValue.resize(vecAxisValueSize);
+    vecAxisValue.resize(vecAxisValueSizeWithMask);
     if (transPosition_.empty())
     {
-      transPosition_.resize(vecAxisValueSize);
+      size_t indexMask = 0;
+      transPosition_.resize(vecAxisValueSizeWithMask);
       for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
       {
-        transPosition_[idx].resize(1);
-        transPosition_[idx][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
+        if (dom->mask_1d(idx))
+        {
+          transPosition_[indexMask].resize(1);
+          transPosition_[indexMask][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
+          ++indexMask;
+        }
+
       }
     }
-    this->transformationMapping_.resize(vecAxisValueSize);
-    this->transformationWeight_.resize(vecAxisValueSize);
-    this->transformationPosition_.resize(vecAxisValueSize);
+    this->transformationMapping_.resize(vecAxisValueSizeWithMask);
+    this->transformationWeight_.resize(vecAxisValueSizeWithMask);
+    this->transformationPosition_.resize(vecAxisValueSizeWithMask);
 
     const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = grid->getDistributionClient()->getGlobalLocalDataSendToServer();
     CDistributionClient::GlobalLocalDataMap::const_iterator itIndex, iteIndex = globalLocalIndexSendToServer.end();
     size_t axisSrcSize = axisSrc_->index.numElements();
     std::vector<int> globalDimension = grid->getGlobalDimension();
 
+    size_t indexMask = 0;
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
-      size_t axisValueSize = 0;
-      for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
+      if (dom->mask_1d(idx))
       {
-        size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
-        if (iteIndex != globalLocalIndexSendToServer.find(globalIndex))
+        size_t axisValueSize = 0;
+        for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
         {
-          ++axisValueSize;
+          size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
+          if (iteIndex != globalLocalIndexSendToServer.find(globalIndex))
+          {
+            ++axisValueSize;
+          }
         }
-      }
 
-      vecAxisValue[idx].resize(axisValueSize);
-      axisValueSize = 0;
-      for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
-      {
-        size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
-        itIndex = globalLocalIndexSendToServer.find(globalIndex);
-        if (iteIndex != itIndex)
+        vecAxisValue[indexMask].resize(axisValueSize);
+        axisValueSize = 0;
+        for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
         {
-          vecAxisValue[idx](axisValueSize) = (*dataAuxInputs[0])(itIndex->second);
-          ++axisValueSize;
+          size_t globalIndex = ((dom->i_index)(idx) + (dom->j_index)(idx)*globalDimension[0]) + (axisSrc_->index)(jdx)*globalDimension[0]*globalDimension[1];
+          itIndex = globalLocalIndexSendToServer.find(globalIndex);
+          if (iteIndex != itIndex)
+          {
+            vecAxisValue[indexMask](axisValueSize) = (*dataAuxInputs[0])(itIndex->second);
+            ++axisValueSize;
+          }
         }
+        ++indexMask;
       }
     }
   }
