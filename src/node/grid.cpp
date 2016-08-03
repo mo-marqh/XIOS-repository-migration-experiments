@@ -542,7 +542,7 @@ namespace xios {
        elementNGlobal[idx] = globalSize;
        size_t elementSize;
        size_t elementGlobalSize = 1;
-       if (2 == axis_domain_order(idx))
+       if (2 == axis_domain_order(idx)) // This is domain
        {
          elementSize = domList[domainIdx]->i_index.numElements();
          globalIndexElement[idx].resize(elementSize);
@@ -553,7 +553,7 @@ namespace xios {
          elementGlobalSize = domList[domainIdx]->ni_glo.getValue() * domList[domainIdx]->nj_glo.getValue();
          ++domainIdx;
        }
-       else if (1 == axis_domain_order(idx))
+       else if (1 == axis_domain_order(idx))  // This is axis
        {
          elementSize = axisList[axisIdx]->index.numElements();
          globalIndexElement[idx].resize(elementSize);
@@ -564,7 +564,7 @@ namespace xios {
          elementGlobalSize = axisList[axisIdx]->n_glo.getValue();
          ++axisIdx;
        }
-       else
+       else  // Of course, this is scalar
        {
          globalIndexElement[idx].resize(1);
          globalIndexElement[idx](0) = 0;
@@ -575,9 +575,13 @@ namespace xios {
 
      std::vector<std::vector<bool> > elementOnServer(nbElement, std::vector<bool>(serverSize, false));
      std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
+     CArray<int,1> nbIndexOnServer(serverSize); // Number of distributed global index held by each client for each server
+     // Number of temporary distributed global index held by each client for each server
+     // We have this variable for the case of non-distributed element (often axis) to check the duplicate server rank
+     CArray<int,1> nbIndexOnServerTmp(serverSize);
      for (int idx = 0; idx < nbElement; ++idx)
      {
-       std::vector<int> nbIndexOnServer(serverSize,0);
+       nbIndexOnServer = 0;
        const boost::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
        const CArray<size_t,1>& globalIndexElementOnClient = globalIndexElement[idx];
        CClientClientDHTInt clientClientDHT(indexServerElement, client->intraComm);
@@ -588,30 +592,37 @@ namespace xios {
        for (it = itb; it != ite; ++it)
        {
          const std::vector<int>& tmp = it->second;
+         nbIndexOnServerTmp = 0;
          for (int i = 0; i < tmp.size(); ++i)
          {
-           ++nbIndexOnServer[tmp[i]];
+           if (0 == nbIndexOnServerTmp(tmp[i])) ++nbIndexOnServerTmp(tmp[i]);
          }
+         nbIndexOnServer += nbIndexOnServerTmp;
        }
 
        for (int i = 0; i < serverSize; ++i)
        {
-         if (0 != nbIndexOnServer[i])
+         if (0 != nbIndexOnServer(i))
          {
-           globalElementIndexOnServer[idx][i].resize(nbIndexOnServer[i]);
-           nbIndexOnServer[i] = 0;
+           globalElementIndexOnServer[idx][i].resize(nbIndexOnServer(i));
            elementOnServer[idx][i] = true;
          }
        }
 
+       nbIndexOnServer = 0;
        for (it = itb; it != ite; ++it)
        {
          const std::vector<int>& tmp = it->second;
+         nbIndexOnServerTmp = 0;
          for (int i = 0; i < tmp.size(); ++i)
          {
-           globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer[tmp[i]]] = it->first;
-           ++nbIndexOnServer[tmp[i]];
+           if (0 == nbIndexOnServerTmp(tmp[i]))
+           {
+             globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer(tmp[i])] = it->first;
+             ++nbIndexOnServerTmp(tmp[i]);
+           }
          }
+         nbIndexOnServer += nbIndexOnServerTmp;
        }
      }
 
@@ -1723,12 +1734,6 @@ namespace xios {
     }
     else
     {
-//      int ssize = axis_domain_order.numElements();
-//      for (int i = 0; i < ssize; ++i)
-//        if (axis_domain_order(i) != (transformGridSrc->axis_domain_order)(i))
-//          ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-//                << "Grids " << this->getId() << " and " << transformGridSrc->getId()
-//                << " don't have elements in the same order");
     }
 
     transformations_ = new CGridTransformation(this, transformGridSrc);
@@ -1741,6 +1746,16 @@ namespace xios {
 
   bool CGrid::hasTransform()
   {
+    if (hasTransform_) return hasTransform_;
+
+    std::vector<CDomain*> domList = getDomains();
+    std::vector<CAxis*> axisList = getAxis();
+    std::vector<CScalar*> scalarList = getScalars();
+
+    for (int idx = 0; idx < domList.size(); ++idx) hasTransform_ |= domList[idx]->hasTransformation();
+    for (int idx = 0; idx < axisList.size(); ++idx) hasTransform_ |= axisList[idx]->hasTransformation();
+    for (int idx = 0; idx < scalarList.size(); ++idx) hasTransform_ |= scalarList[idx]->hasTransformation();
+
     return hasTransform_;
   }
 
