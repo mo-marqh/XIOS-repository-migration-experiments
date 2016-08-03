@@ -53,7 +53,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
     retrieveAllAxisValue(axisValue, axisMask, recvBuff, indexVec);
     XIOSAlgorithms::sortWithIndex<double, CVectorStorage>(recvBuff, indexVec);
     for (int i = 0; i < srcSize; ++i) valueSrc[i] = recvBuff[indexVec[i]];
-    computeInterpolantPoint(valueSrc, idx);
+    computeInterpolantPoint(valueSrc, indexVec, idx);
   }
 }
 
@@ -63,7 +63,9 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
   \param [in] axisValue all value of axis source
   \param [in] tranPos position of axis on a domain
 */
-void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue, int transPos)
+void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue,
+                                                        const std::vector<int>& indexVec,
+                                                        int transPos)
 {
   std::vector<double>::const_iterator itb = axisValue.begin(), ite = axisValue.end();
   std::vector<double>::const_iterator itLowerBound, itUpperBound, it;
@@ -116,7 +118,7 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
     for (it = itLowerBound; it != itUpperBound; ++it)
     {
       int index = std::distance(itb, it);
-      interpolatingIndexValues[idx+ibegin].push_back(make_pair(index,*it));
+      interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
     }
   }
   computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
