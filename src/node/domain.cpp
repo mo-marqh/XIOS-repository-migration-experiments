@@ -1810,7 +1810,11 @@ namespace xios {
     }
 
     if (hasArea)
+    {
       area_srv.resize(zoom_ni_srv * zoom_nj_srv);
+      area_srv = 0.;
+    }
+
   }
 
   /*!
