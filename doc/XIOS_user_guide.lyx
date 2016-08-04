@@ -4798,5 +4798,218 @@ filename "inputs/user/Axis.lyx"
 
 \end_layout
 
+\begin_layout Chapter
+XIOS options
+\end_layout
+
+\begin_layout Standard
+Some of XIOS behaviors can be configured using options.
+ Those options must be expressed as variables in a specific context whose
+ 
+\series bold
+id
+\series default
+ must be 
+\series bold
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+xios
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+ as shown below.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "breaklines=true,frame=tb,language=XML,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}},tabsize=2"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<?xml version="1.0"?>
+\end_layout
+
+\begin_layout Plain Layout
+
+<simulation>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<!-- Actual context(s) used by the simulation ommited -->
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	<context id="xios">
+\end_layout
+
+\begin_layout Plain Layout
+
+		<variable_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+			<variable id="option_name" type="option_type">option_value</variable>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</variable_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+	</context>
+\end_layout
+
+\begin_layout Plain Layout
+
+</simulation>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Buffer related options
+\end_layout
+
+\begin_layout Standard
+By default, XIOS tries to guess the required buffers sizes to ensure efficient
+ client-server communications.
+ However it might sometimes be useful to tweak the buffers sizes so XIOS
+ provides the following options:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+optimal_buffer_size
+\series default
+ (type: 
+\series bold
+string
+\series default
+) can be either 
+\series bold
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+memory
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+ or 
+\series bold
+\emph on
+
+\begin_inset Quotes erd
+\end_inset
+
+performance
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+.
+ When using the 
+\series bold
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+memory
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+ mode, XIOS will try to use buffers as small as possible while still ensuring
+ that the bigger message will fit.
+ When using the 
+\series bold
+\emph on
+
+\begin_inset Quotes erd
+\end_inset
+
+performance
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+ mode, XIOS will ensure that all active fields can be buffered without having
+ to flush the buffers.
+ This mode is used by default since it allows more asynchronism and thus
+ better performance at the cost of being quite memory hungry.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+minimum_buffer_size
+\series default
+ (type: 
+\series bold
+int
+\series default
+) defines the mimimum buffer size in bytes (8192 by default).
+ This value will be used by XIOS only for buffers whose detected size is
+ smaller than the user defined mimimum size.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+buffer_size_factor 
+\series default
+(type: 
+\series bold
+int
+\series default
+) allows to modify the buffers sizes by multiplying the detected sizes by
+ an user defined factor (
+\begin_inset Formula $1.0$
+\end_inset
+
+ by default).
+ For each allocated buffers, the used size is defined as 
+\begin_inset Formula 
+\[
+{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\; detected\_size\;\times\; buffer\_size\_factor\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
 \end_body
 \end_document
