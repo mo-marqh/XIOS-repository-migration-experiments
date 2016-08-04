@@ -36,7 +36,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   int clientRank = client->clientRank;
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
-	int orderInterp = interpDomain_->order.getValue();
+  int orderInterp = interpDomain_->order.getValue();
   bool renormalize ;
 
   if (interpDomain_->renormalize.isEmpty()) renormalize=true;
@@ -79,29 +79,27 @@ void CDomainAlgorithmInterpolate::computeRemap()
   }
   else // if domain source is rectilinear, not do anything now
   {
-    bool isNorthPole = false;
-    bool isSouthPole = false;
     CArray<double,1> lon_g ;
     CArray<double,1> lat_g ;
 
     if (!domainSrc_->lonvalue_1d.isEmpty() && !domainSrc_->latvalue_1d.isEmpty())
     {
-		domainSrc_->AllgatherRectilinearLonLat(domainSrc_->lonvalue_1d,domainSrc_->latvalue_1d, lon_g,lat_g) ;
-	  }
-	  else if (! domainSrc_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainSrc_->lonvalue_rectilinear_read_from_file.isEmpty() )
+      domainSrc_->AllgatherRectilinearLonLat(domainSrc_->lonvalue_1d,domainSrc_->latvalue_1d, lon_g,lat_g) ;
+    }
+    else if (! domainSrc_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainSrc_->lonvalue_rectilinear_read_from_file.isEmpty() )
     {
-	  	lat_g=domainSrc_->latvalue_rectilinear_read_from_file ;
-	  	lon_g=domainSrc_->lonvalue_rectilinear_read_from_file ;
-	  }
-	  else if (!domainSrc_->lon_start.isEmpty() && !domainSrc_->lon_end.isEmpty() &&
-	         !domainSrc_->lat_start.isEmpty() && !domainSrc_->lat_end.isEmpty())
-	  {
-	    double step=(domainSrc_->lon_end-domainSrc_->lon_start)/domainSrc_->ni_glo ;
-	    for(int i=0; i<domainSrc_->ni_glo; ++i) lon_g(i)=domainSrc_->lon_start+i*step ;
-	    step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
-	    for(int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
-	  }
-	  else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
+      lat_g=domainSrc_->latvalue_rectilinear_read_from_file ;
+      lon_g=domainSrc_->lonvalue_rectilinear_read_from_file ;
+    }
+    else if (!domainSrc_->lon_start.isEmpty() && !domainSrc_->lon_end.isEmpty() &&
+             !domainSrc_->lat_start.isEmpty() && !domainSrc_->lat_end.isEmpty())
+    {
+      double step=(domainSrc_->lon_end-domainSrc_->lon_start)/domainSrc_->ni_glo ;
+      for (int i=0; i<domainSrc_->ni_glo; ++i) lon_g(i)=domainSrc_->lon_start+i*step ;
+      step=(domainSrc_->lat_end-domainSrc_->lat_start)/domainSrc_->nj_glo ;
+      for (int i=0; i<domainSrc_->ni_glo; ++i) lat_g(i)=domainSrc_->lat_start+i*step ;
+    }
+    else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
 
     nVertexSrc = constNVertex;
     domainSrc_->fillInRectilinearBoundLonLat(lon_g,lat_g, boundsLonSrc, boundsLatSrc);
