@@ -11,18 +11,20 @@ namespace xios
 {
   size_t CClientBuffer::maxRequestSize = 0;
 
-  CClientBuffer::CClientBuffer(MPI_Comm interComm_, int serverRank_, StdSize bfSize)
+  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize maxBufferedEvents)
+    : interComm(interComm)
+    , serverRank(serverRank)
+    , bufferSize(bufferSize)
+    , current(0)
+    , count(0)
+    , bufferedEvents(0)
+    , maxBufferedEvents(maxBufferedEvents)
+    , pending(false)
   {
-    interComm = interComm_;
-    serverRank = serverRank_;
-    bufferSize = bfSize;
     buffer[0] = new char[bufferSize]; // transform it with MPI_ALLOC_MEM later
     buffer[1] = new char[bufferSize];
-    current = 0;
-    count = 0;
-    pending = false;
     retBuffer = new CBufferOut(buffer[current], bufferSize);
-    info(10) << "CClientBuffer: allocated " << bufferSize << " bytes for server " << serverRank_ << endl;
+    info(10) << "CClientBuffer: allocated 2 x " << bufferSize << " bytes for server " << serverRank << " with a maximum of " << maxBufferedEvents << " buffered events" << endl;
   }
 
   CClientBuffer::~CClientBuffer()
@@ -45,7 +47,7 @@ namespace xios
       ERROR("bool CClientBuffer::isBufferFree(int size)",
             << "The requested size (" << size << " bytes) is too big to fit the buffer (" << bufferSize << " bytes), please increase the client buffer size." << endl);
 
-    return (size <= remain());
+    return (size <= remain() && bufferedEvents < maxBufferedEvents);
   }
 
 
@@ -55,6 +57,7 @@ namespace xios
     {
       retBuffer->realloc(buffer[current] + count, size);
       count += size;
+      bufferedEvents++;
       return retBuffer;
     }
     else
@@ -87,6 +90,7 @@ namespace xios
         if (current == 1) current = 0;
         else current = 1;
         count = 0;
+        bufferedEvents = 0;
       }
     }
 

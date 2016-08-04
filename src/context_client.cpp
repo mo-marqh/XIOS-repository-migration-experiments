@@ -20,7 +20,7 @@ namespace xios
     \cxtSer [in] cxtSer Pointer to context of server side. (It is only used on case of attached mode)
     */
     CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
-     : mapBufferSize_(), parentServer(cxtSer)
+     : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4)
     {
       context = parent;
       intraComm = intraComm_;
@@ -69,7 +69,6 @@ namespace xios
       }
 
       timeLine = 0;
-
     }
 
     /*!
@@ -178,7 +177,7 @@ namespace xios
         error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
         mapBufferSize_[rank] = CXios::minBufferSize;
       }
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank]);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxBufferedEvents);
       // Notify the server
       CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
       bufOut->put(mapBufferSize_[rank]); // Stupid C++
@@ -218,12 +217,31 @@ namespace xios
    }
 
    /*!
-   Set buffer size for each connection
-   \param [in] mapSize mapping rank of connected server to size of allocated buffer
+    * Set the buffer size for each connection. Warning: This function is collective.
+    *
+    * \param [in] mapSize maps the rank of the connected servers to the size of the correspoinding buffer
+    * \param [in] maxEventSize maps the rank of the connected servers to the size of the biggest event
    */
-   void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize)
+   void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize)
    {
      mapBufferSize_ = mapSize;
+
+     // Compute the maximum number of events that can be safely buffered.
+     double minBufferSizeEventSizeRatio = std::numeric_limits<double>::max();
+     for (std::map<int,StdSize>::const_iterator it = mapSize.begin(), ite = mapSize.end(); it != ite; ++it)
+     {
+       double ratio = double(it->second) / maxEventSize.at(it->first);
+       if (ratio < minBufferSizeEventSizeRatio) minBufferSizeEventSizeRatio = ratio;
+     }
+     MPI_Allreduce(MPI_IN_PLACE, &minBufferSizeEventSizeRatio, 1, MPI_DOUBLE, MPI_MIN, intraComm);
+
+     if (minBufferSizeEventSizeRatio < 1.0)
+       ERROR("void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize)",
+             << "The buffer sizes and the maximum events sizes are incoherent.");
+
+     maxBufferedEvents = size_t(2 * minBufferSizeEventSizeRatio) // there is room for two local buffers on the server
+                          + size_t(minBufferSizeEventSizeRatio)  // one local buffer can always be fully used
+                          + 1;                                   // the other local buffer might contain only one event
    }
 
   /*!

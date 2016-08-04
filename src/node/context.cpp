@@ -273,8 +273,9 @@ namespace xios {
 #undef DECLARE_NODE
 #undef DECLARE_NODE_PAR
 
-     std::map<int, StdSize> bufferSize = getAttributesBufferSize();
-     std::map<int, StdSize> dataBufferSize = getDataBufferSize();
+     std::map<int, StdSize> maxEventSize;
+     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize);
+     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize);
 
      std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
      for (it = dataBufferSize.begin(); it != ite; ++it)
@@ -287,15 +288,19 @@ namespace xios {
        if (it->second < minBufferSize) it->second = minBufferSize;
      }
 
+     // We consider that the minimum buffer size is also the minimum event size
+     ite = maxEventSize.end();
+     for (it = maxEventSize.begin(); it != ite; ++it)
+       if (it->second < minBufferSize) it->second = minBufferSize;
+
      if (client->isServerLeader())
      {
        const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = minBufferSize;
+         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
      }
 
-     if (!bufferSize.empty())
-       client->setBufferSize(bufferSize);
+     client->setBufferSize(bufferSize, maxEventSize);
    }
 
    //! Verify whether a context is initialized
@@ -836,7 +841,12 @@ namespace xios {
       isPostProcessed = true;
    }
 
-   std::map<int, StdSize> CContext::getAttributesBufferSize()
+   /*!
+    * Compute the required buffer size to send the attributes (mostly those grid related).
+    *
+    * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    */
+   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize)
    {
      std::map<int, StdSize> attributesSize;
 
@@ -859,6 +869,9 @@ namespace xios {
              // so we can use it safely without checking for its existance
              if (attributesSize[it->first] < it->second)
                attributesSize[it->first] = it->second;
+
+             if (maxEventSize[it->first] < it->second)
+               maxEventSize[it->first] = it->second;
            }
          }
        }
@@ -867,7 +880,12 @@ namespace xios {
      return attributesSize;
    }
 
-   std::map<int, StdSize> CContext::getDataBufferSize()
+   /*!
+    * Compute the required buffer size to send the fields data.
+    *
+    * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    */
+   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize)
    {
      CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
@@ -896,6 +914,9 @@ namespace xios {
                dataSize[it->first] += it->second;
              else if (dataSize[it->first] < it->second)
                dataSize[it->first] = it->second;
+
+             if (maxEventSize[it->first] < it->second)
+               maxEventSize[it->first] = it->second;
            }
          }
        }

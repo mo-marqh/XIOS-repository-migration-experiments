@@ -48,7 +48,7 @@ namespace xios
       void closeContext(void);
       void finalize(void);
 
-      void setBufferSize(const std::map<int,StdSize>& mapSize);
+      void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
 
     public:
       CContext* context; //!< Context for client
@@ -70,6 +70,8 @@ namespace xios
     private:
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
+      //! Maximum number of events that can be buffered
+      StdSize maxBufferedEvents;
 
       //! Context for server (Only used in attached mode)
       CContext* parentServer;

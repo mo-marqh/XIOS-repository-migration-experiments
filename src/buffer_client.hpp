@@ -13,7 +13,7 @@ namespace xios
     public:
       static size_t maxRequestSize;
 
-      CClientBuffer(MPI_Comm intercomm,int serverRank, StdSize bfSize = 0);
+      CClientBuffer(MPI_Comm intercomm, int serverRank, StdSize bufferSize, StdSize maxBufferedEvents);
       ~CClientBuffer();
 
       bool isBufferFree(int size);
@@ -27,15 +27,16 @@ namespace xios
 
       int current;
       int count;
-      int bufferSize;
-      int serverRank;
+      int bufferedEvents;
+      const int maxBufferedEvents;
+      const int bufferSize;
+      const int serverRank;
       bool pending;
 
       MPI_Request request;
 
       CBufferOut* retBuffer;
-      MPI_Comm interComm;
+      const MPI_Comm interComm;
   };
 }
-
 #endif
