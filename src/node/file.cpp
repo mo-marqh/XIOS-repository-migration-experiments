@@ -368,7 +368,8 @@ namespace xios {
          std::string lastPart ;
          size_t pos1, pos2 ;
          bool hasStartDate=false ;
-         bool hasEndDate=false ;   
+         bool hasEndDate=false ;
+         bool hasSplit = (!split_freq.isEmpty());
                   
          pos1=filename.find(strStartDate) ;
          if (pos1!=std::string::npos)
@@ -395,9 +396,10 @@ namespace xios {
            hasStartDate=true ;
            hasEndDate=true;
            firstPart=middlePart ;
+           if (hasSplit) firstPart +="_";
            middlePart="-" ;
          }
-//   
+   
          StdOStringStream oss;
 
          if (!split_freq.isEmpty())
