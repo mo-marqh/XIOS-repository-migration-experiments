@@ -1488,7 +1488,7 @@ void Clipper::InsertScanbeam(const cInt Y)
     m_Scanbeam.push(Y);
 }
 //------------------------------------------------------------------------------
-
+#pragma optimize("",off)
 cInt Clipper::PopScanbeam()
 {
     const cInt Y = m_Scanbeam.top();
@@ -1496,6 +1496,7 @@ cInt Clipper::PopScanbeam()
     while (!m_Scanbeam.empty() && Y == m_Scanbeam.top()) { m_Scanbeam.pop(); } // Pop duplicates.
     return Y;
 }
+#pragma optimize("",on)
 //------------------------------------------------------------------------------
 
 void Clipper::DisposeAllOutRecs(){
