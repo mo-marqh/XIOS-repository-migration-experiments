@@ -21,12 +21,37 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
 void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,double> >& localIndex,
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
-                                            std::vector<bool>& flagInitial)
+                                            std::vector<bool>& flagInitial,
+                                            const double& defaultValue)
 {
   int nbLocalIndex = localIndex.size();
-  for (int idx = 0; idx < nbLocalIndex; ++idx)
+  bool hasMissingValue = (0.0 != defaultValue) ? true : false;
+  if (hasMissingValue)
   {
-    dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (defaultValue == *(dataInput + idx))
+      {
+        flagInitial[localIndex[idx].first] = false;
+      }
+      else
+      {
+        dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+      }
+    }
+
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (!flagInitial[localIndex[idx].first])
+        dataOut(localIndex[idx].first) = defaultValue;
+    }
+  }
+  else
+  {
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+    }
   }
 }
 

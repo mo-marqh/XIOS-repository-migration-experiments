@@ -36,7 +36,8 @@ CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestin
 void CScalarAlgorithmReduceScalar::apply(const std::vector<std::pair<int,double> >& localIndex,
                                          const double* dataInput,
                                          CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial)
+                                         std::vector<bool>& flagInitial,
+                                         const double& defaultValue)
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
 }

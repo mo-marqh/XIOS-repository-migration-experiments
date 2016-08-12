@@ -196,14 +196,11 @@ namespace xios
       {
         int countSize = itRecv->second.size();
         const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
-//        for (int idx = 0; idx < countSize; ++idx)
-//        {
-//          dataCurrentDest(localIndex_p[idx].first) += *(recvBuff+currentBuff+idx) * localIndex_p[idx].second;
-//        }
         (*itAlgo)->apply(localIndex_p,
                          recvBuff+currentBuff,
                          dataCurrentDest,
-                         localInitFlag);
+                         localInitFlag,
+                         defaultValue);
 
         currentBuff += countSize;
       }
