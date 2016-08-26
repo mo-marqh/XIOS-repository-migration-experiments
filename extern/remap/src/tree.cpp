@@ -7,6 +7,7 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 #include <vector>
+#include <list>
 #include <set>
 
 #include "timer.hpp"
@@ -19,9 +20,11 @@ static const int MAX_LEVEL_SIZE = 100;
 double cputime();
 using namespace std;
 
+/*
 CBasicTree::CBasicTree() : ri(0), levelSize(MAX_LEVEL_SIZE), root(NULL)
 {
 }
+*/
 
 void CBasicTree::routeNodes(vector<int>& route, vector<Node>& nodes, int assignLevel)
 {
@@ -50,31 +53,25 @@ void CBasicTree::output(ostream& flux, int level)
 }
 void CBasicTree::slim(int nbIts)
 {
-	//if (!isSampleTree)
 	for (int i = 0; i < nbIts; i++)
 	{
 		for (int level = root->level - 1; level > 0; level--)
 		{
-      cout<<"before Slim2 Level "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
 			slim2(root, level);
-      cout<<"after Slim2 Level "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
 			ri = 0;
 			emptyPool();
-      cout<<"after empty pool "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
-
 		}
 
 		for (int level = 2; level < root->level; level++)
 		{
-      cout<<"before Slim2 Level "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
 			slim2(root, level);
-      cout<<"after Slim2 Level "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
 			ri = 0;
 			emptyPool();
-      cout<<"after empty pool "<<level<< "     levelSize[assignLevel] :"<<levelSize[2]<<endl ;
 		}
 	}
 }
+
+
 
 void CBasicTree::insertNode(NodePtr node)
 {
@@ -140,7 +137,7 @@ void CBasicTree::decreaseLevelSize(int level)
 void CBasicTree::newRoot(int level)  // newroot <- root
 {
 	root = new Node;
-	if (level > 1) cout << " newRoot level " << level << endl;
+	// if (level > 1) cout << " newRoot level " << level << endl;
 	root->level = level;
 	root->parent = 0;
 	root->leafCount = 0;
@@ -185,12 +182,10 @@ void CSampleTree::insertNodes(vector<Node>& nodes)
 	double ratio = 1.5 ;
   int i ;
   
-  cout<<"CSampleTree::insertNodes  : nb node to be inserted : "<<nodes.size()<<endl ;
+//  cout<<"CSampleTree::insertNodes  : nb node to be inserted : "<<nodes.size()<<endl ;
   for (i = 0; i < nodes.size(); i++)
 	{
-//    cout<<"insert new node"<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
     insertNode(&nodes[i]);
-//    cout<<"new node inserted"<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
 
 		if (root->leafCount > stepSlim && levelSize[assignLevel] < keepNodes-2) // time for slim down
 		{
@@ -201,38 +196,79 @@ void CSampleTree::insertNodes(vector<Node>& nodes)
     
     if (levelSize[assignLevel] == keepNodes-2 && first1)
 		{
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
       slim();
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
-      slim();
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
-      slim();
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
 			first1 = false;
 		}
 
 		if (levelSize[assignLevel] == keepNodes-1 && first2)
 		{
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
       slim();
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
       first2=false ;
 		}
 
-   	if (levelSize[assignLevel] > keepNodes)
+   	if (levelSize[assignLevel] >= keepNodes) slim();
+   	if (levelSize[assignLevel] > keepNodes) slim();
+    if (levelSize[assignLevel] > keepNodes) slimAssignedLevel() ;
+
+    if (levelSize[assignLevel] >= keepNodes) 
 		{
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
-      slim();
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
-		}
-    if (levelSize[assignLevel] >= keepNodes)
-		{
-      cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
+      if (levelSize[assignLevel] > keepNodes)
+      {
+//        cout<<"assign Level : "<<assignLevel<< "     levelSize[assignLevel] :"<<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<endl ;
+        removeExtraNode() ;
+      }
       break ;
  		}
 	}
-	cout << "SampleTree build : nb Node inserted : " << i << endl;
+//	cout << "SampleTree build : nb Node inserted : " << i << endl;
 
+}
+
+void CSampleTree::slimAssignedLevel()
+{
+  for(int i=MIN_NODE_SZ;i<=MAX_NODE_SZ;i++)
+  {
+    int levelSizeOrigin=levelSize[assignLevel] ;
+    slim2(root, assignLevel,i);
+    ri = 0;
+    int levelSizeBefore=levelSize[assignLevel] ;
+    isActiveOkSplit=true ;
+    emptyPool();
+//    cout<<"assign Level : "<<assignLevel<<"  MinNodeSize :"<<i<< "     levelSize[assignLevel] : "<<levelSizeOrigin<<"->"<<levelSizeBefore<<"->" <<levelSize[assignLevel]<<"   keepNodes : "<<keepNodes<<"  "<<"CanSplit " <<canSplit()<<endl ;
+    if (levelSize[assignLevel]<=keepNodes) break ;
+  }
+
+}
+
+void CSampleTree::removeExtraNode(void)
+{
+  std::list<NodePtr> nodeList ;
+  std::list<NodePtr>::iterator it1,it2, rm ;
+
+  root->getNodeLevel(assignLevel,nodeList) ;
+  double dist,minDist ;
+ 
+  
+  for (int n=0; n<levelSize[assignLevel]-keepNodes ; ++n)
+  {
+    minDist=-1 ;
+    for(it1=nodeList.begin();it1!=nodeList.end();++it1)
+    {
+      dist=0 ;
+      for(it2=nodeList.begin();it2!=nodeList.end();++it2) dist+=arcdist((*it1)->centre,(*it2)->centre) ;
+      if (minDist > dist || minDist < 0.)
+      {
+        minDist=dist ;
+        rm=it1 ;
+      }
+    }
+    (*rm)->toDelete=true ;
+    nodeList.erase(rm) ;
+    
+  }
+  root->removeDeletedNodes(assignLevel) ;
+  isActiveOkSplit=true ;
+  emptyPool();
 }
 
 }

@@ -467,7 +467,7 @@ void Mapper::buildMeshTopology()
 	CMPIRouting mpiRoute(communicator);
 	mpiRoute.init(routes);
 	int nRecv = mpiRoute.getTotalSourceElement();
-	cout << mpiRank << " NRECV " << nRecv << "(" << routes.size() << ")"<< endl;
+// cout << mpiRank << " NRECV " << nRecv << "(" << routes.size() << ")"<< endl;
 
 	int *nbSendNode = new int[mpiSize];
 	int *nbRecvNode = new int[mpiSize];

@@ -262,11 +262,10 @@ NodePtr insert(NodePtr thIs, NodePtr node)
 	node->move(thIs);
 	if (la == lb - 1)
 	{
-		node->child.push_back(thIs);
+    node->child.push_back(thIs);
 		thIs->parent = node;
-		if (node->child.size() > MAX_NODE_SZ) // with us as additional child `node` is now too large :(
-			return (node->reinserted || node->parent == NULL) ?
-				split(node) : reinsert(node);
+		if (node->child.size() > MAX_NODE_SZ &&  node->tree->canSplit() ) // with us as additional child `node` is now too large :(
+			return (node->reinserted || node->parent == NULL) ? split(node) : reinsert(node);
 	}
 	else // la < lb - 1
 	{
@@ -280,7 +279,9 @@ NodePtr insert(NodePtr thIs, NodePtr node)
 		if (q) node->remove(q);
 		node->inflate(chd);
 	}
-	return q;
+
+
+  return q;
 }
 
 typedef NodePtr pNode;
@@ -295,6 +296,7 @@ NodePtr reinsert(NodePtr thIs)
 	/* make sure out is only so big that there are still MIN_NODE_SZ children after removing out */
 	if (thIs->child.size() - out < MIN_NODE_SZ) out = thIs->child.size() - MIN_NODE_SZ;
 
+  
 	/* transfere out children from us to a new node q which will be returned */
 	NodePtr q = new Node;
 	q->tree = thIs->tree;
@@ -311,13 +313,14 @@ NodePtr reinsert(NodePtr thIs)
 	q->update();
 	thIs->reinserted = true; // avoid infinite loop of reinserting the same node, by marking it as reinserted and stop if same node arrives at same place again
 	thIs->tree->ri = 1;
+
 	return q;
 }
 
 /* move around nodes that are far away from the centre of their parents in order reduce radia of the circles
    leading to faster look-up times because of less redundancies between nodes.
    TODO cite paper for Slim SS-tree */
-void slim2(NodePtr thIs, int level)
+void slim2(NodePtr thIs, int level, int minNodeSize)
 {
 	bool out;
 	double distChild;
@@ -327,12 +330,14 @@ void slim2(NodePtr thIs, int level)
 #endif
 	if (thIs->level==level)
 	{
+/*
 		out = false;
 		while (!out)
 		{
-			/* remove child which is farthest away from the centre and try to reinsert it into the tree */
+			// remove child which is farthest away from the centre and try to reinsert it into the tree 
 			double distMax = 0;
 			int itMax = -1;
+
 			for (int i = 0; i < thIs->child.size(); i++)
 			{
 				distChild = arcdist(thIs->centre, thIs->child[i]->centre) + thIs->child[i]->radius;
@@ -350,10 +355,27 @@ void slim2(NodePtr thIs, int level)
 			else
 				out = true;
 
-			if (thIs->child.size() < MIN_NODE_SZ) out = true;
+			if (thIs->child.size() < minNodeSize) out = true;
 		}
+*/
+    if (thIs->tree-> isActiveOkSplit && thIs->tree->levelSize[thIs->tree->assignLevel] <= thIs->tree->keepNodes)
+    {
 
-		if (thIs->child.size() < MIN_NODE_SZ  && thIs->level < thIs->tree->root->level)
+      return ;
+    }
+    for (int i = 0; i < thIs->child.size(); i++)
+		{
+      std::vector<NodePtr> before;
+      if (transferNode(thIs->tree->root, thIs, thIs->child[i]))
+      {
+        before=thIs->child ;
+        thIs->child.erase(thIs->child.begin()+i);
+        i--;
+      }
+    }
+        
+
+		if (thIs->child.size() < minNodeSize  && thIs->level < thIs->tree->root->level)
 		{
 			thIs->tree->decreaseLevelSize(thIs->level);
 			for(int i = 0; i < thIs->child.size(); i++)
@@ -400,6 +422,7 @@ void slim2(NodePtr thIs, int level)
 		}
 		else thIs->update();
 	}
+
 }
 
 bool transferNode(NodePtr thIs, NodePtr parent, NodePtr node)
@@ -408,7 +431,7 @@ bool transferNode(NodePtr thIs, NodePtr parent, NodePtr node)
 
 	if (thIs->level == parent->level)
 	{
-		if (thIs->child.size() < MAX_NODE_SZ && thIs->child.size() >= MIN_NODE_SZ)
+		if ( (thIs->child.size() < MAX_NODE_SZ || thIs->tree->isActiveOkSplit) && thIs->child.size() >= MIN_NODE_SZ)
 		{
 			insert(node, thIs);
 			return true;
@@ -449,11 +472,11 @@ NodePtr split(NodePtr thIs)
 	p->child.resize(MAX_NODE_SZ/2);
 	q->child.resize(MAX_NODE_SZ/2 + 1);
 	assert(thIs->child.size() == MAX_NODE_SZ+1);
-	thIs->tree->ref = q->child[0] = thIs->closest(thIs->child, FARTHEST); // farthest from centre
+	thIs->tree->ref = thIs->closest(thIs->child, FARTHEST); // farthest from centre
 	std::sort(thIs->child.begin(), thIs->child.end(), compareDist);
-	for (int i = 1; i < MAX_NODE_SZ+1; i++)
+	for (int i = 0; i < MAX_NODE_SZ+1; i++)
 		assert(thIs->child[i]->parent == thIs);
-	for (int i = 1; i < MAX_NODE_SZ/2 + 1; i++)
+	for (int i = 0; i < MAX_NODE_SZ/2 + 1; i++)
 		q->child[i] = thIs->child[i];
 	for (int i = MAX_NODE_SZ/2+1; i<MAX_NODE_SZ+1; i++)
 		p->child[i-MAX_NODE_SZ/2-1] = thIs->child[i];
@@ -463,7 +486,7 @@ NodePtr split(NodePtr thIs)
 		p->child[i-MAX_NODE_SZ/2-1]->parent = p;
 	p->update();
 	q->update();
-
+   
 	if (squaredist(thIs->centre, q->centre) < squaredist(thIs->centre, p->centre))
 		swap(p, q);
 
@@ -486,7 +509,8 @@ NodePtr split(NodePtr thIs)
 	{
 		thIs->tree->push_front(q);
 	}  // push_front?
-	return q;
+
+  	return q;
 }
 
 /* Assuming we are a leaf push all leafs into our list of intersectors
@@ -563,6 +587,16 @@ int Node::incluCheck()
 	return nOutside;
 }
 
+void Node::checkParent(void)
+{
+  int childSize = child.size() ;
+  
+  for (int i = 0; i < childSize; i++)
+		assert(child[i]->parent == this);
+
+  if (level>0) for (int i = 0; i < childSize; i++) child[i]->checkParent() ;
+}
+  
 void Node::printChildren()
 {
 	cout << "level " << this->level << ", centre ";
@@ -679,6 +713,49 @@ void Node::free_descendants()
 		if (child[i]->level) // do not attempt to delete leafs, they are delete through leafs vector
 			delete child[i];
 	}
+}
+
+void Node::getNodeLevel(int assignLevel, std::list<NodePtr>& NodeList)
+{
+  if (level==assignLevel) NodeList.push_back(this) ;
+  else if (level>0) for (int i = 0; i < child.size(); i++) child[i]->getNodeLevel(assignLevel,NodeList) ;
+  return ;
+}
+
+bool Node::removeDeletedNodes(int assignLevel)
+{
+  std::vector<NodePtr> newChild ;
+
+  if (level==assignLevel+1)
+  {
+    bool isUpdate=false ;
+    for (int i = 0; i < child.size(); i++)
+    {
+      if (child[i]->toDelete)
+      {
+        isUpdate=true ;
+        for (int j = 0; j < child[i]->child.size(); j++) tree->push_back(child[i]->child[j]) ;
+        tree->decreaseLevelSize(assignLevel) ;
+        delete child[i] ;
+      }
+      else newChild.push_back(child[i]) ;
+    }
+
+    if (isUpdate)
+    {
+      child=newChild ;
+      update() ;
+      return true ;
+    }
+    else return false ;
+  }
+  else
+  {
+    bool isUpdate=false ;
+    for (int i = 0; i < child.size(); i++) isUpdate |= child[i]->removeDeletedNodes(assignLevel) ;
+    if (isUpdate) update() ;
+    return isUpdate ;
+  }
 }
 
 }

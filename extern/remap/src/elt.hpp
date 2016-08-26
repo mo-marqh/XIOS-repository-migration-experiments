@@ -67,7 +67,7 @@ struct Elt : Polyg
 			if (squaredist(vertex[k], vertex[k-1]) > EPS*EPS)
 				k++;
 			else
-				cout << "Removed edge " << k << " due to zero length (coinciding endpoints)." << endl;
+				/* cout << "Removed edge " << k << " due to zero length (coinciding endpoints)." << endl */ ;
 		}
 		n = k;
 		x = barycentre(vertex, n);

@@ -113,7 +113,8 @@ static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<Node
 //cout << MPIRoute.mpiRank << " ROUTE " << nRecv << ": " << nodeSend.size() << " " << nodeRecv.size() << "    ";
 }
 
-CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MIN_NODE_SZ*MIN_NODE_SZ, comm)
+//CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MIN_NODE_SZ*MIN_NODE_SZ, comm)
+CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MAX_NODE_SZ*MAX_NODE_SZ*2, comm)
 {
 	treeCascade.reserve(cascade.num_levels);
 	for (int lev = 0; lev < cascade.num_levels; lev++)
@@ -187,11 +188,14 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 	delete[] displs;
 
 	/* unpack */
+/*
 	randomArray.resize(nrecv);
 	randomizeArray(randomArray);
 	tree.leafs.resize(nrecv);
 	index = 0;
-	for (int i = 0; i < nrecv; i++)
+
+
+  for (int i = 0; i < nrecv; i++)
 	{
 		Coord x = *(Coord *)(&recvBuffer[index]);
 		index += sizeof(Coord)/sizeof(*recvBuffer);
@@ -200,12 +204,32 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 		tree.leafs[randomArray[i]].radius = radius;
 
 	}
+*/
+
+  randomArray.resize(blocSize);
+	randomizeArray(randomArray);
+	tree.leafs.resize(blocSize);
+	index = 0;
+  
+  size_t s=(sizeof(Coord)/sizeof(*recvBuffer)+1)*nrecv ;
+  
+  for (int i = 0; i < blocSize; i++)
+	{
+		Coord x = *(Coord *)(&recvBuffer[index%s]);
+		index += sizeof(Coord)/sizeof(*recvBuffer);
+		double radius = recvBuffer[index%s];
+    index++ ;
+		tree.leafs[randomArray[i]].centre = x;
+		tree.leafs[randomArray[i]].radius = radius;
+
+	}
+
 
 	delete [] recvBuffer;
 
 	CTimer::get("buildSampleTree(local)").resume();
 	tree.build(tree.leafs);
-	cout << "SampleTree build : assign Level " << assignLevel << " nb Nodes : " << tree.levelSize[assignLevel] << endl;
+//	cout << "SampleTree build : assign Level " << assignLevel << " nb Nodes : " << tree.levelSize[assignLevel] << endl;
 	CTimer::get("buildSampleTree(local)").suspend();
 	CTimer::get("buildSampleTree(local)").print();
 
@@ -213,7 +237,8 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 	int allok, ok = (tree.levelSize[assignLevel] == comm.group_size);
 	if (!ok)
   {
-    cerr << comm.rank << ": PROBLEM: (node assign)" << tree.levelSize[assignLevel] << " != " << comm.group_size << " (keepNodes)" << endl;
+    cerr << comm.rank << ": PROBLEM: (node assign)" << tree.levelSize[assignLevel] << " != " << comm.group_size << " (keepNodes)" 
+         << "   node size : "<<node.size()<<"   bloc size : "<<blocSize<<"  total number of leaf : "<<tree.leafs.size()<<endl ;
 /*
 	MPI_Allreduce(&ok, &allok, 1, MPI_INT, MPI_PROD, communicator);
 	if (!allok) {
@@ -223,13 +248,14 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 */
     MPI_Abort(MPI_COMM_WORLD,-1) ;
   }
+/*
   cout<<"*******************************************"<<endl ;
   cout<<"******* Sample Tree output        *********"<<endl ;
   cout<<"*******************************************"<<endl ;
   tree.output(cout,1) ;
 
   cout<<"*******************************************"<<endl ;
-
+*/
 
   assert(tree.root->incluCheck() == 0);
 }

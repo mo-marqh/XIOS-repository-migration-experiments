@@ -127,10 +127,11 @@ struct Node
 	CBasicTree* tree;
 	void *data;
 	int route;
+  bool toDelete ;
 
-	Node() : level(0), leafCount(1), centre(ORIGIN), radius(0), reinserted(false), updateCount(0) {}
+	Node() : level(0), leafCount(1), centre(ORIGIN), radius(0), reinserted(false), updateCount(0), toDelete(false) {}
 	Node(const Coord& centre, double radius, void *data)
-		: level(0), leafCount(1), centre(centre), radius(radius), reinserted(false), updateCount(0), data(data) {}
+		: level(0), leafCount(1), centre(centre), radius(radius), reinserted(false), updateCount(0), data(data), toDelete(false) {}
 
 //#ifdef DEBUG
 ////	void *operator new[](size_t size)
@@ -190,6 +191,7 @@ struct Node
 	bool intersects(NodePtr node);
 	bool isInside(Node &node);
 	int incluCheck();
+  void checkParent(void) ;
 	void printChildren();
 	void assignRoute(std::vector<int>::iterator& rank, int level);
 	void assignCircleAndPropagateUp(Coord *centres, double *radia, int level);
@@ -197,8 +199,9 @@ struct Node
 	void routeNode(NodePtr node, int level);
 	void routingIntersecting(std::vector<Node>* routingList, NodePtr node);
 	void routeIntersection(std::vector<int>& routes, NodePtr node);
-
-	void free_descendants();
+  void getNodeLevel(int level,std::list<NodePtr>& NodeList) ;
+  bool removeDeletedNodes(int assignLevel) ;
+  void free_descendants();
 };
 
 bool transferNode(NodePtr thIs, NodePtr parent, NodePtr node);
@@ -206,7 +209,7 @@ void findNeighbour(NodePtr thIs, NodePtr node, std::set<NodePtr>& neighbourList)
 NodePtr split(NodePtr);
 NodePtr reinsert(NodePtr);
 NodePtr insert(NodePtr, NodePtr);
-void slim2(NodePtr thIs, int level);
+void slim2(NodePtr thIs, int level, int minNodeSize=MIN_NODE_SZ);
 
 }
 #endif
