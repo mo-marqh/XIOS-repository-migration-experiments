@@ -8,7 +8,6 @@
 #define __XIOS_CMesh__
  
 #include "array_new.hpp"
-#include "client_client_dht_template_impl.hpp"
 #include "dht_auto_indexing.hpp"
 
 namespace xios {
@@ -31,10 +30,13 @@ namespace xios {
       CMesh(void);
       ~CMesh(void);
     
-      int nbNodes;
-      int nbEdges;
-      int nbFaces;
-      int nvertex;  
+      int nbNodesGlo;
+      int nbEdgesGlo;
+
+      int node_start;
+      int node_count;
+      int edge_start;
+      int edge_count;
 
       bool nodesAreWritten;
       bool edgesAreWritten;
@@ -55,17 +57,26 @@ namespace xios {
       CArray<int, 2> face_faces;
 
       void createMesh(const CArray<double, 1>&, const CArray<double, 1>&, 
-            const CArray<double, 2>&, const CArray<double, 2>& );
+                      const CArray<double, 2>&, const CArray<double, 2>& );
                         
-      void createMeshEpsilon(const MPI_Comm&, const CArray<double, 1>&, const CArray<double, 1>&,
-            const CArray<double, 2>&, const CArray<double, 2>& );
+      void createMeshEpsilon(const MPI_Comm&,
+                             const CArray<double, 1>&, const CArray<double, 1>&,
+                             const CArray<double, 2>&, const CArray<double, 2>& );
             
-      static CMesh* getMesh(StdString);
+      static CMesh* getMesh(StdString, int);
 
     private:
 
+      int nbNodes;
+      int nbEdges;
+      int nbFaces;
+
       static std::map <StdString, CMesh> meshList;
-      vector<size_t> createHashes (double, double);
+      static std::map <StdString, vector<int> > domainList;
+      CClientClientDHTSizet* pNodeGlobalIndex;                    // pointer to a map <nodeHash, nodeIdxGlo>
+      CClientClientDHTSizet* pEdgeGlobalIndex;                    // pointer to a map <edgeHash, edgeIdxGlo>
+
+      vector<size_t> createHashes (const double, const double);
 
       size_t nodeIndex (double, double);                           // redundant in parallel version with epsilon precision
       boost::unordered_map <size_t, size_t> hashed_map_nodes;      // redundant in parallel version with epsilon precision

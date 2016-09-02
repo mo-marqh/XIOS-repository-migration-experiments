@@ -35,8 +35,7 @@ namespace xios {
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
    {
-	   //mesh = new CMesh();
-	}
+   }
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
@@ -46,19 +45,17 @@ namespace xios {
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false)
    {
-	   //mesh = new CMesh();
-	}
+	 }
 
    CDomain::~CDomain(void)
    {
-	   //delete mesh;
    }
 
    ///---------------------------------------------------------------
 
-   void CDomain::assignMesh(const StdString meshName)
+   void CDomain::assignMesh(const StdString meshName, const int nvertex)
    {
-     mesh = CMesh::getMesh(meshName);
+     mesh = CMesh::getMesh(meshName, nvertex);
    }
 
    CDomain* CDomain::createDomain()
@@ -1896,6 +1893,7 @@ namespace xios {
     CArray<double,2> boundslon;
 
     buffer >> lon;
+
     if (hasBounds) buffer >> boundslon;
 
     int i, j, ind_srv;

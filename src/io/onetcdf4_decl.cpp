@@ -9,6 +9,7 @@ namespace xios
                                                const std::vector<StdSize> * count) ;
  
   macro(int, 1)
+  macro(int, 2)
   macro(double, 1)
   macro(double, 2)
   macro(double, 3)
