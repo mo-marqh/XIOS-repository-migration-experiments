@@ -995,6 +995,7 @@ namespace xios {
            {
              CFile* tsFile = CFile::create();
              tsFile->duplicateAttributes(file);
+             tsFile->setVirtualVariableGroup(file->getVirtualVariableGroup());
 
              tsFile->name = tsPrefix + "_";
              if (!field->name.isEmpty())
