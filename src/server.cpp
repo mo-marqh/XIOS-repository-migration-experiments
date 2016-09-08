@@ -40,9 +40,7 @@ namespace xios
 
         if (!is_MPI_Initialized)
         {
-          int argc=0;
-          char** argv=NULL;
-          MPI_Init(&argc,&argv) ;
+          MPI_Init(NULL, NULL);
         }
         CTimer::get("XIOS").resume() ;
 
