@@ -103,6 +103,8 @@ namespace xios {
          static void recvServerAttribut(CEventServer& event);
          void recvServerAttribut(CBufferIn& buffer) ;
          void checkAttributesOnClient();
+         void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                                         CServerDistributionDescription::ServerDistributionType distType = CServerDistributionDescription::BAND_DISTRIBUTION);
          void sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
@@ -128,10 +130,7 @@ namespace xios {
          void checkZoom();
          void checkBounds();
          void checkTransformations();
-         void computeServerIndex(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                 CServerDistributionDescription::ServerDistributionType disType);
-         void sendValue(const std::vector<int>& globalDim, int orderPositionInGrid,
-                        CServerDistributionDescription::ServerDistributionType distType);
+         void sendValue();
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributedValue();
@@ -149,6 +148,7 @@ namespace xios {
       private:
          bool isChecked;
          bool areClientAttributesChecked_;
+         bool isClientAfterTransformationChecked;
          std::set<StdString> relFiles, relFilesCompressed;
          TransMapTypes transformationMap_;
          bool isDistributed_;

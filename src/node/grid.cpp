@@ -165,15 +165,38 @@ namespace xios {
 
    void CGrid::checkAttributesAfterTransformation()
    {
-     setDomainList();
-     std::vector<CDomain*> domListP = this->getDomains();
-     if (!domListP.empty())
-     {
-       for (int i = 0; i < domListP.size(); ++i)
-       {
-         domListP[i]->checkAttributesOnClientAfterTransformation();
-       }
-     }
+      setAxisList();
+      std::vector<CAxis*> axisListP = this->getAxis();
+      if (!axisListP.empty())
+      {
+        int idx = 0;
+        axisPositionInGrid_.resize(0);
+        for (int i = 0; i < axis_domain_order.numElements(); ++i)
+        {
+          int elementDimension = axis_domain_order(i);
+          if (1 == elementDimension)
+          {
+            axisPositionInGrid_.push_back(idx);
+            ++idx;
+          }
+          else if (2 == elementDimension) idx += 2;
+        }
+
+        for (int i = 0; i < axisListP.size(); ++i)
+        {
+          axisListP[i]->checkAttributesOnClientAfterTransformation(globalDim_,axisPositionInGrid_[i]);
+        }
+      }
+
+      setDomainList();
+      std::vector<CDomain*> domListP = this->getDomains();
+      if (!domListP.empty())
+      {
+        for (int i = 0; i < domListP.size(); ++i)
+        {
+          domListP[i]->checkAttributesOnClientAfterTransformation();
+        }
+      }
    }
 
    //---------------------------------------------------------------

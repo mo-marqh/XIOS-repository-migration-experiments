@@ -23,6 +23,7 @@ namespace xios {
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
+      , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false)
@@ -32,6 +33,7 @@ namespace xios {
    CAxis::CAxis(const StdString & id)
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
+      , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false)
@@ -361,35 +363,44 @@ namespace xios {
      this->areClientAttributesChecked_ = true;
    }
 
+   void CAxis::checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                                          CServerDistributionDescription::ServerDistributionType distType)
+   {
+     CContext* context=CContext::getCurrent() ;
+
+     if (this->isClientAfterTransformationChecked) return;
+     if (context->hasClient)
+     {
+       if (n.getValue() != n_glo.getValue()) computeConnectedServer(globalDim, orderPositionInGrid, distType);
+     }
+
+     this->isClientAfterTransformationChecked = true;
+   }
+
    // Send all checked attributes to server
    void CAxis::sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
    {
      if (!this->areClientAttributesChecked_) checkAttributesOnClient();
+     if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation(globalDim, orderPositionInGrid, distType);
      CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;
      if (context->hasClient)
      {
        sendServerAttribut(globalDim, orderPositionInGrid, distType);
-       if (hasValue) sendValue(globalDim, orderPositionInGrid, distType);
+       if (hasValue) sendValue();
      }
 
      this->isChecked = true;
    }
 
-  void CAxis::sendValue(const std::vector<int>& globalDim, int orderPositionInGrid,
-                        CServerDistributionDescription::ServerDistributionType distType)
+  void CAxis::sendValue()
   {
      if (n.getValue() == n_glo.getValue())
-     {
        sendNonDistributedValue();
-     }
      else
-     {
-       computeConnectedServer(globalDim, orderPositionInGrid, distType);
        sendDistributedValue();
-     }
   }
 
   void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
