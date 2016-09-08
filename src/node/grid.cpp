@@ -460,13 +460,18 @@ namespace xios {
      for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
      isDataDistributed_= clientDistribution_->isDataDistributed();
 
+     connectedServerRank_.clear();
+
      if (!doGridHaveDataDistributed())
      {
         if (0 == client->clientRank)
         {
           size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
           for (int rank = 0; rank < client->serverSize; ++rank)
+          {
+            connectedServerRank_.push_back(rank);
             connectedDataSize_[rank] = ssize;
+          }
         }
         return;
      }
@@ -505,7 +510,6 @@ namespace xios {
        }
      }
 
-     connectedServerRank_.clear();
      for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
        connectedServerRank_.push_back(itGlobalMap->first);
      }
@@ -927,10 +931,16 @@ namespace xios {
 
     storeIndex_client.resize(1);
     storeIndex_client(0) = 0;
+
+    connectedServerRank_.clear();
+
     if (0 == client->clientRank)
     {
       for (int rank = 0; rank < client->serverSize; ++rank)
+      {
+        connectedServerRank_.push_back(rank);
         connectedDataSize_[rank] = 1;
+      }
     }
     isDataDistributed_ = false;
   }
