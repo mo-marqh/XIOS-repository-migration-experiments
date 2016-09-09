@@ -13,7 +13,7 @@ namespace xios {
   CMesh::CMesh(void) :  nbNodesGlo{0}, nbEdgesGlo{0}
             ,  node_start{0}, node_count{0}
             ,  edge_start{0}, edge_count{0}
-            ,  nbFaces{0}, nbNodes{0}, nbEdges{0}
+            ,  nbFaces_{0}, nbNodes_{0}, nbEdges_{0}
             ,  nodesAreWritten{false}, edgesAreWritten{false}, facesAreWritten{false}
             ,  node_lon(), node_lat()
             ,  edge_lon(), edge_lat(), edge_nodes()
@@ -309,10 +309,10 @@ namespace xios {
 
     if (nvertex == 1)
     {
-      nbNodes = lonvalue.numElements();
-      node_lon.resizeAndPreserve(nbNodes);
-      node_lat.resizeAndPreserve(nbNodes);
-      for (int nn = 0; nn < nbNodes; ++nn)
+      nbNodes_ = lonvalue.numElements();
+      node_lon.resizeAndPreserve(nbNodes_);
+      node_lat.resizeAndPreserve(nbNodes_);
+      for (int nn = 0; nn < nbNodes_; ++nn)
       {
         if (map_nodes.find(make_pair (lonvalue(nn), latvalue(nn))) == map_nodes.end())
         {
@@ -324,37 +324,37 @@ namespace xios {
     }
     else if (nvertex == 2)
     {
-      nbEdges = bounds_lon.shape()[1];
+      nbEdges_ = bounds_lon.shape()[1];
 
       // Create nodes and edge_node connectivity
-      node_lon.resizeAndPreserve(nbEdges*nvertex); // Max possible number of nodes
-      node_lat.resizeAndPreserve(nbEdges*nvertex);
-      edge_nodes.resizeAndPreserve(nvertex, nbEdges);
+      node_lon.resizeAndPreserve(nbEdges_*nvertex); // Max possible number of nodes
+      node_lat.resizeAndPreserve(nbEdges_*nvertex);
+      edge_nodes.resizeAndPreserve(nvertex, nbEdges_);
 
-      for (int ne = 0; ne < nbEdges; ++ne)
+      for (int ne = 0; ne < nbEdges_; ++ne)
       {
         for (int nv = 0; nv < nvertex; ++nv)
         {
           if (map_nodes.find(make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))) == map_nodes.end())
           {
-            map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv, ne))] = nbNodes ;
-            edge_nodes(nv,ne) = nbNodes ;
-            node_lon(nbNodes) = bounds_lon(nv, ne);
-            node_lat(nbNodes) = bounds_lat(nv, ne);
-            ++nbNodes ;
+            map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv, ne))] = nbNodes_ ;
+            edge_nodes(nv,ne) = nbNodes_ ;
+            node_lon(nbNodes_) = bounds_lon(nv, ne);
+            node_lat(nbNodes_) = bounds_lat(nv, ne);
+            ++nbNodes_ ;
           }
           else
             edge_nodes(nv,ne) = map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))];
         }
       }
-      node_lon.resizeAndPreserve(nbNodes);
-      node_lat.resizeAndPreserve(nbNodes);
+      node_lon.resizeAndPreserve(nbNodes_);
+      node_lat.resizeAndPreserve(nbNodes_);
 
       // Create edges
-      edge_lon.resizeAndPreserve(nbEdges);
-      edge_lat.resizeAndPreserve(nbEdges);
+      edge_lon.resizeAndPreserve(nbEdges_);
+      edge_lat.resizeAndPreserve(nbEdges_);
 
-      for (int ne = 0; ne < nbEdges; ++ne)
+      for (int ne = 0; ne < nbEdges_; ++ne)
       {
         if (map_edges.find(make_ordered_pair (edge_nodes(0,ne), edge_nodes(1,ne))) == map_edges.end())
         {
@@ -368,24 +368,24 @@ namespace xios {
     }
     else
     {
-      nbFaces = bounds_lon.shape()[1];
+      nbFaces_ = bounds_lon.shape()[1];
   
       // Create nodes and face_node connectivity
-      node_lon.resizeAndPreserve(nbFaces*nvertex);  // Max possible number of nodes
-      node_lat.resizeAndPreserve(nbFaces*nvertex);
-      face_nodes.resize(nvertex, nbFaces);
+      node_lon.resizeAndPreserve(nbFaces_*nvertex);  // Max possible number of nodes
+      node_lat.resizeAndPreserve(nbFaces_*nvertex);
+      face_nodes.resize(nvertex, nbFaces_);
   
-      for (int nf = 0; nf < nbFaces; ++nf)
+      for (int nf = 0; nf < nbFaces_; ++nf)
       {
         for (int nv = 0; nv < nvertex; ++nv)
         {
           if (map_nodes.find(make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))) == map_nodes.end())
           {
-            map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes ;
-            face_nodes(nv,nf) = nbNodes ;
-            node_lon(nbNodes) = bounds_lon(nv, nf);
-            node_lat(nbNodes) = bounds_lat(nv ,nf);
-            ++nbNodes ;
+            map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes_ ;
+            face_nodes(nv,nf) = nbNodes_ ;
+            node_lon(nbNodes_) = bounds_lon(nv, nf);
+            node_lat(nbNodes_) = bounds_lat(nv ,nf);
+            ++nbNodes_ ;
           }
           else
           {
@@ -393,23 +393,23 @@ namespace xios {
           }
         }
       }
-      node_lon.resizeAndPreserve(nbNodes);
-      node_lat.resizeAndPreserve(nbNodes);
+      node_lon.resizeAndPreserve(nbNodes_);
+      node_lat.resizeAndPreserve(nbNodes_);
   
       // Create edges and edge_nodes connectivity
-      edge_lon.resizeAndPreserve(nbFaces*nvertex); // Max possible number of edges
-      edge_lat.resizeAndPreserve(nbFaces*nvertex);
-      edge_nodes.resizeAndPreserve(2, nbFaces*nvertex);
-      edge_faces.resize(2, nbFaces*nvertex);
-      face_edges.resize(nvertex, nbFaces);
-      face_faces.resize(nvertex, nbFaces);
+      edge_lon.resizeAndPreserve(nbFaces_*nvertex); // Max possible number of edges
+      edge_lat.resizeAndPreserve(nbFaces_*nvertex);
+      edge_nodes.resizeAndPreserve(2, nbFaces_*nvertex);
+      edge_faces.resize(2, nbFaces_*nvertex);
+      face_edges.resize(nvertex, nbFaces_);
+      face_faces.resize(nvertex, nbFaces_);
 
-      vector<int> countEdges(nbFaces*nvertex);   // needed in case if edges have been already generated
-      vector<int> countFaces(nbFaces);
-      countEdges.assign(nbFaces*nvertex, 0);
-      countFaces.assign(nbFaces, 0);
+      vector<int> countEdges(nbFaces_*nvertex);   // needed in case if edges have been already generated
+      vector<int> countFaces(nbFaces_);
+      countEdges.assign(nbFaces_*nvertex, 0);
+      countFaces.assign(nbFaces_, 0);
       int edge;
-      for (int nf = 0; nf < nbFaces; ++nf)
+      for (int nf = 0; nf < nbFaces_; ++nf)
       {
         for (int nv1 = 0; nv1 < nvertex; ++nv1)
         {
@@ -417,17 +417,17 @@ namespace xios {
           int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
           if (map_edges.find(make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))) == map_edges.end())
           {
-            map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))] = nbEdges ;
+            map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))] = nbEdges_ ;
             face_edges(nv1,nf) = map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))];
-            edge_faces(0,nbEdges) = nf;
-            edge_faces(1,nbEdges) = -999;
-            face_faces(nv1,nf) = -1;
-            edge_nodes(Range::all(),nbEdges) = face_nodes(nv1,nf), face_nodes(nv2,nf);
-            edge_lon(nbEdges) = ( abs( node_lon(face_nodes(nv1,nf)) - node_lon(face_nodes(nv2,nf))) < 180.) ?
+            edge_faces(0,nbEdges_) = nf;
+            edge_faces(1,nbEdges_) = -999;
+            face_faces(nv1,nf) = 999999;
+            edge_nodes(Range::all(),nbEdges_) = face_nodes(nv1,nf), face_nodes(nv2,nf);
+            edge_lon(nbEdges_) = ( abs( node_lon(face_nodes(nv1,nf)) - node_lon(face_nodes(nv2,nf))) < 180.) ?
                         (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5) :
                         (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5 -180.);
-            edge_lat(nbEdges) = ( node_lat(face_nodes(nv1,nf)) + node_lat(face_nodes(nv2,nf)) ) * 0.5;
-            ++nbEdges;
+            edge_lat(nbEdges_) = ( node_lat(face_nodes(nv1,nf)) + node_lat(face_nodes(nv2,nf)) ) * 0.5;
+            ++nbEdges_;
           }
           else
           {
@@ -438,7 +438,7 @@ namespace xios {
               edge_faces(countEdges[edge], edge) = nf;
               if (countEdges[edge]==0)
               {
-                face_faces(nv1,nf) = -1;
+                face_faces(nv1,nf) = 999999;
               }
               else
               {
@@ -464,14 +464,14 @@ namespace xios {
           }
         }
       }
-      edge_nodes.resizeAndPreserve(2, nbEdges);
-      edge_faces.resizeAndPreserve(2, nbEdges);
-      edge_lon.resizeAndPreserve(nbEdges);
-      edge_lat.resizeAndPreserve(nbEdges);
+      edge_nodes.resizeAndPreserve(2, nbEdges_);
+      edge_faces.resizeAndPreserve(2, nbEdges_);
+      edge_lon.resizeAndPreserve(nbEdges_);
+      edge_lat.resizeAndPreserve(nbEdges_);
 
       // Create faces
-      face_lon.resize(nbFaces);
-      face_lat.resize(nbFaces);
+      face_lon.resize(nbFaces_);
+      face_lat.resize(nbFaces_);
       face_lon = lonvalue;
       face_lat = latvalue;
       facesAreWritten = true;
@@ -501,24 +501,25 @@ namespace xios {
     int mpiRank, mpiSize;
     MPI_Comm_rank(comm, &mpiRank);
     MPI_Comm_size(comm, &mpiSize);
+    double prec = 1e-11;  // used in calculations of edge_lon/lat
 
     if (nvertex == 1)
     {
-      nbNodes = lonvalue.numElements();
-      node_lon.resize(nbNodes);
-      node_lat.resize(nbNodes);
+      nbNodes_ = lonvalue.numElements();
+      node_lon.resize(nbNodes_);
+      node_lat.resize(nbNodes_);
       node_lon = lonvalue;
       node_lat = latvalue;
 
       // Global node indexes
       vector<size_t> hashValues(4);
       CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2IdxGlo;
-      for (size_t nn = 0; nn < nbNodes; ++nn)
+      for (size_t nn = 0; nn < nbNodes_; ++nn)
       {
         hashValues = CMesh::createHashes(lonvalue(nn), latvalue(nn));
         for (size_t nh = 0; nh < 4; ++nh)
         {
-          nodeHash2IdxGlo[hashValues[nh]].push_back(mpiRank*nbNodes + nn);
+          nodeHash2IdxGlo[hashValues[nh]].push_back(mpiRank*nbNodes_ + nn);
         }
       }
       pNodeGlobalIndex = new CClientClientDHTSizet (nodeHash2IdxGlo, comm);
@@ -527,12 +528,19 @@ namespace xios {
 
     else if (nvertex == 2)
     {
-      nbEdges = bounds_lon.shape()[1];
-      edge_lon.resize(nbEdges);
-      edge_lat.resize(nbEdges);
+      nbEdges_ = bounds_lon.shape()[1];
+      edge_lon.resize(nbEdges_);
+      edge_lat.resize(nbEdges_);
       edge_lon = lonvalue;
       edge_lat = latvalue;
-      edge_nodes.resize(nvertex, nbEdges);
+      edge_nodes.resize(nvertex, nbEdges_);
+
+      // For determining the global edge index
+      size_t nbEdgesOnProc = nbEdges_;
+      size_t nbEdgesAccum;
+      MPI_Scan(&nbEdgesOnProc, &nbEdgesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      nbEdgesAccum -= nbEdges_;
+
       CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2IdxGlo;
       CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Idx;
 
@@ -540,8 +548,8 @@ namespace xios {
       if (nodesAreWritten)
       {
         vector<size_t> hashValues(4);
-        CArray<size_t,1> nodeHashList(nbEdges*nvertex*4);
-        for (int ne = 0; ne < nbEdges; ++ne)      // size_t doesn't work with CArray<double, 2>
+        CArray<size_t,1> nodeHashList(nbEdges_*nvertex*4);
+        for (int ne = 0; ne < nbEdges_; ++ne)      // size_t doesn't work with CArray<double, 2>
         {
           for (int nv = 0; nv < nvertex; ++nv)
           {
@@ -558,8 +566,8 @@ namespace xios {
         pNodeGlobalIndex->computeIndexInfoMapping(nodeHashList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2IdxGlo = pNodeGlobalIndex->getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it;
-        vector <size_t> edgeNodes;
-        for (int ne = 0; ne < nbEdges; ++ne)
+        size_t nodeIdxGlo1, nodeIdxGlo2;
+        for (int ne = 0; ne < nbEdges_; ++ne)
         {
           for (int nv = 0; nv < nvertex; ++nv)
           {
@@ -573,11 +581,16 @@ namespace xios {
               it = nodeHash2IdxGlo.find(nodeHashList((ne*nvertex + nv)*4 + nh));
             }
             edge_nodes(nv,ne) = it->second[0];
-            edgeNodes.push_back(it->second[0]);
+            if (nv ==0)
+              nodeIdxGlo1 = it->second[0];
+            else
+              nodeIdxGlo2 = it->second[0];
           }
-          edgeHash2IdxGlo[ hashPairOrdered(edgeNodes[0], edgeNodes[1]) ].push_back(nbEdges*mpiRank + ne);
+          size_t edgeIdxGlo = nbEdgesAccum + ne;
+          edgeHash2IdxGlo[ hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2) ].push_back(edgeIdxGlo);
         }
       } // nodesAreWritten
+
 
       // Case (2): node indexes have not been generated previously
       else
@@ -585,8 +598,8 @@ namespace xios {
         // (2.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
         vector<size_t> hashValues(4);
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2Idx;
-        CArray<size_t,1> nodeHashList(nbEdges*nvertex*4);
-        for (int ne = 0; ne < nbEdges; ++ne)
+        CArray<size_t,1> nodeHashList(nbEdges_*nvertex*4);
+        for (int ne = 0; ne < nbEdges_; ++ne)
         {
           for (int nv = 0; nv < nvertex; ++nv)
           {
@@ -612,7 +625,7 @@ namespace xios {
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxMin;
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxGlo;
-        CArray<size_t,1> nodeIdxMinList(nbEdges*nvertex);
+        CArray<size_t,1> nodeIdxMinList(nbEdges_*nvertex);
 
         CClientClientDHTSizet dhtNodeHash(nodeHash2Idx, comm);
         dhtNodeHash.computeIndexInfoMapping(nodeHashList);
@@ -666,7 +679,7 @@ namespace xios {
         vector <size_t> edgeNodes;
         size_t idxGlo = 0;
 
-        for (int ne = 0; ne < nbEdges; ++ne)
+        for (int ne = 0; ne < nbEdges_; ++ne)
         {
           for (int nv = 0; nv < nvertex; ++nv)
           {
@@ -694,7 +707,11 @@ namespace xios {
               nodeHash2IdxGlo[hashValues[nh]].push_back(idxGlo);
             edgeNodes.push_back(idxGlo);
           }
-          edgeHash2IdxGlo[ hashPairOrdered(edgeNodes[0], edgeNodes[1]) ].push_back(nbEdges*mpiRank + ne);
+          if (edgeNodes[0] != edgeNodes[1])
+          {
+            size_t edgeIdxGlo = nbEdgesAccum + ne;
+            edgeHash2IdxGlo[ hashPairOrdered(edgeNodes[0], edgeNodes[1]) ].push_back(edgeIdxGlo);
+          }
           edgeNodes.clear();
         }
         pNodeGlobalIndex = new CClientClientDHTSizet (nodeHash2IdxGlo, comm);
@@ -706,21 +723,27 @@ namespace xios {
 
     else
     {
-      nbFaces = bounds_lon.shape()[1];
-      face_lon.resize(nbFaces);
-      face_lat.resize(nbFaces);
+      nbFaces_ = bounds_lon.shape()[1];
+      face_lon.resize(nbFaces_);
+      face_lat.resize(nbFaces_);
       face_lon = lonvalue;
       face_lat = latvalue;
-      face_nodes.resize(nvertex, nbFaces);
-      face_edges.resize(nvertex, nbFaces);
+      face_nodes.resize(nvertex, nbFaces_);
+      face_edges.resize(nvertex, nbFaces_);
+
+      // For determining the global face index
+      size_t nbFacesOnProc = nbFaces_;
+      size_t nbFacesAccum;
+      MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      nbFacesAccum -= nbFaces_;
 
       // Case (1): edges have been previously generated
       if (edgesAreWritten)
       {
         // (1.1) Recuperating node global indexing and saving face_nodes
         vector<size_t> hashValues(4);
-        CArray<size_t,1> nodeHashList(nbFaces*nvertex*4);
-        for (int nf = 0; nf < nbFaces; ++nf)
+        CArray<size_t,1> nodeHashList(nbFaces_*nvertex*4);
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv = 0; nv < nvertex; ++nv)
             {
@@ -732,8 +755,9 @@ namespace xios {
         pNodeGlobalIndex->computeIndexInfoMapping(nodeHashList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2IdxGlo = pNodeGlobalIndex->getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it1, it2;
-        CArray<size_t,1> edgeHashList(nbFaces*nvertex);
-        for (int nf = 0; nf < nbFaces; ++nf)
+        CArray<size_t,1> edgeHashList(nbFaces_*nvertex);
+        size_t nEdge = 0;
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -753,22 +777,25 @@ namespace xios {
               it2 = nodeHash2IdxGlo.find(nodeHashList((nf*nvertex + nv1)*4 + nh2));
             }
             face_nodes(nv1,nf) = it1->second[0];
-            edgeHashList(nf*nvertex + nv1) = hashPairOrdered(it1->second[0], it2->second[0]);
-
+            if (it1->second[0] != it2->second[0])
+            {
+              edgeHashList(nEdge) = hashPairOrdered(it1->second[0], it2->second[0]);
+              ++nEdge;
+            }
           }
         }
+        edgeHashList.resizeAndPreserve(nEdge);
 
         // (1.2) Recuperating edge global indexing and saving face_edges
         pEdgeGlobalIndex->computeIndexInfoMapping(edgeHashList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeHash2IdxGlo = pEdgeGlobalIndex->getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itEdgeHash;
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Rank;
-
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdxGlo2Face;
-        CArray<size_t,1> edgeIdxGloList(nbFaces*nvertex);
+        CArray<size_t,1> edgeIdxGloList(nbFaces_*nvertex);
         size_t iIdx = 0;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -787,19 +814,26 @@ namespace xios {
               ++nh2;
               it2 = nodeHash2IdxGlo.find(nodeHashList((nf*nvertex + nv1)*4 + nh2));
             }
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
-            size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
-            itEdgeHash = edgeHash2IdxGlo.find(edgeHash);
-            size_t edgeIdxGlo = itEdgeHash->second[0];
-            face_edges(nv1,nf) = edgeIdxGlo;
-            if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
+            if (it1->second[0] != it2->second[0])
             {
-              edgeIdxGloList(iIdx) = edgeIdxGlo;
-              ++iIdx;
+              size_t faceIdxGlo = nbFacesAccum + nf;
+              size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
+              itEdgeHash = edgeHash2IdxGlo.find(edgeHash);
+              size_t edgeIdxGlo = itEdgeHash->second[0];
+              face_edges(nv1,nf) = edgeIdxGlo;
+              if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
+              {
+                edgeIdxGloList(iIdx) = edgeIdxGlo;
+                ++iIdx;
+              }
+              edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
+              edgeHash2Rank[edgeHash].push_back(itEdgeHash->first);
+              edgeHash2Rank[edgeHash].push_back(mpiRank);
             }
-            edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
-            edgeHash2Rank[edgeHash].push_back(itEdgeHash->first);
-            edgeHash2Rank[edgeHash].push_back(mpiRank);
+            else
+            {
+              face_edges(nv1,nf) = 999999;
+            }
           }
         }
         edgeIdxGloList.resizeAndPreserve(iIdx);
@@ -811,10 +845,10 @@ namespace xios {
         CClientClientDHTSizet dhtEdgeHash (edgeHash2Rank, comm);
         dhtEdgeHash.computeIndexInfoMapping(edgeHashList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeHash2Info = dhtEdgeHash.getInfoIndexMap();
-        CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHashMin2IdxGlo;            // map is needed purely for counting
+        CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHashMin2IdxGlo;
 
         // edgeHash2Info = <edgeHash, <idxGlo, rank1, idxGlo, rank2>>
-        // edgeHashMin2IdxGlo edgeHash2Info = <edgeHashMin, idxGlo>
+        // edgeHashMin2IdxGlo = <edgeHashMin, idxGlo>
         for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = edgeHash2Info.begin(); it != edgeHash2Info.end(); ++it)
         {
           vector <size_t> edgeInfo = it->second;
@@ -830,14 +864,14 @@ namespace xios {
         edge_start = dhtEdgeIdxGlo.getIndexStart();
 
         edge_faces.resize(2, edge_count);
-        face_faces.resize(nvertex, nbFaces);
+        face_faces.resize(nvertex, nbFaces_);
 
         CClientClientDHTSizet dhtEdge2Face (edgeIdxGlo2Face, comm);
         dhtEdge2Face.computeIndexInfoMapping(edgeIdxGloList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeIdxGlo2FaceIdx = dhtEdge2Face.getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itFace1, itFace2;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -856,36 +890,44 @@ namespace xios {
               ++nh2;
               it2 = nodeHash2IdxGlo.find(nodeHashList((nf*nvertex + nv1)*4 + nh2));
             }
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
-            size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
-            itEdgeHash = edgeHash2Info.find(edgeHash);
-            size_t edgeOwnerRank = itEdgeHash->second[1];
-            int edgeIdxGlo = itEdgeHash->second[0];
 
-            if (mpiRank == edgeOwnerRank)
+            if (it1->second[0] != it2->second[0])
             {
-              itFace1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
-              int face1 = itFace1->second[0];
-              if (itFace1->second.size() == 1)
+              size_t faceIdxGlo = nbFacesAccum + nf;
+              size_t edgeHash = hashPairOrdered(it1->second[0], it2->second[0]);
+              itEdgeHash = edgeHash2IdxGlo.find(edgeHash);
+              if (itEdgeHash != edgeHashMin2IdxGlo.end())
               {
-                edge_faces(0, edgeIdxGlo - edge_start) = face1;
-                edge_faces(1, edgeIdxGlo - edge_start) = -999;
-                face_faces(nv1, nf) = -1;
-              }
+                int edgeIdxGlo = itEdgeHash->second[0];
+                itFace1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
+                int face1 = itFace1->second[0];
+                if (itFace1->second.size() == 1)
+                {
+                  edge_faces(0, edgeIdxGlo - edge_start) = face1;
+                  edge_faces(1, edgeIdxGlo - edge_start) = -999;
+                  face_faces(nv1, nf) = 999999;
+                }
+                else
+                {
+                  int face2 = itFace1->second[1];
+                  edge_faces(0, edgeIdxGlo - edge_start) = face1;
+                  edge_faces(1, edgeIdxGlo - edge_start) = face2;
+                  face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
+                }
+              } // edge owner
               else
               {
+                itEdgeHash = edgeHashMin2IdxGlo.find(edgeHash);
+                size_t edgeIdxGlo = itEdgeHash->second[0];
+                itFace1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
+                int face1 = itFace1->second[0];
                 int face2 = itFace1->second[1];
-                edge_faces(0, edgeIdxGlo - edge_start) = face1;
-                edge_faces(1, edgeIdxGlo - edge_start) = face2;
                 face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
-              }
-            }
+              } // not an edge owner
+            } // node1 != node2
             else
             {
-              itFace1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
-              int face1 = itFace1->second[0];
-              int face2 = itFace1->second[1];
-              face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
+              face_faces(nv1, nf) = 999999;
             }
           }
         }
@@ -896,8 +938,8 @@ namespace xios {
       {
         // (2.1) Generating nodeHashList
         vector<size_t> hashValues(4);
-        CArray<size_t,1> nodeHashList(nbFaces*nvertex*4);
-        for (int nf = 0; nf < nbFaces; ++nf)
+        CArray<size_t,1> nodeHashList(nbFaces_*nvertex*4);
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv = 0; nv < nvertex; ++nv)
             {
@@ -913,8 +955,8 @@ namespace xios {
         CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2IdxGlo = pNodeGlobalIndex->getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Idx;
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it1, it2;
-        CArray<size_t,1> edgeHashList(nbFaces*nvertex);
-        for (int nf = 0; nf < nbFaces; ++nf)
+        CArray<size_t,1> edgeHashList(nbFaces_*nvertex);
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -954,7 +996,7 @@ namespace xios {
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdx2IdxMin;
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdx2IdxGlo;
-        CArray<size_t,1> edgeIdxMinList(nbFaces*nvertex);
+        CArray<size_t,1> edgeIdxMinList(nbFaces_*nvertex);
         size_t iIdxMin = 0;
 
         for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = edgeHash2Info.begin(); it != edgeHash2Info.end(); ++it)
@@ -999,13 +1041,13 @@ namespace xios {
         edge_lon.resize(edge_count);
         edge_lat.resize(edge_count);
         edge_nodes.resize(2, edge_count);
-        face_edges.resize(nvertex, nbFaces);
+        face_edges.resize(nvertex, nbFaces_);
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdxGlo2Face;
-        CArray<size_t,1> edgeIdxGloList(nbFaces*nvertex);
+        CArray<size_t,1> edgeIdxGloList(nbFaces_*nvertex);
         size_t iIdx = 0;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -1029,48 +1071,61 @@ namespace xios {
             size_t nodeIdxGlo1 = it1->second[0];
             size_t nodeIdxGlo2 = it2->second[0];
             size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
-            CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
-            size_t ownerIdx = (itIdx->second)[0];
-            int edgeIdxGlo = 0;
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
-
-            if (myIdx == ownerIdx)
+            if (nodeIdxGlo1 != nodeIdxGlo2)
             {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
-              edgeIdxGlo = (itIdxGlo->second)[0];
-              edge_lon(edgeIdxGlo - edge_start) = ( abs( bounds_lon(nv1, nf) - bounds_lon(nv2, nf)) < 180.) ?
-                          (( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5) :
-                          (( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5 -180.);
-              edge_lat(edgeIdxGlo - edge_start) = ( bounds_lat(nv1, nf) + bounds_lat(nv2, nf) ) * 0.5;
-              edge_nodes(0, edgeIdxGlo - edge_start) = nodeIdxGlo1;
-              edge_nodes(1, edgeIdxGlo - edge_start) = nodeIdxGlo2;
-            }
+              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
+              size_t ownerIdx = (itIdx->second)[0];
+              int edgeIdxGlo = 0;
+              size_t faceIdxGlo = nbFacesAccum + nf;
+
+              if (myIdx == ownerIdx)
+              {
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
+                edgeIdxGlo = (itIdxGlo->second)[0];
+                double edgeLon;
+                double diffLon = abs(bounds_lon(nv1, nf) - bounds_lon(nv2, nf));
+                if (diffLon < (180.- prec))
+                  edgeLon = ( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5;
+                else if (diffLon > (180.+ prec))
+                  edgeLon = (bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5 -180.;
+                else
+                  edgeLon = 0.;
+                edge_lon(edgeIdxGlo - edge_start) = edgeLon;
+                edge_lat(edgeIdxGlo - edge_start) = ( bounds_lat(nv1, nf) + bounds_lat(nv2, nf) ) * 0.5;
+                edge_nodes(0, edgeIdxGlo - edge_start) = nodeIdxGlo1;
+                edge_nodes(1, edgeIdxGlo - edge_start) = nodeIdxGlo2;
+              }
+              else
+              {
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
+                edgeIdxGlo = (itIdxGlo->second)[0];
+              }
+              face_edges(nv1,nf) = edgeIdxGlo;
+              if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
+              {
+                edgeIdxGloList(iIdx) = edgeIdxGlo;
+                ++iIdx;
+              }
+              edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
+            } // nodeIdxGlo1 != nodeIdxGlo2
             else
             {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
-              edgeIdxGlo = (itIdxGlo->second)[0];
+              face_edges(nv1,nf) = 999999;
             }
-            face_edges(nv1,nf) = edgeIdxGlo;
-            if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
-            {
-              edgeIdxGloList(iIdx) = edgeIdxGlo;
-              ++iIdx;
-            }
-            edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
           }
         }
         edgeIdxGloList.resizeAndPreserve(iIdx);
 
         // (2.4) Saving remaining variables edge_faces and face_faces
         edge_faces.resize(2, edge_count);
-        face_faces.resize(nvertex, nbFaces);
+        face_faces.resize(nvertex, nbFaces_);
 
         CClientClientDHTSizet dhtEdge2Face (edgeIdxGlo2Face, comm);
         dhtEdge2Face.computeIndexInfoMapping(edgeIdxGloList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeIdxGlo2FaceIdx = dhtEdge2Face.getInfoIndexMap();
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itNodeIdxGlo1, itNodeIdxGlo2;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -1096,7 +1151,7 @@ namespace xios {
             size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
             CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
             size_t ownerIdx = (itIdx->second)[0];
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
+            size_t faceIdxGlo = nbFacesAccum + nf;
 
             if (myIdx == ownerIdx)
             {
@@ -1108,7 +1163,7 @@ namespace xios {
               {
                 edge_faces(0, edgeIdxGlo - edge_start) = face1;
                 edge_faces(1, edgeIdxGlo - edge_start) = -999;
-                face_faces(nv1, nf) = -1;
+                face_faces(nv1, nf) = 999999;
               }
               else
               {
@@ -1137,9 +1192,9 @@ namespace xios {
         // (3.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
         vector<size_t> hashValues(4);
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2Idx;
-        CArray<size_t,1> nodeHashList(nbFaces*nvertex*4);
+        CArray<size_t,1> nodeHashList(nbFaces_*nvertex*4);
         size_t iHash = 0;
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv = 0; nv < nvertex; ++nv)
           {
@@ -1172,7 +1227,7 @@ namespace xios {
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxMin;
         CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxGlo;
-        CArray<size_t,1> nodeIdxMinList(nbFaces*nvertex*4);
+        CArray<size_t,1> nodeIdxMinList(nbFaces_*nvertex*4);
         size_t iIdxMin = 0;
 
         for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = nodeHash2Info.begin(); it != nodeHash2Info.end(); ++it)
@@ -1220,9 +1275,10 @@ namespace xios {
         size_t nodeIdxGlo2 = 0;
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Idx;
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itNodeIdxGlo1, itNodeIdxGlo2;
-        CArray<size_t,1> edgeHashList(nbFaces*nvertex);
+        CArray<size_t,1> edgeHashList(nbFaces_*nvertex);
+        size_t nEdgeHash = 0;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -1249,13 +1305,18 @@ namespace xios {
             }
             itNodeIdxGlo2 = nodeIdxMin2IdxGlo.find((itNodeIdx2->second)[0]);
             nodeIdxGlo2 = (itNodeIdxGlo2->second)[0];
-            size_t edgeHash = hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2);
-            edgeHash2Idx[edgeHash].push_back(generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank));
-            edgeHash2Idx[edgeHash].push_back(mpiRank);
-            edgeHashList(nf*nvertex + nv1) = edgeHash;
+            if (nodeIdxGlo1 != nodeIdxGlo2)
+            {
+              size_t edgeHash = hashPairOrdered(nodeIdxGlo1, nodeIdxGlo2);
+              edgeHash2Idx[edgeHash].push_back(generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank));
+              edgeHash2Idx[edgeHash].push_back(mpiRank);
+              edgeHashList(nEdgeHash) = edgeHash;
+              ++nEdgeHash;
+            }
             face_nodes(nv1,nf) = nodeIdxGlo1;
           }
         }
+        edgeHashList.resizeAndPreserve(nEdgeHash);
 
         // (3.4) Generating global edge indexes
         // Maps generated in this step are:
@@ -1269,7 +1330,7 @@ namespace xios {
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdx2IdxMin;
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdx2IdxGlo;
-        CArray<size_t,1> edgeIdxMinList(nbFaces*nvertex);
+        CArray<size_t,1> edgeIdxMinList(nbFaces_*nvertex);
         iIdxMin = 0;
 
         for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = edgeHash2Info.begin(); it != edgeHash2Info.end(); ++it)
@@ -1315,14 +1376,14 @@ namespace xios {
         edge_lon.resize(edge_count);
         edge_lat.resize(edge_count);
         edge_nodes.resize(2, edge_count);
-        face_edges.resize(nvertex, nbFaces);
+        face_edges.resize(nvertex, nbFaces_);
 
         CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it1, it2;
         CClientClientDHTSizet::Index2VectorInfoTypeMap edgeIdxGlo2Face;
-        CArray<size_t,1> edgeIdxGloList(nbFaces*nvertex);
-        size_t iIdx = 0;
+        CArray<size_t,1> edgeIdxGloList(nbFaces_*nvertex);
+        size_t nEdge = 0;
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -1340,49 +1401,61 @@ namespace xios {
             size_t nodeIdxGlo1 = (itNodeIdxGlo1->second)[0];
             size_t nodeIdxGlo2 = (itNodeIdxGlo2->second)[0];
 
-            size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
-            CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
-            size_t ownerIdx = (itIdx->second)[0];
-
-            int edgeIdxGlo = 0;
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
-
-            if (myIdx == ownerIdx)
+            if (nodeIdxGlo1 != nodeIdxGlo2)
             {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
-              edgeIdxGlo = (itIdxGlo->second)[0];
-              edge_lon(edgeIdxGlo - edge_start) = ( abs( bounds_lon(nv1, nf) - bounds_lon(nv2, nf)) < 180.) ?
-                          (( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5) :
-                          (( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5 -180.);
-              edge_lat(edgeIdxGlo-edge_start) = ( bounds_lat(nv1, nf) + bounds_lat(nv2, nf) ) * 0.5;
-              edge_nodes(0, edgeIdxGlo - edge_start) = nodeIdxGlo1;
-              edge_nodes(1, edgeIdxGlo - edge_start) = nodeIdxGlo2;
-            }
+              size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
+              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
+              size_t ownerIdx = (itIdx->second)[0];
+              int edgeIdxGlo;
+              size_t faceIdxGlo = nbFacesAccum + nf;
+
+              if (myIdx == ownerIdx)
+              {
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
+                edgeIdxGlo = (itIdxGlo->second)[0];
+                double edgeLon;
+                double diffLon = abs(bounds_lon(nv1, nf) - bounds_lon(nv2, nf));
+                if (diffLon < (180.- prec))
+                  edgeLon = ( bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5;
+                else if (diffLon > (180.+ prec))
+                  edgeLon = (bounds_lon(nv1, nf) + bounds_lon(nv2, nf)) * 0.5 -180.;
+                else
+                  edgeLon = 0.;
+                edge_lon(edgeIdxGlo - edge_start) = edgeLon;
+                edge_lat(edgeIdxGlo-edge_start) = ( bounds_lat(nv1, nf) + bounds_lat(nv2, nf) ) * 0.5;
+                edge_nodes(0, edgeIdxGlo - edge_start) = nodeIdxGlo1;
+                edge_nodes(1, edgeIdxGlo - edge_start) = nodeIdxGlo2;
+              }
+              else
+              {
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
+                edgeIdxGlo = (itIdxGlo->second)[0];
+              }
+              face_edges(nv1,nf) = edgeIdxGlo;
+              if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
+              {
+                edgeIdxGloList(nEdge) = edgeIdxGlo;
+                ++nEdge;
+              }
+              edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
+            } // nodeIdxGlo1 != nodeIdxGlo2
             else
             {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
-              edgeIdxGlo = (itIdxGlo->second)[0];
+              face_edges(nv1,nf) = 999999;
             }
-            face_edges(nv1,nf) = edgeIdxGlo;
-            if (edgeIdxGlo2Face.count(edgeIdxGlo) == 0)
-            {
-              edgeIdxGloList(iIdx) = edgeIdxGlo;
-              ++iIdx;
-            }
-            edgeIdxGlo2Face[edgeIdxGlo].push_back(faceIdxGlo);
           }
         }
-        edgeIdxGloList.resizeAndPreserve(iIdx);
+        edgeIdxGloList.resizeAndPreserve(nEdge);
 
         // (3.6) Saving remaining variables edge_faces and face_faces
         edge_faces.resize(2, edge_count);
-        face_faces.resize(nvertex, nbFaces);
+        face_faces.resize(nvertex, nbFaces_);
 
         CClientClientDHTSizet dhtEdge2Face (edgeIdxGlo2Face, comm);
         dhtEdge2Face.computeIndexInfoMapping(edgeIdxGloList);
         CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeIdxGlo2FaceIdx = dhtEdge2Face.getInfoIndexMap();
 
-        for (int nf = 0; nf < nbFaces; ++nf)
+        for (int nf = 0; nf < nbFaces_; ++nf)
         {
           for (int nv1 = 0; nv1 < nvertex; ++nv1)
           {
@@ -1393,47 +1466,52 @@ namespace xios {
 
             size_t myNodeIdx1 = generateNodeIndex(hashValues1, mpiRank);
             size_t myNodeIdx2 = generateNodeIndex(hashValues2, mpiRank);
-            it1 = nodeIdx2IdxMin.find(myNodeIdx1);
-            it2 = nodeIdx2IdxMin.find(myNodeIdx2);
-            itNodeIdxGlo1 = nodeIdxMin2IdxGlo.find((it1->second)[0]);
-            itNodeIdxGlo2 = nodeIdxMin2IdxGlo.find((it2->second)[0]);
-            size_t nodeIdxGlo1 = (itNodeIdxGlo1->second)[0];
-            size_t nodeIdxGlo2 = (itNodeIdxGlo2->second)[0];
-
-            size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
-            CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
-            size_t ownerIdx = (itIdx->second)[0];
-            size_t faceIdxGlo = mpiRank * nbFaces + nf;
-
-            if (myIdx == ownerIdx)
+            if (myNodeIdx1 != myNodeIdx2)
             {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
-              int edgeIdxGlo = (itIdxGlo->second)[0];
-              it1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
-              int face1 = it1->second[0];
-              if (it1->second.size() == 1)
+              it1 = nodeIdx2IdxMin.find(myNodeIdx1);
+              it2 = nodeIdx2IdxMin.find(myNodeIdx2);
+              itNodeIdxGlo1 = nodeIdxMin2IdxGlo.find((it1->second)[0]);
+              itNodeIdxGlo2 = nodeIdxMin2IdxGlo.find((it2->second)[0]);
+              size_t nodeIdxGlo1 = (itNodeIdxGlo1->second)[0];
+              size_t nodeIdxGlo2 = (itNodeIdxGlo2->second)[0];
+
+              size_t myIdx = generateEdgeIndex(nodeIdxGlo1, nodeIdxGlo2, mpiRank);
+              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdx = edgeIdx2IdxMin.find(myIdx);
+              size_t ownerIdx = (itIdx->second)[0];
+              size_t faceIdxGlo = nbFacesAccum + nf;
+
+              if (myIdx == ownerIdx)
               {
-                edge_faces(0, edgeIdxGlo - edge_start) = face1;
-                edge_faces(1, edgeIdxGlo - edge_start) = -999;
-                face_faces(nv1, nf) = -1;
-              }
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdx2IdxGlo.find(myIdx);
+                int edgeIdxGlo = (itIdxGlo->second)[0];
+                it1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
+                int face1 = it1->second[0];
+                if (it1->second.size() == 1)
+                {
+                  edge_faces(0, edgeIdxGlo - edge_start) = face1;
+                  edge_faces(1, edgeIdxGlo - edge_start) = -999;
+                  face_faces(nv1, nf) = 999999;
+                }
+                else
+                {
+                  size_t face2 = it1->second[1];
+                  edge_faces(0, edgeIdxGlo - edge_start) = face1;
+                  edge_faces(1, edgeIdxGlo - edge_start) = face2;
+                  face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
+                }
+              } // myIdx == ownerIdx
               else
               {
-                size_t face2 = it1->second[1];
-                edge_faces(0, edgeIdxGlo - edge_start) = face1;
-                edge_faces(1, edgeIdxGlo - edge_start) = face2;
+                CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
+                size_t edgeIdxGlo = (itIdxGlo->second)[0];
+                it1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
+                int face1 = it1->second[0];
+                int face2 = it1->second[1];
                 face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
-              }
-            }
+              } // myIdx != ownerIdx
+            } // myNodeIdx1 != myNodeIdx2
             else
-            {
-              CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itIdxGlo = edgeIdxMin2IdxGlo.find(ownerIdx);
-              size_t edgeIdxGlo = (itIdxGlo->second)[0];
-              it1 = edgeIdxGlo2FaceIdx.find(edgeIdxGlo);
-              int face1 = it1->second[0];
-              int face2 = it1->second[1];
-              face_faces(nv1, nf) = (faceIdxGlo == face1 ? face2 : face1);
-            }
+              face_faces(nv1, nf) = 999999;
           }
         }
       }
@@ -1441,5 +1519,374 @@ namespace xios {
     } // nvertex >= 3
 
   } // createMeshEpsilon
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn  void CMesh::getNghbFacesNodeType(const MPI_Comm& comm,
+                               const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                               CArray<int, 2>& nghbFaces)
+   * Finds neighboring cells of a local domain for node-type of neighbors.
+   * \param [in] comm
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
+   */
+
+  void CMesh::getNghbFacesNodeType(const MPI_Comm& comm,
+                               const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                               CArray<int, 2>& nghbFaces)
+  {
+    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
+    int nbFaces = bounds_lon.shape()[1];
+    nghbFaces.resize(2, nbFaces*10);    // some estimate on max number of neighbouring cells
+
+    int mpiRank, mpiSize;
+    MPI_Comm_rank(comm, &mpiRank);
+    MPI_Comm_size(comm, &mpiSize);
+
+    // For determining the global face index
+    size_t nbFacesOnProc = nbFaces;
+    size_t nbFacesAccum;
+    MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+    nbFacesAccum -= nbFaces;
+
+    // (1) Generating unique node indexes
+    // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
+    vector<size_t> hashValues(4);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2Idx;
+    CArray<size_t,1> nodeHashList(nbFaces*nvertex*4);
+    size_t iIdx = 0;
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        hashValues = CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv, nf));
+        size_t nodeIndex = generateNodeIndex(hashValues, mpiRank);
+        for (int nh = 0; nh < 4; ++nh)
+        {
+          if (nodeHash2Idx.count(hashValues[nh])==0)
+         {
+            nodeHash2Idx[hashValues[nh]].push_back(nodeIndex);
+            nodeHash2Idx[hashValues[nh]].push_back(mpiRank);
+           nodeHashList(iIdx) = hashValues[nh];
+           ++iIdx;
+         }
+        }
+      }
+    }
+    nodeHashList.resizeAndPreserve(iIdx);
+
+    // (1.2) Generating node indexes
+    // The ownership criterion: priority of the process holding the smaller index
+    // Maps generated in this step are:
+    // nodeHash2Info = <hash, idx1, idx2, idx3....>
+    // nodeIdx2IdxMin = <idx, idxMin>
+    // idxMin is a unique node identifier
+
+    CClientClientDHTSizet dhtNodeHash(nodeHash2Idx, comm);
+    dhtNodeHash.computeIndexInfoMapping(nodeHashList);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2Info = dhtNodeHash.getInfoIndexMap();
+
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxMin;
+
+    for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = nodeHash2Info.begin(); it != nodeHash2Info.end(); ++it)
+    {
+      size_t idxMin = (it->second)[0];
+      size_t idx = (it->second)[0];
+      for (int i = 2; i < (it->second).size();)
+      {
+        if (mpiRank == (it->second)[i+1])
+        {
+          idx = (it->second)[i];
+        }
+        if ((it->second)[i] < idxMin)
+        {
+          idxMin = (it->second)[i];
+          (it->second)[i] = (it->second)[i-2];
+          (it->second)[i+1] = (it->second)[i-1];
+        }
+        i += 2;
+      }
+      (it->second)[0] = idxMin;
+      if (nodeIdx2IdxMin.count(idx) == 0)
+      {
+        nodeIdx2IdxMin[idx].push_back(idxMin);
+      }
+    }
+
+    // (2) Creating maps nodeIdxMin2Face = <nodeIdxMin, [face1, face2, ...]>
+    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it;
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdxMin2Face;
+    CArray<size_t,1> nodeIdxMinList(nbFaces*nvertex*4);
+
+    size_t nNode = 0;
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        vector<size_t> hashValues = CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv, nf));
+        size_t myNodeIdx = generateNodeIndex(hashValues, mpiRank);
+        it = nodeIdx2IdxMin.find(myNodeIdx);
+        size_t nodeIdxMin = (it->second)[0];
+        size_t faceIdx = nbFacesAccum + nf;
+        if (nodeIdxMin2Face.count(nodeIdxMin) == 0)
+        {
+          nodeIdxMinList(nNode) = nodeIdxMin;
+          ++nNode;
+        }
+        nodeIdxMin2Face[nodeIdxMin].push_back(faceIdx);
+        nodeIdxMin2Face[nodeIdxMin].push_back(mpiRank);
+      }
+    }
+    nodeIdxMinList.resizeAndPreserve(nNode);
+
+    // (3) Face_face connectivity
+
+    // nodeIdxMin2Info = <nodeIdxMin, [face1, face2,...]>
+    CClientClientDHTSizet dhtNode2Face (nodeIdxMin2Face, comm);
+    dhtNode2Face.computeIndexInfoMapping(nodeIdxMinList);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeIdxMin2Info = dhtNode2Face.getInfoIndexMap();
+    CClientClientDHTSizet::Index2VectorInfoTypeMap mapFaces;  // auxiliar map
+
+    int nbNghb = 0;
+    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itNode;
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        vector<size_t> hashValues = CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv, nf));
+        size_t myNodeIdx = generateNodeIndex(hashValues, mpiRank);
+        itNode = nodeIdx2IdxMin.find(myNodeIdx);
+        size_t nodeIdxMin = (itNode->second)[0];
+
+        itNode = nodeIdxMin2Info.find(nodeIdxMin);
+        for (int i = 0; i < itNode->second.size();)
+        {
+          size_t face = itNode->second[i];
+          size_t rank = itNode->second[i+1];
+          if (rank != mpiRank)
+            if (mapFaces.count(face) == 0)
+            {
+              nghbFaces(0, nbNghb) = face;
+              nghbFaces(1, nbNghb) = rank;
+              ++nbNghb;
+              mapFaces[face].push_back(face);
+            }
+          i += 2;
+        }
+      }
+    }
+    nghbFaces.resizeAndPreserve(2, nbNghb);
+  } // getNghbFacesNodeType
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn  void CMesh::getNghbFacesEdgeType(const MPI_Comm& comm,
+                               const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                               CArray<int, 2>& nghbFaces)
+   * Finds neighboring cells of a local domain for edge-type of neighbors.
+   * \param [in] comm
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
+   */
+
+  void CMesh::getNghbFacesEdgeType(const MPI_Comm& comm,
+                               const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                               CArray<int, 2>& nghbFaces)
+  {
+    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
+    int nbFaces = bounds_lon.shape()[1];
+    nghbFaces.resize(2, nbFaces*10);    // estimate of max number of neighbouring cells
+
+    int mpiRank, mpiSize;
+    MPI_Comm_rank(comm, &mpiRank);
+    MPI_Comm_size(comm, &mpiSize);
+
+    // For determining the global face index
+    size_t nbFacesOnProc = nbFaces;
+    size_t nbFacesAccum;
+    MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+    nbFacesAccum -= nbFaces;
+
+    // (1) Generating unique node indexes
+    // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
+    vector<size_t> hashValues(4);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeHash2Idx;
+    CArray<size_t,1> nodeHashList(nbFaces*nvertex*4);
+    size_t iIdx = 0;
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        hashValues = CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv, nf));
+        size_t nodeIndex = generateNodeIndex(hashValues, mpiRank);
+        for (int nh = 0; nh < 4; ++nh)
+        {
+          if (nodeHash2Idx.count(hashValues[nh])==0)
+          {
+            nodeHash2Idx[hashValues[nh]].push_back(nodeIndex);
+            nodeHash2Idx[hashValues[nh]].push_back(mpiRank);
+            nodeHashList(iIdx) = hashValues[nh];
+            ++iIdx;
+          }
+        }
+      }
+    }
+    nodeHashList.resizeAndPreserve(iIdx);
+
+    // (1.2) Generating node indexes
+    // The ownership criterion: priority of the process holding the smaller index
+    // Maps generated in this step are:
+    // nodeHash2Info = <hash, idx1, idx2, idx3....>
+    // nodeIdx2IdxMin = <idx, idxMin>
+    // idxMin is a unique node identifier
+
+    CClientClientDHTSizet dhtNodeHash(nodeHash2Idx, comm);
+    dhtNodeHash.computeIndexInfoMapping(nodeHashList);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap& nodeHash2Info = dhtNodeHash.getInfoIndexMap();
+
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeIdx2IdxMin;
+
+    for (CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it = nodeHash2Info.begin(); it != nodeHash2Info.end(); ++it)
+    {
+      size_t idxMin = (it->second)[0];
+      size_t idx = (it->second)[0];
+      for (int i = 2; i < (it->second).size();)
+      {
+        if (mpiRank == (it->second)[i+1])
+        {
+          idx = (it->second)[i];
+        }
+        if ((it->second)[i] < idxMin)
+        {
+          idxMin = (it->second)[i];
+          (it->second)[i] = (it->second)[i-2];
+          (it->second)[i+1] = (it->second)[i-1];
+        }
+        i += 2;
+      }
+      (it->second)[0] = idxMin;
+      if (nodeIdx2IdxMin.count(idx) == 0)
+      {
+        nodeIdx2IdxMin[idx].push_back(idxMin);
+      }
+    }
+
+    // (2) Creating map edgeHash2Face = <edgeHash, [[face1, rank1], [face2, rank2]]>, where rank1 = rank2 = ...
+
+    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it1, it2, it;
+    CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2Face;
+    CArray<size_t,1> edgeHashList(nbFaces*nvertex);
+
+    size_t nEdge = 0;
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv1 = 0; nv1 < nvertex; ++nv1)
+      {
+        // Getting indexes of edge's nodes
+        int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
+        vector<size_t> hashValues1 = CMesh::createHashes(bounds_lon(nv1, nf), bounds_lat(nv1, nf));
+        vector<size_t> hashValues2 = CMesh::createHashes(bounds_lon(nv2, nf), bounds_lat(nv2, nf));
+        size_t myNodeIdx1 = generateNodeIndex(hashValues1, mpiRank);
+        size_t myNodeIdx2 = generateNodeIndex(hashValues2, mpiRank);
+        it1 = nodeIdx2IdxMin.find(myNodeIdx1);
+        it2 = nodeIdx2IdxMin.find(myNodeIdx2);
+        size_t nodeIdxMin1 = (it1->second)[0];
+        size_t nodeIdxMin2 = (it2->second)[0];
+        size_t faceIdx = nbFacesAccum + nf;
+
+        if (nodeIdxMin1 != nodeIdxMin2)
+        {
+          size_t edgeHash = hashPairOrdered(nodeIdxMin1, nodeIdxMin2);
+          if (edgeHash2Face.count(edgeHash) == 0)
+          {
+            edgeHashList(nEdge) = edgeHash;
+            ++nEdge;
+          }
+          edgeHash2Face[edgeHash].push_back(faceIdx);
+          edgeHash2Face[edgeHash].push_back(mpiRank);
+        } // nodeIdxMin1 != nodeIdxMin2
+      }
+    }
+    edgeHashList.resizeAndPreserve(nEdge);
+
+    // (3) Face_face connectivity
+
+    int nbNghb = 0;
+    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator itNode1, itNode2;
+
+    // edgeHash2Info = <edgeHash, [[face1, rank1], [face2, rank2]]>
+    CClientClientDHTSizet dhtEdge2Face (edgeHash2Face, comm);
+    dhtEdge2Face.computeIndexInfoMapping(edgeHashList);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap& edgeHash2Info = dhtEdge2Face.getInfoIndexMap();
+    CClientClientDHTSizet::Index2VectorInfoTypeMap mapFaces;  // auxiliar map
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      nbNghb = 0;
+      for (int nv1 = 0; nv1 < nvertex; ++nv1)
+      {
+        // Getting indexes of edge's nodes
+        int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
+        vector<size_t> hashValues1 = CMesh::createHashes(bounds_lon(nv1, nf), bounds_lat(nv1, nf));
+        vector<size_t> hashValues2 = CMesh::createHashes(bounds_lon(nv2, nf), bounds_lat(nv2, nf));
+
+        size_t myNodeIdx1 = generateNodeIndex(hashValues1, mpiRank);
+        size_t myNodeIdx2 = generateNodeIndex(hashValues2, mpiRank);
+        itNode1 = nodeIdx2IdxMin.find(myNodeIdx1);
+        itNode2 = nodeIdx2IdxMin.find(myNodeIdx2);
+        size_t nodeIdxMin1 = (itNode1->second)[0];
+        size_t nodeIdxMin2 = (itNode2->second)[0];
+
+        if (nodeIdxMin1 != nodeIdxMin2)
+        {
+          size_t edgeHash = hashPairOrdered(nodeIdxMin1, nodeIdxMin2);
+          it1 = edgeHash2Info.find(edgeHash);
+
+          for (int i = 0; i < it1->second.size();)
+          {
+            size_t face = it1->second[i];
+            size_t rank = it1->second[i+1];
+            if (rank != mpiRank)
+              if (mapFaces.count(face) == 0)
+              {
+                nghbFaces(0, nbNghb) = face;
+                nghbFaces(1, nbNghb) = rank;
+                ++nbNghb;
+                mapFaces[face].push_back(face);
+              }
+            i += 2;
+          }
+        } // nodeIdxMin1 != nodeIdxMin2
+      }
+    }
+    nghbFaces.resizeAndPreserve(2, nbNghb);
+  } // getNghbFacesEdgeType
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn void getDomainExtended(const int nghbType, const MPI_Comm& comm,
+                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                CArray<size_t, 1>& nghbFaces)
+   * \param [in] nghbType 0 for faces sharing nodes, otherwise for faces sharing edges.
+   * \param [in] comm
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces Array containing neighboring faces and their ranks. The ordering is face1, rank1,....
+   */
+
+  void CMesh::getDomainExtended(const int nghbType, const MPI_Comm& comm,
+      const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+      CArray<int, 2>& nghbFaces)
+  {
+    if (nghbType == 0)
+      getNghbFacesNodeType(comm, bounds_lon, bounds_lat, nghbFaces);
+    else
+      getNghbFacesEdgeType(comm, bounds_lon, bounds_lat, nghbFaces);
+  } // getDomainExtended
 
 } // namespace xios

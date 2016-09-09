@@ -56,25 +56,31 @@ namespace xios {
       CArray<int, 2> edge_faces;
       CArray<int, 2> face_faces;
 
-      void createMesh(const CArray<double, 1>&, const CArray<double, 1>&, 
+      void createMesh(const CArray<double, 1>&, const CArray<double, 1>&,
                       const CArray<double, 2>&, const CArray<double, 2>& );
                         
       void createMeshEpsilon(const MPI_Comm&,
                              const CArray<double, 1>&, const CArray<double, 1>&,
                              const CArray<double, 2>&, const CArray<double, 2>& );
+
+      void getDomainExtended(const int, const MPI_Comm&,
+                              const CArray<double, 2>&, const CArray<double, 2>&,
+                              CArray<int, 2>&);
             
       static CMesh* getMesh(StdString, int);
 
     private:
 
-      int nbNodes;
-      int nbEdges;
-      int nbFaces;
+      int nbNodes_;
+      int nbEdges_;
+      int nbFaces_;
 
       static std::map <StdString, CMesh> meshList;
       static std::map <StdString, vector<int> > domainList;
       CClientClientDHTSizet* pNodeGlobalIndex;                    // pointer to a map <nodeHash, nodeIdxGlo>
       CClientClientDHTSizet* pEdgeGlobalIndex;                    // pointer to a map <edgeHash, edgeIdxGlo>
+      void getNghbFacesNodeType(const MPI_Comm&, const CArray<double, 2>&, const CArray<double, 2>&, CArray<int, 2>&);
+      void getNghbFacesEdgeType(const MPI_Comm&, const CArray<double, 2>&, const CArray<double, 2>&, CArray<int, 2>&);
 
       vector<size_t> createHashes (const double, const double);
 
