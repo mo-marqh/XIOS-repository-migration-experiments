@@ -43,6 +43,10 @@ class CDistributionServer : public CDistribution
 
   protected:
     virtual void createGlobalIndex();
+
+  protected:
+    GlobalLocalMap globalLocalIndexMap_;
+
   private:
     std::vector<int> nGlobal_;
     std::vector<int> nZoomBeginGlobal_;

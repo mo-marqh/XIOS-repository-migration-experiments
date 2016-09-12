@@ -11,6 +11,7 @@
 
 #include "xios_spl.hpp"
 #include "array_new.hpp"
+#include <boost/unordered_map.hpp>
 
 namespace xios {
 /*!
@@ -21,6 +22,9 @@ distribution of index on client or server side.
 */
 class CDistribution
 {
+  public:
+  typedef boost::unordered_map<size_t,int> GlobalLocalMap;
+
   public:
     /** Default constructor */
     CDistribution(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());

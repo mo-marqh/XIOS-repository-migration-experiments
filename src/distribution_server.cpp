@@ -2,7 +2,7 @@
    \file distribution_server.cpp
    \author Ha NGUYEN
    \since 13 Jan 2015
-   \date 04 Feb 2015
+   \date 10 Sep 2016
 
    \brief Index distribution on server side.
  */
@@ -12,13 +12,13 @@
 namespace xios {
 
 CDistributionServer::CDistributionServer(int rank, int dims, const CArray<size_t,1>& globalIndex)
-  : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_()
+  : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_(), globalLocalIndexMap_()
 {
 }
 
 CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
                                          const std::vector<int>& nZoomSize, const std::vector<int>& nGlobal)
-  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin)
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
 {
   createGlobalIndex();
 }
@@ -28,7 +28,7 @@ CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoom
                                          const std::vector<int>& nZoomBeginGlobal,
                                          const std::vector<int>& nGlobal)
   : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
-    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin)
+    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
 {
   createGlobalIndex();
 }
@@ -53,6 +53,7 @@ void CDistributionServer::createGlobalIndex()
   std::vector<int> currentIndex(this->getDims());
   int innerLoopSize = nZoomSize_[0];
 
+  globalLocalIndexMap_.rehash(std::ceil(ssize/globalLocalIndexMap_.max_load_factor()));
   while (idx<ssize)
   {
     for (int i = 0; i < this->dims_-1; ++i)
@@ -77,7 +78,9 @@ void CDistributionServer::createGlobalIndex()
         mulDim *= nGlobal_[k-1];
         globalIndex += (currentIndex[k])*mulDim;
       }
+      globalLocalIndexMap_[globalIndex] = idx;
       this->globalIndex_(idx) = globalIndex;
+
       ++idx;
     }
     idxLoop[0] += innerLoopSize;
@@ -92,24 +95,13 @@ void CDistributionServer::createGlobalIndex()
 CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& globalIndex)
 {
   int ssize = globalIndex.numElements();
-  int nbGlobalIndex = this->globalIndex_.numElements();
-
-  std::vector<int>::iterator it;
-  std::vector<int> permutIndex(nbGlobalIndex);
-  XIOSAlgorithms::fillInIndex(nbGlobalIndex, permutIndex);
-  XIOSAlgorithms::sortWithIndex<size_t, CArrayStorage>(this->globalIndex_, permutIndex);
-  typedef XIOSBinarySearchWithIndex<size_t, CArrayStorage> BinarySearch;
-  BinarySearch binarySearch(this->globalIndex_);
-
   CArray<size_t,1> localIndex(ssize);
-  int idx = 0;
-  for (int i = 0; i < ssize; ++i)
+  GlobalLocalMap::const_iterator ite = globalLocalIndexMap_.end(), it;
+  for (int idx = 0; idx < ssize; ++idx)
   {
-    if (binarySearch.search(permutIndex.begin(), permutIndex.end(), globalIndex(i), it))
-    {
-      localIndex(idx) = *it;
-      ++idx;
-    }
+    it = globalLocalIndexMap_.find(globalIndex(idx));
+    if (ite != it)
+      localIndex(idx) = it->second;
   }
 
   return localIndex;
@@ -122,27 +114,16 @@ CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& 
 void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
 {
   int ssize = globalIndex.numElements();
-  int nbGlobalIndex = this->globalIndex_.numElements();
-
-  std::vector<int>::iterator it;
-  std::vector<int> permutIndex(nbGlobalIndex);
-  XIOSAlgorithms::fillInIndex(nbGlobalIndex, permutIndex);
-  XIOSAlgorithms::sortWithIndex<size_t, CArrayStorage>(this->globalIndex_, permutIndex);
-  typedef XIOSBinarySearchWithIndex<size_t, CArrayStorage> BinarySearch;
-  BinarySearch binarySearch(this->globalIndex_);
-
   CArray<size_t,1> localIndex(ssize);
-  int idx = 0;
-  for (int i = 0; i < ssize; ++i)
+  GlobalLocalMap::const_iterator ite = globalLocalIndexMap_.end(), it;
+  for (int idx = 0; idx < ssize; ++idx)
   {
-    if (binarySearch.search(permutIndex.begin(), permutIndex.end(), globalIndex(i), it))
-    {
-      localIndex(idx) = *it;
-      ++idx;
-    }
+    it = globalLocalIndexMap_.find(globalIndex(idx));
+    if (ite != it)
+      localIndex(idx) = it->second;
   }
 
-  globalIndex = localIndex;
+  globalIndex.reference(localIndex);
 }
 
 /*!

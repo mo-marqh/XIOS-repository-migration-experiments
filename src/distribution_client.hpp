@@ -13,7 +13,6 @@
 #include "axis.hpp"
 #include "domain.hpp"
 #include "grid.hpp"
-#include <boost/unordered_map.hpp>
 
 namespace xios {
 
@@ -30,7 +29,7 @@ to calculate the global index of its local data.
 class CDistributionClient : public CDistribution
 {
 public:
-  typedef boost::unordered_map<size_t,int> GlobalLocalDataMap;
+  typedef CDistribution::GlobalLocalMap GlobalLocalDataMap;
 
   public:
     /** Default constructor */
