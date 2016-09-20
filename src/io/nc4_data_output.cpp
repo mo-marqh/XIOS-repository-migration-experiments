@@ -449,7 +449,6 @@ namespace xios
       StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
       domain->assignMesh(domainName, domain->nvertex);
-      //domain->mesh->createMesh(domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
       domain->mesh->createMeshEpsilon(server->intraComm, domain->lonvalue_srv, domain->latvalue_srv, domain->bounds_lon_srv, domain->bounds_lat_srv);
 
       StdString node_x = domainName + "_node_x";

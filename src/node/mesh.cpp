@@ -1522,33 +1522,28 @@ namespace xios {
 
   ///----------------------------------------------------------------
   /*!
-   * \fn  void CMesh::getNghbFacesNodeType(const MPI_Comm& comm,
-                               const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
-                               CArray<int, 2>& nghbFaces)
+   * \fn  void CMesh::getGloNghbFacesNodeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
+                                              const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                              CArray<int, 2>& nghbFaces)
    * Finds neighboring cells of a local domain for node-type of neighbors.
    * \param [in] comm
+   * \param [in] face_idx Array with global indexes.
    * \param [in] bounds_lon Array of boundary longitudes.
    * \param [in] bounds_lat Array of boundary latitudes.
    * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
    */
 
-  void CMesh::getNghbFacesNodeType(const MPI_Comm& comm,
+  void CMesh::getGloNghbFacesNodeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                CArray<int, 2>& nghbFaces)
   {
-    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
+    int nvertex = bounds_lon.rows();
     int nbFaces = bounds_lon.shape()[1];
     nghbFaces.resize(2, nbFaces*10);    // some estimate on max number of neighbouring cells
 
     int mpiRank, mpiSize;
     MPI_Comm_rank(comm, &mpiRank);
     MPI_Comm_size(comm, &mpiSize);
-
-    // For determining the global face index
-    size_t nbFacesOnProc = nbFaces;
-    size_t nbFacesAccum;
-    MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
-    nbFacesAccum -= nbFaces;
 
     // (1) Generating unique node indexes
     // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
@@ -1629,7 +1624,7 @@ namespace xios {
         size_t myNodeIdx = generateNodeIndex(hashValues, mpiRank);
         it = nodeIdx2IdxMin.find(myNodeIdx);
         size_t nodeIdxMin = (it->second)[0];
-        size_t faceIdx = nbFacesAccum + nf;
+        size_t faceIdx = face_idx(nf);
         if (nodeIdxMin2Face.count(nodeIdxMin) == 0)
         {
           nodeIdxMinList(nNode) = nodeIdxMin;
@@ -1679,37 +1674,32 @@ namespace xios {
       }
     }
     nghbFaces.resizeAndPreserve(2, nbNghb);
-  } // getNghbFacesNodeType
+  } // getGloNghbFacesNodeType
 
   ///----------------------------------------------------------------
   /*!
-   * \fn  void CMesh::getNghbFacesEdgeType(const MPI_Comm& comm,
+   * \fn  void CMesh::getGloNghbFacesEdgeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                CArray<int, 2>& nghbFaces)
    * Finds neighboring cells of a local domain for edge-type of neighbors.
    * \param [in] comm
+   * \param [in] face_idx Array with global indexes.
    * \param [in] bounds_lon Array of boundary longitudes.
    * \param [in] bounds_lat Array of boundary latitudes.
    * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
    */
 
-  void CMesh::getNghbFacesEdgeType(const MPI_Comm& comm,
+  void CMesh::getGloNghbFacesEdgeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                CArray<int, 2>& nghbFaces)
   {
-    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
+    int nvertex = bounds_lon.rows();
     int nbFaces = bounds_lon.shape()[1];
     nghbFaces.resize(2, nbFaces*10);    // estimate of max number of neighbouring cells
 
     int mpiRank, mpiSize;
     MPI_Comm_rank(comm, &mpiRank);
     MPI_Comm_size(comm, &mpiSize);
-
-    // For determining the global face index
-    size_t nbFacesOnProc = nbFaces;
-    size_t nbFacesAccum;
-    MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
-    nbFacesAccum -= nbFaces;
 
     // (1) Generating unique node indexes
     // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
@@ -1797,7 +1787,7 @@ namespace xios {
         it2 = nodeIdx2IdxMin.find(myNodeIdx2);
         size_t nodeIdxMin1 = (it1->second)[0];
         size_t nodeIdxMin2 = (it2->second)[0];
-        size_t faceIdx = nbFacesAccum + nf;
+        size_t faceIdx = face_idx(nf);
 
         if (nodeIdxMin1 != nodeIdxMin2)
         {
@@ -1827,7 +1817,6 @@ namespace xios {
 
     for (int nf = 0; nf < nbFaces; ++nf)
     {
-      nbNghb = 0;
       for (int nv1 = 0; nv1 < nvertex; ++nv1)
       {
         // Getting indexes of edge's nodes
@@ -1865,28 +1854,194 @@ namespace xios {
       }
     }
     nghbFaces.resizeAndPreserve(2, nbNghb);
-  } // getNghbFacesEdgeType
+  } // getGloNghbFacesEdgeType
 
   ///----------------------------------------------------------------
   /*!
-   * \fn void getDomainExtended(const int nghbType, const MPI_Comm& comm,
-                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
-                                CArray<size_t, 1>& nghbFaces)
+   * \fn void getGlobalNghbFaces (const int nghbType, const MPI_Comm& comm, const CArray<int, 1>& face_idx,
+                                  const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                  CArray<size_t, 1>& nghbFaces)
+   * Finds neighboring faces owned by other procs.
    * \param [in] nghbType 0 for faces sharing nodes, otherwise for faces sharing edges.
    * \param [in] comm
+   * \param [in] face_idx Array with global indexes.
    * \param [in] bounds_lon Array of boundary longitudes.
    * \param [in] bounds_lat Array of boundary latitudes.
-   * \param [out] nghbFaces Array containing neighboring faces and their ranks. The ordering is face1, rank1,....
+   * \param [out] nghbFaces 2D array containing neighboring faces and owner ranks.
    */
 
-  void CMesh::getDomainExtended(const int nghbType, const MPI_Comm& comm,
-      const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
-      CArray<int, 2>& nghbFaces)
+  void CMesh::getGlobalNghbFaces(const int nghbType, const MPI_Comm& comm,
+                                 const CArray<int, 1>& face_idx,
+                                 const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                 CArray<int, 2>& nghbFaces)
   {
     if (nghbType == 0)
-      getNghbFacesNodeType(comm, bounds_lon, bounds_lat, nghbFaces);
+      getGloNghbFacesNodeType(comm, face_idx, bounds_lon, bounds_lat, nghbFaces);
     else
-      getNghbFacesEdgeType(comm, bounds_lon, bounds_lat, nghbFaces);
-  } // getDomainExtended
+      getGloNghbFacesEdgeType(comm, face_idx, bounds_lon, bounds_lat, nghbFaces);
+  } // getGlobalNghbFaces
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn void getLocalNghbFaces (const int nghbType,
+                                  const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                  CArray<size_t, 1>& nghbFaces)
+   * \param [in] nghbType 0 for faces sharing nodes, otherwise for faces sharing edges.
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces 1D array containing neighboring faces.
+   */
+
+  void CMesh::getLocalNghbFaces(const int nghbType, const CArray<int, 1>& face_idx,
+                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                CArray<int, 2>& nghbFaces, CArray<int, 1>& nbNghbFaces)
+  {
+    if (nghbType == 0)
+      getLocNghbFacesNodeType(face_idx, bounds_lon, bounds_lat, nghbFaces, nbNghbFaces);
+    else
+      getLocNghbFacesEdgeType(face_idx, bounds_lon, bounds_lat, nghbFaces, nbNghbFaces);
+  } // getLocalNghbFaces
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn void getLocNghbFacesNodeType (const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                       CArray<int, 2>& nghbFaces)
+   * \param [in] face_idx Array with global face indexing.
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces 2D array containing neighboring faces.
+   * \param [out] nbNghbFaces Array containing number of neighboring faces.
+   */
+
+  void CMesh::getLocNghbFacesNodeType (const CArray<int, 1>& face_idx,
+                                       const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                       CArray<int, 2>& faceToFaces, CArray<int, 1>& nbNghbFaces)
+  {
+    int nvertex = bounds_lon.rows();
+    int nbFaces = bounds_lon.shape()[1];
+    int nbNodes = 0;
+    nbNghbFaces.resize(nbFaces);
+    nbNghbFaces = 0;
+
+    // nodeToFaces connectivity
+    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeToFaces;
+    for (int nf = 0; nf < nbFaces; ++nf)
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        size_t nodeHash = (CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv ,nf)))[0];
+        nodeToFaces[nodeHash].push_back(face_idx(nf));
+      }
+
+    // faceToFaces connectivity
+    boost::unordered_map <int, int> mapFaces;  // mapFaces = < hash(face1, face2), hash> (the mapped value is irrelevant)
+    int maxNb = 20;                            // some assumption on the max possible number of neighboring cells
+    faceToFaces.resize(maxNb, nbFaces);
+    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it;
+    for (it = nodeToFaces.begin(); it != nodeToFaces.end(); ++it)
+    {
+      int size = it->second.size();
+      for (int i = 0; i < (size-1); ++i)
+      {
+        int face1 = it->second[i];
+        for (int j = i+1; j < size; ++j)
+        {
+          int face2 = it->second[j];
+          if (face2 != face1)
+          {
+            int hashFace = hashPairOrdered(face1, face2);
+            if (mapFaces.count(hashFace) == 0)
+            {
+              faceToFaces(nbNghbFaces(face1), face1) = face2;
+              faceToFaces(nbNghbFaces(face2), face2) = face1;
+              ++nbNghbFaces(face1);
+              ++nbNghbFaces(face2);
+              mapFaces[hashFace] = hashFace;
+            }
+          }
+        }
+      }
+    }
+  } //getLocNghbFacesEdgeType
+
+
+  ///----------------------------------------------------------------
+  /*!
+   * \fn void getLocNghbFacesEdgeType (const CArray<int, 1>& face_idx,
+   *                                   const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+   *                                   CArray<int, 2>& nghbFaces, CArray<int, 1>& nbNghbFaces)
+   * \param [in] face_idx Array with global face indexing.
+   * \param [in] bounds_lon Array of boundary longitudes.
+   * \param [in] bounds_lat Array of boundary latitudes.
+   * \param [out] nghbFaces 2D array containing neighboring faces.
+   * \param [out] nbNghbFaces Array containing number of neighboring faces.
+   */
+
+  void CMesh::getLocNghbFacesEdgeType (const CArray<int, 1>& face_idx,
+                                       const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
+                                       CArray<int, 2>& faceToFaces, CArray<int, 1>& nbNghbFaces)
+  {
+    int nvertex = bounds_lon.rows();
+    int nbFaces = bounds_lon.shape()[1];
+    int nbNodes = 0;
+    int nbEdges = 0;
+    nbNghbFaces.resize(nbFaces);
+    nbNghbFaces = 0;
+
+    // faceToNodes connectivity
+    CArray<double, 2> faceToNodes (nvertex, nbFaces);
+
+    boost::unordered_map <pair<double,double>, int> mapNodes;
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+      for (int nv = 0; nv < nvertex; ++nv)
+      {
+        if (mapNodes.find(make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))) == mapNodes.end())
+        {
+          mapNodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes;
+          faceToNodes(nv,nf) = nbNodes ;
+          ++nbNodes ;
+        }
+        else
+          faceToNodes(nv,nf) = mapNodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))];
+      }
+
+    // faceToFaces connectivity
+    boost::unordered_map <pair<int,int>, int> mapEdges;
+    faceToFaces.resize(nvertex, nbFaces);
+    CArray<int, 2> edgeToFaces(2, nbFaces*nvertex); // max possible
+
+    for (int nf = 0; nf < nbFaces; ++nf)
+    {
+      for (int nv1 = 0; nv1 < nvertex; ++nv1)
+      {
+        int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
+        int face = face_idx(nf);
+        int node1 = faceToNodes(nv1,face);
+        int node2 = faceToNodes(nv2,face);
+        if (node1 != node2)
+        {
+          if (mapEdges.find(make_ordered_pair (node1, node2)) == mapEdges.end())
+          {
+            mapEdges[make_ordered_pair (node1, node2)] = nbEdges;
+            edgeToFaces(0,nbEdges) = face;
+            ++nbEdges;
+          }
+          else
+          {
+            int edge = mapEdges[make_ordered_pair (node1, node2)];
+            edgeToFaces(1, edge) = face;
+            int face1 = face;
+            int face2 = edgeToFaces(0,edge);
+            faceToFaces(nbNghbFaces(face1), face1) =  face2;
+            faceToFaces(nbNghbFaces(face2), face2) =  face1;
+            ++nbNghbFaces(face1);
+            ++nbNghbFaces(face2);
+          }
+        } // node1 != node2
+      } // nv
+    } // nf
+
+  } //getLocNghbFacesEdgeType
+
 
 } // namespace xios
