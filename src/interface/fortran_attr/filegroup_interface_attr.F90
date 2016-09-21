@@ -47,6 +47,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_compression_level
 
 
+    SUBROUTINE cxios_set_filegroup_convention(filegroup_hdl, convention, convention_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: convention
+      INTEGER  (kind = C_INT)     , VALUE        :: convention_size
+    END SUBROUTINE cxios_set_filegroup_convention
+
+    SUBROUTINE cxios_get_filegroup_convention(filegroup_hdl, convention, convention_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: convention
+      INTEGER  (kind = C_INT)     , VALUE        :: convention_size
+    END SUBROUTINE cxios_get_filegroup_convention
+
+    FUNCTION cxios_is_defined_filegroup_convention(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_convention
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_convention
+
+
     SUBROUTINE cxios_set_filegroup_cyclic(filegroup_hdl, cyclic) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl

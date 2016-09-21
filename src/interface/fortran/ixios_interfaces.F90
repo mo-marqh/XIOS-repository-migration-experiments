@@ -7,10 +7,14 @@ USE icontext, ONLY : xios(get_context_handle)
 USE icontext_attr, ONLY : xios(set_context_attr_hdl), xios(get_context_attr_hdl), xios(is_defined_context_attr_hdl)
 
 USE idata, ONLY : xios(send_field_r8_0d), xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d), &
+                  xios(send_field_r8_4d), xios(send_field_r8_5d), xios(send_field_r8_6d), xios(send_field_r8_7d), &
                   xios(send_field_r4_0d), xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d), &
-                  xios(recv_field_r8_1d), xios(recv_field_r8_2d), xios(recv_field_r8_3d),                       &
-                  xios(recv_field_r4_1d), xios(recv_field_r4_2d), xios(recv_field_r4_3d),                       &
-                  xios(getVar_k8), xios(getVar_k4), xios(getVar_int), xios(getVar_logic), xios(getVar_char),    &
+                  xios(send_field_r4_4d), xios(send_field_r4_5d), xios(send_field_r4_6d), xios(send_field_r4_7d), &
+                  xios(recv_field_r8_1d), xios(recv_field_r8_2d), xios(recv_field_r8_3d),                         &
+                  xios(recv_field_r8_4d), xios(recv_field_r8_5d), xios(recv_field_r8_6d), xios(recv_field_r8_7d), &
+                  xios(recv_field_r4_1d), xios(recv_field_r4_2d), xios(recv_field_r4_3d),                         &
+                  xios(recv_field_r4_4d), xios(recv_field_r4_5d), xios(recv_field_r4_6d), xios(recv_field_r4_7d), &
+                  xios(getVar_k8), xios(getVar_k4), xios(getVar_int), xios(getVar_logic), xios(getVar_char),      &
                   xios(setVar_k8), xios(setVar_k4), xios(setVar_int), xios(setVar_logic), xios(setVar_char)
 
 USE idomain, ONLY : xios(get_domain_handle), xios(get_domaingroup_handle)
@@ -163,14 +167,17 @@ INTERFACE xios(add_child)
 END INTERFACE xios(add_child)
 
 INTERFACE xios(send_field)
-  MODULE PROCEDURE xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d), &
-                   xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d), &
-                   xios(send_field_r8_0d), xios(send_field_r4_0d)
+  MODULE PROCEDURE xios(send_field_r8_0d), xios(send_field_r8_1d), xios(send_field_r8_2d), xios(send_field_r8_3d), &
+                   xios(send_field_r8_4d), xios(send_field_r8_5d), xios(send_field_r8_6d), xios(send_field_r8_7d), &
+                   xios(send_field_r4_0d), xios(send_field_r4_1d), xios(send_field_r4_2d), xios(send_field_r4_3d), &
+                   xios(send_field_r4_4d), xios(send_field_r4_5d), xios(send_field_r4_6d), xios(send_field_r4_7d)
 END INTERFACE xios(send_field)
 
 INTERFACE xios(recv_field)
   MODULE PROCEDURE xios(recv_field_r8_1d), xios(recv_field_r8_2d), xios(recv_field_r8_3d), &
-                   xios(recv_field_r4_1d), xios(recv_field_r4_2d), xios(recv_field_r4_3d)
+                   xios(recv_field_r8_4d), xios(recv_field_r8_5d), xios(recv_field_r8_6d), xios(recv_field_r8_7d), &
+                   xios(recv_field_r4_1d), xios(recv_field_r4_2d), xios(recv_field_r4_3d), &
+                   xios(recv_field_r4_4d), xios(recv_field_r4_5d), xios(recv_field_r4_6d), xios(recv_field_r4_7d)
 END INTERFACE xios(recv_field)
 
 INTERFACE xios(field_is_active)

@@ -439,6 +439,98 @@ namespace xios
     oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
     oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
     oss << "}" << std::endl; \
+  } \
+\
+  template <> \
+  void CInterface::AttributeCInterface<CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string typeName=getStrType<T>(); \
+\
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",4> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3]), neverDeleteData);" << iendl; \
+    oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
+    /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+    oss << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",4> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3]), neverDeleteData);" << iendl; \
+    oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+  } \
+\
+  template <> \
+  void CInterface::AttributeCInterface<CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string typeName=getStrType<T>(); \
+\
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",5> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4]), neverDeleteData);" << iendl; \
+    oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
+    /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+    oss << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",5> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4]), neverDeleteData);" << iendl; \
+    oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+  } \
+\
+  template <> \
+  void CInterface::AttributeCInterface<CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string typeName=getStrType<T>(); \
+\
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",6> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]), neverDeleteData);" << iendl; \
+    oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
+    /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+    oss << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",6> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]), neverDeleteData);" << iendl; \
+    oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+  }  \
+\
+  template <> \
+  void CInterface::AttributeCInterface<CArray<T,7> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string typeName=getStrType<T>(); \
+\
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",7> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5], extent[6]), neverDeleteData);" << iendl; \
+    oss << "  " << className << "_hdl->" << name << ".reference(tmp.copy());" << iendl; \
+    /*oss << "  " << className << "_hdl->sendAttributToServer(" << className << "_hdl->" << name << ");" << iendl;*/ \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+    oss << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << typeName << "* " << name << ", int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  CArray<" << typeName << ",7> tmp(" << name << ", shape(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5], extent[6]), neverDeleteData);" << iendl; \
+    oss << "  tmp=" << className << "_hdl->" << name << ".getInheritedValue();" << iendl; \
+    oss << "   CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
   }
 
 macro(bool)
@@ -493,9 +585,93 @@ macro(int)
     oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
     oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
   } \
-    \
+ \
   template <> \
   void CInterface::AttributeFortran2003Interface<CArray<T,3> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string fortranType=getStrFortranType<T>(); \
+    string fortranKindC=getStrFortranKindC<T>(); \
+      \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
+    oss << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
+  }  \
+ \
+  template <> \
+  void CInterface::AttributeFortran2003Interface<CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string fortranType=getStrFortranType<T>(); \
+    string fortranKindC=getStrFortranKindC<T>(); \
+      \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
+    oss << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortran2003Interface<CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string fortranType=getStrFortranType<T>(); \
+    string fortranKindC=getStrFortranKindC<T>(); \
+      \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
+    oss << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortran2003Interface<CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  { \
+    string fortranType=getStrFortranType<T>(); \
+    string fortranKindC=getStrFortranKindC<T>(); \
+      \
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
+    oss << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  " << fortranType << " " << fortranKindC << "     , DIMENSION(*) :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortran2003Interface<CArray<T,7> >(ostream& oss, const string& className, const string& name) \
   { \
     string fortranType=getStrFortranType<T>(); \
     string fortranKindC=getStrFortranKindC<T>(); \
@@ -561,6 +737,62 @@ macro(int)
   { \
     oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(OUT) :: " << name << "(:,:,:)"; \
     if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:)"; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceDeclaration<CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(IN) :: " << name << "(:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:)"; \
+  } \
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(OUT) :: " << name << "(:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:)"; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceDeclaration<CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(IN) :: " << name << "(:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:)"; \
+  } \
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(OUT) :: " << name << "(:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:)"; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceDeclaration<CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(IN) :: " << name << "(:,:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:,:)"; \
+  } \
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(OUT) :: " << name << "(:,:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:,:)"; \
+  }\
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceDeclaration<CArray<T,7> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(IN) :: " << name << "(:,:,:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:,:,:)"; \
+  } \
+ \
+  template <> \
+  void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<T,7> >(ostream& oss, const string& className, const string& name) \
+  { \
+    oss << getStrFortranType<T>() << " " << getStrFortranKind<T>() << " , OPTIONAL, INTENT(OUT) :: " << name << "(:,:,:,:,:,:,:)"; \
+    if (!matchingTypeCFortran<T>()) oss << iendl << getStrFortranType<T>() << " " << getStrFortranKindC<T>() << " , ALLOCATABLE :: " << name << "_tmp(:,:,:,:,:,:,:)"; \
   }
 
   macro(bool)
@@ -601,7 +833,7 @@ macro(int)
     else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
-    \
+  \
   template <>  \
   void CInterface::AttributeFortranInterfaceBody< CArray<T,3> >(ostream& oss, const string& className, const string& name) \
   {  \
@@ -611,6 +843,70 @@ macro(int)
     if (!matchingTypeCFortran<T>())  \
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
+      oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+    } \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }\
+  \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceBody< CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4)))" << iendl; \
+      oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+    } \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }\
+  \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceBody< CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
+      oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+    } \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }\
+  \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceBody< CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
+      oss << "  " << name_tmp << " = " << name << "_" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+    } \
+    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }\
+  \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceBody< CArray<T,7> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), SIZE(" << name << "_,7)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
       oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
@@ -656,7 +952,7 @@ macro(int)
     else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
     oss << "ENDIF"; \
   } \
-    \
+ \
   template <>  \
   void CInterface::AttributeFortranInterfaceGetBody< CArray<T,3> >(ostream& oss, const string& className, const string& name) \
   {  \
@@ -666,6 +962,70 @@ macro(int)
     if (!matchingTypeCFortran<T>())  \
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  " << name << "_ = " << name_tmp << iendl; \
+      } \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  } \
+ \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceGetBody< CArray<T,4> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  " << name << "_ = " << name_tmp << iendl; \
+      } \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  } \
+ \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceGetBody< CArray<T,5> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  " << name << "_ = " << name_tmp << iendl; \
+      } \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }\
+ \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceGetBody< CArray<T,6> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  " << name << "_ = " << name_tmp << iendl; \
+      } \
+    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  } \
+ \
+  template <>  \
+  void CInterface::AttributeFortranInterfaceGetBody< CArray<T,7> >(ostream& oss, const string& className, const string& name) \
+  {  \
+    string name_tmp=name+"__tmp"; \
+      \
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    if (!matchingTypeCFortran<T>())  \
+    { \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), SIZE(" << name << "_,7)))" << iendl; \
       oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \

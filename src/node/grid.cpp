@@ -352,18 +352,18 @@ namespace xios {
         case 3:
           checkGridMask(mask_3d, domainMasks, axisMasks, axis_domain_order);
           break;
-//        case 4:
-//          checkGridMask(mask4, domainMasks, axisMasks, axis_domain_order);
-//          break;
-//        case 5:
-//          checkGridMask(mask5, domainMasks, axisMasks, axis_domain_order);
-//          break;
-//        case 6:
-//          checkGridMask(mask6, domainMasks, axisMasks, axis_domain_order);
-//          break;
-//        case 7:
-//          checkGridMask(mask7, domainMasks, axisMasks, axis_domain_order);
-//          break;
+        case 4:
+          checkGridMask(mask_4d, domainMasks, axisMasks, axis_domain_order);
+          break;
+        case 5:
+          checkGridMask(mask_5d, domainMasks, axisMasks, axis_domain_order);
+          break;
+        case 6:
+          checkGridMask(mask_6d, domainMasks, axisMasks, axis_domain_order);
+          break;
+        case 7:
+          checkGridMask(mask_7d, domainMasks, axisMasks, axis_domain_order);
+          break;
         default:
           break;
       }
@@ -386,7 +386,18 @@ namespace xios {
         case 3:
           modifyGridMask(mask_3d, indexToModify);
           break;
-
+        case 4:
+          modifyGridMask(mask_1d, indexToModify);
+          break;
+        case 5:
+          modifyGridMask(mask_2d, indexToModify);
+          break;
+        case 6:
+          modifyGridMask(mask_3d, indexToModify);
+          break;
+        case 7:
+          modifyGridMask(mask_3d, indexToModify);
+          break;
         default:
           break;
       }

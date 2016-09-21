@@ -77,6 +77,18 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
     case 3:
       readGridMaskInfo(grid->mask_3d);
       break;
+    case 4:
+      readGridMaskInfo(grid->mask_4d);
+      break;
+    case 5:
+      readGridMaskInfo(grid->mask_5d);
+      break;
+    case 6:
+      readGridMaskInfo(grid->mask_6d);
+      break;
+    case 7:
+      readGridMaskInfo(grid->mask_7d);
+      break;
     default:
       break;
   }

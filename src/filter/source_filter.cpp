@@ -33,6 +33,10 @@ namespace xios
   template void CSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data);
   template void CSourceFilter::streamData<2>(CDate date, const CArray<double, 2>& data);
   template void CSourceFilter::streamData<3>(CDate date, const CArray<double, 3>& data);
+  template void CSourceFilter::streamData<4>(CDate date, const CArray<double, 4>& data);
+  template void CSourceFilter::streamData<5>(CDate date, const CArray<double, 5>& data);
+  template void CSourceFilter::streamData<6>(CDate date, const CArray<double, 6>& data);
+  template void CSourceFilter::streamData<7>(CDate date, const CArray<double, 7>& data);
 
   void CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)
   {

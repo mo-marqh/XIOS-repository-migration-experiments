@@ -12,8 +12,8 @@ namespace xios
   template class CAttributeArray<bool,1> ;
   template class CAttributeArray<bool,2> ;
   template class CAttributeArray<bool,3> ;
-//  template class CAttributeArray<bool,4> ;
-//  template class CAttributeArray<bool,5> ;
-//  template class CAttributeArray<bool,6> ;
-//  template class CAttributeArray<bool,7> ;
+  template class CAttributeArray<bool,4> ;
+  template class CAttributeArray<bool,5> ;
+  template class CAttributeArray<bool,6> ;
+  template class CAttributeArray<bool,7> ;
 }

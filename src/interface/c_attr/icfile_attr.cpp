@@ -63,6 +63,32 @@ extern "C"
   }
 
 
+  void cxios_set_file_convention(file_Ptr file_hdl, const char * convention, int convention_size)
+  {
+    std::string convention_str;
+    if (!cstr2string(convention, convention_size, convention_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->convention.fromString(convention_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_convention(file_Ptr file_hdl, char * convention, int convention_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->convention.getInheritedStringValue(), convention, convention_size))
+      ERROR("void cxios_get_file_convention(file_Ptr file_hdl, char * convention, int convention_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_convention(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->convention.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_cyclic(file_Ptr file_hdl, bool cyclic)
   {
     CTimer::get("XIOS").resume();
