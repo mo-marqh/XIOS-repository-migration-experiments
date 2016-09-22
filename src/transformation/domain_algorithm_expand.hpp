@@ -27,6 +27,14 @@ public:
   virtual ~CDomainAlgorithmExpand() {}
 
   static bool registerTrans();
+
+protected:
+  void expandDomainEdgeConnectivity(CDomain* domainDestination, CDomain* domainSource);
+  void expandDomainNodeConnectivity(CDomain* domainDestination, CDomain* domainSource);
+  void updateDomainAttributes(CDomain* domainDestination,
+                              CDomain* domainSource,
+                              CArray<int,2>& neighborsDomainSrc);
+
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

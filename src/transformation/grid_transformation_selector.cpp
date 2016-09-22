@@ -324,6 +324,7 @@ void CGridTransformationSelector::registerTransformations()
   CDomainAlgorithmComputeConnectivity::registerTrans();
   CDomainAlgorithmInterpolate::registerTrans();
   CDomainAlgorithmZoom::registerTrans();
+  CDomainAlgorithmExpand::registerTrans();
 
 }
 

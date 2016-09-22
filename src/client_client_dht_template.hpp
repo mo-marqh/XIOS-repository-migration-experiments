@@ -125,6 +125,7 @@ class CClientClientDHTTemplate: public HierarchyPolicy
 
 typedef CClientClientDHTTemplate<int> CClientClientDHTInt;
 typedef CClientClientDHTTemplate<size_t> CClientClientDHTSizet;
+typedef CClientClientDHTTemplate<double> CClientClientDHTDouble;
 typedef CClientClientDHTTemplate<PairIntInt> CClientClientDHTPairIntInt;
 
 } // namespace xios

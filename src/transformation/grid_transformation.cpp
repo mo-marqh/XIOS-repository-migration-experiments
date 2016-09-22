@@ -339,7 +339,9 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     else
       algo = algoTransformation_[std::distance(itb, it)];
 
-    if ((0 != algo) && (CGenericAlgorithmTransformation::ELEMENT_NO_MODIFICATION_WITH_DATA == algo->type())) // Only registered transformation can be executed
+    if ((0 != algo) &&
+        ((CGenericAlgorithmTransformation::ELEMENT_NO_MODIFICATION_WITH_DATA == algo->type()) ||
+        (CGenericAlgorithmTransformation::ELEMENT_MODIFICATION_WITH_DATA == algo->type()))) // Only registered transformation can be executed
     {
       algo->computeIndexSourceMapping(dataAuxInputs);
 

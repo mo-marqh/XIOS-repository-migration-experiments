@@ -17,12 +17,12 @@ public:                                                     \
   void removeRefInheritance();                              \
   bool hasDirect##type##Reference(void) const;              \
   C##type* getDirect##type##Reference(void) const;          \
-  const StdString& get##type##OutputName(void) const;        \
+  const StdString& get##type##OutputName(void) const;       \
   void setAttributesReference(bool apply = true);           \
+  bool hasRefTo(C##type* ref) const;                        \
                                                                        \
 private:                                                               \
-  std::vector<C##type*> refObjects;                                    \
-  StdString outputName_;
+  std::vector<C##type*> refObjects;
 
 // Definitions
 
@@ -31,6 +31,7 @@ void C##type::solveRefInheritance(bool apply)                          \
 {                                                                      \
   std::set<C##type*> tmpRefObjects;                                    \
   C##type* refer_ptr = this;                                           \
+  std::vector<C##type*>().swap(refObjects);                            \
   refObjects.push_back(this);                                          \
                                                                        \
   while (refer_ptr->hasDirect##type##Reference())                      \
@@ -106,5 +107,13 @@ const StdString& C##type::get##type##OutputName(void) const            \
   else                                                                 \
     return getId();                                                    \
 }                                                                      \
+                                                                       \
+bool C##type::hasRefTo(C##type* ref) const                             \
+{                                                                      \
+  bool found = false;                                                  \
+  for (int idx = 0; idx < refObjects.size(); ++idx)                    \
+    if (ref == refObjects[idx]) { found = true; break; }                \
+  return found;                                                        \
+}
 
 #endif // __XIOS_DECLARE_REF_FUNC_HPP__

@@ -1922,45 +1922,71 @@ namespace xios {
     int nbNodes = 0;
     nbNghbFaces.resize(nbFaces);
     nbNghbFaces = 0;
+    int maxNb = 10;  // assumption on max number of edges sharing the same node
 
-    // nodeToFaces connectivity
-    CClientClientDHTSizet::Index2VectorInfoTypeMap nodeToFaces;
+    // faceToNodes connectivity
+    CArray<int, 2> nodeToFaces(maxNb, nbFaces*nvertex);
+    nodeToFaces = -1;
+    boost::unordered_map <pair<double,double>, int> mapNodes;
+    vector<int> countNodes(nbFaces*nvertex);
+    countNodes.assign(nbFaces*nvertex, 0);
+
     for (int nf = 0; nf < nbFaces; ++nf)
       for (int nv = 0; nv < nvertex; ++nv)
       {
-        size_t nodeHash = (CMesh::createHashes(bounds_lon(nv, nf), bounds_lat(nv ,nf)))[0];
-        nodeToFaces[nodeHash].push_back(face_idx(nf));
+        if (mapNodes.find(make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))) == mapNodes.end())
+        {
+          mapNodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes;
+          nodeToFaces(countNodes[nbNodes], nbNodes) = face_idx(nf);
+          ++(countNodes[nbNodes]);
+          ++nbNodes;
+        }
+        else
+        {
+          int node = mapNodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))];
+          nodeToFaces(countNodes[node], node) = face_idx(nf);
+          ++(countNodes[node]);
+        }
       }
+    nodeToFaces.resizeAndPreserve(maxNb, nbNodes);
+
+    vector<int> tmpVec (nbNodes);
+    for (int i = 0; i < nbNodes; ++i)
+    {
+      for (int j = 0; j < maxNb; ++j)
+        tmpVec[j] = nodeToFaces(j,i);
+    }
+
 
     // faceToFaces connectivity
     boost::unordered_map <int, int> mapFaces;  // mapFaces = < hash(face1, face2), hash> (the mapped value is irrelevant)
-    int maxNb = 20;                            // some assumption on the max possible number of neighboring cells
-    faceToFaces.resize(maxNb, nbFaces);
-    CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it;
-    for (it = nodeToFaces.begin(); it != nodeToFaces.end(); ++it)
+    faceToFaces.resize(nvertex, nbFaces);
+    for (int nn = 0; nn < nbNodes; ++nn)
     {
-      int size = it->second.size();
-      for (int i = 0; i < (size-1); ++i)
+      int nf1 = 0;
+      while (nodeToFaces(nf1+1, nn) != -1)
       {
-        int face1 = it->second[i];
-        for (int j = i+1; j < size; ++j)
+        int nf2 = nf1+1;
+        int face1 = nodeToFaces(nf1, nn);
+        while (nodeToFaces(nf2, nn) != -1)
         {
-          int face2 = it->second[j];
-          if (face2 != face1)
+          int face2 = nodeToFaces(nf2, nn);
+          int hash = hashPairOrdered(face1, face2);
+          if (mapFaces.count(hash) == 0)
           {
-            int hashFace = hashPairOrdered(face1, face2);
-            if (mapFaces.count(hashFace) == 0)
-            {
-              faceToFaces(nbNghbFaces(face1), face1) = face2;
-              faceToFaces(nbNghbFaces(face2), face2) = face1;
-              ++nbNghbFaces(face1);
-              ++nbNghbFaces(face2);
-              mapFaces[hashFace] = hashFace;
-            }
+            faceToFaces(nbNghbFaces(face1), face1) = face2;
+            faceToFaces(nbNghbFaces(face2), face2) = face1;
+            ++nbNghbFaces(face1);
+            ++nbNghbFaces(face2);
           }
+          else
+            mapFaces[hash] = hash;
+          ++nf2;
         }
+        ++nf1;
       }
     }
+
   } //getLocNghbFacesEdgeType
 
 
