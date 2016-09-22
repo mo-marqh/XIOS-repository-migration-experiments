@@ -1906,7 +1906,7 @@ namespace xios {
   /*!
    * \fn void getLocNghbFacesNodeType (const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                        CArray<int, 2>& nghbFaces)
-   * \param [in] face_idx Array with global face indexing.
+   * \param [in] face_idx Array with local face indexing.
    * \param [in] bounds_lon Array of boundary longitudes.
    * \param [in] bounds_lat Array of boundary latitudes.
    * \param [out] nghbFaces 2D array containing neighboring faces.
@@ -1995,7 +1995,7 @@ namespace xios {
    * \fn void getLocNghbFacesEdgeType (const CArray<int, 1>& face_idx,
    *                                   const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
    *                                   CArray<int, 2>& nghbFaces, CArray<int, 1>& nbNghbFaces)
-   * \param [in] face_idx Array with global face indexing.
+   * \param [in] face_idx Array with local face indexing.
    * \param [in] bounds_lon Array of boundary longitudes.
    * \param [in] bounds_lat Array of boundary latitudes.
    * \param [out] nghbFaces 2D array containing neighboring faces.
