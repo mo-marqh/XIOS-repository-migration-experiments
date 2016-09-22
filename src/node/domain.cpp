@@ -634,7 +634,7 @@ namespace xios {
         nj_glo = 1;
         nj = 1;
         jbegin = 0;
-        if (ni.isEmpty()) ni = i_index.numElements();
+        if (!i_index.isEmpty()) ni = i_index.numElements();
         j_index.resize(ni);
         for(int i=0;i<ni;++i) j_index(i)=0;
 
@@ -718,10 +718,11 @@ namespace xios {
       else if (!i_index.isEmpty())
       {
         if (ibegin.isEmpty()) ibegin = i_index(0);
+        if (ni.isEmpty()) ni = i_index.numElements();
       }
 
-      if (ni.getValue() < 0 || ibegin.getValue() < 0 ||
-         (ibegin.getValue() + ni.getValue()) > ni_glo.getValue())
+      if ((ni.getValue() < 0 || ibegin.getValue() < 0) ||
+         ((type_attr::unstructured != type) && ((ibegin.getValue() + ni.getValue()) > ni_glo.getValue())))
       {
         ERROR("CDomain::checkLocalIDomain(void)",
               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
@@ -740,10 +741,11 @@ namespace xios {
      else if (!j_index.isEmpty())
      {
        if (jbegin.isEmpty()) jbegin = j_index(0);
+       if (nj.isEmpty()) nj = j_index.numElements();
      }
 
-      if (nj.getValue() < 0 || jbegin.getValue() < 0 ||
-         (jbegin.getValue() + nj.getValue()) > nj_glo.getValue())
+      if ((nj.getValue() < 0 || jbegin.getValue() < 0) ||
+         ((type_attr::unstructured != type) && ((jbegin.getValue() + nj.getValue()) > nj_glo.getValue())))
       {
         ERROR("CDomain::checkLocalJDomain(void)",
               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
