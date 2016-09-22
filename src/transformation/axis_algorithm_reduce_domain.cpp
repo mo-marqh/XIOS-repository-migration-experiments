@@ -47,8 +47,7 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, C
 {
   algo->checkValid(axisDestination, domainSource);
   StdString op = algo->operation;
-  StdString direction = algo->direction;
-  dir_ = (0 == direction.compare("i")) ? iDir : jDir;
+  dir_ = (CReduceDomainToAxis::direction_attr::iDir == algo->direction)  ? iDir : jDir;
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
 

@@ -53,9 +53,6 @@ namespace xios {
     StdString opLists[]= {"sum","min","max"};
     std::set<StdString> opString(opLists, opLists + sizeof(opLists)/sizeof(opLists[0]));
 
-    StdString dirLists[]= {"i","j"};
-    std::set<StdString> dirString(dirLists, dirLists + sizeof(dirLists)/sizeof(dirLists[0]));
-
     if (this->operation.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
              << "An operation must be defined."
@@ -71,37 +68,9 @@ namespace xios {
 
     if (this->direction.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-             << "A direction to apply the operation must be defined. It should be: 'i' or 'j'"
+             << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
              << "Domain source " <<domainSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
-
-    StdString direction = this->direction;
-    if (dirString.end() == dirString.find(direction))
-    {
-      ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-       << "Direction '" << direction << " is undefined. Please make sure to use a supported one: i or j"
-       << "Domain source " <<domainSrc->getId() << std::endl
-       << "Axis destination " << axisDst->getId());
-    }
-    else
-    {
-      if (0 == direction.compare("j"))
-      {
-        if (axis_n_glo != domain_ni_glo)
-         ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-           << "Reduce domain along j, axis destination should have n_glo equal to ni_glo of domain source"
-           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
-           << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-      }
-      if (0 == direction.compare("i"))
-      {
-        if (axis_n_glo != domain_nj_glo)
-         ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-           << "Reduce domain along i, axis destination should have n_glo equal to nj_glo of domain source"
-           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
-           << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-      }
-    }
   }
 
 }
