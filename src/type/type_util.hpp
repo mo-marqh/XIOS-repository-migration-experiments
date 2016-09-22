@@ -41,6 +41,8 @@ namespace xios
     class CExtractDomainToAxisGroup;
     class CComputeConnectivityDomain;
     class CComputeConnectivityDomainGroup;
+    class CExpandDomain;
+    class CExpandDomainGroup;
 
   template <typename T> inline string getStrType(void);
 
@@ -99,6 +101,8 @@ namespace xios
   macro(CExtractDomainToAxisGroup)
   macro(CComputeConnectivityDomain)
   macro(CComputeConnectivityDomainGroup)
+  macro(CExpandDomain)
+  macro(CExpandDomainGroup)
 #undef macro
 }
 

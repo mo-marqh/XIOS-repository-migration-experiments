@@ -73,6 +73,7 @@ namespace xios {
      m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
      m["generate_rectilinear_domain"] = TRANS_GENERATE_RECTILINEAR_DOMAIN;
      m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
+     m["expand_domain"] = TRANS_EXPAND_DOMAIN;
    }
 
    const std::set<StdString> & CDomain::getRelFiles(void) const

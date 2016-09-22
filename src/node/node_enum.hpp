@@ -29,7 +29,8 @@ namespace xios
          eReduceAxisToScalar,
          eReduceDomainToAxis,
          eExtractDomainToAxis,
-         eComputeConnectivityDomain
+         eComputeConnectivityDomain,
+         eExpandDomain
 
       } ENodeType;
 
