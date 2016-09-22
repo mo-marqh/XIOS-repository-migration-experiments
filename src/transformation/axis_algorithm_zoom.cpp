@@ -7,8 +7,35 @@
    \brief Algorithm for zooming on an axis.
  */
 #include "axis_algorithm_zoom.hpp"
+#include "axis.hpp"
+#include "grid.hpp"
+#include "grid_transformation_factory_impl.hpp"
+#include "zoom_axis.hpp"
 
 namespace xios {
+CGenericAlgorithmTransformation* CAxisAlgorithmZoom::create(CGrid* gridDst, CGrid* gridSrc,
+                                                           CTransformation<CAxis>* transformation,
+                                                           int elementPositionInGrid,
+                                                           std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                           std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                           std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                           std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                           std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                           std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CAxis*> axisListDestP = gridDst->getAxis();
+  std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
+
+  CZoomAxis* zoomAxis = dynamic_cast<CZoomAxis*> (transformation);
+  int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
+  int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+
+  return (new CAxisAlgorithmZoom(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis));
+}
+bool CAxisAlgorithmZoom::registerTrans()
+{
+  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_ZOOM_AXIS, create);
+}
 
 CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
 : CAxisAlgorithmTransformation(axisDestination, axisSource)
@@ -25,8 +52,6 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
            << "Global size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Zoom size is " << zoomSize_ );
   }
-
-//  computeIndexSourceMapping();
 }
 
 /*!

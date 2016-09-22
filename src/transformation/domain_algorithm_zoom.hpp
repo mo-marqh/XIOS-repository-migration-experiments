@@ -10,10 +10,13 @@
 #define __XIOS_DOMAIN_ALGORITHM_ZOOM_HPP__
 
 #include "domain_algorithm_transformation.hpp"
-#include "zoom_domain.hpp"
-#include "domain.hpp"
+#include "transformation.hpp"
 
 namespace xios {
+
+class CDomain;
+class CZoomDomain;
+
 /*!
   \class CDomainAlgorithmZoom
   Implementing zoom on domain
@@ -27,6 +30,7 @@ public:
 
   virtual ~CDomainAlgorithmZoom() {}
 
+  static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
@@ -46,6 +50,18 @@ private:
   //! Global zoom size on domain
   int zoomNi_;
   int zoomNj_;
+
+private:
+
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CDomain>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

@@ -10,10 +10,38 @@
 #include "extract_domain_to_axis.hpp"
 #include "axis.hpp"
 #include "domain.hpp"
+#include "grid.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 #include "sum.hpp"
 
 namespace xios {
+CGenericAlgorithmTransformation* CAxisAlgorithmExtractDomain::create(CGrid* gridDst, CGrid* gridSrc,
+                                                                     CTransformation<CAxis>* transformation,
+                                                                     int elementPositionInGrid,
+                                                                     std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CAxis*> axisListDestP = gridDst->getAxis();
+  std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
+
+  CExtractDomainToAxis* extractDomain = dynamic_cast<CExtractDomainToAxis*> (transformation);
+  int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
+
+  return (new CAxisAlgorithmExtractDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
+}
+
+//bool CAxisAlgorithmExtractDomain::_dummyRegistered = CAxisAlgorithmExtractDomain::registerTrans();
+bool CAxisAlgorithmExtractDomain::registerTrans()
+{
+  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS, create);
+}
+
 
 CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
  : CAxisAlgorithmTransformation(axisDestination, domainSource), pos_(-1), reduction_(0)

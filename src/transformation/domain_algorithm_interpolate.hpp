@@ -10,10 +10,13 @@
 #define __XIOS_DOMAIN_ALGORITHM_INTERPOLATE_HPP__
 
 #include "domain_algorithm_transformation.hpp"
-#include "domain.hpp"
-#include "interpolate_domain.hpp"
+#include "transformation.hpp"
 
 namespace xios {
+
+class CDomain;
+class CInterpolateDomain;
+
 /*!
   \class CDomainAlgorithmInterpolate
   Reading interpolation from file then apply on a domain
@@ -25,6 +28,7 @@ public:
 
   virtual ~CDomainAlgorithmInterpolate() {}
 
+  static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
@@ -38,6 +42,17 @@ private:
 private:
   CInterpolateDomain* interpDomain_;
 
+private:
+
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CDomain>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

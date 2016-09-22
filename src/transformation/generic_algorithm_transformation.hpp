@@ -22,17 +22,21 @@ namespace xios {
 
   /*!
   \class CGenericAlgorithmTransformation
-  This class defines the interface for all other inherted algorithms class
+  This class defines the interface for all other inherited algorithms class
   */
 class CGenericAlgorithmTransformation
 {
-protected:
-  typedef std::vector<std::pair<int, std::pair<size_t,double> > > DestinationGlobalIndex;
 public:
-  // Stupid global index map, it must be replaced by tuple
+  enum AlgoTransType {
+    ELEMENT_GENERATION = 0,
+    ELEMENT_MODIFICATION_WITHOUT_DATA = 1,
+    ELEMENT_MODIFICATION_WITH_DATA = 2,
+    ELEMENT_NO_MODIFICATION_WITH_DATA = 3,
+    ELEMENT_NO_MODIFICATION_WITHOUT_DATA = 4
+  } ;
+
+public:
   // Mapping between global index map of DESTINATION and its local index with pair of global index of SOURCE and weights
-  typedef boost::unordered_map<size_t, DestinationGlobalIndex> DestinationIndexMap;
-  //
   typedef boost::unordered_map<int, boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > > > SourceDestinationIndexMap;
 
 protected:
@@ -53,7 +57,7 @@ public:
                                SourceDestinationIndexMap& globaIndexWeightFromSrcToDst);
 
     /*!
-    Apply a reduction operation on local data.
+    Apply a operation on local data.
     \param [in] localIndex vector contains local index of local data output and the corresponding weight
     \param [in] dataInput Pointer to the first element of data input array (in form of buffer)
     \param [in/out] dataOut Array contains local data
@@ -66,7 +70,7 @@ public:
                      const double& defaultValue);
 
   std::vector<StdString> getIdAuxInputs();
-
+  AlgoTransType type();
   /*!
   Compute global index mapping from one element of destination grid to the corresponding element of source grid
   */
@@ -122,6 +126,8 @@ protected:
 
   //! Id of auxillary inputs which helps doing transformation dynamically
   std::vector<StdString> idAuxInputs_;
+  AlgoTransType type_;
+
 
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;

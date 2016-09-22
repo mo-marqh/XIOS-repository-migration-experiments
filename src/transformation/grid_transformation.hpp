@@ -36,6 +36,7 @@ public:
   typedef std::map<int, CArray<int,1> > SendingIndexGridSourceMap;
   typedef std::map<int,std::vector<std::pair<int,double> > > RecvIndexGridDestinationMap;
   typedef CGenericAlgorithmTransformation::SourceDestinationIndexMap SourceDestinationIndexMap;
+  typedef CGenericAlgorithmTransformation::AlgoTransType AlgoTransType;
 
 public:
   /** Default constructor */
@@ -59,8 +60,8 @@ protected:
   virtual void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   virtual void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
 
-  void setUpGridSource(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
-  void setUpGridDestination(int elementPositionInGrid, ETranformationType transType, int nbTransformation);
+  void setUpGridSource(int elementPositionInGrid, AlgoType);
+  void setUpGridDestination(int elementPositionInGrid, ETranformationType, AlgoType);
   void computeTransformationMapping(const SourceDestinationIndexMap& globalIndexWeightFromSrcToDest);
 
 protected:
@@ -70,7 +71,7 @@ protected:
   std::vector<CGrid*> tempGridSrcs_, tempGridDests_;
 
 protected:
-  //! Mapping of (grid) global index representing tranformation.
+  //! Mapping of (grid) global index representing transformation.
   std::map<size_t, std::set<size_t> > globaIndexMapFromDestToSource_;
 
   //! Local index of data to send from grid source

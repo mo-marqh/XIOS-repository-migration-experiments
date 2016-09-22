@@ -15,8 +15,36 @@
 #include "netcdf.hpp"
 #include "mapper.hpp"
 #include "mpi_tag.hpp"
+#include "domain.hpp"
+#include "grid_transformation_factory_impl.hpp"
+#include "interpolate_domain.hpp"
+#include "grid.hpp"
 
 namespace xios {
+CGenericAlgorithmTransformation* CDomainAlgorithmInterpolate::create(CGrid* gridDst, CGrid* gridSrc,
+                                                                     CTransformation<CDomain>* transformation,
+                                                                     int elementPositionInGrid,
+                                                                     std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CDomain*> domainListDestP = gridDst->getDomains();
+  std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
+
+  CInterpolateDomain* interpolateDomain = dynamic_cast<CInterpolateDomain*> (transformation);
+  int domainDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+
+  return (new CDomainAlgorithmInterpolate(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
+}
+
+bool CDomainAlgorithmInterpolate::registerTrans()
+{
+  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_INTERPOLATE_DOMAIN, create);
+}
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain)

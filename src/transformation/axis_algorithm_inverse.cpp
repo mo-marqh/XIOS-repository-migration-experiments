@@ -10,11 +10,40 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "axis.hpp"
+#include "grid.hpp"
+#include "grid_transformation_factory_impl.hpp"
+#include "inverse_axis.hpp"
 #include "client_client_dht_template.hpp"
 
 namespace xios {
 
-CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource)
+CGenericAlgorithmTransformation* CAxisAlgorithmInverse::create(CGrid* gridDst, CGrid* gridSrc,
+                                                               CTransformation<CAxis>* transformation,
+                                                               int elementPositionInGrid,
+                                                               std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                               std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CAxis*> axisListDestP = gridDst->getAxis();
+  std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
+
+  CInverseAxis* inverseAxis = dynamic_cast<CInverseAxis*> (transformation);
+  int axisDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
+  int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+
+  return (new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], inverseAxis));
+}
+
+bool CAxisAlgorithmInverse::registerTrans()
+{
+  CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INVERSE_AXIS, create);
+}
+
+
+CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
  : CAxisAlgorithmTransformation(axisDestination, axisSource)
 {
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())

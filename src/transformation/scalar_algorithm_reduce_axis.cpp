@@ -11,8 +11,34 @@
 #include "scalar.hpp"
 #include "reduce_axis_to_scalar.hpp"
 #include "sum.hpp"
+#include "grid.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 namespace xios {
+CGenericAlgorithmTransformation* CScalarAlgorithmReduceScalar::create(CGrid* gridDst, CGrid* gridSrc,
+                                                                     CTransformation<CScalar>* transformation,
+                                                                     int elementPositionInGrid,
+                                                                     std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                                     std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CScalar*> scalarListDestP = gridDst->getScalars();
+  std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
+
+  CReduceAxisToScalar* reduceAxis = dynamic_cast<CReduceAxisToScalar*> (transformation);
+  int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
+  int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+
+  return (new CScalarAlgorithmReduceScalar(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
+}
+
+bool CScalarAlgorithmReduceScalar::registerTrans()
+{
+  CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_AXIS_TO_SCALAR, create);
+}
 
 CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
  : CScalarAlgorithmTransformation(scalarDestination, axisSource),

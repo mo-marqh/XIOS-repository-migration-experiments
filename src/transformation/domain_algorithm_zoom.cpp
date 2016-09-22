@@ -7,8 +7,36 @@
    \brief Algorithm for zooming on an domain.
  */
 #include "domain_algorithm_zoom.hpp"
+#include "zoom_domain.hpp"
+#include "domain.hpp"
+#include "grid.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 namespace xios {
+CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(CGrid* gridDst, CGrid* gridSrc,
+                                                             CTransformation<CDomain>* transformation,
+                                                             int elementPositionInGrid,
+                                                             std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                             std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                             std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                             std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                             std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                             std::map<int, int>& elementPositionInGridDst2DomainPosition)
+{
+  std::vector<CDomain*> domainListDestP = gridDst->getDomains();
+  std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
+
+  CZoomDomain* zoomDomain = dynamic_cast<CZoomDomain*> (transformation);
+  int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
+
+  return (new CDomainAlgorithmZoom(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain));
+}
+
+bool CDomainAlgorithmZoom::registerTrans()
+{
+  CGridTransformationFactory<CDomain>::registerTransformation(TRANS_ZOOM_DOMAIN, create);
+}
 
 CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
@@ -38,8 +66,6 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
            << "Size nj_glo of domain source " <<domainSource->getId() << " is " << domainSource->nj_glo.getValue()  << std::endl
            << "Zoom size is " << zoomNj_ );
   }
-
-//  computeIndexSourceMapping();
 }
 
 /*!
@@ -74,8 +100,6 @@ void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<d
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-//  std::map<int, std::vector<int> >& transMap = this->transformationMapping_;
-//  std::map<int, std::vector<double> >& transWeight = this->transformationWeight_;
   int domainGlobalIndex;
   for (int j = 0; j < nj; ++j)
   {

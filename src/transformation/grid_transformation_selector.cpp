@@ -8,7 +8,7 @@
  */
 #include "grid_transformation_selector.hpp"
 #include "grid.hpp"
-//#include <boost/unordered_map.hpp>
+#include "algo_types.hpp"
 
 namespace xios {
 
@@ -26,6 +26,7 @@ CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGr
        << "Two grids have different number of elements"
        << "Number of elements of grid source " <<gridSource_->getId() << " is " << gridSource_->axis_domain_order.numElements()  << std::endl
        << "Number of elements of grid destination " <<gridDestination_->getId() << " is " << numElement);
+  registerTransformations();
   initializeTransformations(type);
 }
 
@@ -303,6 +304,26 @@ bool CGridTransformationSelector::isSpecialTransformation(ETranformationType tra
   }
 
   return res;
+}
+
+
+void CGridTransformationSelector::registerTransformations()
+{
+  //! Scalar
+  CScalarAlgorithmReduceScalar::registerTrans();
+
+  //! Axis
+  CAxisAlgorithmZoom::registerTrans();
+  CAxisAlgorithmExtractDomain::registerTrans();
+  CAxisAlgorithmInterpolate::registerTrans();
+  CAxisAlgorithmInverse::registerTrans();
+  CAxisAlgorithmReduceDomain::registerTrans();
+
+  //! Domain
+//  CDomainAlgorithmComputeConnectivity::registerTrans();
+  CDomainAlgorithmInterpolate::registerTrans();
+  CDomainAlgorithmZoom::registerTrans();
+
 }
 
 }

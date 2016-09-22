@@ -10,10 +10,13 @@
 #define __XIOS_AXIS_ALGORITHM_INVERSE_HPP__
 
 #include "axis_algorithm_transformation.hpp"
+#include "transformation.hpp"
 
 namespace xios {
 
-  class CAxis;
+class CAxis;
+class CInverseAxis;
+
 /*!
   \class CAxisAlgorithmInverse
   Inversing an axis
@@ -21,15 +24,28 @@ namespace xios {
 class CAxisAlgorithmInverse : public CAxisAlgorithmTransformation
 {
 public:
-  CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource);
+  CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis);
 
   virtual ~CAxisAlgorithmInverse() {}
+
+  static bool registerTrans();
 
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
   void updateAxisValue();
+
+private:
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CAxis>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

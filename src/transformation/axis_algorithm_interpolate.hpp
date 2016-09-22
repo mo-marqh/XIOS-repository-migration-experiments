@@ -10,10 +10,14 @@
 #define __XIOS_AXIS_ALGORITHM_INTERPOLATE_HPP__
 
 #include "axis_algorithm_transformation.hpp"
-#include "axis.hpp"
-#include "interpolate_axis.hpp"
+#include "transformation.hpp"
 
 namespace xios {
+
+class CAxis;
+class CGrid;
+class CInterpolateAxis;
+
 /*!
   \class CAxisAlgorithmInterpolate
   Implementing interpolation on axis
@@ -26,6 +30,7 @@ public:
 
   virtual ~CAxisAlgorithmInterpolate() {}
 
+  static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
@@ -42,6 +47,17 @@ private:
   int order_;
   StdString coordinate_;
   std::vector<std::vector<int> > transPosition_;
+
+private:
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CAxis>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

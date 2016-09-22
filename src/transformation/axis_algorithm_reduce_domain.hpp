@@ -10,6 +10,7 @@
 #define __XIOS_AXIS_ALGORITHM_REDUCE_DOMAIN_HPP__
 
 #include "axis_algorithm_transformation.hpp"
+#include "transformation.hpp"
 
 namespace xios {
 
@@ -35,6 +36,7 @@ public:
 
   virtual ~CAxisAlgorithmReduceDomain();
 
+  static bool registerTrans();
 protected:
   enum ReduceDirection {
     undefined = 0,
@@ -49,6 +51,16 @@ protected:
 protected:
   CReductionAlgorithm* reduction_;
 
+private:
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CAxis>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

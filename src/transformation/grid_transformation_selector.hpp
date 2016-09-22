@@ -21,7 +21,7 @@ class CGrid;
 
 /*!
   \class CGridTransformationSelector
-  This class is a helper class to chose a algorithm (transformation) from the alogrithm list of
+  This class is a helper class to chose a algorithm (transformation) from the algorithm list of
 specific grid.
 */
 class CGridTransformationSelector
@@ -56,6 +56,7 @@ protected:
   void initializeTransformations(TransformationType type);
   void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, AlgoType algo);
   bool isSpecialTransformation(ETranformationType transType);
+  void registerTransformations();
 
 protected:
   virtual void selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder) = 0;

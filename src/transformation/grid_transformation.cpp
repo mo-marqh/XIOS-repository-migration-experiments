@@ -7,6 +7,7 @@
    \brief Interface for all transformations.
  */
 #include "grid_transformation.hpp"
+#include "grid_transformation_factory_impl.hpp"
 #include "algo_types.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
@@ -29,98 +30,65 @@ CGridTransformation::~CGridTransformation()
 }
 
 /*!
-  Select algorithm of a scalar correspoding to its transformation type and its position in each element
+  Select algorithm of a scalar corresponding to its transformation type and its position in each element
   \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
   \param [in] transType transformation type, for now we have
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
-  int scalarSrcIndex = -1, axisSrcIndex = -1, domainSrcIndex = -1;
   std::vector<CScalar*> scaListDestP = gridDestination_->getScalars();
-  std::vector<CScalar*> scaListSrcP  = gridSource_->getScalars();
-  std::vector<CAxis*> axisListSrcP   = gridSource_->getAxis();
-  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
-
   int scalarDstIndex =  elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
   CScalar::TransMapTypes trans = scaListDestP[scalarDstIndex]->getAllTransformations();
   CScalar::TransMapTypes::const_iterator it = trans.begin();
 
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
-
-  CReduceAxisToScalar* reduceAxis = 0;
   CGenericAlgorithmTransformation* algo = 0;
-  switch (transType)
-  {
-    case TRANS_REDUCE_AXIS_TO_SCALAR:
-      reduceAxis = dynamic_cast<CReduceAxisToScalar*> (it->second);
-      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
-      algo = new CScalarAlgorithmReduceScalar(scaListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis);
-      break;
-    default:
-      break;
-  }
+  algo = CGridTransformationFactory<CScalar>::createTransformation(transType,
+                                                                  gridDestination_,
+                                                                  gridSource_,
+                                                                  it->second,
+                                                                  elementPositionInGrid,
+                                                                  elementPositionInGridSrc2ScalarPosition_,
+                                                                  elementPositionInGridSrc2AxisPosition_,
+                                                                  elementPositionInGridSrc2DomainPosition_,
+                                                                  elementPositionInGridDst2ScalarPosition_,
+                                                                  elementPositionInGridDst2AxisPosition_,
+                                                                  elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
 
 /*!
-  Select algorithm of an axis correspoding to its transformation type and its position in each element
+  Select algorithm of an axis corresponding to its transformation type and its position in each element
   \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
   \param [in] transType transformation type, for now we have zoom_axis, inverse_axis, interpolate_axis
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
-  int axisSrcIndex = -1, domainSrcIndex = -1;
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
-  std::vector<CAxis*> axisListSrcP = gridSource_->getAxis();
-  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
-
   int axisDstIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
   CAxis::TransMapTypes trans = axisListDestP[axisDstIndex]->getAllTransformations();
   CAxis::TransMapTypes::const_iterator it = trans.begin();
-
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
 
-  CZoomAxis* zoomAxis = 0;
-  CInterpolateAxis* interpAxis = 0;
-  CReduceDomainToAxis* reduceDomain = 0;
-  CExtractDomainToAxis* extractDomain = 0;
   CGenericAlgorithmTransformation* algo = 0;
-  switch (transType)
-  {
-    case TRANS_INTERPOLATE_AXIS:
-      interpAxis = dynamic_cast<CInterpolateAxis*> (it->second);
-      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
-      algo = new CAxisAlgorithmInterpolate(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpAxis);
-      break;
-    case TRANS_ZOOM_AXIS:
-      zoomAxis = dynamic_cast<CZoomAxis*> (it->second);
-      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
-      algo = new CAxisAlgorithmZoom(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis);
-      break;
-    case TRANS_INVERSE_AXIS:
-      axisSrcIndex = elementPositionInGridSrc2AxisPosition_[elementPositionInGrid];
-      algo = new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex]);
-      break;
-    case TRANS_REDUCE_DOMAIN_TO_AXIS:
-      reduceDomain = dynamic_cast<CReduceDomainToAxis*> (it->second);
-      domainSrcIndex = elementPositionInGridSrc2DomainPosition_[elementPositionInGrid];
-      algo = new CAxisAlgorithmReduceDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], reduceDomain);
-      break;
-    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
-      extractDomain = dynamic_cast<CExtractDomainToAxis*> (it->second);
-      domainSrcIndex = elementPositionInGridSrc2DomainPosition_[elementPositionInGrid];
-      algo = new CAxisAlgorithmExtractDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain);
-      break;
-    default:
-      break;
-  }
+  algo = CGridTransformationFactory<CAxis>::createTransformation(transType,
+                                                                 gridDestination_,
+                                                                 gridSource_,
+                                                                 it->second,
+                                                                 elementPositionInGrid,
+                                                                 elementPositionInGridSrc2ScalarPosition_,
+                                                                 elementPositionInGridSrc2AxisPosition_,
+                                                                 elementPositionInGridSrc2DomainPosition_,
+                                                                 elementPositionInGridDst2ScalarPosition_,
+                                                                 elementPositionInGridDst2AxisPosition_,
+                                                                 elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
 
 /*!
-  Select algorithm of a domain correspoding to its transformation type and its position in each element
+  Select algorithm of a domain corresponding to its transformation type and its position in each element
   \param [in] elementPositionInGrid position of element in grid. e.g: a grid has 1 domain and 1 axis, then position of domain is 0 and position of axis is 1
   \param [in] transType transformation type, for now we have zoom_domain, interpolate_domain
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
@@ -128,30 +96,23 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
 void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
 {
   std::vector<CDomain*> domainListDestP = gridDestination_->getDomains();
-  std::vector<CDomain*> domainListSrcP = gridSource_->getDomains();
-
   int domainIndex =  elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
   CDomain::TransMapTypes trans = domainListDestP[domainIndex]->getAllTransformations();
   CDomain::TransMapTypes::const_iterator it = trans.begin();
-
   for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
 
-  CZoomDomain* zoomDomain = 0;
-  CInterpolateDomain* interpFileDomain = 0;
   CGenericAlgorithmTransformation* algo = 0;
-  switch (transType)
-  {
-    case TRANS_INTERPOLATE_DOMAIN:
-      interpFileDomain = dynamic_cast<CInterpolateDomain*> (it->second);
-      algo = new CDomainAlgorithmInterpolate(domainListDestP[domainIndex], domainListSrcP[domainIndex],interpFileDomain);
-      break;
-    case TRANS_ZOOM_DOMAIN:
-      zoomDomain = dynamic_cast<CZoomDomain*> (it->second);
-      algo = new CDomainAlgorithmZoom(domainListDestP[domainIndex], domainListSrcP[domainIndex], zoomDomain);
-      break;
-    default:
-      break;
-  }
+  algo = CGridTransformationFactory<CDomain>::createTransformation(transType,
+                                                                   gridDestination_,
+                                                                   gridSource_,
+                                                                   it->second,
+                                                                   elementPositionInGrid,
+                                                                   elementPositionInGridSrc2ScalarPosition_,
+                                                                   elementPositionInGridSrc2AxisPosition_,
+                                                                   elementPositionInGridSrc2DomainPosition_,
+                                                                   elementPositionInGridDst2ScalarPosition_,
+                                                                   elementPositionInGridDst2AxisPosition_,
+                                                                   elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
 
@@ -161,7 +122,7 @@ This new created one keeps a pointer to the real transformed element of grid des
   \param [in] elementPositionInGrid position of element in grid
   \param [in] transType transformation type
 */
-void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranformationType transType, int nbTransformation)
+void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranformationType transType, AlgoType algoType)
 {
   if (isSpecialTransformation(transType)) return;
 
@@ -183,22 +144,15 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
   CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
 
   int scalarIndex = -1, axisIndex = -1, domainIndex = -1;
-  switch (transType)
+  switch (algoType)
   {
-    case TRANS_INTERPOLATE_DOMAIN:
-    case TRANS_ZOOM_DOMAIN:
+    case domainType:
       domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
       break;
-
-    case TRANS_INTERPOLATE_AXIS:
-    case TRANS_ZOOM_AXIS:
-    case TRANS_INVERSE_AXIS:
-    case TRANS_REDUCE_DOMAIN_TO_AXIS:
-    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
+    case axisType:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
-
-    case TRANS_REDUCE_AXIS_TO_SCALAR:
+    case scalarType:
       scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
       break;
     default:
@@ -243,7 +197,7 @@ Only element on which the transformation is performed is modified
   \param [in] elementPositionInGrid position of element in grid
   \param [in] transType transformation type
 */
-void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformationType transType, int nbTransformation)
+void CGridTransformation::setUpGridSource(int elementPositionInGrid, AlgoType algoType)
 {
   if (!tempGridSrcs_.empty() && (getNbAlgo()-1) == tempGridSrcs_.size())
   {
@@ -263,22 +217,15 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, ETranformat
 
   int axisIndex = -1, domainIndex = -1, scalarIndex = -1;
   int axisListIndex = 0, domainListIndex = 0, scalarListIndex = 0;
-  switch (transType)
+  switch (algoType)
   {
-    case TRANS_INTERPOLATE_DOMAIN:
-    case TRANS_ZOOM_DOMAIN:
+    case domainType:
       domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
       break;
-
-    case TRANS_INTERPOLATE_AXIS:
-    case TRANS_ZOOM_AXIS:
-    case TRANS_INVERSE_AXIS:
-    case TRANS_REDUCE_DOMAIN_TO_AXIS:
-    case TRANS_EXTRACT_DOMAIN_TO_AXIS:
+    case axisType:
       axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
       break;
-
-    case TRANS_REDUCE_AXIS_TO_SCALAR:
+    case scalarType:
       scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
       break;
     default:
@@ -377,21 +324,22 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     ETranformationType transType = (it->second).first;
     int transformationOrder = (it->second).second;
     SourceDestinationIndexMap globaIndexWeightFromSrcToDst;
+    AlgoType algoType = algoTypes_[std::distance(itb, it)];
 
     // Create a temporary grid destination which contains transformed element of grid destination and
-    // non-transformed elements fo grid source
-    setUpGridDestination(elementPositionInGrid, transType, nbAgloTransformation);
+    // non-transformed elements to grid source
+    setUpGridDestination(elementPositionInGrid, transType, algoType);
 
     // First of all, select an algorithm
     if (!dynamicalTransformation_ || (algoTransformation_.size() < listAlgos_.size()))
     {
-      selectAlgo(elementPositionInGrid, transType, transformationOrder, algoTypes_[std::distance(itb, it)]);
+      selectAlgo(elementPositionInGrid, transType, transformationOrder, algoType);
       algo = algoTransformation_.back();
     }
     else
       algo = algoTransformation_[std::distance(itb, it)];
 
-    if (0 != algo) // Only registered transformation can be executed
+    if ((0 != algo) && (CGenericAlgorithmTransformation::ELEMENT_NO_MODIFICATION_WITH_DATA == algo->type())) // Only registered transformation can be executed
     {
       algo->computeIndexSourceMapping(dataAuxInputs);
 
@@ -408,7 +356,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       if (1 < nbNormalAlgos_)
       {
         // Now grid destination becomes grid source in a new transformation
-        if (nbAgloTransformation != (nbNormalAlgos_-1)) setUpGridSource(elementPositionInGrid, transType, nbAgloTransformation);
+        if (nbAgloTransformation != (nbNormalAlgos_-1)) setUpGridSource(elementPositionInGrid, algoType);
       }
       ++nbAgloTransformation;
     }

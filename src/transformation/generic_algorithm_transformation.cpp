@@ -14,7 +14,8 @@
 namespace xios {
 
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
- : transformationMapping_(), transformationWeight_(), transformationPosition_(), idAuxInputs_()
+ : transformationMapping_(), transformationWeight_(), transformationPosition_(),
+   idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA)
 {
 }
 
@@ -655,6 +656,11 @@ void CGenericAlgorithmTransformation::computeIndexSourceMapping(const std::vecto
 std::vector<StdString> CGenericAlgorithmTransformation::getIdAuxInputs()
 {
   return idAuxInputs_;
+}
+
+CGenericAlgorithmTransformation::AlgoTransType CGenericAlgorithmTransformation::type()
+{
+  return type_;
 }
 
 }

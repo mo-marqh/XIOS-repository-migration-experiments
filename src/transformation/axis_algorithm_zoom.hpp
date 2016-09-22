@@ -10,14 +10,16 @@
 #define __XIOS_AXIS_ALGORITHM_ZOOM_HPP__
 
 #include "axis_algorithm_transformation.hpp"
-#include "axis.hpp"
-#include "zoom_axis.hpp"
+#include "transformation.hpp"
 
 namespace xios {
+class CAxis;
+class CZoomAxis;
+
 /*!
   \class CAxisAlgorithmZoom
   Implementing zoom on axis
-  A zoomed region can be considered as region that isnt masked.
+  A zoomed region can be considered as region that isn't masked.
   Only this zoomed region is extracted to write on Netcdf.
 */
 class CAxisAlgorithmZoom : public CAxisAlgorithmTransformation
@@ -27,6 +29,7 @@ public:
 
   virtual ~CAxisAlgorithmZoom() {}
 
+  static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
@@ -43,6 +46,18 @@ private:
 
   //! Global zoom size on axis
   StdSize zoomSize_;
+
+private:
+
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CAxis>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

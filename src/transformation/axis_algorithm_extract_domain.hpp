@@ -10,6 +10,7 @@
 #define __XIOS_AXIS_ALGORITHM_EXTRACT_DOMAIN_HPP__
 
 #include "axis_algorithm_transformation.hpp"
+#include "transformation.hpp"
 
 namespace xios {
 
@@ -17,6 +18,7 @@ class CAxis;
 class CDomain;
 class CExtractDomainToAxis;
 class CReductionAlgorithm;
+
 
 /*!
   \class CAxisAlgorithmExtractDomain
@@ -35,6 +37,7 @@ public:
 
   virtual ~CAxisAlgorithmExtractDomain();
 
+  static bool registerTrans();
 protected:
   enum ExtractDirection {
     undefined = 0,
@@ -50,6 +53,16 @@ protected:
 protected:
   CReductionAlgorithm* reduction_;
 
+private:
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CAxis>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

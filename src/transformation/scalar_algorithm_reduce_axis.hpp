@@ -10,6 +10,7 @@
 #define __XIOS_SCALAR_ALGORITHM_REDUCE_AXIS_HPP__
 
 #include "scalar_algorithm_transformation.hpp"
+#include "transformation.hpp"
 
 namespace xios {
 
@@ -20,7 +21,7 @@ class CReductionAlgorithm;
 
 /*!
   \class CScalarAlgorithmReduceScalar
-  Inversing an axis to a scalar
+  Reducing an axis to a scalar
 */
 class CScalarAlgorithmReduceScalar : public CScalarAlgorithmTransformation
 {
@@ -35,12 +36,24 @@ public:
 
   virtual ~CScalarAlgorithmReduceScalar();
 
+  static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
   CReductionAlgorithm* reduction_;
 
+private:
+
+  static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,
+                                                CTransformation<CScalar>* transformation,
+                                                int elementPositionInGrid,
+                                                std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridSrc2DomainPosition,
+                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
+                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
+                                                std::map<int, int>& elementPositionInGridDst2DomainPosition);
 };
 
 }

@@ -20,6 +20,7 @@ CDomainAlgorithmGenerateRectilinear::CDomainAlgorithmGenerateRectilinear(CDomain
                                                                          CGenerateRectilinearDomain* genRectDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource), nbDomainDistributedPart_(0)
 {
+  type_ = ELEMENT_GENERATION;
   genRectDomain->checkValid(domainDestination);
   if (0 != gridSource) computeDistributionGridSource(gridSource);
   else
