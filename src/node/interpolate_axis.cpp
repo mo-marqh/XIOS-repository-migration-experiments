@@ -39,12 +39,20 @@ namespace xios {
 
   void CInterpolateAxis::checkValid(CAxis* axisSrc)
   {
-    if (this->order.isEmpty()) this->order.setValue(2);
+    if (this->order.isEmpty()) this->order.setValue(1);
     int order = this->order.getValue();
     if (order >= axisSrc->n_glo.getValue())
     {
       ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
              << "Order of interpolation is greater than global size of axis source"
+             << "Size of axis source " <<axisSrc->getId() << " is " << axisSrc->n_glo.getValue()  << std::endl
+             << "Order of interpolation is " << order );
+    }
+
+    if (order < 1)
+    {
+      ERROR("CInterpolateAxis::checkValid(CAxis* axisSrc)",
+             << "Order of interpolation is smaller than 1"
              << "Size of axis source " <<axisSrc->getId() << " is " << axisSrc->n_glo.getValue()  << std::endl
              << "Order of interpolation is " << order );
     }

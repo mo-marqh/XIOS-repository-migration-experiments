@@ -96,8 +96,9 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
                                                         int transPos)
 {
   std::vector<double>::const_iterator itb = axisValue.begin(), ite = axisValue.end();
-  std::vector<double>::const_iterator itLowerBound, itUpperBound, it, iteRange;
+  std::vector<double>::const_iterator itLowerBound, itUpperBound, it, iteRange, itfirst, itsecond;
   const double sfmax = NumTraits<double>::sfmax();
+  const double precision = NumTraits<double>::dummy_precision();
 
   int ibegin = axisDest_->begin.getValue();
   CArray<double,1>& axisDestValue = axisDest_->value;
@@ -115,45 +116,44 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
     if ((ite != itUpperBound) && (sfmax == *itUpperBound)) itUpperBound = ite;
 
     if ((ite == itLowerBound) || (ite == itUpperBound)) outOfRange = true;
-    // If the value is not in the range, that means we'll do extra-polation
-//    if (ite == itLowerBound) // extra-polation
-//    {
-//      itLowerBound = itb;
-//      itUpperBound = itb + order_+1;
-//    }
-//    else if (ite == itUpperBound) // extra-polation
-//    {
-//      itLowerBound = itUpperBound - order_-1;
-//    }
-//else
+
     // We don't do extrapolation FOR NOW, maybe in the future
     if (!outOfRange)
     {
       if ((itLowerBound == itUpperBound) && (itb != itLowerBound)) --itLowerBound;
+      double distanceToLower = destValue - *itLowerBound;
+      double distanceToUpper = *itUpperBound - destValue;
       int order = (order_ + 1) - 2;
-      bool down = true;
+      bool down = (distanceToLower < distanceToUpper) ? true : false;
       for (int k = 0; k < order; ++k)
       {
         if ((itb != itLowerBound) && down)
         {
           --itLowerBound;
-          down = false;
+          distanceToLower = destValue - *itLowerBound;
+          down = (distanceToLower < distanceToUpper) ? true : false;
           continue;
         }
         if ((ite != itUpperBound) && (sfmax != *itUpperBound))
         {
           ++itUpperBound;
-          down = true;
+          distanceToUpper = *itUpperBound - destValue;
+          down = (distanceToLower < distanceToUpper) ? true : false;
+
         }
       }
 
-
       iteRange = (ite == itUpperBound) ? itUpperBound : itUpperBound + 1;
-      for (it = itLowerBound; it != iteRange; ++it)
+      itsecond = it = itLowerBound; ++itsecond;
+      while (it < iteRange)
       {
+        while (((*itsecond -*it) < precision) && itsecond < ite)
+        { ++itsecond; ++it; }
         int index = std::distance(itb, it);
         interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
+        ++it; ++itsecond;
       }
+
     }
   }
   computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
