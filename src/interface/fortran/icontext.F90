@@ -12,6 +12,9 @@ MODULE ICONTEXT
       INTEGER(kind = C_INTPTR_T) :: daddr
    END TYPE txios(context)
 
+   INTERFACE xios(set_current_context)
+      MODULE PROCEDURE xios(set_current_context_hdl), xios(set_current_context_id)
+   END INTERFACE xios(set_current_context)
 
    CONTAINS ! Fonctions disponibles pour les utilisateurs.
 
@@ -32,7 +35,7 @@ MODULE ICONTEXT
 
    END SUBROUTINE xios(get_current_context)
 
-   SUBROUTINE xios(set_current_context)(context, withswap)
+   SUBROUTINE xios(set_current_context_hdl)(context, withswap)
       IMPLICIT NONE
 
       TYPE(txios(context))          , INTENT(IN) :: context
@@ -46,7 +49,18 @@ MODULE ICONTEXT
       END IF
       CALL cxios_context_set_current(context%daddr, wswap)
 
-   END SUBROUTINE xios(set_current_context)
+   END SUBROUTINE xios(set_current_context_hdl)
+
+   SUBROUTINE xios(set_current_context_id)(idt)
+      IMPLICIT NONE
+
+      CHARACTER(len = *) , INTENT(IN) :: idt
+      LOGICAL           :: withswap
+      TYPE(xios_context):: ret
+
+      CALL xios(get_context_handle)(idt,ret)
+      CALL xios(set_current_context_hdl)(ret, withswap)
+    END SUBROUTINE xios(set_current_context_id)
 
    LOGICAL FUNCTION xios(is_valid_context)(idt)
       IMPLICIT NONE
