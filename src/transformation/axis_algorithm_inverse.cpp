@@ -136,7 +136,6 @@ void CAxisAlgorithmInverse::updateAxisValue()
     }
   }
 
-
   boost::unordered_map<int, std::vector<size_t> >::const_iterator itbIndex = globalSrcIndexSendToProc.begin(), itIndex,
                                                                   iteIndex = globalSrcIndexSendToProc.end();
   std::map<int,int> sendRankSizeMap,recvRankSizeMap;
@@ -248,6 +247,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
   MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
 
+  size_t nGloAxisDest = axisDest_->n_glo.getValue() - 1;
   for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
   {
     int recvRank = itSend->first;
@@ -258,7 +258,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
     for (int idx = 0; idx < recvSize; ++idx)
     {
       size_t globalIndex = *(recvIndex+idx);
-      int localIndex = globalIndex - axisDest_->begin;
+      int localIndex = ((nGloAxisDest-globalIndex) - axisDest_->begin);
       axisDest_->value(localIndex) = *(recvValue + idx);
     }
   }
