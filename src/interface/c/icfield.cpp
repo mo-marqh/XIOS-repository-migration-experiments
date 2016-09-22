@@ -24,6 +24,10 @@ extern "C"
    typedef xios::CField      * XFieldPtr;
    typedef xios::CFieldGroup * XFieldGroupPtr;
    
+   typedef xios::CDomain     * XDomainPtr;
+   typedef xios::CAxis       * XAxisPtr;
+   typedef xios::CScalar     * XScalarPtr;
+
 // --------------------------------------------------------------------------   
 // ------------------------ Création des handle -----------------------------
 // --------------------------------------------------------------------------   
@@ -68,7 +72,7 @@ extern "C"
    }
 
 // -----------------------------------------------------------------------------------------------------   
-// ------------------------- other function----------  --------------------------- ---------------------
+// ------------------------- Other functions
 // -----------------------------------------------------------------------------------------------------   
 
   void cxios_field_is_active (XFieldPtr field_hdl, bool* ret)
@@ -77,5 +81,28 @@ extern "C"
     *ret = field_hdl->isActive();
     CTimer::get("XIOS").suspend() ;
   }
-   
+
+// -----------------------------------------------------------------------------------------------------
+// ------------------------- Retrieving information of grid associated to field
+// -----------------------------------------------------------------------------------------------------
+  void cxios_field_get_domain_handle(XDomainPtr * domain_hdl_ret, XFieldPtr field_hdl, int domainIndex)
+  {
+     CTimer::get("XIOS").resume() ;
+     *domain_hdl_ret = field_hdl->grid->getDomain(domainIndex);
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_field_get_axis_handle(XAxisPtr * axis_hdl_ret, XFieldPtr field_hdl, int axisIndex)
+  {
+     CTimer::get("XIOS").resume() ;
+     *axis_hdl_ret = field_hdl->grid->getAxis(axisIndex);
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_field_get_scalar_handle(XScalarPtr * scalar_hdl_ret, XFieldPtr field_hdl, int scalarIndex)
+  {
+     CTimer::get("XIOS").resume() ;
+     *scalar_hdl_ret = field_hdl->grid->getScalar(scalarIndex);
+     CTimer::get("XIOS").suspend();
+  }
 } // extern "C"

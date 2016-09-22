@@ -54,13 +54,13 @@ CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
            << "Domain destination " <<domainDestination->getId() << std::endl);
   }
 
-  if (!domainDestination->hasRefTo(domainSource))
-  {
-    ERROR("CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,CDomain* domainSource, CExpandDomain* expandDomain)",
-           << "Domain domain destination must refer to domain source (directly or indirectly) by domain_ref " << std::endl
-           << "Domain source " <<domainSource->getId() << std::endl
-           << "Domain destination " <<domainDestination->getId() << std::endl);
-  }
+//  if (!domainDestination->hasRefTo(domainSource))
+//  {
+//    ERROR("CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,CDomain* domainSource, CExpandDomain* expandDomain)",
+//           << "Domain domain destination must refer to domain source (directly or indirectly) by domain_ref " << std::endl
+//           << "Domain source " <<domainSource->getId() << std::endl
+//           << "Domain destination " <<domainDestination->getId() << std::endl);
+//  }
 
   this->type_ = (ELEMENT_MODIFICATION_WITH_DATA);
   expandDomain->checkValid(domainDestination);
@@ -139,8 +139,12 @@ void CDomainAlgorithmExpand::updateDomainAttributes(CDomain* domainDestination,
   // First of all, "copy" all attributes of domain source to domain destination
   StdString domainDstRef = (!domainDestination->domain_ref.isEmpty()) ? domainDestination->domain_ref.getValue()
                                                                       : "";
-  domainDestination->domain_ref.setValue(domainSource->getId());
-  domainDestination->solveRefInheritance(true);
+  if (domainDstRef != domainSource->getId())
+  {
+    domainDestination->domain_ref.setValue(domainSource->getId());
+    domainDestination->solveRefInheritance(true);
+  }
+
   if (domainDstRef.empty()) domainDestination->domain_ref.reset();
   else domainDestination->domain_ref.setValue(domainDstRef);
 

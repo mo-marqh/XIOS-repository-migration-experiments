@@ -180,6 +180,9 @@ namespace xios {
          std::vector<CDomain*> getDomains();
          std::vector<CAxis*> getAxis();
          std::vector<CScalar*> getScalars();
+         CDomain* getDomain(int domainIndex);
+         CAxis* getAxis(int axisIndex);
+         CScalar* getScalar(int scalarIndex);
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
          bool isScalarGrid() const;

@@ -1844,6 +1844,75 @@ namespace xios {
   }
 
   /*!
+  \brief Get domain pointer with index
+  \return domain pointer
+  */
+  CDomain* CGrid::getDomain(int domainIndex)
+  {
+    std::vector<CDomain*> domainListP = this->getDomains();
+    if (domainListP.empty())
+    {
+      ERROR("CGrid::getDomain(int domainIndex)",
+            << "No domain associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (domainIndex >= domainListP.size() || (domainIndex < 0))
+      ERROR("CGrid::getDomain(int domainIndex)",
+            << "Domain with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << domainListP.size() << " domain but domain index required is " << domainIndex << std::endl);
+
+    return domainListP[domainIndex];
+  }
+
+  /*!
+  \brief Get the axis pointer with index
+  \return axis pointer
+  */
+  CAxis* CGrid::getAxis(int axisIndex)
+  {
+    std::vector<CAxis*> axisListP = this->getAxis();
+    if (axisListP.empty())
+    {
+      ERROR("CGrid::getDomain(int axisIndex)",
+            << "No axis associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (axisIndex >= axisListP.size() || (axisIndex < 0))
+      ERROR("CGrid::getDomain(int axisIndex)",
+            << "Domain with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << axisListP.size() << " axis but axis index required is " << axisIndex << std::endl);
+
+    return axisListP[axisIndex];
+  }
+
+  /*!
+  \brief Get the a scalar pointer
+  \return scalar pointer
+  */
+  CScalar* CGrid::getScalar(int scalarIndex)
+  {
+    std::vector<CScalar*> scalarListP = this->getScalars();
+    if (scalarListP.empty())
+    {
+      ERROR("CGrid::getScalar(int scalarIndex)",
+            << "No scalar associated to this grid. " << std::endl
+            << "Grid id = " << this->getId());
+    }
+
+    if (scalarIndex >= scalarListP.size() || (scalarIndex < 0))
+      ERROR("CGrid::getScalar(int scalarIndex)",
+            << "Scalar with the index doesn't exist " << std::endl
+            << "Grid id = " << this->getId() << std::endl
+            << "Grid has only " << scalarListP.size() << " scalar but scalar index required is " << scalarIndex << std::endl);
+
+    return scalarListP[scalarIndex];
+  }
+
+  /*!
   \brief Set domain(s) of a grid from a list
   \param[in] domains list of domains
   */

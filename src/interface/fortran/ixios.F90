@@ -112,6 +112,7 @@ USE icompute_connectivity_domain_attr, ONLY : xios(set_compute_connectivity_doma
                                               xios(is_defined_compute_connectivity_domain_attr)
 
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
-                            xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)
+                            xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar), &
+                            xios(field_get_domain),xios(field_get_axis),xios(field_get_scalar)
 
 END MODULE XIOS

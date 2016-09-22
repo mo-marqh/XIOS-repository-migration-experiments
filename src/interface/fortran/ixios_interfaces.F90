@@ -23,7 +23,9 @@ USE idomain_attr, ONLY : xios(set_domain_attr_hdl), xios(get_domain_attr_hdl), x
 
 USE idomaingroup_attr, ONLY : xios(set_domaingroup_attr_hdl), xios(get_domaingroup_attr_hdl), xios(is_defined_domaingroup_attr_hdl)
 
-USE ifield, ONLY : xios(get_field_handle), xios(get_fieldgroup_handle), xios(field_is_active_id), xios(field_is_active_hdl)
+USE ifield, ONLY : xios(get_field_handle), xios(get_fieldgroup_handle), xios(field_is_active_id), xios(field_is_active_hdl), &
+                   xios(field_get_domain_handle), xios(field_get_axis_handle), xios(field_get_scalar_handle), &
+                   xios(field_id_get_domain_handle), xios(field_id_get_axis_handle), xios(field_id_get_scalar_handle)
 
 USE ifield_attr, ONLY : xios(set_field_attr_hdl), xios(get_field_attr_hdl), xios(is_defined_field_attr_hdl)
 
@@ -194,6 +196,18 @@ INTERFACE xios(field_is_active)
   MODULE PROCEDURE xios(field_is_active_id),xios(field_is_active_hdl)
 END INTERFACE xios(field_is_active)
 
+INTERFACE xios(field_get_domain)
+  MODULE PROCEDURE xios(field_get_domain_handle), xios(field_id_get_domain_handle)
+END INTERFACE xios(field_get_domain)
+
+INTERFACE xios(field_get_axis)
+  MODULE PROCEDURE xios(field_get_axis_handle),xios(field_id_get_axis_handle)
+END INTERFACE xios(field_get_axis)
+
+INTERFACE xios(field_get_scalar)
+  MODULE PROCEDURE xios(field_get_scalar_handle),xios(field_id_get_scalar_handle)
+END INTERFACE xios(field_get_scalar)
+
 INTERFACE xios(getVar)
   MODULE PROCEDURE xios(getVar_k8), xios(getVar_k4), xios(getVar_int), xios(getVar_logic), xios(getVar_char)
 END INTERFACE xios(getVar)
@@ -203,6 +217,7 @@ INTERFACE xios(setVar)
 END INTERFACE xios(setVar)
 
 PUBLIC :: xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
-          xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)
+          xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar), &
+          xios(field_get_domain),xios(field_get_axis),xios(field_get_scalar)
 
 END MODULE XIOS_INTERFACES
