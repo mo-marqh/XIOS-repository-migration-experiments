@@ -105,6 +105,12 @@ USE ireduce_axis_to_scalar, ONLY : txios(reduce_axis_to_scalar), xios(is_valid_r
 USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr), xios(get_reduce_axis_to_scalar_attr), &
                                         xios(is_defined_reduce_axis_to_scalar_attr)
 
+USE icompute_connectivity_domain, ONLY : txios(compute_connectivity_domain), xios(is_valid_compute_connectivity_domain)
+
+USE icompute_connectivity_domain_attr, ONLY : xios(set_compute_connectivity_domain_attr), &
+                                              xios(get_compute_connectivity_domain_attr), &
+                                              xios(is_defined_compute_connectivity_domain_attr)
+
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
                             xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar)
 

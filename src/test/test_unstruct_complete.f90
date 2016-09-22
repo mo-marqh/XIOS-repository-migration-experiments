@@ -29,10 +29,11 @@ PROGRAM test_unstruct_complete
   INTEGER,ALLOCATABLE :: i_index_glo(:)
   INTEGER,ALLOCATABLE :: i_index(:)
   LOGICAL,ALLOCATABLE :: mask_glo(:),mask(:)
+  INTEGER,ALLOCATABLE :: n_local(:),local_neighbor(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: lon(:),lat(:),field_A_srf(:,:), lonvalue(:) ;
   DOUBLE PRECISION,ALLOCATABLE :: bounds_lon(:,:),bounds_lat(:,:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
-  INTEGER :: i,j,l,ts,n
+  INTEGER :: i,j,l,ts,n, nbMax
   INTEGER :: ncell_glo,ncell,ind
   REAL :: ilon,ilat
   DOUBLE PRECISION, PARAMETER :: Pi=3.14159265359
@@ -163,6 +164,7 @@ PROGRAM test_unstruct_complete
   ALLOCATE(bounds_lat(4,ncell))
   ALLOCATE(field_A_srf(ncell,llm))
   ALLOCATE(mask(ncell))
+  ALLOCATE(n_local(ncell))
   ncell=0
   data_n_index=0
   DO ind=1,ncell_glo
@@ -204,12 +206,17 @@ PROGRAM test_unstruct_complete
                                           data_i_index=data_i_index)
   CALL xios_set_domain_attr("domain_srf", lonvalue_1D=lon, latvalue_1D=lat)
   CALL xios_set_domain_attr("domain_srf", nvertex=4, bounds_lon_1D=bounds_lon, bounds_lat_1D=bounds_lat)
+!  CALL xios_set_compute_connectivity_domain_attr("compute", n_neighbor=n_local, local_neighbor=local_neighbor)
 
 
 
   dtime%second=3600
   CALL xios_set_timestep(dtime)
   CALL xios_close_context_definition()
+
+  CALL xios_get_compute_connectivity_domain_attr("compute", n_neighbor_max=nbMax)
+  ALLOCATE(local_neighbor(nbMax,ncell))
+  CALL xios_get_compute_connectivity_domain_attr("compute", n_neighbor=n_local, local_neighbor=local_neighbor)
 
    DO ts=1,24*10
      CALL xios_update_calendar(ts)

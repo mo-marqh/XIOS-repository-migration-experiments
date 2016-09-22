@@ -14,7 +14,8 @@ namespace xios
         TRANS_GENERATE_RECTILINEAR_DOMAIN = 5,
         TRANS_REDUCE_AXIS_TO_SCALAR = 6,
         TRANS_REDUCE_DOMAIN_TO_AXIS = 7,
-        TRANS_EXTRACT_DOMAIN_TO_AXIS = 8
+        TRANS_EXTRACT_DOMAIN_TO_AXIS = 8,
+        TRANS_COMPUTE_CONNECTIVITY_DOMAIN = 9
       } ETranformationType;
 
 } // namespace xios

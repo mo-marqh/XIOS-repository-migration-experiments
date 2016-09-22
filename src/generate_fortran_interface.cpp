@@ -32,6 +32,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CInterpolateDomain interpolateDomain;
   CZoomDomain zoomDomain;
   CGenerateRectilinearDomain genDomain;
+  CComputeConnectivityDomain compConDomain;
 
   CInterpolateAxis interpolateAxis;
   CZoomAxis zoomAxis;
@@ -288,6 +289,21 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"igenerate_rectilinear_domain_attr.F90").c_str());
   genDomain.generateFortranInterface(file);
   file.close();
+
+  file.open((path+"compute_connectivity_domain_interface_attr.F90").c_str());
+  compConDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"iccompute_connectivity_domain_attr.cpp").c_str());
+  compConDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"icompute_connectivity_domain_attr.F90").c_str());
+  compConDomain.generateFortranInterface(file);
+  file.close();
+
+
+
 
   file.open((path+"inverse_axis_interface_attr.F90").c_str());
   inverseAxis.generateFortran2003Interface(file);

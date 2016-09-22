@@ -49,6 +49,7 @@ extern "C"
    typedef xios::CZoomDomain                *  XZoomDomainPtr;
    typedef xios::CInterpolateDomain         *  XInterpolateDomainPtr;
    typedef xios::CGenerateRectilinearDomain *  XGenerateRectilinearDomainPtr;
+   typedef xios::CComputeConnectivityDomain *  XComputeConnectivityDomainPtr;
 
    typedef xios::CTransformation<CAxis>   *  XTransformationAxisPtr;
    typedef xios::CZoomAxis                *  XZoomAxisPtr;
@@ -451,6 +452,24 @@ extern "C"
          tmpChild_ = parent_->addTransformation(TRANS_GENERATE_RECTILINEAR_DOMAIN);
       }
       *child_ = static_cast<XGenerateRectilinearDomainPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_computeconnectivitydomaintodomain
+      (XDomainPtr parent_, XComputeConnectivityDomainPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationDomainPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN);
+      }
+      *child_ = static_cast<XComputeConnectivityDomainPtr>(tmpChild_);
       CTimer::get("XIOS").suspend() ;
    }
 

@@ -10,6 +10,7 @@
 #define __XIOS_AXIS_ALGORITHM_TRANSFORMATION_HPP__
 
 #include "generic_algorithm_transformation.hpp"
+#include "grid_transformation_factory_impl.hpp"
 
 namespace xios {
 

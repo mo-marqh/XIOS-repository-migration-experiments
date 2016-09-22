@@ -17,7 +17,8 @@ CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGr
   listAlgos_(), algoTypes_(), nbNormalAlgos_(0), nbSpecialAlgos_(0), auxInputs_()
 {
   if (0 == source)
-  {  gridSource_ = gridDestination_; isSameGrid_ = true; }
+  {  gridSource_ = gridDestination_; }
+  if (gridSource_ == gridDestination_) isSameGrid_ = true;
 
   //Verify the compatibity between two grids
   int numElement = gridDestination_->axis_domain_order.numElements();
@@ -320,7 +321,7 @@ void CGridTransformationSelector::registerTransformations()
   CAxisAlgorithmReduceDomain::registerTrans();
 
   //! Domain
-//  CDomainAlgorithmComputeConnectivity::registerTrans();
+  CDomainAlgorithmComputeConnectivity::registerTrans();
   CDomainAlgorithmInterpolate::registerTrans();
   CDomainAlgorithmZoom::registerTrans();
 

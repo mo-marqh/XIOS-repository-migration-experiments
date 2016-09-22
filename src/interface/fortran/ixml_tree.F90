@@ -12,6 +12,7 @@ MODULE IXML_TREE
    USE IZOOM_DOMAIN
    USE IINTERPOLATE_DOMAIN
    USE IGENERATE_RECTILINEAR_DOMAIN
+   USE ICOMPUTE_CONNECTIVITY_DOMAIN
    USE IZOOM_AXIS
    USE IINTERPOLATE_AXIS
    USE IINVERSE_AXIS
@@ -212,6 +213,14 @@ MODULE IXML_TREE
          CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
          INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
       END SUBROUTINE cxios_xml_tree_add_generatedomaintodomain
+
+      SUBROUTINE cxios_xml_tree_add_computeconnectivitydomaintodomain(parent_, child_, child_id, child_id_size) BIND(C)
+         USE ISO_C_BINDING
+         INTEGER  (kind = C_INTPTR_T), VALUE        :: parent_
+         INTEGER  (kind = C_INTPTR_T)               :: child_
+         CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: child_id
+         INTEGER  (kind = C_INT)     , VALUE        :: child_id_size
+      END SUBROUTINE cxios_xml_tree_add_computeconnectivitydomaintodomain
 
       SUBROUTINE cxios_xml_tree_add_zoomaxistoaxis(parent_, child_, child_id, child_id_size) BIND(C)
          USE ISO_C_BINDING
@@ -580,6 +589,19 @@ MODULE IXML_TREE
       END IF
 
    END SUBROUTINE xios(add_generatedomaintodomain)
+
+   SUBROUTINE xios(add_computeconnectivitydomaintodomain)(parent_hdl, child_hdl, child_id)
+      TYPE(txios(domain))                      , INTENT(IN) :: parent_hdl
+      TYPE(txios(compute_connectivity_domain)) , INTENT(OUT):: child_hdl
+      CHARACTER(len = *), OPTIONAL             , INTENT(IN) :: child_id
+
+      IF (PRESENT(child_id)) THEN
+         CALL cxios_xml_tree_add_computeconnectivitydomaintodomain(parent_hdl%daddr, child_hdl%daddr, child_id, len(child_id))
+      ELSE
+         CALL cxios_xml_tree_add_computeconnectivitydomaintodomain(parent_hdl%daddr, child_hdl%daddr, "NONE", -1)
+      END IF
+
+   END SUBROUTINE xios(add_computeconnectivitydomaintodomain)
 
    SUBROUTINE xios(add_zoomaxistoaxis)(parent_hdl, child_hdl, child_id)
       TYPE(txios(axis))                      , INTENT(IN) :: parent_hdl

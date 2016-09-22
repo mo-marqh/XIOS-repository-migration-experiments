@@ -19,6 +19,7 @@
 #include "reduce_axis_to_scalar.hpp"
 #include "reduce_domain_to_axis.hpp"
 #include "extract_domain_to_axis.hpp"
+#include "compute_connectivity_domain.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

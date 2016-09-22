@@ -2,6 +2,7 @@
 #define __XIOS_CTransformation__
 
 #include "xios_spl.hpp"
+#include "xml_node.hpp"
 #include "transformation_enum.hpp"
 
 namespace xios {

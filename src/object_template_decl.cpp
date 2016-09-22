@@ -22,6 +22,7 @@ namespace xios
   template class CObjectTemplate<CReduceAxisToScalar>;
   template class CObjectTemplate<CReduceDomainToAxis>;
   template class CObjectTemplate<CExtractDomainToAxis>;
+  template class CObjectTemplate<CComputeConnectivityDomain>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -40,4 +41,5 @@ namespace xios
   template class CObjectTemplate<CReduceAxisToScalarGroup>;
   template class CObjectTemplate<CReduceDomainToAxisGroup>;
   template class CObjectTemplate<CExtractDomainToAxisGroup>;
+  template class CObjectTemplate<CComputeConnectivityDomainGroup>;
 }

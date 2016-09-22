@@ -22,4 +22,7 @@
 #include "axis_algorithm_transformation.hpp"
 #include "axis_algorithm_extract_domain.hpp"
 #include "extract_domain_to_axis.hpp"
+#include "domain_algorithm_compute_connectivity.hpp"
+#include "compute_connectivity_domain.hpp"
+
 #endif // __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__

@@ -23,5 +23,6 @@ namespace xios
   macro(ReduceAxisToScalar)
   macro(ReduceDomainToAxis)
   macro(ExtractDomainToAxis)
+  macro(ComputeConnectivityDomain)
 
 }

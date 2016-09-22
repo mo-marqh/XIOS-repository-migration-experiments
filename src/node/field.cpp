@@ -1020,6 +1020,10 @@ namespace xios{
            gridDest->transformGrid(gridSrc);
        }
      }
+     else if (grid && grid->hasTransform() && !grid->isTransformed())
+     {
+       grid->transformGrid(grid);
+     }
    }
 
    void CField::solveGenerateGrid()

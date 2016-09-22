@@ -19,7 +19,9 @@
    </axis_definition>
 
    <domain_definition>
-     <domain id="domain_srf" />
+     <domain id="domain_srf" >
+       <compute_connectivity_domain id="compute" type="edge" />
+     </domain>
    </domain_definition>
 
    <grid_definition>
