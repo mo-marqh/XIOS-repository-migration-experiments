@@ -1738,9 +1738,9 @@ namespace xios {
       if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
       {
         ERROR("CGrid::completeGrid(CGrid* transformGridSrc)",
-             << "Two grids have different dimension size"
-             << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-             << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+             << "Two grids have different number of elements. " << std::endl
+             << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+             << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
       }
     }
 
@@ -1772,9 +1772,9 @@ namespace xios {
     if (axis_domain_order.numElements() != transformGridSrc->axis_domain_order.numElements())
     {
       ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
-           << "Two grids have different dimension size"
-           << "Dimension of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
-           << "Dimension of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
+           << "Two grids have different number of elements. " << std::endl
+           << "Number of element of grid destination " << this->getId() << " is " << axis_domain_order.numElements() << std::endl
+           << "Number of element of grid source " << transformGridSrc->getId() << " is " << transformGridSrc->axis_domain_order.numElements());
     }
     else
     {
