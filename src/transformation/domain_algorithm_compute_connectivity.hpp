@@ -31,11 +31,11 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
-  void computeNodeConnectivity(CDomain* domain, int& nbConnectivityMax,
-                               CArray<int,1>& nbConnectivity, CArray<int,2>& localConnectivity);
-
-  void computeEdgeConnectivity(CDomain* domain, int& nbConnectivityMax,
-                               CArray<int,1>& nbConnectivity, CArray<int,2>& localConnectivity);
+  void computeLocalConnectivity(int type,
+                                CDomain* domain,
+                                int& nbConnectivityMax,
+                                CArray<int,1>& nbConnectivity,
+                                CArray<int,2>& localConnectivity);
 
 private:
   static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,

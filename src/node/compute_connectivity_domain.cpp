@@ -37,12 +37,14 @@ namespace xios {
 
   void CComputeConnectivityDomain::checkValid(CDomain* domainDst)
   {
-    if (type.isEmpty())
+    if (CDomain::type_attr::unstructured != domainDst->type)
+    {
       ERROR("CComputeConnectivityDomain::checkValid(CDomain* domainDst)",
-       << "Connectivity type is not defined. Chose 'node' or 'edge' for the type."
-       << "Domain " <<domainDst->getId() << std::endl
-       << "Connectivity object " << this->getId());
+            << "Domain connectivity computation is only supported for unstructured" << std::endl
+            << "Check type of domain destination, id = " << domainDst->getId());
+    }
 
+    if (type.isEmpty()) type.setValue(CComputeConnectivityDomain::type_attr::edge);
     if (n_neighbor_max.isEmpty()) n_neighbor_max.setValue(0);
     if (n_neighbor.isEmpty()) n_neighbor.resize(domainDst->i_index.numElements());
     if (local_neighbor.isEmpty()) local_neighbor.resize(1,1);

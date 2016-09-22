@@ -48,161 +48,58 @@ CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(CDomain
   int& nbNeighborMax = compute_connectivityDomain->n_neighbor_max;
   CArray<int,1>& nbNeighbor = compute_connectivityDomain->n_neighbor;
   CArray<int,2>& localNeighbors = compute_connectivityDomain->local_neighbor;
+  int type = 1; // Edge type
   switch (compute_connectivityDomain->type)
   {
     case CComputeConnectivityDomain::type_attr::node :
-      computeNodeConnectivity(domainDestination,
-                              nbNeighborMax,
-                              nbNeighbor,
-                              localNeighbors);
+      type = 0;
       break;
     case CComputeConnectivityDomain::type_attr::edge :
-      computeEdgeConnectivity(domainDestination,
-                              nbNeighborMax,
-                              nbNeighbor,
-                              localNeighbors);
+      type = 1;
       break;
     default:
       break;
   }
+
+  computeLocalConnectivity(type, domainDestination, nbNeighborMax, nbNeighbor, localNeighbors);
 }
 
-void CDomainAlgorithmComputeConnectivity::computeNodeConnectivity(CDomain* domain,
+/*!
+ *  Compute local connectivity of a domain
+ *  \param[in] type type of connectivity (node or edge)
+ *  \param[in] domain domain on which we calculate local connectivity
+ *  \param[in/out] nbConnectivityMax maximum number of neighbor a cell of domain has
+ *  \param[in/out] nbConnectivity number of neighbor a cell has
+ *  \param[in/out] localConnectivity localConnectivity local index of neighbor of a cell
+ */
+void CDomainAlgorithmComputeConnectivity::computeLocalConnectivity(int type,
+                                                                  CDomain* domain,
                                                                   int& nbConnectivityMax,
                                                                   CArray<int,1>& nbConnectivity,
                                                                   CArray<int,2>& localConnectivity)
 {
+
   CMesh mesh;
-  CArray<double,1>& lon = domain->lonvalue_1d;
-  CArray<double,1>& lat = domain->latvalue_1d;
+
   CArray<double,2>& bounds_lon = domain->bounds_lon_1d;
   CArray<double,2>& bounds_lat = domain->bounds_lat_1d;
-  mesh.createMesh(lon, lat, bounds_lon, bounds_lat);
-  CArray<int, 2>& face_nodes = mesh.face_nodes;
-  int nvertex = mesh.nvertex;
-  int nFaces  = mesh.nbFaces;
-  int nNodes  = mesh.nbNodes;
-  std::vector<std::vector<size_t> > nodeFaceConnectivity(nNodes, std::vector<size_t>());
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      nodeFaceConnectivity[face_nodes(nv,nf)].push_back(nf);
-    }
-  }
+  int ncell = bounds_lon.shape()[1];
+  CArray<int,1> localIndex(ncell);
+  for (int idx = 0; idx <ncell; ++idx) localIndex(idx) = idx;
 
-  if (nFaces != nbConnectivity.numElements()) nbConnectivity.resize(nFaces);
-  nbConnectivityMax = 1;
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    std::set<size_t> neighFaces;
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      std::vector<size_t>& tmpFaces = nodeFaceConnectivity[face_nodes(nv,nf)];
-      for (int nFn = 0; nFn < tmpFaces.size(); ++nFn)
-      {
-        neighFaces.insert(tmpFaces[nFn]);
-      }
-    }
-    if (nbConnectivityMax < (neighFaces.size()-1)) nbConnectivityMax = neighFaces.size()-1;
-  }
-  if ((nbConnectivityMax != localConnectivity.shape()[0]) || (nFaces != localConnectivity.shape()[1]))
-    localConnectivity.resize(nbConnectivityMax, nFaces);
-
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    std::set<size_t> neighFaces;
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      std::vector<size_t>& tmpFaces = nodeFaceConnectivity[face_nodes(nv,nf)];
-      for (int nFn = 0; nFn < tmpFaces.size(); ++nFn)
-      {
-        neighFaces.insert(tmpFaces[nFn]);
-      }
-    }
-
-    neighFaces.erase(nf);
-    nbConnectivity(nf) = neighFaces.size();
-    std::set<size_t>::iterator it = neighFaces.begin(), ite = neighFaces.end();
-    for (int idx = 0; it != ite; ++it, ++idx)
-    {
-      localConnectivity(idx, nf) = *it;
-    }
-  }
+  mesh.getLocalNghbFaces(type, localIndex, bounds_lon, bounds_lat, localConnectivity, nbConnectivity);
+  nbConnectivityMax = 0;
+  for (int idx =0; idx < nbConnectivity.numElements(); ++idx)
+    if (nbConnectivityMax < nbConnectivity(idx)) nbConnectivityMax = nbConnectivity(idx);
 }
 
-void CDomainAlgorithmComputeConnectivity::computeEdgeConnectivity(CDomain* domain,
-                                                                  int& nbConnectivityMax,
-                                                                  CArray<int,1>& nbConnectivity,
-                                                                  CArray<int,2>& localConnectivity)
-{
-  CMesh mesh;
-  CArray<double,1>& lon = domain->lonvalue_1d;
-  CArray<double,1>& lat = domain->latvalue_1d;
-  CArray<double,2>& bounds_lon = domain->bounds_lon_1d;
-  CArray<double,2>& bounds_lat = domain->bounds_lat_1d;
-  mesh.createMesh(lon, lat, bounds_lon, bounds_lat);
 
-  CArray<int, 2>& face_edges = mesh.face_edges;
-  int nvertex = mesh.nvertex;
-  int nFaces  = mesh.nbFaces;
-  int nEdges  = mesh.nbEdges;
-  std::vector<std::vector<size_t> > edgeFaceConnectivity(nEdges, std::vector<size_t>());
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      edgeFaceConnectivity[face_edges(nv,nf)].push_back(nf);
-    }
-  }
-
-  if (nFaces != nbConnectivity.numElements()) nbConnectivity.resize(nFaces);
-  nbConnectivityMax = 1;
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    std::set<size_t> neighFaces;
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      std::vector<size_t>& tmpFaces = edgeFaceConnectivity[face_edges(nv,nf)];
-      for (int nFn = 0; nFn < tmpFaces.size(); ++nFn)
-      {
-        neighFaces.insert(tmpFaces[nFn]);
-      }
-    }
-    if (nbConnectivityMax < (neighFaces.size()-1)) nbConnectivityMax = neighFaces.size() - 1;
-  }
-  if ((nbConnectivityMax != localConnectivity.shape()[0]) || (nFaces != localConnectivity.shape()[1]))
-    localConnectivity.resize(nbConnectivityMax, nFaces);
-
-  for (int nf = 0; nf < nFaces; ++nf)
-  {
-    std::set<size_t> neighFaces;
-    for (int nv = 0; nv < nvertex; ++nv)
-    {
-      std::vector<size_t>& tmpFaces = edgeFaceConnectivity[face_edges(nv,nf)];
-      for (int nFn = 0; nFn < tmpFaces.size(); ++nFn)
-      {
-        neighFaces.insert(tmpFaces[nFn]);
-      }
-    }
-
-    neighFaces.erase(nf);
-    nbConnectivity(nf) = neighFaces.size();
-    std::set<size_t>::iterator it = neighFaces.begin(), ite = neighFaces.end();
-    for (int idx = 0; it != ite; ++it, ++idx)
-    {
-      localConnectivity(idx, nf) = *it;
-    }
-  }
-
-}
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination
 */
 void CDomainAlgorithmComputeConnectivity::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-
 }
 
 }
