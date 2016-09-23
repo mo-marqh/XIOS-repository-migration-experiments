@@ -539,7 +539,9 @@ namespace xios
         this->isCurvilinear(name, path) ||
         !this->hasCoordinates(name, path))
        return false;
-
+    else return true ;
+    
+// check this part above    
     StdString dimname = this->getDimensionsList(&name, path).back();
 
     std::list<StdString> coords = this->getCoordinatesIdList(name, path);
