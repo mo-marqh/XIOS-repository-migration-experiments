@@ -169,30 +169,29 @@ void CDomainAlgorithmInterpolate::computeRemap()
   {
     bool isNorthPole = false;
     bool isSouthPole = false;
-    if (std::abs(poleValue - std::abs(domainDest_->lat_start)) < NumTraits<double>::epsilon()) isNorthPole = true;
-    if (std::abs(poleValue - std::abs(domainDest_->lat_end)) < NumTraits<double>::epsilon()) isSouthPole = true;
 
     CArray<double,1> lon_g ;
     CArray<double,1> lat_g ;
 
     if (!domainDest_->lonvalue_1d.isEmpty() && !domainDest_->latvalue_1d.isEmpty())
     {
-		domainDest_->AllgatherRectilinearLonLat(domainDest_->lonvalue_1d,domainDest_->latvalue_1d, lon_g,lat_g) ;
-	}
-	else if (! domainDest_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainDest_->lonvalue_rectilinear_read_from_file.isEmpty() )
+      domainDest_->AllgatherRectilinearLonLat(domainDest_->lonvalue_1d,domainDest_->latvalue_1d, lon_g,lat_g) ;
+    }
+    else if (! domainDest_->latvalue_rectilinear_read_from_file.isEmpty() && ! domainDest_->lonvalue_rectilinear_read_from_file.isEmpty() )
     {
-	  	lat_g=domainDest_->latvalue_rectilinear_read_from_file ;
-	  	lon_g=domainDest_->lonvalue_rectilinear_read_from_file ;
-	}
-	else if (!domainDest_->lon_start.isEmpty() && !domainDest_->lon_end.isEmpty() &&
-	         !domainDest_->lat_start.isEmpty() && !domainDest_->lat_end.isEmpty())
-	{
-	  double step=(domainDest_->lon_end-domainDest_->lon_start)/domainDest_->ni_glo ;
-	  for(int i=0; i<domainDest_->ni_glo; ++i) lon_g(i)=domainDest_->lon_start+i*step ;
-	  step=(domainDest_->lat_end-domainDest_->lat_start)/domainDest_->nj_glo ;
-	  for(int i=0; i<domainDest_->ni_glo; ++i) lat_g(i)=domainDest_->lat_start+i*step ;
-	}
-	else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
+      lat_g=domainDest_->latvalue_rectilinear_read_from_file ;
+      lon_g=domainDest_->lonvalue_rectilinear_read_from_file ;
+    }
+    else if (!domainDest_->lon_start.isEmpty() && !domainDest_->lon_end.isEmpty() &&
+             !domainDest_->lat_start.isEmpty() && !domainDest_->lat_end.isEmpty())
+    {
+      double step=(domainDest_->lon_end-domainDest_->lon_start)/domainDest_->ni_glo ;
+      for(int i=0; i<domainDest_->ni_glo; ++i) lon_g(i)=domainDest_->lon_start+i*step ;
+      step=(domainDest_->lat_end-domainDest_->lat_start)/domainDest_->nj_glo ;
+      for(int i=0; i<domainDest_->ni_glo; ++i) lat_g(i)=domainDest_->lat_start+i*step ;
+    }
+    else ERROR("void CDomainAlgorithmInterpolate::computeRemap()",<<"Cannot compute bounds for rectilinear domain") ;
+    
     if (std::abs(poleValue - std::abs(lat_g(0))) < NumTraits<double>::epsilon()) isNorthPole = true;
     if (std::abs(poleValue - std::abs(lat_g(domainDest_->nj_glo-1))) < NumTraits<double>::epsilon()) isSouthPole = true;
 
