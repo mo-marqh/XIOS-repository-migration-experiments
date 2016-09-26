@@ -15,7 +15,7 @@
 
 namespace sphereRemap {
 
-static const int MAX_LEVEL_SIZE = 100;
+const int MAX_LEVEL_SIZE = 100;
 
 double cputime();
 using namespace std;
