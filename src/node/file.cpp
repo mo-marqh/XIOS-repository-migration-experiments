@@ -242,10 +242,10 @@ namespace xios {
 
       allDomainEmpty = true;
 
-      if (!record_offset.isEmpty() && record_offset < 0)
-        ERROR("void CFile::initFile(void)",
-              "Invalid 'record_offset', this attribute cannot be negative.");
-      const size_t recordOffset = record_offset.isEmpty() ? 0 : record_offset;
+//      if (!record_offset.isEmpty() && record_offset < 0)
+//        ERROR("void CFile::initFile(void)",
+//              "Invalid 'record_offset', this attribute cannot be negative.");
+      const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
 
       set<CAxis*> setAxis;
       set<CDomain*> setDomains;

@@ -433,7 +433,7 @@ namespace xios{
       return this->file;
    }
 
-   StdSize CField::getNStep(void) const
+   int CField::getNStep(void) const
    {
       return this->nstep;
    }
@@ -450,7 +450,7 @@ namespace xios{
       this->nstep++;
    }
 
-   void CField::resetNStep(StdSize nstep /*= 0*/)
+   void CField::resetNStep(int nstep /*= 0*/)
    {
       this->nstep = nstep;
    }

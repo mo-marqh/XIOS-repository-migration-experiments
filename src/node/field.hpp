@@ -80,7 +80,7 @@ namespace xios {
          func::CFunctor::ETimeType getOperationTimeType() const;
 
       public:
-         StdSize getNStep(void) const;
+         int getNStep(void) const;
 
          template <int N> void getData(CArray<double, N>& _data) const;
 
@@ -89,7 +89,7 @@ namespace xios {
          /// Mutateur ///
          void setRelFile(CFile* _file);
          void incrementNStep(void);
-         void resetNStep(StdSize nstep = 0);
+         void resetNStep(int nstep = 0);
          void resetNStepMax();
 
          std::map<int, StdSize> getGridAttributesBufferSize();
@@ -188,7 +188,7 @@ namespace xios {
          CDuration freq_operation_srv, freq_write_srv;
 
          bool written; //<! Was the field written at least once
-         StdSize nstep, nstepMax;
+         int nstep, nstepMax;
          bool isEOF;
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
          CDate lastDataRequestedFromServer;

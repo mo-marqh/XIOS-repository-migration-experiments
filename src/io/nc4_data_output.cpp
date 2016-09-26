@@ -1907,6 +1907,8 @@ namespace xios
         CContextServer* server = context->server;
         CGrid* grid = field->grid;
 
+        if (field->getNStep()<1) return ;
+        
         if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type == MULTI_FILE || !isCollective) return;
 
