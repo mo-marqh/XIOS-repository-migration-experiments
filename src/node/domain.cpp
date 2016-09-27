@@ -33,7 +33,7 @@ namespace xios {
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , isRedistributed_(false)
+      , isRedistributed_(false), hasPole(false)
    {
    }
 
@@ -43,7 +43,7 @@ namespace xios {
       , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
-      , isRedistributed_(false)
+      , isRedistributed_(false), hasPole(false)
    {
 	 }
 
@@ -613,7 +613,13 @@ namespace xios {
              << "The domain type is mandatory, "
              << "please define the 'type' attribute.")
      }
-
+     if (type == type_attr::gaussian) 
+     {
+	   hasPole=true ;
+	   type.setValue(type_attr::unstructured) ;
+	 }
+	 else if (type == type_attr::rectilinear) hasPole=true ;
+	 
      if (type == type_attr::unstructured)
      {
         if (ni_glo.isEmpty())

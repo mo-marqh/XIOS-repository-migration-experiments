@@ -83,7 +83,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   CArray<double,2> boundsLonSrc(nVertexSrc,localDomainSrcSize);
   CArray<double,2> boundsLatSrc(nVertexSrc,localDomainSrcSize);
 
-  if (CDomain::type_attr::rectilinear == domainSrc_->type) srcPole[2] = 1;
+  if (domainSrc_->hasPole) srcPole[2] = 1;
   if (hasBoundSrc)  // Suppose that domain source is curvilinear or unstructured
   {
     if (!domainSrc_->bounds_lon_2d.isEmpty())
@@ -143,7 +143,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   CArray<double,2> boundsLonDest(nVertexDest,localDomainDestSize);
   CArray<double,2> boundsLatDest(nVertexDest,localDomainDestSize);
 
-  if (CDomain::type_attr::rectilinear == domainDest_->type) dstPole[2] = 1;
+  if (domainDest_->hasPole) dstPole[2] = 1;
   if (hasBoundDest)
   {
     if (!domainDest_->bounds_lon_2d.isEmpty())

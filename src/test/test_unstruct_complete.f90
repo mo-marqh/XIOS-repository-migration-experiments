@@ -203,7 +203,7 @@ PROGRAM test_unstruct_complete
   CALL xios_set_current_context(ctx_hdl)
 
   CALL xios_set_axis_attr("axis_srf",n_glo=llm ,value=lval) ;
-  CALL xios_set_domain_attr("domain_srf", ni_glo=ncell_glo, ni=ncell, ibegin=1, i_index=i_index)
+  CALL xios_set_domain_attr("domain_srf", ni_glo=ncell_glo, ni=ncell, ibegin=0, i_index=i_index)
   CALL xios_set_domain_attr("domain_srf", type='unstructured', data_dim=1, data_ni=data_n_index, &
                                           data_i_index=data_i_index)
   CALL xios_set_domain_attr("domain_srf", lonvalue_1D=lon, latvalue_1D=lat)
@@ -214,6 +214,10 @@ PROGRAM test_unstruct_complete
 
   dtime%second=3600
   CALL xios_set_timestep(dtime)
+
+  !CALL MSE_XIOS_GAUSS_GRID(NDGLG,NDLON,NPRGPNS ,NPRGPEW,MYSETA,MYSETB)
+   CALL MSE_XIOS_GAUSS_GRID(127  ,255  ,mpi_size,1      ,mpi_rank+1, 1)
+
   CALL xios_close_context_definition()
 
   CALL xios_field_get_domain("field_A_expand",domain_hdl)
@@ -227,6 +231,7 @@ PROGRAM test_unstruct_complete
    DO ts=1,1
      CALL xios_update_calendar(ts)
      CALL xios_send_field("field_A_srf",field_A_compressed)
+     CALL xios_send_field("field_B_srf",field_A_compressed(:,1))
     ENDDO
 
     CALL xios_context_finalize()
@@ -252,7 +257,85 @@ PROGRAM test_unstruct_complete
 
   CALL xios_finalize()
 
-  END PROGRAM test_unstruct_complete
+CONTAINS
+SUBROUTINE MSE_XIOS_GAUSS_GRID(NDGLG,NDLON,NPRGPNS, NPRGPEW,MYSETA, MYSETB)
+!!
+!!     PURPOSE : declare to XIOS a distribution for a rectilinear grid
+!!     --------
+!
+USE XIOS     , ONLY : XIOS_DOMAIN, XIOS_DOMAINGROUP,XIOS_GET_HANDLE, &
+                      XIOS_ADD_CHILD, XIOS_SET_DOMAIN_ATTR
+!
+!
+IMPLICIT NONE
+!
+INTEGER, INTENT(IN) :: NDGLG,NDLON,NPRGPNS, NPRGPEW,MYSETA, MYSETB
+!
+!
+!*       0.2   Declarations of local variables
+!              -------------------------------
+!
+CHARACTER(LEN=8), PARAMETER       :: YNAMGRID="complete"
+INTEGER                           :: NI,NJ,I,J,IOFF,JOFF
+REAL                   :: ZINCR
+DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:)   :: ZLATI,ZLONG
+!
+TYPE(xios_domaingroup)            :: domaingroup_hdl
+TYPE(xios_domain)                 :: domain_hdl
+!
+! Basic XIOS declarations
+ CALL XIOS_GET_HANDLE("domain_definition",domaingroup_hdl)
+ CALL XIOS_ADD_CHILD(domaingroup_hdl,domain_hdl,YNAMGRID)
+ CALL XIOS_SET_DOMAIN_ATTR(YNAMGRID, type="rectilinear", data_dim=2)
+!
+! Compute domain size in longitude 
+!
+IF (MOD(NDLON,NPRGPEW)==0) THEN 
+   NI=NDLON/NPRGPEW
+   IOFF=(MYSETB-1)*NI
+ELSE
+   NI=NDLON/NPRGPEW+1
+   IOFF=(MYSETB-1)*NI
+   IF (MYSETB==NPRGPEW) NI=MOD(NDLON,NI)
+ENDIF
+!
+! Compute evenly spaced longitudes
+!
+ALLOCATE(ZLONG(NI))
+ZINCR=360./NDLON
+DO I=1,NI
+   ZLONG(I)=(IOFF+I)*ZINCR
+ENDDO
+!
+write(0,*) 'i=',IOFF+1,IOFF+NI
+CALL XIOS_SET_DOMAIN_ATTR(YNAMGRID, ni_glo=NDLON, ni=NI,ibegin=IOFF)
+ CALL XIOS_SET_DOMAIN_ATTR(YNAMGRID, lonvalue_1d=ZLONG(:))
+!
+! Compute domain size in latitude 
+!
+IF (MOD(NDGLG,NPRGPNS)==0) THEN 
+   NJ=NDGLG/NPRGPNS
+   JOFF=(MYSETA-1)*NJ
+ELSE
+   NJ=NDGLG/NPRGPNS+1
+   JOFF=(MYSETA-1)*NJ
+   IF (MYSETA==NPRGPNS) NJ=MOD(NDGLG,NJ)
+ENDIF
+!
+ALLOCATE(ZLATI(NJ))
+ZINCR=180./NDGLG
+DO J=1,NJ
+   ZLATI(J)=(JOFF+J)*ZINCR
+ENDDO
+!
+!write(0,*) 'j=',JOFF+1,JOFF+NJ ; call flush(0)
+ CALL XIOS_SET_DOMAIN_ATTR(YNAMGRID, nj_glo=NDGLG, nj=NJ, jbegin=JOFF)
+ CALL XIOS_SET_DOMAIN_ATTR(YNAMGRID,latvalue_1d=ZLATI(:)-90.)
+!
+ DEALLOCATE(ZLATI,ZLONG)!,ZLATIC,ZLONGC)
+END SUBROUTINE MSE_XIOS_GAUSS_GRID
+
+END PROGRAM test_unstruct_complete
 
 
 

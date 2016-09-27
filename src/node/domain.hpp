@@ -163,6 +163,8 @@ namespace xios {
          bool hasBounds ;
          bool hasArea;
          bool hasLonLat;
+         bool hasPole ;
+
       private:
          void checkDomain(void);
          void checkLocalIDomain(void);
@@ -205,7 +207,7 @@ namespace xios {
          TransMapTypes transformationMap_;
          std::vector<int> nGlobDomain_;
          bool isUnstructed_;
-
+       
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
          static std::map<StdString, ETranformationType> transformationMapList_;
