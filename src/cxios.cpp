@@ -76,13 +76,14 @@ namespace xios
   {
     initialize() ;
 
-    isClient=true;
+    isClient = true;
 
     CClient::initialize(codeId,localComm,returnComm) ;
     if (CClient::getRank()==0) globalRegistry = new CRegistry(returnComm) ;
 
-    if (usingServer) isServer=false;
-    else isServer=true;
+    // If there are no server processes then we are in attached mode
+    // and the clients are also servers
+    isServer = !usingServer;
 
     if (printLogs2Files)
     {
@@ -128,8 +129,8 @@ namespace xios
   void CXios::initServerSide(void)
   {
     initServer();
-    isClient=true;
-    isServer=false ;
+    isClient = false;
+    isServer = true;
 
     // Initialize all aspects MPI
     CServer::initialize();

@@ -184,7 +184,7 @@ namespace xios
 
          contextEventLoop() ;
          if (finished && contextList.empty()) stop=true ;
-         if (! CXios::isServer) eventScheduler->checkEvent() ;
+         eventScheduler->checkEvent() ;
        }
        CTimer::get("XIOS server").suspend() ;
      }
