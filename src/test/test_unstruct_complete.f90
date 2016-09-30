@@ -16,12 +16,11 @@ PROGRAM test_unstruct_complete
   INTEGER, PARAMETER :: nlat=30
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=1
+  INTEGER,PARAMETER :: llm=5
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
-  TYPE(xios_domain) :: domain_hdl
   LOGICAL :: ok
 
   DOUBLE PRECISION,ALLOCATABLE :: lon_glo(:),lat_glo(:)
@@ -179,7 +178,6 @@ PROGRAM test_unstruct_complete
       field_A_srf(ncell,:)=i_index_glo(ind)
       IF (MOD(ind,8)>=0 .AND. MOD(ind,8)<2) THEN
         mask(ncell)=.FALSE.
-!        data_n_index=data_n_index+1
       ELSE
         mask(ncell)=.TRUE.
         data_n_index=data_n_index+1
@@ -220,15 +218,11 @@ PROGRAM test_unstruct_complete
 
   CALL xios_close_context_definition()
 
-  CALL xios_field_get_domain("field_A_expand",domain_hdl)
-  CALL xios_get_attr(domain_hdl,ni=ni)
-  PRINT *, "Domain destination ni = ",ni, "Domain source n= ",ncell
   CALL xios_get_compute_connectivity_domain_attr("compute", n_neighbor_max=nbMax)
   ALLOCATE(local_neighbor(nbMax,ncell))
   CALL xios_get_compute_connectivity_domain_attr("compute", n_neighbor=n_local, local_neighbor=local_neighbor)
-  PRINT *, "Connectivity max = ",nbMax
 
-   DO ts=1,1
+   DO ts=1,24*10
      CALL xios_update_calendar(ts)
      CALL xios_send_field("field_A_srf",field_A_compressed)
      CALL xios_send_field("field_B_srf",field_A_compressed(:,1))
