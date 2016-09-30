@@ -25,8 +25,8 @@ namespace xios {
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
       , allDomainEmpty(false), isOpen(false)
    {
-     setVirtualFieldGroup();
-     setVirtualVariableGroup();
+     setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+     setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
    }
 
    CFile::CFile(const StdString & id)
@@ -34,8 +34,8 @@ namespace xios {
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
       , allDomainEmpty(false), isOpen(false)
     {
-      setVirtualFieldGroup();
-      setVirtualVariableGroup();
+      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
+      setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
     }
 
    CFile::~CFile(void)
@@ -186,19 +186,6 @@ namespace xios {
    void CFile::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
    {
       this->vVariableGroup = newVVariableGroup;
-   }
-
-   //----------------------------------------------------------------
-   //! Create virtual field group, which is done normally on initializing file
-   void CFile::setVirtualFieldGroup(void)
-   {
-      this->setVirtualFieldGroup(CFieldGroup::create());
-   }
-
-   //! Create virtual variable group, which is done normally on initializing file
-   void CFile::setVirtualVariableGroup(void)
-   {
-      this->setVirtualVariableGroup(CVariableGroup::create());
    }
 
    //----------------------------------------------------------------
@@ -943,22 +930,15 @@ namespace xios {
    */
    void CFile::sendAddAllVariables()
    {
-     if (!getAllVariables().empty())
+     std::vector<CVariable*> allVar = getAllVariables();
+     std::vector<CVariable*>::const_iterator it = allVar.begin();
+     std::vector<CVariable*>::const_iterator itE = allVar.end();
+
+     for (; it != itE; ++it)
      {
-       // Firstly, it's necessary to add virtual variable group
-       sendAddVariableGroup(getVirtualVariableGroup()->getId());
-
-       // Okie, now we can add to this variable group
-       std::vector<CVariable*> allVar = getAllVariables();
-       std::vector<CVariable*>::const_iterator it = allVar.begin();
-       std::vector<CVariable*>::const_iterator itE = allVar.end();
-
-       for (; it != itE; ++it)
-       {
-         this->sendAddVariable((*it)->getId());
-         (*it)->sendAllAttributesToServer();
-         (*it)->sendValue();
-       }
+       this->sendAddVariable((*it)->getId());
+       (*it)->sendAllAttributesToServer();
+       (*it)->sendValue();
      }
    }
 

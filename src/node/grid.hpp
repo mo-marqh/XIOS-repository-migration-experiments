@@ -243,11 +243,8 @@ namespace xios {
         void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify);
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
-        void setVirtualDomainGroup();
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
-        void setVirtualAxisGroup();
         void setVirtualScalarGroup(CScalarGroup* newVScalarGroup);
-        void setVirtualScalarGroup();
 
         void setDomainList(const std::vector<CDomain*> domains = std::vector<CDomain*>());
         void setAxisList(const std::vector<CAxis*> axis = std::vector<CAxis*>());

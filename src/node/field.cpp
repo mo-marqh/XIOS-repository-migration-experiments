@@ -36,7 +36,7 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
-   { setVirtualVariableGroup(); }
+   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
@@ -47,7 +47,7 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
-   { setVirtualVariableGroup(); }
+   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
    {}
@@ -59,16 +59,10 @@ namespace xios{
       this->vVariableGroup = newVVariableGroup;
    }
 
-   void CField::setVirtualVariableGroup(void)
-   {
-      this->setVirtualVariableGroup(CVariableGroup::create());
-   }
-
    CVariableGroup* CField::getVirtualVariableGroup(void) const
    {
       return this->vVariableGroup;
    }
-
 
    std::vector<CVariable*> CField::getAllVariables(void) const
    {
@@ -1209,22 +1203,15 @@ namespace xios{
 
    void CField::sendAddAllVariables()
    {
-     if (!getAllVariables().empty())
+     std::vector<CVariable*> allVar = getAllVariables();
+     std::vector<CVariable*>::const_iterator it = allVar.begin();
+     std::vector<CVariable*>::const_iterator itE = allVar.end();
+
+     for (; it != itE; ++it)
      {
-       // Firstly, it's necessary to add virtual variable group
-       sendAddVariableGroup(getVirtualVariableGroup()->getId());
-
-       // Okie, now we can add to this variable group
-       std::vector<CVariable*> allVar = getAllVariables();
-       std::vector<CVariable*>::const_iterator it = allVar.begin();
-       std::vector<CVariable*>::const_iterator itE = allVar.end();
-
-       for (; it != itE; ++it)
-       {
-         this->sendAddVariable((*it)->getId());
-         (*it)->sendAllAttributesToServer();
-         (*it)->sendValue();
-       }
+       this->sendAddVariable((*it)->getId());
+       (*it)->sendAllAttributesToServer();
+       (*it)->sendValue();
      }
    }
 

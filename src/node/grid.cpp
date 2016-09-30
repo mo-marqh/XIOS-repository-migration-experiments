@@ -35,9 +35,9 @@ namespace xios {
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
    {
-     setVirtualDomainGroup();
-     setVirtualAxisGroup();
-     setVirtualScalarGroup();
+     setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
+     setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
+     setVirtualScalarGroup(CScalarGroup::create(getId() + "_virtual_scalar_group"));
    }
 
    CGrid::CGrid(const StdString& id)
@@ -53,9 +53,9 @@ namespace xios {
       , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
    {
-     setVirtualDomainGroup();
-     setVirtualAxisGroup();
-     setVirtualScalarGroup();
+     setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
+     setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
+     setVirtualScalarGroup(CScalarGroup::create(getId() + "_virtual_scalar_group"));
    }
 
    CGrid::~CGrid(void)
@@ -1479,25 +1479,6 @@ namespace xios {
    void CGrid::setVirtualScalarGroup(CScalarGroup* newVScalarGroup)
    {
       this->vScalarGroup_ = newVScalarGroup;
-   }
-
-   //----------------------------------------------------------------
-   //! Create virtual field group, which is done normally on initializing file
-   void CGrid::setVirtualDomainGroup(void)
-   {
-      this->setVirtualDomainGroup(CDomainGroup::create());
-   }
-
-   //! Create virtual variable group, which is done normally on initializing file
-   void CGrid::setVirtualAxisGroup(void)
-   {
-      this->setVirtualAxisGroup(CAxisGroup::create());
-   }
-
-   //! Create virtual variable group, which is done normally on initializing file
-   void CGrid::setVirtualScalarGroup(void)
-   {
-      this->setVirtualScalarGroup(CScalarGroup::create());
    }
 
    /*!

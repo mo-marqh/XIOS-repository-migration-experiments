@@ -91,9 +91,7 @@ namespace xios {
          /// Mutateurs ///
          // Set some root definitions in a file
          void setVirtualFieldGroup(CFieldGroup* newVFieldGroup);
-         void setVirtualFieldGroup(void);
          void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
-         void setVirtualVariableGroup(void);
 
          void createHeader(void);
          void openInReadMode(void);

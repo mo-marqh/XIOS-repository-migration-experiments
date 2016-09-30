@@ -160,7 +160,6 @@ namespace xios {
         void parse(xml::CXMLNode& node);
 
         void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
-        void setVirtualVariableGroup(void);
         CVariableGroup* getVirtualVariableGroup(void) const;
         vector<CVariable*> getAllVariables(void) const;
         virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
