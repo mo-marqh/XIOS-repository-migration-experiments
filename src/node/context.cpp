@@ -1010,6 +1010,7 @@ namespace xios {
 
              CField* tsField = tsFile->addField();
              tsField->field_ref = field->getId();
+             tsField->setVirtualVariableGroup(field->getVirtualVariableGroup());
 
              tsFile->solveFieldRefInheritance(true);
 
