@@ -306,9 +306,11 @@ namespace xios
 
       int ni = domain->i_index.numElements();
 */
-      int ni     = domain->ni;
-      int ibegin = domain->ibegin;
-      if (domain->i_index.isEmpty())
+
+      int ni     = domain->ni.isEmpty() ? 0 : domain->ni;
+      int ibegin = domain->ibegin.isEmpty() ? 0 : domain->ibegin;
+
+      if (domain->i_index.isEmpty() && (!domain->ni.isEmpty()) )
       {
         domain->i_index.resize(ni) ;
         for(int idx = 0; idx < ni; ++idx) domain->i_index(idx)=ibegin+idx ;
