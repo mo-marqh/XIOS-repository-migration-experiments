@@ -26,5 +26,7 @@
 #include "compute_connectivity_domain.hpp"
 #include "expand_domain.hpp"
 #include "domain_algorithm_expand.hpp"
+#include "extract_axis_to_scalar.hpp"
+#include "scalar_algorithm_extract_axis.hpp"
 
 #endif // __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__

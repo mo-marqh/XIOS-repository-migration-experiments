@@ -37,6 +37,7 @@ namespace xios
   macro(CExtractDomainToAxis)
   macro(CComputeConnectivityDomain)
   macro(CExpandDomain)
+  macro(CExtractAxisToScalar)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -57,4 +58,5 @@ namespace xios
   macro(CExtractDomainToAxisGroup)
   macro(CComputeConnectivityDomainGroup)
   macro(CExpandDomainGroup)
+  macro(CExtractAxisToScalarGroup)
 }

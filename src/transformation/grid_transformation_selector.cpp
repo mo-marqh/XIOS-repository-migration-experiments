@@ -12,6 +12,29 @@
 
 namespace xios {
 
+/*!
+  Register transformation to the framework
+*/
+void CGridTransformationSelector::registerTransformations()
+{
+  //! Scalar
+  CScalarAlgorithmReduceScalar::registerTrans();
+  CScalarAlgorithmExtractScalar::registerTrans();
+
+  //! Axis
+  CAxisAlgorithmZoom::registerTrans();
+  CAxisAlgorithmExtractDomain::registerTrans();
+  CAxisAlgorithmInterpolate::registerTrans();
+  CAxisAlgorithmInverse::registerTrans();
+  CAxisAlgorithmReduceDomain::registerTrans();
+
+  //! Domain
+  CDomainAlgorithmComputeConnectivity::registerTrans();
+  CDomainAlgorithmInterpolate::registerTrans();
+  CDomainAlgorithmZoom::registerTrans();
+  CDomainAlgorithmExpand::registerTrans();
+}
+
 CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)
  : gridSource_(source), gridDestination_(destination), isSameGrid_(false),
   listAlgos_(), algoTypes_(), nbNormalAlgos_(0), nbSpecialAlgos_(0), auxInputs_()
@@ -305,27 +328,6 @@ bool CGridTransformationSelector::isSpecialTransformation(ETranformationType tra
   }
 
   return res;
-}
-
-
-void CGridTransformationSelector::registerTransformations()
-{
-  //! Scalar
-  CScalarAlgorithmReduceScalar::registerTrans();
-
-  //! Axis
-  CAxisAlgorithmZoom::registerTrans();
-  CAxisAlgorithmExtractDomain::registerTrans();
-  CAxisAlgorithmInterpolate::registerTrans();
-  CAxisAlgorithmInverse::registerTrans();
-  CAxisAlgorithmReduceDomain::registerTrans();
-
-  //! Domain
-  CDomainAlgorithmComputeConnectivity::registerTrans();
-  CDomainAlgorithmInterpolate::registerTrans();
-  CDomainAlgorithmZoom::registerTrans();
-  CDomainAlgorithmExpand::registerTrans();
-
 }
 
 }
