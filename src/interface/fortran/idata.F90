@@ -208,7 +208,7 @@ MODULE IDATA
       SUBROUTINE cxios_read_data_k80(fieldid, fieldid_size, data_k8, data_Xsize) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
-         REAL     (kind = C_DOUBLE), DIMENSION(*) :: data_k8
+         REAL     (kind = C_DOUBLE)               :: data_k8
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
       END SUBROUTINE cxios_read_data_k80
@@ -286,7 +286,7 @@ MODULE IDATA
       SUBROUTINE cxios_read_data_k40(fieldid, fieldid_size, data_k4, data_Xsize) BIND(C)
          USE ISO_C_BINDING
          CHARACTER(kind = C_CHAR)  , DIMENSION(*) :: fieldid
-         REAL     (kind = C_FLOAT) , DIMENSION(*) :: data_k4
+         REAL     (kind = C_FLOAT)                :: data_k4
          INTEGER  (kind = C_INT)   , VALUE        :: fieldid_size
          INTEGER  (kind = C_INT)   , VALUE        :: data_Xsize
       END SUBROUTINE cxios_read_data_k40
@@ -655,11 +655,11 @@ MODULE IDATA
    END SUBROUTINE  xios(send_field_r4_7d)
 
    ! Receive field functions
-   SUBROUTINE xios(recv_field_r8_0d)(fieldid, data1d_k8)
+   SUBROUTINE xios(recv_field_r8_0d)(fieldid, data0d_k8)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
-      REAL     (kind = 8), DIMENSION(*), INTENT(OUT) :: data1d_k8(:)
-      CALL cxios_read_data_k80(fieldid, len(fieldid), data1d_k8, size(data1d_k8, 1))
+      REAL     (kind = 8)              , INTENT(OUT):: data0d_k8
+      CALL cxios_read_data_k80(fieldid, len(fieldid), data0d_k8, 1)
    END SUBROUTINE xios(recv_field_r8_0d)
 
    SUBROUTINE xios(recv_field_r8_1d)(fieldid, data1d_k8)
@@ -723,8 +723,8 @@ MODULE IDATA
    SUBROUTINE xios(recv_field_r4_0d)(fieldid, data0d_k4)
    IMPLICIT NONE
       CHARACTER(len = *)               , INTENT(IN) :: fieldid
-      REAL     (kind = 4), DIMENSION(*), INTENT(OUT) :: data0d_k4(:)
-      CALL cxios_read_data_k40(fieldid, len(fieldid), data0d_k4, size(data0d_k4, 1))
+      REAL     (kind = 4)              , INTENT(OUT):: data0d_k4
+      CALL cxios_read_data_k40(fieldid, len(fieldid), data0d_k4, 1)
    END SUBROUTINE xios(recv_field_r4_0d)
 
    SUBROUTINE xios(recv_field_r4_1d)(fieldid, data1d_k4)
