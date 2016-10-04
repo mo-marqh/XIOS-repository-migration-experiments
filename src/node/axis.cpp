@@ -212,8 +212,6 @@ namespace xios {
               << "The axis is wrongly defined, attribute 'n_glo' must be specified");
       StdSize size = this->n_glo.getValue();
 
-      isDistributed_ = !this->begin.isEmpty() || !this->n.isEmpty();
-
       if (!this->begin.isEmpty())
       {
         if (begin < 0 || begin > size - 1)
@@ -231,6 +229,9 @@ namespace xios {
                 << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" << size << ").");
       }
       else this->n.setValue(size);
+
+      isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
+                       (!this->n.isEmpty() && (this->n != this->n_glo));
 
       if (!this->value.isEmpty())
       {
