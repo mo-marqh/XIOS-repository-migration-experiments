@@ -316,7 +316,7 @@ namespace xios{
       if (hasData)
         msg << getNStep() - 1 << it->second;
       else
-        msg << size_t(-1);
+        msg << int(-1);
       event.push(it->first, grid->nbSenders[it->first], msg);
     }
     client->sendEvent(event);
@@ -374,7 +374,7 @@ namespace xios{
   void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
-    StdSize record;
+    int record;
     std::map<int, CArray<double,1> > data;
 
     bool isEOF = false;
@@ -383,7 +383,7 @@ namespace xios{
     {
       int rank = ranks[i];
       *buffers[i] >> record;
-      isEOF = (record == size_t(-1));
+      isEOF = (record == int(-1));
 
       if (!isEOF)
         *buffers[i] >> data[rank];
