@@ -37,7 +37,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value(:)
 
-      CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
+      CALL xios(get_axisgroup_handle) &
+      (axisgroup_id,axisgroup_hdl)
       CALL xios(set_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, index, long_name  &
       , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
@@ -104,77 +105,95 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value_(:)
 
       IF (PRESENT(axis_ref_)) THEN
-        CALL cxios_set_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+        CALL cxios_set_axisgroup_axis_ref &
+      (axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
       ENDIF
 
       IF (PRESENT(begin_)) THEN
-        CALL cxios_set_axisgroup_begin(axisgroup_hdl%daddr, begin_)
+        CALL cxios_set_axisgroup_begin &
+      (axisgroup_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
-        CALL cxios_set_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
+        CALL cxios_set_axisgroup_bounds &
+      (axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
-        CALL cxios_set_axisgroup_data_begin(axisgroup_hdl%daddr, data_begin_)
+        CALL cxios_set_axisgroup_data_begin &
+      (axisgroup_hdl%daddr, data_begin_)
       ENDIF
 
       IF (PRESENT(data_index_)) THEN
-        CALL cxios_set_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
+        CALL cxios_set_axisgroup_data_index &
+      (axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
       ENDIF
 
       IF (PRESENT(data_n_)) THEN
-        CALL cxios_set_axisgroup_data_n(axisgroup_hdl%daddr, data_n_)
+        CALL cxios_set_axisgroup_data_n &
+      (axisgroup_hdl%daddr, data_n_)
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_set_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_set_axisgroup_group_ref &
+      (axisgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(index_)) THEN
-        CALL cxios_set_axisgroup_index(axisgroup_hdl%daddr, index_, SHAPE(index_))
+        CALL cxios_set_axisgroup_index &
+      (axisgroup_hdl%daddr, index_, SHAPE(index_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_set_axisgroup_long_name(axisgroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_set_axisgroup_long_name &
+      (axisgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(mask_)) THEN
         ALLOCATE(mask__tmp(SIZE(mask_,1)))
         mask__tmp = mask_
-        CALL cxios_set_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
+        CALL cxios_set_axisgroup_mask &
+      (axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        CALL cxios_set_axisgroup_n(axisgroup_hdl%daddr, n_)
+        CALL cxios_set_axisgroup_n &
+      (axisgroup_hdl%daddr, n_)
       ENDIF
 
       IF (PRESENT(n_distributed_partition_)) THEN
-        CALL cxios_set_axisgroup_n_distributed_partition(axisgroup_hdl%daddr, n_distributed_partition_)
+        CALL cxios_set_axisgroup_n_distributed_partition &
+      (axisgroup_hdl%daddr, n_distributed_partition_)
       ENDIF
 
       IF (PRESENT(n_glo_)) THEN
-        CALL cxios_set_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
+        CALL cxios_set_axisgroup_n_glo &
+      (axisgroup_hdl%daddr, n_glo_)
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_axisgroup_name(axisgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_set_axisgroup_name &
+      (axisgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(positive_)) THEN
-        CALL cxios_set_axisgroup_positive(axisgroup_hdl%daddr, positive_, len(positive_))
+        CALL cxios_set_axisgroup_positive &
+      (axisgroup_hdl%daddr, positive_, len(positive_))
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_set_axisgroup_standard_name(axisgroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_set_axisgroup_standard_name &
+      (axisgroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_set_axisgroup_unit(axisgroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_set_axisgroup_unit &
+      (axisgroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_set_axisgroup_value(axisgroup_hdl%daddr, value_, SHAPE(value_))
+        CALL cxios_set_axisgroup_value &
+      (axisgroup_hdl%daddr, value_, SHAPE(value_))
       ENDIF
 
   END SUBROUTINE xios(set_axisgroup_attr_hdl_)
@@ -206,7 +225,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value(:)
 
-      CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
+      CALL xios(get_axisgroup_handle) &
+      (axisgroup_id,axisgroup_hdl)
       CALL xios(get_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, index, long_name  &
       , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
@@ -273,77 +293,95 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value_(:)
 
       IF (PRESENT(axis_ref_)) THEN
-        CALL cxios_get_axisgroup_axis_ref(axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+        CALL cxios_get_axisgroup_axis_ref &
+      (axisgroup_hdl%daddr, axis_ref_, len(axis_ref_))
       ENDIF
 
       IF (PRESENT(begin_)) THEN
-        CALL cxios_get_axisgroup_begin(axisgroup_hdl%daddr, begin_)
+        CALL cxios_get_axisgroup_begin &
+      (axisgroup_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
-        CALL cxios_get_axisgroup_bounds(axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
+        CALL cxios_get_axisgroup_bounds &
+      (axisgroup_hdl%daddr, bounds_, SHAPE(bounds_))
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
-        CALL cxios_get_axisgroup_data_begin(axisgroup_hdl%daddr, data_begin_)
+        CALL cxios_get_axisgroup_data_begin &
+      (axisgroup_hdl%daddr, data_begin_)
       ENDIF
 
       IF (PRESENT(data_index_)) THEN
-        CALL cxios_get_axisgroup_data_index(axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
+        CALL cxios_get_axisgroup_data_index &
+      (axisgroup_hdl%daddr, data_index_, SHAPE(data_index_))
       ENDIF
 
       IF (PRESENT(data_n_)) THEN
-        CALL cxios_get_axisgroup_data_n(axisgroup_hdl%daddr, data_n_)
+        CALL cxios_get_axisgroup_data_n &
+      (axisgroup_hdl%daddr, data_n_)
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_get_axisgroup_group_ref(axisgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_get_axisgroup_group_ref &
+      (axisgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(index_)) THEN
-        CALL cxios_get_axisgroup_index(axisgroup_hdl%daddr, index_, SHAPE(index_))
+        CALL cxios_get_axisgroup_index &
+      (axisgroup_hdl%daddr, index_, SHAPE(index_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_get_axisgroup_long_name(axisgroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_get_axisgroup_long_name &
+      (axisgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(mask_)) THEN
         ALLOCATE(mask__tmp(SIZE(mask_,1)))
-        CALL cxios_get_axisgroup_mask(axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
+        CALL cxios_get_axisgroup_mask &
+      (axisgroup_hdl%daddr, mask__tmp, SHAPE(mask_))
         mask_ = mask__tmp
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        CALL cxios_get_axisgroup_n(axisgroup_hdl%daddr, n_)
+        CALL cxios_get_axisgroup_n &
+      (axisgroup_hdl%daddr, n_)
       ENDIF
 
       IF (PRESENT(n_distributed_partition_)) THEN
-        CALL cxios_get_axisgroup_n_distributed_partition(axisgroup_hdl%daddr, n_distributed_partition_)
+        CALL cxios_get_axisgroup_n_distributed_partition &
+      (axisgroup_hdl%daddr, n_distributed_partition_)
       ENDIF
 
       IF (PRESENT(n_glo_)) THEN
-        CALL cxios_get_axisgroup_n_glo(axisgroup_hdl%daddr, n_glo_)
+        CALL cxios_get_axisgroup_n_glo &
+      (axisgroup_hdl%daddr, n_glo_)
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_axisgroup_name(axisgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_get_axisgroup_name &
+      (axisgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(positive_)) THEN
-        CALL cxios_get_axisgroup_positive(axisgroup_hdl%daddr, positive_, len(positive_))
+        CALL cxios_get_axisgroup_positive &
+      (axisgroup_hdl%daddr, positive_, len(positive_))
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_get_axisgroup_standard_name(axisgroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_get_axisgroup_standard_name &
+      (axisgroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_get_axisgroup_unit(axisgroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_get_axisgroup_unit &
+      (axisgroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_get_axisgroup_value(axisgroup_hdl%daddr, value_, SHAPE(value_))
+        CALL cxios_get_axisgroup_value &
+      (axisgroup_hdl%daddr, value_, SHAPE(value_))
       ENDIF
 
   END SUBROUTINE xios(get_axisgroup_attr_hdl_)
@@ -392,7 +430,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: value
       LOGICAL(KIND=C_BOOL) :: value_tmp
 
-      CALL xios(get_axisgroup_handle)(axisgroup_id,axisgroup_hdl)
+      CALL xios(get_axisgroup_handle) &
+      (axisgroup_id,axisgroup_hdl)
       CALL xios(is_defined_axisgroup_attr_hdl_)   &
       ( axisgroup_hdl, axis_ref, begin, bounds, data_begin, data_index, data_n, group_ref, index, long_name  &
       , mask, n, n_distributed_partition, n_glo, name, positive, standard_name, unit, value )
@@ -493,92 +532,110 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: value__tmp
 
       IF (PRESENT(axis_ref_)) THEN
-        axis_ref__tmp = cxios_is_defined_axisgroup_axis_ref(axisgroup_hdl%daddr)
+        axis_ref__tmp = cxios_is_defined_axisgroup_axis_ref &
+      (axisgroup_hdl%daddr)
         axis_ref_ = axis_ref__tmp
       ENDIF
 
       IF (PRESENT(begin_)) THEN
-        begin__tmp = cxios_is_defined_axisgroup_begin(axisgroup_hdl%daddr)
+        begin__tmp = cxios_is_defined_axisgroup_begin &
+      (axisgroup_hdl%daddr)
         begin_ = begin__tmp
       ENDIF
 
       IF (PRESENT(bounds_)) THEN
-        bounds__tmp = cxios_is_defined_axisgroup_bounds(axisgroup_hdl%daddr)
+        bounds__tmp = cxios_is_defined_axisgroup_bounds &
+      (axisgroup_hdl%daddr)
         bounds_ = bounds__tmp
       ENDIF
 
       IF (PRESENT(data_begin_)) THEN
-        data_begin__tmp = cxios_is_defined_axisgroup_data_begin(axisgroup_hdl%daddr)
+        data_begin__tmp = cxios_is_defined_axisgroup_data_begin &
+      (axisgroup_hdl%daddr)
         data_begin_ = data_begin__tmp
       ENDIF
 
       IF (PRESENT(data_index_)) THEN
-        data_index__tmp = cxios_is_defined_axisgroup_data_index(axisgroup_hdl%daddr)
+        data_index__tmp = cxios_is_defined_axisgroup_data_index &
+      (axisgroup_hdl%daddr)
         data_index_ = data_index__tmp
       ENDIF
 
       IF (PRESENT(data_n_)) THEN
-        data_n__tmp = cxios_is_defined_axisgroup_data_n(axisgroup_hdl%daddr)
+        data_n__tmp = cxios_is_defined_axisgroup_data_n &
+      (axisgroup_hdl%daddr)
         data_n_ = data_n__tmp
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp = cxios_is_defined_axisgroup_group_ref(axisgroup_hdl%daddr)
+        group_ref__tmp = cxios_is_defined_axisgroup_group_ref &
+      (axisgroup_hdl%daddr)
         group_ref_ = group_ref__tmp
       ENDIF
 
       IF (PRESENT(index_)) THEN
-        index__tmp = cxios_is_defined_axisgroup_index(axisgroup_hdl%daddr)
+        index__tmp = cxios_is_defined_axisgroup_index &
+      (axisgroup_hdl%daddr)
         index_ = index__tmp
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        long_name__tmp = cxios_is_defined_axisgroup_long_name(axisgroup_hdl%daddr)
+        long_name__tmp = cxios_is_defined_axisgroup_long_name &
+      (axisgroup_hdl%daddr)
         long_name_ = long_name__tmp
       ENDIF
 
       IF (PRESENT(mask_)) THEN
-        mask__tmp = cxios_is_defined_axisgroup_mask(axisgroup_hdl%daddr)
+        mask__tmp = cxios_is_defined_axisgroup_mask &
+      (axisgroup_hdl%daddr)
         mask_ = mask__tmp
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        n__tmp = cxios_is_defined_axisgroup_n(axisgroup_hdl%daddr)
+        n__tmp = cxios_is_defined_axisgroup_n &
+      (axisgroup_hdl%daddr)
         n_ = n__tmp
       ENDIF
 
       IF (PRESENT(n_distributed_partition_)) THEN
-        n_distributed_partition__tmp = cxios_is_defined_axisgroup_n_distributed_partition(axisgroup_hdl%daddr)
+        n_distributed_partition__tmp = cxios_is_defined_axisgroup_n_distributed_partition &
+      (axisgroup_hdl%daddr)
         n_distributed_partition_ = n_distributed_partition__tmp
       ENDIF
 
       IF (PRESENT(n_glo_)) THEN
-        n_glo__tmp = cxios_is_defined_axisgroup_n_glo(axisgroup_hdl%daddr)
+        n_glo__tmp = cxios_is_defined_axisgroup_n_glo &
+      (axisgroup_hdl%daddr)
         n_glo_ = n_glo__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_axisgroup_name(axisgroup_hdl%daddr)
+        name__tmp = cxios_is_defined_axisgroup_name &
+      (axisgroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(positive_)) THEN
-        positive__tmp = cxios_is_defined_axisgroup_positive(axisgroup_hdl%daddr)
+        positive__tmp = cxios_is_defined_axisgroup_positive &
+      (axisgroup_hdl%daddr)
         positive_ = positive__tmp
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        standard_name__tmp = cxios_is_defined_axisgroup_standard_name(axisgroup_hdl%daddr)
+        standard_name__tmp = cxios_is_defined_axisgroup_standard_name &
+      (axisgroup_hdl%daddr)
         standard_name_ = standard_name__tmp
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        unit__tmp = cxios_is_defined_axisgroup_unit(axisgroup_hdl%daddr)
+        unit__tmp = cxios_is_defined_axisgroup_unit &
+      (axisgroup_hdl%daddr)
         unit_ = unit__tmp
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        value__tmp = cxios_is_defined_axisgroup_value(axisgroup_hdl%daddr)
+        value__tmp = cxios_is_defined_axisgroup_value &
+      (axisgroup_hdl%daddr)
         value_ = value__tmp
       ENDIF
 

@@ -322,9 +322,11 @@ namespace xios
     if (!matchingTypeCFortran<T>())
     {
       oss << "  " << name_tmp << " = " << name << "_" << iendl;
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl;
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
     }
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_)" << iendl;
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl;
+           oss << "(" << className << "_hdl%daddr, " << name << "_)" << iendl; }
     oss << "ENDIF";
   }
 
@@ -336,10 +338,12 @@ namespace xios
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl;
     if (!matchingTypeCFortran<T>())
     {
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl;
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ")" << iendl;
       oss << "  " << name << "_ = " << name_tmp << iendl;
     }
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_)" << iendl;
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl;
+           oss << "(" << className << "_hdl%daddr, " << name << "_)" << iendl; }
     oss << "ENDIF";
   }
 
@@ -348,7 +352,8 @@ namespace xios
     string name_tmp=name+"__tmp";
 
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl;
-    oss << "  " << name << "__tmp = cxios_is_defined_" << className << "_" << name << "(" << className << "_hdl%daddr)" << iendl;
+    oss << "  " << name << "__tmp = cxios_is_defined_" << className << "_" << name << " &" << iendl;
+    oss << "(" << className << "_hdl%daddr)" << iendl;
     oss << "  " << name << "_ = " << name_tmp << iendl;
     oss << "ENDIF";
   }
@@ -357,7 +362,8 @@ namespace xios
   void CInterface::AttributeFortranInterfaceBody<string>(ostream& oss, const string& className, const string& name)
   {
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl;
-    oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, len(" << name << "_))" << iendl;
+    oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl;
+    oss << "(" << className << "_hdl%daddr, " << name << "_, len(" << name << "_))" << iendl;
     oss << "ENDIF";
   }
 
@@ -365,7 +371,8 @@ namespace xios
   void CInterface::AttributeFortranInterfaceGetBody<string>(ostream& oss, const string& className, const string& name)
   {
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl;
-    oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, len(" << name << "_))" << iendl;
+    oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl;
+    oss << "(" << className << "_hdl%daddr, " << name << "_, len(" << name << "_))" << iendl;
     oss << "ENDIF";
   }
 
@@ -812,9 +819,11 @@ macro(int)
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
  \
@@ -828,9 +837,11 @@ macro(int)
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
   \
@@ -844,9 +855,11 @@ macro(int)
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }\
   \
@@ -858,11 +871,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }\
   \
@@ -874,11 +890,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }\
   \
@@ -890,11 +909,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }\
   \
@@ -906,11 +928,15 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), SIZE(" << name << "_,7)))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), &" << iendl; \
+      oss << " SIZE(" << name << "_,7)))" << iendl; \
       oss << "  " << name_tmp << " = " << name << "_" << iendl; \
-      oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
     } \
-    else oss << "  CALL cxios_set_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }
 
@@ -930,10 +956,12 @@ macro(int)
     if (!matchingTypeCFortran<T>())  \
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
  \
@@ -946,10 +974,12 @@ macro(int)
     if (!matchingTypeCFortran<T>())  \
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
     } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
  \
@@ -962,10 +992,12 @@ macro(int)
     if (!matchingTypeCFortran<T>())  \
     { \
       oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
  \
@@ -977,11 +1009,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; }\
     oss << "ENDIF"; \
   } \
  \
@@ -993,11 +1028,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }\
  \
@@ -1009,11 +1047,14 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   } \
  \
@@ -1025,11 +1066,15 @@ macro(int)
     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
     if (!matchingTypeCFortran<T>())  \
     { \
-      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), SIZE(" << name << "_,7)))" << iendl; \
-      oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
+      oss << "  ALLOCATE(" << name_tmp << "(SIZE(" << name << "_,1), SIZE(" << name << "_,2), SIZE(" << name << "_,3), &" << iendl; \
+      oss << " SIZE(" << name << "_,4), SIZE(" << name << "_,5), SIZE(" << name << "_,6), &" << iendl; \
+      oss << " SIZE(" << name << "_,7)))" << iendl; \
+      oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+      oss << "(" << className << "_hdl%daddr, " << name_tmp << ", SHAPE(" << name << "_))" << iendl; \
       oss << "  " << name << "_ = " << name_tmp << iendl; \
       } \
-    else oss << "  CALL cxios_get_" << className << "_" << name << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; \
+    else { oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+           oss << "(" << className << "_hdl%daddr, " << name << "_, SHAPE(" << name << "_))" << iendl; } \
     oss << "ENDIF"; \
   }
 

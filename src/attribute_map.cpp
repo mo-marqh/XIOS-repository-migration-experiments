@@ -628,7 +628,8 @@ namespace xios
          }
 
          oss << std::endl << iendl;
-         oss << "CALL xios(get_" << className << "_handle)(" << className << "_id," << className << "_hdl)" << iendl;
+         oss << "CALL xios(get_" << className << "_handle) &" << iendl;
+         oss << "(" << className << "_id," << className << "_hdl)" << iendl;
          oss << "CALL xios(set_" << className << "_attr_hdl_)   &" << iendl;
 
          startPos = oss.tellp();
@@ -692,7 +693,8 @@ namespace xios
          }
 
          oss << std::endl << iendl;
-         oss << "CALL xios(get_" << className << "_handle)(" << className << "_id," << className << "_hdl)" << iendl;
+         oss << "CALL xios(get_" << className << "_handle) &" << iendl;
+         oss << "(" << className << "_id," << className << "_hdl)" << iendl;
          oss << "CALL xios(get_" << className << "_attr_hdl_)   &" << iendl;
 
          startPos = oss.tellp();
@@ -756,7 +758,8 @@ namespace xios
          }
 
          oss << std::endl << iendl;
-         oss << "CALL xios(get_" << className << "_handle)(" << className << "_id," << className << "_hdl)" << iendl;
+         oss << "CALL xios(get_" << className << "_handle) &" << iendl;
+         oss << "(" << className << "_id," << className << "_hdl)" << iendl;
          oss << "CALL xios(is_defined_" << className << "_attr_hdl_)   &" << iendl;
 
          startPos = oss.tellp();

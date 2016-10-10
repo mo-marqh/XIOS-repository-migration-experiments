@@ -21,7 +21,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
 
-      CALL xios(get_interpolate_domain_handle)(interpolate_domain_id,interpolate_domain_hdl)
+      CALL xios(get_interpolate_domain_handle) &
+      (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(set_interpolate_domain_attr_hdl_)   &
       ( interpolate_domain_hdl, file, order, renormalize )
 
@@ -53,16 +54,19 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
 
       IF (PRESENT(file_)) THEN
-        CALL cxios_set_interpolate_domain_file(interpolate_domain_hdl%daddr, file_, len(file_))
+        CALL cxios_set_interpolate_domain_file &
+      (interpolate_domain_hdl%daddr, file_, len(file_))
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        CALL cxios_set_interpolate_domain_order(interpolate_domain_hdl%daddr, order_)
+        CALL cxios_set_interpolate_domain_order &
+      (interpolate_domain_hdl%daddr, order_)
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN
         renormalize__tmp = renormalize_
-        CALL cxios_set_interpolate_domain_renormalize(interpolate_domain_hdl%daddr, renormalize__tmp)
+        CALL cxios_set_interpolate_domain_renormalize &
+      (interpolate_domain_hdl%daddr, renormalize__tmp)
       ENDIF
 
   END SUBROUTINE xios(set_interpolate_domain_attr_hdl_)
@@ -78,7 +82,8 @@ CONTAINS
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
 
-      CALL xios(get_interpolate_domain_handle)(interpolate_domain_id,interpolate_domain_hdl)
+      CALL xios(get_interpolate_domain_handle) &
+      (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(get_interpolate_domain_attr_hdl_)   &
       ( interpolate_domain_hdl, file, order, renormalize )
 
@@ -110,15 +115,18 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
 
       IF (PRESENT(file_)) THEN
-        CALL cxios_get_interpolate_domain_file(interpolate_domain_hdl%daddr, file_, len(file_))
+        CALL cxios_get_interpolate_domain_file &
+      (interpolate_domain_hdl%daddr, file_, len(file_))
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        CALL cxios_get_interpolate_domain_order(interpolate_domain_hdl%daddr, order_)
+        CALL cxios_get_interpolate_domain_order &
+      (interpolate_domain_hdl%daddr, order_)
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN
-        CALL cxios_get_interpolate_domain_renormalize(interpolate_domain_hdl%daddr, renormalize__tmp)
+        CALL cxios_get_interpolate_domain_renormalize &
+      (interpolate_domain_hdl%daddr, renormalize__tmp)
         renormalize_ = renormalize__tmp
       ENDIF
 
@@ -137,7 +145,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL(KIND=C_BOOL) :: renormalize_tmp
 
-      CALL xios(get_interpolate_domain_handle)(interpolate_domain_id,interpolate_domain_hdl)
+      CALL xios(get_interpolate_domain_handle) &
+      (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(is_defined_interpolate_domain_attr_hdl_)   &
       ( interpolate_domain_hdl, file, order, renormalize )
 
@@ -173,17 +182,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: renormalize__tmp
 
       IF (PRESENT(file_)) THEN
-        file__tmp = cxios_is_defined_interpolate_domain_file(interpolate_domain_hdl%daddr)
+        file__tmp = cxios_is_defined_interpolate_domain_file &
+      (interpolate_domain_hdl%daddr)
         file_ = file__tmp
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        order__tmp = cxios_is_defined_interpolate_domain_order(interpolate_domain_hdl%daddr)
+        order__tmp = cxios_is_defined_interpolate_domain_order &
+      (interpolate_domain_hdl%daddr)
         order_ = order__tmp
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN
-        renormalize__tmp = cxios_is_defined_interpolate_domain_renormalize(interpolate_domain_hdl%daddr)
+        renormalize__tmp = cxios_is_defined_interpolate_domain_renormalize &
+      (interpolate_domain_hdl%daddr)
         renormalize_ = renormalize__tmp
       ENDIF
 

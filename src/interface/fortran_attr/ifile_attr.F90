@@ -46,7 +46,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(get_file_handle)(file_id,file_hdl)
+      CALL xios(get_file_handle) &
+      (file_id,file_hdl)
       CALL xios(set_file_attr_hdl_)   &
       ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
@@ -135,97 +136,120 @@ CONTAINS
 
       IF (PRESENT(append_)) THEN
         append__tmp = append_
-        CALL cxios_set_file_append(file_hdl%daddr, append__tmp)
+        CALL cxios_set_file_append &
+      (file_hdl%daddr, append__tmp)
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        CALL cxios_set_file_compression_level(file_hdl%daddr, compression_level_)
+        CALL cxios_set_file_compression_level &
+      (file_hdl%daddr, compression_level_)
       ENDIF
 
       IF (PRESENT(convention_)) THEN
-        CALL cxios_set_file_convention(file_hdl%daddr, convention_, len(convention_))
+        CALL cxios_set_file_convention &
+      (file_hdl%daddr, convention_, len(convention_))
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN
         cyclic__tmp = cyclic_
-        CALL cxios_set_file_cyclic(file_hdl%daddr, cyclic__tmp)
+        CALL cxios_set_file_cyclic &
+      (file_hdl%daddr, cyclic__tmp)
       ENDIF
 
       IF (PRESENT(description_)) THEN
-        CALL cxios_set_file_description(file_hdl%daddr, description_, len(description_))
+        CALL cxios_set_file_description &
+      (file_hdl%daddr, description_, len(description_))
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
         enabled__tmp = enabled_
-        CALL cxios_set_file_enabled(file_hdl%daddr, enabled__tmp)
+        CALL cxios_set_file_enabled &
+      (file_hdl%daddr, enabled__tmp)
       ENDIF
 
       IF (PRESENT(format_)) THEN
-        CALL cxios_set_file_format(file_hdl%daddr, format_, len(format_))
+        CALL cxios_set_file_format &
+      (file_hdl%daddr, format_, len(format_))
       ENDIF
 
       IF (PRESENT(min_digits_)) THEN
-        CALL cxios_set_file_min_digits(file_hdl%daddr, min_digits_)
+        CALL cxios_set_file_min_digits &
+      (file_hdl%daddr, min_digits_)
       ENDIF
 
       IF (PRESENT(mode_)) THEN
-        CALL cxios_set_file_mode(file_hdl%daddr, mode_, len(mode_))
+        CALL cxios_set_file_mode &
+      (file_hdl%daddr, mode_, len(mode_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_file_name(file_hdl%daddr, name_, len(name_))
+        CALL cxios_set_file_name &
+      (file_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(name_suffix_)) THEN
-        CALL cxios_set_file_name_suffix(file_hdl%daddr, name_suffix_, len(name_suffix_))
+        CALL cxios_set_file_name_suffix &
+      (file_hdl%daddr, name_suffix_, len(name_suffix_))
       ENDIF
 
       IF (PRESENT(output_freq_)) THEN
-        CALL cxios_set_file_output_freq(file_hdl%daddr, output_freq_)
+        CALL cxios_set_file_output_freq &
+      (file_hdl%daddr, output_freq_)
       ENDIF
 
       IF (PRESENT(output_level_)) THEN
-        CALL cxios_set_file_output_level(file_hdl%daddr, output_level_)
+        CALL cxios_set_file_output_level &
+      (file_hdl%daddr, output_level_)
       ENDIF
 
       IF (PRESENT(par_access_)) THEN
-        CALL cxios_set_file_par_access(file_hdl%daddr, par_access_, len(par_access_))
+        CALL cxios_set_file_par_access &
+      (file_hdl%daddr, par_access_, len(par_access_))
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
-        CALL cxios_set_file_record_offset(file_hdl%daddr, record_offset_)
+        CALL cxios_set_file_record_offset &
+      (file_hdl%daddr, record_offset_)
       ENDIF
 
       IF (PRESENT(split_freq_)) THEN
-        CALL cxios_set_file_split_freq(file_hdl%daddr, split_freq_)
+        CALL cxios_set_file_split_freq &
+      (file_hdl%daddr, split_freq_)
       ENDIF
 
       IF (PRESENT(split_freq_format_)) THEN
-        CALL cxios_set_file_split_freq_format(file_hdl%daddr, split_freq_format_, len(split_freq_format_))
+        CALL cxios_set_file_split_freq_format &
+      (file_hdl%daddr, split_freq_format_, len(split_freq_format_))
       ENDIF
 
       IF (PRESENT(sync_freq_)) THEN
-        CALL cxios_set_file_sync_freq(file_hdl%daddr, sync_freq_)
+        CALL cxios_set_file_sync_freq &
+      (file_hdl%daddr, sync_freq_)
       ENDIF
 
       IF (PRESENT(time_counter_)) THEN
-        CALL cxios_set_file_time_counter(file_hdl%daddr, time_counter_, len(time_counter_))
+        CALL cxios_set_file_time_counter &
+      (file_hdl%daddr, time_counter_, len(time_counter_))
       ENDIF
 
       IF (PRESENT(time_counter_name_)) THEN
-        CALL cxios_set_file_time_counter_name(file_hdl%daddr, time_counter_name_, len(time_counter_name_))
+        CALL cxios_set_file_time_counter_name &
+      (file_hdl%daddr, time_counter_name_, len(time_counter_name_))
       ENDIF
 
       IF (PRESENT(timeseries_)) THEN
-        CALL cxios_set_file_timeseries(file_hdl%daddr, timeseries_, len(timeseries_))
+        CALL cxios_set_file_timeseries &
+      (file_hdl%daddr, timeseries_, len(timeseries_))
       ENDIF
 
       IF (PRESENT(ts_prefix_)) THEN
-        CALL cxios_set_file_ts_prefix(file_hdl%daddr, ts_prefix_, len(ts_prefix_))
+        CALL cxios_set_file_ts_prefix &
+      (file_hdl%daddr, ts_prefix_, len(ts_prefix_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_file_type(file_hdl%daddr, type_, len(type_))
+        CALL cxios_set_file_type &
+      (file_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(set_file_attr_hdl_)
@@ -266,7 +290,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: ts_prefix
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
-      CALL xios(get_file_handle)(file_id,file_hdl)
+      CALL xios(get_file_handle) &
+      (file_id,file_hdl)
       CALL xios(get_file_attr_hdl_)   &
       ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
@@ -354,98 +379,121 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(append_)) THEN
-        CALL cxios_get_file_append(file_hdl%daddr, append__tmp)
+        CALL cxios_get_file_append &
+      (file_hdl%daddr, append__tmp)
         append_ = append__tmp
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        CALL cxios_get_file_compression_level(file_hdl%daddr, compression_level_)
+        CALL cxios_get_file_compression_level &
+      (file_hdl%daddr, compression_level_)
       ENDIF
 
       IF (PRESENT(convention_)) THEN
-        CALL cxios_get_file_convention(file_hdl%daddr, convention_, len(convention_))
+        CALL cxios_get_file_convention &
+      (file_hdl%daddr, convention_, len(convention_))
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN
-        CALL cxios_get_file_cyclic(file_hdl%daddr, cyclic__tmp)
+        CALL cxios_get_file_cyclic &
+      (file_hdl%daddr, cyclic__tmp)
         cyclic_ = cyclic__tmp
       ENDIF
 
       IF (PRESENT(description_)) THEN
-        CALL cxios_get_file_description(file_hdl%daddr, description_, len(description_))
+        CALL cxios_get_file_description &
+      (file_hdl%daddr, description_, len(description_))
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
-        CALL cxios_get_file_enabled(file_hdl%daddr, enabled__tmp)
+        CALL cxios_get_file_enabled &
+      (file_hdl%daddr, enabled__tmp)
         enabled_ = enabled__tmp
       ENDIF
 
       IF (PRESENT(format_)) THEN
-        CALL cxios_get_file_format(file_hdl%daddr, format_, len(format_))
+        CALL cxios_get_file_format &
+      (file_hdl%daddr, format_, len(format_))
       ENDIF
 
       IF (PRESENT(min_digits_)) THEN
-        CALL cxios_get_file_min_digits(file_hdl%daddr, min_digits_)
+        CALL cxios_get_file_min_digits &
+      (file_hdl%daddr, min_digits_)
       ENDIF
 
       IF (PRESENT(mode_)) THEN
-        CALL cxios_get_file_mode(file_hdl%daddr, mode_, len(mode_))
+        CALL cxios_get_file_mode &
+      (file_hdl%daddr, mode_, len(mode_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_file_name(file_hdl%daddr, name_, len(name_))
+        CALL cxios_get_file_name &
+      (file_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(name_suffix_)) THEN
-        CALL cxios_get_file_name_suffix(file_hdl%daddr, name_suffix_, len(name_suffix_))
+        CALL cxios_get_file_name_suffix &
+      (file_hdl%daddr, name_suffix_, len(name_suffix_))
       ENDIF
 
       IF (PRESENT(output_freq_)) THEN
-        CALL cxios_get_file_output_freq(file_hdl%daddr, output_freq_)
+        CALL cxios_get_file_output_freq &
+      (file_hdl%daddr, output_freq_)
       ENDIF
 
       IF (PRESENT(output_level_)) THEN
-        CALL cxios_get_file_output_level(file_hdl%daddr, output_level_)
+        CALL cxios_get_file_output_level &
+      (file_hdl%daddr, output_level_)
       ENDIF
 
       IF (PRESENT(par_access_)) THEN
-        CALL cxios_get_file_par_access(file_hdl%daddr, par_access_, len(par_access_))
+        CALL cxios_get_file_par_access &
+      (file_hdl%daddr, par_access_, len(par_access_))
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
-        CALL cxios_get_file_record_offset(file_hdl%daddr, record_offset_)
+        CALL cxios_get_file_record_offset &
+      (file_hdl%daddr, record_offset_)
       ENDIF
 
       IF (PRESENT(split_freq_)) THEN
-        CALL cxios_get_file_split_freq(file_hdl%daddr, split_freq_)
+        CALL cxios_get_file_split_freq &
+      (file_hdl%daddr, split_freq_)
       ENDIF
 
       IF (PRESENT(split_freq_format_)) THEN
-        CALL cxios_get_file_split_freq_format(file_hdl%daddr, split_freq_format_, len(split_freq_format_))
+        CALL cxios_get_file_split_freq_format &
+      (file_hdl%daddr, split_freq_format_, len(split_freq_format_))
       ENDIF
 
       IF (PRESENT(sync_freq_)) THEN
-        CALL cxios_get_file_sync_freq(file_hdl%daddr, sync_freq_)
+        CALL cxios_get_file_sync_freq &
+      (file_hdl%daddr, sync_freq_)
       ENDIF
 
       IF (PRESENT(time_counter_)) THEN
-        CALL cxios_get_file_time_counter(file_hdl%daddr, time_counter_, len(time_counter_))
+        CALL cxios_get_file_time_counter &
+      (file_hdl%daddr, time_counter_, len(time_counter_))
       ENDIF
 
       IF (PRESENT(time_counter_name_)) THEN
-        CALL cxios_get_file_time_counter_name(file_hdl%daddr, time_counter_name_, len(time_counter_name_))
+        CALL cxios_get_file_time_counter_name &
+      (file_hdl%daddr, time_counter_name_, len(time_counter_name_))
       ENDIF
 
       IF (PRESENT(timeseries_)) THEN
-        CALL cxios_get_file_timeseries(file_hdl%daddr, timeseries_, len(timeseries_))
+        CALL cxios_get_file_timeseries &
+      (file_hdl%daddr, timeseries_, len(timeseries_))
       ENDIF
 
       IF (PRESENT(ts_prefix_)) THEN
-        CALL cxios_get_file_ts_prefix(file_hdl%daddr, ts_prefix_, len(ts_prefix_))
+        CALL cxios_get_file_ts_prefix &
+      (file_hdl%daddr, ts_prefix_, len(ts_prefix_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_file_type(file_hdl%daddr, type_, len(type_))
+        CALL cxios_get_file_type &
+      (file_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(get_file_attr_hdl_)
@@ -506,7 +554,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
-      CALL xios(get_file_handle)(file_id,file_hdl)
+      CALL xios(get_file_handle) &
+      (file_id,file_hdl)
       CALL xios(is_defined_file_attr_hdl_)   &
       ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
       , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
@@ -634,117 +683,140 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
       IF (PRESENT(append_)) THEN
-        append__tmp = cxios_is_defined_file_append(file_hdl%daddr)
+        append__tmp = cxios_is_defined_file_append &
+      (file_hdl%daddr)
         append_ = append__tmp
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        compression_level__tmp = cxios_is_defined_file_compression_level(file_hdl%daddr)
+        compression_level__tmp = cxios_is_defined_file_compression_level &
+      (file_hdl%daddr)
         compression_level_ = compression_level__tmp
       ENDIF
 
       IF (PRESENT(convention_)) THEN
-        convention__tmp = cxios_is_defined_file_convention(file_hdl%daddr)
+        convention__tmp = cxios_is_defined_file_convention &
+      (file_hdl%daddr)
         convention_ = convention__tmp
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN
-        cyclic__tmp = cxios_is_defined_file_cyclic(file_hdl%daddr)
+        cyclic__tmp = cxios_is_defined_file_cyclic &
+      (file_hdl%daddr)
         cyclic_ = cyclic__tmp
       ENDIF
 
       IF (PRESENT(description_)) THEN
-        description__tmp = cxios_is_defined_file_description(file_hdl%daddr)
+        description__tmp = cxios_is_defined_file_description &
+      (file_hdl%daddr)
         description_ = description__tmp
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
-        enabled__tmp = cxios_is_defined_file_enabled(file_hdl%daddr)
+        enabled__tmp = cxios_is_defined_file_enabled &
+      (file_hdl%daddr)
         enabled_ = enabled__tmp
       ENDIF
 
       IF (PRESENT(format_)) THEN
-        format__tmp = cxios_is_defined_file_format(file_hdl%daddr)
+        format__tmp = cxios_is_defined_file_format &
+      (file_hdl%daddr)
         format_ = format__tmp
       ENDIF
 
       IF (PRESENT(min_digits_)) THEN
-        min_digits__tmp = cxios_is_defined_file_min_digits(file_hdl%daddr)
+        min_digits__tmp = cxios_is_defined_file_min_digits &
+      (file_hdl%daddr)
         min_digits_ = min_digits__tmp
       ENDIF
 
       IF (PRESENT(mode_)) THEN
-        mode__tmp = cxios_is_defined_file_mode(file_hdl%daddr)
+        mode__tmp = cxios_is_defined_file_mode &
+      (file_hdl%daddr)
         mode_ = mode__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_file_name(file_hdl%daddr)
+        name__tmp = cxios_is_defined_file_name &
+      (file_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(name_suffix_)) THEN
-        name_suffix__tmp = cxios_is_defined_file_name_suffix(file_hdl%daddr)
+        name_suffix__tmp = cxios_is_defined_file_name_suffix &
+      (file_hdl%daddr)
         name_suffix_ = name_suffix__tmp
       ENDIF
 
       IF (PRESENT(output_freq_)) THEN
-        output_freq__tmp = cxios_is_defined_file_output_freq(file_hdl%daddr)
+        output_freq__tmp = cxios_is_defined_file_output_freq &
+      (file_hdl%daddr)
         output_freq_ = output_freq__tmp
       ENDIF
 
       IF (PRESENT(output_level_)) THEN
-        output_level__tmp = cxios_is_defined_file_output_level(file_hdl%daddr)
+        output_level__tmp = cxios_is_defined_file_output_level &
+      (file_hdl%daddr)
         output_level_ = output_level__tmp
       ENDIF
 
       IF (PRESENT(par_access_)) THEN
-        par_access__tmp = cxios_is_defined_file_par_access(file_hdl%daddr)
+        par_access__tmp = cxios_is_defined_file_par_access &
+      (file_hdl%daddr)
         par_access_ = par_access__tmp
       ENDIF
 
       IF (PRESENT(record_offset_)) THEN
-        record_offset__tmp = cxios_is_defined_file_record_offset(file_hdl%daddr)
+        record_offset__tmp = cxios_is_defined_file_record_offset &
+      (file_hdl%daddr)
         record_offset_ = record_offset__tmp
       ENDIF
 
       IF (PRESENT(split_freq_)) THEN
-        split_freq__tmp = cxios_is_defined_file_split_freq(file_hdl%daddr)
+        split_freq__tmp = cxios_is_defined_file_split_freq &
+      (file_hdl%daddr)
         split_freq_ = split_freq__tmp
       ENDIF
 
       IF (PRESENT(split_freq_format_)) THEN
-        split_freq_format__tmp = cxios_is_defined_file_split_freq_format(file_hdl%daddr)
+        split_freq_format__tmp = cxios_is_defined_file_split_freq_format &
+      (file_hdl%daddr)
         split_freq_format_ = split_freq_format__tmp
       ENDIF
 
       IF (PRESENT(sync_freq_)) THEN
-        sync_freq__tmp = cxios_is_defined_file_sync_freq(file_hdl%daddr)
+        sync_freq__tmp = cxios_is_defined_file_sync_freq &
+      (file_hdl%daddr)
         sync_freq_ = sync_freq__tmp
       ENDIF
 
       IF (PRESENT(time_counter_)) THEN
-        time_counter__tmp = cxios_is_defined_file_time_counter(file_hdl%daddr)
+        time_counter__tmp = cxios_is_defined_file_time_counter &
+      (file_hdl%daddr)
         time_counter_ = time_counter__tmp
       ENDIF
 
       IF (PRESENT(time_counter_name_)) THEN
-        time_counter_name__tmp = cxios_is_defined_file_time_counter_name(file_hdl%daddr)
+        time_counter_name__tmp = cxios_is_defined_file_time_counter_name &
+      (file_hdl%daddr)
         time_counter_name_ = time_counter_name__tmp
       ENDIF
 
       IF (PRESENT(timeseries_)) THEN
-        timeseries__tmp = cxios_is_defined_file_timeseries(file_hdl%daddr)
+        timeseries__tmp = cxios_is_defined_file_timeseries &
+      (file_hdl%daddr)
         timeseries_ = timeseries__tmp
       ENDIF
 
       IF (PRESENT(ts_prefix_)) THEN
-        ts_prefix__tmp = cxios_is_defined_file_ts_prefix(file_hdl%daddr)
+        ts_prefix__tmp = cxios_is_defined_file_ts_prefix &
+      (file_hdl%daddr)
         ts_prefix_ = ts_prefix__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_file_type(file_hdl%daddr)
+        type__tmp = cxios_is_defined_file_type &
+      (file_hdl%daddr)
         type_ = type__tmp
       ENDIF
 

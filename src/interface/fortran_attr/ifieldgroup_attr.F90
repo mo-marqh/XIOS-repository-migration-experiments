@@ -53,7 +53,8 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min
 
-      CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
+      CALL xios(get_fieldgroup_handle) &
+      (fieldgroup_id,fieldgroup_hdl)
       CALL xios(set_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
       , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
@@ -155,120 +156,148 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min_
 
       IF (PRESENT(add_offset_)) THEN
-        CALL cxios_set_fieldgroup_add_offset(fieldgroup_hdl%daddr, add_offset_)
+        CALL cxios_set_fieldgroup_add_offset &
+      (fieldgroup_hdl%daddr, add_offset_)
       ENDIF
 
       IF (PRESENT(axis_ref_)) THEN
-        CALL cxios_set_fieldgroup_axis_ref(fieldgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+        CALL cxios_set_fieldgroup_axis_ref &
+      (fieldgroup_hdl%daddr, axis_ref_, len(axis_ref_))
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        CALL cxios_set_fieldgroup_compression_level(fieldgroup_hdl%daddr, compression_level_)
+        CALL cxios_set_fieldgroup_compression_level &
+      (fieldgroup_hdl%daddr, compression_level_)
       ENDIF
 
       IF (PRESENT(default_value_)) THEN
-        CALL cxios_set_fieldgroup_default_value(fieldgroup_hdl%daddr, default_value_)
+        CALL cxios_set_fieldgroup_default_value &
+      (fieldgroup_hdl%daddr, default_value_)
       ENDIF
 
       IF (PRESENT(detect_missing_value_)) THEN
         detect_missing_value__tmp = detect_missing_value_
-        CALL cxios_set_fieldgroup_detect_missing_value(fieldgroup_hdl%daddr, detect_missing_value__tmp)
+        CALL cxios_set_fieldgroup_detect_missing_value &
+      (fieldgroup_hdl%daddr, detect_missing_value__tmp)
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        CALL cxios_set_fieldgroup_domain_ref(fieldgroup_hdl%daddr, domain_ref_, len(domain_ref_))
+        CALL cxios_set_fieldgroup_domain_ref &
+      (fieldgroup_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
         enabled__tmp = enabled_
-        CALL cxios_set_fieldgroup_enabled(fieldgroup_hdl%daddr, enabled__tmp)
+        CALL cxios_set_fieldgroup_enabled &
+      (fieldgroup_hdl%daddr, enabled__tmp)
       ENDIF
 
       IF (PRESENT(field_ref_)) THEN
-        CALL cxios_set_fieldgroup_field_ref(fieldgroup_hdl%daddr, field_ref_, len(field_ref_))
+        CALL cxios_set_fieldgroup_field_ref &
+      (fieldgroup_hdl%daddr, field_ref_, len(field_ref_))
       ENDIF
 
       IF (PRESENT(freq_offset_)) THEN
-        CALL cxios_set_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_)
+        CALL cxios_set_fieldgroup_freq_offset &
+      (fieldgroup_hdl%daddr, freq_offset_)
       ENDIF
 
       IF (PRESENT(freq_op_)) THEN
-        CALL cxios_set_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
+        CALL cxios_set_fieldgroup_freq_op &
+      (fieldgroup_hdl%daddr, freq_op_)
       ENDIF
 
       IF (PRESENT(grid_path_)) THEN
-        CALL cxios_set_fieldgroup_grid_path(fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
+        CALL cxios_set_fieldgroup_grid_path &
+      (fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN
-        CALL cxios_set_fieldgroup_grid_ref(fieldgroup_hdl%daddr, grid_ref_, len(grid_ref_))
+        CALL cxios_set_fieldgroup_grid_ref &
+      (fieldgroup_hdl%daddr, grid_ref_, len(grid_ref_))
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_set_fieldgroup_group_ref(fieldgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_set_fieldgroup_group_ref &
+      (fieldgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(indexed_output_)) THEN
         indexed_output__tmp = indexed_output_
-        CALL cxios_set_fieldgroup_indexed_output(fieldgroup_hdl%daddr, indexed_output__tmp)
+        CALL cxios_set_fieldgroup_indexed_output &
+      (fieldgroup_hdl%daddr, indexed_output__tmp)
       ENDIF
 
       IF (PRESENT(level_)) THEN
-        CALL cxios_set_fieldgroup_level(fieldgroup_hdl%daddr, level_)
+        CALL cxios_set_fieldgroup_level &
+      (fieldgroup_hdl%daddr, level_)
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_set_fieldgroup_long_name(fieldgroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_set_fieldgroup_long_name &
+      (fieldgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_fieldgroup_name(fieldgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_set_fieldgroup_name &
+      (fieldgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(operation_)) THEN
-        CALL cxios_set_fieldgroup_operation(fieldgroup_hdl%daddr, operation_, len(operation_))
+        CALL cxios_set_fieldgroup_operation &
+      (fieldgroup_hdl%daddr, operation_, len(operation_))
       ENDIF
 
       IF (PRESENT(prec_)) THEN
-        CALL cxios_set_fieldgroup_prec(fieldgroup_hdl%daddr, prec_)
+        CALL cxios_set_fieldgroup_prec &
+      (fieldgroup_hdl%daddr, prec_)
       ENDIF
 
       IF (PRESENT(read_access_)) THEN
         read_access__tmp = read_access_
-        CALL cxios_set_fieldgroup_read_access(fieldgroup_hdl%daddr, read_access__tmp)
+        CALL cxios_set_fieldgroup_read_access &
+      (fieldgroup_hdl%daddr, read_access__tmp)
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        CALL cxios_set_fieldgroup_scalar_ref(fieldgroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
+        CALL cxios_set_fieldgroup_scalar_ref &
+      (fieldgroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
       ENDIF
 
       IF (PRESENT(scale_factor_)) THEN
-        CALL cxios_set_fieldgroup_scale_factor(fieldgroup_hdl%daddr, scale_factor_)
+        CALL cxios_set_fieldgroup_scale_factor &
+      (fieldgroup_hdl%daddr, scale_factor_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_set_fieldgroup_standard_name(fieldgroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_set_fieldgroup_standard_name &
+      (fieldgroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(ts_enabled_)) THEN
         ts_enabled__tmp = ts_enabled_
-        CALL cxios_set_fieldgroup_ts_enabled(fieldgroup_hdl%daddr, ts_enabled__tmp)
+        CALL cxios_set_fieldgroup_ts_enabled &
+      (fieldgroup_hdl%daddr, ts_enabled__tmp)
       ENDIF
 
       IF (PRESENT(ts_split_freq_)) THEN
-        CALL cxios_set_fieldgroup_ts_split_freq(fieldgroup_hdl%daddr, ts_split_freq_)
+        CALL cxios_set_fieldgroup_ts_split_freq &
+      (fieldgroup_hdl%daddr, ts_split_freq_)
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_set_fieldgroup_unit(fieldgroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_set_fieldgroup_unit &
+      (fieldgroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(valid_max_)) THEN
-        CALL cxios_set_fieldgroup_valid_max(fieldgroup_hdl%daddr, valid_max_)
+        CALL cxios_set_fieldgroup_valid_max &
+      (fieldgroup_hdl%daddr, valid_max_)
       ENDIF
 
       IF (PRESENT(valid_min_)) THEN
-        CALL cxios_set_fieldgroup_valid_min(fieldgroup_hdl%daddr, valid_min_)
+        CALL cxios_set_fieldgroup_valid_min &
+      (fieldgroup_hdl%daddr, valid_min_)
       ENDIF
 
   END SUBROUTINE xios(set_fieldgroup_attr_hdl_)
@@ -316,7 +345,8 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_max
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min
 
-      CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
+      CALL xios(get_fieldgroup_handle) &
+      (fieldgroup_id,fieldgroup_hdl)
       CALL xios(get_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
       , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
@@ -418,120 +448,148 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min_
 
       IF (PRESENT(add_offset_)) THEN
-        CALL cxios_get_fieldgroup_add_offset(fieldgroup_hdl%daddr, add_offset_)
+        CALL cxios_get_fieldgroup_add_offset &
+      (fieldgroup_hdl%daddr, add_offset_)
       ENDIF
 
       IF (PRESENT(axis_ref_)) THEN
-        CALL cxios_get_fieldgroup_axis_ref(fieldgroup_hdl%daddr, axis_ref_, len(axis_ref_))
+        CALL cxios_get_fieldgroup_axis_ref &
+      (fieldgroup_hdl%daddr, axis_ref_, len(axis_ref_))
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        CALL cxios_get_fieldgroup_compression_level(fieldgroup_hdl%daddr, compression_level_)
+        CALL cxios_get_fieldgroup_compression_level &
+      (fieldgroup_hdl%daddr, compression_level_)
       ENDIF
 
       IF (PRESENT(default_value_)) THEN
-        CALL cxios_get_fieldgroup_default_value(fieldgroup_hdl%daddr, default_value_)
+        CALL cxios_get_fieldgroup_default_value &
+      (fieldgroup_hdl%daddr, default_value_)
       ENDIF
 
       IF (PRESENT(detect_missing_value_)) THEN
-        CALL cxios_get_fieldgroup_detect_missing_value(fieldgroup_hdl%daddr, detect_missing_value__tmp)
+        CALL cxios_get_fieldgroup_detect_missing_value &
+      (fieldgroup_hdl%daddr, detect_missing_value__tmp)
         detect_missing_value_ = detect_missing_value__tmp
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        CALL cxios_get_fieldgroup_domain_ref(fieldgroup_hdl%daddr, domain_ref_, len(domain_ref_))
+        CALL cxios_get_fieldgroup_domain_ref &
+      (fieldgroup_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
-        CALL cxios_get_fieldgroup_enabled(fieldgroup_hdl%daddr, enabled__tmp)
+        CALL cxios_get_fieldgroup_enabled &
+      (fieldgroup_hdl%daddr, enabled__tmp)
         enabled_ = enabled__tmp
       ENDIF
 
       IF (PRESENT(field_ref_)) THEN
-        CALL cxios_get_fieldgroup_field_ref(fieldgroup_hdl%daddr, field_ref_, len(field_ref_))
+        CALL cxios_get_fieldgroup_field_ref &
+      (fieldgroup_hdl%daddr, field_ref_, len(field_ref_))
       ENDIF
 
       IF (PRESENT(freq_offset_)) THEN
-        CALL cxios_get_fieldgroup_freq_offset(fieldgroup_hdl%daddr, freq_offset_)
+        CALL cxios_get_fieldgroup_freq_offset &
+      (fieldgroup_hdl%daddr, freq_offset_)
       ENDIF
 
       IF (PRESENT(freq_op_)) THEN
-        CALL cxios_get_fieldgroup_freq_op(fieldgroup_hdl%daddr, freq_op_)
+        CALL cxios_get_fieldgroup_freq_op &
+      (fieldgroup_hdl%daddr, freq_op_)
       ENDIF
 
       IF (PRESENT(grid_path_)) THEN
-        CALL cxios_get_fieldgroup_grid_path(fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
+        CALL cxios_get_fieldgroup_grid_path &
+      (fieldgroup_hdl%daddr, grid_path_, len(grid_path_))
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN
-        CALL cxios_get_fieldgroup_grid_ref(fieldgroup_hdl%daddr, grid_ref_, len(grid_ref_))
+        CALL cxios_get_fieldgroup_grid_ref &
+      (fieldgroup_hdl%daddr, grid_ref_, len(grid_ref_))
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_get_fieldgroup_group_ref(fieldgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_get_fieldgroup_group_ref &
+      (fieldgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(indexed_output_)) THEN
-        CALL cxios_get_fieldgroup_indexed_output(fieldgroup_hdl%daddr, indexed_output__tmp)
+        CALL cxios_get_fieldgroup_indexed_output &
+      (fieldgroup_hdl%daddr, indexed_output__tmp)
         indexed_output_ = indexed_output__tmp
       ENDIF
 
       IF (PRESENT(level_)) THEN
-        CALL cxios_get_fieldgroup_level(fieldgroup_hdl%daddr, level_)
+        CALL cxios_get_fieldgroup_level &
+      (fieldgroup_hdl%daddr, level_)
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_get_fieldgroup_long_name(fieldgroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_get_fieldgroup_long_name &
+      (fieldgroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_fieldgroup_name(fieldgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_get_fieldgroup_name &
+      (fieldgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(operation_)) THEN
-        CALL cxios_get_fieldgroup_operation(fieldgroup_hdl%daddr, operation_, len(operation_))
+        CALL cxios_get_fieldgroup_operation &
+      (fieldgroup_hdl%daddr, operation_, len(operation_))
       ENDIF
 
       IF (PRESENT(prec_)) THEN
-        CALL cxios_get_fieldgroup_prec(fieldgroup_hdl%daddr, prec_)
+        CALL cxios_get_fieldgroup_prec &
+      (fieldgroup_hdl%daddr, prec_)
       ENDIF
 
       IF (PRESENT(read_access_)) THEN
-        CALL cxios_get_fieldgroup_read_access(fieldgroup_hdl%daddr, read_access__tmp)
+        CALL cxios_get_fieldgroup_read_access &
+      (fieldgroup_hdl%daddr, read_access__tmp)
         read_access_ = read_access__tmp
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        CALL cxios_get_fieldgroup_scalar_ref(fieldgroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
+        CALL cxios_get_fieldgroup_scalar_ref &
+      (fieldgroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
       ENDIF
 
       IF (PRESENT(scale_factor_)) THEN
-        CALL cxios_get_fieldgroup_scale_factor(fieldgroup_hdl%daddr, scale_factor_)
+        CALL cxios_get_fieldgroup_scale_factor &
+      (fieldgroup_hdl%daddr, scale_factor_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_get_fieldgroup_standard_name(fieldgroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_get_fieldgroup_standard_name &
+      (fieldgroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(ts_enabled_)) THEN
-        CALL cxios_get_fieldgroup_ts_enabled(fieldgroup_hdl%daddr, ts_enabled__tmp)
+        CALL cxios_get_fieldgroup_ts_enabled &
+      (fieldgroup_hdl%daddr, ts_enabled__tmp)
         ts_enabled_ = ts_enabled__tmp
       ENDIF
 
       IF (PRESENT(ts_split_freq_)) THEN
-        CALL cxios_get_fieldgroup_ts_split_freq(fieldgroup_hdl%daddr, ts_split_freq_)
+        CALL cxios_get_fieldgroup_ts_split_freq &
+      (fieldgroup_hdl%daddr, ts_split_freq_)
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_get_fieldgroup_unit(fieldgroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_get_fieldgroup_unit &
+      (fieldgroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(valid_max_)) THEN
-        CALL cxios_get_fieldgroup_valid_max(fieldgroup_hdl%daddr, valid_max_)
+        CALL cxios_get_fieldgroup_valid_max &
+      (fieldgroup_hdl%daddr, valid_max_)
       ENDIF
 
       IF (PRESENT(valid_min_)) THEN
-        CALL cxios_get_fieldgroup_valid_min(fieldgroup_hdl%daddr, valid_min_)
+        CALL cxios_get_fieldgroup_valid_min &
+      (fieldgroup_hdl%daddr, valid_min_)
       ENDIF
 
   END SUBROUTINE xios(get_fieldgroup_attr_hdl_)
@@ -602,7 +660,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: valid_min
       LOGICAL(KIND=C_BOOL) :: valid_min_tmp
 
-      CALL xios(get_fieldgroup_handle)(fieldgroup_id,fieldgroup_hdl)
+      CALL xios(get_fieldgroup_handle) &
+      (fieldgroup_id,fieldgroup_hdl)
       CALL xios(is_defined_fieldgroup_attr_hdl_)   &
       ( fieldgroup_hdl, add_offset, axis_ref, compression_level, default_value, detect_missing_value  &
       , domain_ref, enabled, field_ref, freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output  &
@@ -750,142 +809,170 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: valid_min__tmp
 
       IF (PRESENT(add_offset_)) THEN
-        add_offset__tmp = cxios_is_defined_fieldgroup_add_offset(fieldgroup_hdl%daddr)
+        add_offset__tmp = cxios_is_defined_fieldgroup_add_offset &
+      (fieldgroup_hdl%daddr)
         add_offset_ = add_offset__tmp
       ENDIF
 
       IF (PRESENT(axis_ref_)) THEN
-        axis_ref__tmp = cxios_is_defined_fieldgroup_axis_ref(fieldgroup_hdl%daddr)
+        axis_ref__tmp = cxios_is_defined_fieldgroup_axis_ref &
+      (fieldgroup_hdl%daddr)
         axis_ref_ = axis_ref__tmp
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
-        compression_level__tmp = cxios_is_defined_fieldgroup_compression_level(fieldgroup_hdl%daddr)
+        compression_level__tmp = cxios_is_defined_fieldgroup_compression_level &
+      (fieldgroup_hdl%daddr)
         compression_level_ = compression_level__tmp
       ENDIF
 
       IF (PRESENT(default_value_)) THEN
-        default_value__tmp = cxios_is_defined_fieldgroup_default_value(fieldgroup_hdl%daddr)
+        default_value__tmp = cxios_is_defined_fieldgroup_default_value &
+      (fieldgroup_hdl%daddr)
         default_value_ = default_value__tmp
       ENDIF
 
       IF (PRESENT(detect_missing_value_)) THEN
-        detect_missing_value__tmp = cxios_is_defined_fieldgroup_detect_missing_value(fieldgroup_hdl%daddr)
+        detect_missing_value__tmp = cxios_is_defined_fieldgroup_detect_missing_value &
+      (fieldgroup_hdl%daddr)
         detect_missing_value_ = detect_missing_value__tmp
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        domain_ref__tmp = cxios_is_defined_fieldgroup_domain_ref(fieldgroup_hdl%daddr)
+        domain_ref__tmp = cxios_is_defined_fieldgroup_domain_ref &
+      (fieldgroup_hdl%daddr)
         domain_ref_ = domain_ref__tmp
       ENDIF
 
       IF (PRESENT(enabled_)) THEN
-        enabled__tmp = cxios_is_defined_fieldgroup_enabled(fieldgroup_hdl%daddr)
+        enabled__tmp = cxios_is_defined_fieldgroup_enabled &
+      (fieldgroup_hdl%daddr)
         enabled_ = enabled__tmp
       ENDIF
 
       IF (PRESENT(field_ref_)) THEN
-        field_ref__tmp = cxios_is_defined_fieldgroup_field_ref(fieldgroup_hdl%daddr)
+        field_ref__tmp = cxios_is_defined_fieldgroup_field_ref &
+      (fieldgroup_hdl%daddr)
         field_ref_ = field_ref__tmp
       ENDIF
 
       IF (PRESENT(freq_offset_)) THEN
-        freq_offset__tmp = cxios_is_defined_fieldgroup_freq_offset(fieldgroup_hdl%daddr)
+        freq_offset__tmp = cxios_is_defined_fieldgroup_freq_offset &
+      (fieldgroup_hdl%daddr)
         freq_offset_ = freq_offset__tmp
       ENDIF
 
       IF (PRESENT(freq_op_)) THEN
-        freq_op__tmp = cxios_is_defined_fieldgroup_freq_op(fieldgroup_hdl%daddr)
+        freq_op__tmp = cxios_is_defined_fieldgroup_freq_op &
+      (fieldgroup_hdl%daddr)
         freq_op_ = freq_op__tmp
       ENDIF
 
       IF (PRESENT(grid_path_)) THEN
-        grid_path__tmp = cxios_is_defined_fieldgroup_grid_path(fieldgroup_hdl%daddr)
+        grid_path__tmp = cxios_is_defined_fieldgroup_grid_path &
+      (fieldgroup_hdl%daddr)
         grid_path_ = grid_path__tmp
       ENDIF
 
       IF (PRESENT(grid_ref_)) THEN
-        grid_ref__tmp = cxios_is_defined_fieldgroup_grid_ref(fieldgroup_hdl%daddr)
+        grid_ref__tmp = cxios_is_defined_fieldgroup_grid_ref &
+      (fieldgroup_hdl%daddr)
         grid_ref_ = grid_ref__tmp
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp = cxios_is_defined_fieldgroup_group_ref(fieldgroup_hdl%daddr)
+        group_ref__tmp = cxios_is_defined_fieldgroup_group_ref &
+      (fieldgroup_hdl%daddr)
         group_ref_ = group_ref__tmp
       ENDIF
 
       IF (PRESENT(indexed_output_)) THEN
-        indexed_output__tmp = cxios_is_defined_fieldgroup_indexed_output(fieldgroup_hdl%daddr)
+        indexed_output__tmp = cxios_is_defined_fieldgroup_indexed_output &
+      (fieldgroup_hdl%daddr)
         indexed_output_ = indexed_output__tmp
       ENDIF
 
       IF (PRESENT(level_)) THEN
-        level__tmp = cxios_is_defined_fieldgroup_level(fieldgroup_hdl%daddr)
+        level__tmp = cxios_is_defined_fieldgroup_level &
+      (fieldgroup_hdl%daddr)
         level_ = level__tmp
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        long_name__tmp = cxios_is_defined_fieldgroup_long_name(fieldgroup_hdl%daddr)
+        long_name__tmp = cxios_is_defined_fieldgroup_long_name &
+      (fieldgroup_hdl%daddr)
         long_name_ = long_name__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_fieldgroup_name(fieldgroup_hdl%daddr)
+        name__tmp = cxios_is_defined_fieldgroup_name &
+      (fieldgroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(operation_)) THEN
-        operation__tmp = cxios_is_defined_fieldgroup_operation(fieldgroup_hdl%daddr)
+        operation__tmp = cxios_is_defined_fieldgroup_operation &
+      (fieldgroup_hdl%daddr)
         operation_ = operation__tmp
       ENDIF
 
       IF (PRESENT(prec_)) THEN
-        prec__tmp = cxios_is_defined_fieldgroup_prec(fieldgroup_hdl%daddr)
+        prec__tmp = cxios_is_defined_fieldgroup_prec &
+      (fieldgroup_hdl%daddr)
         prec_ = prec__tmp
       ENDIF
 
       IF (PRESENT(read_access_)) THEN
-        read_access__tmp = cxios_is_defined_fieldgroup_read_access(fieldgroup_hdl%daddr)
+        read_access__tmp = cxios_is_defined_fieldgroup_read_access &
+      (fieldgroup_hdl%daddr)
         read_access_ = read_access__tmp
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        scalar_ref__tmp = cxios_is_defined_fieldgroup_scalar_ref(fieldgroup_hdl%daddr)
+        scalar_ref__tmp = cxios_is_defined_fieldgroup_scalar_ref &
+      (fieldgroup_hdl%daddr)
         scalar_ref_ = scalar_ref__tmp
       ENDIF
 
       IF (PRESENT(scale_factor_)) THEN
-        scale_factor__tmp = cxios_is_defined_fieldgroup_scale_factor(fieldgroup_hdl%daddr)
+        scale_factor__tmp = cxios_is_defined_fieldgroup_scale_factor &
+      (fieldgroup_hdl%daddr)
         scale_factor_ = scale_factor__tmp
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        standard_name__tmp = cxios_is_defined_fieldgroup_standard_name(fieldgroup_hdl%daddr)
+        standard_name__tmp = cxios_is_defined_fieldgroup_standard_name &
+      (fieldgroup_hdl%daddr)
         standard_name_ = standard_name__tmp
       ENDIF
 
       IF (PRESENT(ts_enabled_)) THEN
-        ts_enabled__tmp = cxios_is_defined_fieldgroup_ts_enabled(fieldgroup_hdl%daddr)
+        ts_enabled__tmp = cxios_is_defined_fieldgroup_ts_enabled &
+      (fieldgroup_hdl%daddr)
         ts_enabled_ = ts_enabled__tmp
       ENDIF
 
       IF (PRESENT(ts_split_freq_)) THEN
-        ts_split_freq__tmp = cxios_is_defined_fieldgroup_ts_split_freq(fieldgroup_hdl%daddr)
+        ts_split_freq__tmp = cxios_is_defined_fieldgroup_ts_split_freq &
+      (fieldgroup_hdl%daddr)
         ts_split_freq_ = ts_split_freq__tmp
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        unit__tmp = cxios_is_defined_fieldgroup_unit(fieldgroup_hdl%daddr)
+        unit__tmp = cxios_is_defined_fieldgroup_unit &
+      (fieldgroup_hdl%daddr)
         unit_ = unit__tmp
       ENDIF
 
       IF (PRESENT(valid_max_)) THEN
-        valid_max__tmp = cxios_is_defined_fieldgroup_valid_max(fieldgroup_hdl%daddr)
+        valid_max__tmp = cxios_is_defined_fieldgroup_valid_max &
+      (fieldgroup_hdl%daddr)
         valid_max_ = valid_max__tmp
       ENDIF
 
       IF (PRESENT(valid_min_)) THEN
-        valid_min__tmp = cxios_is_defined_fieldgroup_valid_min(fieldgroup_hdl%daddr)
+        valid_min__tmp = cxios_is_defined_fieldgroup_valid_min &
+      (fieldgroup_hdl%daddr)
         valid_min_ = valid_min__tmp
       ENDIF
 

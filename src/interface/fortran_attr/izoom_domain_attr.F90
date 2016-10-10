@@ -21,7 +21,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: ni
       INTEGER  , OPTIONAL, INTENT(IN) :: nj
 
-      CALL xios(get_zoom_domain_handle)(zoom_domain_id,zoom_domain_hdl)
+      CALL xios(get_zoom_domain_handle) &
+      (zoom_domain_id,zoom_domain_hdl)
       CALL xios(set_zoom_domain_attr_hdl_)   &
       ( zoom_domain_hdl, ibegin, jbegin, ni, nj )
 
@@ -53,19 +54,23 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: nj_
 
       IF (PRESENT(ibegin_)) THEN
-        CALL cxios_set_zoom_domain_ibegin(zoom_domain_hdl%daddr, ibegin_)
+        CALL cxios_set_zoom_domain_ibegin &
+      (zoom_domain_hdl%daddr, ibegin_)
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        CALL cxios_set_zoom_domain_jbegin(zoom_domain_hdl%daddr, jbegin_)
+        CALL cxios_set_zoom_domain_jbegin &
+      (zoom_domain_hdl%daddr, jbegin_)
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        CALL cxios_set_zoom_domain_ni(zoom_domain_hdl%daddr, ni_)
+        CALL cxios_set_zoom_domain_ni &
+      (zoom_domain_hdl%daddr, ni_)
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        CALL cxios_set_zoom_domain_nj(zoom_domain_hdl%daddr, nj_)
+        CALL cxios_set_zoom_domain_nj &
+      (zoom_domain_hdl%daddr, nj_)
       ENDIF
 
   END SUBROUTINE xios(set_zoom_domain_attr_hdl_)
@@ -81,7 +86,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: ni
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj
 
-      CALL xios(get_zoom_domain_handle)(zoom_domain_id,zoom_domain_hdl)
+      CALL xios(get_zoom_domain_handle) &
+      (zoom_domain_id,zoom_domain_hdl)
       CALL xios(get_zoom_domain_attr_hdl_)   &
       ( zoom_domain_hdl, ibegin, jbegin, ni, nj )
 
@@ -113,19 +119,23 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: nj_
 
       IF (PRESENT(ibegin_)) THEN
-        CALL cxios_get_zoom_domain_ibegin(zoom_domain_hdl%daddr, ibegin_)
+        CALL cxios_get_zoom_domain_ibegin &
+      (zoom_domain_hdl%daddr, ibegin_)
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        CALL cxios_get_zoom_domain_jbegin(zoom_domain_hdl%daddr, jbegin_)
+        CALL cxios_get_zoom_domain_jbegin &
+      (zoom_domain_hdl%daddr, jbegin_)
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        CALL cxios_get_zoom_domain_ni(zoom_domain_hdl%daddr, ni_)
+        CALL cxios_get_zoom_domain_ni &
+      (zoom_domain_hdl%daddr, ni_)
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        CALL cxios_get_zoom_domain_nj(zoom_domain_hdl%daddr, nj_)
+        CALL cxios_get_zoom_domain_nj &
+      (zoom_domain_hdl%daddr, nj_)
       ENDIF
 
   END SUBROUTINE xios(get_zoom_domain_attr_hdl_)
@@ -145,7 +155,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: nj
       LOGICAL(KIND=C_BOOL) :: nj_tmp
 
-      CALL xios(get_zoom_domain_handle)(zoom_domain_id,zoom_domain_hdl)
+      CALL xios(get_zoom_domain_handle) &
+      (zoom_domain_id,zoom_domain_hdl)
       CALL xios(is_defined_zoom_domain_attr_hdl_)   &
       ( zoom_domain_hdl, ibegin, jbegin, ni, nj )
 
@@ -185,22 +196,26 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: nj__tmp
 
       IF (PRESENT(ibegin_)) THEN
-        ibegin__tmp = cxios_is_defined_zoom_domain_ibegin(zoom_domain_hdl%daddr)
+        ibegin__tmp = cxios_is_defined_zoom_domain_ibegin &
+      (zoom_domain_hdl%daddr)
         ibegin_ = ibegin__tmp
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        jbegin__tmp = cxios_is_defined_zoom_domain_jbegin(zoom_domain_hdl%daddr)
+        jbegin__tmp = cxios_is_defined_zoom_domain_jbegin &
+      (zoom_domain_hdl%daddr)
         jbegin_ = jbegin__tmp
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        ni__tmp = cxios_is_defined_zoom_domain_ni(zoom_domain_hdl%daddr)
+        ni__tmp = cxios_is_defined_zoom_domain_ni &
+      (zoom_domain_hdl%daddr)
         ni_ = ni__tmp
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        nj__tmp = cxios_is_defined_zoom_domain_nj(zoom_domain_hdl%daddr)
+        nj__tmp = cxios_is_defined_zoom_domain_nj &
+      (zoom_domain_hdl%daddr)
         nj_ = nj__tmp
       ENDIF
 

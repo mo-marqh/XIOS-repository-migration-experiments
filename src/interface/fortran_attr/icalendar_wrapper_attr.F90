@@ -28,7 +28,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
       INTEGER  , OPTIONAL, INTENT(IN) :: year_length
 
-      CALL xios(get_calendar_wrapper_handle)(calendar_wrapper_id,calendar_wrapper_hdl)
+      CALL xios(get_calendar_wrapper_handle) &
+      (calendar_wrapper_id,calendar_wrapper_hdl)
       CALL xios(set_calendar_wrapper_attr_hdl_)   &
       ( calendar_wrapper_hdl, day_length, leap_year_drift, leap_year_drift_offset, leap_year_month  &
       , month_lengths, start_date, time_origin, timestep, type, year_length )
@@ -76,43 +77,53 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: year_length_
 
       IF (PRESENT(day_length_)) THEN
-        CALL cxios_set_calendar_wrapper_day_length(calendar_wrapper_hdl%daddr, day_length_)
+        CALL cxios_set_calendar_wrapper_day_length &
+      (calendar_wrapper_hdl%daddr, day_length_)
       ENDIF
 
       IF (PRESENT(leap_year_drift_)) THEN
-        CALL cxios_set_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl%daddr, leap_year_drift_)
+        CALL cxios_set_calendar_wrapper_leap_year_drift &
+      (calendar_wrapper_hdl%daddr, leap_year_drift_)
       ENDIF
 
       IF (PRESENT(leap_year_drift_offset_)) THEN
-        CALL cxios_set_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl%daddr, leap_year_drift_offset_)
+        CALL cxios_set_calendar_wrapper_leap_year_drift_offset &
+      (calendar_wrapper_hdl%daddr, leap_year_drift_offset_)
       ENDIF
 
       IF (PRESENT(leap_year_month_)) THEN
-        CALL cxios_set_calendar_wrapper_leap_year_month(calendar_wrapper_hdl%daddr, leap_year_month_)
+        CALL cxios_set_calendar_wrapper_leap_year_month &
+      (calendar_wrapper_hdl%daddr, leap_year_month_)
       ENDIF
 
       IF (PRESENT(month_lengths_)) THEN
-        CALL cxios_set_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
+        CALL cxios_set_calendar_wrapper_month_lengths &
+      (calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
       ENDIF
 
       IF (PRESENT(start_date_)) THEN
-        CALL cxios_set_calendar_wrapper_start_date(calendar_wrapper_hdl%daddr, start_date_, len(start_date_))
+        CALL cxios_set_calendar_wrapper_start_date &
+      (calendar_wrapper_hdl%daddr, start_date_, len(start_date_))
       ENDIF
 
       IF (PRESENT(time_origin_)) THEN
-        CALL cxios_set_calendar_wrapper_time_origin(calendar_wrapper_hdl%daddr, time_origin_, len(time_origin_))
+        CALL cxios_set_calendar_wrapper_time_origin &
+      (calendar_wrapper_hdl%daddr, time_origin_, len(time_origin_))
       ENDIF
 
       IF (PRESENT(timestep_)) THEN
-        CALL cxios_set_calendar_wrapper_timestep(calendar_wrapper_hdl%daddr, timestep_)
+        CALL cxios_set_calendar_wrapper_timestep &
+      (calendar_wrapper_hdl%daddr, timestep_)
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_calendar_wrapper_type(calendar_wrapper_hdl%daddr, type_, len(type_))
+        CALL cxios_set_calendar_wrapper_type &
+      (calendar_wrapper_hdl%daddr, type_, len(type_))
       ENDIF
 
       IF (PRESENT(year_length_)) THEN
-        CALL cxios_set_calendar_wrapper_year_length(calendar_wrapper_hdl%daddr, year_length_)
+        CALL cxios_set_calendar_wrapper_year_length &
+      (calendar_wrapper_hdl%daddr, year_length_)
       ENDIF
 
   END SUBROUTINE xios(set_calendar_wrapper_attr_hdl_)
@@ -135,7 +146,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
       INTEGER  , OPTIONAL, INTENT(OUT) :: year_length
 
-      CALL xios(get_calendar_wrapper_handle)(calendar_wrapper_id,calendar_wrapper_hdl)
+      CALL xios(get_calendar_wrapper_handle) &
+      (calendar_wrapper_id,calendar_wrapper_hdl)
       CALL xios(get_calendar_wrapper_attr_hdl_)   &
       ( calendar_wrapper_hdl, day_length, leap_year_drift, leap_year_drift_offset, leap_year_month  &
       , month_lengths, start_date, time_origin, timestep, type, year_length )
@@ -183,43 +195,53 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: year_length_
 
       IF (PRESENT(day_length_)) THEN
-        CALL cxios_get_calendar_wrapper_day_length(calendar_wrapper_hdl%daddr, day_length_)
+        CALL cxios_get_calendar_wrapper_day_length &
+      (calendar_wrapper_hdl%daddr, day_length_)
       ENDIF
 
       IF (PRESENT(leap_year_drift_)) THEN
-        CALL cxios_get_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl%daddr, leap_year_drift_)
+        CALL cxios_get_calendar_wrapper_leap_year_drift &
+      (calendar_wrapper_hdl%daddr, leap_year_drift_)
       ENDIF
 
       IF (PRESENT(leap_year_drift_offset_)) THEN
-        CALL cxios_get_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl%daddr, leap_year_drift_offset_)
+        CALL cxios_get_calendar_wrapper_leap_year_drift_offset &
+      (calendar_wrapper_hdl%daddr, leap_year_drift_offset_)
       ENDIF
 
       IF (PRESENT(leap_year_month_)) THEN
-        CALL cxios_get_calendar_wrapper_leap_year_month(calendar_wrapper_hdl%daddr, leap_year_month_)
+        CALL cxios_get_calendar_wrapper_leap_year_month &
+      (calendar_wrapper_hdl%daddr, leap_year_month_)
       ENDIF
 
       IF (PRESENT(month_lengths_)) THEN
-        CALL cxios_get_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
+        CALL cxios_get_calendar_wrapper_month_lengths &
+      (calendar_wrapper_hdl%daddr, month_lengths_, SHAPE(month_lengths_))
       ENDIF
 
       IF (PRESENT(start_date_)) THEN
-        CALL cxios_get_calendar_wrapper_start_date(calendar_wrapper_hdl%daddr, start_date_, len(start_date_))
+        CALL cxios_get_calendar_wrapper_start_date &
+      (calendar_wrapper_hdl%daddr, start_date_, len(start_date_))
       ENDIF
 
       IF (PRESENT(time_origin_)) THEN
-        CALL cxios_get_calendar_wrapper_time_origin(calendar_wrapper_hdl%daddr, time_origin_, len(time_origin_))
+        CALL cxios_get_calendar_wrapper_time_origin &
+      (calendar_wrapper_hdl%daddr, time_origin_, len(time_origin_))
       ENDIF
 
       IF (PRESENT(timestep_)) THEN
-        CALL cxios_get_calendar_wrapper_timestep(calendar_wrapper_hdl%daddr, timestep_)
+        CALL cxios_get_calendar_wrapper_timestep &
+      (calendar_wrapper_hdl%daddr, timestep_)
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_calendar_wrapper_type(calendar_wrapper_hdl%daddr, type_, len(type_))
+        CALL cxios_get_calendar_wrapper_type &
+      (calendar_wrapper_hdl%daddr, type_, len(type_))
       ENDIF
 
       IF (PRESENT(year_length_)) THEN
-        CALL cxios_get_calendar_wrapper_year_length(calendar_wrapper_hdl%daddr, year_length_)
+        CALL cxios_get_calendar_wrapper_year_length &
+      (calendar_wrapper_hdl%daddr, year_length_)
       ENDIF
 
   END SUBROUTINE xios(get_calendar_wrapper_attr_hdl_)
@@ -252,7 +274,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: year_length
       LOGICAL(KIND=C_BOOL) :: year_length_tmp
 
-      CALL xios(get_calendar_wrapper_handle)(calendar_wrapper_id,calendar_wrapper_hdl)
+      CALL xios(get_calendar_wrapper_handle) &
+      (calendar_wrapper_id,calendar_wrapper_hdl)
       CALL xios(is_defined_calendar_wrapper_attr_hdl_)   &
       ( calendar_wrapper_hdl, day_length, leap_year_drift, leap_year_drift_offset, leap_year_month  &
       , month_lengths, start_date, time_origin, timestep, type, year_length )
@@ -320,52 +343,62 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: year_length__tmp
 
       IF (PRESENT(day_length_)) THEN
-        day_length__tmp = cxios_is_defined_calendar_wrapper_day_length(calendar_wrapper_hdl%daddr)
+        day_length__tmp = cxios_is_defined_calendar_wrapper_day_length &
+      (calendar_wrapper_hdl%daddr)
         day_length_ = day_length__tmp
       ENDIF
 
       IF (PRESENT(leap_year_drift_)) THEN
-        leap_year_drift__tmp = cxios_is_defined_calendar_wrapper_leap_year_drift(calendar_wrapper_hdl%daddr)
+        leap_year_drift__tmp = cxios_is_defined_calendar_wrapper_leap_year_drift &
+      (calendar_wrapper_hdl%daddr)
         leap_year_drift_ = leap_year_drift__tmp
       ENDIF
 
       IF (PRESENT(leap_year_drift_offset_)) THEN
-        leap_year_drift_offset__tmp = cxios_is_defined_calendar_wrapper_leap_year_drift_offset(calendar_wrapper_hdl%daddr)
+        leap_year_drift_offset__tmp = cxios_is_defined_calendar_wrapper_leap_year_drift_offset &
+      (calendar_wrapper_hdl%daddr)
         leap_year_drift_offset_ = leap_year_drift_offset__tmp
       ENDIF
 
       IF (PRESENT(leap_year_month_)) THEN
-        leap_year_month__tmp = cxios_is_defined_calendar_wrapper_leap_year_month(calendar_wrapper_hdl%daddr)
+        leap_year_month__tmp = cxios_is_defined_calendar_wrapper_leap_year_month &
+      (calendar_wrapper_hdl%daddr)
         leap_year_month_ = leap_year_month__tmp
       ENDIF
 
       IF (PRESENT(month_lengths_)) THEN
-        month_lengths__tmp = cxios_is_defined_calendar_wrapper_month_lengths(calendar_wrapper_hdl%daddr)
+        month_lengths__tmp = cxios_is_defined_calendar_wrapper_month_lengths &
+      (calendar_wrapper_hdl%daddr)
         month_lengths_ = month_lengths__tmp
       ENDIF
 
       IF (PRESENT(start_date_)) THEN
-        start_date__tmp = cxios_is_defined_calendar_wrapper_start_date(calendar_wrapper_hdl%daddr)
+        start_date__tmp = cxios_is_defined_calendar_wrapper_start_date &
+      (calendar_wrapper_hdl%daddr)
         start_date_ = start_date__tmp
       ENDIF
 
       IF (PRESENT(time_origin_)) THEN
-        time_origin__tmp = cxios_is_defined_calendar_wrapper_time_origin(calendar_wrapper_hdl%daddr)
+        time_origin__tmp = cxios_is_defined_calendar_wrapper_time_origin &
+      (calendar_wrapper_hdl%daddr)
         time_origin_ = time_origin__tmp
       ENDIF
 
       IF (PRESENT(timestep_)) THEN
-        timestep__tmp = cxios_is_defined_calendar_wrapper_timestep(calendar_wrapper_hdl%daddr)
+        timestep__tmp = cxios_is_defined_calendar_wrapper_timestep &
+      (calendar_wrapper_hdl%daddr)
         timestep_ = timestep__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_calendar_wrapper_type(calendar_wrapper_hdl%daddr)
+        type__tmp = cxios_is_defined_calendar_wrapper_type &
+      (calendar_wrapper_hdl%daddr)
         type_ = type__tmp
       ENDIF
 
       IF (PRESENT(year_length_)) THEN
-        year_length__tmp = cxios_is_defined_calendar_wrapper_year_length(calendar_wrapper_hdl%daddr)
+        year_length__tmp = cxios_is_defined_calendar_wrapper_year_length &
+      (calendar_wrapper_hdl%daddr)
         year_length_ = year_length__tmp
       ENDIF
 

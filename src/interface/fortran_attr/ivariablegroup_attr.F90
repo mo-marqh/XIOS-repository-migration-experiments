@@ -20,7 +20,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(get_variablegroup_handle)(variablegroup_id,variablegroup_hdl)
+      CALL xios(get_variablegroup_handle) &
+      (variablegroup_id,variablegroup_hdl)
       CALL xios(set_variablegroup_attr_hdl_)   &
       ( variablegroup_hdl, group_ref, name, type )
 
@@ -50,15 +51,18 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_set_variablegroup_group_ref(variablegroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_set_variablegroup_group_ref &
+      (variablegroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_variablegroup_name(variablegroup_hdl%daddr, name_, len(name_))
+        CALL cxios_set_variablegroup_name &
+      (variablegroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_variablegroup_type(variablegroup_hdl%daddr, type_, len(type_))
+        CALL cxios_set_variablegroup_type &
+      (variablegroup_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(set_variablegroup_attr_hdl_)
@@ -73,7 +77,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
-      CALL xios(get_variablegroup_handle)(variablegroup_id,variablegroup_hdl)
+      CALL xios(get_variablegroup_handle) &
+      (variablegroup_id,variablegroup_hdl)
       CALL xios(get_variablegroup_attr_hdl_)   &
       ( variablegroup_hdl, group_ref, name, type )
 
@@ -103,15 +108,18 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_get_variablegroup_group_ref(variablegroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_get_variablegroup_group_ref &
+      (variablegroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_variablegroup_name(variablegroup_hdl%daddr, name_, len(name_))
+        CALL cxios_get_variablegroup_name &
+      (variablegroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_variablegroup_type(variablegroup_hdl%daddr, type_, len(type_))
+        CALL cxios_get_variablegroup_type &
+      (variablegroup_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(get_variablegroup_attr_hdl_)
@@ -129,7 +137,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
-      CALL xios(get_variablegroup_handle)(variablegroup_id,variablegroup_hdl)
+      CALL xios(get_variablegroup_handle) &
+      (variablegroup_id,variablegroup_hdl)
       CALL xios(is_defined_variablegroup_attr_hdl_)   &
       ( variablegroup_hdl, group_ref, name, type )
 
@@ -165,17 +174,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp = cxios_is_defined_variablegroup_group_ref(variablegroup_hdl%daddr)
+        group_ref__tmp = cxios_is_defined_variablegroup_group_ref &
+      (variablegroup_hdl%daddr)
         group_ref_ = group_ref__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_variablegroup_name(variablegroup_hdl%daddr)
+        name__tmp = cxios_is_defined_variablegroup_name &
+      (variablegroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_variablegroup_type(variablegroup_hdl%daddr)
+        type__tmp = cxios_is_defined_variablegroup_type &
+      (variablegroup_hdl%daddr)
         type_ = type__tmp
       ENDIF
 

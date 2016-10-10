@@ -20,7 +20,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: order
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(get_interpolate_axis_handle)(interpolate_axis_id,interpolate_axis_hdl)
+      CALL xios(get_interpolate_axis_handle) &
+      (interpolate_axis_id,interpolate_axis_hdl)
       CALL xios(set_interpolate_axis_attr_hdl_)   &
       ( interpolate_axis_hdl, coordinate, order, type )
 
@@ -50,15 +51,18 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(coordinate_)) THEN
-        CALL cxios_set_interpolate_axis_coordinate(interpolate_axis_hdl%daddr, coordinate_, len(coordinate_))
+        CALL cxios_set_interpolate_axis_coordinate &
+      (interpolate_axis_hdl%daddr, coordinate_, len(coordinate_))
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        CALL cxios_set_interpolate_axis_order(interpolate_axis_hdl%daddr, order_)
+        CALL cxios_set_interpolate_axis_order &
+      (interpolate_axis_hdl%daddr, order_)
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_interpolate_axis_type(interpolate_axis_hdl%daddr, type_, len(type_))
+        CALL cxios_set_interpolate_axis_type &
+      (interpolate_axis_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(set_interpolate_axis_attr_hdl_)
@@ -73,7 +77,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: order
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
-      CALL xios(get_interpolate_axis_handle)(interpolate_axis_id,interpolate_axis_hdl)
+      CALL xios(get_interpolate_axis_handle) &
+      (interpolate_axis_id,interpolate_axis_hdl)
       CALL xios(get_interpolate_axis_attr_hdl_)   &
       ( interpolate_axis_hdl, coordinate, order, type )
 
@@ -103,15 +108,18 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(coordinate_)) THEN
-        CALL cxios_get_interpolate_axis_coordinate(interpolate_axis_hdl%daddr, coordinate_, len(coordinate_))
+        CALL cxios_get_interpolate_axis_coordinate &
+      (interpolate_axis_hdl%daddr, coordinate_, len(coordinate_))
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        CALL cxios_get_interpolate_axis_order(interpolate_axis_hdl%daddr, order_)
+        CALL cxios_get_interpolate_axis_order &
+      (interpolate_axis_hdl%daddr, order_)
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_interpolate_axis_type(interpolate_axis_hdl%daddr, type_, len(type_))
+        CALL cxios_get_interpolate_axis_type &
+      (interpolate_axis_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(get_interpolate_axis_attr_hdl_)
@@ -129,7 +137,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
-      CALL xios(get_interpolate_axis_handle)(interpolate_axis_id,interpolate_axis_hdl)
+      CALL xios(get_interpolate_axis_handle) &
+      (interpolate_axis_id,interpolate_axis_hdl)
       CALL xios(is_defined_interpolate_axis_attr_hdl_)   &
       ( interpolate_axis_hdl, coordinate, order, type )
 
@@ -165,17 +174,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
       IF (PRESENT(coordinate_)) THEN
-        coordinate__tmp = cxios_is_defined_interpolate_axis_coordinate(interpolate_axis_hdl%daddr)
+        coordinate__tmp = cxios_is_defined_interpolate_axis_coordinate &
+      (interpolate_axis_hdl%daddr)
         coordinate_ = coordinate__tmp
       ENDIF
 
       IF (PRESENT(order_)) THEN
-        order__tmp = cxios_is_defined_interpolate_axis_order(interpolate_axis_hdl%daddr)
+        order__tmp = cxios_is_defined_interpolate_axis_order &
+      (interpolate_axis_hdl%daddr)
         order_ = order__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_interpolate_axis_type(interpolate_axis_hdl%daddr)
+        type__tmp = cxios_is_defined_interpolate_axis_type &
+      (interpolate_axis_hdl%daddr)
         type_ = type__tmp
       ENDIF
 

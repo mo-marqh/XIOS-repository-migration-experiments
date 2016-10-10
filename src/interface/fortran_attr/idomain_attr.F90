@@ -54,7 +54,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(get_domain_handle)(domain_id,domain_hdl)
+      CALL xios(get_domain_handle) &
+      (domain_id,domain_hdl)
       CALL xios(set_domain_attr_hdl_)   &
       ( domain_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim, data_i_index  &
       , data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, i_index, ibegin, j_index  &
@@ -159,135 +160,167 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(area_)) THEN
-        CALL cxios_set_domain_area(domain_hdl%daddr, area_, SHAPE(area_))
+        CALL cxios_set_domain_area &
+      (domain_hdl%daddr, area_, SHAPE(area_))
       ENDIF
 
       IF (PRESENT(bounds_lat_1d_)) THEN
-        CALL cxios_set_domain_bounds_lat_1d(domain_hdl%daddr, bounds_lat_1d_, SHAPE(bounds_lat_1d_))
+        CALL cxios_set_domain_bounds_lat_1d &
+      (domain_hdl%daddr, bounds_lat_1d_, SHAPE(bounds_lat_1d_))
       ENDIF
 
       IF (PRESENT(bounds_lat_2d_)) THEN
-        CALL cxios_set_domain_bounds_lat_2d(domain_hdl%daddr, bounds_lat_2d_, SHAPE(bounds_lat_2d_))
+        CALL cxios_set_domain_bounds_lat_2d &
+      (domain_hdl%daddr, bounds_lat_2d_, SHAPE(bounds_lat_2d_))
       ENDIF
 
       IF (PRESENT(bounds_lon_1d_)) THEN
-        CALL cxios_set_domain_bounds_lon_1d(domain_hdl%daddr, bounds_lon_1d_, SHAPE(bounds_lon_1d_))
+        CALL cxios_set_domain_bounds_lon_1d &
+      (domain_hdl%daddr, bounds_lon_1d_, SHAPE(bounds_lon_1d_))
       ENDIF
 
       IF (PRESENT(bounds_lon_2d_)) THEN
-        CALL cxios_set_domain_bounds_lon_2d(domain_hdl%daddr, bounds_lon_2d_, SHAPE(bounds_lon_2d_))
+        CALL cxios_set_domain_bounds_lon_2d &
+      (domain_hdl%daddr, bounds_lon_2d_, SHAPE(bounds_lon_2d_))
       ENDIF
 
       IF (PRESENT(data_dim_)) THEN
-        CALL cxios_set_domain_data_dim(domain_hdl%daddr, data_dim_)
+        CALL cxios_set_domain_data_dim &
+      (domain_hdl%daddr, data_dim_)
       ENDIF
 
       IF (PRESENT(data_i_index_)) THEN
-        CALL cxios_set_domain_data_i_index(domain_hdl%daddr, data_i_index_, SHAPE(data_i_index_))
+        CALL cxios_set_domain_data_i_index &
+      (domain_hdl%daddr, data_i_index_, SHAPE(data_i_index_))
       ENDIF
 
       IF (PRESENT(data_ibegin_)) THEN
-        CALL cxios_set_domain_data_ibegin(domain_hdl%daddr, data_ibegin_)
+        CALL cxios_set_domain_data_ibegin &
+      (domain_hdl%daddr, data_ibegin_)
       ENDIF
 
       IF (PRESENT(data_j_index_)) THEN
-        CALL cxios_set_domain_data_j_index(domain_hdl%daddr, data_j_index_, SHAPE(data_j_index_))
+        CALL cxios_set_domain_data_j_index &
+      (domain_hdl%daddr, data_j_index_, SHAPE(data_j_index_))
       ENDIF
 
       IF (PRESENT(data_jbegin_)) THEN
-        CALL cxios_set_domain_data_jbegin(domain_hdl%daddr, data_jbegin_)
+        CALL cxios_set_domain_data_jbegin &
+      (domain_hdl%daddr, data_jbegin_)
       ENDIF
 
       IF (PRESENT(data_ni_)) THEN
-        CALL cxios_set_domain_data_ni(domain_hdl%daddr, data_ni_)
+        CALL cxios_set_domain_data_ni &
+      (domain_hdl%daddr, data_ni_)
       ENDIF
 
       IF (PRESENT(data_nj_)) THEN
-        CALL cxios_set_domain_data_nj(domain_hdl%daddr, data_nj_)
+        CALL cxios_set_domain_data_nj &
+      (domain_hdl%daddr, data_nj_)
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        CALL cxios_set_domain_domain_ref(domain_hdl%daddr, domain_ref_, len(domain_ref_))
+        CALL cxios_set_domain_domain_ref &
+      (domain_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
 
       IF (PRESENT(i_index_)) THEN
-        CALL cxios_set_domain_i_index(domain_hdl%daddr, i_index_, SHAPE(i_index_))
+        CALL cxios_set_domain_i_index &
+      (domain_hdl%daddr, i_index_, SHAPE(i_index_))
       ENDIF
 
       IF (PRESENT(ibegin_)) THEN
-        CALL cxios_set_domain_ibegin(domain_hdl%daddr, ibegin_)
+        CALL cxios_set_domain_ibegin &
+      (domain_hdl%daddr, ibegin_)
       ENDIF
 
       IF (PRESENT(j_index_)) THEN
-        CALL cxios_set_domain_j_index(domain_hdl%daddr, j_index_, SHAPE(j_index_))
+        CALL cxios_set_domain_j_index &
+      (domain_hdl%daddr, j_index_, SHAPE(j_index_))
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        CALL cxios_set_domain_jbegin(domain_hdl%daddr, jbegin_)
+        CALL cxios_set_domain_jbegin &
+      (domain_hdl%daddr, jbegin_)
       ENDIF
 
       IF (PRESENT(latvalue_1d_)) THEN
-        CALL cxios_set_domain_latvalue_1d(domain_hdl%daddr, latvalue_1d_, SHAPE(latvalue_1d_))
+        CALL cxios_set_domain_latvalue_1d &
+      (domain_hdl%daddr, latvalue_1d_, SHAPE(latvalue_1d_))
       ENDIF
 
       IF (PRESENT(latvalue_2d_)) THEN
-        CALL cxios_set_domain_latvalue_2d(domain_hdl%daddr, latvalue_2d_, SHAPE(latvalue_2d_))
+        CALL cxios_set_domain_latvalue_2d &
+      (domain_hdl%daddr, latvalue_2d_, SHAPE(latvalue_2d_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_set_domain_long_name(domain_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_set_domain_long_name &
+      (domain_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(lonvalue_1d_)) THEN
-        CALL cxios_set_domain_lonvalue_1d(domain_hdl%daddr, lonvalue_1d_, SHAPE(lonvalue_1d_))
+        CALL cxios_set_domain_lonvalue_1d &
+      (domain_hdl%daddr, lonvalue_1d_, SHAPE(lonvalue_1d_))
       ENDIF
 
       IF (PRESENT(lonvalue_2d_)) THEN
-        CALL cxios_set_domain_lonvalue_2d(domain_hdl%daddr, lonvalue_2d_, SHAPE(lonvalue_2d_))
+        CALL cxios_set_domain_lonvalue_2d &
+      (domain_hdl%daddr, lonvalue_2d_, SHAPE(lonvalue_2d_))
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         mask_1d__tmp = mask_1d_
-        CALL cxios_set_domain_mask_1d(domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL cxios_set_domain_mask_1d &
+      (domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         mask_2d__tmp = mask_2d_
-        CALL cxios_set_domain_mask_2d(domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL cxios_set_domain_mask_2d &
+      (domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_domain_name(domain_hdl%daddr, name_, len(name_))
+        CALL cxios_set_domain_name &
+      (domain_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        CALL cxios_set_domain_ni(domain_hdl%daddr, ni_)
+        CALL cxios_set_domain_ni &
+      (domain_hdl%daddr, ni_)
       ENDIF
 
       IF (PRESENT(ni_glo_)) THEN
-        CALL cxios_set_domain_ni_glo(domain_hdl%daddr, ni_glo_)
+        CALL cxios_set_domain_ni_glo &
+      (domain_hdl%daddr, ni_glo_)
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        CALL cxios_set_domain_nj(domain_hdl%daddr, nj_)
+        CALL cxios_set_domain_nj &
+      (domain_hdl%daddr, nj_)
       ENDIF
 
       IF (PRESENT(nj_glo_)) THEN
-        CALL cxios_set_domain_nj_glo(domain_hdl%daddr, nj_glo_)
+        CALL cxios_set_domain_nj_glo &
+      (domain_hdl%daddr, nj_glo_)
       ENDIF
 
       IF (PRESENT(nvertex_)) THEN
-        CALL cxios_set_domain_nvertex(domain_hdl%daddr, nvertex_)
+        CALL cxios_set_domain_nvertex &
+      (domain_hdl%daddr, nvertex_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_set_domain_standard_name(domain_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_set_domain_standard_name &
+      (domain_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_domain_type(domain_hdl%daddr, type_, len(type_))
+        CALL cxios_set_domain_type &
+      (domain_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(set_domain_attr_hdl_)
@@ -336,7 +369,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: standard_name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
-      CALL xios(get_domain_handle)(domain_id,domain_hdl)
+      CALL xios(get_domain_handle) &
+      (domain_id,domain_hdl)
       CALL xios(get_domain_attr_hdl_)   &
       ( domain_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim, data_i_index  &
       , data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, i_index, ibegin, j_index  &
@@ -441,135 +475,167 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(area_)) THEN
-        CALL cxios_get_domain_area(domain_hdl%daddr, area_, SHAPE(area_))
+        CALL cxios_get_domain_area &
+      (domain_hdl%daddr, area_, SHAPE(area_))
       ENDIF
 
       IF (PRESENT(bounds_lat_1d_)) THEN
-        CALL cxios_get_domain_bounds_lat_1d(domain_hdl%daddr, bounds_lat_1d_, SHAPE(bounds_lat_1d_))
+        CALL cxios_get_domain_bounds_lat_1d &
+      (domain_hdl%daddr, bounds_lat_1d_, SHAPE(bounds_lat_1d_))
       ENDIF
 
       IF (PRESENT(bounds_lat_2d_)) THEN
-        CALL cxios_get_domain_bounds_lat_2d(domain_hdl%daddr, bounds_lat_2d_, SHAPE(bounds_lat_2d_))
+        CALL cxios_get_domain_bounds_lat_2d &
+      (domain_hdl%daddr, bounds_lat_2d_, SHAPE(bounds_lat_2d_))
       ENDIF
 
       IF (PRESENT(bounds_lon_1d_)) THEN
-        CALL cxios_get_domain_bounds_lon_1d(domain_hdl%daddr, bounds_lon_1d_, SHAPE(bounds_lon_1d_))
+        CALL cxios_get_domain_bounds_lon_1d &
+      (domain_hdl%daddr, bounds_lon_1d_, SHAPE(bounds_lon_1d_))
       ENDIF
 
       IF (PRESENT(bounds_lon_2d_)) THEN
-        CALL cxios_get_domain_bounds_lon_2d(domain_hdl%daddr, bounds_lon_2d_, SHAPE(bounds_lon_2d_))
+        CALL cxios_get_domain_bounds_lon_2d &
+      (domain_hdl%daddr, bounds_lon_2d_, SHAPE(bounds_lon_2d_))
       ENDIF
 
       IF (PRESENT(data_dim_)) THEN
-        CALL cxios_get_domain_data_dim(domain_hdl%daddr, data_dim_)
+        CALL cxios_get_domain_data_dim &
+      (domain_hdl%daddr, data_dim_)
       ENDIF
 
       IF (PRESENT(data_i_index_)) THEN
-        CALL cxios_get_domain_data_i_index(domain_hdl%daddr, data_i_index_, SHAPE(data_i_index_))
+        CALL cxios_get_domain_data_i_index &
+      (domain_hdl%daddr, data_i_index_, SHAPE(data_i_index_))
       ENDIF
 
       IF (PRESENT(data_ibegin_)) THEN
-        CALL cxios_get_domain_data_ibegin(domain_hdl%daddr, data_ibegin_)
+        CALL cxios_get_domain_data_ibegin &
+      (domain_hdl%daddr, data_ibegin_)
       ENDIF
 
       IF (PRESENT(data_j_index_)) THEN
-        CALL cxios_get_domain_data_j_index(domain_hdl%daddr, data_j_index_, SHAPE(data_j_index_))
+        CALL cxios_get_domain_data_j_index &
+      (domain_hdl%daddr, data_j_index_, SHAPE(data_j_index_))
       ENDIF
 
       IF (PRESENT(data_jbegin_)) THEN
-        CALL cxios_get_domain_data_jbegin(domain_hdl%daddr, data_jbegin_)
+        CALL cxios_get_domain_data_jbegin &
+      (domain_hdl%daddr, data_jbegin_)
       ENDIF
 
       IF (PRESENT(data_ni_)) THEN
-        CALL cxios_get_domain_data_ni(domain_hdl%daddr, data_ni_)
+        CALL cxios_get_domain_data_ni &
+      (domain_hdl%daddr, data_ni_)
       ENDIF
 
       IF (PRESENT(data_nj_)) THEN
-        CALL cxios_get_domain_data_nj(domain_hdl%daddr, data_nj_)
+        CALL cxios_get_domain_data_nj &
+      (domain_hdl%daddr, data_nj_)
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        CALL cxios_get_domain_domain_ref(domain_hdl%daddr, domain_ref_, len(domain_ref_))
+        CALL cxios_get_domain_domain_ref &
+      (domain_hdl%daddr, domain_ref_, len(domain_ref_))
       ENDIF
 
       IF (PRESENT(i_index_)) THEN
-        CALL cxios_get_domain_i_index(domain_hdl%daddr, i_index_, SHAPE(i_index_))
+        CALL cxios_get_domain_i_index &
+      (domain_hdl%daddr, i_index_, SHAPE(i_index_))
       ENDIF
 
       IF (PRESENT(ibegin_)) THEN
-        CALL cxios_get_domain_ibegin(domain_hdl%daddr, ibegin_)
+        CALL cxios_get_domain_ibegin &
+      (domain_hdl%daddr, ibegin_)
       ENDIF
 
       IF (PRESENT(j_index_)) THEN
-        CALL cxios_get_domain_j_index(domain_hdl%daddr, j_index_, SHAPE(j_index_))
+        CALL cxios_get_domain_j_index &
+      (domain_hdl%daddr, j_index_, SHAPE(j_index_))
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        CALL cxios_get_domain_jbegin(domain_hdl%daddr, jbegin_)
+        CALL cxios_get_domain_jbegin &
+      (domain_hdl%daddr, jbegin_)
       ENDIF
 
       IF (PRESENT(latvalue_1d_)) THEN
-        CALL cxios_get_domain_latvalue_1d(domain_hdl%daddr, latvalue_1d_, SHAPE(latvalue_1d_))
+        CALL cxios_get_domain_latvalue_1d &
+      (domain_hdl%daddr, latvalue_1d_, SHAPE(latvalue_1d_))
       ENDIF
 
       IF (PRESENT(latvalue_2d_)) THEN
-        CALL cxios_get_domain_latvalue_2d(domain_hdl%daddr, latvalue_2d_, SHAPE(latvalue_2d_))
+        CALL cxios_get_domain_latvalue_2d &
+      (domain_hdl%daddr, latvalue_2d_, SHAPE(latvalue_2d_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_get_domain_long_name(domain_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_get_domain_long_name &
+      (domain_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(lonvalue_1d_)) THEN
-        CALL cxios_get_domain_lonvalue_1d(domain_hdl%daddr, lonvalue_1d_, SHAPE(lonvalue_1d_))
+        CALL cxios_get_domain_lonvalue_1d &
+      (domain_hdl%daddr, lonvalue_1d_, SHAPE(lonvalue_1d_))
       ENDIF
 
       IF (PRESENT(lonvalue_2d_)) THEN
-        CALL cxios_get_domain_lonvalue_2d(domain_hdl%daddr, lonvalue_2d_, SHAPE(lonvalue_2d_))
+        CALL cxios_get_domain_lonvalue_2d &
+      (domain_hdl%daddr, lonvalue_2d_, SHAPE(lonvalue_2d_))
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
-        CALL cxios_get_domain_mask_1d(domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL cxios_get_domain_mask_1d &
+      (domain_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
         mask_1d_ = mask_1d__tmp
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
-        CALL cxios_get_domain_mask_2d(domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL cxios_get_domain_mask_2d &
+      (domain_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
         mask_2d_ = mask_2d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_domain_name(domain_hdl%daddr, name_, len(name_))
+        CALL cxios_get_domain_name &
+      (domain_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        CALL cxios_get_domain_ni(domain_hdl%daddr, ni_)
+        CALL cxios_get_domain_ni &
+      (domain_hdl%daddr, ni_)
       ENDIF
 
       IF (PRESENT(ni_glo_)) THEN
-        CALL cxios_get_domain_ni_glo(domain_hdl%daddr, ni_glo_)
+        CALL cxios_get_domain_ni_glo &
+      (domain_hdl%daddr, ni_glo_)
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        CALL cxios_get_domain_nj(domain_hdl%daddr, nj_)
+        CALL cxios_get_domain_nj &
+      (domain_hdl%daddr, nj_)
       ENDIF
 
       IF (PRESENT(nj_glo_)) THEN
-        CALL cxios_get_domain_nj_glo(domain_hdl%daddr, nj_glo_)
+        CALL cxios_get_domain_nj_glo &
+      (domain_hdl%daddr, nj_glo_)
       ENDIF
 
       IF (PRESENT(nvertex_)) THEN
-        CALL cxios_get_domain_nvertex(domain_hdl%daddr, nvertex_)
+        CALL cxios_get_domain_nvertex &
+      (domain_hdl%daddr, nvertex_)
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_get_domain_standard_name(domain_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_get_domain_standard_name &
+      (domain_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_domain_type(domain_hdl%daddr, type_, len(type_))
+        CALL cxios_get_domain_type &
+      (domain_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(get_domain_attr_hdl_)
@@ -648,7 +714,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
-      CALL xios(get_domain_handle)(domain_id,domain_hdl)
+      CALL xios(get_domain_handle) &
+      (domain_id,domain_hdl)
       CALL xios(is_defined_domain_attr_hdl_)   &
       ( domain_hdl, area, bounds_lat_1d, bounds_lat_2d, bounds_lon_1d, bounds_lon_2d, data_dim, data_i_index  &
       , data_ibegin, data_j_index, data_jbegin, data_ni, data_nj, domain_ref, i_index, ibegin, j_index  &
@@ -813,162 +880,194 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
       IF (PRESENT(area_)) THEN
-        area__tmp = cxios_is_defined_domain_area(domain_hdl%daddr)
+        area__tmp = cxios_is_defined_domain_area &
+      (domain_hdl%daddr)
         area_ = area__tmp
       ENDIF
 
       IF (PRESENT(bounds_lat_1d_)) THEN
-        bounds_lat_1d__tmp = cxios_is_defined_domain_bounds_lat_1d(domain_hdl%daddr)
+        bounds_lat_1d__tmp = cxios_is_defined_domain_bounds_lat_1d &
+      (domain_hdl%daddr)
         bounds_lat_1d_ = bounds_lat_1d__tmp
       ENDIF
 
       IF (PRESENT(bounds_lat_2d_)) THEN
-        bounds_lat_2d__tmp = cxios_is_defined_domain_bounds_lat_2d(domain_hdl%daddr)
+        bounds_lat_2d__tmp = cxios_is_defined_domain_bounds_lat_2d &
+      (domain_hdl%daddr)
         bounds_lat_2d_ = bounds_lat_2d__tmp
       ENDIF
 
       IF (PRESENT(bounds_lon_1d_)) THEN
-        bounds_lon_1d__tmp = cxios_is_defined_domain_bounds_lon_1d(domain_hdl%daddr)
+        bounds_lon_1d__tmp = cxios_is_defined_domain_bounds_lon_1d &
+      (domain_hdl%daddr)
         bounds_lon_1d_ = bounds_lon_1d__tmp
       ENDIF
 
       IF (PRESENT(bounds_lon_2d_)) THEN
-        bounds_lon_2d__tmp = cxios_is_defined_domain_bounds_lon_2d(domain_hdl%daddr)
+        bounds_lon_2d__tmp = cxios_is_defined_domain_bounds_lon_2d &
+      (domain_hdl%daddr)
         bounds_lon_2d_ = bounds_lon_2d__tmp
       ENDIF
 
       IF (PRESENT(data_dim_)) THEN
-        data_dim__tmp = cxios_is_defined_domain_data_dim(domain_hdl%daddr)
+        data_dim__tmp = cxios_is_defined_domain_data_dim &
+      (domain_hdl%daddr)
         data_dim_ = data_dim__tmp
       ENDIF
 
       IF (PRESENT(data_i_index_)) THEN
-        data_i_index__tmp = cxios_is_defined_domain_data_i_index(domain_hdl%daddr)
+        data_i_index__tmp = cxios_is_defined_domain_data_i_index &
+      (domain_hdl%daddr)
         data_i_index_ = data_i_index__tmp
       ENDIF
 
       IF (PRESENT(data_ibegin_)) THEN
-        data_ibegin__tmp = cxios_is_defined_domain_data_ibegin(domain_hdl%daddr)
+        data_ibegin__tmp = cxios_is_defined_domain_data_ibegin &
+      (domain_hdl%daddr)
         data_ibegin_ = data_ibegin__tmp
       ENDIF
 
       IF (PRESENT(data_j_index_)) THEN
-        data_j_index__tmp = cxios_is_defined_domain_data_j_index(domain_hdl%daddr)
+        data_j_index__tmp = cxios_is_defined_domain_data_j_index &
+      (domain_hdl%daddr)
         data_j_index_ = data_j_index__tmp
       ENDIF
 
       IF (PRESENT(data_jbegin_)) THEN
-        data_jbegin__tmp = cxios_is_defined_domain_data_jbegin(domain_hdl%daddr)
+        data_jbegin__tmp = cxios_is_defined_domain_data_jbegin &
+      (domain_hdl%daddr)
         data_jbegin_ = data_jbegin__tmp
       ENDIF
 
       IF (PRESENT(data_ni_)) THEN
-        data_ni__tmp = cxios_is_defined_domain_data_ni(domain_hdl%daddr)
+        data_ni__tmp = cxios_is_defined_domain_data_ni &
+      (domain_hdl%daddr)
         data_ni_ = data_ni__tmp
       ENDIF
 
       IF (PRESENT(data_nj_)) THEN
-        data_nj__tmp = cxios_is_defined_domain_data_nj(domain_hdl%daddr)
+        data_nj__tmp = cxios_is_defined_domain_data_nj &
+      (domain_hdl%daddr)
         data_nj_ = data_nj__tmp
       ENDIF
 
       IF (PRESENT(domain_ref_)) THEN
-        domain_ref__tmp = cxios_is_defined_domain_domain_ref(domain_hdl%daddr)
+        domain_ref__tmp = cxios_is_defined_domain_domain_ref &
+      (domain_hdl%daddr)
         domain_ref_ = domain_ref__tmp
       ENDIF
 
       IF (PRESENT(i_index_)) THEN
-        i_index__tmp = cxios_is_defined_domain_i_index(domain_hdl%daddr)
+        i_index__tmp = cxios_is_defined_domain_i_index &
+      (domain_hdl%daddr)
         i_index_ = i_index__tmp
       ENDIF
 
       IF (PRESENT(ibegin_)) THEN
-        ibegin__tmp = cxios_is_defined_domain_ibegin(domain_hdl%daddr)
+        ibegin__tmp = cxios_is_defined_domain_ibegin &
+      (domain_hdl%daddr)
         ibegin_ = ibegin__tmp
       ENDIF
 
       IF (PRESENT(j_index_)) THEN
-        j_index__tmp = cxios_is_defined_domain_j_index(domain_hdl%daddr)
+        j_index__tmp = cxios_is_defined_domain_j_index &
+      (domain_hdl%daddr)
         j_index_ = j_index__tmp
       ENDIF
 
       IF (PRESENT(jbegin_)) THEN
-        jbegin__tmp = cxios_is_defined_domain_jbegin(domain_hdl%daddr)
+        jbegin__tmp = cxios_is_defined_domain_jbegin &
+      (domain_hdl%daddr)
         jbegin_ = jbegin__tmp
       ENDIF
 
       IF (PRESENT(latvalue_1d_)) THEN
-        latvalue_1d__tmp = cxios_is_defined_domain_latvalue_1d(domain_hdl%daddr)
+        latvalue_1d__tmp = cxios_is_defined_domain_latvalue_1d &
+      (domain_hdl%daddr)
         latvalue_1d_ = latvalue_1d__tmp
       ENDIF
 
       IF (PRESENT(latvalue_2d_)) THEN
-        latvalue_2d__tmp = cxios_is_defined_domain_latvalue_2d(domain_hdl%daddr)
+        latvalue_2d__tmp = cxios_is_defined_domain_latvalue_2d &
+      (domain_hdl%daddr)
         latvalue_2d_ = latvalue_2d__tmp
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        long_name__tmp = cxios_is_defined_domain_long_name(domain_hdl%daddr)
+        long_name__tmp = cxios_is_defined_domain_long_name &
+      (domain_hdl%daddr)
         long_name_ = long_name__tmp
       ENDIF
 
       IF (PRESENT(lonvalue_1d_)) THEN
-        lonvalue_1d__tmp = cxios_is_defined_domain_lonvalue_1d(domain_hdl%daddr)
+        lonvalue_1d__tmp = cxios_is_defined_domain_lonvalue_1d &
+      (domain_hdl%daddr)
         lonvalue_1d_ = lonvalue_1d__tmp
       ENDIF
 
       IF (PRESENT(lonvalue_2d_)) THEN
-        lonvalue_2d__tmp = cxios_is_defined_domain_lonvalue_2d(domain_hdl%daddr)
+        lonvalue_2d__tmp = cxios_is_defined_domain_lonvalue_2d &
+      (domain_hdl%daddr)
         lonvalue_2d_ = lonvalue_2d__tmp
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
-        mask_1d__tmp = cxios_is_defined_domain_mask_1d(domain_hdl%daddr)
+        mask_1d__tmp = cxios_is_defined_domain_mask_1d &
+      (domain_hdl%daddr)
         mask_1d_ = mask_1d__tmp
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
-        mask_2d__tmp = cxios_is_defined_domain_mask_2d(domain_hdl%daddr)
+        mask_2d__tmp = cxios_is_defined_domain_mask_2d &
+      (domain_hdl%daddr)
         mask_2d_ = mask_2d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_domain_name(domain_hdl%daddr)
+        name__tmp = cxios_is_defined_domain_name &
+      (domain_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(ni_)) THEN
-        ni__tmp = cxios_is_defined_domain_ni(domain_hdl%daddr)
+        ni__tmp = cxios_is_defined_domain_ni &
+      (domain_hdl%daddr)
         ni_ = ni__tmp
       ENDIF
 
       IF (PRESENT(ni_glo_)) THEN
-        ni_glo__tmp = cxios_is_defined_domain_ni_glo(domain_hdl%daddr)
+        ni_glo__tmp = cxios_is_defined_domain_ni_glo &
+      (domain_hdl%daddr)
         ni_glo_ = ni_glo__tmp
       ENDIF
 
       IF (PRESENT(nj_)) THEN
-        nj__tmp = cxios_is_defined_domain_nj(domain_hdl%daddr)
+        nj__tmp = cxios_is_defined_domain_nj &
+      (domain_hdl%daddr)
         nj_ = nj__tmp
       ENDIF
 
       IF (PRESENT(nj_glo_)) THEN
-        nj_glo__tmp = cxios_is_defined_domain_nj_glo(domain_hdl%daddr)
+        nj_glo__tmp = cxios_is_defined_domain_nj_glo &
+      (domain_hdl%daddr)
         nj_glo_ = nj_glo__tmp
       ENDIF
 
       IF (PRESENT(nvertex_)) THEN
-        nvertex__tmp = cxios_is_defined_domain_nvertex(domain_hdl%daddr)
+        nvertex__tmp = cxios_is_defined_domain_nvertex &
+      (domain_hdl%daddr)
         nvertex_ = nvertex__tmp
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        standard_name__tmp = cxios_is_defined_domain_standard_name(domain_hdl%daddr)
+        standard_name__tmp = cxios_is_defined_domain_standard_name &
+      (domain_hdl%daddr)
         standard_name_ = standard_name__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_domain_type(domain_hdl%daddr)
+        type__tmp = cxios_is_defined_domain_type &
+      (domain_hdl%daddr)
         type_ = type__tmp
       ENDIF
 

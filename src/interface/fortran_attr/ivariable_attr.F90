@@ -19,7 +19,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type
 
-      CALL xios(get_variable_handle)(variable_id,variable_hdl)
+      CALL xios(get_variable_handle) &
+      (variable_id,variable_hdl)
       CALL xios(set_variable_attr_hdl_)   &
       ( variable_hdl, name, type )
 
@@ -47,11 +48,13 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: type_
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_variable_name(variable_hdl%daddr, name_, len(name_))
+        CALL cxios_set_variable_name &
+      (variable_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_set_variable_type(variable_hdl%daddr, type_, len(type_))
+        CALL cxios_set_variable_type &
+      (variable_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(set_variable_attr_hdl_)
@@ -65,7 +68,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type
 
-      CALL xios(get_variable_handle)(variable_id,variable_hdl)
+      CALL xios(get_variable_handle) &
+      (variable_id,variable_hdl)
       CALL xios(get_variable_attr_hdl_)   &
       ( variable_hdl, name, type )
 
@@ -93,11 +97,13 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: type_
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_variable_name(variable_hdl%daddr, name_, len(name_))
+        CALL cxios_get_variable_name &
+      (variable_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        CALL cxios_get_variable_type(variable_hdl%daddr, type_, len(type_))
+        CALL cxios_get_variable_type &
+      (variable_hdl%daddr, type_, len(type_))
       ENDIF
 
   END SUBROUTINE xios(get_variable_attr_hdl_)
@@ -113,7 +119,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: type
       LOGICAL(KIND=C_BOOL) :: type_tmp
 
-      CALL xios(get_variable_handle)(variable_id,variable_hdl)
+      CALL xios(get_variable_handle) &
+      (variable_id,variable_hdl)
       CALL xios(is_defined_variable_attr_hdl_)   &
       ( variable_hdl, name, type )
 
@@ -145,12 +152,14 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: type__tmp
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_variable_name(variable_hdl%daddr)
+        name__tmp = cxios_is_defined_variable_name &
+      (variable_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(type_)) THEN
-        type__tmp = cxios_is_defined_variable_type(variable_hdl%daddr)
+        type__tmp = cxios_is_defined_variable_type &
+      (variable_hdl%daddr)
         type_ = type__tmp
       ENDIF
 

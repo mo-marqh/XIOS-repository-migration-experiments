@@ -19,7 +19,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: begin
       INTEGER  , OPTIONAL, INTENT(IN) :: n
 
-      CALL xios(get_zoom_axis_handle)(zoom_axis_id,zoom_axis_hdl)
+      CALL xios(get_zoom_axis_handle) &
+      (zoom_axis_id,zoom_axis_hdl)
       CALL xios(set_zoom_axis_attr_hdl_)   &
       ( zoom_axis_hdl, begin, n )
 
@@ -47,11 +48,13 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: n_
 
       IF (PRESENT(begin_)) THEN
-        CALL cxios_set_zoom_axis_begin(zoom_axis_hdl%daddr, begin_)
+        CALL cxios_set_zoom_axis_begin &
+      (zoom_axis_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        CALL cxios_set_zoom_axis_n(zoom_axis_hdl%daddr, n_)
+        CALL cxios_set_zoom_axis_n &
+      (zoom_axis_hdl%daddr, n_)
       ENDIF
 
   END SUBROUTINE xios(set_zoom_axis_attr_hdl_)
@@ -65,7 +68,8 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: begin
       INTEGER  , OPTIONAL, INTENT(OUT) :: n
 
-      CALL xios(get_zoom_axis_handle)(zoom_axis_id,zoom_axis_hdl)
+      CALL xios(get_zoom_axis_handle) &
+      (zoom_axis_id,zoom_axis_hdl)
       CALL xios(get_zoom_axis_attr_hdl_)   &
       ( zoom_axis_hdl, begin, n )
 
@@ -93,11 +97,13 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: n_
 
       IF (PRESENT(begin_)) THEN
-        CALL cxios_get_zoom_axis_begin(zoom_axis_hdl%daddr, begin_)
+        CALL cxios_get_zoom_axis_begin &
+      (zoom_axis_hdl%daddr, begin_)
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        CALL cxios_get_zoom_axis_n(zoom_axis_hdl%daddr, n_)
+        CALL cxios_get_zoom_axis_n &
+      (zoom_axis_hdl%daddr, n_)
       ENDIF
 
   END SUBROUTINE xios(get_zoom_axis_attr_hdl_)
@@ -113,7 +119,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: n
       LOGICAL(KIND=C_BOOL) :: n_tmp
 
-      CALL xios(get_zoom_axis_handle)(zoom_axis_id,zoom_axis_hdl)
+      CALL xios(get_zoom_axis_handle) &
+      (zoom_axis_id,zoom_axis_hdl)
       CALL xios(is_defined_zoom_axis_attr_hdl_)   &
       ( zoom_axis_hdl, begin, n )
 
@@ -145,12 +152,14 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: n__tmp
 
       IF (PRESENT(begin_)) THEN
-        begin__tmp = cxios_is_defined_zoom_axis_begin(zoom_axis_hdl%daddr)
+        begin__tmp = cxios_is_defined_zoom_axis_begin &
+      (zoom_axis_hdl%daddr)
         begin_ = begin__tmp
       ENDIF
 
       IF (PRESENT(n_)) THEN
-        n__tmp = cxios_is_defined_zoom_axis_n(zoom_axis_hdl%daddr)
+        n__tmp = cxios_is_defined_zoom_axis_n &
+      (zoom_axis_hdl%daddr)
         n_ = n__tmp
       ENDIF
 

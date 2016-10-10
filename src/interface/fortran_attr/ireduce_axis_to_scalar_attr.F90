@@ -18,7 +18,8 @@ CONTAINS
       CHARACTER(LEN=*), INTENT(IN) ::reduce_axis_to_scalar_id
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: operation
 
-      CALL xios(get_reduce_axis_to_scalar_handle)(reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
+      CALL xios(get_reduce_axis_to_scalar_handle) &
+      (reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
       CALL xios(set_reduce_axis_to_scalar_attr_hdl_)   &
       ( reduce_axis_to_scalar_hdl, operation )
 
@@ -44,7 +45,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: operation_
 
       IF (PRESENT(operation_)) THEN
-        CALL cxios_set_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_hdl%daddr, operation_, len(operation_))
+        CALL cxios_set_reduce_axis_to_scalar_operation &
+      (reduce_axis_to_scalar_hdl%daddr, operation_, len(operation_))
       ENDIF
 
   END SUBROUTINE xios(set_reduce_axis_to_scalar_attr_hdl_)
@@ -57,7 +59,8 @@ CONTAINS
       CHARACTER(LEN=*), INTENT(IN) ::reduce_axis_to_scalar_id
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: operation
 
-      CALL xios(get_reduce_axis_to_scalar_handle)(reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
+      CALL xios(get_reduce_axis_to_scalar_handle) &
+      (reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
       CALL xios(get_reduce_axis_to_scalar_attr_hdl_)   &
       ( reduce_axis_to_scalar_hdl, operation )
 
@@ -83,7 +86,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: operation_
 
       IF (PRESENT(operation_)) THEN
-        CALL cxios_get_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_hdl%daddr, operation_, len(operation_))
+        CALL cxios_get_reduce_axis_to_scalar_operation &
+      (reduce_axis_to_scalar_hdl%daddr, operation_, len(operation_))
       ENDIF
 
   END SUBROUTINE xios(get_reduce_axis_to_scalar_attr_hdl_)
@@ -97,7 +101,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: operation
       LOGICAL(KIND=C_BOOL) :: operation_tmp
 
-      CALL xios(get_reduce_axis_to_scalar_handle)(reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
+      CALL xios(get_reduce_axis_to_scalar_handle) &
+      (reduce_axis_to_scalar_id,reduce_axis_to_scalar_hdl)
       CALL xios(is_defined_reduce_axis_to_scalar_attr_hdl_)   &
       ( reduce_axis_to_scalar_hdl, operation )
 
@@ -125,7 +130,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: operation__tmp
 
       IF (PRESENT(operation_)) THEN
-        operation__tmp = cxios_is_defined_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_hdl%daddr)
+        operation__tmp = cxios_is_defined_reduce_axis_to_scalar_operation &
+      (reduce_axis_to_scalar_hdl%daddr)
         operation_ = operation__tmp
       ENDIF
 

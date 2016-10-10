@@ -35,7 +35,8 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_7d_tmp(:,:,:,:,:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
 
-      CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
+      CALL xios(get_gridgroup_handle) &
+      (gridgroup_id,gridgroup_hdl)
       CALL xios(set_gridgroup_attr_hdl_)   &
       ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
       , mask_7d, name )
@@ -97,57 +98,72 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
 
       IF (PRESENT(description_)) THEN
-        CALL cxios_set_gridgroup_description(gridgroup_hdl%daddr, description_, len(description_))
+        CALL cxios_set_gridgroup_description &
+      (gridgroup_hdl%daddr, description_, len(description_))
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_set_gridgroup_group_ref(gridgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_set_gridgroup_group_ref &
+      (gridgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
         mask_1d__tmp = mask_1d_
-        CALL cxios_set_gridgroup_mask_1d(gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL cxios_set_gridgroup_mask_1d &
+      (gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
         mask_2d__tmp = mask_2d_
-        CALL cxios_set_gridgroup_mask_2d(gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL cxios_set_gridgroup_mask_2d &
+      (gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
       ENDIF
 
       IF (PRESENT(mask_3d_)) THEN
         ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
         mask_3d__tmp = mask_3d_
-        CALL cxios_set_gridgroup_mask_3d(gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
+        CALL cxios_set_gridgroup_mask_3d &
+      (gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
       ENDIF
 
       IF (PRESENT(mask_4d_)) THEN
-        ALLOCATE(mask_4d__tmp(SIZE(mask_4d_,1), SIZE(mask_4d_,2), SIZE(mask_4d_,3), SIZE(mask_4d_,4)))
+        ALLOCATE(mask_4d__tmp(SIZE(mask_4d_,1), SIZE(mask_4d_,2), SIZE(mask_4d_,3), &
+       SIZE(mask_4d_,4)))
         mask_4d__tmp = mask_4d_
-        CALL cxios_set_gridgroup_mask_4d(gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
+        CALL cxios_set_gridgroup_mask_4d &
+      (gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
       ENDIF
 
       IF (PRESENT(mask_5d_)) THEN
-        ALLOCATE(mask_5d__tmp(SIZE(mask_5d_,1), SIZE(mask_5d_,2), SIZE(mask_5d_,3), SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
+        ALLOCATE(mask_5d__tmp(SIZE(mask_5d_,1), SIZE(mask_5d_,2), SIZE(mask_5d_,3), &
+       SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
         mask_5d__tmp = mask_5d_
-        CALL cxios_set_gridgroup_mask_5d(gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
+        CALL cxios_set_gridgroup_mask_5d &
+      (gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
       ENDIF
 
       IF (PRESENT(mask_6d_)) THEN
-        ALLOCATE(mask_6d__tmp(SIZE(mask_6d_,1), SIZE(mask_6d_,2), SIZE(mask_6d_,3), SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
+        ALLOCATE(mask_6d__tmp(SIZE(mask_6d_,1), SIZE(mask_6d_,2), SIZE(mask_6d_,3), &
+       SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
         mask_6d__tmp = mask_6d_
-        CALL cxios_set_gridgroup_mask_6d(gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
+        CALL cxios_set_gridgroup_mask_6d &
+      (gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
       ENDIF
 
       IF (PRESENT(mask_7d_)) THEN
-        ALLOCATE(mask_7d__tmp(SIZE(mask_7d_,1), SIZE(mask_7d_,2), SIZE(mask_7d_,3), SIZE(mask_7d_,4), SIZE(mask_7d_,5), SIZE(mask_7d_,6), SIZE(mask_7d_,7)))
+        ALLOCATE(mask_7d__tmp(SIZE(mask_7d_,1), SIZE(mask_7d_,2), SIZE(mask_7d_,3), &
+       SIZE(mask_7d_,4), SIZE(mask_7d_,5), SIZE(mask_7d_,6), &
+       SIZE(mask_7d_,7)))
         mask_7d__tmp = mask_7d_
-        CALL cxios_set_gridgroup_mask_7d(gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
+        CALL cxios_set_gridgroup_mask_7d &
+      (gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_gridgroup_name(gridgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_set_gridgroup_name &
+      (gridgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
   END SUBROUTINE xios(set_gridgroup_attr_hdl_)
@@ -177,7 +193,8 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_7d_tmp(:,:,:,:,:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
 
-      CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
+      CALL xios(get_gridgroup_handle) &
+      (gridgroup_id,gridgroup_hdl)
       CALL xios(get_gridgroup_attr_hdl_)   &
       ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
       , mask_7d, name )
@@ -239,57 +256,72 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
 
       IF (PRESENT(description_)) THEN
-        CALL cxios_get_gridgroup_description(gridgroup_hdl%daddr, description_, len(description_))
+        CALL cxios_get_gridgroup_description &
+      (gridgroup_hdl%daddr, description_, len(description_))
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_get_gridgroup_group_ref(gridgroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_get_gridgroup_group_ref &
+      (gridgroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
         ALLOCATE(mask_1d__tmp(SIZE(mask_1d_,1)))
-        CALL cxios_get_gridgroup_mask_1d(gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
+        CALL cxios_get_gridgroup_mask_1d &
+      (gridgroup_hdl%daddr, mask_1d__tmp, SHAPE(mask_1d_))
         mask_1d_ = mask_1d__tmp
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
         ALLOCATE(mask_2d__tmp(SIZE(mask_2d_,1), SIZE(mask_2d_,2)))
-        CALL cxios_get_gridgroup_mask_2d(gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
+        CALL cxios_get_gridgroup_mask_2d &
+      (gridgroup_hdl%daddr, mask_2d__tmp, SHAPE(mask_2d_))
         mask_2d_ = mask_2d__tmp
       ENDIF
 
       IF (PRESENT(mask_3d_)) THEN
         ALLOCATE(mask_3d__tmp(SIZE(mask_3d_,1), SIZE(mask_3d_,2), SIZE(mask_3d_,3)))
-        CALL cxios_get_gridgroup_mask_3d(gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
+        CALL cxios_get_gridgroup_mask_3d &
+      (gridgroup_hdl%daddr, mask_3d__tmp, SHAPE(mask_3d_))
         mask_3d_ = mask_3d__tmp
       ENDIF
 
       IF (PRESENT(mask_4d_)) THEN
-        ALLOCATE(mask_4d__tmp(SIZE(mask_4d_,1), SIZE(mask_4d_,2), SIZE(mask_4d_,3), SIZE(mask_4d_,4)))
-        CALL cxios_get_gridgroup_mask_4d(gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
+        ALLOCATE(mask_4d__tmp(SIZE(mask_4d_,1), SIZE(mask_4d_,2), SIZE(mask_4d_,3), &
+       SIZE(mask_4d_,4)))
+        CALL cxios_get_gridgroup_mask_4d &
+      (gridgroup_hdl%daddr, mask_4d__tmp, SHAPE(mask_4d_))
         mask_4d_ = mask_4d__tmp
       ENDIF
 
       IF (PRESENT(mask_5d_)) THEN
-        ALLOCATE(mask_5d__tmp(SIZE(mask_5d_,1), SIZE(mask_5d_,2), SIZE(mask_5d_,3), SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
-        CALL cxios_get_gridgroup_mask_5d(gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
+        ALLOCATE(mask_5d__tmp(SIZE(mask_5d_,1), SIZE(mask_5d_,2), SIZE(mask_5d_,3), &
+       SIZE(mask_5d_,4), SIZE(mask_5d_,5)))
+        CALL cxios_get_gridgroup_mask_5d &
+      (gridgroup_hdl%daddr, mask_5d__tmp, SHAPE(mask_5d_))
         mask_5d_ = mask_5d__tmp
       ENDIF
 
       IF (PRESENT(mask_6d_)) THEN
-        ALLOCATE(mask_6d__tmp(SIZE(mask_6d_,1), SIZE(mask_6d_,2), SIZE(mask_6d_,3), SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
-        CALL cxios_get_gridgroup_mask_6d(gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
+        ALLOCATE(mask_6d__tmp(SIZE(mask_6d_,1), SIZE(mask_6d_,2), SIZE(mask_6d_,3), &
+       SIZE(mask_6d_,4), SIZE(mask_6d_,5), SIZE(mask_6d_,6)))
+        CALL cxios_get_gridgroup_mask_6d &
+      (gridgroup_hdl%daddr, mask_6d__tmp, SHAPE(mask_6d_))
         mask_6d_ = mask_6d__tmp
       ENDIF
 
       IF (PRESENT(mask_7d_)) THEN
-        ALLOCATE(mask_7d__tmp(SIZE(mask_7d_,1), SIZE(mask_7d_,2), SIZE(mask_7d_,3), SIZE(mask_7d_,4), SIZE(mask_7d_,5), SIZE(mask_7d_,6), SIZE(mask_7d_,7)))
-        CALL cxios_get_gridgroup_mask_7d(gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
+        ALLOCATE(mask_7d__tmp(SIZE(mask_7d_,1), SIZE(mask_7d_,2), SIZE(mask_7d_,3), &
+       SIZE(mask_7d_,4), SIZE(mask_7d_,5), SIZE(mask_7d_,6), &
+       SIZE(mask_7d_,7)))
+        CALL cxios_get_gridgroup_mask_7d &
+      (gridgroup_hdl%daddr, mask_7d__tmp, SHAPE(mask_7d_))
         mask_7d_ = mask_7d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_gridgroup_name(gridgroup_hdl%daddr, name_, len(name_))
+        CALL cxios_get_gridgroup_name &
+      (gridgroup_hdl%daddr, name_, len(name_))
       ENDIF
 
   END SUBROUTINE xios(get_gridgroup_attr_hdl_)
@@ -322,7 +354,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: name
       LOGICAL(KIND=C_BOOL) :: name_tmp
 
-      CALL xios(get_gridgroup_handle)(gridgroup_id,gridgroup_hdl)
+      CALL xios(get_gridgroup_handle) &
+      (gridgroup_id,gridgroup_hdl)
       CALL xios(is_defined_gridgroup_attr_hdl_)   &
       ( gridgroup_hdl, description, group_ref, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
       , mask_7d, name )
@@ -390,52 +423,62 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: name__tmp
 
       IF (PRESENT(description_)) THEN
-        description__tmp = cxios_is_defined_gridgroup_description(gridgroup_hdl%daddr)
+        description__tmp = cxios_is_defined_gridgroup_description &
+      (gridgroup_hdl%daddr)
         description_ = description__tmp
       ENDIF
 
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp = cxios_is_defined_gridgroup_group_ref(gridgroup_hdl%daddr)
+        group_ref__tmp = cxios_is_defined_gridgroup_group_ref &
+      (gridgroup_hdl%daddr)
         group_ref_ = group_ref__tmp
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
-        mask_1d__tmp = cxios_is_defined_gridgroup_mask_1d(gridgroup_hdl%daddr)
+        mask_1d__tmp = cxios_is_defined_gridgroup_mask_1d &
+      (gridgroup_hdl%daddr)
         mask_1d_ = mask_1d__tmp
       ENDIF
 
       IF (PRESENT(mask_2d_)) THEN
-        mask_2d__tmp = cxios_is_defined_gridgroup_mask_2d(gridgroup_hdl%daddr)
+        mask_2d__tmp = cxios_is_defined_gridgroup_mask_2d &
+      (gridgroup_hdl%daddr)
         mask_2d_ = mask_2d__tmp
       ENDIF
 
       IF (PRESENT(mask_3d_)) THEN
-        mask_3d__tmp = cxios_is_defined_gridgroup_mask_3d(gridgroup_hdl%daddr)
+        mask_3d__tmp = cxios_is_defined_gridgroup_mask_3d &
+      (gridgroup_hdl%daddr)
         mask_3d_ = mask_3d__tmp
       ENDIF
 
       IF (PRESENT(mask_4d_)) THEN
-        mask_4d__tmp = cxios_is_defined_gridgroup_mask_4d(gridgroup_hdl%daddr)
+        mask_4d__tmp = cxios_is_defined_gridgroup_mask_4d &
+      (gridgroup_hdl%daddr)
         mask_4d_ = mask_4d__tmp
       ENDIF
 
       IF (PRESENT(mask_5d_)) THEN
-        mask_5d__tmp = cxios_is_defined_gridgroup_mask_5d(gridgroup_hdl%daddr)
+        mask_5d__tmp = cxios_is_defined_gridgroup_mask_5d &
+      (gridgroup_hdl%daddr)
         mask_5d_ = mask_5d__tmp
       ENDIF
 
       IF (PRESENT(mask_6d_)) THEN
-        mask_6d__tmp = cxios_is_defined_gridgroup_mask_6d(gridgroup_hdl%daddr)
+        mask_6d__tmp = cxios_is_defined_gridgroup_mask_6d &
+      (gridgroup_hdl%daddr)
         mask_6d_ = mask_6d__tmp
       ENDIF
 
       IF (PRESENT(mask_7d_)) THEN
-        mask_7d__tmp = cxios_is_defined_gridgroup_mask_7d(gridgroup_hdl%daddr)
+        mask_7d__tmp = cxios_is_defined_gridgroup_mask_7d &
+      (gridgroup_hdl%daddr)
         mask_7d_ = mask_7d__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_gridgroup_name(gridgroup_hdl%daddr)
+        name__tmp = cxios_is_defined_gridgroup_name &
+      (gridgroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 

@@ -18,7 +18,8 @@ CONTAINS
       CHARACTER(LEN=*), INTENT(IN) ::context_id
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_dir
 
-      CALL xios(get_context_handle)(context_id,context_hdl)
+      CALL xios(get_context_handle) &
+      (context_id,context_hdl)
       CALL xios(set_context_attr_hdl_)   &
       ( context_hdl, output_dir )
 
@@ -44,7 +45,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: output_dir_
 
       IF (PRESENT(output_dir_)) THEN
-        CALL cxios_set_context_output_dir(context_hdl%daddr, output_dir_, len(output_dir_))
+        CALL cxios_set_context_output_dir &
+      (context_hdl%daddr, output_dir_, len(output_dir_))
       ENDIF
 
   END SUBROUTINE xios(set_context_attr_hdl_)
@@ -57,7 +59,8 @@ CONTAINS
       CHARACTER(LEN=*), INTENT(IN) ::context_id
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_dir
 
-      CALL xios(get_context_handle)(context_id,context_hdl)
+      CALL xios(get_context_handle) &
+      (context_id,context_hdl)
       CALL xios(get_context_attr_hdl_)   &
       ( context_hdl, output_dir )
 
@@ -83,7 +86,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: output_dir_
 
       IF (PRESENT(output_dir_)) THEN
-        CALL cxios_get_context_output_dir(context_hdl%daddr, output_dir_, len(output_dir_))
+        CALL cxios_get_context_output_dir &
+      (context_hdl%daddr, output_dir_, len(output_dir_))
       ENDIF
 
   END SUBROUTINE xios(get_context_attr_hdl_)
@@ -97,7 +101,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: output_dir
       LOGICAL(KIND=C_BOOL) :: output_dir_tmp
 
-      CALL xios(get_context_handle)(context_id,context_hdl)
+      CALL xios(get_context_handle) &
+      (context_id,context_hdl)
       CALL xios(is_defined_context_attr_hdl_)   &
       ( context_hdl, output_dir )
 
@@ -125,7 +130,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: output_dir__tmp
 
       IF (PRESENT(output_dir_)) THEN
-        output_dir__tmp = cxios_is_defined_context_output_dir(context_hdl%daddr)
+        output_dir__tmp = cxios_is_defined_context_output_dir &
+      (context_hdl%daddr)
         output_dir_ = output_dir__tmp
       ENDIF
 

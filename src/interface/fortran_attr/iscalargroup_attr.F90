@@ -24,7 +24,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value
 
-      CALL xios(get_scalargroup_handle)(scalargroup_id,scalargroup_hdl)
+      CALL xios(get_scalargroup_handle) &
+      (scalargroup_id,scalargroup_hdl)
       CALL xios(set_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, group_ref, long_name, name, scalar_ref, standard_name, unit, value )
 
@@ -63,31 +64,38 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: value_
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_set_scalargroup_group_ref(scalargroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_set_scalargroup_group_ref &
+      (scalargroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_set_scalargroup_long_name(scalargroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_set_scalargroup_long_name &
+      (scalargroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_set_scalargroup_name(scalargroup_hdl%daddr, name_, len(name_))
+        CALL cxios_set_scalargroup_name &
+      (scalargroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        CALL cxios_set_scalargroup_scalar_ref(scalargroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
+        CALL cxios_set_scalargroup_scalar_ref &
+      (scalargroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_set_scalargroup_standard_name(scalargroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_set_scalargroup_standard_name &
+      (scalargroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_set_scalargroup_unit(scalargroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_set_scalargroup_unit &
+      (scalargroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_set_scalargroup_value(scalargroup_hdl%daddr, value_)
+        CALL cxios_set_scalargroup_value &
+      (scalargroup_hdl%daddr, value_)
       ENDIF
 
   END SUBROUTINE xios(set_scalargroup_attr_hdl_)
@@ -106,7 +114,8 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: unit
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value
 
-      CALL xios(get_scalargroup_handle)(scalargroup_id,scalargroup_hdl)
+      CALL xios(get_scalargroup_handle) &
+      (scalargroup_id,scalargroup_hdl)
       CALL xios(get_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, group_ref, long_name, name, scalar_ref, standard_name, unit, value )
 
@@ -145,31 +154,38 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: value_
 
       IF (PRESENT(group_ref_)) THEN
-        CALL cxios_get_scalargroup_group_ref(scalargroup_hdl%daddr, group_ref_, len(group_ref_))
+        CALL cxios_get_scalargroup_group_ref &
+      (scalargroup_hdl%daddr, group_ref_, len(group_ref_))
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        CALL cxios_get_scalargroup_long_name(scalargroup_hdl%daddr, long_name_, len(long_name_))
+        CALL cxios_get_scalargroup_long_name &
+      (scalargroup_hdl%daddr, long_name_, len(long_name_))
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        CALL cxios_get_scalargroup_name(scalargroup_hdl%daddr, name_, len(name_))
+        CALL cxios_get_scalargroup_name &
+      (scalargroup_hdl%daddr, name_, len(name_))
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        CALL cxios_get_scalargroup_scalar_ref(scalargroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
+        CALL cxios_get_scalargroup_scalar_ref &
+      (scalargroup_hdl%daddr, scalar_ref_, len(scalar_ref_))
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        CALL cxios_get_scalargroup_standard_name(scalargroup_hdl%daddr, standard_name_, len(standard_name_))
+        CALL cxios_get_scalargroup_standard_name &
+      (scalargroup_hdl%daddr, standard_name_, len(standard_name_))
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        CALL cxios_get_scalargroup_unit(scalargroup_hdl%daddr, unit_, len(unit_))
+        CALL cxios_get_scalargroup_unit &
+      (scalargroup_hdl%daddr, unit_, len(unit_))
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        CALL cxios_get_scalargroup_value(scalargroup_hdl%daddr, value_)
+        CALL cxios_get_scalargroup_value &
+      (scalargroup_hdl%daddr, value_)
       ENDIF
 
   END SUBROUTINE xios(get_scalargroup_attr_hdl_)
@@ -195,7 +211,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: value
       LOGICAL(KIND=C_BOOL) :: value_tmp
 
-      CALL xios(get_scalargroup_handle)(scalargroup_id,scalargroup_hdl)
+      CALL xios(get_scalargroup_handle) &
+      (scalargroup_id,scalargroup_hdl)
       CALL xios(is_defined_scalargroup_attr_hdl_)   &
       ( scalargroup_hdl, group_ref, long_name, name, scalar_ref, standard_name, unit, value )
 
@@ -248,37 +265,44 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: value__tmp
 
       IF (PRESENT(group_ref_)) THEN
-        group_ref__tmp = cxios_is_defined_scalargroup_group_ref(scalargroup_hdl%daddr)
+        group_ref__tmp = cxios_is_defined_scalargroup_group_ref &
+      (scalargroup_hdl%daddr)
         group_ref_ = group_ref__tmp
       ENDIF
 
       IF (PRESENT(long_name_)) THEN
-        long_name__tmp = cxios_is_defined_scalargroup_long_name(scalargroup_hdl%daddr)
+        long_name__tmp = cxios_is_defined_scalargroup_long_name &
+      (scalargroup_hdl%daddr)
         long_name_ = long_name__tmp
       ENDIF
 
       IF (PRESENT(name_)) THEN
-        name__tmp = cxios_is_defined_scalargroup_name(scalargroup_hdl%daddr)
+        name__tmp = cxios_is_defined_scalargroup_name &
+      (scalargroup_hdl%daddr)
         name_ = name__tmp
       ENDIF
 
       IF (PRESENT(scalar_ref_)) THEN
-        scalar_ref__tmp = cxios_is_defined_scalargroup_scalar_ref(scalargroup_hdl%daddr)
+        scalar_ref__tmp = cxios_is_defined_scalargroup_scalar_ref &
+      (scalargroup_hdl%daddr)
         scalar_ref_ = scalar_ref__tmp
       ENDIF
 
       IF (PRESENT(standard_name_)) THEN
-        standard_name__tmp = cxios_is_defined_scalargroup_standard_name(scalargroup_hdl%daddr)
+        standard_name__tmp = cxios_is_defined_scalargroup_standard_name &
+      (scalargroup_hdl%daddr)
         standard_name_ = standard_name__tmp
       ENDIF
 
       IF (PRESENT(unit_)) THEN
-        unit__tmp = cxios_is_defined_scalargroup_unit(scalargroup_hdl%daddr)
+        unit__tmp = cxios_is_defined_scalargroup_unit &
+      (scalargroup_hdl%daddr)
         unit_ = unit__tmp
       ENDIF
 
       IF (PRESENT(value_)) THEN
-        value__tmp = cxios_is_defined_scalargroup_value(scalargroup_hdl%daddr)
+        value__tmp = cxios_is_defined_scalargroup_value &
+      (scalargroup_hdl%daddr)
         value_ = value__tmp
       ENDIF
 

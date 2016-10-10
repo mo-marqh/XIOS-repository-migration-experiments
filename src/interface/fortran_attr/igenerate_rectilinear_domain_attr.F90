@@ -26,7 +26,8 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: lon_end
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: lon_start
 
-      CALL xios(get_generate_rectilinear_domain_handle)(generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
+      CALL xios(get_generate_rectilinear_domain_handle) &
+      (generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
       CALL xios(set_generate_rectilinear_domain_attr_hdl_)   &
       ( generate_rectilinear_domain_hdl, bounds_lat_end, bounds_lat_start, bounds_lon_end, bounds_lon_start  &
       , lat_end, lat_start, lon_end, lon_start )
@@ -70,35 +71,43 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: lon_start_
 
       IF (PRESENT(bounds_lat_end_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_bounds_lat_end(generate_rectilinear_domain_hdl%daddr, bounds_lat_end_)
+        CALL cxios_set_generate_rectilinear_domain_bounds_lat_end &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lat_end_)
       ENDIF
 
       IF (PRESENT(bounds_lat_start_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_bounds_lat_start(generate_rectilinear_domain_hdl%daddr, bounds_lat_start_)
+        CALL cxios_set_generate_rectilinear_domain_bounds_lat_start &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lat_start_)
       ENDIF
 
       IF (PRESENT(bounds_lon_end_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_bounds_lon_end(generate_rectilinear_domain_hdl%daddr, bounds_lon_end_)
+        CALL cxios_set_generate_rectilinear_domain_bounds_lon_end &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lon_end_)
       ENDIF
 
       IF (PRESENT(bounds_lon_start_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_bounds_lon_start(generate_rectilinear_domain_hdl%daddr, bounds_lon_start_)
+        CALL cxios_set_generate_rectilinear_domain_bounds_lon_start &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lon_start_)
       ENDIF
 
       IF (PRESENT(lat_end_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_lat_end(generate_rectilinear_domain_hdl%daddr, lat_end_)
+        CALL cxios_set_generate_rectilinear_domain_lat_end &
+      (generate_rectilinear_domain_hdl%daddr, lat_end_)
       ENDIF
 
       IF (PRESENT(lat_start_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_lat_start(generate_rectilinear_domain_hdl%daddr, lat_start_)
+        CALL cxios_set_generate_rectilinear_domain_lat_start &
+      (generate_rectilinear_domain_hdl%daddr, lat_start_)
       ENDIF
 
       IF (PRESENT(lon_end_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_lon_end(generate_rectilinear_domain_hdl%daddr, lon_end_)
+        CALL cxios_set_generate_rectilinear_domain_lon_end &
+      (generate_rectilinear_domain_hdl%daddr, lon_end_)
       ENDIF
 
       IF (PRESENT(lon_start_)) THEN
-        CALL cxios_set_generate_rectilinear_domain_lon_start(generate_rectilinear_domain_hdl%daddr, lon_start_)
+        CALL cxios_set_generate_rectilinear_domain_lon_start &
+      (generate_rectilinear_domain_hdl%daddr, lon_start_)
       ENDIF
 
   END SUBROUTINE xios(set_generate_rectilinear_domain_attr_hdl_)
@@ -119,7 +128,8 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: lon_end
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: lon_start
 
-      CALL xios(get_generate_rectilinear_domain_handle)(generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
+      CALL xios(get_generate_rectilinear_domain_handle) &
+      (generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
       CALL xios(get_generate_rectilinear_domain_attr_hdl_)   &
       ( generate_rectilinear_domain_hdl, bounds_lat_end, bounds_lat_start, bounds_lon_end, bounds_lon_start  &
       , lat_end, lat_start, lon_end, lon_start )
@@ -163,35 +173,43 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: lon_start_
 
       IF (PRESENT(bounds_lat_end_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_bounds_lat_end(generate_rectilinear_domain_hdl%daddr, bounds_lat_end_)
+        CALL cxios_get_generate_rectilinear_domain_bounds_lat_end &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lat_end_)
       ENDIF
 
       IF (PRESENT(bounds_lat_start_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_bounds_lat_start(generate_rectilinear_domain_hdl%daddr, bounds_lat_start_)
+        CALL cxios_get_generate_rectilinear_domain_bounds_lat_start &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lat_start_)
       ENDIF
 
       IF (PRESENT(bounds_lon_end_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_bounds_lon_end(generate_rectilinear_domain_hdl%daddr, bounds_lon_end_)
+        CALL cxios_get_generate_rectilinear_domain_bounds_lon_end &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lon_end_)
       ENDIF
 
       IF (PRESENT(bounds_lon_start_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_bounds_lon_start(generate_rectilinear_domain_hdl%daddr, bounds_lon_start_)
+        CALL cxios_get_generate_rectilinear_domain_bounds_lon_start &
+      (generate_rectilinear_domain_hdl%daddr, bounds_lon_start_)
       ENDIF
 
       IF (PRESENT(lat_end_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_lat_end(generate_rectilinear_domain_hdl%daddr, lat_end_)
+        CALL cxios_get_generate_rectilinear_domain_lat_end &
+      (generate_rectilinear_domain_hdl%daddr, lat_end_)
       ENDIF
 
       IF (PRESENT(lat_start_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_lat_start(generate_rectilinear_domain_hdl%daddr, lat_start_)
+        CALL cxios_get_generate_rectilinear_domain_lat_start &
+      (generate_rectilinear_domain_hdl%daddr, lat_start_)
       ENDIF
 
       IF (PRESENT(lon_end_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_lon_end(generate_rectilinear_domain_hdl%daddr, lon_end_)
+        CALL cxios_get_generate_rectilinear_domain_lon_end &
+      (generate_rectilinear_domain_hdl%daddr, lon_end_)
       ENDIF
 
       IF (PRESENT(lon_start_)) THEN
-        CALL cxios_get_generate_rectilinear_domain_lon_start(generate_rectilinear_domain_hdl%daddr, lon_start_)
+        CALL cxios_get_generate_rectilinear_domain_lon_start &
+      (generate_rectilinear_domain_hdl%daddr, lon_start_)
       ENDIF
 
   END SUBROUTINE xios(get_generate_rectilinear_domain_attr_hdl_)
@@ -220,7 +238,8 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: lon_start
       LOGICAL(KIND=C_BOOL) :: lon_start_tmp
 
-      CALL xios(get_generate_rectilinear_domain_handle)(generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
+      CALL xios(get_generate_rectilinear_domain_handle) &
+      (generate_rectilinear_domain_id,generate_rectilinear_domain_hdl)
       CALL xios(is_defined_generate_rectilinear_domain_attr_hdl_)   &
       ( generate_rectilinear_domain_hdl, bounds_lat_end, bounds_lat_start, bounds_lon_end, bounds_lon_start  &
       , lat_end, lat_start, lon_end, lon_start )
@@ -280,42 +299,50 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: lon_start__tmp
 
       IF (PRESENT(bounds_lat_end_)) THEN
-        bounds_lat_end__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lat_end(generate_rectilinear_domain_hdl%daddr)
+        bounds_lat_end__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lat_end &
+      (generate_rectilinear_domain_hdl%daddr)
         bounds_lat_end_ = bounds_lat_end__tmp
       ENDIF
 
       IF (PRESENT(bounds_lat_start_)) THEN
-        bounds_lat_start__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lat_start(generate_rectilinear_domain_hdl%daddr)
+        bounds_lat_start__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lat_start &
+      (generate_rectilinear_domain_hdl%daddr)
         bounds_lat_start_ = bounds_lat_start__tmp
       ENDIF
 
       IF (PRESENT(bounds_lon_end_)) THEN
-        bounds_lon_end__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lon_end(generate_rectilinear_domain_hdl%daddr)
+        bounds_lon_end__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lon_end &
+      (generate_rectilinear_domain_hdl%daddr)
         bounds_lon_end_ = bounds_lon_end__tmp
       ENDIF
 
       IF (PRESENT(bounds_lon_start_)) THEN
-        bounds_lon_start__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lon_start(generate_rectilinear_domain_hdl%daddr)
+        bounds_lon_start__tmp = cxios_is_defined_generate_rectilinear_domain_bounds_lon_start &
+      (generate_rectilinear_domain_hdl%daddr)
         bounds_lon_start_ = bounds_lon_start__tmp
       ENDIF
 
       IF (PRESENT(lat_end_)) THEN
-        lat_end__tmp = cxios_is_defined_generate_rectilinear_domain_lat_end(generate_rectilinear_domain_hdl%daddr)
+        lat_end__tmp = cxios_is_defined_generate_rectilinear_domain_lat_end &
+      (generate_rectilinear_domain_hdl%daddr)
         lat_end_ = lat_end__tmp
       ENDIF
 
       IF (PRESENT(lat_start_)) THEN
-        lat_start__tmp = cxios_is_defined_generate_rectilinear_domain_lat_start(generate_rectilinear_domain_hdl%daddr)
+        lat_start__tmp = cxios_is_defined_generate_rectilinear_domain_lat_start &
+      (generate_rectilinear_domain_hdl%daddr)
         lat_start_ = lat_start__tmp
       ENDIF
 
       IF (PRESENT(lon_end_)) THEN
-        lon_end__tmp = cxios_is_defined_generate_rectilinear_domain_lon_end(generate_rectilinear_domain_hdl%daddr)
+        lon_end__tmp = cxios_is_defined_generate_rectilinear_domain_lon_end &
+      (generate_rectilinear_domain_hdl%daddr)
         lon_end_ = lon_end__tmp
       ENDIF
 
       IF (PRESENT(lon_start_)) THEN
-        lon_start__tmp = cxios_is_defined_generate_rectilinear_domain_lon_start(generate_rectilinear_domain_hdl%daddr)
+        lon_start__tmp = cxios_is_defined_generate_rectilinear_domain_lon_start &
+      (generate_rectilinear_domain_hdl%daddr)
         lon_start_ = lon_start__tmp
       ENDIF
 

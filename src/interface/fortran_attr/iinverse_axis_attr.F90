@@ -17,7 +17,8 @@ CONTAINS
       TYPE(txios(inverse_axis))  :: inverse_axis_hdl
       CHARACTER(LEN=*), INTENT(IN) ::inverse_axis_id
 
-      CALL xios(get_inverse_axis_handle)(inverse_axis_id,inverse_axis_hdl)
+      CALL xios(get_inverse_axis_handle) &
+      (inverse_axis_id,inverse_axis_hdl)
       CALL xios(set_inverse_axis_attr_hdl_)   &
       ( inverse_axis_hdl )
 
@@ -49,7 +50,8 @@ CONTAINS
       TYPE(txios(inverse_axis))  :: inverse_axis_hdl
       CHARACTER(LEN=*), INTENT(IN) ::inverse_axis_id
 
-      CALL xios(get_inverse_axis_handle)(inverse_axis_id,inverse_axis_hdl)
+      CALL xios(get_inverse_axis_handle) &
+      (inverse_axis_id,inverse_axis_hdl)
       CALL xios(get_inverse_axis_attr_hdl_)   &
       ( inverse_axis_hdl )
 
@@ -81,7 +83,8 @@ CONTAINS
       TYPE(txios(inverse_axis))  :: inverse_axis_hdl
       CHARACTER(LEN=*), INTENT(IN) ::inverse_axis_id
 
-      CALL xios(get_inverse_axis_handle)(inverse_axis_id,inverse_axis_hdl)
+      CALL xios(get_inverse_axis_handle) &
+      (inverse_axis_id,inverse_axis_hdl)
       CALL xios(is_defined_inverse_axis_attr_hdl_)   &
       ( inverse_axis_hdl )
 
