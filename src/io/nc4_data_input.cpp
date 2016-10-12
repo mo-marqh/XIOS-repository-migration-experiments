@@ -5,6 +5,7 @@
 #include "context_client.hpp"
 #include "domain.hpp"
 #include "axis.hpp"
+#include "scalar.hpp"
 
 namespace xios
 {
@@ -16,6 +17,7 @@ namespace xios
     , isCollective(isCollective)
     , readMetaDataDomains_(), readValueDomains_()
     , readMetaDataAxis_(), readValueAxis_()
+    , readMetaDataScalar_(), readValueScalar_()
   {
     SuperClass::type = multifile ? MULTI_FILE : ONE_FILE;
   }
@@ -112,7 +114,16 @@ namespace xios
             start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
             count.push_back(nZoomSizeServer[idx]);
             --idx;
-           }
+          }
+          else
+          {
+            if (1 == axisDomainOrder.numElements())
+            {
+              start.push_back(0);
+              count.push_back(1);
+            }
+            --idx;
+          }
         }
 
         SuperClassWriter::getData(fieldData, fieldId, isCollective, (field->getNStep() - 1)%field->nstepMax, &start, &count);
@@ -139,7 +150,12 @@ namespace xios
 
     std::vector<CDomain*> domainP = grid->getDomains();
     std::vector<CAxis*> axisP = grid->getAxis();
+    std::vector<CScalar*> scalarP = grid->getScalars();
     int gridDim = domainP.size() * 2 + axisP.size();
+
+    // Nothing to do with scalar without timestep
+    if ((0 == gridDim) && (!SuperClassWriter::isTemporal(fieldId))) 
+      return;
 
     // Verify the compatibility of dimension of declared grid and real grid in file
     int realGridDim = 1;
@@ -162,7 +178,6 @@ namespace xios
       dimList.pop_front() ;  // assume time dimension is first
     }
 
-    int mapSize = dimSizeMap.size() - 1;
     std::list<std::pair<StdString, StdSize> > listDimSize;
 /*
     for (std::map<StdString, StdSize>::const_iterator itMap = dimSizeMap.begin(); itMap != dimSizeMap.end(); ++itMap)
@@ -173,9 +188,9 @@ namespace xios
 
     // Now process domain and axis
     CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-    int numElement = domainP.size() + axisP.size();
+    int numElement = domainP.size() + axisP.size() + scalarP.size();
     int elementPosition = 0;
-    int idxDomain = 0, idxAxis = 0;
+    int idxDomain = 0, idxAxis = 0, idxScalar = 0;
 
     std::pair<std::set<StdString>::iterator,bool> it;
     for (int i = 0; i < numElement; ++i)
@@ -209,6 +224,21 @@ namespace xios
           if (it.second) readAxisAttributesFromFile(axisP[idxAxis], listDimSize, elementPosition, fieldId);
         }
         ++idxAxis;
+        ++elementPosition;
+      }
+      else
+      {
+        if (readAttributeValues)
+        {
+          it = readValueScalar_.insert(scalarP[idxScalar]->getId());
+          if (it.second) readScalarAttributeValueFromFile(scalarP[idxScalar], listDimSize, elementPosition, fieldId);
+        }
+        else
+        {
+          it = readMetaDataScalar_.insert(scalarP[idxScalar]->getId());
+          if (it.second) readScalarAttributesFromFile(scalarP[idxScalar], listDimSize, elementPosition, fieldId);
+        }
+        ++idxScalar;
         ++elementPosition;
       }
     }
@@ -440,6 +470,48 @@ namespace xios
       axis->value.resize(n);
       for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
     }
+  }
+
+  /*!
+    Read attributes of a scalar from a file
+    \param [in] scalar scalar whose attributes are read from the file
+    \param [in] dimSizeMap Dimensions and and their corresponding names and size read from file
+    \param [in] emelentPosition position of scalar in grid
+    \param [in] fieldId id (or name) associated with the grid
+  */
+  void CNc4DataInput::readScalarAttributesFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
+                                                  int elementPosition, const StdString& fieldId)
+  {
+//    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
+//                                                              iteMap = dimSizeMap.end();
+//    for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
+//    axis->n_glo.setValue(itMapN->second);
+  }
+
+  /*!
+    Read attribute value of an axis from a file
+    \param [in] axis axis whose attributes are read from the file
+    \param [in] dimSizeMap Dimensions and and their corresponding names and size read from file
+    \param [in] emelentPosition position of axis in grid
+    \param [in] fieldId id (or name) associated with the grid
+  */
+  void CNc4DataInput::readScalarAttributeValueFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
+                                                      int elementPosition, const StdString& fieldId)
+  {
+//    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
+//                                                              iteMap = dimSizeMap.end();
+//    for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
+//
+//    { // Read axis value
+//      std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
+//      CArray<double,1> readAxisValue(itMapN->second);
+//      readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
+//      int begin = 0, n = itMapN->second;
+//      if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
+//      if (!axis->n.isEmpty()) n = axis->n.getValue();
+//      axis->value.resize(n);
+//      for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+//    }
   }
 
   void CNc4DataInput::closeFile_(void)

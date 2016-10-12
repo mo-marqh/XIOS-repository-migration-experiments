@@ -10,6 +10,7 @@ namespace xios
 {
   class CDomain;
   class CAxis;
+  class CScalar;
 
   class CNc4DataInput
     : protected CINetCDF4
@@ -50,6 +51,11 @@ namespace xios
     void readAxisAttributeValueFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                         int elementPosition, const StdString& fieldId);
 
+    void readScalarAttributesFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
+                                      int elementPosition, const StdString& fieldId);
+    void readScalarAttributeValueFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
+                                          int elementPosition, const StdString& fieldId);
+
     template <typename T, int Ndim>
     void readFieldVariableValue(CArray<T, Ndim>& var, const StdString& varId,
                                 const std::vector<StdSize>& nBegin,
@@ -59,6 +65,7 @@ namespace xios
   private:
     std::set<StdString> readMetaDataDomains_, readValueDomains_;
     std::set<StdString> readMetaDataAxis_, readValueAxis_;
+    std::set<StdString> readMetaDataScalar_, readValueScalar_;
 
   private:
     /// Private attributes ///

@@ -131,7 +131,7 @@ namespace xios{
 
     if (!grid->doGridHaveDataDistributed())
     {
-       if (0 == client->clientRank)
+       if (client->isServerLeader())
        {
           for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
           {
@@ -148,7 +148,8 @@ namespace xios{
             event.push(rank, 1, list_msg.back());
           }
           client->sendEvent(event);
-       } else client->sendEvent(event);
+       } 
+       else client->sendEvent(event);
     }
     else
     {

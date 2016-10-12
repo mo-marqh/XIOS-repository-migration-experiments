@@ -498,13 +498,14 @@ namespace xios {
 
      if (!doGridHaveDataDistributed())
      {
-        if (0 == client->clientRank)
+        if (client->isServerLeader())
         {
           size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
-          for (int rank = 0; rank < client->serverSize; ++rank)
+          const std::list<int>& ranks = client->getRanksServerLeader();
+          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
           {
-            connectedServerRank_.push_back(rank);
-            connectedDataSize_[rank] = ssize;
+            connectedServerRank_.push_back(*itRank);
+            connectedDataSize_[*itRank] = ssize;
           }
         }
         return;
@@ -974,6 +975,7 @@ namespace xios {
       {
         connectedServerRank_.push_back(rank);
         connectedDataSize_[rank] = 1;
+        nbSenders[rank] = 1;
       }
     }
     isDataDistributed_ = false;
@@ -1022,10 +1024,12 @@ namespace xios {
     list<CMessage> listMsg;
     list<CArray<size_t,1> > listOutIndex;
 
-    if (0 == client->clientRank)
+    if (client->isServerLeader())
     {
-      for (int rank = 0; rank < client->serverSize; ++rank)
+      const std::list<int>& ranks = client->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
+        int rank = *itRank;
         int nb = 1;
         storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
         listOutIndex.push_back(CArray<size_t,1>(nb));
@@ -1044,7 +1048,6 @@ namespace xios {
 
         event.push(rank, 1, listMsg.back());
       }
-
       client->sendEvent(event);
     }
     else
@@ -1066,7 +1069,7 @@ namespace xios {
 
     if (!doGridHaveDataDistributed())
     {
-      if (0 == client->clientRank)
+      if (client->isServerLeader())
       {
         int indexSize = globalLocalIndexSendToServer.size();
         CArray<size_t,1> outGlobalIndexOnServer(indexSize);
@@ -1077,17 +1080,18 @@ namespace xios {
           outLocalIndexToServer(idx) = itIndex->second;
         }
 
-        for (rank = 0; rank < client->serverSize; ++rank)
+        //int nbClient = client->clientSize; // This stupid variable signals the servers the number of client connect to them
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
-          storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+          storeIndex_toSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
           listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
           listMsg.push_back(CMessage());
           listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
-          event.push(rank, 1, listMsg.back());
+          event.push(*itRank, 1, listMsg.back());
         }
-
         client->sendEvent(event);
       }
       else
@@ -1161,6 +1165,112 @@ namespace xios {
       buffers.push_back(buffer);
     }
     get(gridId)->recvIndex(ranks, buffers);
+  }
+
+  void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
+  {
+    CContext* context = CContext::getCurrent();
+    CContextServer* server = context->server;
+    numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
+    connectedServerRank_ = ranks;
+
+    for (int n = 0; n < ranks.size(); n++)
+    {
+      int rank = ranks[n];
+      CBufferIn& buffer = *buffers[n];
+
+      buffer >> isDataDistributed_ >> isCompressible_;
+      size_t dataSize = 0;
+
+      if (0 == serverDistribution_)
+      {
+        int idx = 0, numElement = axis_domain_order.numElements();
+        int ssize = numElement;
+        std::vector<int> indexMap(numElement);
+        for (int i = 0; i < numElement; ++i)
+        {
+          indexMap[i] = idx;
+          if (2 == axis_domain_order(i))
+          {
+            ++ssize;
+            idx += 2;
+          }
+          else
+            ++idx;
+        }
+
+        int axisId = 0, domainId = 0, scalarId = 0;
+        std::vector<CDomain*> domainList = getDomains();
+        std::vector<CAxis*> axisList = getAxis();
+        std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
+        for (int i = 0; i < numElement; ++i)
+        {
+          if (2 == axis_domain_order(i)) //domain
+          {
+            nZoomBegin[indexMap[i]] = domainList[domainId]->zoom_ibegin_srv;
+            nZoomSize[indexMap[i]]  = domainList[domainId]->zoom_ni_srv;
+            nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->global_zoom_ibegin;
+            nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
+
+            nZoomBegin[indexMap[i] + 1] = domainList[domainId]->zoom_jbegin_srv;
+            nZoomSize[indexMap[i] + 1] = domainList[domainId]->zoom_nj_srv;
+            nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->global_zoom_jbegin;
+            nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
+            ++domainId;
+          }
+          else if (1 == axis_domain_order(i)) // axis
+          {
+            nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
+            nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
+            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
+            nGlob[indexMap[i]] = axisList[axisId]->n_glo;
+            ++axisId;
+          }
+          else // scalar
+          {
+            nZoomBegin[indexMap[i]] = 0;
+            nZoomSize[indexMap[i]]  = 1;
+            nZoomBeginGlobal[indexMap[i]] = 0;
+            nGlob[indexMap[i]] = 1;
+            ++scalarId;
+          }
+        }
+        dataSize = 1;
+        for (int i = 0; i < nZoomSize.size(); ++i)
+          dataSize *= nZoomSize[i];
+
+        serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
+                                                      nZoomBeginGlobal, nGlob);
+      }
+
+      CArray<size_t,1> outIndex;
+      buffer >> outIndex;
+      if (isDataDistributed_)
+        serverDistribution_->computeLocalIndex(outIndex);
+      else
+      {
+        dataSize = outIndex.numElements();
+        for (int i = 0; i < outIndex.numElements(); ++i) outIndex(i) = i;
+      }
+      writtenDataSize_ += dataSize;
+      
+      outIndexFromClient.insert(std::make_pair(rank, outIndex));
+      connectedDataSize_[rank] = outIndex.numElements();
+      numberWrittenIndexes_ += outIndex.numElements();
+    }
+
+    // if (isScalarGrid()) return;
+
+    if (isDataDistributed_)
+    {
+      MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      offsetWrittenIndexes_ -= numberWrittenIndexes_;
+    }
+    else
+      totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+
+    nbSenders = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
   }
 
   void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
@@ -1277,122 +1387,6 @@ namespace xios {
     if (isScalarGrid()) return false;
     else
       return isDataDistributed_;
-  }
-
-  void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
-  {
-    CContext* context = CContext::getCurrent();
-    CContextServer* server = context->server;
-    numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
-    connectedServerRank_ = ranks;
-
-    for (int n = 0; n < ranks.size(); n++)
-    {
-      int rank = ranks[n];
-      CBufferIn& buffer = *buffers[n];
-
-      buffer >> isDataDistributed_ >> isCompressible_;
-      size_t dataSize = 0;
-
-      if (isScalarGrid())
-      {
-        writtenDataSize_ = numberWrittenIndexes_ = totalNumberWrittenIndexes_ = 1;
-        CArray<size_t,1> outIndex;
-        buffer >> outIndex;
-        outIndexFromClient.insert(std::make_pair(rank, outIndex));
-        std::vector<int> nZoomBegin(1,0), nZoomSize(1,1), nGlob(1,1), nZoomBeginGlobal(1,0);
-        serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
-                                                      nZoomBeginGlobal, nGlob);
-        return;
-      }
-
-      if (0 == serverDistribution_)
-      {
-        int idx = 0, numElement = axis_domain_order.numElements();
-        int ssize = numElement;
-        std::vector<int> indexMap(numElement);
-        for (int i = 0; i < numElement; ++i)
-        {
-          indexMap[i] = idx;
-          if (2 == axis_domain_order(i))
-          {
-            ++ssize;
-            idx += 2;
-          }
-          else
-            ++idx;
-        }
-
-        int axisId = 0, domainId = 0, scalarId = 0;
-        std::vector<CDomain*> domainList = getDomains();
-        std::vector<CAxis*> axisList = getAxis();
-        std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
-        for (int i = 0; i < numElement; ++i)
-        {
-          if (2 == axis_domain_order(i)) //domain
-          {
-            nZoomBegin[indexMap[i]] = domainList[domainId]->zoom_ibegin_srv;
-            nZoomSize[indexMap[i]]  = domainList[domainId]->zoom_ni_srv;
-            nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->global_zoom_ibegin;
-            nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
-
-            nZoomBegin[indexMap[i] + 1] = domainList[domainId]->zoom_jbegin_srv;
-            nZoomSize[indexMap[i] + 1] = domainList[domainId]->zoom_nj_srv;
-            nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->global_zoom_jbegin;
-            nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
-            ++domainId;
-          }
-          else if (1 == axis_domain_order(i)) // axis
-          {
-            nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
-            nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
-            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
-            nGlob[indexMap[i]] = axisList[axisId]->n_glo;
-            ++axisId;
-          }
-          else // scalar
-          {
-            nZoomBegin[indexMap[i]] = 0;
-            nZoomSize[indexMap[i]]  = 1;
-            nZoomBeginGlobal[indexMap[i]] = 0;
-            nGlob[indexMap[i]] = 1;
-            ++scalarId;
-          }
-        }
-        dataSize = 1;
-        for (int i = 0; i < nZoomSize.size(); ++i)
-          dataSize *= nZoomSize[i];
-
-        serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
-                                                      nZoomBeginGlobal, nGlob);
-      }
-
-      CArray<size_t,1> outIndex;
-      buffer >> outIndex;
-      if (isDataDistributed_)
-        serverDistribution_->computeLocalIndex(outIndex);
-      else
-      {
-        dataSize = outIndex.numElements();
-        for (int i = 0; i < outIndex.numElements(); ++i) outIndex(i) = i;
-      }
-      writtenDataSize_ += dataSize;
-
-      outIndexFromClient.insert(std::make_pair(rank, outIndex));
-      connectedDataSize_[rank] = outIndex.numElements();
-      numberWrittenIndexes_ += outIndex.numElements();
-    }
-
-    if (isDataDistributed_)
-    {
-      MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-      MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-      offsetWrittenIndexes_ -= numberWrittenIndexes_;
-    }
-    else
-      totalNumberWrittenIndexes_ = numberWrittenIndexes_;
-
-    nbSenders = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
   }
 
    /*!
