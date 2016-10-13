@@ -1001,6 +1001,11 @@ namespace xios {
                                                                                                                nodeId,
                                                                                                                &node)));
         }
+        else
+        {
+          ERROR("void CAxis::parse(xml::CXMLNode & node)",
+                << "The transformation " << nodeElementName << " has not been supported yet.");
+        }
       } while (node.goToNextElement()) ;
       node.goToParentElement();
     }

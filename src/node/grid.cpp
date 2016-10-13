@@ -325,6 +325,18 @@ namespace xios {
         case 3:
           checkGridMask(mask_3d, domainMasks, axisMasks, axis_domain_order, true);
           break;
+        case 4:
+          checkGridMask(mask_4d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        case 5:
+          checkGridMask(mask_5d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        case 6:
+          checkGridMask(mask_6d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
+        case 7:
+          checkGridMask(mask_7d, domainMasks, axisMasks, axis_domain_order, true);
+          break;
         default:
           break;
       }
