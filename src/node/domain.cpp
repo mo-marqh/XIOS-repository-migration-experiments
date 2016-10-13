@@ -613,12 +613,13 @@ namespace xios {
              << "The domain type is mandatory, "
              << "please define the 'type' attribute.")
      }
+
      if (type == type_attr::gaussian) 
      {
-	   hasPole=true ;
-	   type.setValue(type_attr::unstructured) ;
-	 }
-	 else if (type == type_attr::rectilinear) hasPole=true ;
+  	   hasPole=true ;
+	     type.setValue(type_attr::unstructured) ;
+	   }
+	   else if (type == type_attr::rectilinear) hasPole=true ;
 	 
      if (type == type_attr::unstructured)
      {
@@ -678,8 +679,6 @@ namespace xios {
              << "'nj_glo' attribute should be strictly positive so 'nj_glo = " << nj_glo.getValue() << "' is invalid.")
      }
 
-     isDistributed_ = !ibegin.isEmpty() || !ni.isEmpty() || !jbegin.isEmpty() || !nj.isEmpty();
-
      checkLocalIDomain();
      checkLocalJDomain();
 
@@ -698,8 +697,13 @@ namespace xios {
      }
      computeNGlobDomain();
      checkZoom();
+
+     isDistributed_ = !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
+                        (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
    }
 
+   // Check global zoom of a domain
+   // If there is no zoom defined for the domain, zoom will have value of global doamin
    void CDomain::checkZoom(void)
    {
      if (global_zoom_ibegin.isEmpty())
@@ -714,21 +718,61 @@ namespace xios {
 
    //----------------------------------------------------------------
 
+   // Check validity of local domain on using the combination of 3 parameters: ibegin, ni and i_index
    void CDomain::checkLocalIDomain(void)
    {
-      if (ibegin.isEmpty() && ni.isEmpty())
+      // If ibegin and ni are provided then we use them to check the validity of local domain
+      if (i_index.isEmpty() && !ibegin.isEmpty() && !ni.isEmpty())
+      {
+        if ((ni.getValue() < 0 || ibegin.getValue() < 0) || ((ibegin.getValue() + ni.getValue()) > ni_glo.getValue()))
+        {
+          ERROR("CDomain::checkLocalIDomain(void)",
+                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "The local domain is wrongly defined,"
+                << " check the attributes 'ni_glo' (" << ni_glo.getValue() << "), 'ni' (" << ni.getValue() << ") and 'ibegin' (" << ibegin.getValue() << ")");
+        }
+      }
+
+      // i_index has higher priority than ibegin and ni
+      if (!i_index.isEmpty())
+      {
+        int minIIndex = i_index(0);
+        if (ni.isEmpty()) 
+        {          
+         // No information about ni
+          int minIndex = ni_glo - 1;
+          int maxIndex = 0;
+          for (int idx = 0; idx < i_index.numElements(); ++idx)
+          {
+            if (i_index(idx) < minIndex) minIndex = i_index(idx);
+            if (i_index(idx) > maxIndex) maxIndex = i_index(idx);
+          }
+          ni = maxIndex - minIndex + 1; 
+          minIIndex = minIIndex;          
+        }
+
+        // It's not so correct but if ibegin is not the first value of i_index 
+        // then data on local domain has user-defined distribution. In this case, ibegin, ni have no meaning.
+        if (ibegin.isEmpty()) ibegin = minIIndex;
+      }
+      else if (ibegin.isEmpty() && ni.isEmpty())
       {
         ibegin = 0;
         ni = ni_glo;
       }
-      else if (!i_index.isEmpty())
+      else
       {
-        if (ibegin.isEmpty()) ibegin = i_index(0);
-        if (ni.isEmpty()) ni = i_index.numElements();
-      }
 
-      if ((ni.getValue() < 0 || ibegin.getValue() < 0) ||
-         ((type_attr::unstructured != type) && ((ibegin.getValue() + ni.getValue()) > ni_glo.getValue())))
+        ERROR("CDomain::checkLocalIDomain(void)",
+              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "The local domain is wrongly defined,"
+              << "Either 'ni' or 'ibegin' is not defined. " 
+              << "If 'ni' and 'ibegin' are used to define domain, both of them must have assigned values." << endl
+              << "Otherwise, i_index can be used to define domain.");
+      }
+       
+
+      if ((ni.getValue() < 0 || ibegin.getValue() < 0))
       {
         ERROR("CDomain::checkLocalIDomain(void)",
               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
@@ -737,27 +781,55 @@ namespace xios {
       }
    }
 
+   // Check validity of local domain on using the combination of 3 parameters: jbegin, nj and j_index
    void CDomain::checkLocalJDomain(void)
    {
-     if (jbegin.isEmpty() && nj.isEmpty())
+    // If jbegin and nj are provided then we use them to check the validity of local domain
+     if (j_index.isEmpty() && !jbegin.isEmpty() && !nj.isEmpty())
+     {
+       if ((nj.getValue() < 0 || jbegin.getValue() < 0) || (jbegin.getValue() + nj.getValue()) > nj_glo.getValue())
+       {
+         ERROR("CDomain::checkLocalJDomain(void)",
+                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "The local domain is wrongly defined,"
+                << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
+       }
+     }
+
+     if (!j_index.isEmpty())
+     {
+        int minJIndex = j_index(0);
+        if (nj.isEmpty()) 
+        {
+          // No information about nj
+          int minIndex = nj_glo - 1;
+          int maxIndex = 0;
+          for (int idx = 0; idx < j_index.numElements(); ++idx)
+          {
+            if (j_index(idx) < minIndex) minIndex = j_index(idx);
+            if (j_index(idx) > maxIndex) maxIndex = j_index(idx);
+          }
+          nj = maxIndex - minIndex + 1;
+          minJIndex = minIndex; 
+        }  
+        // It's the same as checkLocalIDomain. It's not so correct but if jbegin is not the first value of j_index 
+        // then data on local domain has user-defined distribution. In this case, jbegin has no meaning.
+       if (jbegin.isEmpty()) jbegin = minJIndex;       
+     }
+     else if (jbegin.isEmpty() && nj.isEmpty())
      {
        jbegin = 0;
        nj = nj_glo;
-     }
-     else if (!j_index.isEmpty())
-     {
-       if (jbegin.isEmpty()) jbegin = j_index(0);
-       if (nj.isEmpty()) nj = j_index.numElements();
-     }
+     }      
 
-      if ((nj.getValue() < 0 || jbegin.getValue() < 0) ||
-         ((type_attr::unstructured != type) && ((jbegin.getValue() + nj.getValue()) > nj_glo.getValue())))
-      {
-        ERROR("CDomain::checkLocalJDomain(void)",
+
+     if ((nj.getValue() < 0 || jbegin.getValue() < 0))
+     {
+       ERROR("CDomain::checkLocalJDomain(void)",
               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
               << "The local domain is wrongly defined,"
               << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
-      }
+     }
    }
 
    //----------------------------------------------------------------
