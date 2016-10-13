@@ -212,26 +212,39 @@ namespace xios {
               << "The axis is wrongly defined, attribute 'n_glo' must be specified");
       StdSize size = this->n_glo.getValue();
 
-      if (!this->begin.isEmpty())
+      if (!this->index.isEmpty())
       {
-        if (begin < 0 || begin > size - 1)
-          ERROR("CAxis::checkAttributes(void)",
-                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                << "The axis is wrongly defined, attribute 'begin' (" << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").");
-      }
-      else this->begin.setValue(0);
+        if (n.isEmpty()) n = index.numElements();
 
-      if (!this->n.isEmpty())
+        // It's not so correct but if begin is not the first value of index 
+        // then data on the local axis has user-defined distribution. In this case, begin has no meaning.
+        if (begin.isEmpty()) begin = index(0);         
+      }
+      else 
       {
-        if (n < 0 || n > size)
-          ERROR("CAxis::checkAttributes(void)",
-                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" << size << ").");
-      }
-      else this->n.setValue(size);
+        if (!this->begin.isEmpty())
+        {
+          if (begin < 0 || begin > size - 1)
+            ERROR("CAxis::checkAttributes(void)",
+                  << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                  << "The axis is wrongly defined, attribute 'begin' (" << begin.getValue() << ") must be non-negative and smaller than size-1 (" << size - 1 << ").");
+        }
+        else this->begin.setValue(0);
 
-      isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
-                       (!this->n.isEmpty() && (this->n != this->n_glo));
+        if (!this->n.isEmpty())
+        {
+          if (n < 0 || n > size)
+            ERROR("CAxis::checkAttributes(void)",
+                  << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                  << "The axis is wrongly defined, attribute 'n' (" << n.getValue() << ") must be non-negative and smaller than size (" << size << ").");
+        }
+        else this->n.setValue(size);
+
+        {
+          index.resize(n);
+          for (int i = 0; i < n; ++i) index(i) = i+begin;
+        }
+      }
 
       if (!this->value.isEmpty())
       {
@@ -243,16 +256,13 @@ namespace xios {
         this->hasValue = true;
       }
 
-      if (this->index.isEmpty())
-      {
-        index.resize(n);
-        for (int i = 0; i < n; ++i) index(i) = i+begin;
-      }
-
       this->checkData();
       this->checkZoom();
       this->checkMask();
       this->checkBounds();
+
+      isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
+                       (!this->n.isEmpty() && (this->n != this->n_glo));
    }
 
    void CAxis::checkData()
