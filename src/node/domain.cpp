@@ -760,15 +760,13 @@ namespace xios {
         ibegin = 0;
         ni = ni_glo;
       }
-      else
+      else if ((!ibegin.isEmpty() && ni.isEmpty()) || (ibegin.isEmpty() && !ni.isEmpty()))
       {
-
         ERROR("CDomain::checkLocalIDomain(void)",
               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-              << "The local domain is wrongly defined,"
-              << "Either 'ni' or 'ibegin' is not defined. " 
-              << "If 'ni' and 'ibegin' are used to define domain, both of them must have assigned values." << endl
-              << "Otherwise, i_index can be used to define domain.");
+              << "The local domain is wrongly defined," << endl
+              << "i_index is empty and either 'ni' or 'ibegin' is not defined. " 
+              << "If 'ni' and 'ibegin' are used to define a domain, both of them must not be empty.");
       }
        
 
