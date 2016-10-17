@@ -2336,7 +2336,7 @@ namespace xios
           SuperClassWriter::addAttribute("standard_name", standard_name, &axis_name);
           SuperClassWriter::addAttribute("long_name"    , long_name    , &axis_name);
           SuperClassWriter::addAttribute("units"        , units        , &axis_name);
-          SuperClassWriter::addAttribute("nav_model"    , nav_model    , &axis_name);
+//          SuperClassWriter::addAttribute("nav_model"    , nav_model    , &axis_name);
          }
          catch (CNetCdfException& e)
          {
