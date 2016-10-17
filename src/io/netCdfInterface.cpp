@@ -745,6 +745,8 @@ This function sets the compression level to the specified variable
 */
 int CNetCdfInterface::defVarDeflate(int ncid, int varId, int compressionLevel)
 {
+  
+  if (compressionLevel == 0) return NC_NOERR ;
   int status = nc_def_var_deflate(ncid, varId, false, (compressionLevel > 0), compressionLevel);
   if (NC_NOERR != status)
   {
