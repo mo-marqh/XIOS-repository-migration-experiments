@@ -1104,12 +1104,24 @@ namespace xios {
              }
            }
          }
+         else if (i_index.numElements() == lonvalue_1d.numElements() && j_index.numElements() == latvalue_1d.numElements())
+         {
+           lonvalue_client.reference(lonvalue_1d);
+           latvalue_client.reference(latvalue_1d);
+            if (hasBounds)
+           {
+             bounds_lon_client.reference(bounds_lon_1d);
+             bounds_lat_client.reference(bounds_lat_1d);
+           }
+         }
          else
            ERROR("CDomain::completeLonClient(void)",
                  << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                  << "'lonvalue_1d' and 'latvalue_1d' does not have the same size as the local domain." << std::endl
-                 << "'lonvalue_1d' size is " << lonvalue_1d.numElements() << " but it should be " << ni.getValue() << '.' << std::endl
-                 << "'latvalue_1d' size is " << latvalue_1d.numElements() << " but it should be " << nj.getValue() << '.');
+                 << "'lonvalue_1d' size is " << lonvalue_1d.numElements() 
+                 << " and 'latvalue_1d' size is " << latvalue_1d.numElements() << std::endl 
+                 << " They should be correspondingly " << ni.getValue() << " and "  << nj.getValue() << " or " << std::endl
+                 << i_index.numElements() << " and "  << j_index.numElements() << ".");
        }
        else if (type == type_attr::curvilinear || type == type_attr::unstructured)
        {
