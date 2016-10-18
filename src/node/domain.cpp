@@ -736,7 +736,7 @@ namespace xios {
       // i_index has higher priority than ibegin and ni
       if (!i_index.isEmpty())
       {
-        int minIIndex = i_index(0);
+        int minIIndex = (0 < i_index.numElements()) ? i_index(0) : 0;
         if (ni.isEmpty()) 
         {          
          // No information about ni
@@ -796,7 +796,7 @@ namespace xios {
 
      if (!j_index.isEmpty())
      {
-        int minJIndex = j_index(0);
+        int minJIndex = (0 < j_index.numElements()) ? j_index(0) : 0;
         if (nj.isEmpty()) 
         {
           // No information about nj
