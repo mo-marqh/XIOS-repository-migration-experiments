@@ -179,8 +179,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
 
   // Find out global index source of transformed element on corresponding process.
   std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc(axisDomainDstOrder.numElements());
-  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
-  int axisIndex = 0, domainIndex = 0;
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;  
   for (int idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
   {
     if (idx == elementPositionInGrid)
@@ -191,8 +190,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         computeExchangeDomainIndex(domainListDestP[elementPositionInGridDst2DomainPosition_[idx]],
                                    domainListSrcP[elementPositionInGridSrc2DomainPosition_[idx]],
                                    transPos,
-                                   globalElementIndexOnProc[idx]);
-      ++domainIndex;
+                                   globalElementIndexOnProc[idx]);      
 
     }
     else if (1 == axisDomainDstOrder(idx))//it's an axis
@@ -202,8 +200,6 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
                                  axisListSrcP[elementPositionInGridSrc2AxisPosition_[idx]],
                                  transPos,
                                  globalElementIndexOnProc[idx]);
-      ++axisIndex;
-
     }
     else //it's a scalar
     {

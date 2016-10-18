@@ -13,7 +13,7 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 
-#include "sum.hpp"
+#include "reduction.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CAxisAlgorithmExtractDomain::create(CGrid* gridDst, CGrid* gridSrc,

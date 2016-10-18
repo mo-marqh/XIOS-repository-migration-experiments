@@ -10,9 +10,10 @@
 #include "axis.hpp"
 #include "scalar.hpp"
 #include "reduce_axis_to_scalar.hpp"
-#include "sum.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
+
+#include "reduction.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CScalarAlgorithmReduceScalar::create(CGrid* gridDst, CGrid* gridSrc,
