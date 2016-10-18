@@ -345,7 +345,7 @@ namespace xios {
         eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
         ++idx; ++idxAxis;
       }
-      else ++idx;
+      else {};
     }
 
     if (!gridMask.isEmpty() && !createMask)

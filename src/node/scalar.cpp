@@ -30,8 +30,9 @@ namespace xios {
    bool CScalar::dummyTransformationMapList_ = CScalar::initializeTransformationMap(CScalar::transformationMapList_);
    bool CScalar::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
    {
-     m["reduce_axis"] = TRANS_REDUCE_AXIS_TO_SCALAR;
-     m["extract_axis"] = TRANS_EXTRACT_AXIS_TO_SCALAR;
+     m["reduce_axis"]   = TRANS_REDUCE_AXIS_TO_SCALAR;
+     m["extract_axis"]  = TRANS_EXTRACT_AXIS_TO_SCALAR;
+     m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_SCALAR;
    }
 
    StdString CScalar::GetName(void)   { return (StdString("scalar")); }

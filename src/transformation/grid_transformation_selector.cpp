@@ -20,6 +20,7 @@ void CGridTransformationSelector::registerTransformations()
   //! Scalar
   CScalarAlgorithmReduceScalar::registerTrans();
   CScalarAlgorithmExtractScalar::registerTrans();
+  CScalarAlgorithmReduceDomain::registerTrans();
 
   //! Axis
   CAxisAlgorithmZoom::registerTrans();

@@ -22,6 +22,8 @@
 #include "compute_connectivity_domain.hpp"
 #include "expand_domain.hpp"
 #include "extract_axis_to_scalar.hpp"
+#include "reduce_domain_to_scalar.hpp"
+
 
 
 #endif // __XIOS_NODE_TYPE__

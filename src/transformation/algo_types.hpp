@@ -9,24 +9,24 @@
 #ifndef __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__
 #define __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__
 
-
-#include "reduce_axis_to_scalar.hpp"
 #include "scalar_algorithm_reduce_axis.hpp"
+#include "scalar_algorithm_extract_axis.hpp"
+#include "scalar_algorithm_reduce_domain.hpp"
+
 #include "axis_algorithm_inverse.hpp"
 #include "axis_algorithm_zoom.hpp"
 #include "axis_algorithm_interpolate.hpp"
-#include "domain_algorithm_zoom.hpp"
-#include "domain_algorithm_interpolate.hpp"
-#include "reduce_domain_to_axis.hpp"
 #include "axis_algorithm_reduce_domain.hpp"
 #include "axis_algorithm_transformation.hpp"
 #include "axis_algorithm_extract_domain.hpp"
-#include "extract_domain_to_axis.hpp"
+
+#include "domain_algorithm_zoom.hpp"
+#include "domain_algorithm_interpolate.hpp"
 #include "domain_algorithm_compute_connectivity.hpp"
-#include "compute_connectivity_domain.hpp"
-#include "expand_domain.hpp"
 #include "domain_algorithm_expand.hpp"
-#include "extract_axis_to_scalar.hpp"
-#include "scalar_algorithm_extract_axis.hpp"
+
+
+
+
 
 #endif // __XIOS_ALGORITHM_TRANSFORMATION_TYPES_HPP__

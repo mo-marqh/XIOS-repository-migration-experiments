@@ -2,7 +2,7 @@
    \file scalar_algorithm_transformation.hpp
    \author Ha NGUYEN
    \since 23 June 2016
-   \date 23 June 2016
+   \date 23 Oct 2016
 
    \brief Interface for all scalar transformation algorithms.
  */
@@ -47,20 +47,43 @@ void CScalarAlgorithmTransformation::computeIndexSourceMapping_(const std::vecto
 }
 
 /*!
-  Compute global index of scalar on different processes
-  \param [in] globalScalarIndex global index of scalar source
-  \param [out] globalScalarIndexOnProc processes which contain the corresponding global index of scalar source
+  Compute global index of element source on different processes on knowing the global index source of transformation
+
+  \param [in] globalIndexElementSource global index source of transformation (represented in the transformation mapping)
+  \param [in] elementSourceType type of element source
+  \param [out] globalIndexElementSourceOnProc processes which contain the corresponding global index of scalar source
 */
-void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalScalarIndex,
-                                                                int elementType,
-                                                                CClientClientDHTInt::Index2VectorInfoTypeMap& globalScalarIndexOnProc)
+void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalIndexElementSource,
+                                                                int elementSourceType,
+                                                                CClientClientDHTInt::Index2VectorInfoTypeMap& globalIndexElementSourceOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
 
-  if (1 == elementType)
+  if (2 == elementSourceType) // Source is a domain
+  {
+    size_t globalIndex;
+    int nIndexSize = domainSrc_->i_index.numElements();
+    CArray<int,1>& iIndex = domainSrc_->i_index;
+    CArray<int,1>& jIndex = domainSrc_->j_index;
+    int niGlo = domainSrc_->ni_glo;
+
+    CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
+    globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+    for (int idx = 0; idx < nIndexSize; ++idx)
+    {
+      globalIndex = jIndex(idx) * niGlo + iIndex(idx);
+      globalIndex2ProcRank[globalIndex].resize(1);
+      globalIndex2ProcRank[globalIndex][0] = clientRank;
+    }
+
+    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+    dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
+    globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
+  }
+  else if (1 == elementSourceType) // Source is an axis
   {
     size_t globalIndex;
     int nIndexSize = axisSrc_->index.numElements();
@@ -74,8 +97,19 @@ void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
     }
 
     CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
-    dhtIndexProcRank.computeIndexInfoMapping(globalScalarIndex);
-    globalScalarIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
+    dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
+    globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
+  }
+  else // scalar
+  {
+    size_t globalIndex = 0;    
+    CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
+    globalIndex2ProcRank[globalIndex].resize(1);
+    globalIndex2ProcRank[globalIndex][0] = clientRank;
+
+    CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
+    dhtIndexProcRank.computeIndexInfoMapping(globalIndexElementSource);
+    globalIndexElementSourceOnProc = dhtIndexProcRank.getInfoIndexMap();
   }
 }
 
