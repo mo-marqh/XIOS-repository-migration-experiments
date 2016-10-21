@@ -102,10 +102,11 @@ void CGridGenerate::completeGrid()
   {
     int elementPositionInGrid = it->first;
     ETranformationType transType = (it->second).first;
-    int transformationOrder = (it->second).second;
+    int transformationOrder = (it->second).second.first;
+    int algoType = (it->second).second.second;
 
     // First of all, select an algorithm
-    selectAlgo(elementPositionInGrid, transType, transformationOrder, algoTypes_[std::distance(itb, it)]);
+    selectAlgo(elementPositionInGrid, transType, transformationOrder, algoType);
   }
 }
 

@@ -30,8 +30,8 @@ CGenericAlgorithmTransformation* CDomainAlgorithmExpand::create(CGrid* gridDst, 
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
 
   CExpandDomain* expandDomain = dynamic_cast<CExpandDomain*> (transformation);
-  int domainDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
-  int domainSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+  int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
   return (new CDomainAlgorithmExpand(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], expandDomain));
 }

@@ -27,7 +27,10 @@ specific grid.
 class CGridTransformationSelector
 {
 public:
-  typedef std::list<std::pair<int,std::pair<ETranformationType,int> > > ListAlgoType;
+  // Stupid C++98, should be replaced with tuple.
+  // List of algorithm to process. Order of element in this list
+  // <Position of element in grid, <transformationType, <transformation order, alogrithm type> > >
+  typedef std::list<std::pair<int,std::pair<ETranformationType,std::pair<int,int> > > > ListAlgoType;
 protected:
   enum AlgoType {
     scalarType = 0, axisType = 1, domainType = 2
@@ -49,12 +52,13 @@ public:
   const std::vector<CGenericAlgorithmTransformation*>& getAlgos() const { return algoTransformation_; }
 
 protected:
+  void updateElementPosition();
   void initializeAlgorithms();
   void initializeDomainAlgorithms(int domPositionInGrid);
   void initializeAxisAlgorithms(int axisPositionInGrid);
   void initializeScalarAlgorithms(int scalarPositionInGrid);
   void initializeTransformations(TransformationType type);
-  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, AlgoType algo);
+  void selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, int algo);
   bool isSpecialTransformation(ETranformationType transType);
   void registerTransformations();
 

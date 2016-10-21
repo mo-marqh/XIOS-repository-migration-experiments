@@ -35,8 +35,8 @@ CGenericAlgorithmTransformation* CDomainAlgorithmInterpolate::create(CGrid* grid
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
 
   CInterpolateDomain* interpolateDomain = dynamic_cast<CInterpolateDomain*> (transformation);
-  int domainDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
-  int domainSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+  int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
   return (new CDomainAlgorithmInterpolate(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], interpolateDomain));
 }

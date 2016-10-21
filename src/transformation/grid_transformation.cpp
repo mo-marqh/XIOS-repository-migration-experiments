@@ -99,7 +99,7 @@ void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranforma
   int domainIndex =  elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
   CDomain::TransMapTypes trans = domainListDestP[domainIndex]->getAllTransformations();
   CDomain::TransMapTypes::const_iterator it = trans.begin();
-  for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation
+  for (int i = 0; i < transformationOrder; ++i, ++it) {}  // Find the correct transformation  
 
   CGenericAlgorithmTransformation* algo = 0;
   algo = CGridTransformationFactory<CDomain>::createTransformation(transType,
@@ -117,18 +117,62 @@ void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranforma
 }
 
 /*!
+  Find position of element in a grid as well as its type (domain, axis, scalar) and position in its own element list
+  \return element position: map<int,<int,int> > corresponds to <element position in grid, <element type, element position in element list> >
+*/
+std::map<int,std::pair<int,int> > CGridTransformation::getElementPosition(CGrid* grid)
+{
+  std::vector<CScalar*> scalarListP = grid->getScalars(); 
+  std::vector<CAxis*> axisListP = grid->getAxis();
+  std::vector<CDomain*> domListP = grid->getDomains();  
+  CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+  int scalarIndex = 0, axisIndex = 0, domainIndex = 0;
+  int nbElement = axisDomainOrder.numElements(), elementDim;
+  std::map<int,std::pair<int,int> > elementPosition;
+  for (int idx = 0; idx < nbElement; ++idx)
+  {
+    elementDim = axisDomainOrder(idx);
+    switch (elementDim)
+    {
+      case 2:
+        elementPosition[idx] = std::make_pair(elementDim, domainIndex);
+        ++domainIndex;
+        break;
+      case 1:
+        elementPosition[idx] = std::make_pair(elementDim, axisIndex);
+        ++axisIndex;
+        break;
+      case 0:
+        elementPosition[idx] = std::make_pair(elementDim, scalarIndex);
+        ++scalarIndex;
+        break;
+      default:
+        break;        
+    }
+  }
+
+  return elementPosition;  
+}
+
+/*!
   If there are more than one transformation, a new temporary grid will be created and it will play the role of grid destination.
 This new created one keeps a pointer to the real transformed element of grid destination and generate new copies of other elements from grid source.
   \param [in] elementPositionInGrid position of element in grid
   \param [in] transType transformation type
 */
-void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranformationType transType, AlgoType algoType)
+void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranformationType transType)
 {
   if (isSpecialTransformation(transType)) return;
 
   if (!tempGridDests_.empty() && (getNbAlgo() == tempGridDests_.size()))
   {
     tempGridDests_.resize(0);
+  }
+
+  if (1 == getNbAlgo()) 
+  {
+    tmpGridDestination_ = gridDestination_;
+    return;
   }
 
   std::vector<CScalar*> scalarListDestP = gridDestination_->getScalars();
@@ -143,50 +187,56 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
   CArray<int,1> axisDomainOrderSrc = gridSource_->axis_domain_order;
   CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
 
-  int scalarIndex = -1, axisIndex = -1, domainIndex = -1;
-  switch (algoType)
-  {
-    case domainType:
-      domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
-      break;
-    case axisType:
-      axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
-      break;
-    case scalarType:
-      scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
-      break;
-    default:
-      break;
-  }
+  std::map<int,std::pair<int,int> > elementPositionSrc = getElementPosition(gridSource_);
+  std::map<int,std::pair<int,int> > elementPositionDst = getElementPosition(gridDestination_);
 
+  CArray<int,1> elementOrder(axisDomainOrderDst.numElements());
   for (int idx = 0; idx < axisDomainOrderDst.numElements(); ++idx)
   {
-    int dimElementDst = axisDomainOrderDst(idx);
-    if (2 == dimElementDst)
+    if (elementPositionInGrid == idx)
     {
-      if (elementPositionInGrid == idx)
-        domainDst.push_back(domListDestP[domainIndex]);
-      else
-        domainDst.push_back(domListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]);
-    }
-    else if (1 == dimElementDst)
-    {
-      if (elementPositionInGrid == idx)
-        axisDst.push_back(axisListDestP[axisIndex]);
-      else
-        axisDst.push_back(axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]);
+      int dimElementDst = elementPositionDst[idx].first;
+      int elementIndex  = elementPositionDst[idx].second;
+      switch (dimElementDst) 
+      {
+        case 2:
+          domainDst.push_back(domListDestP[elementIndex]);
+          break;
+        case 1:
+          axisDst.push_back(axisListDestP[elementIndex]);
+          break;
+        case 0:
+          scalarDst.push_back(scalarListDestP[elementIndex]);
+          break;
+        default:
+          break;
+      }
+      elementOrder(idx) = dimElementDst;
     }
     else
-    {
-      if (elementPositionInGrid == idx)
-        scalarDst.push_back(scalarListDestP[scalarIndex]);
-      else
-        scalarDst.push_back(scalarListSrcP[elementPositionInGridSrc2ScalarPosition_[elementPositionInGrid]]);
+    {      
+      int dimElementSrc = elementPositionSrc[idx].first;
+      int elementIndex  = elementPositionSrc[idx].second;
+      switch (dimElementSrc)
+      {
+        case 2:
+          domainDst.push_back(domListSrcP[elementIndex]);
+          break;
+        case 1:
+          axisDst.push_back(axisListSrcP[elementIndex]);
+          break;
+        case 0:
+          scalarDst.push_back(scalarListSrcP[elementIndex]);
+          break;
+        default:
+          break;
+      }
+      elementOrder(idx) = dimElementSrc;
     }
   }
 
-  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, gridDestination_->axis_domain_order);
-  tmpGridDestination_->computeGridGlobalDimension(domainDst, axisDst, scalarDst, gridDestination_->axis_domain_order);
+  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder);
+  tmpGridDestination_->computeGridGlobalDimension(domainDst, axisDst, scalarDst, elementOrder);
   tempGridDests_.push_back(tmpGridDestination_);
 }
 
@@ -197,7 +247,7 @@ Only element on which the transformation is performed is modified
   \param [in] elementPositionInGrid position of element in grid
   \param [in] transType transformation type
 */
-void CGridTransformation::setUpGridSource(int elementPositionInGrid, AlgoType algoType)
+void CGridTransformation::setUpGridSource(int elementPositionInGrid)
 {
   if (!tempGridSrcs_.empty() && (getNbAlgo()-1) == tempGridSrcs_.size())
   {
@@ -213,69 +263,61 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid, AlgoType al
   std::vector<CDomain*> domListDestP = tmpGridDestination_->getDomains();
   std::vector<CDomain*> domListSrcP = gridSource_->getDomains(), domainSrc;
 
-  CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
+  CArray<int,1> axisDomainOrderSrc = gridSource_->axis_domain_order;
+  CArray<int,1> axisDomainOrderDst = tmpGridDestination_->axis_domain_order;
 
-  int axisIndex = -1, domainIndex = -1, scalarIndex = -1;
-  int axisListIndex = 0, domainListIndex = 0, scalarListIndex = 0;
-  switch (algoType)
-  {
-    case domainType:
-      domainIndex = elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
-      break;
-    case axisType:
-      axisIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
-      break;
-    case scalarType:
-      scalarIndex = elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
-      break;
-    default:
-      break;
-  }
+  std::map<int,std::pair<int,int> > elementPositionSrc = getElementPosition(gridSource_);
+  std::map<int,std::pair<int,int> > elementPositionDst = getElementPosition(tmpGridDestination_);
 
   for (int idx = 0; idx < axisDomainOrderDst.numElements(); ++idx)
-  {
-    int dimElementDst = axisDomainOrderDst(idx);
-    if (2 == dimElementDst)
+  {   
+    if (elementPositionInGrid == idx)
     {
-      if (elementPositionInGrid == idx)
-        domainSrc.push_back(domListDestP[domainIndex]);
-      else
+      int dimElementDst = elementPositionDst[idx].first;
+      int elementIndex  = elementPositionDst[idx].second;
+      if (2 == dimElementDst)
       {
         CDomain* domain = CDomain::createDomain();
-        domain->domain_ref.setValue(domListDestP[domainListIndex]->getId());
+        domain->domain_ref.setValue(domListDestP[elementIndex]->getId());
         domain->solveRefInheritance(true);
         domain->checkAttributesOnClient();
         domainSrc.push_back(domain);
       }
-      ++domainListIndex;
-    }
-    else if (1 == dimElementDst)
-    {
-      if (elementPositionInGrid == idx)
-        axisSrc.push_back(axisListDestP[axisIndex]);
-      else
+      else if (1 == dimElementDst)
       {
         CAxis* axis = CAxis::createAxis();
-        axis->axis_ref.setValue(axisListDestP[axisListIndex]->getId());
+        axis->axis_ref.setValue(axisListDestP[elementIndex]->getId());
         axis->solveRefInheritance(true);
         axis->checkAttributesOnClient();
-        axisSrc.push_back(axis);
+        axisSrc.push_back(axis); 
       }
-      ++axisListIndex;
-    }
-    else
-    {
-      if (elementPositionInGrid == idx)
-        scalarSrc.push_back(scalarListDestP[scalarIndex]);
       else
       {
         CScalar* scalar = CScalar::createScalar();
-        scalar->scalar_ref.setValue(scalarListDestP[scalarListIndex]->getId());
+        scalar->scalar_ref.setValue(scalarListDestP[elementIndex]->getId());
         scalar->solveRefInheritance(true);
         scalar->checkAttributesOnClient();
         scalarSrc.push_back(scalar);
       }
-      ++scalarListIndex;
+    }
+    else
+    {      
+      int dimElementDst = elementPositionDst[idx].first;
+      int elementIndex  = elementPositionDst[idx].second;
+      switch (dimElementDst)
+      {
+        case 2:
+          domainSrc.push_back(domListDestP[elementIndex]);
+          break;
+        case 1:
+          axisSrc.push_back(axisListDestP[elementIndex]);
+          break;
+        case 0:
+          scalarSrc.push_back(scalarListDestP[elementIndex]);
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -322,13 +364,14 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
   {
     int elementPositionInGrid = it->first;
     ETranformationType transType = (it->second).first;
-    int transformationOrder = (it->second).second;
+    int transformationOrder = (it->second).second.first;
+    int algoType = ((it->second).second.second); //algoTypes_[std::distance(itb, it)];
     SourceDestinationIndexMap globaIndexWeightFromSrcToDst;
-    AlgoType algoType = algoTypes_[std::distance(itb, it)];
+    
 
     // Create a temporary grid destination which contains transformed element of grid destination and
     // non-transformed elements to grid source
-    setUpGridDestination(elementPositionInGrid, transType, algoType);
+    setUpGridDestination(elementPositionInGrid, transType);
 
     // First of all, select an algorithm
     if (!dynamicalTransformation_ || (algoTransformation_.size() < listAlgos_.size()))
@@ -358,7 +401,7 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
       if (1 < nbNormalAlgos_)
       {
         // Now grid destination becomes grid source in a new transformation
-        if (nbAgloTransformation != (nbNormalAlgos_-1)) setUpGridSource(elementPositionInGrid, algoType);
+        if (nbAgloTransformation != (nbNormalAlgos_-1)) setUpGridSource(elementPositionInGrid);
       }
       ++nbAgloTransformation;
     }

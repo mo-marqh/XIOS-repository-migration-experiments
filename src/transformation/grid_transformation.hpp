@@ -60,9 +60,10 @@ protected:
   virtual void selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
   virtual void selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder);
 
-  void setUpGridSource(int elementPositionInGrid, AlgoType);
-  void setUpGridDestination(int elementPositionInGrid, ETranformationType, AlgoType);
+  void setUpGridSource(int elementPositionInGrid);
+  void setUpGridDestination(int elementPositionInGrid, ETranformationType);
   void computeTransformationMapping(const SourceDestinationIndexMap& globalIndexWeightFromSrcToDest);
+  std::map<int,std::pair<int,int> > getElementPosition(CGrid* grid);
 
 protected:
   //! The grid source of the first transformation (original grid source)

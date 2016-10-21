@@ -28,8 +28,8 @@ CGenericAlgorithmTransformation* CDomainAlgorithmComputeConnectivity::create(CGr
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
 
   CComputeConnectivityDomain* compute_connectivityDomain = dynamic_cast<CComputeConnectivityDomain*> (transformation);
-  int domainDstIndex = elementPositionInGridDst2AxisPosition[elementPositionInGrid];
-  int domainSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
+  int domainDstIndex = elementPositionInGridDst2DomainPosition[elementPositionInGrid];
+  int domainSrcIndex = elementPositionInGridSrc2DomainPosition[elementPositionInGrid];
 
   return (new CDomainAlgorithmComputeConnectivity(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], compute_connectivityDomain));
 }

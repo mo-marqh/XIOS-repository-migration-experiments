@@ -101,12 +101,15 @@ CGridTransformationSelector::~CGridTransformationSelector()
 }
 
 /*!
-  Initialize the algorithms (transformations)
+  Update position of elements in grid source and grid destination as well as their positions in element list
 */
-void CGridTransformationSelector::initializeAlgorithms()
+void CGridTransformationSelector::updateElementPosition()
 {
   int idxScalar = 0, idxAxis = 0, idxDomain = 0;
   CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
+  std::map<int, int>().swap(elementPositionInGridDst2DomainPosition_);
+  std::map<int, int>().swap(elementPositionInGridDst2AxisPosition_);
+  std::map<int, int>().swap(elementPositionInGridDst2ScalarPosition_);
   for (int i = 0; i < axisDomainOrderDst.numElements(); ++i)
   {
     int dimElement = axisDomainOrderDst(i);
@@ -129,6 +132,9 @@ void CGridTransformationSelector::initializeAlgorithms()
 
   idxScalar = idxAxis = idxDomain = 0;
   CArray<int,1> axisDomainOrderSrc = gridSource_->axis_domain_order;
+  std::map<int, int>().swap(elementPositionInGridSrc2DomainPosition_);
+  std::map<int, int>().swap(elementPositionInGridSrc2AxisPosition_);
+  std::map<int, int>().swap(elementPositionInGridSrc2ScalarPosition_);
   for (int i = 0; i < axisDomainOrderSrc.numElements(); ++i)
   {
     int dimElement = axisDomainOrderSrc(i);
@@ -148,7 +154,15 @@ void CGridTransformationSelector::initializeAlgorithms()
       ++idxScalar;
     }
   }
+}
 
+/*!
+  Initialize the algorithms (transformations)
+*/
+void CGridTransformationSelector::initializeAlgorithms()
+{
+  updateElementPosition();
+  CArray<int,1> axisDomainOrderDst = gridDestination_->axis_domain_order;
   for (int i = 0; i < axisDomainOrderDst.numElements(); ++i)
   {
     int dimElement = axisDomainOrderDst(i);
@@ -182,9 +196,9 @@ void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionI
   {
     int scalarDstPos = -1, scalarSrcPos = -1;
     if (0 < elementPositionInGridDst2ScalarPosition_.count(scalarPositionInGrid))
-      scalarDstPos = elementPositionInGridDst2AxisPosition_[scalarPositionInGrid];
+      scalarDstPos = elementPositionInGridDst2ScalarPosition_[scalarPositionInGrid];
     if (0 < elementPositionInGridSrc2ScalarPosition_.count(scalarPositionInGrid))
-      scalarSrcPos = elementPositionInGridSrc2AxisPosition_[scalarPositionInGrid];
+      scalarSrcPos = elementPositionInGridSrc2ScalarPosition_[scalarPositionInGrid];
 
     // If source and destination grid share the same scalar
     if ((-1 != scalarDstPos) && (-1 != scalarSrcPos) &&
@@ -198,8 +212,7 @@ void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionI
       int transformationOrder = 0;
       for (it = itb; it != ite; ++it)
       {
-        listAlgos_.push_back(std::make_pair(scalarPositionInGrid, std::make_pair(it->first, transformationOrder)));
-        algoTypes_.push_back(scalarType);
+        listAlgos_.push_back(std::make_pair(scalarPositionInGrid, std::make_pair(it->first, std::make_pair(transformationOrder,0))));        
         ++transformationOrder;
         std::vector<StdString> auxInput = (it->second)->checkAuxInputs();
         for (int idx = 0; idx < auxInput.size(); ++idx) auxInputs_.push_back(auxInput[idx]);
@@ -239,8 +252,7 @@ void CGridTransformationSelector::initializeAxisAlgorithms(int axisPositionInGri
       int transformationOrder = 0;
       for (it = itb; it != ite; ++it)
       {
-        listAlgos_.push_back(std::make_pair(axisPositionInGrid, std::make_pair(it->first, transformationOrder)));
-        algoTypes_.push_back(axisType);
+        listAlgos_.push_back(std::make_pair(axisPositionInGrid, std::make_pair(it->first, std::make_pair(transformationOrder,1))));        
         ++transformationOrder;
         std::vector<StdString> auxInput = (it->second)->checkAuxInputs();
         for (int idx = 0; idx < auxInput.size(); ++idx) auxInputs_.push_back(auxInput[idx]);
@@ -263,9 +275,9 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
   {
     int domDstPos = -1, domSrcPos = -1;
     if (0 < elementPositionInGridDst2DomainPosition_.count(domPositionInGrid))
-      domDstPos = elementPositionInGridDst2AxisPosition_[domPositionInGrid];
+      domDstPos = elementPositionInGridDst2DomainPosition_[domPositionInGrid];
     if (0 < elementPositionInGridSrc2DomainPosition_.count(domPositionInGrid))
-      domSrcPos = elementPositionInGridSrc2AxisPosition_[domPositionInGrid];
+      domSrcPos = elementPositionInGridSrc2DomainPosition_[domPositionInGrid];
 
     // If source and destination grid share the same domain
     if ((-1 != domDstPos) && (-1 != domSrcPos) &&
@@ -279,8 +291,7 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
       int transformationOrder = 0;
       for (it = itb; it != ite; ++it)
       {
-        listAlgos_.push_back(std::make_pair(domPositionInGrid, std::make_pair(it->first, transformationOrder)));
-        algoTypes_.push_back(domainType);
+        listAlgos_.push_back(std::make_pair(domPositionInGrid, std::make_pair(it->first, std::make_pair(transformationOrder,2))));        
         ++transformationOrder;
         std::vector<StdString> auxInput = (it->second)->checkAuxInputs();
         for (int idx = 0; idx < auxInput.size(); ++idx) auxInputs_.push_back(auxInput[idx]);
@@ -296,19 +307,20 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
                                              and position of axis is 2
   \param [in] transType transformation type, for now we have Zoom_axis, inverse_axis
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
-  \param [in] isDomainAlgo flag to specify type of algorithm (for domain or axis)
+  \param [in] algoType flag to specify type of algorithm (2 for domain, 1 for axis and 0 for scalar) 
 */
-void CGridTransformationSelector::selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, AlgoType algoType)
+void CGridTransformationSelector::selectAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder, int algoType)
 {
+  updateElementPosition();
   switch (algoType)
   {
-  case scalarType:
+  case 0:
     selectScalarAlgo(elementPositionInGrid, transType, transformationOrder);
     break;
-  case axisType:
+  case 1:
     selectAxisAlgo(elementPositionInGrid, transType, transformationOrder);
     break;
-  case domainType:
+  case 2:
     selectDomainAlgo(elementPositionInGrid, transType, transformationOrder);
     break;
   default:
