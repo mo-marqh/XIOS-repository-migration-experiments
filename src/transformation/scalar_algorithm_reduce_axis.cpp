@@ -17,7 +17,7 @@
 #include "reduction.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CScalarAlgorithmReduceScalar::create(CGrid* gridDst, CGrid* gridSrc,
+CGenericAlgorithmTransformation* CScalarAlgorithmReduceAxis::create(CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -34,26 +34,48 @@ CGenericAlgorithmTransformation* CScalarAlgorithmReduceScalar::create(CGrid* gri
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmReduceScalar(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
+  return (new CScalarAlgorithmReduceAxis(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
 }
 
-bool CScalarAlgorithmReduceScalar::registerTrans()
+bool CScalarAlgorithmReduceAxis::registerTrans()
 {
   CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_AXIS_TO_SCALAR, create);
 }
 
-CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
+CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
  : CScalarAlgorithmTransformation(scalarDestination, axisSource),
    reduction_(0)
 {
   if (algo->operation.isEmpty())
-    ERROR("CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
+    ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
            << "Operation must be defined."
            << "Axis source " <<axisSource->getId() << std::endl
            << "Scalar destination " << scalarDestination->getId());
-  StdString op = algo->operation;
+  StdString op;
+  switch (algo->operation)
+  {
+    case CReduceAxisToScalar::operation_attr::sum:
+      op = "sum";
+      break;
+    case CReduceAxisToScalar::operation_attr::min:
+      op = "min";
+      break;
+    case CReduceAxisToScalar::operation_attr::max:
+      op = "max";
+      break;
+    case CReduceAxisToScalar::operation_attr::average:
+      op = "average";
+      break;
+    default:
+        ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
+         << "Operation is wrongly defined. Supported operations: sum, min, max, average." << std::endl
+         << "Domain source " <<axisSource->getId() << std::endl
+         << "Scalar destination " << scalarDestination->getId());
+
+  }
+  
   if (CReductionAlgorithm::ReductionOperations.end() == CReductionAlgorithm::ReductionOperations.find(op))
-    ERROR("CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
+    ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
        << "Operation '" << op << "' not found. Please make sure to use a supported one"
        << "Axis source " <<axisSource->getId() << std::endl
        << "Scalar destination " << scalarDestination->getId());
@@ -61,7 +83,7 @@ CScalarAlgorithmReduceScalar::CScalarAlgorithmReduceScalar(CScalar* scalarDestin
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
 
-void CScalarAlgorithmReduceScalar::apply(const std::vector<std::pair<int,double> >& localIndex,
+void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex,
                                          const double* dataInput,
                                          CArray<double,1>& dataOut,
                                          std::vector<bool>& flagInitial,
@@ -70,17 +92,17 @@ void CScalarAlgorithmReduceScalar::apply(const std::vector<std::pair<int,double>
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
 }
 
-void CScalarAlgorithmReduceScalar::updateData(CArray<double,1>& dataOut)
+void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
 {
   reduction_->updateData(dataOut);
 }
 
-CScalarAlgorithmReduceScalar::~CScalarAlgorithmReduceScalar()
+CScalarAlgorithmReduceAxis::~CScalarAlgorithmReduceAxis()
 {
   if (0 != reduction_) delete reduction_;
 }
 
-void CScalarAlgorithmReduceScalar::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+void CScalarAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);

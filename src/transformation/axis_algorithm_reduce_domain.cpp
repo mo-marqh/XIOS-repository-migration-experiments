@@ -45,7 +45,29 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, C
  : CAxisAlgorithmTransformation(axisDestination, domainSource), reduction_(0)
 {
   algo->checkValid(axisDestination, domainSource);
-  StdString op = algo->operation;
+  StdString op;
+  switch (algo->operation)
+  {
+    case CReduceDomainToAxis::operation_attr::sum:
+      op = "sum";
+      break;
+    case CReduceDomainToAxis::operation_attr::min:
+      op = "min";
+      break;
+    case CReduceDomainToAxis::operation_attr::max:
+      op = "max";
+      break;
+    case CReduceDomainToAxis::operation_attr::average:
+      op = "average";
+      break;
+    default:
+        ERROR("CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, CDomain* domainSource, CReduceDomainToAxis* algo)",
+         << "Operation is wrongly defined. Supported operations: sum, min, max, average." << std::endl
+         << "Domain source " <<domainSource->getId() << std::endl
+         << "Axis destination " << axisDestination->getId());
+
+  }
+
   dir_ = (CReduceDomainToAxis::direction_attr::iDir == algo->direction)  ? iDir : jDir;
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }

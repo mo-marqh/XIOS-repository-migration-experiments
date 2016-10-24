@@ -18,8 +18,8 @@ namespace xios {
 void CGridTransformationSelector::registerTransformations()
 {
   //! Scalar
-  CScalarAlgorithmReduceScalar::registerTrans();
-  CScalarAlgorithmExtractScalar::registerTrans();
+  CScalarAlgorithmReduceAxis::registerTrans();
+  CScalarAlgorithmExtractAxis::registerTrans();
   CScalarAlgorithmReduceDomain::registerTrans();
 
   //! Axis

@@ -47,8 +47,19 @@ CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(CAxis* axisDestination,
 {
   algo->checkValid(axisDestination, domainSource);
   StdString op = "extract";
-  StdString direction = algo->direction;
-  dir_ = (0 == direction.compare("i")) ? iDir : jDir;
+
+  switch (algo->direction)
+  {
+    case CExtractDomainToAxis::direction_attr::jDir:
+      dir_ = jDir;
+      break;
+    case CExtractDomainToAxis::direction_attr::iDir:
+      dir_ = iDir;
+      break;
+    default:
+      break;
+  }
+
   pos_ = algo->position;
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }

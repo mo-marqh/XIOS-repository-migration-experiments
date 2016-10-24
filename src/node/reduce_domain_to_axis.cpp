@@ -50,27 +50,46 @@ namespace xios {
     int domain_ni_glo = domainSrc->ni_glo;
     int domain_nj_glo = domainSrc->nj_glo;
 
-    StdString opLists[]= {"sum","min","max"};
-    std::set<StdString> opString(opLists, opLists + sizeof(opLists)/sizeof(opLists[0]));
-
     if (this->operation.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
              << "An operation must be defined."
              << "Domain source " <<domainSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
 
-    StdString op = this->operation;
-    if (opString.end() == opString.find(op))
+    if (this->direction.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-         << "Operation '" << op << "' not found. Please make sure to use a supported one"
-         << "Domain source " <<domainSrc->getId() << std::endl
-         << "Axis destination " << axisDst->getId());
+             << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
+             << "Domain source " <<domainSrc->getId() << std::endl
+             << "Axis destination " << axisDst->getId());
 
     if (this->direction.isEmpty())
       ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
              << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
              << "Domain source " <<domainSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
+
+    
+    switch (direction)
+    {
+      case direction_attr::jDir:
+        if (axis_n_glo != domain_ni_glo)
+          ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
+            << "Extract domain along j, axis destination should have n_glo equal to ni_glo of domain source"
+            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
+            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
+         break;
+
+      case direction_attr::iDir:
+        if (axis_n_glo != domain_nj_glo)
+          ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
+            << "Extract domain along i, axis destination should have n_glo equal to nj_glo of domain source"
+            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
+            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
+        break;
+
+      default:
+        break;
+    }
   }
 
 }

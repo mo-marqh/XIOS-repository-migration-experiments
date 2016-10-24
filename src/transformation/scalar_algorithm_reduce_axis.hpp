@@ -20,13 +20,13 @@ class CReduceAxisToScalar;
 class CReductionAlgorithm;
 
 /*!
-  \class CScalarAlgorithmReduceScalar
+  \class CScalarAlgorithmReduceAxis
   Reducing an axis to a scalar
 */
-class CScalarAlgorithmReduceScalar : public CScalarAlgorithmTransformation
+class CScalarAlgorithmReduceAxis : public CScalarAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmReduceScalar(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo);
+  CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
@@ -36,7 +36,7 @@ public:
 
   virtual void updateData(CArray<double,1>& dataOut);
   
-  virtual ~CScalarAlgorithmReduceScalar();
+  virtual ~CScalarAlgorithmReduceAxis();
 
   static bool registerTrans();
 protected:

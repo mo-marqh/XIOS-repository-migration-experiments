@@ -20,13 +20,13 @@ class CExtractAxisToScalar;
 class CReductionAlgorithm;
 
 /*!
-  \class CScalarAlgorithmExtractScalar
+  \class CScalarAlgorithmExtractAxis
   Extract a scalar from an axis
 */
-class CScalarAlgorithmExtractScalar : public CScalarAlgorithmTransformation
+class CScalarAlgorithmExtractAxis : public CScalarAlgorithmTransformation
 {
 public:
-  CScalarAlgorithmExtractScalar(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo);
+  CScalarAlgorithmExtractAxis(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo);
 
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
@@ -34,7 +34,7 @@ public:
                      std::vector<bool>& flagInitial,
                      const double& defaultValue);
 
-  virtual ~CScalarAlgorithmExtractScalar();
+  virtual ~CScalarAlgorithmExtractAxis();
 
   static bool registerTrans();
 

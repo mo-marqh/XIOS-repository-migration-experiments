@@ -22,14 +22,14 @@ extern "C"
     std::string operation_str;
     if (!cstr2string(operation, operation_size, operation_str)) return;
     CTimer::get("XIOS").resume();
-    reduce_axis_to_scalar_hdl->operation.setValue(operation_str);
+    reduce_axis_to_scalar_hdl->operation.fromString(operation_str);
     CTimer::get("XIOS").suspend();
   }
 
   void cxios_get_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl, char * operation, int operation_size)
   {
     CTimer::get("XIOS").resume();
-    if (!string_copy(reduce_axis_to_scalar_hdl->operation.getInheritedValue(), operation, operation_size))
+    if (!string_copy(reduce_axis_to_scalar_hdl->operation.getInheritedStringValue(), operation, operation_size))
       ERROR("void cxios_get_reduce_axis_to_scalar_operation(reduce_axis_to_scalar_Ptr reduce_axis_to_scalar_hdl, char * operation, int operation_size)", << "Input string is too short");
     CTimer::get("XIOS").suspend();
   }

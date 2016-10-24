@@ -50,63 +50,51 @@ namespace xios {
     int domain_ni_glo = domainSrc->ni_glo;
     int domain_nj_glo = domainSrc->nj_glo;
 
-    StdString dirLists[]= {"i","j"};
-    std::set<StdString> dirString(dirLists, dirLists + sizeof(dirLists)/sizeof(dirLists[0]));
-
     if (this->direction.isEmpty())
       ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-             << "A direction to apply the operation must be defined. It should be: 'i' or 'j'"
+             << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
              << "Domain source " <<domainSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
-
-    StdString direction = this->direction;
-    if (dirString.end() == dirString.find(direction))
-    {
+ 
+    if (this->position.isEmpty())
       ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-       << "Direction '" << direction << " is undefined. Please make sure to use a supported one: i or j"
-       << "Domain source " <<domainSrc->getId() << std::endl
-       << "Axis destination " << axisDst->getId());
-    }
-    else
+             << "Position to extract axis must be defined. " << std::endl
+             << "Domain source " <<domainSrc->getId() << std::endl
+             << "Axis destination " << axisDst->getId());
+    
+    switch (direction)
     {
-      if (0 == direction.compare("j"))
-      {
+      case direction_attr::jDir:
         if (axis_n_glo != domain_ni_glo)
-         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-           << "Extract domain along j, axis destination should have n_glo equal to ni_glo of domain source"
-           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
-           << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-      }
-      if (0 == direction.compare("i"))
-      {
-        if (axis_n_glo != domain_nj_glo)
-         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-           << "Extract domain along i, axis destination should have n_glo equal to nj_glo of domain source"
-           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
-           << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
-      }
-    }
-
-    int position = this->position;
-    if (0 == direction.compare("j"))
-    {
-      if ((position < 0) || (position > domain_ni_glo))
+          ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
+            << "Extract domain along j, axis destination should have n_glo equal to ni_glo of domain source"
+            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
+            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
+        if ((position < 0) || (position > domain_ni_glo))
         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
           << "Extract domain along j, position should be inside 0 and ni_glo of domain source"
           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
           << "Axis destination " << axisDst->getId() << std::endl
           << "Position " << position);
-    }
-    if (0 == direction.compare("i"))
-    {
-      if ((position < 0) || (position > domain_nj_glo))
+         break;
+
+      case direction_attr::iDir:
+        if (axis_n_glo != domain_nj_glo)
+          ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
+            << "Extract domain along i, axis destination should have n_glo equal to nj_glo of domain source"
+            << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_nj_glo << std::endl
+            << "Axis destination " << axisDst->getId() << " has n_glo " << axis_n_glo);
+        if ((position < 0) || (position > domain_nj_glo))
         ERROR("CExtractDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
           << "Extract domain along i, position should be inside 0 and nj_glo of domain source"
           << "Domain source " <<domainSrc->getId() << " has nj_glo " << domain_ni_glo << std::endl
           << "Axis destination " << axisDst->getId() << std::endl
           << "Position " << position);
-    }
+        break;
 
+      default:
+        break;
+    }
   }
 
 }

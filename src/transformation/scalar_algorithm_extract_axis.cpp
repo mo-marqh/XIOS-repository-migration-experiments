@@ -16,7 +16,7 @@
 #include "reduction.hpp"
 
 namespace xios {
-CGenericAlgorithmTransformation* CScalarAlgorithmExtractScalar::create(CGrid* gridDst, CGrid* gridSrc,
+CGenericAlgorithmTransformation* CScalarAlgorithmExtractAxis::create(CGrid* gridDst, CGrid* gridSrc,
                                                                      CTransformation<CScalar>* transformation,
                                                                      int elementPositionInGrid,
                                                                      std::map<int, int>& elementPositionInGridSrc2ScalarPosition,
@@ -33,15 +33,15 @@ CGenericAlgorithmTransformation* CScalarAlgorithmExtractScalar::create(CGrid* gr
   int scalarDstIndex = elementPositionInGridDst2ScalarPosition[elementPositionInGrid];
   int axisSrcIndex = elementPositionInGridSrc2AxisPosition[elementPositionInGrid];
 
-  return (new CScalarAlgorithmExtractScalar(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
+  return (new CScalarAlgorithmExtractAxis(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
 }
 
-bool CScalarAlgorithmExtractScalar::registerTrans()
+bool CScalarAlgorithmExtractAxis::registerTrans()
 {
   CGridTransformationFactory<CScalar>::registerTransformation(TRANS_EXTRACT_AXIS_TO_SCALAR, create);
 }
 
-CScalarAlgorithmExtractScalar::CScalarAlgorithmExtractScalar(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
+CScalarAlgorithmExtractAxis::CScalarAlgorithmExtractAxis(CScalar* scalarDestination, CAxis* axisSource, CExtractAxisToScalar* algo)
  : CScalarAlgorithmTransformation(scalarDestination, axisSource),
    reduction_(0)
 {
@@ -51,7 +51,7 @@ CScalarAlgorithmExtractScalar::CScalarAlgorithmExtractScalar(CScalar* scalarDest
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
 
-void CScalarAlgorithmExtractScalar::apply(const std::vector<std::pair<int,double> >& localIndex,
+void CScalarAlgorithmExtractAxis::apply(const std::vector<std::pair<int,double> >& localIndex,
                                          const double* dataInput,
                                          CArray<double,1>& dataOut,
                                          std::vector<bool>& flagInitial,
@@ -60,12 +60,12 @@ void CScalarAlgorithmExtractScalar::apply(const std::vector<std::pair<int,double
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
 }
 
-CScalarAlgorithmExtractScalar::~CScalarAlgorithmExtractScalar()
+CScalarAlgorithmExtractAxis::~CScalarAlgorithmExtractAxis()
 {
   if (0 != reduction_) delete reduction_;
 }
 
-void CScalarAlgorithmExtractScalar::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+void CScalarAlgorithmExtractAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
