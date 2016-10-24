@@ -13,7 +13,7 @@
 
 #include "icutil.hpp"
 #include "timer.hpp"
-#include "reduce_axis_to_scalar.hpp"
+#include "extract_axis_to_scalar.hpp"
 
 extern "C"
 {
@@ -21,26 +21,27 @@ extern "C"
 
    // ----------------------- Redéfinition de types ----------------------------
 
-   typedef xios::CReduceAxisToScalar      * XReduceAxisToScalarPtr;
-
+   typedef xios::CExtractAxisToScalar      * XExtractAxisToScalarPtr;
+   
    // ------------------------ Création des handle -----------------------------
-   void cxios_reduce_axis_to_scalar_handle_create(XReduceAxisToScalarPtr * _ret, const char * _id, int _id_len)
+   void cxios_extract_axis_to_scalar_handle_create(XExtractAxisToScalarPtr * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CReduceAxisToScalar::get(id);
+      *_ret = xios::CExtractAxisToScalar::get(id);
       CTimer::get("XIOS").suspend() ;
    }
 
    // -------------------- Vérification des identifiants -----------------------
-   void cxios_reduce_axis_to_scalar_valid_id(bool * _ret, const char * _id, int _id_len)
+   void cxios_extract_axis_to_scalar_valid_id(bool * _ret, const char * _id, int _id_len)
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
 
       CTimer::get("XIOS").resume() ;
-      *_ret = xios::CReduceAxisToScalar::has(id);
+      *_ret = xios::CExtractAxisToScalar::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+
 } // extern "C"

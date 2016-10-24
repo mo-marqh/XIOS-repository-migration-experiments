@@ -73,43 +73,80 @@ USE iscalar_attr, ONLY : xios(set_scalar_attr), xios(get_scalar_attr), xios(is_d
 
 USE iscalargroup_attr, ONLY : xios(set_scalargroup_attr), xios(get_scalargroup_attr), xios(is_defined_scalargroup_attr)
 
-USE izoom_axis, ONLY : txios(zoom_axis), xios(is_valid_zoom_axis)
-
-USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr), xios(get_zoom_axis_attr), xios(is_defined_zoom_axis_attr)
-
+!-------------------------------------------------------------------------------
+!!! Transformation INTERFACES
+!-------------------------------------------------------------------------------
+!!! DOMAIN TRANSFORMATIONS
 USE izoom_domain, ONLY : txios(zoom_domain), xios(is_valid_zoom_domain)
 
 USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr), xios(get_zoom_domain_attr), xios(is_defined_zoom_domain_attr)
-
-USE iinterpolate_axis, ONLY : txios(interpolate_axis), xios(is_valid_interpolate_axis)
-
-USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr), xios(get_interpolate_axis_attr), &
-                                   xios(is_defined_interpolate_axis_attr)
 
 USE iinterpolate_domain, ONLY : txios(interpolate_domain), xios(is_valid_interpolate_domain)
 
 USE iinterpolate_domain_attr, ONLY : xios(set_interpolate_domain_attr), xios(get_interpolate_domain_attr), &
                                      xios(is_defined_interpolate_domain_attr)
 
-USE iinverse_axis, ONLY : txios(inverse_axis), xios(is_valid_inverse_axis)
-
-USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr), xios(get_inverse_axis_attr), xios(is_defined_inverse_axis_attr)
-
 USE igenerate_rectilinear_domain, ONLY : txios(generate_rectilinear_domain), xios(is_valid_generate_rectilinear_domain)
 
 USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr), &
                                               xios(get_generate_rectilinear_domain_attr), &
                                               xios(is_defined_generate_rectilinear_domain_attr)
-USE ireduce_axis_to_scalar, ONLY : txios(reduce_axis_to_scalar), xios(is_valid_reduce_axis_to_scalar)
-
-USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr), xios(get_reduce_axis_to_scalar_attr), &
-                                        xios(is_defined_reduce_axis_to_scalar_attr)
 
 USE icompute_connectivity_domain, ONLY : txios(compute_connectivity_domain), xios(is_valid_compute_connectivity_domain)
 
 USE icompute_connectivity_domain_attr, ONLY : xios(set_compute_connectivity_domain_attr), &
                                               xios(get_compute_connectivity_domain_attr), &
                                               xios(is_defined_compute_connectivity_domain_attr)
+
+USE iexpand_domain, ONLY : txios(expand_domain), xios(is_valid_expand_domain)
+
+USE iexpand_domain_attr, ONLY : xios(set_expand_domain_attr), &
+                                xios(get_expand_domain_attr), &
+                                xios(is_defined_expand_domain_attr)
+
+!!! AXIS TRANSFORMATIONS
+USE izoom_axis, ONLY : txios(zoom_axis), xios(is_valid_zoom_axis)
+
+USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr), xios(get_zoom_axis_attr), xios(is_defined_zoom_axis_attr)
+
+
+USE iinterpolate_axis, ONLY : txios(interpolate_axis), xios(is_valid_interpolate_axis)
+
+USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr), xios(get_interpolate_axis_attr), &
+                                   xios(is_defined_interpolate_axis_attr)
+
+USE iinverse_axis, ONLY : txios(inverse_axis), xios(is_valid_inverse_axis)
+
+USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr), xios(get_inverse_axis_attr), xios(is_defined_inverse_axis_attr)
+
+USE ireduce_domain_to_axis, ONLY : txios(reduce_domain_to_axis), xios(is_valid_reduce_domain_to_axis)
+
+USE ireduce_domain_to_axis_attr, ONLY : xios(set_reduce_domain_to_axis_attr), &
+                                        xios(get_reduce_domain_to_axis_attr), &
+                                        xios(is_defined_reduce_domain_to_axis_attr)
+
+USE iextract_domain_to_axis, ONLY : txios(extract_domain_to_axis), xios(is_valid_extract_domain_to_axis)
+
+USE iextract_domain_to_axis_attr, ONLY : xios(set_extract_domain_to_axis_attr), &
+                                         xios(get_extract_domain_to_axis_attr), &
+                                         xios(is_defined_extract_domain_to_axis_attr)
+
+!!! SCALAR TRANSFORMATIONS
+USE ireduce_domain_to_scalar, ONLY : txios(reduce_domain_to_scalar), xios(is_valid_reduce_domain_to_scalar)
+
+USE ireduce_domain_to_scalar_attr, ONLY : xios(set_reduce_domain_to_scalar_attr), xios(get_reduce_domain_to_scalar_attr), &
+                                          xios(is_defined_reduce_domain_to_scalar_attr)
+
+USE ireduce_axis_to_scalar, ONLY : txios(reduce_axis_to_scalar), xios(is_valid_reduce_axis_to_scalar)
+
+USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr), xios(get_reduce_axis_to_scalar_attr), &
+                                        xios(is_defined_reduce_axis_to_scalar_attr)
+
+USE iextract_axis_to_scalar, ONLY : txios(extract_axis_to_scalar), xios(is_valid_extract_axis_to_scalar)
+
+USE iextract_axis_to_scalar_attr, ONLY : xios(set_extract_axis_to_scalar_attr), &
+                                         xios(get_extract_axis_to_scalar_attr), &
+                                         xios(is_defined_extract_axis_to_scalar_attr)
 
 USE XIOS_INTERFACES, ONLY : xios(set_attr), xios(get_attr), xios(is_defined_attr), xios(get_handle), xios(add_child), &
                             xios(send_field), xios(recv_field), xios(field_is_active), xios(getVar), xios(setVar), &

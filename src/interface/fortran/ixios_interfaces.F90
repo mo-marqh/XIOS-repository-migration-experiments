@@ -62,44 +62,86 @@ USE iscalar_attr, ONLY : xios(set_scalar_attr_hdl), xios(get_scalar_attr_hdl), x
 
 USE iscalargroup_attr, ONLY : xios(set_scalargroup_attr_hdl), xios(get_scalargroup_attr_hdl), xios(is_defined_scalargroup_attr_hdl)
 
-USE izoom_axis, ONLY : xios(get_zoom_axis_handle)
-
-USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr_hdl), xios(get_zoom_axis_attr_hdl), xios(is_defined_zoom_axis_attr_hdl)
-
+!-------------------------------------------------------------------------------
+!!! Transformation INTERFACES
+!-------------------------------------------------------------------------------
+!!! DOMAIN TRANSFORMATIONS
 USE izoom_domain, ONLY : xios(get_zoom_domain_handle)
 
 USE izoom_domain_attr, ONLY : xios(set_zoom_domain_attr_hdl), xios(get_zoom_domain_attr_hdl), xios(is_defined_zoom_domain_attr_hdl)
-
-USE iinterpolate_axis, ONLY : xios(get_interpolate_axis_handle)
-
-USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr_hdl), xios(get_interpolate_axis_attr_hdl), &
-                                   xios(is_defined_interpolate_axis_attr_hdl)
 
 USE iinterpolate_domain, ONLY : xios(get_interpolate_domain_handle)
 
 USE iinterpolate_domain_attr, ONLY : xios(set_interpolate_domain_attr_hdl), xios(get_interpolate_domain_attr_hdl), &
                                      xios(is_defined_interpolate_domain_attr_hdl)
 
-USE iinverse_axis, ONLY : xios(get_inverse_axis_handle)
-
-USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr_hdl), xios(get_inverse_axis_attr_hdl), xios(is_defined_inverse_axis_attr_hdl)
-
 USE igenerate_rectilinear_domain, ONLY : xios(get_generate_rectilinear_domain_handle)
 
 USE igenerate_rectilinear_domain_attr, ONLY : xios(set_generate_rectilinear_domain_attr_hdl), &
                                               xios(get_generate_rectilinear_domain_attr_hdl), &
                                               xios(is_defined_generate_rectilinear_domain_attr_hdl)
+
 USE icompute_connectivity_domain, ONLY : xios(get_compute_connectivity_domain_handle)
 
 USE icompute_connectivity_domain_attr, ONLY : xios(set_compute_connectivity_domain_attr_hdl), &
                                               xios(get_compute_connectivity_domain_attr_hdl), &
                                               xios(is_defined_compute_connectivity_domain_attr_hdl)
 
+USE iexpand_domain, ONLY : xios(get_expand_domain_handle)
+
+USE iexpand_domain_attr, ONLY : xios(set_expand_domain_attr_hdl), &
+                                xios(get_expand_domain_attr_hdl), &
+                                xios(is_defined_expand_domain_attr_hdl)
+
+!!! AXIS TRANSFORMATIONS
+USE izoom_axis, ONLY : xios(get_zoom_axis_handle)
+
+USE izoom_axis_attr, ONLY : xios(set_zoom_axis_attr_hdl), xios(get_zoom_axis_attr_hdl), xios(is_defined_zoom_axis_attr_hdl)
+
+USE iinterpolate_axis, ONLY : xios(get_interpolate_axis_handle)
+
+USE iinterpolate_axis_attr, ONLY : xios(set_interpolate_axis_attr_hdl), &
+                                   xios(get_interpolate_axis_attr_hdl), &
+                                   xios(is_defined_interpolate_axis_attr_hdl)
+
+USE iinverse_axis, ONLY : xios(get_inverse_axis_handle)
+
+USE iinverse_axis_attr, ONLY : xios(set_inverse_axis_attr_hdl), &
+                               xios(get_inverse_axis_attr_hdl), &
+                               xios(is_defined_inverse_axis_attr_hdl)
+
+USE ireduce_domain_to_axis, ONLY : xios(get_reduce_domain_to_axis_handle)
+
+USE ireduce_domain_to_axis_attr, ONLY : xios(set_reduce_domain_to_axis_attr_hdl), &
+                                        xios(get_reduce_domain_to_axis_attr_hdl), &
+                                        xios(is_defined_reduce_domain_to_axis_attr_hdl)
+
+USE iextract_domain_to_axis, ONLY : xios(get_extract_domain_to_axis_handle)
+
+USE iextract_domain_to_axis_attr, ONLY : xios(set_extract_domain_to_axis_attr_hdl), &
+                                         xios(get_extract_domain_to_axis_attr_hdl), &
+                                         xios(is_defined_extract_domain_to_axis_attr_hdl)
+
+!!! SCALAR TRANSFORMATIONS
+
+
 USE ireduce_axis_to_scalar, ONLY : xios(get_reduce_axis_to_scalar_handle)
 
 USE ireduce_axis_to_scalar_attr, ONLY : xios(set_reduce_axis_to_scalar_attr_hdl), &
                                         xios(get_reduce_axis_to_scalar_attr_hdl), &
                                         xios(is_defined_reduce_axis_to_scalar_attr_hdl)
+
+USE ireduce_domain_to_scalar, ONLY : xios(get_reduce_domain_to_scalar_handle)
+
+USE ireduce_domain_to_scalar_attr, ONLY : xios(set_reduce_domain_to_scalar_attr_hdl), &
+                                          xios(get_reduce_domain_to_scalar_attr_hdl), &
+                                          xios(is_defined_reduce_domain_to_scalar_attr_hdl)
+
+USE iextract_axis_to_scalar, ONLY : xios(get_extract_axis_to_scalar_handle)
+
+USE iextract_axis_to_scalar_attr, ONLY : xios(set_extract_axis_to_scalar_attr_hdl), &
+                                         xios(get_extract_axis_to_scalar_attr_hdl), &
+                                         xios(is_defined_extract_axis_to_scalar_attr_hdl)
 
 USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_field), xios(add_domain),   &
                       xios(add_fieldtofile), xios(add_variabletofile), xios(add_variabletofield),          &
@@ -110,7 +152,9 @@ USE ixml_tree, ONLY : xios(add_axis), xios(add_file), xios(add_grid), xios(add_f
                       xios(add_generatedomaintodomain), xios(add_zoomaxistoaxis),                          &
                       xios(add_interpolateaxistoaxis), xios(add_inverseaxistoaxis), xios(add_scalar),      &
                       xios(add_scalargroup), xios(add_scalartogrid), xios(add_reduceaxistoscalartoscalar), &
-                      xios(add_computeconnectivitydomaintodomain)
+                      xios(add_computeconnectivitydomaintodomain), xios(add_reducedomaintoaxistoaxis),     &
+                      xios(add_extractdomaintoaxistoaxis), xios(add_reducedomaintoscalartoscalar),         &
+                      xios(add_extractaxistoscalartoscalar), xios(add_expanddomaintodomain)
 
 PRIVATE
 
@@ -124,8 +168,11 @@ INTERFACE xios(set_attr)
                    xios(set_interpolate_domain_attr_hdl), xios(set_inverse_axis_attr_hdl),                   &
                    xios(set_generate_rectilinear_domain_attr_hdl), xios(set_scalar_attr_hdl),                &
                    xios(set_scalargroup_attr_hdl), xios(set_reduce_axis_to_scalar_attr_hdl),                 &
-                   xios(set_compute_connectivity_domain_attr_hdl)
+                   xios(set_compute_connectivity_domain_attr_hdl), xios(set_reduce_domain_to_scalar_attr_hdl), &
+                   xios(set_reduce_domain_to_axis_attr_hdl), xios(set_extract_domain_to_axis_attr_hdl),        &
+                   xios(set_extract_axis_to_scalar_attr_hdl), xios(set_expand_domain_attr_hdl)
 END INTERFACE xios(set_attr)
+
 
 INTERFACE xios(get_attr)
   MODULE PROCEDURE xios(get_domaingroup_attr_hdl), xios(get_domain_attr_hdl), xios(get_fieldgroup_attr_hdl), &
@@ -137,7 +184,9 @@ INTERFACE xios(get_attr)
                    xios(get_interpolate_domain_attr_hdl), xios(get_inverse_axis_attr_hdl),                   &
                    xios(get_generate_rectilinear_domain_attr_hdl), xios(get_scalar_attr_hdl),                &
                    xios(get_scalargroup_attr_hdl), xios(get_reduce_axis_to_scalar_attr_hdl),                 &
-                   xios(get_compute_connectivity_domain_attr_hdl)
+                   xios(get_compute_connectivity_domain_attr_hdl), xios(get_reduce_domain_to_scalar_attr_hdl), &
+                   xios(get_reduce_domain_to_axis_attr_hdl), xios(get_extract_domain_to_axis_attr_hdl),        &
+                   xios(get_extract_axis_to_scalar_attr_hdl), xios(get_expand_domain_attr_hdl)
 END INTERFACE xios(get_attr)
 
 INTERFACE xios(is_defined_attr)
@@ -150,20 +199,25 @@ INTERFACE xios(is_defined_attr)
                    xios(is_defined_interpolate_axis_attr_hdl), xios(is_defined_interpolate_domain_attr_hdl),                      &
                    xios(is_defined_inverse_axis_attr_hdl), xios(is_defined_generate_rectilinear_domain_attr_hdl),                 &
                    xios(is_defined_scalar_attr_hdl), xios(is_defined_scalargroup_attr_hdl),                                       &
-                   xios(is_defined_reduce_axis_to_scalar_attr_hdl), xios(is_defined_compute_connectivity_domain_attr_hdl)
+                   xios(is_defined_reduce_axis_to_scalar_attr_hdl), xios(is_defined_compute_connectivity_domain_attr_hdl),        &
+                   xios(is_defined_reduce_domain_to_scalar_attr_hdl), xios(is_defined_reduce_domain_to_axis_attr_hdl),            &
+                   xios(is_defined_extract_domain_to_axis_attr_hdl), xios(is_defined_extract_axis_to_scalar_attr_hdl),            &
+                   xios(is_defined_expand_domain_attr_hdl)
 END INTERFACE xios(is_defined_attr)
 
 INTERFACE xios(get_handle)
-  MODULE PROCEDURE xios(get_context_handle), xios(get_domain_handle), xios(get_domaingroup_handle), &
-                   xios(get_file_handle), xios(get_filegroup_handle), xios(get_grid_handle),        &
-                   xios(get_gridgroup_handle), xios(get_axis_handle), xios(get_axisgroup_handle),   &
-                   xios(get_field_handle), xios(get_fieldgroup_handle),xios(get_variable_handle),   &
-                   xios(get_variablegroup_handle), xios(get_zoom_axis_handle),                      &
-                   xios(get_zoom_domain_handle), xios(get_interpolate_axis_handle),                 &
-                   xios(get_interpolate_domain_handle), xios(get_inverse_axis_handle),              &
-                   xios(get_generate_rectilinear_domain_handle), xios(get_scalar_handle),           &
-                   xios(get_scalargroup_handle), xios(get_reduce_axis_to_scalar_handle),            &
-                   xios(get_compute_connectivity_domain_handle)
+  MODULE PROCEDURE xios(get_context_handle), xios(get_domain_handle), xios(get_domaingroup_handle),                  &
+                   xios(get_file_handle), xios(get_filegroup_handle), xios(get_grid_handle),                         &
+                   xios(get_gridgroup_handle), xios(get_axis_handle), xios(get_axisgroup_handle),                    &
+                   xios(get_field_handle), xios(get_fieldgroup_handle),xios(get_variable_handle),                    &
+                   xios(get_variablegroup_handle), xios(get_zoom_axis_handle),                                       &
+                   xios(get_zoom_domain_handle), xios(get_interpolate_axis_handle),                                  &
+                   xios(get_interpolate_domain_handle), xios(get_inverse_axis_handle),                               &
+                   xios(get_generate_rectilinear_domain_handle), xios(get_scalar_handle),                            &
+                   xios(get_scalargroup_handle), xios(get_reduce_axis_to_scalar_handle),                             &
+                   xios(get_compute_connectivity_domain_handle), xios(get_reduce_domain_to_scalar_handle),           &
+                   xios(get_reduce_domain_to_axis_handle), xios(get_extract_domain_to_axis_handle),                  &
+                   xios(get_extract_axis_to_scalar_handle), xios(get_expand_domain_handle)
 END INTERFACE xios(get_handle)
 
 INTERFACE xios(add_child)
@@ -175,7 +229,9 @@ INTERFACE xios(add_child)
                    xios(add_interpolatedomaintodomain), xios(add_generatedomaintodomain),                            &
                    xios(add_zoomaxistoaxis), xios(add_interpolateaxistoaxis), xios(add_inverseaxistoaxis),           &
                    xios(add_scalar), xios(add_scalartogrid), xios(add_reduceaxistoscalartoscalar),                   &
-                   xios(add_computeconnectivitydomaintodomain)
+                   xios(add_computeconnectivitydomaintodomain), xios(add_reducedomaintoscalartoscalar),              &
+                   xios(add_reducedomaintoaxistoaxis), xios(add_extractdomaintoaxistoaxis),                          &
+                   xios(add_extractaxistoscalartoscalar), xios(add_expanddomaintodomain)
 END INTERFACE xios(add_child)
 
 INTERFACE xios(send_field)

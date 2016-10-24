@@ -33,12 +33,17 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CZoomDomain zoomDomain;
   CGenerateRectilinearDomain genDomain;
   CComputeConnectivityDomain compConDomain;
+  CExpandDomain expandDomain;
 
   CInterpolateAxis interpolateAxis;
   CZoomAxis zoomAxis;
   CInverseAxis inverseAxis;
+  CReduceDomainToAxis reduceDomainToAxis;
+  CExtractDomainToAxis extractDomainToAxis;
 
   CReduceAxisToScalar reduceAxisToScalar;
+  CExtractAxisToScalar extractAxisToScalar;
+  CReduceDomainToScalar reduceDomainToScalar;
 
   ostringstream oss;
   ofstream file;
@@ -230,6 +235,9 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   calendarWrapper.generateFortranInterface(file);
   file.close();
 
+  /*!
+    Domain transformations
+  */
   file.open((path+"zoom_domain_interface_attr.F90").c_str());
   zoomDomain.generateFortran2003Interface(file);
   file.close();
@@ -240,30 +248,6 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"izoom_domain_attr.F90").c_str());
   zoomDomain.generateFortranInterface(file);
-  file.close();
-
-  file.open((path+"zoom_axis_interface_attr.F90").c_str());
-  zoomAxis.generateFortran2003Interface(file);
-  file.close();
-
-  file.open((path+"iczoom_axis_attr.cpp").c_str());
-  zoomAxis.generateCInterface(file);
-  file.close();
-
-  file.open((path+"izoom_axis_attr.F90").c_str());
-  zoomAxis.generateFortranInterface(file);
-  file.close();
-
-  file.open((path+"interpolate_axis_interface_attr.F90").c_str());
-  interpolateAxis.generateFortran2003Interface(file);
-  file.close();
-
-  file.open((path+"icinterpolate_axis_attr.cpp").c_str());
-  interpolateAxis.generateCInterface(file);
-  file.close();
-
-  file.open((path+"iinterpolate_axis_attr.F90").c_str());
-  interpolateAxis.generateFortranInterface(file);
   file.close();
 
   file.open((path+"interpolate_domain_interface_attr.F90").c_str());
@@ -302,8 +286,44 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   compConDomain.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"expand_domain_interface_attr.F90").c_str());
+  expandDomain.generateFortran2003Interface(file);
+  file.close();
 
+  file.open((path+"icexpand_domain_attr.cpp").c_str());
+  expandDomain.generateCInterface(file);
+  file.close();
 
+  file.open((path+"iexpand_domain_attr.F90").c_str());
+  expandDomain.generateFortranInterface(file);
+  file.close();
+  
+  /*!
+    Axis transformations
+  */
+  file.open((path+"zoom_axis_interface_attr.F90").c_str());
+  zoomAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"iczoom_axis_attr.cpp").c_str());
+  zoomAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"izoom_axis_attr.F90").c_str());
+  zoomAxis.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"interpolate_axis_interface_attr.F90").c_str());
+  interpolateAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icinterpolate_axis_attr.cpp").c_str());
+  interpolateAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iinterpolate_axis_attr.F90").c_str());
+  interpolateAxis.generateFortranInterface(file);
+  file.close();
 
   file.open((path+"inverse_axis_interface_attr.F90").c_str());
   inverseAxis.generateFortran2003Interface(file);
@@ -317,6 +337,34 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   inverseAxis.generateFortranInterface(file);
   file.close();
 
+  file.open((path+"reduce_domain_to_axis_interface_attr.F90").c_str());
+  reduceDomainToAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreduce_domain_to_axis_attr.cpp").c_str());
+  reduceDomainToAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireduce_domain_to_axis_attr.F90").c_str());
+  reduceDomainToAxis.generateFortranInterface(file);
+  file.close();
+  
+  file.open((path+"extract_domain_to_axis_interface_attr.F90").c_str());
+  extractDomainToAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icextract_domain_to_axis_attr.cpp").c_str());
+  extractDomainToAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iextract_domain_to_axis_attr.F90").c_str());
+  extractDomainToAxis.generateFortranInterface(file);
+  file.close();
+
+
+  /*!
+    Scalar transformations
+  */
   file.open((path+"reduce_axis_to_scalar_interface_attr.F90").c_str());
   reduceAxisToScalar.generateFortran2003Interface(file);
   file.close();
@@ -327,6 +375,30 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"ireduce_axis_to_scalar_attr.F90").c_str());
   reduceAxisToScalar.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"extract_axis_to_scalar_interface_attr.F90").c_str());
+  extractAxisToScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icextract_axis_to_scalar_attr.cpp").c_str());
+  extractAxisToScalar.generateCInterface(file);
+  file.close();
+
+  file.open((path+"iextract_axis_to_scalar_attr.F90").c_str());
+  extractAxisToScalar.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"reduce_domain_to_scalar_interface_attr.F90").c_str());
+  reduceDomainToScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreduce_domain_to_scalar_attr.cpp").c_str());
+  reduceDomainToScalar.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireduce_domain_to_scalar_attr.F90").c_str());
+  reduceDomainToScalar.generateFortranInterface(file);
   file.close();
 
   file.open((path+"context_interface_attr.F90").c_str());

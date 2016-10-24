@@ -50,14 +50,20 @@ extern "C"
    typedef xios::CInterpolateDomain         *  XInterpolateDomainPtr;
    typedef xios::CGenerateRectilinearDomain *  XGenerateRectilinearDomainPtr;
    typedef xios::CComputeConnectivityDomain *  XComputeConnectivityDomainPtr;
+   typedef xios::CExpandDomain              *  XExpandDomainPtr;
 
-   typedef xios::CTransformation<CAxis>   *  XTransformationAxisPtr;
-   typedef xios::CZoomAxis                *  XZoomAxisPtr;
-   typedef xios::CInterpolateAxis         *  XInterpolateAxisPtr;
-   typedef xios::CInverseAxis             *  XInverseAxisPtr;
+   typedef xios::CTransformation<CAxis>     *  XTransformationAxisPtr;
+   typedef xios::CZoomAxis                  *  XZoomAxisPtr;
+   typedef xios::CInterpolateAxis           *  XInterpolateAxisPtr;
+   typedef xios::CInverseAxis               *  XInverseAxisPtr;
+   typedef xios::CExtractDomainToAxis       *  XExtractDomainToAxisPtr;
+   typedef xios::CReduceDomainToAxis        *  XReduceDomainToAxisPtr;
 
    typedef xios::CTransformation<CScalar>   *  XTransformationScalarPtr;
    typedef xios::CReduceAxisToScalar        *  XReduceAxisToScalarPtr;
+   typedef xios::CReduceDomainToScalar      *  XReduceDomainToScalarPtr;
+   typedef xios::CExtractAxisToScalar       *  XExtractAxisToScalarPtr;
+
 
    // ----------------------- Ajout d'enfant à un parent -----------------------
 
@@ -401,6 +407,9 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
    }
 
+   //---------------------------------------------------------------------------
+   //-------------------------Transformations -----------------------------------
+   //---------------------------------------------------------------------------
    void cxios_xml_tree_add_zoomdomaintodomain
       (XDomainPtr parent_, XZoomDomainPtr * child_, const char * child_id, int child_id_size)
    {
@@ -463,16 +472,35 @@ extern "C"
       CTimer::get("XIOS").resume() ;
       if (cstr2string(child_id, child_id_size, child_id_str))
       {
+         tmpChild_ = parent_->addTransformation(TRANS_EXPAND_DOMAIN, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXPAND_DOMAIN);
+      }
+      *child_ = static_cast<XComputeConnectivityDomainPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_expanddomaintodomain
+      (XDomainPtr parent_, XExpandDomainPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationDomainPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
          tmpChild_ = parent_->addTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, child_id_str);
       }
       else
       {
          tmpChild_ = parent_->addTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN);
       }
-      *child_ = static_cast<XComputeConnectivityDomainPtr>(tmpChild_);
+      *child_ = static_cast<XExpandDomainPtr>(tmpChild_);
       CTimer::get("XIOS").suspend() ;
    }
 
+   // -----------------------Axis transformation--------------------------------
    void cxios_xml_tree_add_zoomaxistoaxis
       (XAxisPtr parent_, XZoomAxisPtr * child_, const char * child_id, int child_id_size)
    {
@@ -527,6 +555,43 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
    }
 
+   void cxios_xml_tree_add_extractdomaintoaxistoaxis
+      (XAxisPtr parent_, XExtractDomainToAxisPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationAxisPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS);
+      }
+      *child_ = static_cast<XExtractDomainToAxisPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_reducedomaintoaxistoaxis
+      (XAxisPtr parent_, XReduceDomainToAxisPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationAxisPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_DOMAIN_TO_AXIS);
+      }
+      *child_ = static_cast<XReduceDomainToAxisPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+
    void cxios_xml_tree_add_reduceaxistoscalartoscalar
       (XScalarPtr parent_, XReduceAxisToScalarPtr * child_, const char * child_id, int child_id_size)
    {
@@ -542,6 +607,42 @@ extern "C"
          tmpChild_ = parent_->addTransformation(TRANS_REDUCE_AXIS_TO_SCALAR);
       }
       *child_ = static_cast<XReduceAxisToScalarPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_reducedomaintoscalartoscalar
+      (XScalarPtr parent_, XReduceDomainToScalarPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationScalarPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_REDUCE_DOMAIN_TO_SCALAR);
+      }
+      *child_ = static_cast<XReduceDomainToScalarPtr>(tmpChild_);
+      CTimer::get("XIOS").suspend() ;
+   }
+
+   void cxios_xml_tree_add_extractaxistoscalartoscalar
+      (XScalarPtr parent_, XExtractAxisToScalarPtr * child_, const char * child_id, int child_id_size)
+   {
+      std::string child_id_str;
+      XTransformationScalarPtr tmpChild_;
+      CTimer::get("XIOS").resume() ;
+      if (cstr2string(child_id, child_id_size, child_id_str))
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_AXIS_TO_SCALAR, child_id_str);
+      }
+      else
+      {
+         tmpChild_ = parent_->addTransformation(TRANS_EXTRACT_AXIS_TO_SCALAR);
+      }
+      *child_ = static_cast<XExtractAxisToScalarPtr>(tmpChild_);
       CTimer::get("XIOS").suspend() ;
    }
 
