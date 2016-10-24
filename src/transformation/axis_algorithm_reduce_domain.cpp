@@ -12,7 +12,6 @@
 #include "domain.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
-
 #include "reduction.hpp"
 
 namespace xios {
@@ -58,6 +57,11 @@ void CAxisAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >
                                        const double& defaultValue)
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
+}
+
+void CAxisAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)
+{
+  reduction_->updateData(dataOut);
 }
 
 CAxisAlgorithmReduceDomain::~CAxisAlgorithmReduceDomain()

@@ -1,8 +1,9 @@
 #include "reduction.hpp"
-#include "sum.hpp"
-#include "min.hpp"
-#include "max.hpp"
+#include "sum_reduction.hpp"
+#include "min_reduction.hpp"
+#include "max_reduction.hpp"
 #include "extract.hpp"
+#include "average_reduction.hpp"
 
 namespace xios {
 
@@ -22,6 +23,9 @@ bool CReductionAlgorithm::initReductionOperation(std::map<StdString,EReductionTy
 
   m["extract"] = TRANS_REDUCE_EXTRACT;
   CExtractReductionAlgorithm::registerTrans();
+
+  m["average"] = TRANS_REDUCE_AVERAGE;
+  CAverageReductionAlgorithm::registerTrans();
 }
 
 bool CReductionAlgorithm::_dummyInit = CReductionAlgorithm::initReductionOperation(CReductionAlgorithm::ReductionOperations);

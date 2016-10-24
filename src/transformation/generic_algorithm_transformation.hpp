@@ -69,6 +69,13 @@ public:
                      std::vector<bool>& flagInitial,
                      const double& defaultValue);
 
+  /*!
+   * Update whole dataOut (on necessary).
+   * (Example:  Impose a weight, whose value is only known after being applied an operation, on dataOut)
+   * \param [in/out] dataOut dataOut
+   */
+  virtual void updateData(CArray<double,1>& dataOut);
+
   std::vector<StdString> getIdAuxInputs();
   AlgoTransType type();
   /*!
@@ -127,7 +134,6 @@ protected:
   //! Id of auxillary inputs which helps doing transformation dynamically
   std::vector<StdString> idAuxInputs_;
   AlgoTransType type_;
-
 
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;

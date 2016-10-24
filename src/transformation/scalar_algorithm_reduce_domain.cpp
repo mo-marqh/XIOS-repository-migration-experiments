@@ -86,6 +86,11 @@ void CScalarAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double>
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
 }
 
+void CScalarAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)
+{
+  reduction_->updateData(dataOut);
+}
+
 CScalarAlgorithmReduceDomain::~CScalarAlgorithmReduceDomain()
 {
   if (0 != reduction_) delete reduction_;

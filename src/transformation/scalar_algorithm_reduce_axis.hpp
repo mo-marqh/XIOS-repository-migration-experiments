@@ -34,6 +34,8 @@ public:
                      std::vector<bool>& flagInitial,
                      const double& defaultValue);
 
+  virtual void updateData(CArray<double,1>& dataOut);
+  
   virtual ~CScalarAlgorithmReduceScalar();
 
   static bool registerTrans();

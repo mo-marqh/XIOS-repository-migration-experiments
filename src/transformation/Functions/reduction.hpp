@@ -39,12 +39,18 @@ public:
     \param [in] localIndex vector contains local index of local data output and the corresponding weight
     \param [in] dataInput Pointer to the first element of data input array (in form of buffer)
     \param [in/out] dataOut Array contains local data
-    \param [in/out] flagInitial vector of boolean to mark the local index already initialized. True means there is a need for initalization
+    \param [in/out] flagInitial vector of boolean to mark the local index already initialized. True means there is a need for initialization
   */
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
                      CArray<double,1>& dataOut,
                      std::vector<bool>& flagInitial) = 0;
+  /*!
+    Update local data 
+    In some case (e.g average) we need global information (e.g weights) then update data with this information
+    \param [in] dataOut local data output
+  */
+  virtual void updateData(CArray<double,1>& dataOut) {}
 
   virtual ~CReductionAlgorithm() {}
 

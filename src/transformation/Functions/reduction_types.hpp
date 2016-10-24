@@ -16,7 +16,8 @@ namespace xios {
     TRANS_REDUCE_SUM = 0,
     TRANS_REDUCE_MIN = 1,
     TRANS_REDUCE_MAX = 2,
-    TRANS_REDUCE_EXTRACT = 3
+    TRANS_REDUCE_EXTRACT = 3,
+    TRANS_REDUCE_AVERAGE = 4
   } EReductionType;
 
 }

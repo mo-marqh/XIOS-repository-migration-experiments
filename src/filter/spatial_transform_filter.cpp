@@ -205,6 +205,8 @@ namespace xios
         currentBuff += countSize;
       }
 
+      (*itAlgo)->updateData(dataCurrentDest);
+
       idxSendBuff = 0;
       for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
       {

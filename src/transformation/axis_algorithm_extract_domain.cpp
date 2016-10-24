@@ -12,7 +12,6 @@
 #include "domain.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
-
 #include "reduction.hpp"
 
 namespace xios {

@@ -1,40 +1,42 @@
 /*!
-   \file min.cpp
+   \file sum.cpp
    \author Ha NGUYEN
    \since 27 June 2016
    \date 27 June 2016
 
-   \brief min reduction
+   \brief sum reduction
  */
-#include "min.hpp"
+#include "sum_reduction.hpp"
 
 namespace xios {
 
-CMinReductionAlgorithm::CMinReductionAlgorithm()
+CSumReductionAlgorithm::CSumReductionAlgorithm()
   : CReductionAlgorithm()
 {
 }
 
-CReductionAlgorithm* CMinReductionAlgorithm::create()
+CReductionAlgorithm* CSumReductionAlgorithm::create()
 {
-  return (new CMinReductionAlgorithm());
+  return (new CSumReductionAlgorithm());
 }
 
-bool CMinReductionAlgorithm::registerTrans()
+bool CSumReductionAlgorithm::registerTrans()
 {
-  return registerOperation(TRANS_REDUCE_MIN, CMinReductionAlgorithm::create);
+  return registerOperation(TRANS_REDUCE_SUM, CSumReductionAlgorithm::create);
 }
 
-void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
+void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
                                    const double* dataInput,
                                    CArray<double,1>& dataOut,
                                    std::vector<bool>& flagInitial)
 {
   int nbLocalIndex = localIndex.size();
   int currentlocalIndex = 0;
+  double currentWeight  = 0.0;
   for (int idx = 0; idx < nbLocalIndex; ++idx)
   {
     currentlocalIndex = localIndex[idx].first;
+    currentWeight     = localIndex[idx].second;
     if (flagInitial[currentlocalIndex])
     {
       dataOut(currentlocalIndex) = *(dataInput + idx);
@@ -42,7 +44,7 @@ void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
     }
     else
     {
-      dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
+      dataOut(currentlocalIndex) += *(dataInput + idx);
     }
   }
 }

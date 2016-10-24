@@ -1,31 +1,31 @@
 /*!
-   \file sum.cpp
+   \file max.cpp
    \author Ha NGUYEN
    \since 27 June 2016
    \date 27 June 2016
 
-   \brief sum reduction
+   \brief max reduction
  */
-#include "sum.hpp"
+#include "max_reduction.hpp"
 
 namespace xios {
 
-CSumReductionAlgorithm::CSumReductionAlgorithm()
+CMaxReductionAlgorithm::CMaxReductionAlgorithm()
   : CReductionAlgorithm()
 {
 }
 
-CReductionAlgorithm* CSumReductionAlgorithm::create()
+CReductionAlgorithm* CMaxReductionAlgorithm::create()
 {
-  return (new CSumReductionAlgorithm());
+  return (new CMaxReductionAlgorithm());
 }
 
-bool CSumReductionAlgorithm::registerTrans()
+bool CMaxReductionAlgorithm::registerTrans()
 {
-  return registerOperation(TRANS_REDUCE_SUM, CSumReductionAlgorithm::create);
+  return registerOperation(TRANS_REDUCE_MAX, CMaxReductionAlgorithm::create);
 }
 
-void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
+void CMaxReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
                                    const double* dataInput,
                                    CArray<double,1>& dataOut,
                                    std::vector<bool>& flagInitial)
@@ -44,7 +44,7 @@ void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
     }
     else
     {
-      dataOut(currentlocalIndex) += *(dataInput + idx);
+      dataOut(currentlocalIndex) = std::max(*(dataInput + idx), dataOut(currentlocalIndex));
     }
   }
 }

@@ -1,42 +1,40 @@
 /*!
-   \file max.cpp
+   \file min.cpp
    \author Ha NGUYEN
    \since 27 June 2016
    \date 27 June 2016
 
-   \brief max reduction
+   \brief min reduction
  */
-#include "max.hpp"
+#include "min_reduction.hpp"
 
 namespace xios {
 
-CMaxReductionAlgorithm::CMaxReductionAlgorithm()
+CMinReductionAlgorithm::CMinReductionAlgorithm()
   : CReductionAlgorithm()
 {
 }
 
-CReductionAlgorithm* CMaxReductionAlgorithm::create()
+CReductionAlgorithm* CMinReductionAlgorithm::create()
 {
-  return (new CMaxReductionAlgorithm());
+  return (new CMinReductionAlgorithm());
 }
 
-bool CMaxReductionAlgorithm::registerTrans()
+bool CMinReductionAlgorithm::registerTrans()
 {
-  return registerOperation(TRANS_REDUCE_MAX, CMaxReductionAlgorithm::create);
+  return registerOperation(TRANS_REDUCE_MIN, CMinReductionAlgorithm::create);
 }
 
-void CMaxReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
+void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
                                    const double* dataInput,
                                    CArray<double,1>& dataOut,
                                    std::vector<bool>& flagInitial)
 {
   int nbLocalIndex = localIndex.size();
   int currentlocalIndex = 0;
-  double currentWeight  = 0.0;
   for (int idx = 0; idx < nbLocalIndex; ++idx)
   {
     currentlocalIndex = localIndex[idx].first;
-    currentWeight     = localIndex[idx].second;
     if (flagInitial[currentlocalIndex])
     {
       dataOut(currentlocalIndex) = *(dataInput + idx);
@@ -44,7 +42,7 @@ void CMaxReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
     }
     else
     {
-      dataOut(currentlocalIndex) = std::max(*(dataInput + idx), dataOut(currentlocalIndex));
+      dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
     }
   }
 }

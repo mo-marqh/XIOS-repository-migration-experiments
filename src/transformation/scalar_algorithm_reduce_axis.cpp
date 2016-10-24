@@ -12,6 +12,7 @@
 #include "reduce_axis_to_scalar.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
+#include "reduction.hpp"
 
 #include "reduction.hpp"
 
@@ -67,6 +68,11 @@ void CScalarAlgorithmReduceScalar::apply(const std::vector<std::pair<int,double>
                                          const double& defaultValue)
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
+}
+
+void CScalarAlgorithmReduceScalar::updateData(CArray<double,1>& dataOut)
+{
+  reduction_->updateData(dataOut);
 }
 
 CScalarAlgorithmReduceScalar::~CScalarAlgorithmReduceScalar()

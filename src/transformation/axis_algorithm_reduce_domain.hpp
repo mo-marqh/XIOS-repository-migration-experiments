@@ -34,6 +34,8 @@ public:
                      std::vector<bool>& flagInitial,
                      const double& defaultValue);
 
+  virtual void updateData(CArray<double,1>& dataOut);
+  
   virtual ~CAxisAlgorithmReduceDomain();
 
   static bool registerTrans();
@@ -46,8 +48,8 @@ protected:
 
   ReduceDirection dir_;
 protected:
-  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
-
+  void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs); 
+  
 protected:
   CReductionAlgorithm* reduction_;
 

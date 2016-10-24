@@ -19,6 +19,11 @@ CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
 {
 }
 
+void CGenericAlgorithmTransformation::updateData(CArray<double,1>& dataOut)
+{
+
+}
+
 void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,double> >& localIndex,
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
