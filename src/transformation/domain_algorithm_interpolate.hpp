@@ -11,11 +11,13 @@
 
 #include "domain_algorithm_transformation.hpp"
 #include "transformation.hpp"
+#include "nc4_data_output.hpp"
 
 namespace xios {
 
 class CDomain;
 class CInterpolateDomain;
+
 
 /*!
   \class CDomainAlgorithmInterpolate
@@ -34,13 +36,36 @@ protected:
 
 private:
   void readInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
+  void writeInterpolationInfo(std::string& filename, std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
   void processPole(std::map<int,std::vector<std::pair<int,double> > >& interMapValuePole,
                    int nbGlobalPointOnPole);
   void computeRemap();
   void readRemapInfo();
+  void writeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >&);
   void exchangeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
+
 private:
   CInterpolateDomain* interpDomain_;
+  bool writeToFile_;
+
+  // class WriteNetCdf;
+  class WriteNetCdf : public CNc4DataOutput
+  {
+  public:
+    WriteNetCdf(const StdString& filename, const MPI_Comm comm);
+    int addDimensionWrite(const StdString& name, const StdSize size = UNLIMITED_DIM);
+    int addVariableWrite(const StdString& name, nc_type type,
+                         const std::vector<StdString>& dim);
+    void writeDataIndex(const CArray<int,1>& data, const StdString& name,
+                        bool collective, StdSize record,
+                        const std::vector<StdSize>* start = NULL,
+                        const std::vector<StdSize>* count = NULL);
+    void writeDataIndex(const CArray<double,1>& data, const StdString& name,
+                        bool collective, StdSize record,
+                        const std::vector<StdSize>* start = NULL,
+                        const std::vector<StdSize>* count = NULL);
+  };
+
 
 private:
 

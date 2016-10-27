@@ -47,9 +47,12 @@ bool CDomainAlgorithmInterpolate::registerTrans()
 }
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain)
+: CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false)
 {
   interpDomain_->checkValid(domainSource);
+  if ((CInterpolateDomain::mode_attr::write == interpDomain_->mode) &&
+      (!interpDomain_->file.isEmpty()))
+    writeToFile_ = true;
 }
 
 /*!
@@ -350,6 +353,8 @@ void CDomainAlgorithmInterpolate::computeRemap()
      }
   }
 
+  if (writeToFile_)
+     writeRemapInfo(interpMapValue);
   exchangeRemapInfo(interpMapValue);
 
   delete [] globalSrc;
@@ -433,18 +438,22 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 */
 void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  if (!interpDomain_->file.isEmpty())
+  if (CInterpolateDomain::mode_attr::read == interpDomain_->mode)  
     readRemapInfo();
   else
-    computeRemap();
+  {
+    computeRemap(); 
+  }
+}
+
+void CDomainAlgorithmInterpolate::writeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+{
+  std::string filename = interpDomain_->file.getValue();
+  writeInterpolationInfo(filename, interpMapValue);
 }
 
 void CDomainAlgorithmInterpolate::readRemapInfo()
 {
-  CContext* context = CContext::getCurrent();
-  CContextClient* client=context->client;
-  int clientRank = client->clientRank;
-
   std::string filename = interpDomain_->file.getValue();
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   readInterpolationInfo(filename, interpMapValue);
@@ -635,6 +644,109 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
   delete [] recvWeightBuff;
   delete [] sendBuff;
   delete [] recvBuff;
+}
+ 
+/*! Redefined some functions of CONetCDF4 to make use of them */
+CDomainAlgorithmInterpolate::WriteNetCdf::WriteNetCdf(const StdString& filename, const MPI_Comm comm)
+  : CNc4DataOutput(filename, false, false, true, comm, false, true) {}
+int CDomainAlgorithmInterpolate::WriteNetCdf::addDimensionWrite(const StdString& name, 
+                                                                const StdSize size)
+{
+  CONetCDF4::addDimension(name, size);  
+}
+
+int CDomainAlgorithmInterpolate::WriteNetCdf::addVariableWrite(const StdString& name, nc_type type,
+                                                               const std::vector<StdString>& dim)
+{
+  CONetCDF4::addVariable(name, type, dim);
+}
+
+void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<int,1>& data, const StdString& name,
+                                                              bool collective, StdSize record,
+                                                              const std::vector<StdSize>* start,
+                                                              const std::vector<StdSize>* count)
+{
+  CONetCDF4::writeData<int,1>(data, name, collective, record, start, count);
+}
+
+void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<double,1>& data, const StdString& name,
+                                                              bool collective, StdSize record,
+                                                              const std::vector<StdSize>* start,
+                                                              const std::vector<StdSize>* count)
+{
+  CONetCDF4::writeData<double,1>(data, name, collective, record, start, count);
+}
+
+/*
+   Write interpolation weights into a file
+   \param [in] filename name of output file
+   \param interpMapValue mapping of global index of domain destination and domain source as well as the corresponding weight
+*/
+void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
+                                                         std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+
+  size_t n_src = domainSrc_->ni_glo * domainSrc_->nj_glo;
+  size_t n_dst = domainDest_->ni_glo * domainDest_->nj_glo;
+
+  long localNbWeight = 0;
+  long globalNbWeight;
+  long startIndex;
+  typedef std::map<int,std::vector<std::pair<int,double> > > IndexRemap;
+  IndexRemap::iterator itb = interpMapValue.begin(), it,
+                       ite = interpMapValue.end();
+  for (it = itb; it!=ite; ++it)
+  {
+    localNbWeight += (it->second).size();
+  }
+
+  CArray<int,1> src_idx(localNbWeight);
+  CArray<int,1> dst_idx(localNbWeight);
+  CArray<double,1> weights(localNbWeight);
+
+  int index = 0;
+  for (it = itb; it !=ite; ++it)
+  {
+    std::vector<std::pair<int,double> >& tmp = it->second;
+    for (int idx = 0; idx < tmp.size(); ++idx)
+    {
+      dst_idx(index) = it->first + 1;
+      src_idx(index) = tmp[idx].first + 1;
+      weights(index) = tmp[idx].second;
+      ++index;
+    }    
+  }
+
+  MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, MPI_LONG, MPI_SUM, client->intraComm);
+  MPI_Scan(&localNbWeight, &startIndex, 1, MPI_LONG, MPI_SUM, client->intraComm);
+  
+  std::vector<StdSize> start(1, startIndex - localNbWeight);
+  std::vector<StdSize> count(1, localNbWeight);
+
+  WriteNetCdf netCdfWriter(filename, client->intraComm);
+
+  // netCdfWriter = CONetCDF4(filename, false, false, true, client->intraComm, false);
+
+  // Define some dimensions
+  netCdfWriter.addDimensionWrite("n_src", n_src);
+  netCdfWriter.addDimensionWrite("n_dst", n_dst);
+  netCdfWriter.addDimensionWrite("n_weight", globalNbWeight);
+  
+  std::vector<StdString> dims(1,"n_weight");
+
+  // Add some variables
+  netCdfWriter.addVariableWrite("src_idx", NC_INT, dims);
+  netCdfWriter.addVariableWrite("dst_idx", NC_INT, dims);
+  netCdfWriter.addVariableWrite("weight", NC_DOUBLE, dims);
+
+  // // Write variables
+  netCdfWriter.writeDataIndex(src_idx, "src_idx", true, 0, &start, &count);
+  netCdfWriter.writeDataIndex(dst_idx, "dst_idx", true, 0, &start, &count);
+  netCdfWriter.writeDataIndex(weights, "weight", true, 0, &start, &count);
+
+  netCdfWriter.closeFile();
 }
 
 /*!

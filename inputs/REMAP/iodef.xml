@@ -108,7 +108,7 @@
 
     <domain_group id="domain_dst">
      <domain id="dst_domain">
-       <interpolate_domain/>
+       <interpolate_domain file="weight.nc" />
      </domain>
      <domain id="dst_domain_regular_pole" ni_glo="90" nj_glo="45" type="rectilinear">
        <generate_rectilinear_domain id="domain_regular_pole"/>
