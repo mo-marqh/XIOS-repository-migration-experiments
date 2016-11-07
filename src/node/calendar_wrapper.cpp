@@ -6,7 +6,7 @@
 
 namespace xios {
 
-  /// ////////////////////// Définitions ////////////////////// ///
+  /// ////////////////////// Dfinitions ////////////////////// ///
 
   CCalendarWrapper::CCalendarWrapper(void)
     : CObjectTemplate<CCalendarWrapper>(), CCalendarWrapperAttributes()
@@ -82,7 +82,7 @@ namespace xios {
   void CCalendarWrapper::createCalendar(void)
   {
     // Create the calendar if possible
-    if (calendar)
+    if (0 != calendar)
     {
       ERROR("CCalendarWrapper::createCalendar(void)",
             << "Error: the calendar can only be defined once!");

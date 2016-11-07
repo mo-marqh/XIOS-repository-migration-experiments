@@ -47,6 +47,7 @@ namespace xios
 
     private:
       std::map<int, StdSize> mapBufferSize_;
+
   } ;
 
 }

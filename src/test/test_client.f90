@@ -16,9 +16,9 @@ PROGRAM test_client
   CHARACTER(len=20) :: date_str
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=100
-  INTEGER,PARAMETER :: nj_glo=100
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: ni_glo=2
+  INTEGER,PARAMETER :: nj_glo=2
+  INTEGER,PARAMETER :: llm=1
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -83,13 +83,13 @@ PROGRAM test_client
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
-  CALL xios_get_handle("field_definition",fieldgroup_hdl)
-  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
+  !CALL xios_get_handle("field_definition",fieldgroup_hdl)
+  !CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
+  !CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
 
-  CALL xios_get_handle("output",file_hdl)
-  CALL xios_add_child(file_hdl,field_hdl)
-  CALL xios_set_attr(field_hdl,field_ref="field_A_zoom",name="field_C")
+  !CALL xios_get_handle("output",file_hdl)
+  !CALL xios_add_child(file_hdl,field_hdl)
+  !CALL xios_set_attr(field_hdl,field_ref="field_A_zoom",name="field_C")
 
   dtime%second = 3600
   CALL xios_set_timestep(dtime)

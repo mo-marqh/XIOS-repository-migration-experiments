@@ -272,15 +272,17 @@ namespace xios {
    void CGrid::checkMaskIndex(bool doSendingIndex)
    {
      CContext* context = CContext::getCurrent();
-     CContextClient* client=context->client;
+     CContextClient* client= context->hasServer ? context->clientPrimServer : context->client;
 
      if (isScalarGrid())
      {
-       if (context->hasClient)
+       if (context->hasClient && !context->hasServer)
+//         if (context->hasClient)
           if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
 
        if (this->isChecked) return;
-       if (context->hasClient)
+       if (context->hasClient && !context->hasServer)
+//       if (context->hasClient)
        {
           this->computeIndexScalarGrid();
        }
@@ -289,12 +291,14 @@ namespace xios {
        return;
      }
 
-     if (context->hasClient)
+     if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
       if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndex(); this->isIndexSent = true; }
 
      if (this->isChecked) return;
 
-     if (context->hasClient)
+     if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
      {
         this->checkAttributesAfterTransformation();
         this->checkMask();
@@ -496,11 +500,18 @@ namespace xios {
    void CGrid::computeIndex(void)
    {
      CContext* context = CContext::getCurrent();
-     CContextClient* client = context->client;
+//     CContextClient* client = context->client;
+     CContextClient* client = (context->hasServer) ? context->clientPrimServer : context->client;
+
 
      // First of all, compute distribution on client side
-     clientDistribution_ = new CDistributionClient(client->clientRank, this);
+     if (0 != serverDistribution_)
+       clientDistribution_ = new CDistributionClient(client->clientRank, serverDistribution_->getGlobalLocalIndex());
+     else
+       clientDistribution_ = new CDistributionClient(client->clientRank, this);
+
      // Get local data index on client
+     int tmp = clientDistribution_->getLocalDataIndexOnClient().size();
      storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
      int nbStoreIndex = storeIndex_client.numElements();
      for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
@@ -576,7 +587,7 @@ namespace xios {
                                      CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
    {
      CContext* context = CContext::getCurrent();
-     CContextClient* client = context->client;
+     CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
      int serverSize = client->serverSize;
      std::vector<CDomain*> domList = getDomains();
      std::vector<CAxis*> axisList = getAxis();
@@ -974,7 +985,7 @@ namespace xios {
   void CGrid::computeIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client=context->client;
+    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
 
     storeIndex_client.resize(1);
     storeIndex_client(0) = 0;
@@ -1030,7 +1041,7 @@ namespace xios {
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
+    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
 
     CEventClient event(getType(), EVENT_ID_INDEX);
     list<CMessage> listMsg;
@@ -1069,7 +1080,8 @@ namespace xios {
   void CGrid::sendIndex(void)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
+//    CContextClient* client = context->client;
+    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client ;
 
     CEventClient event(getType(), EVENT_ID_INDEX);
     int rank;
@@ -1177,12 +1189,20 @@ namespace xios {
       buffers.push_back(buffer);
     }
     get(gridId)->recvIndex(ranks, buffers);
+
+    CContext* context = CContext::getCurrent();
+    if (context->hasClient && context->hasServer)
+    {
+      get(gridId)->computeIndex();
+      get(gridId)->sendIndex();
+    }
   }
 
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
-    CContextServer* server = context->server;
+    CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer;
+    CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer;
     numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
     connectedServerRank_ = ranks;
 
@@ -1282,7 +1302,7 @@ namespace xios {
     else
       totalNumberWrittenIndexes_ = numberWrittenIndexes_;
 
-    nbSenders = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
+    nbSenders = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, ranks);
   }
 
   void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
@@ -1656,7 +1676,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CDomain* pDom = CDomain::get(*it);
-      if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+//      if (context->hasClient)
       {
         pDom->solveRefInheritance(apply);
         pDom->solveInheritanceTransformation();
@@ -1668,7 +1689,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CAxis* pAxis = CAxis::get(*it);
-      if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+//      if (context->hasClient)
       {
         pAxis->solveRefInheritance(apply);
         pAxis->solveInheritanceTransformation();
@@ -1680,7 +1702,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CScalar* pScalar = CScalar::get(*it);
-      if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+//      if (context->hasClient)
       {
         pScalar->solveRefInheritance(apply);
         pScalar->solveInheritanceTransformation();

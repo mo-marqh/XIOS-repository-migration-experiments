@@ -21,13 +21,14 @@ namespace xios
         static void recvContextMessage(void* buff,int count);
         static void listenRootContext(void);
         static void listenRootFinalize(void);
-        static void registerContext(void* buff,int count, int leaderRank=0);
+        static void registerContext(void* buff,int count, int leaderRank=0);        // context registered by the primary server
 
+        // Communicators for the primary group of servers
         static MPI_Comm intraComm;
         static list<MPI_Comm> interComm;
         static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
-        
+
         struct contextMessage
         {
           int nbRecv;
@@ -36,7 +37,7 @@ namespace xios
 
         static bool isRoot;
 
-        static map<string,CContext*> contextList;
+        static map<string,CContext*> contextList;       // contexts on the primary server
         static bool finished;
         static bool is_MPI_Initialized;
 

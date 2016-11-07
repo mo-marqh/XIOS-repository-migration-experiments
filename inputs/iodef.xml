@@ -13,7 +13,7 @@
 
    <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
-        <field field_ref="field_A_zoom" name="field_A" />
+        <field field_ref="field_A" name="field_A" />
      </file>
    </file_definition>
 

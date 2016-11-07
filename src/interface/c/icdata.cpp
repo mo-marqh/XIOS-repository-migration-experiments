@@ -46,9 +46,9 @@ extern "C"
      CXios::initialize();
    }
 
-   void cxios_init_server(void)
+   void cxios_init_server(int server_level)
    {
-     CXios::initServerSide();
+     CXios::initServerSide(server_level);
    }
 
    void cxios_init_client(const char* client_id , int len_client_id, MPI_Fint* f_local_comm, MPI_Fint* f_return_comm )

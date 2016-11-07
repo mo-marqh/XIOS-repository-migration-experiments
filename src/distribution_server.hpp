@@ -36,6 +36,7 @@ class CDistributionServer : public CDistribution
     const std::vector<int>& getZoomBeginGlobal() const;
     const std::vector<int>& getZoomBeginServer() const;
     const std::vector<int>& getZoomSizeServer() const;
+    const GlobalLocalMap& getGlobalLocalIndex() const { return globalLocalIndexMap_; }
 
     virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);

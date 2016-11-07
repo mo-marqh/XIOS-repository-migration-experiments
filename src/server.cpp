@@ -2,6 +2,7 @@
 #include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "server.hpp"
+#include "client.hpp"
 #include "type.hpp"
 #include "context.hpp"
 #include "object_template.hpp"
@@ -18,7 +19,7 @@ namespace xios
     MPI_Comm CServer::intraComm ;
     list<MPI_Comm> CServer::interComm ;
     std::list<MPI_Comm> CServer::contextInterComms;
-    bool CServer::isRoot ;
+    bool CServer::isRoot = false ;
     int CServer::rank = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
     StdOFStream CServer::m_errorStream;
@@ -26,7 +27,12 @@ namespace xios
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
-   
+
+//---------------------------------------------------------------
+/*!
+ * \fn void CServer::initialize(void)
+ * Function creates intra and inter comm for each initialized server pool
+ */
     void CServer::initialize(void)
     {
       int initialized ;
@@ -44,9 +50,13 @@ namespace xios
         }
         CTimer::get("XIOS").resume() ;
 
-        boost::hash<string> hashString ;
+        int nbSrvLevels = 2;
 
-        unsigned long hashServer=hashString(CXios::xiosCodeId) ;
+        boost::hash<string> hashString ;
+        unsigned long hashServer1 = hashString(CXios::xiosCodeIdPrm);
+        unsigned long hashServer2 = hashString(CXios::xiosCodeIdSnd);
+        unsigned long hashServer = (CXios::serverLevel < 2)  ? hashServer1 : hashServer2;
+
         unsigned long* hashAll ;
 
 //        int rank ;
@@ -55,11 +65,10 @@ namespace xios
         int i,c ;
         MPI_Comm newComm ;
 
-        MPI_Comm_size(CXios::globalComm,&size) ;
-        MPI_Comm_rank(CXios::globalComm,&rank);
+        MPI_Comm_size(CXios::globalComm, &size) ;
+        MPI_Comm_rank(CXios::globalComm, &rank);
         hashAll=new unsigned long[size] ;
-
-        MPI_Allgather(&hashServer,1,MPI_LONG,hashAll,1,MPI_LONG,CXios::globalComm) ;
+        MPI_Allgather(&hashServer, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
 
         map<unsigned long, int> colors ;
         map<unsigned long, int> leaders ;
@@ -76,29 +85,82 @@ namespace xios
         }
 
         myColor=colors[hashServer] ;
-        MPI_Comm_split(MPI_COMM_WORLD,myColor,rank,&intraComm) ;
+        MPI_Comm_split(MPI_COMM_WORLD, myColor, rank, &intraComm) ;
 
-        int serverLeader=leaders[hashServer] ;
-        int clientLeader;
+        if (CXios::serverLevel == 0)
+        {
+          int clientLeader;
+          for(it=leaders.begin();it!=leaders.end();it++)
+          {
+            if (it->first!=hashServer)
+            {
+              clientLeader=it->second ;
+              int intraCommSize, intraCommRank ;
+              MPI_Comm_size(intraComm,&intraCommSize) ;
+              MPI_Comm_rank(intraComm,&intraCommRank) ;
+              info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                       <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
-         serverLeader=leaders[hashServer] ;
-         for(it=leaders.begin();it!=leaders.end();it++)
-         {
-           if (it->first!=hashServer)
-           {
-             clientLeader=it->second ;
-             int intraCommSize, intraCommRank ;
-             MPI_Comm_size(intraComm,&intraCommSize) ;
-             MPI_Comm_rank(intraComm,&intraCommRank) ;
-             info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
-                     <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+               interComm.push_back(newComm) ;
+            }
+          }
+        }
 
-             MPI_Intercomm_create(intraComm,0,CXios::globalComm,clientLeader,0,&newComm) ;
-             interComm.push_back(newComm) ;
-           }
-         }
+        else if ((CXios::serverLevel == 1))
+        {
+          int clientLeader;
+          int srvSndLeader;
+          for(it=leaders.begin();it!=leaders.end();it++)
+          {
+            if (it->first != hashServer2)
+            {
+              if (it->first != hashServer1)
+              {
+                clientLeader=it->second ;
+                int intraCommSize, intraCommRank ;
+                MPI_Comm_size(intraComm,&intraCommSize) ;
+                MPI_Comm_rank(intraComm,&intraCommRank) ;
+                info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                         <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+                MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+                interComm.push_back(newComm) ;
+              }
+            }
+            else
+            {
+              srvSndLeader = it->second;
+            }
+          }
 
-         delete [] hashAll ;
+        CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+        }
+
+        else // secondary server pool
+        {
+          int clientLeader;
+          for(it=leaders.begin();it!=leaders.end();it++)
+          {
+            if (it->first == hashServer1)
+            {
+              // no changes needed here to create one context per process of the secondary server pool
+              clientLeader=it->second ;
+              int intraCommSize, intraCommRank ;
+              MPI_Comm_size(intraComm,&intraCommSize) ;
+              MPI_Comm_rank(intraComm,&intraCommRank) ;
+              info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                       <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+
+              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+              interComm.push_back(newComm) ;
+
+              break;
+            }
+          }
+        }
+
+        delete [] hashAll ;
+
       }
       // using OASIS
       else
@@ -144,14 +206,21 @@ namespace xios
 
     void CServer::finalize(void)
     {
+      if (CXios::serverLevel == 1)
+      {
+        CClient::finalize();
+      }
+
       CTimer::get("XIOS").suspend() ;
      
       delete eventScheduler ;
 
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
         MPI_Comm_free(&(*it));
+
       for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
         MPI_Comm_free(&(*it));
+
       MPI_Comm_free(&intraComm);
 
       if (!is_MPI_Initialized)
@@ -171,6 +240,7 @@ namespace xios
        CTimer::get("XIOS server").resume() ;
        while(!stop)
        {
+
          if (isRoot)
          {
            listenContext();
@@ -185,6 +255,7 @@ namespace xios
          contextEventLoop() ;
          if (finished && contextList.empty()) stop=true ;
          eventScheduler->checkEvent() ;
+
        }
        CTimer::get("XIOS server").suspend() ;
      }
@@ -287,7 +358,8 @@ namespace xios
 
      void CServer::recvContextMessage(void* buff,int count)
      {
-       static map<string,contextMessage> recvContextId ;
+       static map<string,contextMessage> recvContextId;
+
        map<string,contextMessage>::iterator it ;
 
        CBufferIn buffer(buff,count) ;
@@ -361,6 +433,7 @@ namespace xios
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            registerContext(buffer,count) ;
+
            delete [] buffer ;
            recept=false ;
          }
@@ -372,6 +445,7 @@ namespace xios
        string contextId;
        CBufferIn buffer(buff, count);
        buffer >> contextId;
+       CContext* context;
 
        info(20) << "CServer : Register new Context : " << contextId << endl;
 
@@ -379,25 +453,32 @@ namespace xios
          ERROR("void CServer::registerContext(void* buff, int count, int leaderRank)",
                << "Context '" << contextId << "' has already been registred");
 
-       MPI_Comm contextIntercomm;
-       MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextIntercomm);
+       MPI_Comm contextInterComm;
+       MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextInterComm);
 
        MPI_Comm inter;
-       MPI_Intercomm_merge(contextIntercomm,1,&inter);
+       MPI_Intercomm_merge(contextInterComm,1,&inter);
        MPI_Barrier(inter);
 
-       CContext* context=CContext::create(contextId);
+       context=CContext::create(contextId);
        contextList[contextId]=context;
-       context->initServer(intraComm,contextIntercomm);
+       context->initServer(intraComm,contextInterComm);
+       contextInterComms.push_back(contextInterComm);
 
-       contextInterComms.push_back(contextIntercomm);
+       if (CXios::serverLevel == 1)
+       {
+         CClient::registerContext(contextId, intraComm);
+       }
+
        MPI_Comm_free(&inter);
+
      }
 
      void CServer::contextEventLoop(void)
      {
        bool finished ;
        map<string,CContext*>::iterator it ;
+
        for(it=contextList.begin();it!=contextList.end();it++)
        {
          finished=it->second->checkBuffersAndListen();
@@ -407,7 +488,6 @@ namespace xios
            break ;
          }
        }
-
      }
 
      //! Get rank of the current process

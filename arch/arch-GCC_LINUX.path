@@ -4,7 +4,7 @@ NETCDF_LIB="-lnetcdff -lnetcdf"
 
 MPI_INCDIR=""
 MPI_LIBDIR=""
-MPI_LIB=""
+MPI_LIB="-lcurl"
 
 HDF5_INCDIR="-I $HDF5_INC_DIR"
 HDF5_LIBDIR="-L $HDF5_LIB_DIR"

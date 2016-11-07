@@ -33,6 +33,7 @@ namespace xios
     MPI_Comm_test_inter(interComm,&flag);
     if (flag) MPI_Comm_remote_size(interComm,&commSize);
     else  MPI_Comm_size(interComm,&commSize);
+
     currentTimeLine=0;
     scheduled=false;
     finished=false;
@@ -158,7 +159,6 @@ namespace xios
       buffer.advance(size);
       count=buffer.remain();
     }
-
   }
 
   void CContextServer::processEvents(void)
@@ -219,12 +219,12 @@ namespace xios
       finished=true;
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
-                                             iteMap = mapBufferSize_.end(), itMap;
+                           iteMap = mapBufferSize_.end(), itMap;
       StdSize totalBuf = 0;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
       {
         report(10)<< " Memory report : Context <"<<context->getId()<<"> : server side : memory used for buffer of each connection to client" << endl
-                  << "  +) With client of rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+            << "  +) With client of rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
         totalBuf += itMap->second;
       }
       context->finalize();

@@ -10,6 +10,34 @@
 
 namespace xios {
 
+CDistributionClient::CDistributionClient(int rank, const GlobalLocalDataMap& globalLocalIndex)
+  : CDistribution(rank, 0)
+   , axisDomainOrder_()
+   , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_()
+   , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
+   , gridMask_(), indexMap_()
+   , isDataDistributed_(true), axisNum_(0), domainNum_(0)
+   , localDataIndex_(), localMaskIndex_()
+   , globalLocalDataSendToServerMap_(globalLocalIndex)
+   , infoIndex_(), isComputed_(false)
+   , elementLocalIndex_(), elementGlobalIndex_(), elementIndexData_()
+   , elementZoomMask_(), elementNLocal_(), elementNGlobal_()
+{
+//  numElement_ = globalLocalIndex.size();    !!! numElement_ should be calculated !!!!
+  isComputed_ = true;  // my changes
+
+
+  localDataIndex_.resize(globalLocalIndex.size());
+  localMaskIndex_.resize(globalLocalIndex.size());
+  GlobalLocalDataMap::const_iterator it = globalLocalIndex.begin(), ite = globalLocalIndex.end();
+  int idx = 0;
+  for (; it!=ite; ++it)
+  {
+    localMaskIndex_[idx] = localDataIndex_[idx] = it->second;
+    ++idx;
+  }
+}
+
 CDistributionClient::CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex)
    : CDistribution(rank, dims, globalIndex)
    , axisDomainOrder_()

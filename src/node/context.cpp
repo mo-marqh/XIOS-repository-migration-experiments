@@ -23,20 +23,24 @@ namespace xios {
 
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
-      , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
-      , idServer_(), client(0), server(0)
+      , calendar(), hasClient(false), hasServer(false)
+      , isPostProcessed(false), finalized(false)
+      , idServer_(), client(0), server(0), clientPrimServer(0), serverPrimServer(0)
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
-      , calendar(), hasClient(false), hasServer(false), isPostProcessed(false), finalized(false)
-      , idServer_(), client(0), server(0)
+      , calendar(), hasClient(false), hasServer(false)
+      , isPostProcessed(false), finalized(false)
+      , idServer_(), client(0), server(0), clientPrimServer(0), serverPrimServer(0)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
    {
      delete client;
      delete server;
+     delete clientPrimServer;
+     delete serverPrimServer;
    }
 
    //----------------------------------------------------------------
@@ -237,8 +241,19 @@ namespace xios {
    //! Initialize client side
    void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer /*= 0*/)
    {
-     hasClient=true;
-     client = new CContextClient(this,intraComm, interComm, cxtServer);
+
+     hasClient = true;
+     if (CXios::serverLevel != 1)  // initClient is called by client pool
+     {
+       client = new CContextClient(this, intraComm, interComm, cxtServer);
+       server = new CContextServer(this, intraComm, interComm);
+     }
+     else                         // initClient is called by primary server pool
+     {
+       clientPrimServer = new CContextClient(this, intraComm, interComm);
+       serverPrimServer = new CContextServer(this, intraComm, interComm);
+     }
+
      registryIn=new CRegistry(intraComm);
      registryIn->setPath(getId()) ;
      if (client->clientRank==0) registryIn->fromFile("xios_registry.bin") ;
@@ -260,7 +275,6 @@ namespace xios {
        MPI_Comm_dup(interComm, &interCommServer);
        comms.push_back(interCommServer);
      }
-     server = new CContextServer(this,intraCommServer,interCommServer);
    }
 
    void CContext::setClientServerBuffer()
@@ -299,8 +313,20 @@ namespace xios {
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
          if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
      }
-
      client->setBufferSize(bufferSize, maxEventSize);
+
+     // If it is primary server pool, also set buffer for clientPrimServer.
+     if (hasClient && hasServer)
+     {
+       if (clientPrimServer->isServerLeader())
+       {
+         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
+       }
+       clientPrimServer->setBufferSize(bufferSize, maxEventSize);
+     }
+
    }
 
    //! Verify whether a context is initialized
@@ -309,11 +335,12 @@ namespace xios {
      return hasClient;
    }
 
-   //! Initialize server
-   void CContext::initServer(MPI_Comm intraComm,MPI_Comm interComm, CContext* cxtClient /*= 0*/)
+   void CContext::initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient /*= 0*/)
    {
      hasServer=true;
      server = new CContextServer(this,intraComm,interComm);
+     client = new CContextClient(this,intraComm,interComm);
+//     client = new CContextClient(this,intraComm,interComm, cxtClient);
 
      registryIn=new CRegistry(intraComm);
      registryIn->setPath(getId()) ;
@@ -335,20 +362,49 @@ namespace xios {
        MPI_Comm_dup(interComm, &interCommClient);
        comms.push_back(interCommClient);
      }
-     client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
+
    }
 
    //! Server side: Put server into a loop in order to listen message from client
    bool CContext::eventLoop(void)
    {
-     return server->eventLoop();
+     if (CXios::serverLevel == 0)
+     {
+       return server->eventLoop();
+     }
+     else if (CXios::serverLevel == 1)
+     {
+       bool serverFinished = server->eventLoop();
+       bool serverPrimFinished = serverPrimServer->eventLoop();
+       return ( serverFinished && serverPrimFinished);
+     }
+     else
+     {
+       return server->eventLoop();
+     }
    }
 
    //! Try to send the buffers and receive possible answers
    bool CContext::checkBuffersAndListen(void)
    {
-     client->checkBuffers();
-     return server->eventLoop();
+     if (CXios::serverLevel == 0)
+     {
+       client->checkBuffers();
+       return server->eventLoop();
+     }
+     else if (CXios::serverLevel == 1)
+     {
+       client->checkBuffers();
+       clientPrimServer->checkBuffers();
+       bool serverFinished = server->eventLoop();
+       bool serverPrimFinished = serverPrimServer->eventLoop();
+       return ( serverFinished && serverPrimFinished);
+     }
+     else if (CXios::serverLevel == 2)
+     {
+       client->checkBuffers();
+       return server->eventLoop();
+     }
    }
 
    //! Terminate a context
@@ -358,10 +414,50 @@ namespace xios {
       {
         finalized = true;
         if (hasClient) sendRegistry() ;
+
+/*        if (CXios::serverLevel == 0)
+        {
+          client->finalize();
+          while (!server->hasFinished())
+          {
+            server->eventLoop();
+          }
+        }
+        else if (CXios::serverLevel == 1)
+        {
+          clientPrimServer->finalize();
+          while (!serverPrimServer->hasFinished())
+          {
+            serverPrimServer->eventLoop();
+          }
+          client->finalize();
+          while (!server->hasFinished())
+          {
+            server->eventLoop();
+          }
+        }
+        else if (CXios::serverLevel == 2)
+        {
+          client->finalize();
+          while (!server->hasFinished())
+          {
+            server->eventLoop();
+          }
+        }*/
+
         client->finalize();
         while (!server->hasFinished())
         {
           server->eventLoop();
+        }
+
+        if ((hasClient) && (hasServer))
+        {
+          clientPrimServer->finalize();
+          while (!serverPrimServer->hasFinished())
+          {
+            serverPrimServer->eventLoop();
+          }
         }
 
         if (hasServer)
@@ -390,13 +486,16 @@ namespace xios {
    {
      // There is nothing client need to send to server
      if (hasClient)
+//     if (hasClient && !hasServer)
      {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
      }
+
      setClientServerBuffer();
 
-     if (hasClient && !hasServer)
+//     if (hasClient && !hasServer)
+     if (hasClient)
      {
       // Send all attributes of current context to server
       this->sendAllAttributesToServer();
@@ -416,30 +515,39 @@ namespace xios {
 
       // After that, send all grid (if any)
        sendRefGrid();
-    }
+
+       // We have a xml tree on the server side and now, it should be also processed
+       sendPostProcessing();
+     }
+
+//     // Now tell server that it can process all messages from client
+// //    if (hasClient && !hasServer) this->sendCloseDefinition();
+     if (hasClient) this->sendCloseDefinition();
 
     // We have a xml tree on the server side and now, it should be also processed
-    if (hasClient && !hasServer) sendPostProcessing();
+//    if (hasClient && !hasServer) sendPostProcessing();
 
     // There are some processings that should be done after all of above. For example: check mask or index
-    if (hasClient)
+     if (hasClient && !hasServer)
+//    if (hasClient)
     {
-      this->buildFilterGraphOfEnabledFields();
+      this->buildFilterGraphOfEnabledFields();  // references are resolved here (access xml file)
       buildFilterGraphOfFieldsWithReadAccess();
       this->solveAllRefOfEnabledFields(true);
     }
 
-    // Now tell server that it can process all messages from client
-    if (hasClient && !hasServer) this->sendCloseDefinition();
+//    // Now tell server that it can process all messages from client
+////    if (hasClient && !hasServer) this->sendCloseDefinition();
+//    if (hasClient) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
-    if (hasClient && !hasServer) CleanTree(); // Only on client side??
+//    if (hasClient && !hasServer) CleanTree(); // Only on client side??
+    if (hasClient) CleanTree(); // Only on client side??
 
     if (hasClient)
     {
       sendCreateFileHeader();
-
-      startPrefetchingOfEnabledReadModeFiles();
+      if (!hasServer) startPrefetchingOfEnabledReadModeFiles();
     }
    }
 
@@ -548,8 +656,8 @@ namespace xios {
       const vector<CFile*> allFiles=CFile::getAll();
       const vector<CGrid*> allGrids= CGrid::getAll();
 
-     //if (hasClient && !hasServer)
-      if (hasClient)
+      if (hasClient && !hasServer)
+      //if (hasClient)
       {
         for (unsigned int i = 0; i < allFiles.size(); i++)
           allFiles[i]->solveFieldRefInheritance(apply);
@@ -645,20 +753,43 @@ namespace xios {
       }
    }
 
+//   // Only send close definition from process having hasClient
+//   void CContext::sendCloseDefinitionToServer(void)
+//   {
+//     CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
+//   }
+
    //! Client side: Send a message to server to make it close
    void CContext::sendCloseDefinition(void)
    {
      CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
-     if (client->isServerLeader())
+     if (!hasServer)
      {
-       CMessage msg;
-       msg<<this->getIdServer();
-       const std::list<int>& ranks = client->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg);
-       client->sendEvent(event);
+       if (client->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         client->sendEvent(event);
+       }
+       else client->sendEvent(event);
      }
-     else client->sendEvent(event);
+     else
+     {
+       if (clientPrimServer->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         clientPrimServer->sendEvent(event);
+       }
+       else clientPrimServer->sendEvent(event);
+
+     }
    }
 
    //! Server side: Receive a message of client announcing a context close
@@ -674,9 +805,9 @@ namespace xios {
    //! Client side: Send a message to update calendar in each time step
    void CContext::sendUpdateCalendar(int step)
    {
+     CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
      if (!hasServer)
      {
-       CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
        if (client->isServerLeader())
        {
          CMessage msg;
@@ -687,6 +818,19 @@ namespace xios {
          client->sendEvent(event);
        }
        else client->sendEvent(event);
+     }
+     else
+     {
+       if (clientPrimServer->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer()<<step;
+         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         clientPrimServer->sendEvent(event);
+       }
+       else clientPrimServer->sendEvent(event);
      }
    }
 
@@ -711,16 +855,33 @@ namespace xios {
    void CContext::sendCreateFileHeader(void)
    {
      CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER);
-     if (client->isServerLeader())
+
+     if (!hasServer)
      {
-       CMessage msg;
-       msg<<this->getIdServer();
-       const std::list<int>& ranks = client->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg) ;
-       client->sendEvent(event);
+       if (client->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg) ;
+         client->sendEvent(event);
+       }
+       else client->sendEvent(event);
      }
-     else client->sendEvent(event);
+     else
+     {
+       if (clientPrimServer->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg) ;
+         clientPrimServer->sendEvent(event);
+       }
+       else clientPrimServer->sendEvent(event);
+     }
    }
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
@@ -741,19 +902,36 @@ namespace xios {
    //! Client side: Send a message to do some post processing on server
    void CContext::sendPostProcessing()
    {
-     if (!hasServer)
+     if (hasClient)
      {
-       CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-       if (client->isServerLeader())
+       if (!hasServer)
        {
-         CMessage msg;
-         msg<<this->getIdServer();
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
+         CEventClient event(getType(),EVENT_ID_POST_PROCESS);
+         if (client->isServerLeader())
+         {
+           CMessage msg;
+           msg<<this->getIdServer();
+           const std::list<int>& ranks = client->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             event.push(*itRank,1,msg);
+           client->sendEvent(event);
+         }
+         else client->sendEvent(event);
        }
-       else client->sendEvent(event);
+       else
+       {
+         CEventClient event(getType(),EVENT_ID_POST_PROCESS);
+         if (clientPrimServer->isServerLeader())
+         {
+           CMessage msg;
+           msg<<this->getIdServer();
+           const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             event.push(*itRank,1,msg);
+           clientPrimServer->sendEvent(event);
+         }
+         else clientPrimServer->sendEvent(event);
+       }
      }
    }
 
@@ -805,6 +983,8 @@ namespace xios {
       // Find all inheritance in xml structure
       this->solveAllInheritance();
 
+      ShowTree(info(10));
+
       // Check if some axis, domains or grids are eligible to for compressed indexed output.
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
       checkAxisDomainsGridsEligibilityForCompressedOutput();
@@ -821,6 +1001,7 @@ namespace xios {
       this->findAllEnabledFields();
       this->findAllEnabledFieldsInReadModeFiles();
 
+//     if (hasClient)
      if (hasClient && !hasServer)
      {
       // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
@@ -1186,7 +1367,6 @@ namespace xios {
   }
 
 
-
      //! Server side: Receive a message to do some post processing
   void CContext::recvRegistry(CEventServer& event)
   {
@@ -1211,17 +1391,35 @@ namespace xios {
     registryOut->hierarchicalGatherRegistry() ;
 
     CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
-    if (client->isServerLeader())
+    if (!hasServer)
     {
-       CMessage msg ;
-       msg<<this->getIdServer();
-       if (client->clientRank==0) msg<<*registryOut ;
-       const std::list<int>& ranks = client->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg);
-       client->sendEvent(event);
-     }
-     else client->sendEvent(event);
+      if (client->isServerLeader())
+      {
+         CMessage msg ;
+         msg<<this->getIdServer();
+         if (client->clientRank==0) msg<<*registryOut ;
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         client->sendEvent(event);
+       }
+       else client->sendEvent(event);
+    }
+    else
+    {
+      if (clientPrimServer->isServerLeader())
+      {
+         CMessage msg ;
+         msg<<this->getIdServer();
+         if (clientPrimServer->clientRank==0) msg<<*registryOut ;
+         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         clientPrimServer->sendEvent(event);
+       }
+       else clientPrimServer->sendEvent(event);
+
+    }
   }
 
 } // namespace xios

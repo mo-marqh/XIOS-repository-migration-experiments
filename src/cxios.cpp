@@ -15,11 +15,16 @@ namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;
+  string CXios::xiosCodeIdPrm="xios.x.1" ;
+  string CXios::xiosCodeIdSnd="xios.x.2" ;
   string CXios::clientFile="./xios_client";
   string CXios::serverFile="./xios_server";
+  string CXios::serverPrimFile="./xios_server1";
+  string CXios::serverScndFile="./xios_server2";
 
   bool CXios::isClient ;
   bool CXios::isServer ;
+  int CXios::serverLevel = 0 ;
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
@@ -126,11 +131,16 @@ namespace xios
   }
 
   //! Initialize server then put it into listening state
-  void CXios::initServerSide(void)
+  void CXios::initServerSide(int serverLvl)
   {
     initServer();
-    isClient = false;
+    if (serverLvl == 1)
+      isClient = true;
+    else
+      isClient = false;
+
     isServer = true;
+    serverLevel = serverLvl;
 
     // Initialize all aspects MPI
     CServer::initialize();
@@ -138,8 +148,21 @@ namespace xios
     
     if (printLogs2Files)
     {
-      CServer::openInfoStream(serverFile);
-      CServer::openErrorStream(serverFile);
+      if (CXios::serverLevel == 0)
+      {
+        CServer::openInfoStream(serverFile);
+        CServer::openErrorStream(serverFile);
+      }
+      else if (CXios::serverLevel == 1)
+      {
+        CServer::openInfoStream(serverPrimFile);
+        CServer::openErrorStream(serverPrimFile);
+      }
+      else
+      {
+        CServer::openInfoStream(serverScndFile);
+        CServer::openErrorStream(serverScndFile);
+      }
     }
     else
     {
@@ -172,6 +195,12 @@ namespace xios
   {
     usingServer = true;
   }
+
+  //! Set using secondary server
+//  void CXios::setUsingSecondaryServer()
+//  {
+//    usingSecondaryServer = true;
+//  }
 
   //! Unset using server
   void CXios::setNotUsingServer()

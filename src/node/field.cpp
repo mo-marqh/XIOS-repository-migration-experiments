@@ -121,7 +121,8 @@ namespace xios{
     CTimer::get("XIOS Send Data").resume();
 
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
+//    CContextClient* client = context->client;
+    CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer;
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
@@ -194,6 +195,8 @@ namespace xios{
 
   void  CField::recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers)
   {
+    CContext* context = CContext::getCurrent();
+
     if (data_srv.empty())
     {
       for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
@@ -204,7 +207,6 @@ namespace xios{
       }
     }
 
-    CContext* context = CContext::getCurrent();
     const CDate& currDate = context->getCalendar()->getCurrentDate();
     const CDate opeDate      = last_operation_srv +freq_op + freq_operation_srv - freq_op;
     const CDate writeDate    = last_Write_srv     + freq_write_srv;
@@ -228,9 +230,32 @@ namespace xios{
       }
 
       last_Write_srv = writeDate;
-      writeField();
-      lastlast_Write_srv = last_Write_srv;
     }
+
+    if (context->hasClient && context->hasServer)
+    {
+      size_t writtenSize;
+//      if (field->getUseCompressedOutput())
+//        writtenSize = grid->getNumberWrittenIndexes();
+//      else
+        writtenSize = grid->getWrittenDataSize();
+
+      CArray<double,1> fieldData(writtenSize);
+//      if (!field->default_value.isEmpty()) fieldData = field->default_value;
+
+//      if (field->getUseCompressedOutput())
+//        field->outputCompressedField(fieldData);
+//      else
+        this->outputField(fieldData);
+      sendUpdateData(fieldData);
+    }
+    if (!context->hasClient && context->hasServer)
+    {
+      writeField();
+    }
+
+    lastlast_Write_srv = last_Write_srv;
+
   }
 
   void CField::writeField(void)
@@ -502,17 +527,20 @@ namespace xios{
      {
         isReferenceSolved = true;
 
-        if (context->hasClient)
+        if (context->hasClient && !context->hasServer)
+//        if (context->hasClient)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField(false);
         }
-        else if (context->hasServer)
+//        else if (context->hasServer)
+        if (context->hasServer)
           solveServerOperation();
 
         solveGridReference();
 
-       if (context->hasClient)
+        if (context->hasClient && !context->hasServer)
+//       if (context->hasClient)
        {
          solveGenerateGrid();
          buildGridTransformationGraph();
@@ -527,7 +555,8 @@ namespace xios{
    void CField::buildGridTransformationGraph()
    {
      CContext* context = CContext::getCurrent();
-     if (context->hasClient)
+     if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
      {
        if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        {
@@ -542,7 +571,8 @@ namespace xios{
    void CField::generateNewTransformationGridDest()
    {
      CContext* context = CContext::getCurrent();
-     if (context->hasClient)
+     if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
      {
        std::map<CGrid*,std::pair<bool,StdString> >& gridSrcMap = grid->getTransGridSource();
        if (1 < gridSrcMap.size())
@@ -627,12 +657,14 @@ namespace xios{
      {
         areAllReferenceSolved = true;
 
-        if (context->hasClient)
+//        if (context->hasClient)
+        if (context->hasClient && !context->hasServer)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
-        else if (context->hasServer)
+//        else if (context->hasServer)
+        if (context->hasServer && !context->hasClient)
           solveServerOperation();
 
         solveGridReference();
@@ -640,7 +672,7 @@ namespace xios{
 
      solveGridDomainAxisRef(doSending2Server);
 
-     if (context->hasClient)
+     if (context->hasClient && !context->hasClient)
      {
        solveTransformedGrid();
      }

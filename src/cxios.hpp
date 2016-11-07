@@ -15,7 +15,7 @@ namespace xios
     public:
      static void initialize(void) ;
      static void initClientSide(const string & codeId, MPI_Comm& localComm, MPI_Comm& returnComm) ;
-     static void initServerSide(void) ;
+     static void initServerSide(int serverLevel) ;
      static void clientFinalize(void) ;
      static void parseFile(const string& filename) ;
 
@@ -28,11 +28,17 @@ namespace xios
     public:
      static string rootFile ; //!< Configuration filename
      static string xiosCodeId ; //!< Identity for XIOS
-     static string clientFile; //!< Filename template for client
-     static string serverFile; //!< Filename template for server
+     static string xiosCodeIdPrm ; //!< Identity for XIOS primary server
+     static string xiosCodeIdSnd ; //!< Identity for XIOS secondary server
+     static string clientFile;        //!< Filename template for client
+     static string serverFile;        //!< Filename template for server
+     static string serverPrimFile;  //!< Filename template for primary server in case of two server groups
+     static string serverScndFile;  //!< Filename template for secondary server in case of two server groups
 
      static bool isClient ; //!< Check if xios is client
-     static bool isServer ; //!< Check if xios is server
+     static bool isServer ; //!< Check if xios is primary server
+
+     static int serverLevel ; //
 
      static MPI_Comm globalComm ; //!< Global communicator
 
@@ -48,6 +54,9 @@ namespace xios
     public:
      //! Setting xios to use server mode
      static void setUsingServer();
+
+     //! Setting xios to use secondary server mode
+//     static void setUsingSecondaryServer();
 
      //! Setting xios NOT to use server mode
      static void setNotUsingServer();

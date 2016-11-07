@@ -87,8 +87,8 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          bool isInitialized(void);
 
          // Put sever or client into loop state
@@ -136,7 +136,9 @@ namespace xios {
          void sendRefDomainsAxis();
          void sendRefGrid();
          void sendPostProcessing();
-         void sendRegistry(void) ; //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
+         //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
+         void sendRegistry(void) ;
+
          const StdString& getIdServer();
 
          // Client side: Receive and process messages
@@ -150,7 +152,7 @@ namespace xios {
          static void recvPostProcessing(CEventServer& event);
          void recvPostProcessing(CBufferIn& buffer);
          static void recvRegistry(CEventServer& event) ;
-         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the root process of the servers
+         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -215,13 +217,17 @@ namespace xios {
          // Determine context on server or not
          bool hasServer;
 
-         // Concrete context server
-         CContextServer* server;
-
          // Concrete contex client
          CContextClient* client;
          CRegistry* registryIn ;  //!< input registry which is read from file
          CRegistry* registryOut ; //!< output registry which will be wrote on file at the finalize
+
+         // Concrete context server
+         CContextServer* server;
+
+         // Client-server pair in case of secondary server pool
+         CContextClient* clientPrimServer;
+         CContextServer* serverPrimServer;
 
       private:
          bool isPostProcessed;
