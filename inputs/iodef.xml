@@ -5,13 +5,13 @@
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-28 15:00:00 + 1d" />
 
 
-   <field_definition level="1" enabled=".FALSE.">
+   <field_definition level="1" enabled=".TRUE.">
      <field id="field_A"  operation="average" freq_op="3600s" grid_ref="grid_A"/>
      <field id="field_A_zoom"  operation="average" freq_op="3600s" field_ref="field_A" grid_ref="grid_A_zoom"/>
    </field_definition>
 
 
-   <file_definition type="multiple_file" par_access="collective" output_freq="6h" output_level="10" enabled=".TRUE.">
+   <file_definition type="one_file" par_access="collective" output_freq="1h" output_level="10" enabled=".TRUE.">
      <file id="output" name="output">
         <field field_ref="field_A" name="field_A" />
      </file>

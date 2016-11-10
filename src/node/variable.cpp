@@ -81,23 +81,45 @@ namespace xios {
    void CVariable::sendValue()
    {
      CContext* context=CContext::getCurrent() ;
-     if (!context->hasServer)
+
+     if (context->hasClient)
      {
-       CContextClient* client=context->client ;
+           // Use correct context client to send message
+       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
+                                                                           : context->client;
 
        CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
-       if (client->isServerLeader())
+       if (contextClientTmp->isServerLeader())
        {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<content ;
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event) ;
+         contextClientTmp->sendEvent(event) ;
        }
-       else client->sendEvent(event) ;
+       else contextClientTmp->sendEvent(event) ;
     }
+
+
+    //  if (!context->hasServer)
+    //  {
+    //    CContextClient* client=context->client ;
+
+    //    CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg ;
+    //      msg<<this->getId() ;
+    //      msg<<content ;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event) ;
+    //    }
+    //    else client->sendEvent(event) ;
+    // }
    }
 
    /*

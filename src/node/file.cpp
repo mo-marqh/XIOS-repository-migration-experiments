@@ -825,25 +825,26 @@ namespace xios {
    */
    void CFile::sendAddField(const string& id)
    {
-    CContext* context = CContext::getCurrent();
+      sendAddItem(id, EVENT_ID_ADD_FIELD);
+    // CContext* context = CContext::getCurrent();
 
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
 
    }
 
@@ -853,24 +854,25 @@ namespace xios {
    */
    void CFile::sendAddFieldGroup(const string& id)
    {
-    CContext* context = CContext::getCurrent();
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
+      sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP);
+    // CContext* context = CContext::getCurrent();
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
 
    }
 
@@ -949,25 +951,26 @@ namespace xios {
    */
    void CFile::sendAddVariable(const string& id)
    {
-    CContext* context = CContext::getCurrent();
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
+    // CContext* context = CContext::getCurrent();
 
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
 
    }
 
@@ -977,24 +980,25 @@ namespace xios {
    */
    void CFile::sendAddVariableGroup(const string& id)
    {
-    CContext* context = CContext::getCurrent();
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
+    // CContext* context = CContext::getCurrent();
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
 
    }
 

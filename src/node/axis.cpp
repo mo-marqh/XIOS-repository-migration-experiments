@@ -844,12 +844,56 @@ namespace xios {
     }
   }
 
+  // void CAxis::sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
+  //                                CServerDistributionDescription::ServerDistributionType distType)
+  // {
+  //   CContext* context = CContext::getCurrent();
+  //   CContextClient* client = context->client;
+  //   int nbServer = client->serverSize;
+
+  //   CServerDistributionDescription serverDescription(globalDim, nbServer);
+  //   serverDescription.computeServerDistribution();
+
+  //   std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+  //   std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+  //   CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
+  //   if (client->isServerLeader())
+  //   {
+  //     std::list<CMessage> msgs;
+
+  //     const std::list<int>& ranks = client->getRanksServerLeader();
+  //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+  //     {
+  //       // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+  //       const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
+  //       const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
+  //       const int end   = begin + ni - 1;
+
+  //       msgs.push_back(CMessage());
+  //       CMessage& msg = msgs.back();
+  //       msg << this->getId();
+  //       msg << ni << begin << end;
+  //       msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
+  //       msg << isCompressible_;
+
+  //       event.push(*itRank,1,msg);
+  //     }
+  //     client->sendEvent(event);
+  //   }
+  //   else client->sendEvent(event);
+  // }
+
   void CAxis::sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
                                  CServerDistributionDescription::ServerDistributionType distType)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
-    int nbServer = client->serverSize;
+
+    CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
+                                                                        : context->client;
+
+    
+    int nbServer = contextClientTmp->serverSize;
 
     CServerDistributionDescription serverDescription(globalDim, nbServer);
     serverDescription.computeServerDistribution();
@@ -857,12 +901,15 @@ namespace xios {
     std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
+    globalDimGrid.resize(globalDim.size());
+    for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
+
     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-    if (client->isServerLeader())
+    if (contextClientTmp->isServerLeader())
     {
       std::list<CMessage> msgs;
 
-      const std::list<int>& ranks = client->getRanksServerLeader();
+      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
         // Use const int to ensure CMessage holds a copy of the value instead of just a reference
@@ -876,12 +923,14 @@ namespace xios {
         msg << ni << begin << end;
         msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
         msg << isCompressible_;
+        msg << orderPositionInGrid;
+        msg << globalDimGrid;
 
         event.push(*itRank,1,msg);
       }
-      client->sendEvent(event);
+      contextClientTmp->sendEvent(event);
     }
-    else client->sendEvent(event);
+    else contextClientTmp->sendEvent(event);
   }
 
   void CAxis::recvServerAttribut(CEventServer& event)
@@ -890,6 +939,15 @@ namespace xios {
     string axisId;
     *buffer >> axisId;
     get(axisId)->recvServerAttribut(*buffer);
+
+    CContext* context = CContext::getCurrent();
+    if (context->hasClient && context->hasServer)
+    {
+      std::vector<int> globalDim(get(axisId)->globalDimGrid.numElements());
+      for (int idx = 0; idx < globalDim.size(); ++idx) globalDim[idx] = get(axisId)->globalDimGrid(idx);
+      get(axisId)->sendServerAttribut(globalDim, get(axisId)->orderPosInGrid, 
+                                      CServerDistributionDescription::BAND_DISTRIBUTION);
+    }
   }
 
   void CAxis::recvServerAttribut(CBufferIn& buffer)
@@ -899,6 +957,9 @@ namespace xios {
     buffer >> ni_srv >> begin_srv >> end_srv;
     buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;
     buffer >> isCompressible_;
+    buffer >> orderPosInGrid;
+    buffer >> globalDimGrid;
+
     global_zoom_begin = global_zoom_begin_tmp;
     global_zoom_n  = global_zoom_n_tmp;
     int global_zoom_end = global_zoom_begin + global_zoom_n - 1;

@@ -520,12 +520,12 @@ namespace xios {
        sendPostProcessing();
      }
 
+    // We have a xml tree on the server side and now, it should be also processed
+   // if (hasClient && !hasServer) sendPostProcessing();
+
 //     // Now tell server that it can process all messages from client
 // //    if (hasClient && !hasServer) this->sendCloseDefinition();
      if (hasClient) this->sendCloseDefinition();
-
-    // We have a xml tree on the server side and now, it should be also processed
-//    if (hasClient && !hasServer) sendPostProcessing();
 
     // There are some processings that should be done after all of above. For example: check mask or index
      if (hasClient && !hasServer)
@@ -535,6 +535,8 @@ namespace xios {
       buildFilterGraphOfFieldsWithReadAccess();
       this->solveAllRefOfEnabledFields(true);
     }
+
+
 
 //    // Now tell server that it can process all messages from client
 ////    if (hasClient && !hasServer) this->sendCloseDefinition();
@@ -762,76 +764,107 @@ namespace xios {
    //! Client side: Send a message to server to make it close
    void CContext::sendCloseDefinition(void)
    {
+     // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
      CEventClient event(getType(),EVENT_ID_CLOSE_DEFINITION);
-     if (!hasServer)
-     {
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg<<this->getIdServer();
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-     }
-     else
-     {
-       if (clientPrimServer->isServerLeader())
-       {
-         CMessage msg;
-         msg<<this->getIdServer();
-         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         clientPrimServer->sendEvent(event);
-       }
-       else clientPrimServer->sendEvent(event);
 
+     if (contextClientTmp->isServerLeader())
+     {
+       CMessage msg;
+       msg<<this->getIdServer();
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event);
      }
+     else contextClientTmp->sendEvent(event);
+
+     // if (!hasServer)
+     // {
+     //   if (client->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer();
+     //     const std::list<int>& ranks = client->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg);
+     //     client->sendEvent(event);
+     //   }
+     //   else client->sendEvent(event);
+     // }
+     // else
+     // {
+     //   if (clientPrimServer->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer();
+     //     const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg);
+     //     clientPrimServer->sendEvent(event);
+     //   }
+     //   else clientPrimServer->sendEvent(event);
+
+     // }
    }
 
    //! Server side: Receive a message of client announcing a context close
    void CContext::recvCloseDefinition(CEventServer& event)
    {
-
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->closeDefinition();
+      if (get(id)->hasClient && get(id)->hasServer)
+      {        
+        get(id)->sendCloseDefinition();
+      }
    }
 
    //! Client side: Send a message to update calendar in each time step
    void CContext::sendUpdateCalendar(int step)
    {
+     // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
      CEventClient event(getType(),EVENT_ID_UPDATE_CALENDAR);
-     if (!hasServer)
-     {
-       if (client->isServerLeader())
+
+       if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
          msg<<this->getIdServer()<<step;
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event);
+         contextClientTmp->sendEvent(event);
        }
-       else client->sendEvent(event);
-     }
-     else
-     {
-       if (clientPrimServer->isServerLeader())
-       {
-         CMessage msg;
-         msg<<this->getIdServer()<<step;
-         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         clientPrimServer->sendEvent(event);
-       }
-       else clientPrimServer->sendEvent(event);
-     }
+       else contextClientTmp->sendEvent(event);
+
+     // if (!hasServer)
+     // {
+     //   if (client->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer()<<step;
+     //     const std::list<int>& ranks = client->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg);
+     //     client->sendEvent(event);
+     //   }
+     //   else client->sendEvent(event);
+     // }
+     // else
+     // {
+     //   if (clientPrimServer->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer()<<step;
+     //     const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg);
+     //     clientPrimServer->sendEvent(event);
+     //   }
+     //   else clientPrimServer->sendEvent(event);
+     // }
    }
 
    //! Server side: Receive a message of client annoucing calendar update
@@ -849,39 +882,56 @@ namespace xios {
       int step;
       buffer>>step;
       updateCalendar(step);
+      if (hasClient && hasServer)
+      {        
+        sendUpdateCalendar(step);
+      }
    }
 
    //! Client side: Send a message to create header part of netcdf file
    void CContext::sendCreateFileHeader(void)
    {
+     // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
      CEventClient event(getType(),EVENT_ID_CREATE_FILE_HEADER);
 
-     if (!hasServer)
+     if (contextClientTmp->isServerLeader())
      {
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg<<this->getIdServer();
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg) ;
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
+       CMessage msg;
+       msg<<this->getIdServer();
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg) ;
+       contextClientTmp->sendEvent(event);
      }
-     else
-     {
-       if (clientPrimServer->isServerLeader())
-       {
-         CMessage msg;
-         msg<<this->getIdServer();
-         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg) ;
-         clientPrimServer->sendEvent(event);
-       }
-       else clientPrimServer->sendEvent(event);
-     }
+     else contextClientTmp->sendEvent(event);
+
+     // if (!hasServer)
+     // {
+     //   if (client->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer();
+     //     const std::list<int>& ranks = client->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg) ;
+     //     client->sendEvent(event);
+     //   }
+     //   else client->sendEvent(event);
+     // }
+     // else
+     // {
+     //   if (clientPrimServer->isServerLeader())
+     //   {
+     //     CMessage msg;
+     //     msg<<this->getIdServer();
+     //     const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       event.push(*itRank,1,msg) ;
+     //     clientPrimServer->sendEvent(event);
+     //   }
+     //   else clientPrimServer->sendEvent(event);
+     // }
    }
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
@@ -896,43 +946,65 @@ namespace xios {
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    {
-      createFileHeader();
+     // The creation of header file should be delegated to server2, for now
+      if (hasClient && hasServer)
+      {        
+        sendCreateFileHeader();
+      }
+      
+      if (!hasClient && hasServer) 
+        createFileHeader();
    }
 
    //! Client side: Send a message to do some post processing on server
    void CContext::sendPostProcessing()
    {
-     if (hasClient)
+      // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
+     CEventClient event(getType(),EVENT_ID_POST_PROCESS);
+
+     if (contextClientTmp->isServerLeader())
      {
-       if (!hasServer)
-       {
-         CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-         if (client->isServerLeader())
-         {
-           CMessage msg;
-           msg<<this->getIdServer();
-           const std::list<int>& ranks = client->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             event.push(*itRank,1,msg);
-           client->sendEvent(event);
-         }
-         else client->sendEvent(event);
-       }
-       else
-       {
-         CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-         if (clientPrimServer->isServerLeader())
-         {
-           CMessage msg;
-           msg<<this->getIdServer();
-           const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             event.push(*itRank,1,msg);
-           clientPrimServer->sendEvent(event);
-         }
-         else clientPrimServer->sendEvent(event);
-       }
+       CMessage msg;
+       msg<<this->getIdServer();
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event);
      }
+     else contextClientTmp->sendEvent(event);
+
+     // if (hasClient)
+     // {
+     //   if (!hasServer)
+     //   {
+     //     CEventClient event(getType(),EVENT_ID_POST_PROCESS);
+     //     if (client->isServerLeader())
+     //     {
+     //       CMessage msg;
+     //       msg<<this->getIdServer();
+     //       const std::list<int>& ranks = client->getRanksServerLeader();
+     //       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //         event.push(*itRank,1,msg);
+     //       client->sendEvent(event);
+     //     }
+     //     else client->sendEvent(event);
+     //   }
+     //   else
+     //   {
+     //     CEventClient event(getType(),EVENT_ID_POST_PROCESS);
+     //     if (clientPrimServer->isServerLeader())
+     //     {
+     //       CMessage msg;
+     //       msg<<this->getIdServer();
+     //       const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+     //       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //         event.push(*itRank,1,msg);
+     //       clientPrimServer->sendEvent(event);
+     //     }
+     //     else clientPrimServer->sendEvent(event);
+     //   }
+     // }
    }
 
    //! Server side: Receive a message to do some post processing
@@ -1387,39 +1459,52 @@ namespace xios {
   }
 
   void CContext::sendRegistry(void)
-  {
+  {    
     registryOut->hierarchicalGatherRegistry() ;
 
+          // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
     CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
-    if (!hasServer)
-    {
-      if (client->isServerLeader())
+          if (contextClientTmp->isServerLeader())
       {
          CMessage msg ;
          msg<<this->getIdServer();
-         if (client->clientRank==0) msg<<*registryOut ;
+         if (contextClientTmp->clientRank==0) msg<<*registryOut ;
          const std::list<int>& ranks = client->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event);
+         contextClientTmp->sendEvent(event);
        }
-       else client->sendEvent(event);
-    }
-    else
-    {
-      if (clientPrimServer->isServerLeader())
-      {
-         CMessage msg ;
-         msg<<this->getIdServer();
-         if (clientPrimServer->clientRank==0) msg<<*registryOut ;
-         const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         clientPrimServer->sendEvent(event);
-       }
-       else clientPrimServer->sendEvent(event);
+       else contextClientTmp->sendEvent(event);
 
-    }
+    // if (!hasServer)
+    // {
+    //   if (client->isServerLeader())
+    //   {
+    //      CMessage msg ;
+    //      msg<<this->getIdServer();
+    //      if (client->clientRank==0) msg<<*registryOut ;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
+    // else
+    // {
+    //   if (clientPrimServer->isServerLeader())
+    //   {
+    //      CMessage msg ;
+    //      msg<<this->getIdServer();
+    //      if (clientPrimServer->clientRank==0) msg<<*registryOut ;
+    //      const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      clientPrimServer->sendEvent(event);
+    //    }
+    //    else clientPrimServer->sendEvent(event);
+    // }
   }
 
 } // namespace xios

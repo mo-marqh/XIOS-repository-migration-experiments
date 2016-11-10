@@ -57,6 +57,7 @@ namespace xios
          void sendAttributToServer(const string& id);
          void sendAttributToServer(CAttribute& attr) ;
          void sendAllAttributesToServer();
+         void sendAddItem(const string& id, int itemType);
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 

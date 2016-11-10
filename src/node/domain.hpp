@@ -41,15 +41,17 @@ namespace xios {
       : public CObjectTemplate<CDomain>
       , public CDomainAttributes
    {
-
+               /// typedef ///
+         typedef CObjectTemplate<CDomain>   SuperClass;
+         typedef CDomainAttributes SuperClassAttribute;
+         
+      public :
          enum EEventId
          {
            EVENT_ID_SERVER_ATTRIBUT, EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, EVENT_ID_AREA
          } ;
 
-         /// typedef ///
-         typedef CObjectTemplate<CDomain>   SuperClass;
-         typedef CDomainAttributes SuperClassAttribute;
+
 
       public:
 

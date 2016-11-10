@@ -37,6 +37,11 @@ namespace xios {
       : public CObjectTemplate<CAxis>
       , public CAxisAttributes
    {
+               /// typedef ///
+         typedef CObjectTemplate<CAxis>   SuperClass;
+         typedef CAxisAttributes SuperClassAttribute;
+         
+      public :
          enum EEventId
          {
            EVENT_ID_SERVER_ATTRIBUT,
@@ -45,9 +50,7 @@ namespace xios {
            EVENT_ID_NON_DISTRIBUTED_VALUE
          } ;
 
-         /// typedef ///
-         typedef CObjectTemplate<CAxis>   SuperClass;
-         typedef CAxisAttributes SuperClassAttribute;
+
 
       public :
 
@@ -123,6 +126,8 @@ namespace xios {
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
         bool hasValue;
+        CArray<int,1> globalDimGrid;
+        int orderPosInGrid;
 
       private:
          void checkData();

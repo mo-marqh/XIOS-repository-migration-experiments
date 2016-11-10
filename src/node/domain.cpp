@@ -1394,8 +1394,12 @@ namespace xios {
   void CDomain::sendServerAttribut(void)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
-    int nbServer = client->serverSize;
+     // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
+                                                                         : context->client;
+
+    // CContextClient* client = context->client;
+    int nbServer = contextClientTmp->serverSize;
 
     CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
     if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
@@ -1405,11 +1409,11 @@ namespace xios {
     std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
     CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-    if (client->isServerLeader())
+    if (contextClientTmp->isServerLeader())
     {
       std::list<CMessage> msgs;
 
-      const std::list<int>& ranks = client->getRanksServerLeader();
+      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
       {
         // Use const int to ensure CMessage holds a copy of the value instead of just a reference
@@ -1429,9 +1433,9 @@ namespace xios {
 
         event.push(*itRank,1,msg);
       }
-      client->sendEvent(event);
+      contextClientTmp->sendEvent(event);
     }
-    else client->sendEvent(event);
+    else contextClientTmp->sendEvent(event);
   }
 
   void CDomain::computeNGlobDomain()
@@ -1851,6 +1855,13 @@ namespace xios {
     string domainId ;
     *buffer>>domainId ;
     get(domainId)->recvServerAttribut(*buffer) ;
+    
+    CContext* context = CContext::getCurrent();
+    if (context->hasClient && context->hasServer)
+    {
+      get(domainId)->sendServerAttribut();
+    }
+
   }
 
   /*!

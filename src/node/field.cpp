@@ -1250,47 +1250,49 @@ namespace xios{
 
    void CField::sendAddVariable(const string& id)
    {
-    CContext* context = CContext::getCurrent();
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
+    // CContext* context = CContext::getCurrent();
 
-    if (!context->hasServer)
-    {
-       CContextClient* client = context->client;
+    // if (!context->hasServer)
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
    }
 
    void CField::sendAddVariableGroup(const string& id)
    {
-    CContext* context = CContext::getCurrent();
-    if (!context->hasServer)
-    {
-       CContextClient* client = context->client;
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
+    // CContext* context = CContext::getCurrent();
+    // if (!context->hasServer)
+    // {
+    //    CContextClient* client = context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
    }
 
    void CField::recvAddVariable(CEventServer& event)

@@ -163,10 +163,15 @@ namespace xios
    template<typename T>
    std::map<int, size_t> CObjectTemplate<T>::getMinimumBufferSizeForAttributes()
    {
-     CContextClient* client = CContext::getCurrent()->client;
+     // CContextClient* client = CContext::getCurrent()->client;
+     CContext* context = CContext::getCurrent();
+
+          // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+
      std::map<int, size_t> minimumSizes;
 
-     if (client->isServerLeader())
+     if (contextClientTmp->isServerLeader())
      {
        size_t minimumSize = 0;
        CAttributeMap& attrMap = *this;
@@ -186,11 +191,37 @@ namespace xios
          // Account for extra header info
          minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
 
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            minimumSizes.insert(std::make_pair(*itRank, minimumSize));
        }
      }
+
+     // if (client->isServerLeader())
+     // {
+     //   size_t minimumSize = 0;
+     //   CAttributeMap& attrMap = *this;
+     //   CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+     //   for (; it != itE; ++it)
+     //   {
+     //     if (!it->second->isEmpty())
+     //     {
+     //       size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
+     //       if (size > minimumSize)
+     //         minimumSize = size;
+     //     }
+     //   }
+
+     //   if (minimumSize)
+     //   {
+     //     // Account for extra header info
+     //     minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
+
+     //     const std::list<int>& ranks = client->getRanksServerLeader();
+     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+     //       minimumSizes.insert(std::make_pair(*itRank, minimumSize));
+     //   }
+     // }
 
      return minimumSizes;
    }
@@ -219,26 +250,81 @@ namespace xios
   {
     CContext* context=CContext::getCurrent();
 
-    if (!context->hasServer)
+     // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+
+    // if (!context->hasServer)
+    if (context->hasClient)
     {
-       CContextClient* client=context->client;
+       // CContextClient* contextClientTmp=context->contextClientTmp;
 
        CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
-       if (client->isServerLeader())
+       if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
 //       msg << this->getId();
          msg << this->getIdServer();
          msg << attr.getName();
          msg << attr;
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
-         client->sendEvent(event);
+         contextClientTmp->sendEvent(event);
        }
-       else client->sendEvent(event);
+       else contextClientTmp->sendEvent(event);
     }
 
+//     // if (!context->hasServer)
+//     if (context->hasClient)
+//     {
+//        CContextClient* client=context->client;
+
+//        CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
+//        if (client->isServerLeader())
+//        {
+//          CMessage msg;
+// //       msg << this->getId();
+//          msg << this->getIdServer();
+//          msg << attr.getName();
+//          msg << attr;
+//          const std::list<int>& ranks = client->getRanksServerLeader();
+//          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+//            event.push(*itRank,1,msg);
+//          client->sendEvent(event);
+//        }
+//        else client->sendEvent(event);
+//     }
+
+  }
+
+  /*!
+    This generic funtion only provides instance for sending, for receving, each 
+    child class must define itself.
+    \param [in] id Id of added item
+    \param [in] itemType type of added item
+  */
+  template<class T>
+  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType)
+  {
+    CContext* context = CContext::getCurrent();
+    typedef typename T::EEventId ItemType;
+    if (context->hasClient)
+    {
+       // Use correct context client to send message
+       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+       CEventClient event(this->getType(),ItemType(itemType));
+       if (contextClientTmp->isServerLeader())
+       {
+         CMessage msg;
+         msg << this->getId();
+         msg << id;
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         contextClientTmp->sendEvent(event);
+       }
+       else contextClientTmp->sendEvent(event);
+    }
   }
 
   template <class T>

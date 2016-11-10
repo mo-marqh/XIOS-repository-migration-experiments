@@ -372,25 +372,45 @@ namespace xios
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChild(const string& id)
    {
-    CContext* context=CContext::getCurrent() ;
-    
-    if (! context->hasServer )
+    CContext* context=CContext::getCurrent() ;  
+
+    if (context->hasClient)
+    // if (!context->hasServer )
     {
-       CContextClient* client=context->client ;
+      // Use correct context client to send message
+       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
 
        CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;   
-       if (client->isServerLeader())
+       if (contextClientTmp->isServerLeader())
        {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg) ;
-         client->sendEvent(event) ;
+         contextClientTmp->sendEvent(event) ;
        }
-       else client->sendEvent(event) ;
+       else contextClientTmp->sendEvent(event) ;
     }
+
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client=context->client ;
+
+    //    CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;   
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg ;
+    //      msg<<this->getId() ;
+    //      msg<<id ;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg) ;
+    //      client->sendEvent(event) ;
+    //    }
+    //    else client->sendEvent(event) ;
+    // }
       
    }
    
@@ -398,23 +418,44 @@ namespace xios
    void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
-    if (! context->hasServer )
+
+        // if (! context->hasServer )
+    if (context->hasClient)
     {
-       CContextClient* client=context->client ;
+        // Use correct context client to send message
+       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
 
        CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;   
-       if (client->isServerLeader())
+       if (contextClientTmp->isServerLeader())
        {
          CMessage msg ;
          msg<<this->getId() ;
          msg<<id ;
-         const std::list<int>& ranks = client->getRanksServerLeader();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg) ;
-         client->sendEvent(event) ;
+         contextClientTmp->sendEvent(event) ;
        }
-       else client->sendEvent(event) ;
+       else contextClientTmp->sendEvent(event) ;
     }
+
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client=context->client ;
+
+    //    CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;   
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg ;
+    //      msg<<this->getId() ;
+    //      msg<<id ;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg) ;
+    //      client->sendEvent(event) ;
+    //    }
+    //    else client->sendEvent(event) ;
+    // }
       
    }
    

@@ -30,14 +30,15 @@ namespace xios
          : public CObjectTemplate<CVariable>
          , public CVariableAttributes
       {
+                     /// typedef ///
+            typedef CObjectTemplate<CVariable>   SuperClass;
+            typedef CVariableAttributes SuperClassAttribute;
+            
+         public :
             enum EEventId
             {
              EVENT_ID_VARIABLE_VALUE
             };
-
-            /// typedef ///
-            typedef CObjectTemplate<CVariable>   SuperClass;
-            typedef CVariableAttributes SuperClassAttribute;
 
             friend class CVariableGroup;
 

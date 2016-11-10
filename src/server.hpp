@@ -13,6 +13,7 @@ namespace xios
     {
       public:
         static void initialize(void);
+        static void initialize(const StdString& serverId);
         static void finalize(void);
         static void eventLoop(void);
         static void contextEventLoop(void);

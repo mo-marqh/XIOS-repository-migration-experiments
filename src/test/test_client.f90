@@ -127,7 +127,7 @@ PROGRAM test_client
   CALL xios_close_context_definition()
 
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-  DO ts=1,24*10
+  DO ts=1,24
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
     CALL wait_us(5000) ;
