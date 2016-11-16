@@ -43,6 +43,32 @@ extern "C"
   }
 
 
+  void cxios_set_interpolate_domain_mode(interpolate_domain_Ptr interpolate_domain_hdl, const char * mode, int mode_size)
+  {
+    std::string mode_str;
+    if (!cstr2string(mode, mode_size, mode_str)) return;
+    CTimer::get("XIOS").resume();
+    interpolate_domain_hdl->mode.fromString(mode_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_domain_mode(interpolate_domain_Ptr interpolate_domain_hdl, char * mode, int mode_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(interpolate_domain_hdl->mode.getInheritedStringValue(), mode, mode_size))
+      ERROR("void cxios_get_interpolate_domain_mode(interpolate_domain_Ptr interpolate_domain_hdl, char * mode, int mode_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_domain_mode(interpolate_domain_Ptr interpolate_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_domain_hdl->mode.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_interpolate_domain_order(interpolate_domain_Ptr interpolate_domain_hdl, int order)
   {
     CTimer::get("XIOS").resume();

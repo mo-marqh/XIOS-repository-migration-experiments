@@ -66,6 +66,58 @@ extern "C"
   }
 
 
+  void cxios_set_field_cell_methods(field_Ptr field_hdl, const char * cell_methods, int cell_methods_size)
+  {
+    std::string cell_methods_str;
+    if (!cstr2string(cell_methods, cell_methods_size, cell_methods_str)) return;
+    CTimer::get("XIOS").resume();
+    field_hdl->cell_methods.setValue(cell_methods_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_cell_methods(field_Ptr field_hdl, char * cell_methods, int cell_methods_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(field_hdl->cell_methods.getInheritedValue(), cell_methods, cell_methods_size))
+      ERROR("void cxios_get_field_cell_methods(field_Ptr field_hdl, char * cell_methods, int cell_methods_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_cell_methods(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->cell_methods.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_field_cell_methods_mode(field_Ptr field_hdl, const char * cell_methods_mode, int cell_methods_mode_size)
+  {
+    std::string cell_methods_mode_str;
+    if (!cstr2string(cell_methods_mode, cell_methods_mode_size, cell_methods_mode_str)) return;
+    CTimer::get("XIOS").resume();
+    field_hdl->cell_methods_mode.fromString(cell_methods_mode_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_cell_methods_mode(field_Ptr field_hdl, char * cell_methods_mode, int cell_methods_mode_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(field_hdl->cell_methods_mode.getInheritedStringValue(), cell_methods_mode, cell_methods_mode_size))
+      ERROR("void cxios_get_field_cell_methods_mode(field_Ptr field_hdl, char * cell_methods_mode, int cell_methods_mode_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_cell_methods_mode(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->cell_methods_mode.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_compression_level(field_Ptr field_hdl, int compression_level)
   {
     CTimer::get("XIOS").resume();

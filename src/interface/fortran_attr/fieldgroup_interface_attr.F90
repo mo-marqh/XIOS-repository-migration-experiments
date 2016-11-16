@@ -49,6 +49,48 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_axis_ref
 
 
+    SUBROUTINE cxios_set_fieldgroup_cell_methods(fieldgroup_hdl, cell_methods, cell_methods_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: cell_methods
+      INTEGER  (kind = C_INT)     , VALUE        :: cell_methods_size
+    END SUBROUTINE cxios_set_fieldgroup_cell_methods
+
+    SUBROUTINE cxios_get_fieldgroup_cell_methods(fieldgroup_hdl, cell_methods, cell_methods_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: cell_methods
+      INTEGER  (kind = C_INT)     , VALUE        :: cell_methods_size
+    END SUBROUTINE cxios_get_fieldgroup_cell_methods
+
+    FUNCTION cxios_is_defined_fieldgroup_cell_methods(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_cell_methods
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_cell_methods
+
+
+    SUBROUTINE cxios_set_fieldgroup_cell_methods_mode(fieldgroup_hdl, cell_methods_mode, cell_methods_mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: cell_methods_mode
+      INTEGER  (kind = C_INT)     , VALUE        :: cell_methods_mode_size
+    END SUBROUTINE cxios_set_fieldgroup_cell_methods_mode
+
+    SUBROUTINE cxios_get_fieldgroup_cell_methods_mode(fieldgroup_hdl, cell_methods_mode, cell_methods_mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: cell_methods_mode
+      INTEGER  (kind = C_INT)     , VALUE        :: cell_methods_mode_size
+    END SUBROUTINE cxios_get_fieldgroup_cell_methods_mode
+
+    FUNCTION cxios_is_defined_fieldgroup_cell_methods_mode(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_cell_methods_mode
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_cell_methods_mode
+
+
     SUBROUTINE cxios_set_fieldgroup_compression_level(fieldgroup_hdl, compression_level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
