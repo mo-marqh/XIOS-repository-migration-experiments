@@ -40,7 +40,9 @@ namespace xios
       void releaseBuffers(void);
 
       bool isServerLeader(void) const;
+      bool isServerNotLeader(void) const;
       const std::list<int>& getRanksServerLeader(void) const;
+      const std::list<int>& getRanksServerNotLeader(void) const;
 
       bool isAttachedModeEnabled() const;
 
@@ -78,6 +80,9 @@ namespace xios
 
       //! List of server ranks for which the client is leader
       std::list<int> ranksServerLeader;
+
+      //! List of server ranks for which the client is not leader
+      std::list<int> ranksServerNotLeader;
 
     public: // Some function should be removed in the future
       //    void registerEvent(CEventClient& event);

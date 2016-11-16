@@ -49,6 +49,8 @@ namespace xios
 
         for (int i = 0; i < serverByClient; i++)
           ranksServerLeader.push_back(rankStart + i);
+
+        ranksServerNotLeader.resize(0);
       }
       else
       {
@@ -59,13 +61,17 @@ namespace xios
         {
           if (clientRank % (clientByServer + 1) == 0)
             ranksServerLeader.push_back(clientRank / (clientByServer + 1));
+          else
+            ranksServerNotLeader.push_back(clientRank / (clientByServer + 1));
         }
         else
         {
           int rank = clientRank - (clientByServer + 1) * remain;
           if (rank % clientByServer == 0)
             ranksServerLeader.push_back(remain + rank / clientByServer);
-        }
+          else
+            ranksServerNotLeader.push_back(remain + rank / clientByServer);
+        }        
       }
 
       timeLine = 0;
@@ -243,6 +249,24 @@ namespace xios
                           + size_t(minBufferSizeEventSizeRatio)  // one local buffer can always be fully used
                           + 1;                                   // the other local buffer might contain only one event
    }
+
+  /*!
+  Get leading server in the group of connected server
+  \return ranks of leading servers
+  */
+  const std::list<int>& CContextClient::getRanksServerNotLeader(void) const
+  {
+    return ranksServerNotLeader;
+  }
+
+  /*!
+  Check if client connects to leading server
+  \return connected(true), not connected (false)
+  */
+  bool CContextClient::isServerNotLeader(void) const
+  {
+    return !ranksServerNotLeader.empty();
+  }
 
   /*!
   Get leading server in the group of connected server

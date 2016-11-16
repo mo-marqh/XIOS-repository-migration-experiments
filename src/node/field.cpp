@@ -309,18 +309,64 @@ namespace xios{
     bool hasData = readField();
 
     map<int, CArray<double,1> >::iterator it;
-    for (it = data_srv.begin(); it != data_srv.end(); it++)
+    if (!grid->doGridHaveDataDistributed())
     {
-      msgs.push_back(CMessage());
-      CMessage& msg = msgs.back();
-      msg << getId();
-      if (hasData)
-        msg << getNStep() - 1 << it->second;
-      else
-        msg << int(-1);
-      event.push(it->first, grid->nbSenders[it->first], msg);
+       if (client->isServerLeader())
+       {
+          if (!data_srv.empty())
+          {
+            it = data_srv.begin();
+            const std::list<int>& ranks = client->getRanksServerLeader();
+            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+            {
+              msgs.push_back(CMessage());
+              CMessage& msg = msgs.back();
+              msg << getId();
+              if (hasData)
+                msg << getNStep() - 1 << it->second;
+              else
+                msg << int(-1);
+              event.push(*itRank, 1, msg);
+            }
+          }
+          client->sendEvent(event);
+       } 
+       else 
+       {
+          // if (!data_srv.empty())
+          // {
+          //   it = data_srv.begin();
+          //   const std::list<int>& ranks = client->getRanksServerNotLeader();
+          //   for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+          //   {
+          //     msgs.push_back(CMessage());
+          //     CMessage& msg = msgs.back();
+          //     msg << getId();
+          //     if (hasData)
+          //       msg << getNStep() - 1 << it->second;
+          //     else
+          //       msg << int(-1);
+          //     event.push(*itRank, 1, msg);
+          //   }
+          // }
+          client->sendEvent(event);
+       }
     }
-    client->sendEvent(event);
+    else
+    {
+      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << getId();
+        if (hasData)
+          msg << getNStep() - 1 << it->second;
+        else
+          msg << int(-1);
+        event.push(it->first, grid->nbSenders[it->first], msg);
+      }
+      client->sendEvent(event);
+    }
   }
 
   bool CField::readField(void)
