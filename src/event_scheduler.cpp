@@ -106,8 +106,6 @@ namespace xios
     
   }
   
-  
-  
   void CEventScheduler::checkParentRequest(void)
   {
     int completed ;
@@ -151,11 +149,12 @@ namespace xios
         size_t timeLine=recvRequest->buffer[0] ;
         size_t hashId=recvRequest->buffer[1] ;
         size_t lev=recvRequest->buffer[2] ;
-        delete recvRequest ;
+//        delete recvRequest ;
         pendingRecvParentRequest.pop() ;       
  
         if (lev==level) eventStack.push(pair<size_t,size_t>(timeLine,hashId)) ;
         else  bcastEvent(timeLine, hashId, lev) ;
+        delete recvRequest ;
       }
     }   
     

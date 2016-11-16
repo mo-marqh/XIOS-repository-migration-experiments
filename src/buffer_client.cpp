@@ -86,11 +86,7 @@ namespace xios
       if (count > 0)
       {
         MPI_Comm_test_inter(interComm, &flag);
-//        if (flag)
-          MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
-//        else
-//          ERROR("bool CClientBuffer::checkBuffer(void)",
-//                << "Invalid intercommunicator");
+        MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
         pending = true;
         if (current == 1) current = 0;
         else current = 1;

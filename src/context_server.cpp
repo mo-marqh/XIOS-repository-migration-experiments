@@ -22,7 +22,7 @@
 namespace xios
 {
 
-  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
+  CContextServer::CContextServer(CContext* parent, MPI_Comm intraComm_,MPI_Comm interComm_)
   {
     context=parent;
     intraComm=intraComm_;
@@ -40,6 +40,29 @@ namespace xios
 
     boost::hash<string> hashString;
     hashId=hashString(context->getId());
+
+  }
+
+  CContextServer::CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm_,MPI_Comm interComm_)
+  {
+    context=parent;
+    intraComm=intraComm_;
+    MPI_Comm_size(intraComm,&intraCommSize);
+    MPI_Comm_rank(intraComm,&intraCommRank);
+    interComm=interComm_;
+    int flag;
+    MPI_Comm_test_inter(interComm,&flag);
+    if (flag) MPI_Comm_remote_size(interComm,&commSize);
+    else  MPI_Comm_size(interComm,&commSize);
+
+    currentTimeLine=0;
+    scheduled=false;
+    finished=false;
+
+    boost::hash<string> hashString;
+    StdString contextId = context->getId();
+    contextId += "_prim";                      // just to distinguish between server and serverPrimServer on server1
+    hashId=hashString(contextId);
 
   }
   void CContextServer::setPendingEvent(void)
@@ -183,7 +206,7 @@ namespace xios
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ;
+//         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ;
 
          CTimer::get("Process events").resume();
          dispatchEvent(*event);

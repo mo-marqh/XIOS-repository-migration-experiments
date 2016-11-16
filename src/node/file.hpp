@@ -114,7 +114,7 @@ namespace xios {
          CVariable* addVariable(const string& id = "");
          CVariableGroup* addVariableGroup(const string& id = "");
 
-         // Send info to serever
+         // Send info to server
          void sendEnabledFields();
          void sendAddField(const string& id = "");
          void sendAddFieldGroup(const string& id = "");

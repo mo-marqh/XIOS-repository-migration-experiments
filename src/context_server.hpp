@@ -13,7 +13,8 @@ namespace xios
   {
     public:
 
-    CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
+    CContextServer(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm) ;
+    CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm, MPI_Comm interComm) ;
     bool eventLoop(void) ;
     void listen(void) ;
     void checkPendingRequest(void) ;

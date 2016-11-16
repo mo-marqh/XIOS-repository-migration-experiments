@@ -23,6 +23,8 @@ namespace xios
     StdOFStream CClient::m_infoStream;
     StdOFStream CClient::m_errorStream;
 
+    MPI_Comm& CClient::getInterComm(void)   { return (interComm); }
+
 ///---------------------------------------------------------------
 /*!
  * \fn void CClient::initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
@@ -247,7 +249,7 @@ namespace xios
 
       MPI_Comm_rank(intraComm,&rank) ;
  
-      if ((!CXios::isServer) || (CXios::serverLevel == 1))
+      if (!CXios::isServer)
       {
         MPI_Comm_rank(intraComm,&rank) ;
         if (rank==0)
@@ -280,6 +282,7 @@ namespace xios
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
 
    }
+
 
    int CClient::getRank()
    {

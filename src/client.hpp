@@ -20,6 +20,8 @@ namespace xios
         static int serverLeader;
         static bool is_MPI_Initialized ;
 
+        static MPI_Comm& getInterComm();
+
         //! Get rank of the current process
         static int getRank();
 

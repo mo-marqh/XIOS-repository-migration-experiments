@@ -23,10 +23,8 @@ CDistributionClient::CDistributionClient(int rank, const GlobalLocalDataMap& glo
    , elementLocalIndex_(), elementGlobalIndex_(), elementIndexData_()
    , elementZoomMask_(), elementNLocal_(), elementNGlobal_()
 {
-//  numElement_ = globalLocalIndex.size();    !!! numElement_ should be calculated !!!!
-  isComputed_ = true;  // my changes
-
-
+//  numElement_ = globalLocalIndex.size();    !!! numElement_ should be calculated (?)
+  isComputed_ = true;
   localDataIndex_.resize(globalLocalIndex.size());
   localMaskIndex_.resize(globalLocalIndex.size());
   GlobalLocalDataMap::const_iterator it = globalLocalIndex.begin(), ite = globalLocalIndex.end();

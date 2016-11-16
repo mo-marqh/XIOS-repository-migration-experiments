@@ -36,7 +36,7 @@ namespace xios
      static string serverScndFile;  //!< Filename template for secondary server in case of two server groups
 
      static bool isClient ; //!< Check if xios is client
-     static bool isServer ; //!< Check if xios is primary server
+     static bool isServer ; //!< Check if xios is server
 
      static int serverLevel ; //
 

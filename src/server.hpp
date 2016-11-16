@@ -26,7 +26,9 @@ namespace xios
 
         // Communicators for the primary group of servers
         static MPI_Comm intraComm;
-        static list<MPI_Comm> interComm;
+        static list<MPI_Comm> interCommLeft;   // interComm between server and its client (client or primary server)
+        static list<MPI_Comm> interCommRight;  // interComm between primary server and secondary server (non-empty only for primary server pool)
+        static list<MPI_Comm> interComm;       // interCommLeft + interCommRight
         static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
 

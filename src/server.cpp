@@ -17,6 +17,8 @@
 namespace xios
 {
     MPI_Comm CServer::intraComm ;
+    list<MPI_Comm> CServer::interCommLeft ;
+    list<MPI_Comm> CServer::interCommRight ;
     list<MPI_Comm> CServer::interComm ;
     std::list<MPI_Comm> CServer::contextInterComms;
     bool CServer::isRoot = false ;
@@ -102,6 +104,7 @@ namespace xios
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
                MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+               interCommLeft.push_back(newComm) ;
                interComm.push_back(newComm) ;
             }
           }
@@ -124,6 +127,7 @@ namespace xios
                 info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
                          <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
                 MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+                interCommLeft.push_back(newComm) ;
                 interComm.push_back(newComm) ;
               }
             }
@@ -133,7 +137,10 @@ namespace xios
             }
           }
 
-        CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+          CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+          interCommRight.push_back(CClient::getInterComm());
+          interComm.push_back(CClient::getInterComm());
+
         }
 
         else // secondary server pool
@@ -143,7 +150,6 @@ namespace xios
           {
             if (it->first == hashServer1)
             {
-              // no changes needed here to create one context per process of the secondary server pool
               clientLeader=it->second ;
               int intraCommSize, intraCommRank ;
               MPI_Comm_size(intraComm,&intraCommSize) ;
@@ -152,6 +158,7 @@ namespace xios
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+              interCommLeft.push_back(newComm) ;
               interComm.push_back(newComm) ;
 
               break;
@@ -206,10 +213,6 @@ namespace xios
 
     void CServer::finalize(void)
     {
-      if (CXios::serverLevel == 1)
-      {
-        CClient::finalize();
-      }
 
       CTimer::get("XIOS").suspend() ;
      
@@ -218,7 +221,13 @@ namespace xios
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
         MPI_Comm_free(&(*it));
 
-      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
+//      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
+//        MPI_Comm_free(&(*it));
+
+      for (std::list<MPI_Comm>::iterator it = interCommLeft.begin(); it != interCommLeft.end(); it++)
+        MPI_Comm_free(&(*it));
+
+      for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
         MPI_Comm_free(&(*it));
 
       MPI_Comm_free(&intraComm);
@@ -262,11 +271,11 @@ namespace xios
 
      void CServer::listenFinalize(void)
      {
-        list<MPI_Comm>::iterator it;
+        list<MPI_Comm>::iterator it, itr;
         int msg ;
         int flag ;
 
-        for(it=interComm.begin();it!=interComm.end();it++)
+        for(it=interCommLeft.begin();it!=interCommLeft.end();it++)
         {
            MPI_Status status ;
            traceOff() ;
@@ -274,15 +283,27 @@ namespace xios
            traceOn() ;
            if (flag==true)
            {
-              MPI_Recv(&msg,1,MPI_INT,0,0,*it,&status) ;
-              info(20)<<" CServer : Receive client finalize"<<endl ;
+             MPI_Recv(&msg,1,MPI_INT,0,0,*it,&status) ;
+             info(20)<<" CServer : Receive client finalize"<<endl ;
+
+             // If primary server, send finalize to secondary server pool(s)
+             for(itr=interCommRight.begin(); itr!=interCommRight.end(); itr++)
+             {
+               MPI_Send(&msg,1,MPI_INT,0,0,*itr) ;
+
+//               MPI_Comm_free(&(*itr));
+//               interCommRight.erase(itr) ;
+             }
+
               MPI_Comm_free(&(*it));
-              interComm.erase(it) ;
+//              interComm.erase(it) ;
+              interCommLeft.erase(it) ;
               break ;
             }
          }
 
-         if (interComm.empty())
+        if (interCommLeft.empty())
+//        if (interComm.empty())
          {
            int i,size ;
            MPI_Comm_size(intraComm,&size) ;

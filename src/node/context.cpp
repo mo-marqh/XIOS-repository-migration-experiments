@@ -14,6 +14,7 @@
 #include "type.hpp"
 #include "xios_spl.hpp"
 
+#include "server.hpp"
 
 namespace xios {
 
@@ -251,7 +252,7 @@ namespace xios {
      else                         // initClient is called by primary server pool
      {
        clientPrimServer = new CContextClient(this, intraComm, interComm);
-       serverPrimServer = new CContextServer(this, intraComm, interComm);
+       serverPrimServer = new CContextServer(this, 1, intraComm, interComm);  // just some int parameter to distinguish server from serverPrimServer on server1
      }
 
      registryIn=new CRegistry(intraComm);
@@ -413,7 +414,7 @@ namespace xios {
       if (!finalized)
       {
         finalized = true;
-        if (hasClient) sendRegistry() ;
+//        if (hasClient) sendRegistry() ;
 
 /*        if (CXios::serverLevel == 0)
         {
@@ -445,20 +446,22 @@ namespace xios {
           }
         }*/
 
-        client->finalize();
-        while (!server->hasFinished())
-        {
-          server->eventLoop();
-        }
-
         if ((hasClient) && (hasServer))
         {
           clientPrimServer->finalize();
           while (!serverPrimServer->hasFinished())
           {
             serverPrimServer->eventLoop();
+            CServer::eventScheduler->checkEvent() ;
           }
         }
+
+        client->finalize();
+        while (!server->hasFinished())
+        {
+          server->eventLoop();
+        }
+
 
         if (hasServer)
         {
@@ -1055,7 +1058,7 @@ namespace xios {
       // Find all inheritance in xml structure
       this->solveAllInheritance();
 
-      ShowTree(info(10));
+//      ShowTree(info(10));
 
       // Check if some axis, domains or grids are eligible to for compressed indexed output.
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
