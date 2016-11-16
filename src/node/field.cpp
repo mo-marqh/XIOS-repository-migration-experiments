@@ -36,6 +36,8 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
+      , hasTimeInstant(false)
+      , hasTimeCentered(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -47,6 +49,8 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
       , isReadDataRequestPending(false)
+      , hasTimeInstant(false)
+      , hasTimeCentered(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)

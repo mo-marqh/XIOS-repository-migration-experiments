@@ -20,7 +20,7 @@ namespace xios
             , SuperClassWriter(filename, exist)
             , filename(filename)
       {
-    SuperClass::type = MULTI_FILE;
+        SuperClass::type = MULTI_FILE;
       }
 
       CNc4DataOutput::CNc4DataOutput
@@ -32,7 +32,7 @@ namespace xios
             , filename(filename)
             , isCollective(isCollective)
       {
-    SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
+        SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
 
       CNc4DataOutput::~CNc4DataOutput(void)
@@ -1759,7 +1759,7 @@ namespace xios
          {
        if (SuperClassWriter::useCFConvention)
              this->writeFileAttributes(filename, description,
-                                       StdString("CF-1.5"),
+                                       StdString("CF-1.6"),
                                        StdString("An IPSL model"),
                                        this->getTimeStamp());
            else
@@ -1960,8 +1960,14 @@ namespace xios
             time_data_bound(0) = lastLastWrite;
             time_data_bound(1) = lastWrite;
           }
+          
+          if (field->file->time_counter.isEmpty())
+            if (field->hasTimeInstant && !field->hasTimeCentered)
+              time_counter(0) = lastWrite;
+            else 
+              time_counter(0) = (lastWrite + lastLastWrite) / 2;
 
-          if (field->file->time_counter == CFile::time_counter_attr::instant)
+          else if (field->file->time_counter == CFile::time_counter_attr::instant)
             time_counter(0) = lastWrite;
           else if (field->file->time_counter == CFile::time_counter_attr::centered)
             time_counter(0) = (lastWrite + lastLastWrite) / 2;
@@ -1969,7 +1975,15 @@ namespace xios
             time_counter(0) = field->getNStep() - 1;
 
 
-          if (field->file->time_counter == CFile::time_counter_attr::instant)
+          if (field->file->time_counter.isEmpty())
+            if (field->hasTimeInstant && !field->hasTimeCentered)
+              time_counter_bound(0) = time_counter_bound(1) = lastWrite;
+            else 
+            {
+              time_counter_bound(0) = lastLastWrite;
+              time_counter_bound(1) = lastWrite;
+            }          
+          else if (field->file->time_counter == CFile::time_counter_attr::instant)
             time_counter_bound(0) = time_counter_bound(1) = lastWrite;
           else if (field->file->time_counter == CFile::time_counter_attr::centered)
           {
@@ -2018,10 +2032,12 @@ namespace xios
                  {
                    SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
                    SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
-                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                   if (field->file->time_counter.isEmpty() ||  
+                      (field->file->time_counter != CFile::time_counter_attr::none))
                    {
                      SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
-                     if (field->file->time_counter != CFile::time_counter_attr::record)
+                     if (field->file->time_counter.isEmpty() || 
+                        (field->file->time_counter != CFile::time_counter_attr::record))
                        SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
                    }
                  }
@@ -2154,10 +2170,12 @@ namespace xios
                 {
                    SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
                    SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
-                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                   if (field->file->time_counter.isEmpty() || 
+                      (field->file->time_counter != CFile::time_counter_attr::none))
                    {
                      SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1, isRoot);
-                     if (field->file->time_counter != CFile::time_counter_attr::record)
+                     if (field->file->time_counter.isEmpty() ||  
+                        (field->file->time_counter != CFile::time_counter_attr::record))
                        SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
                 }
@@ -2198,12 +2216,18 @@ namespace xios
          StdString axisBoundId("time_centered_bounds");
          StdString timeid(getTimeCounterName());
          StdString timeBoundId("axis_nbounds");
-
+ 
          if (field->getOperationTimeType() == func::CFunctor::instant)
          {
             axisid = "time_instant";
             axisBoundId = "time_instant_bounds";
+            field->hasTimeInstant = true;                   
          }
+
+         if (field->getOperationTimeType() == func::CFunctor::centered)
+         {
+            field->hasTimeCentered = true;            
+         }          
 
          try
          {
@@ -2235,7 +2259,8 @@ namespace xios
               SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
            }
 
-           if (field->file->time_counter != CFile::time_counter_attr::none)
+           if (field->file->time_counter.isEmpty() ||  
+              (field->file->time_counter != CFile::time_counter_attr::none))
            {
              // Adding time_counter
              axisid = getTimeCounterName();
@@ -2247,7 +2272,8 @@ namespace xios
                 SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
                 SuperClassWriter::addAttribute("axis", string("T"), &axisid);
 
-                if (field->file->time_counter != CFile::time_counter_attr::record)
+                if (field->file->time_counter.isEmpty() || 
+                   (field->file->time_counter != CFile::time_counter_attr::record))
                 {
                   CDate timeOrigin = cal->getTimeOrigin();
                   StdString strTimeOrigin = timeOrigin.toString();
@@ -2259,7 +2285,8 @@ namespace xios
              }
 
              // Adding time_counter_bound dimension
-             if (field->file->time_counter != CFile::time_counter_attr::record)
+             if (field->file->time_counter.isEmpty() ||  
+                (field->file->time_counter != CFile::time_counter_attr::record))
              {
                 if (!SuperClassWriter::varExist(axisBoundId))
                 {
@@ -2434,7 +2461,7 @@ namespace xios
            SuperClassWriter::addAttribute("description", description);
            SuperClassWriter::addAttribute("title"      , description);
            SuperClassWriter::addAttribute("Conventions", conventions);
-           SuperClassWriter::addAttribute("production" , production);
+           // SuperClassWriter::addAttribute("production" , production);
            SuperClassWriter::addAttribute("timeStamp"  , timeStamp);
          }
          catch (CNetCdfException& e)

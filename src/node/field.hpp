@@ -203,6 +203,10 @@ namespace xios {
          bool isReadDataRequestPending;
          bool useCompressedOutput;
 
+         // Two variable to identify the time_counter meta data written in file, which has no time_counter
+         bool hasTimeInstant;
+         bool hasTimeCentered;
+
          DECLARE_REF_FUNC(Field,field)
 
       private:

@@ -259,7 +259,7 @@ namespace xios {
       MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
       if (allDomainEmpty) MPI_Comm_free(&fileComm);
 
-      if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
+      // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
 
