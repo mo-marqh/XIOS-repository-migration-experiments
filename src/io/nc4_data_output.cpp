@@ -1457,128 +1457,129 @@ namespace xios
 
       void CNc4DataOutput::writeField_(CField* field)
       {
-         CContext* context = CContext::getCurrent() ;
-         CContextServer* server=context->server ;
+        CContext* context = CContext::getCurrent() ;
+        CContextServer* server=context->server ;
 
-         std::vector<StdString> dims, coodinates;
-         CGrid* grid = field->grid;
-         if (!grid->doGridHaveDataToWrite())
+        std::vector<StdString> dims, coodinates;
+        CGrid* grid = field->grid;
+        if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type==MULTI_FILE) return ;
 
-         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
-         std::vector<StdString> domainList = grid->getDomainList();
-         std::vector<StdString> axisList   = grid->getAxisList();
-         std::vector<StdString> scalarList = grid->getScalarList();
+        CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+        int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
+        std::vector<StdString> domainList = grid->getDomainList();
+        std::vector<StdString> axisList   = grid->getAxisList();
+        std::vector<StdString> scalarList = grid->getScalarList();
 
-         StdString timeid  = getTimeCounterName();
-         StdString dimXid,dimYid;
-         std::deque<StdString> dimIdList, dimCoordList;
-         bool hasArea = false;
-         StdString cellMeasures = "area:";
-         bool compressedOutput = !field->indexed_output.isEmpty() && field->indexed_output;
+        CDomain* domain = CDomain::get(domainList[idxDomain]);
 
-         for (int i = 0; i < numElement; ++i)
-         {
-           if (2 == axisDomainOrder(i))
-           {
-             CDomain* domain = CDomain::get(domainList[idxDomain]);
-             StdString domId = domain->getDomainOutputName();
-             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
+        StdString timeid  = getTimeCounterName();
+        StdString dimXid,dimYid;
+        std::deque<StdString> dimIdList, dimCoordList;
+        bool hasArea = false;
+        StdString cellMeasures = "area:";
+        bool compressedOutput = !field->indexed_output.isEmpty() && field->indexed_output;
 
-             if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
-             {
-               dimIdList.push_back(domId + "_points");
-               field->setUseCompressedOutput();
-             }
+        for (int i = 0; i < numElement; ++i)
+        {
+          if (2 == axisDomainOrder(i))
+          {
+            StdString domId = domain->getDomainOutputName();
+            StdString appendDomId  = singleDomain ? "" : "_" + domId ;
 
-             switch (domain->type)
-             {
-               case CDomain::type_attr::curvilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("x").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("y").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
-                 dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
-                 break ;
-               case CDomain::type_attr::rectilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("lon").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("lat").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 break ;
-               case CDomain::type_attr::unstructured:
-               {
-           if (SuperClassWriter::useCFConvention)
-           {
-            dimXid     = StdString("cell").append(appendDomId);
-            dimIdList.push_back(dimXid);
-            dimCoordList.push_back(StdString("lon").append(appendDomId));
-            dimCoordList.push_back(StdString("lat").append(appendDomId));
-          }
-           else
-           {
-            StdString domainName = domain->name;
-            if (domain->nvertex == 1)
+            if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
             {
-              dimXid     = "n" + domainName + "_node";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_node_x"));
-              dimCoordList.push_back(StdString(domainName + "_node_y"));
+              dimIdList.push_back(domId + "_points");
+              field->setUseCompressedOutput();
             }
-            else if (domain->nvertex == 2)
+
+            switch (domain->type)
             {
-              dimXid     = "n" + domainName + "_edge";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_edge_x"));
-              dimCoordList.push_back(StdString(domainName + "_edge_y"));
+              case CDomain::type_attr::curvilinear:
+                if (!compressedOutput || !domain->isCompressible())
+                {
+                  dimXid     = StdString("x").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimYid     = StdString("y").append(appendDomId);
+                  dimIdList.push_back(dimYid);
+                }
+                dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
+                dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
+              break ;
+              case CDomain::type_attr::rectilinear:
+                if (!compressedOutput || !domain->isCompressible())
+                {
+                  dimXid     = StdString("lon").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimYid     = StdString("lat").append(appendDomId);
+                  dimIdList.push_back(dimYid);
+                }
+              break ;
+              case CDomain::type_attr::unstructured:
+              {
+                if (SuperClassWriter::useCFConvention)
+                {
+                  dimXid     = StdString("cell").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimCoordList.push_back(StdString("lon").append(appendDomId));
+                  dimCoordList.push_back(StdString("lat").append(appendDomId));
+                }
+                else
+                {
+                  StdString domainName = domain->name;
+                  if (domain->nvertex == 1)
+                  {
+                    dimXid     = "n" + domainName + "_node";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_node_x"));
+                    dimCoordList.push_back(StdString(domainName + "_node_y"));
+                  }
+                  else if (domain->nvertex == 2)
+                  {
+                    dimXid     = "n" + domainName + "_edge";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_edge_x"));
+                    dimCoordList.push_back(StdString(domainName + "_edge_y"));
+                  }
+                  else
+                  {
+                    dimXid     = "n" + domainName + "_face";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_face_x"));
+                    dimCoordList.push_back(StdString(domainName + "_face_y"));
+                  }
+                }  // ugrid convention
+              }  // case unstructured domain
+            }
+
+            if (domain->hasArea)
+            {
+              hasArea = true;
+              cellMeasures += " area" + appendDomId;
+            }
+            ++idxDomain;
+          }
+          else if (1 == axisDomainOrder(i))
+          {
+            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            StdString axisId = axis->getAxisOutputName();
+
+            if (compressedOutput && axis->isCompressible())
+            {
+              dimIdList.push_back(axisId + "_points");
+              field->setUseCompressedOutput();
             }
             else
-            {
-              dimXid     = "n" + domainName + "_face";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_face_x"));
-              dimCoordList.push_back(StdString(domainName + "_face_y"));
-            }
-          }  // ugrid convention
-        }  // case unstructured domain
-             }
+              dimIdList.push_back(axisId);
 
-             if (domain->hasArea)
-             {
-               hasArea = true;
-               cellMeasures += " area" + appendDomId;
-             }
-             ++idxDomain;
-           }
-           else if (1 == axisDomainOrder(i))
-           {
-             CAxis* axis = CAxis::get(axisList[idxAxis]);
-             StdString axisId = axis->getAxisOutputName();
-
-             if (compressedOutput && axis->isCompressible())
-             {
-               dimIdList.push_back(axisId + "_points");
-               field->setUseCompressedOutput();
-             }
-             else
-               dimIdList.push_back(axisId);
-
-             dimCoordList.push_back(axisId);
-             ++idxAxis;
-           }
-           else // scalar
-           {
+            dimCoordList.push_back(axisId);
+            ++idxAxis;
+          }
+          else // scalar
+          {
              /* Do nothing here */
-           }
-         }
+          }
+        }
 
 /*
          StdString lonid_loc = (server->intraCommSize > 1)
@@ -1588,53 +1589,53 @@ namespace xios
                              ? StdString("lat").append(appendDomid).append("_local")
                              : latid;
 */
-         StdString fieldid = field->getFieldOutputName();
+        StdString fieldid = field->getFieldOutputName();
 
-         nc_type type ;
-         if (field->prec.isEmpty()) type =  NC_FLOAT ;
-         else
-         {
-           if (field->prec==2) type = NC_SHORT ;
-           else if (field->prec==4)  type =  NC_FLOAT ;
-           else if (field->prec==8)   type =  NC_DOUBLE ;
-         }
+        nc_type type ;
+        if (field->prec.isEmpty()) type =  NC_FLOAT ;
+        else
+        {
+          if (field->prec==2) type = NC_SHORT ;
+          else if (field->prec==4)  type =  NC_FLOAT ;
+          else if (field->prec==8)   type =  NC_DOUBLE ;
+        }
 
-         bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
+        bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
 
-         if (wtime)
-         {
+        if (wtime)
+        {
 
-            //StdOStringStream oss;
-           // oss << "time_" << field->operation.getValue()
-           //     << "_" << field->getRelFile()->output_freq.getValue();
+          //StdOStringStream oss;
+          // oss << "time_" << field->operation.getValue()
+          //     << "_" << field->getRelFile()->output_freq.getValue();
           //oss
-            if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
-            else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
-            dims.push_back(timeid);
-         }
+          if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
+          else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
+          dims.push_back(timeid);
+        }
 
-         if (compressedOutput && grid->isCompressible())
-         {
-           dims.push_back(grid->getId() + "_points");
-           field->setUseCompressedOutput();
-         }
-         else
-         {
-           while (!dimIdList.empty())
-           {
-             dims.push_back(dimIdList.back());
-             dimIdList.pop_back();
-           }
-         }
+        if (compressedOutput && grid->isCompressible())
+        {
+          dims.push_back(grid->getId() + "_points");
+          field->setUseCompressedOutput();
+        }
+        else
+        {
+          while (!dimIdList.empty())
+          {
+            dims.push_back(dimIdList.back());
+            dimIdList.pop_back();
+          }
+        }
 
-         while (!dimCoordList.empty())
-         {
-           coodinates.push_back(dimCoordList.back());
-           dimCoordList.pop_back();
-         }
+        while (!dimCoordList.empty())
+        {
+          coodinates.push_back(dimCoordList.back());
+          dimCoordList.pop_back();
+        }
 
-         try
-         {
+        try
+        {
            SuperClassWriter::addVariable(fieldid, type, dims);
 
            if (!field->standard_name.isEmpty())
@@ -1649,7 +1650,22 @@ namespace xios
               SuperClassWriter::addAttribute
                  ("units", field->unit.getValue(), &fieldid);
 
-            if (!field->valid_min.isEmpty())
+           // Ugrid field attributes "mesh" and "location"
+           if (!SuperClassWriter::useCFConvention)
+           {
+             StdString mesh = domain->name;
+             SuperClassWriter::addAttribute("mesh", mesh, &fieldid);
+             StdString location;
+             if (domain->nvertex == 1)
+               location = "node";
+             else if (domain->nvertex == 2)
+               location = "edge";
+             else if (domain->nvertex > 2)
+               location = "face";
+             SuperClassWriter::addAttribute("location", location, &fieldid);
+           }
+
+           if (!field->valid_min.isEmpty())
               SuperClassWriter::addAttribute
                  ("valid_min", field->valid_min.getValue(), &fieldid);
 

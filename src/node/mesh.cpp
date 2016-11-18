@@ -10,16 +10,16 @@ namespace xios {
 
 /// ////////////////////// Définitions ////////////////////// ///
 
-  CMesh::CMesh(void) :  nbNodesGlo{0}, nbEdgesGlo{0}
-            ,  node_start{0}, node_count{0}
-            ,  edge_start{0}, edge_count{0}
-            ,  nbFaces_{0}, nbNodes_{0}, nbEdges_{0}
-            ,  nodesAreWritten{false}, edgesAreWritten{false}, facesAreWritten{false}
+  CMesh::CMesh(void) :  nbNodesGlo(0), nbEdgesGlo(0)
+            ,  node_start(0), node_count(0)
+            ,  edge_start(0), edge_count(0)
+            ,  nbFaces_(0), nbNodes_(0), nbEdges_(0)
+            ,  nodesAreWritten(false), edgesAreWritten(false), facesAreWritten(false)
             ,  node_lon(), node_lat()
             ,  edge_lon(), edge_lat(), edge_nodes()
             ,  face_lon(), face_lat()
             ,  face_nodes()
-            ,  pNodeGlobalIndex{NULL}, pEdgeGlobalIndex{NULL}
+            ,  pNodeGlobalIndex(NULL), pEdgeGlobalIndex(NULL)
   {
   }
 
