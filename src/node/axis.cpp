@@ -263,6 +263,10 @@ namespace xios {
 
       isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
                        (!this->n.isEmpty() && (this->n != this->n_glo));
+
+      // A same stupid condition to make sure that if there is only one client, axis
+      // should be considered to be distributed. This should be a temporary solution     
+      isDistributed_ |= (1 == CContext::getCurrent()->client->clientSize);
    }
 
    void CAxis::checkData()

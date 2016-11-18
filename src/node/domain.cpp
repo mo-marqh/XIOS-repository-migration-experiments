@@ -697,9 +697,13 @@ namespace xios {
      }
      computeNGlobDomain();
      checkZoom();
-
+     
      isDistributed_ = !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
                         (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
+
+     // A stupid condition to make sure that if there is only one client, domain
+     // should be considered to be distributed. This should be a temporary solution     
+     isDistributed_ |= (1 == CContext::getCurrent()->client->clientSize);
    }
 
    // Check global zoom of a domain
