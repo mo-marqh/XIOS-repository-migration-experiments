@@ -234,9 +234,11 @@ namespace xios {
 //              "Invalid 'record_offset', this attribute cannot be negative.");
       const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
 
-      set<CAxis*> setAxis;
-      set<CDomain*> setDomains;
-
+      // set<CAxis*> setAxis;
+      // set<CDomain*> setDomains;
+      set<StdString> setAxis;
+      set<StdString> setDomains;
+      
       std::vector<CField*>::iterator it, end = this->enabledFields.end();
       for (it = this->enabledFields.begin(); it != end; it++)
       {
@@ -244,10 +246,12 @@ namespace xios {
          allDomainEmpty &= !field->grid->doGridHaveDataToWrite();
          std::vector<CAxis*> vecAxis = field->grid->getAxis();
          for (size_t i = 0; i < vecAxis.size(); ++i)
-            setAxis.insert(vecAxis[i]);
+            setAxis.insert(vecAxis[i]->getAxisOutputName());
+            // setAxis.insert(vecAxis[i]);
          std::vector<CDomain*> vecDomains = field->grid->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
-            setDomains.insert(vecDomains[i]);
+            setDomains.insert(vecDomains[i]->getDomainOutputName());
+            // setDomains.insert(vecDomains[i]);
 
          field->resetNStep(recordOffset);
       }
