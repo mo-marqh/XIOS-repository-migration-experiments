@@ -22,7 +22,7 @@ namespace xios
   {
     CTimer timer("CStoreFilter::getPacket");
     CConstDataPacketPtr packet;
-    const double timeout = 10; // 10 seconds timeout
+    const double timeout = 10 ; // 10 seconds timeout
 
     do
     {
@@ -38,9 +38,14 @@ namespace xios
     } while (!packet && timer.getCumulatedTime() < timeout);
 
     if (!packet)
+    {
+      std::map<Time, CDataPacketPtr>::const_iterator it ;
+      info(0)<<"Impossible to get the packet with timestamp = " << timestamp<<std::endl<<"Available timestamp are : "<<std::endl ;
+      for(it=packets.begin();it!=packets.end();++it) info(0)<<it->first<<"  ";
+      info(0)<<std::endl ;
       ERROR("CConstDataPacketPtr CStoreFilter::getPacket(Time timestamp) const",
             << "Impossible to get the packet with timestamp = " << timestamp);
-
+    }
     return packet;
   }
 
