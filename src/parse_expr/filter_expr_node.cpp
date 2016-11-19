@@ -39,10 +39,13 @@ namespace xios
 
   boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    if (!CField::has(fieldId))
+      if (fieldId == "this") return thisField.getSelfTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
+      
+      if (!CField::has(fieldId))
       ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
             << "The field " << fieldId << " does not exist.");
 
+      
     CField* field = CField::get(fieldId);
     if (field == &thisField)
       ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",

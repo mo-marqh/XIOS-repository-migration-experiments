@@ -120,9 +120,10 @@ namespace xios {
          void solveGridDomainAxisBaseRef();
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
-         boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
+         boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc, boost::shared_ptr<COutputPin> OutputPin = boost::shared_ptr<COutputPin>());
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
+         boost::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
 //         virtual void fromBinary(StdIStream& is);
 
@@ -176,6 +177,8 @@ namespace xios {
 
 
         const std::vector<StdString>& getRefDomainAxisIds();
+        string getExpression(void) ;
+        bool hasExpression(void) ;
 
       public:
          /// Propriétés privées ///
