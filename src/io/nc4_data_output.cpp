@@ -1469,9 +1469,7 @@ namespace xios
         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
         std::vector<StdString> domainList = grid->getDomainList();
         std::vector<StdString> axisList   = grid->getAxisList();
-        std::vector<StdString> scalarList = grid->getScalarList();
-
-        CDomain* domain = CDomain::get(domainList[idxDomain]);
+        std::vector<StdString> scalarList = grid->getScalarList();        
 
         StdString timeid  = getTimeCounterName();
         StdString dimXid,dimYid;
@@ -1484,6 +1482,7 @@ namespace xios
         {
           if (2 == axisDomainOrder(i))
           {
+            CDomain* domain = CDomain::get(domainList[idxDomain]);
             StdString domId = domain->getDomainOutputName();
             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
 
@@ -1653,16 +1652,21 @@ namespace xios
            // Ugrid field attributes "mesh" and "location"
            if (!SuperClassWriter::useCFConvention)
            {
-             StdString mesh = domain->name;
-             SuperClassWriter::addAttribute("mesh", mesh, &fieldid);
-             StdString location;
-             if (domain->nvertex == 1)
-               location = "node";
-             else if (domain->nvertex == 2)
-               location = "edge";
-             else if (domain->nvertex > 2)
-               location = "face";
-             SuperClassWriter::addAttribute("location", location, &fieldid);
+            if (!domainList.empty())
+            {
+              CDomain* domain = CDomain::get(domainList[0]); // Suppose that we have only domain
+              StdString mesh = domain->name;
+              SuperClassWriter::addAttribute("mesh", mesh, &fieldid);
+              StdString location;
+              if (domain->nvertex == 1)
+                location = "node";
+              else if (domain->nvertex == 2)
+                location = "edge";
+              else if (domain->nvertex > 2)
+                location = "face";
+              SuperClassWriter::addAttribute("location", location, &fieldid);
+            }
+
            }
 
            if (!field->valid_min.isEmpty())
