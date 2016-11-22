@@ -767,22 +767,36 @@ namespace xios{
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
    {
      if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
+
      // Start by building a filter which can provide the field's instant data
      if (!instantDataFilter)
      {
-        boost::shared_ptr<COutputPin> arithmDataFilter;
-   
        // Check if we have an expression to parse
-       if (hasExpression() || !field_ref.isEmpty())
+       if (hasExpression())
        {
-         if (hasExpression())
+         boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
+         boost::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
+
+         // Check if a spatial transformation is needed
+         if (!field_ref.isEmpty())
          {
-           boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
-           arithmDataFilter = expr->reduce(gc, *this);
+           CGrid* gridRef = CField::get(field_ref)->grid;
+
+           if (grid && grid != gridRef && grid->hasTransform())
+           {
+             double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
+             std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, defaultValue);
+
+             filter->connectOutput(filters.first, 0);
+             filter = filters.second;
+           }
          }
-         // Check if we have a reference on another field
-         if (!field_ref.isEmpty()) instantDataFilter = getFieldReference(gc,arithmDataFilter);
-       }  
+
+         instantDataFilter = filter;
+       }
+       // Check if we have a reference on another field
+       else if (!field_ref.isEmpty())
+         instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
@@ -815,29 +829,26 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to the field reference
     */
-   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc, boost::shared_ptr<COutputPin> OutputPin)
+   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
    {
      if (instantDataFilter || field_ref.isEmpty())
        ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
              "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
 
      CField* fieldRef = CField::get(field_ref);
-     if (!OutputPin) fieldRef->buildFilterGraph(gc, false);
+     fieldRef->buildFilterGraph(gc, false);
 
      std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
      if (grid && grid != fieldRef->grid && grid->hasTransform())
      {
-       double defaultValue = 0.0;
-       if (!default_value.isEmpty()) defaultValue = this->default_value;
+       double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
        filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
      }
-
      else
        filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
 
-     if (!OutputPin)   fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
-     else OutputPin->connectOutput(filters.first, 0);
+     fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
 
      return filters.second;
    }
@@ -853,7 +864,7 @@ namespace xios{
     */
    boost::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
    {
-     if (instantDataFilter || ! hasExpression())
+     if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
              "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
 
@@ -925,8 +936,7 @@ namespace xios{
 
   /*!
     * Returns the temporal filter corresponding to the field's temporal operation
-    * for the specified operation frequency. The filter is created if it does not
-    * exist, otherwise it is reused.
+    * for the specified operation frequency.
     *
     * \param gc the garbage collector to use
     * \param outFreq the operation frequency, i.e. the frequency at which the output data will be computed
@@ -935,7 +945,6 @@ namespace xios{
    
    boost::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
    {
-     
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfTemporalDataFilter(CGarbageCollector& gc)",
              "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
@@ -967,30 +976,6 @@ namespace xios{
        return fieldRef->getTemporalDataFilter(gc, outFreq) ;
      }
   }
-
-
-/*
-   boost::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
-   {
-
-       if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-       {
-         if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
-                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset));
-
-         selfReferenceFilter = serverSourceFilter;
-       }
-       else if (!field_ref.isEmpty())
-       {   
-          CField* fieldRef = CField::get(field_ref);
-          fieldRef->buildFilterGraph(gc, false);
-          return fieldRef->getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq) ;
-       }
-  
-    }
-
-*/
 
    //----------------------------------------------------------------
 /*
@@ -1424,21 +1409,21 @@ namespace xios{
     * Returns string arithmetic expression associated to the field.
     * \return if content is defined return content string, otherwise, if "expr" attribute is defined, return expr string.
     */
-   string CField::getExpression(void)
+   const string& CField::getExpression(void)
    {
-     if (! expr.isEmpty() && content.empty())
+     if (!expr.isEmpty() && content.empty())
      {
-       content=expr ;
-       expr.reset() ;
+       content = expr;
+       expr.reset();
      }
+
      return content;
    }
-   
-   bool CField::hasExpression(void)
+
+   bool CField::hasExpression(void) const
    {
-     if (! expr.isEmpty()) return true ;
-     if (!content.empty()) return true ;
-     return false;
-   }   
+     return (!expr.isEmpty() || !content.empty());
+   }
+
    DEFINE_REF_FUNC(Field,field)
 } // namespace xios
