@@ -39,20 +39,26 @@ namespace xios
 
   boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-      if (fieldId == "this") return thisField.getSelfTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
-      
-      if (!CField::has(fieldId))
+    boost::shared_ptr<COutputPin> outputPin;
+
+    if (fieldId == "this")
+      outputPin = thisField.getSelfTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
+    else if (CField::has(fieldId))
+    {
+      CField* field = CField::get(fieldId);
+      if (field == &thisField)
+        ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+              << "The field " << fieldId << " has an invalid reference to itself. "
+              << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
+
+      field->buildFilterGraph(gc, false);
+      outputPin = field->getTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
+    }
+    else
       ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
             << "The field " << fieldId << " does not exist.");
 
-      
-    CField* field = CField::get(fieldId);
-    if (field == &thisField)
-      ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
-            << "The field " << fieldId << " has an invalid reference to itself.");
-
-    field->buildFilterGraph(gc, false);
-    return field->getTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
+    return outputPin;
   }
 
   CFilterUnaryOpExprNode::CFilterUnaryOpExprNode(const std::string& opId, IFilterExprNode* child)
