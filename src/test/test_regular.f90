@@ -19,8 +19,8 @@ PROGRAM test_regular
   INTEGER :: ierr
   INTEGER :: sizeComm, rank    ! SIZE is a fortran function
 
-  INTEGER :: nlon = 5 !100 
-  INTEGER :: nlat = 5 !100
+  INTEGER :: nlon = 100 
+  INTEGER :: nlat = 100
   INTEGER :: ncell 
   INTEGER :: ilat, ilon, ind
   DOUBLE PRECISION :: lon1, lon2, lat1, lat2
