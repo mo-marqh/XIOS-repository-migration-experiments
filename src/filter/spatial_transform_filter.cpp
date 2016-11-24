@@ -217,9 +217,9 @@ namespace xios
     }
     if (dataCurrentDest.numElements() != dataDest.numElements())
     ERROR("CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)",
-          "Incoherent between the received size and expected size" <<
-          "Expected size: " << dataDest.numElements() <<
-          "Received size: " << dataCurrentDest.numElements());
+          "Incoherent between the received size and expected size. " << std::endl 
+          << "Expected size: " << dataDest.numElements() << std::endl 
+          << "Received size: " << dataCurrentDest.numElements());
 
     dataDest = dataCurrentDest;
   }

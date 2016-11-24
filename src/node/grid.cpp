@@ -280,12 +280,14 @@ namespace xios {
           if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
 
        if (this->isChecked) return;
+
        if (context->hasClient)
        {
           this->computeIndexScalarGrid();
        }
 
-       this->isChecked = true;
+       if (!(this->hasTransform() && !this->isTransformed()))
+        this->isChecked = true;
        return;
      }
 
@@ -300,7 +302,9 @@ namespace xios {
         this->checkMask();
         this->computeIndex();
      }
-     this->isChecked = true;
+
+     if (!(this->hasTransform() && !this->isTransformed())) 
+      this->isChecked = true;
    }
 
    void CGrid::createMask(void)
