@@ -188,6 +188,27 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_enabled
 
 
+    SUBROUTINE cxios_set_fieldgroup_expr(fieldgroup_hdl, expr, expr_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: expr
+      INTEGER  (kind = C_INT)     , VALUE        :: expr_size
+    END SUBROUTINE cxios_set_fieldgroup_expr
+
+    SUBROUTINE cxios_get_fieldgroup_expr(fieldgroup_hdl, expr, expr_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: expr
+      INTEGER  (kind = C_INT)     , VALUE        :: expr_size
+    END SUBROUTINE cxios_get_fieldgroup_expr
+
+    FUNCTION cxios_is_defined_fieldgroup_expr(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_expr
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_expr
+
+
     SUBROUTINE cxios_set_fieldgroup_field_ref(fieldgroup_hdl, field_ref, field_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

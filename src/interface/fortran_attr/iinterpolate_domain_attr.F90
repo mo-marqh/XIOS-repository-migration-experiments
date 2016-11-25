@@ -11,7 +11,7 @@ MODULE iinterpolate_domain_attr
 CONTAINS
 
   SUBROUTINE xios(set_interpolate_domain_attr)  &
-    ( interpolate_domain_id, file, mode, order, renormalize )
+    ( interpolate_domain_id, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
@@ -21,16 +21,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: order
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename
+      LOGICAL  , OPTIONAL, INTENT(IN) :: write_weight
+      LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(set_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(set_interpolate_domain_attr)
 
   SUBROUTINE xios(set_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, file, mode, order, renormalize )
+    ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -39,14 +42,18 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: order
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename
+      LOGICAL  , OPTIONAL, INTENT(IN) :: write_weight
+      LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(set_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(set_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(set_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_ )
+    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_, weight_filename_, write_weight_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -55,6 +62,9 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(IN) :: order_
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize_
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: write_weight_
+      LOGICAL (KIND=C_BOOL) :: write_weight__tmp
 
       IF (PRESENT(file_)) THEN
         CALL cxios_set_interpolate_domain_file &
@@ -77,10 +87,21 @@ CONTAINS
       (interpolate_domain_hdl%daddr, renormalize__tmp)
       ENDIF
 
+      IF (PRESENT(weight_filename_)) THEN
+        CALL cxios_set_interpolate_domain_weight_filename &
+      (interpolate_domain_hdl%daddr, weight_filename_, len(weight_filename_))
+      ENDIF
+
+      IF (PRESENT(write_weight_)) THEN
+        write_weight__tmp = write_weight_
+        CALL cxios_set_interpolate_domain_write_weight &
+      (interpolate_domain_hdl%daddr, write_weight__tmp)
+      ENDIF
+
   END SUBROUTINE xios(set_interpolate_domain_attr_hdl_)
 
   SUBROUTINE xios(get_interpolate_domain_attr)  &
-    ( interpolate_domain_id, file, mode, order, renormalize )
+    ( interpolate_domain_id, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
@@ -90,16 +111,19 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: order
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: write_weight
+      LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(get_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(get_interpolate_domain_attr)
 
   SUBROUTINE xios(get_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, file, mode, order, renormalize )
+    ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -108,14 +132,18 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: order
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: write_weight
+      LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(get_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(get_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(get_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_ )
+    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_, weight_filename_, write_weight_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -124,6 +152,9 @@ CONTAINS
       INTEGER  , OPTIONAL, INTENT(OUT) :: order_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize_
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: write_weight_
+      LOGICAL (KIND=C_BOOL) :: write_weight__tmp
 
       IF (PRESENT(file_)) THEN
         CALL cxios_get_interpolate_domain_file &
@@ -146,10 +177,21 @@ CONTAINS
         renormalize_ = renormalize__tmp
       ENDIF
 
+      IF (PRESENT(weight_filename_)) THEN
+        CALL cxios_get_interpolate_domain_weight_filename &
+      (interpolate_domain_hdl%daddr, weight_filename_, len(weight_filename_))
+      ENDIF
+
+      IF (PRESENT(write_weight_)) THEN
+        CALL cxios_get_interpolate_domain_write_weight &
+      (interpolate_domain_hdl%daddr, write_weight__tmp)
+        write_weight_ = write_weight__tmp
+      ENDIF
+
   END SUBROUTINE xios(get_interpolate_domain_attr_hdl_)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr)  &
-    ( interpolate_domain_id, file, mode, order, renormalize )
+    ( interpolate_domain_id, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
@@ -162,16 +204,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL(KIND=C_BOOL) :: renormalize_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename
+      LOGICAL(KIND=C_BOOL) :: weight_filename_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: write_weight
+      LOGICAL(KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(is_defined_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(is_defined_interpolate_domain_attr)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, file, mode, order, renormalize )
+    ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -183,14 +229,19 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL(KIND=C_BOOL) :: renormalize_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename
+      LOGICAL(KIND=C_BOOL) :: weight_filename_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: write_weight
+      LOGICAL(KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(is_defined_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, file, mode, order, renormalize )
+      ( interpolate_domain_hdl, file, mode, order, renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_ )
+    ( interpolate_domain_hdl, file_, mode_, order_, renormalize_, weight_filename_, write_weight_  &
+     )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
@@ -202,6 +253,10 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: order__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize_
       LOGICAL(KIND=C_BOOL) :: renormalize__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename_
+      LOGICAL(KIND=C_BOOL) :: weight_filename__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: write_weight_
+      LOGICAL(KIND=C_BOOL) :: write_weight__tmp
 
       IF (PRESENT(file_)) THEN
         file__tmp = cxios_is_defined_interpolate_domain_file &
@@ -225,6 +280,18 @@ CONTAINS
         renormalize__tmp = cxios_is_defined_interpolate_domain_renormalize &
       (interpolate_domain_hdl%daddr)
         renormalize_ = renormalize__tmp
+      ENDIF
+
+      IF (PRESENT(weight_filename_)) THEN
+        weight_filename__tmp = cxios_is_defined_interpolate_domain_weight_filename &
+      (interpolate_domain_hdl%daddr)
+        weight_filename_ = weight_filename__tmp
+      ENDIF
+
+      IF (PRESENT(write_weight_)) THEN
+        write_weight__tmp = cxios_is_defined_interpolate_domain_write_weight &
+      (interpolate_domain_hdl%daddr)
+        write_weight_ = write_weight__tmp
       ENDIF
 
   END SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl_)
