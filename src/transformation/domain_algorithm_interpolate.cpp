@@ -47,12 +47,42 @@ bool CDomainAlgorithmInterpolate::registerTrans()
 }
 
 CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestination, CDomain* domainSource, CInterpolateDomain* interpDomain)
-: CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false)
+: CDomainAlgorithmTransformation(domainDestination, domainSource), interpDomain_(interpDomain), writeToFile_(false), readFromFile_(false)
 {
+  CContext* context = CContext::getCurrent();
   interpDomain_->checkValid(domainSource);
-  if ((CInterpolateDomain::mode_attr::write == interpDomain_->mode) &&
-      (!interpDomain_->file.isEmpty()))
-    writeToFile_ = true;
+  fileToReadWrite_ = "xios_interpolation_weights_";
+
+  if (interpDomain_->weight_filename.isEmpty())
+  {
+    fileToReadWrite_ += context->getId() + "_" + 
+                    domainSource->getDomainOutputName() + "_" + 
+                    domainDestination->getDomainOutputName() + ".nc";    
+  }
+  else 
+    fileToReadWrite_ = interpDomain_->weight_filename;
+
+  ifstream f(fileToReadWrite_.c_str());  
+  switch (interpDomain_->mode)
+  {
+    case CInterpolateDomain::mode_attr::read:
+      readFromFile_ = true;      
+      break;
+    case CInterpolateDomain::mode_attr::compute:
+      readFromFile_ = false;
+      break;
+    case CInterpolateDomain::mode_attr::read_or_compute:      
+      if (!f.good())
+        readFromFile_ = false;
+      else
+        readFromFile_ = true;
+      break;
+    default:
+      break;
+  } 
+
+  writeToFile_ = interpDomain_->write_weight;  
+    
 }
 
 /*!
@@ -353,7 +383,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
      }
   }
 
-  if (writeToFile_)
+  if (writeToFile_ && !readFromFile_)
      writeRemapInfo(interpMapValue);
   exchangeRemapInfo(interpMapValue);
 
@@ -438,7 +468,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 */
 void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  if (CInterpolateDomain::mode_attr::read == interpDomain_->mode)  
+  if (readFromFile_ && !writeToFile_)  
     readRemapInfo();
   else
   {
@@ -447,16 +477,14 @@ void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<C
 }
 
 void CDomainAlgorithmInterpolate::writeRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
-{
-  std::string filename = interpDomain_->file.getValue();
-  writeInterpolationInfo(filename, interpMapValue);
+{  
+  writeInterpolationInfo(fileToReadWrite_, interpMapValue);
 }
 
 void CDomainAlgorithmInterpolate::readRemapInfo()
-{
-  std::string filename = interpDomain_->file.getValue();
+{  
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
-  readInterpolationInfo(filename, interpMapValue);
+  readInterpolationInfo(fileToReadWrite_, interpMapValue);
 
   exchangeRemapInfo(interpMapValue);
 }

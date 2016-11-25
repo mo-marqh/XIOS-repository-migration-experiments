@@ -49,7 +49,7 @@ namespace xios {
       /// Destructeur ///
       virtual ~CInterpolateDomain(void);
 
-      virtual void checkValid(CDomain* axisDest);
+      virtual void checkValid(CDomain* domainSource);
 
       /// Accesseurs statiques ///
       static StdString GetName(void);
