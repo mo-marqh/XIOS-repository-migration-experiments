@@ -7,6 +7,7 @@ namespace xios
 {
   CStoreFilter::CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid)
     : CInputPin(gc, 1)
+    , gc(gc)
     , context(context)
     , grid(grid)
   {
@@ -26,6 +27,9 @@ namespace xios
 
     do
     {
+      if (canBeTriggered())
+        trigger(timestamp);
+
       timer.resume();
 
       std::map<Time, CDataPacketPtr>::const_iterator it = packets.find(timestamp);
@@ -73,7 +77,7 @@ namespace xios
     packets.insert(std::make_pair(data[0]->timestamp, data[0]));
     // The packet is always destroyed by the garbage collector
     // so we register but never unregister
-    gc.registerFilter(this, data[0]->timestamp);
+    gc.registerObject(this, data[0]->timestamp);
   }
 
   void CStoreFilter::invalidate(Time timestamp)

@@ -18,10 +18,13 @@ namespace xios
       /*!
        * Constructs a source filter accepting data attached to the specified grid.
        *
+       * \param gc the garbage collector associated with this filter
        * \param grid the grid to which the data is attached
        * \param offset the offset applied to the timestamp of all packets
+       * \param manualTrigger whether the output should be triggered manually
        */
-      CSourceFilter(CGrid* grid, const CDuration offset = NoneDu);
+      CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+                    const CDuration offset = NoneDu, bool manualTrigger = false);
 
       /*!
        * Transforms the data received from the model into a packet and send it

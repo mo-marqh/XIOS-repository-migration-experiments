@@ -52,7 +52,7 @@ namespace xios
     CSpatialTransformFilterEngine* spaceFilter = static_cast<CSpatialTransformFilterEngine*>(engine);
     CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue);
     if (outputPacket)
-      deliverOuput(outputPacket);
+      onOutputReady(outputPacket);
   }
 
   CSpatialTransformFilterEngine::CSpatialTransformFilterEngine(CGridTransformation* gridTransformation)

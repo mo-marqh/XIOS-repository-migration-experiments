@@ -5,8 +5,10 @@
 
 namespace xios
 {
-  CSourceFilter::CSourceFilter(CGrid* grid, const CDuration offset /*= NoneDu*/)
-    : grid(grid)
+  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+                               const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/)
+    : COutputPin(gc, manualTrigger)
+    , grid(grid)
     , offset(offset)
   {
     if (!grid)
@@ -27,7 +29,7 @@ namespace xios
     packet->data.resize(grid->storeIndex_client.numElements());
     grid->inputField(data, packet->data);
 
-    deliverOuput(packet);
+    onOutputReady(packet);
   }
 
   template void CSourceFilter::streamData<1>(CDate date, const CArray<double, 1>& data);
@@ -63,7 +65,7 @@ namespace xios
         packet->data(index(n)) = it->second(n);
     }
 
-    deliverOuput(packet);
+    onOutputReady(packet);
   }
 
   void CSourceFilter::signalEndOfStream(CDate date)
@@ -72,6 +74,6 @@ namespace xios
     packet->date = date;
     packet->timestamp = date;
     packet->status = CDataPacket::END_OF_STREAM;
-    deliverOuput(packet);
+    onOutputReady(packet);
   }
 } // namespace xios

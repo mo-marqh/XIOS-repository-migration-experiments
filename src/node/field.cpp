@@ -799,10 +799,11 @@ namespace xios{
          instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
-                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset));
+         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset,
+                                                                                                     true));
        else // The data might be passed from the model
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
      }
 
      // If the field data is to be read by the client or/and written to a file
@@ -873,8 +874,9 @@ namespace xios{
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
-                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset));
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset,
+                                                                                   true));
 
          selfReferenceFilter = serverSourceFilter;
        }
@@ -887,7 +889,7 @@ namespace xios{
        else
        {
          if (!clientSourceFilter)
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
 
          selfReferenceFilter = clientSourceFilter;
        }
