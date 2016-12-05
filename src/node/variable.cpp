@@ -84,24 +84,28 @@ namespace xios {
 
      if (context->hasClient)
      {
-           // Use correct context client to send message
-       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
-                                                                           : context->client;
-
-       CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
-       if (contextClientTmp->isServerLeader())
+       // Use correct context client to send message
+       int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+       for (int i = 0; i < nbSrvPools; ++i)
        {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<content ;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event) ;
-       }
-       else contextClientTmp->sendEvent(event) ;
-    }
+//       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer
+         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
+                                                                             : context->client;
 
+         CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
+         if (contextClientTmp->isServerLeader())
+         {
+           CMessage msg ;
+           msg<<this->getId() ;
+           msg<<content ;
+           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             event.push(*itRank,1,msg);
+           contextClientTmp->sendEvent(event) ;
+         }
+         else contextClientTmp->sendEvent(event) ;
+      }
+     }
 
     //  if (!context->hasServer)
     //  {
@@ -120,6 +124,24 @@ namespace xios {
     //    }
     //    else client->sendEvent(event) ;
     // }
+   }
+
+   void CVariable::sendValue(const int srvPool)
+   {
+     CContext* context=CContext::getCurrent() ;
+     CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
+     CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
+     if (contextClientTmp->isServerLeader())
+     {
+       CMessage msg ;
+       msg<<this->getId() ;
+       msg<<content ;
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event) ;
+     }
+     else contextClientTmp->sendEvent(event) ;
    }
 
    /*

@@ -10,14 +10,16 @@ namespace xios
     {
       public:
         static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
-        static void initializeClientOnServer(const int rank, MPI_Comm& localComm, const int srvSndLeader);
+        static void initializeClientOnServer(const int rank, const MPI_Comm& localComm, const int srvSndLeader);
+
         static void finalize(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
+        static void registerContextOnSrvPools(const string& id, MPI_Comm contextComm);
 
         static MPI_Comm intraComm;
         static MPI_Comm interComm;
         static std::list<MPI_Comm> contextInterComms;
-        static int serverLeader;
+        static vector<int> serverLeader;
         static bool is_MPI_Initialized ;
 
         static MPI_Comm& getInterComm();

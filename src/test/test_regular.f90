@@ -19,8 +19,8 @@ PROGRAM test_regular
   INTEGER :: ierr
   INTEGER :: size, rank
 
-  INTEGER :: nlon = 100 
-  INTEGER :: nlat = 100
+  INTEGER :: nlon = 5 !100 
+  INTEGER :: nlat = 5 !100
   INTEGER :: ncell 
   INTEGER :: ilat, ilon, ind
   DOUBLE PRECISION :: lon1, lon2, lat1, lat2
@@ -36,6 +36,8 @@ PROGRAM test_regular
   DOUBLE PRECISION,ALLOCATABLE :: bounds_lon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: bounds_lat(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: field_temp(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: field_temp1(:,:)
+  DOUBLE PRECISION,ALLOCATABLE :: field_temp2(:,:)
 
 !!! MPI Initialization
   CALL MPI_INIT(ierr)
@@ -117,11 +119,16 @@ PROGRAM test_regular
   ALLOCATE(bounds_lon(4,ni))
   ALLOCATE(bounds_lat(4,ni))
   ALLOCATE(field_temp(ni,ntime)) 
-  lon = lon_glo(1+ibegin:1+ibegin+ni)
-  lat = lat_glo(1+ibegin:1+ibegin+ni)
-  bounds_lon(:,:) = bounds_lon_glo(:,1+ibegin:1+ibegin+ni)
-  bounds_lat(:,:) = bounds_lat_glo(:,1+ibegin:1+ibegin+ni)
+  ALLOCATE(field_temp1(ni,ntime))
+  ALLOCATE(field_temp2(ni,ntime))
+  lon = lon_glo(ibegin:1+ibegin+ni)
+  lat = lat_glo(ibegin:1+ibegin+ni)
+  bounds_lon(:,:) = bounds_lon_glo(:,ibegin:1+ibegin+ni)
+  bounds_lat(:,:) = bounds_lat_glo(:,ibegin:1+ibegin+ni)
+
   field_temp(:,:) = rank
+  field_temp1(:,:) = rank
+  field_temp2(:,:) = rank + 10
 
 
 !!! Context ATMOSPHERE
@@ -134,10 +141,13 @@ PROGRAM test_regular
                             start_date=xios_date(2000, 01, 01, 00, 00, 00), &
                             time_origin=xios_date(1999, 01, 01, 15, 00, 00))
 
-  CALL xios_set_domain_attr("face", ni_glo=ncell, ibegin=ibegin, ni=ni, type='unstructured')
-  CALL xios_set_domain_attr("face", lonvalue_1d=lon, latvalue_1d=lat)
-  CALL xios_set_domain_attr("face", bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
+  CALL xios_set_domain_attr("face1", ni_glo=ncell, ibegin=ibegin, ni=ni, type='unstructured')
+  CALL xios_set_domain_attr("face1", lonvalue_1d=lon, latvalue_1d=lat)
+  CALL xios_set_domain_attr("face1", bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
 
+  CALL xios_set_domain_attr("face2", ni_glo=ncell, ibegin=ibegin, ni=ni, type='unstructured')
+  CALL xios_set_domain_attr("face2", lonvalue_1d=lon, latvalue_1d=lat)
+  CALL xios_set_domain_attr("face2", bounds_lon_1d=bounds_lon, bounds_lat_1d=bounds_lat)
    
 !!! Definition du timestep
 
@@ -159,7 +169,8 @@ PROGRAM test_regular
       CALL xios_update_calendar(ts)
 
 !!! On donne la valeur du champ atm
-     CALL xios_send_field("temp",field_temp(:,1))
+     CALL xios_send_field("temp1",field_temp1(:,1))
+     CALL xios_send_field("temp2",field_temp2(:,1))
 
     ENDDO
 
@@ -177,6 +188,7 @@ PROGRAM test_regular
     DEALLOCATE(lon, lat)
     DEALLOCATE(bounds_lon, bounds_lat)
     DEALLOCATE(field_temp)
+    DEALLOCATE(field_temp1, field_temp2)
 
 !!! Fin de XIOS
 

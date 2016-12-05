@@ -78,6 +78,7 @@ namespace xios
 
             //! Sending a request to set up variable data
             void sendValue();
+            void sendValue(const int srvPool);
 
             static void recvValue(CEventServer& event) ;
             void recvValue(CBufferIn& buffer) ;

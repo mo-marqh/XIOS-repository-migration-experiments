@@ -272,39 +272,51 @@ namespace xios {
    void CGrid::checkMaskIndex(bool doSendingIndex)
    {
      CContext* context = CContext::getCurrent();
-     CContextClient* client= context->hasServer ? context->clientPrimServer : context->client;
+     CContextClient* client;
 
-     if (isScalarGrid())
+     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-       if (context->hasClient && !context->hasServer)
-//         if (context->hasClient)
-          if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
-
-       if (this->isChecked) return;
-       if (context->hasClient && !context->hasServer)
-//       if (context->hasClient)
+       if (context->hasClient)
        {
-          this->computeIndexScalarGrid();
+         if (context->hasServer)
+           client = context->clientPrimServer[i];
+         else
+           client = context->client;
        }
 
+       if (isScalarGrid())
+       {
+         if (context->hasClient && !context->hasServer)
+  //         if (context->hasClient)
+            if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
+
+         if (this->isChecked) return;
+         if (context->hasClient && !context->hasServer)
+  //       if (context->hasClient)
+         {
+            this->computeIndexScalarGrid();
+         }
+
+         this->isChecked = true;
+         return;
+       }
+
+       if (context->hasClient && !context->hasServer)
+  //     if (context->hasClient)
+        if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndex(); this->isIndexSent = true; }
+
+       if (this->isChecked) return;
+
+       if (context->hasClient && !context->hasServer)
+  //     if (context->hasClient)
+       {
+          this->checkAttributesAfterTransformation();
+          this->checkMask();
+          this->computeIndex();
+       }
        this->isChecked = true;
-       return;
      }
-
-     if (context->hasClient && !context->hasServer)
-//     if (context->hasClient)
-      if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndex(); this->isIndexSent = true; }
-
-     if (this->isChecked) return;
-
-     if (context->hasClient && !context->hasServer)
-//     if (context->hasClient)
-     {
-        this->checkAttributesAfterTransformation();
-        this->checkMask();
-        this->computeIndex();
-     }
-     this->isChecked = true;
    }
 
    void CGrid::createMask(void)
@@ -501,78 +513,82 @@ namespace xios {
    {
      CContext* context = CContext::getCurrent();
 //     CContextClient* client = context->client;
-     CContextClient* client = (context->hasServer) ? context->clientPrimServer : context->client;
-
-
-     // First of all, compute distribution on client side
-     if (0 != serverDistribution_)
-       clientDistribution_ = new CDistributionClient(client->clientRank, serverDistribution_->getGlobalLocalIndex());
-     else
-       clientDistribution_ = new CDistributionClient(client->clientRank, this);
-
-     // Get local data index on client
-     int tmp = clientDistribution_->getLocalDataIndexOnClient().size();
-     storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
-     int nbStoreIndex = storeIndex_client.numElements();
-     for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
-     isDataDistributed_= clientDistribution_->isDataDistributed();
-
-     connectedServerRank_.clear();
-
-     if (!doGridHaveDataDistributed())
+     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-        if (client->isServerLeader())
-        {
-          size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
-          const std::list<int>& ranks = client->getRanksServerLeader();
-          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          {
-            connectedServerRank_.push_back(*itRank);
-            connectedDataSize_[*itRank] = ssize;
-          }
-        }
-        return;
-     }
+       CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
 
-     // Compute mapping between client and server
-     std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
-     CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
-     serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
-                                                                client->clientRank,
-                                                                client->clientSize,
-                                                                axis_domain_order,
-                                                                positionDimensionDistributed_);
-     computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
 
-     const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
-     CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
-     CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-     itGlobalMap  = itbGlobalMap = globalIndexOnServer_.begin();
-     iteGlobalMap = globalIndexOnServer_.end();
+       // First of all, compute distribution on client side
+       if (0 != serverDistribution_)
+         clientDistribution_ = new CDistributionClient(client->clientRank, serverDistribution_->getGlobalLocalIndex());
+       else
+         clientDistribution_ = new CDistributionClient(client->clientRank, this);
 
-     for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
-     {
-       int serverRank = itGlobalMap->first;
-       int indexSize = itGlobalMap->second.size();
-       const std::vector<size_t>& indexVec = itGlobalMap->second;
-       for (int idx = 0; idx < indexSize; ++idx)
+       // Get local data index on client
+       int tmp = clientDistribution_->getLocalDataIndexOnClient().size();
+       storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
+       int nbStoreIndex = storeIndex_client.numElements();
+       for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
+       isDataDistributed_= clientDistribution_->isDataDistributed();
+
+       connectedServerRank_.clear();
+
+       if (!doGridHaveDataDistributed())
        {
-          itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
-          if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
+          if (client->isServerLeader())
           {
-             if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
-               connectedDataSize_[serverRank] = 1;
-             else
-               ++connectedDataSize_[serverRank];
+            size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
+            const std::list<int>& ranks = client->getRanksServerLeader();
+            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+            {
+              connectedServerRank_.push_back(*itRank);
+              connectedDataSize_[*itRank] = ssize;
+            }
           }
+          return;
        }
-     }
 
-     for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
-       connectedServerRank_.push_back(itGlobalMap->first);
-     }
+       // Compute mapping between client and server
+       std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
+       CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
+       serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
+                                                                  client->clientRank,
+                                                                  client->clientSize,
+                                                                  axis_domain_order,
+                                                                  positionDimensionDistributed_);
+       computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
 
-     nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
+       const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
+       CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
+       CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
+       itGlobalMap  = itbGlobalMap = globalIndexOnServer_.begin();
+       iteGlobalMap = globalIndexOnServer_.end();
+
+       for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+       {
+         int serverRank = itGlobalMap->first;
+         int indexSize = itGlobalMap->second.size();
+         const std::vector<size_t>& indexVec = itGlobalMap->second;
+         for (int idx = 0; idx < indexSize; ++idx)
+         {
+            itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
+            if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
+            {
+               if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
+                 connectedDataSize_[serverRank] = 1;
+               else
+                 ++connectedDataSize_[serverRank];
+            }
+         }
+       }
+
+       for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
+         connectedServerRank_.push_back(itGlobalMap->first);
+       }
+
+       nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
+     }
    }
 
    /*!
@@ -587,166 +603,170 @@ namespace xios {
                                      CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
    {
      CContext* context = CContext::getCurrent();
-     CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
-     int serverSize = client->serverSize;
-     std::vector<CDomain*> domList = getDomains();
-     std::vector<CAxis*> axisList = getAxis();
-
-     // Some pre-calculations of global index on each element of current grid.
-     int nbElement = axis_domain_order.numElements();
-     std::vector<CArray<size_t,1> > globalIndexElement(nbElement);
-     int domainIdx = 0, axisIdx = 0, scalarIdx = 0;
-     std::vector<size_t> elementNGlobal(nbElement);
-     elementNGlobal[0] = 1;
-     size_t globalSize = 1;
-     for (int idx = 0; idx < nbElement; ++idx)
+     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-       elementNGlobal[idx] = globalSize;
-       size_t elementSize;
-       size_t elementGlobalSize = 1;
-       if (2 == axis_domain_order(idx)) // This is domain
-       {
-         elementSize = domList[domainIdx]->i_index.numElements();
-         globalIndexElement[idx].resize(elementSize);
-         for (int jdx = 0; jdx < elementSize; ++jdx)
-         {
-           globalIndexElement[idx](jdx) = (domList[domainIdx]->i_index)(jdx) + domList[domainIdx]->ni_glo * (domList[domainIdx]->j_index)(jdx);
-         }
-         elementGlobalSize = domList[domainIdx]->ni_glo.getValue() * domList[domainIdx]->nj_glo.getValue();
-         ++domainIdx;
-       }
-       else if (1 == axis_domain_order(idx))  // This is axis
-       {
-         elementSize = axisList[axisIdx]->index.numElements();
-         globalIndexElement[idx].resize(elementSize);
-         for (int jdx = 0; jdx < elementSize; ++jdx)
-         {
-           globalIndexElement[idx](jdx) = (axisList[axisIdx]->index)(jdx);
-         }
-         elementGlobalSize = axisList[axisIdx]->n_glo.getValue();
-         ++axisIdx;
-       }
-       else  // Of course, this is scalar
-       {
-         globalIndexElement[idx].resize(1);
-         globalIndexElement[idx](0) = 0;
-         elementGlobalSize = 1;
-       }
-       globalSize *= elementGlobalSize;
-     }
+       CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
+       int serverSize = client->serverSize;
+       std::vector<CDomain*> domList = getDomains();
+       std::vector<CAxis*> axisList = getAxis();
 
-     std::vector<std::vector<bool> > elementOnServer(nbElement, std::vector<bool>(serverSize, false));
-     std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
-     CArray<int,1> nbIndexOnServer(serverSize); // Number of distributed global index held by each client for each server
-     // Number of temporary distributed global index held by each client for each server
-     // We have this variable for the case of non-distributed element (often axis) to check the duplicate server rank
-     CArray<int,1> nbIndexOnServerTmp(serverSize);
-     for (int idx = 0; idx < nbElement; ++idx)
-     {
-       nbIndexOnServer = 0;
-       const boost::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
-       const CArray<size_t,1>& globalIndexElementOnClient = globalIndexElement[idx];
-       CClientClientDHTInt clientClientDHT(indexServerElement, client->intraComm);
-       clientClientDHT.computeIndexInfoMapping(globalIndexElementOnClient);
-       const CClientClientDHTInt::Index2VectorInfoTypeMap& globalIndexElementOnServerMap = clientClientDHT.getInfoIndexMap();
-       CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = globalIndexElementOnServerMap.begin(),
-                                                                    ite = globalIndexElementOnServerMap.end(), it;
-       for (it = itb; it != ite; ++it)
+       // Some pre-calculations of global index on each element of current grid.
+       int nbElement = axis_domain_order.numElements();
+       std::vector<CArray<size_t,1> > globalIndexElement(nbElement);
+       int domainIdx = 0, axisIdx = 0, scalarIdx = 0;
+       std::vector<size_t> elementNGlobal(nbElement);
+       elementNGlobal[0] = 1;
+       size_t globalSize = 1;
+       for (int idx = 0; idx < nbElement; ++idx)
        {
-         const std::vector<int>& tmp = it->second;
-         nbIndexOnServerTmp = 0;
-         for (int i = 0; i < tmp.size(); ++i)
+         elementNGlobal[idx] = globalSize;
+         size_t elementSize;
+         size_t elementGlobalSize = 1;
+         if (2 == axis_domain_order(idx)) // This is domain
          {
-           if (0 == nbIndexOnServerTmp(tmp[i])) ++nbIndexOnServerTmp(tmp[i]);
-         }
-         nbIndexOnServer += nbIndexOnServerTmp;
-       }
-
-       for (int i = 0; i < serverSize; ++i)
-       {
-         if (0 != nbIndexOnServer(i))
-         {
-           globalElementIndexOnServer[idx][i].resize(nbIndexOnServer(i));
-           elementOnServer[idx][i] = true;
-         }
-       }
-
-       nbIndexOnServer = 0;
-       for (it = itb; it != ite; ++it)
-       {
-         const std::vector<int>& tmp = it->second;
-         nbIndexOnServerTmp = 0;
-         for (int i = 0; i < tmp.size(); ++i)
-         {
-           if (0 == nbIndexOnServerTmp(tmp[i]))
+           elementSize = domList[domainIdx]->i_index.numElements();
+           globalIndexElement[idx].resize(elementSize);
+           for (int jdx = 0; jdx < elementSize; ++jdx)
            {
-             globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer(tmp[i])] = it->first;
-             ++nbIndexOnServerTmp(tmp[i]);
+             globalIndexElement[idx](jdx) = (domList[domainIdx]->i_index)(jdx) + domList[domainIdx]->ni_glo * (domList[domainIdx]->j_index)(jdx);
+           }
+           elementGlobalSize = domList[domainIdx]->ni_glo.getValue() * domList[domainIdx]->nj_glo.getValue();
+           ++domainIdx;
+         }
+         else if (1 == axis_domain_order(idx))  // This is axis
+         {
+           elementSize = axisList[axisIdx]->index.numElements();
+           globalIndexElement[idx].resize(elementSize);
+           for (int jdx = 0; jdx < elementSize; ++jdx)
+           {
+             globalIndexElement[idx](jdx) = (axisList[axisIdx]->index)(jdx);
+           }
+           elementGlobalSize = axisList[axisIdx]->n_glo.getValue();
+           ++axisIdx;
+         }
+         else  // Of course, this is scalar
+         {
+           globalIndexElement[idx].resize(1);
+           globalIndexElement[idx](0) = 0;
+           elementGlobalSize = 1;
+         }
+         globalSize *= elementGlobalSize;
+       }
+
+       std::vector<std::vector<bool> > elementOnServer(nbElement, std::vector<bool>(serverSize, false));
+       std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
+       CArray<int,1> nbIndexOnServer(serverSize); // Number of distributed global index held by each client for each server
+       // Number of temporary distributed global index held by each client for each server
+       // We have this variable for the case of non-distributed element (often axis) to check the duplicate server rank
+       CArray<int,1> nbIndexOnServerTmp(serverSize);
+       for (int idx = 0; idx < nbElement; ++idx)
+       {
+         nbIndexOnServer = 0;
+         const boost::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
+         const CArray<size_t,1>& globalIndexElementOnClient = globalIndexElement[idx];
+         CClientClientDHTInt clientClientDHT(indexServerElement, client->intraComm);
+         clientClientDHT.computeIndexInfoMapping(globalIndexElementOnClient);
+         const CClientClientDHTInt::Index2VectorInfoTypeMap& globalIndexElementOnServerMap = clientClientDHT.getInfoIndexMap();
+         CClientClientDHTInt::Index2VectorInfoTypeMap::const_iterator itb = globalIndexElementOnServerMap.begin(),
+                                                                      ite = globalIndexElementOnServerMap.end(), it;
+         for (it = itb; it != ite; ++it)
+         {
+           const std::vector<int>& tmp = it->second;
+           nbIndexOnServerTmp = 0;
+           for (int i = 0; i < tmp.size(); ++i)
+           {
+             if (0 == nbIndexOnServerTmp(tmp[i])) ++nbIndexOnServerTmp(tmp[i]);
+           }
+           nbIndexOnServer += nbIndexOnServerTmp;
+         }
+
+         for (int i = 0; i < serverSize; ++i)
+         {
+           if (0 != nbIndexOnServer(i))
+           {
+             globalElementIndexOnServer[idx][i].resize(nbIndexOnServer(i));
+             elementOnServer[idx][i] = true;
            }
          }
-         nbIndexOnServer += nbIndexOnServerTmp;
+
+         nbIndexOnServer = 0;
+         for (it = itb; it != ite; ++it)
+         {
+           const std::vector<int>& tmp = it->second;
+           nbIndexOnServerTmp = 0;
+           for (int i = 0; i < tmp.size(); ++i)
+           {
+             if (0 == nbIndexOnServerTmp(tmp[i]))
+             {
+               globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer(tmp[i])] = it->first;
+               ++nbIndexOnServerTmp(tmp[i]);
+             }
+           }
+           nbIndexOnServer += nbIndexOnServerTmp;
+         }
        }
-     }
 
-    // Determine server which contain global source index
-    std::vector<bool> intersectedProc(serverSize, true);
-    for (int idx = 0; idx < nbElement; ++idx)
-    {
-      std::transform(elementOnServer[idx].begin(), elementOnServer[idx].end(),
-                     intersectedProc.begin(), intersectedProc.begin(),
-                     std::logical_and<bool>());
-    }
-
-    std::vector<int> srcRank;
-    for (int idx = 0; idx < serverSize; ++idx)
-    {
-      if (intersectedProc[idx]) srcRank.push_back(idx);
-    }
-
-    // Compute the global index of grid from global index of each element.
-    for (int i = 0; i < srcRank.size(); ++i)
-    {
-      size_t ssize = 1;
-      int rankSrc = srcRank[i];
-      std::vector<std::vector<size_t>* > globalIndexOfElementTmp(nbElement);
-      std::vector<size_t> currentIndex(nbElement,0);
+      // Determine server which contain global source index
+      std::vector<bool> intersectedProc(serverSize, true);
       for (int idx = 0; idx < nbElement; ++idx)
       {
-        ssize *= (globalElementIndexOnServer[idx][rankSrc]).size();
-        globalIndexOfElementTmp[idx] = &(globalElementIndexOnServer[idx][rankSrc]);
+        std::transform(elementOnServer[idx].begin(), elementOnServer[idx].end(),
+                       intersectedProc.begin(), intersectedProc.begin(),
+                       std::logical_and<bool>());
       }
-      globalIndexOnServer[rankSrc].resize(ssize);
 
-      std::vector<int> idxLoop(nbElement,0);
-      int innnerLoopSize = (globalIndexOfElementTmp[0])->size();
-      size_t idx = 0;
-      while (idx < ssize)
+      std::vector<int> srcRank;
+      for (int idx = 0; idx < serverSize; ++idx)
       {
-        for (int ind = 0; ind < nbElement; ++ind)
-        {
-          if (idxLoop[ind] == (globalIndexOfElementTmp[ind])->size())
-          {
-            idxLoop[ind] = 0;
-            ++idxLoop[ind+1];
-          }
+        if (intersectedProc[idx]) srcRank.push_back(idx);
+      }
 
-          currentIndex[ind] = (*(globalIndexOfElementTmp[ind]))[idxLoop[ind]];
+      // Compute the global index of grid from global index of each element.
+      for (int i = 0; i < srcRank.size(); ++i)
+      {
+        size_t ssize = 1;
+        int rankSrc = srcRank[i];
+        std::vector<std::vector<size_t>* > globalIndexOfElementTmp(nbElement);
+        std::vector<size_t> currentIndex(nbElement,0);
+        for (int idx = 0; idx < nbElement; ++idx)
+        {
+          ssize *= (globalElementIndexOnServer[idx][rankSrc]).size();
+          globalIndexOfElementTmp[idx] = &(globalElementIndexOnServer[idx][rankSrc]);
         }
+        globalIndexOnServer[rankSrc].resize(ssize);
 
-        for (int ind = 0; ind < innnerLoopSize; ++ind)
+        std::vector<int> idxLoop(nbElement,0);
+        int innnerLoopSize = (globalIndexOfElementTmp[0])->size();
+        size_t idx = 0;
+        while (idx < ssize)
         {
-          currentIndex[0] = (*globalIndexOfElementTmp[0])[ind];
-          size_t globalSrcIndex = 0;
-          for (int idxElement = 0; idxElement < nbElement; ++idxElement)
+          for (int ind = 0; ind < nbElement; ++ind)
           {
-            globalSrcIndex += currentIndex[idxElement] * elementNGlobal[idxElement];
+            if (idxLoop[ind] == (globalIndexOfElementTmp[ind])->size())
+            {
+              idxLoop[ind] = 0;
+              ++idxLoop[ind+1];
+            }
+
+            currentIndex[ind] = (*(globalIndexOfElementTmp[ind]))[idxLoop[ind]];
           }
-          globalIndexOnServer[rankSrc][idx] = globalSrcIndex;
-          ++idx;
-          ++idxLoop[0];
+
+          for (int ind = 0; ind < innnerLoopSize; ++ind)
+          {
+            currentIndex[0] = (*globalIndexOfElementTmp[0])[ind];
+            size_t globalSrcIndex = 0;
+            for (int idxElement = 0; idxElement < nbElement; ++idxElement)
+            {
+              globalSrcIndex += currentIndex[idxElement] * elementNGlobal[idxElement];
+            }
+            globalIndexOnServer[rankSrc][idx] = globalSrcIndex;
+            ++idx;
+            ++idxLoop[0];
+          }
         }
       }
-    }
+     }
    }
    //----------------------------------------------------------------
 
@@ -985,23 +1005,27 @@ namespace xios {
   void CGrid::computeIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
-
-    storeIndex_client.resize(1);
-    storeIndex_client(0) = 0;
-
-    connectedServerRank_.clear();
-
-    if (0 == client->clientRank)
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
     {
-      for (int rank = 0; rank < client->serverSize; ++rank)
+      CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
+
+      storeIndex_client.resize(1);
+      storeIndex_client(0) = 0;
+
+      connectedServerRank_.clear();
+
+      if (0 == client->clientRank)
       {
-        connectedServerRank_.push_back(rank);
-        connectedDataSize_[rank] = 1;
-        nbSenders[rank] = 1;
+        for (int rank = 0; rank < client->serverSize; ++rank)
+        {
+          connectedServerRank_.push_back(rank);
+          connectedDataSize_[rank] = 1;
+          nbSenders[rank] = 1;
+        }
       }
+      isDataDistributed_ = false;
     }
-    isDataDistributed_ = false;
   }
 
   void CGrid::computeCompressedIndex()
@@ -1041,136 +1065,145 @@ namespace xios {
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client;
-
-    CEventClient event(getType(), EVENT_ID_INDEX);
-    list<CMessage> listMsg;
-    list<CArray<size_t,1> > listOutIndex;
-
-    if (client->isServerLeader())
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
     {
-      const std::list<int>& ranks = client->getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-      {
-        int rank = *itRank;
-        int nb = 1;
-        storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
-        listOutIndex.push_back(CArray<size_t,1>(nb));
+      CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
 
-        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
-        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+      CEventClient event(getType(), EVENT_ID_INDEX);
+      list<CMessage> listMsg;
+      list<CArray<size_t,1> > listOutIndex;
 
-        for (int k = 0; k < nb; ++k)
-        {
-          outGlobalIndexOnServer(k) = 0;
-          outLocalIndexToServer(k)  = 0;
-        }
-
-        listMsg.push_back(CMessage());
-        listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
-
-        event.push(rank, 1, listMsg.back());
-      }
-      client->sendEvent(event);
-    }
-    else
-      client->sendEvent(event);
-  }
-
-  void CGrid::sendIndex(void)
-  {
-    CContext* context = CContext::getCurrent();
-//    CContextClient* client = context->client;
-    CContextClient* client = context->hasServer ? context->clientPrimServer : context->client ;
-
-    CEventClient event(getType(), EVENT_ID_INDEX);
-    int rank;
-    list<CMessage> listMsg;
-    list<CArray<size_t,1> > listOutIndex;
-    const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
-    CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
-                                                           iteIndex = globalLocalIndexSendToServer.end();
-
-    if (!doGridHaveDataDistributed())
-    {
       if (client->isServerLeader())
       {
-        int indexSize = globalLocalIndexSendToServer.size();
-        CArray<size_t,1> outGlobalIndexOnServer(indexSize);
-        CArray<int,1> outLocalIndexToServer(indexSize);
-        for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
-        {
-          outGlobalIndexOnServer(idx) = itIndex->first;
-          outLocalIndexToServer(idx) = itIndex->second;
-        }
-
-        //int nbClient = client->clientSize; // This stupid variable signals the servers the number of client connect to them
         const std::list<int>& ranks = client->getRanksServerLeader();
         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
-          storeIndex_toSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-          listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
+          int rank = *itRank;
+          int nb = 1;
+          storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
+          listOutIndex.push_back(CArray<size_t,1>(nb));
+
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+          CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
+          for (int k = 0; k < nb; ++k)
+          {
+            outGlobalIndexOnServer(k) = 0;
+            outLocalIndexToServer(k)  = 0;
+          }
 
           listMsg.push_back(CMessage());
-          listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
+          listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
-          event.push(*itRank, 1, listMsg.back());
+          event.push(rank, 1, listMsg.back());
         }
         client->sendEvent(event);
       }
       else
         client->sendEvent(event);
     }
-    else
-    {
-      CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
-      itGlobalMap = globalIndexOnServer_.begin();
-      iteGlobalMap = globalIndexOnServer_.end();
+  }
 
-      std::map<int,std::vector<int> >localIndexTmp;
-      std::map<int,std::vector<size_t> > globalIndexTmp;
-      for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+  void CGrid::sendIndex(void)
+  {
+    CContext* context = CContext::getCurrent();
+//    CContextClient* client = context->client;
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
+    {
+      CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client ;
+
+      CEventClient event(getType(), EVENT_ID_INDEX);
+      int rank;
+      list<CMessage> listMsg;
+      list<CArray<size_t,1> > listOutIndex;
+      const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
+      CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
+                                                             iteIndex = globalLocalIndexSendToServer.end();
+
+      if (!doGridHaveDataDistributed())
       {
-        int serverRank = itGlobalMap->first;
-        int indexSize = itGlobalMap->second.size();
-        const std::vector<size_t>& indexVec = itGlobalMap->second;
-        for (int idx = 0; idx < indexSize; ++idx)
+        if (client->isServerLeader())
         {
-          itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
-          if (iteIndex != itIndex)
+          int indexSize = globalLocalIndexSendToServer.size();
+          CArray<size_t,1> outGlobalIndexOnServer(indexSize);
+          CArray<int,1> outLocalIndexToServer(indexSize);
+          for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
           {
-            globalIndexTmp[serverRank].push_back(itIndex->first);
-            localIndexTmp[serverRank].push_back(itIndex->second);
+            outGlobalIndexOnServer(idx) = itIndex->first;
+            outLocalIndexToServer(idx) = itIndex->second;
+          }
+
+          //int nbClient = client->clientSize; // This stupid variable signals the servers the number of client connect to them
+          const std::list<int>& ranks = client->getRanksServerLeader();
+          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+          {
+            storeIndex_toSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
+
+            listMsg.push_back(CMessage());
+            listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
+
+            event.push(*itRank, 1, listMsg.back());
+          }
+          client->sendEvent(event);
+        }
+        else
+          client->sendEvent(event);
+      }
+      else
+      {
+        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
+        itGlobalMap = globalIndexOnServer_.begin();
+        iteGlobalMap = globalIndexOnServer_.end();
+
+        std::map<int,std::vector<int> >localIndexTmp;
+        std::map<int,std::vector<size_t> > globalIndexTmp;
+        for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+        {
+          int serverRank = itGlobalMap->first;
+          int indexSize = itGlobalMap->second.size();
+          const std::vector<size_t>& indexVec = itGlobalMap->second;
+          for (int idx = 0; idx < indexSize; ++idx)
+          {
+            itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
+            if (iteIndex != itIndex)
+            {
+              globalIndexTmp[serverRank].push_back(itIndex->first);
+              localIndexTmp[serverRank].push_back(itIndex->second);
+            }
           }
         }
-      }
 
-      for (int ns = 0; ns < connectedServerRank_.size(); ++ns)
-      {
-        rank = connectedServerRank_[ns];
-        int nb = 0;
-        if (globalIndexTmp.end() != globalIndexTmp.find(rank))
-          nb = globalIndexTmp[rank].size();
-
-        storeIndex_toSrv.insert(make_pair(rank, CArray<int,1>(nb)));
-        listOutIndex.push_back(CArray<size_t,1>(nb));
-
-        CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
-        CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
-
-        for (int k = 0; k < nb; ++k)
+//        for (int ns = 0; ns < connectedServerRank_.size(); ++ns)
+        for (int ns = 0; ns < client->serverSize; ++ns)
         {
-          outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
-          outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
+          rank = connectedServerRank_[ns];
+          int nb = 0;
+          if (globalIndexTmp.end() != globalIndexTmp.find(rank))
+            nb = globalIndexTmp[rank].size();
+
+          storeIndex_toSrv.insert(make_pair(rank, CArray<int,1>(nb)));
+          listOutIndex.push_back(CArray<size_t,1>(nb));
+
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+          CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
+
+          for (int k = 0; k < nb; ++k)
+          {
+            outGlobalIndexOnServer(k) = globalIndexTmp[rank].at(k);
+            outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
+          }
+
+          listMsg.push_back(CMessage());
+          listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
+
+          event.push(rank, nbSenders[rank], listMsg.back());
         }
 
-        listMsg.push_back(CMessage());
-        listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
-
-        event.push(rank, nbSenders[rank], listMsg.back());
+        client->sendEvent(event);
       }
-
-      client->sendEvent(event);
     }
   }
 
@@ -1201,8 +1234,10 @@ namespace xios {
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
-    CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer;
-    CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer;
+//    CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer;
+//    CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer;
+    CContextServer* server = context->server;
+    CContextClient* client = context->client;
     numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
     connectedServerRank_ = ranks;
 

@@ -61,7 +61,6 @@ namespace xios
 
     boost::hash<string> hashString;
     StdString contextId = context->getId();
-    contextId += "_prim";                      // just to distinguish between server and serverPrimServer on server1
     hashId=hashString(contextId);
 
   }

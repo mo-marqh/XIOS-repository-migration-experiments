@@ -1024,12 +1024,6 @@ namespace xios {
      }
    }
 
-
-
-
-
-
-
    void CDomain::checkEligibilityForCompressedOutput(void)
    {
      // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
@@ -1395,47 +1389,50 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
      // Use correct context client to send message
-     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
-                                                                         : context->client;
-
-    // CContextClient* client = context->client;
-    int nbServer = contextClientTmp->serverSize;
-
-    CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
-    if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
-    else serverDescription.computeServerDistribution(false, 1);
-
-    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-
-    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-    if (contextClientTmp->isServerLeader())
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
     {
-      std::list<CMessage> msgs;
+       CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
+                                                                           : context->client;
+      // CContextClient* client = context->client;
+      int nbServer = contextClientTmp->serverSize;
 
-      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
+      if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
+      else serverDescription.computeServerDistribution(false, 1);
+
+      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+      CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
+      if (contextClientTmp->isServerLeader())
       {
-        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
-        const int ibegin_srv = serverIndexBegin[*itRank][0];
-        const int jbegin_srv = serverIndexBegin[*itRank][1];
-        const int ni_srv = serverDimensionSizes[*itRank][0];
-        const int nj_srv = serverDimensionSizes[*itRank][1];
-        const int iend_srv = ibegin_srv + ni_srv - 1;
-        const int jend_srv = jbegin_srv + nj_srv - 1;
+        std::list<CMessage> msgs;
 
-        msgs.push_back(CMessage());
-        CMessage& msg = msgs.back();
-        msg << this->getId() ;
-        msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
-        msg << global_zoom_ni.getValue() << global_zoom_ibegin.getValue() << global_zoom_nj.getValue() << global_zoom_jbegin.getValue();
-        msg << isCompressible_;
+        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+          const int ibegin_srv = serverIndexBegin[*itRank][0];
+          const int jbegin_srv = serverIndexBegin[*itRank][1];
+          const int ni_srv = serverDimensionSizes[*itRank][0];
+          const int nj_srv = serverDimensionSizes[*itRank][1];
+          const int iend_srv = ibegin_srv + ni_srv - 1;
+          const int jend_srv = jbegin_srv + nj_srv - 1;
 
-        event.push(*itRank,1,msg);
+          msgs.push_back(CMessage());
+          CMessage& msg = msgs.back();
+          msg << this->getId() ;
+          msg << ni_srv << ibegin_srv << iend_srv << nj_srv << jbegin_srv << jend_srv;
+          msg << global_zoom_ni.getValue() << global_zoom_ibegin.getValue() << global_zoom_nj.getValue() << global_zoom_jbegin.getValue();
+          msg << isCompressible_;
+
+          event.push(*itRank,1,msg);
+        }
+        contextClientTmp->sendEvent(event);
       }
-      contextClientTmp->sendEvent(event);
+      else contextClientTmp->sendEvent(event);
     }
-    else contextClientTmp->sendEvent(event);
   }
 
   void CDomain::computeNGlobDomain()

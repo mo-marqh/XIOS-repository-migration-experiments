@@ -26,11 +26,14 @@ namespace xios
 
         // Communicators for the primary group of servers
         static MPI_Comm intraComm;
-        static list<MPI_Comm> interCommLeft;   // interComm between server and its client (client or primary server)
+        static list<MPI_Comm> interCommLeft;   // interComm between server (primary or secondary) and its client (client or primary server)
         static list<MPI_Comm> interCommRight;  // interComm between primary server and secondary server (non-empty only for primary server pool)
         static list<MPI_Comm> interComm;       // interCommLeft + interCommRight
         static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
+
+        static int nbSndSrvPools;   // number of secondary server pools
+        static int poolNb;          // for secondary servers; stores the pool number
 
         struct contextMessage
         {
@@ -64,6 +67,7 @@ namespace xios
 
       private:
         static int rank;
+        static int rankSndServers;
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

@@ -116,10 +116,14 @@ namespace xios {
 
          // Send info to server
          void sendEnabledFields();
+         void sendEnabledFields(const int srvPool);
          void sendAddField(const string& id = "");
+         void sendAddField(const string& id, const int srvPool);
          void sendAddFieldGroup(const string& id = "");
          void sendAddAllVariables();
+         void sendAddAllVariables(const int srvPool);
          void sendAddVariable(const string& id = "");
+         void sendAddVariable(const string& id, const int srvPool);
          void sendAddVariableGroup(const string& id = "");
 
          // Receive info from client

@@ -234,8 +234,10 @@ namespace xios {
 //              "Invalid 'record_offset', this attribute cannot be negative.");
       const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
 
-      set<CAxis*> setAxis;
-      set<CDomain*> setDomains;
+//      set<CAxis*> setAxis;
+//      set<CDomain*> setDomains;
+      set<StdString> setAxis;
+      set<StdString> setDomains;
 
       std::vector<CField*>::iterator it, end = this->enabledFields.end();
       for (it = this->enabledFields.begin(); it != end; it++)
@@ -244,10 +246,12 @@ namespace xios {
          allDomainEmpty &= !field->grid->doGridHaveDataToWrite();
          std::vector<CAxis*> vecAxis = field->grid->getAxis();
          for (size_t i = 0; i < vecAxis.size(); ++i)
-            setAxis.insert(vecAxis[i]);
+           setAxis.insert(vecAxis[i]->getAxisOutputName());
+//            setAxis.insert(vecAxis[i]);
          std::vector<CDomain*> vecDomains = field->grid->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
-            setDomains.insert(vecDomains[i]);
+           setDomains.insert(vecDomains[i]->getDomainOutputName());
+//            setDomains.insert(vecDomains[i]);
 
          field->resetNStep(recordOffset);
       }
@@ -848,6 +852,31 @@ namespace xios {
 
    }
 
+   void CFile::sendAddField(const string& id, const int srvPool)
+   {
+      sendAddItem(id, EVENT_ID_ADD_FIELD, srvPool);
+    // CContext* context = CContext::getCurrent();
+
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
+
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
+
+   }
+
    /*!
    \brief Send a message to create a field group on server side
    \param[in] id String identity of field group that will be created on server
@@ -944,6 +973,48 @@ namespace xios {
      }
    }
 
+   void CFile::sendAddAllVariables(const int srvPool)
+   {
+     std::vector<CVariable*> allVar = getAllVariables();
+     std::vector<CVariable*>::const_iterator it = allVar.begin();
+     std::vector<CVariable*>::const_iterator itE = allVar.end();
+
+     for (; it != itE; ++it)
+     {
+       this->sendAddVariable((*it)->getId(), srvPool);
+       (*it)->sendAllAttributesToServer(srvPool);
+       (*it)->sendValue(srvPool);
+     }
+   }
+
+   /*!
+   \brief Send a message to create a variable group on server side
+   \param[in] id String identity of variable group that will be created on server
+   */
+   void CFile::sendAddVariableGroup(const string& id)
+   {
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
+    // CContext* context = CContext::getCurrent();
+    // if (! context->hasServer )
+    // {
+    //    CContextClient* client = context->client;
+
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
+
+   }
+
    /*!
    \brief Send a message to create a variable on server side
       A variable always belongs to a variable group
@@ -974,19 +1045,16 @@ namespace xios {
 
    }
 
-   /*!
-   \brief Send a message to create a variable group on server side
-   \param[in] id String identity of variable group that will be created on server
-   */
-   void CFile::sendAddVariableGroup(const string& id)
+   void CFile::sendAddVariable(const string& id, const int srvPool)
    {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, srvPool);
     // CContext* context = CContext::getCurrent();
+
     // if (! context->hasServer )
     // {
     //    CContextClient* client = context->client;
 
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
     //    if (client->isServerLeader())
     //    {
     //      CMessage msg;
@@ -1066,6 +1134,18 @@ namespace xios {
        this->sendAddField(field->getId());
        field->sendAllAttributesToServer();
        field->sendAddAllVariables();
+     }
+   }
+
+   void CFile::sendEnabledFields(const int srvPool)
+   {
+     size_t size = this->enabledFields.size();
+     for (size_t i = 0; i < size; ++i)
+     {
+       CField* field = this->enabledFields[i];
+       this->sendAddField(field->getId(), srvPool);
+       field->sendAllAttributesToServer(srvPool);
+       field->sendAddAllVariables(srvPool);
      }
    }
 

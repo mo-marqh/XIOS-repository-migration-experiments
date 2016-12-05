@@ -55,9 +55,13 @@ namespace xios
          static void ClearAllAttributes(void);
          std::map<int, size_t> getMinimumBufferSizeForAttributes();
          void sendAttributToServer(const string& id);
+         void sendAttributToServer(const string& id, const int srvPool);
          void sendAttributToServer(CAttribute& attr) ;
+         void sendAttributToServer(CAttribute& attr, const int srvPool) ;
          void sendAllAttributesToServer();
+         void sendAllAttributesToServer(const int srvPool);
          void sendAddItem(const string& id, int itemType);
+         void sendAddItem(const string& id, int itemType, const int srvPool);
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 

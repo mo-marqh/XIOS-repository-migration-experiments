@@ -132,14 +132,18 @@ namespace xios {
          void sendUpdateCalendar(int step);
          void sendCreateFileHeader(void);
          void sendEnabledFiles();
+         void sendEnabledFiles(const int nbPools);
          void sendEnabledFields();
+         void sendEnabledFields(const int nbPools);
          void sendRefDomainsAxis();
+         void sendRefDomainsAxis(const int nbPools);
          void sendRefGrid();
          void sendPostProcessing();
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
 
          const StdString& getIdServer();
+         const StdString& getIdServer(const int srvPoolNb);
 
          // Client side: Receive and process messages
          static void recvUpdateCalendar(CEventServer& event);
@@ -226,8 +230,10 @@ namespace xios {
          CContextServer* server;
 
          // Client-server pair in case of secondary server pool
-         CContextClient* clientPrimServer;
-         CContextServer* serverPrimServer;
+//         CContextClient* clientPrimServer;
+//         CContextServer* serverPrimServer;
+         std::vector<CContextClient*> clientPrimServer;
+         std::vector<CContextServer*> serverPrimServer;
 
       private:
          bool isPostProcessed;

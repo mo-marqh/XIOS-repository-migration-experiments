@@ -21,8 +21,11 @@ namespace xios
     list<MPI_Comm> CServer::interCommRight ;
     list<MPI_Comm> CServer::interComm ;
     std::list<MPI_Comm> CServer::contextInterComms;
+    int CServer::nbSndSrvPools = (CXios::serverLevel == 0) ? 0 : 1;
+    int CServer::poolNb = 0;
     bool CServer::isRoot = false ;
     int CServer::rank = INVALID_RANK;
+    int CServer::rankSndServers = 0;
     StdOFStream CServer::m_infoStream;
     StdOFStream CServer::m_errorStream;
     map<string,CContext*> CServer::contextList ;
@@ -42,6 +45,7 @@ namespace xios
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
 
+
       // Not using OASIS
       if (!CXios::usingOasis)
       {
@@ -52,29 +56,31 @@ namespace xios
         }
         CTimer::get("XIOS").resume() ;
 
-        int nbSrvLevels = 2;
-
         boost::hash<string> hashString ;
         unsigned long hashServer1 = hashString(CXios::xiosCodeIdPrm);
         unsigned long hashServer2 = hashString(CXios::xiosCodeIdSnd);
         unsigned long hashServer = (CXios::serverLevel < 2)  ? hashServer1 : hashServer2;
 
         unsigned long* hashAll ;
+        unsigned long* hashAllServers ;
 
 //        int rank ;
         int size ;
         int myColor ;
         int i,c ;
-        MPI_Comm newComm ;
+        MPI_Comm newComm, serversInterComm;
 
         MPI_Comm_size(CXios::globalComm, &size) ;
         MPI_Comm_rank(CXios::globalComm, &rank);
+
         hashAll=new unsigned long[size] ;
         MPI_Allgather(&hashServer, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
 
-        map<unsigned long, int> colors ;
+        map<unsigned long, int> colors, colorsServers ;
         map<unsigned long, int> leaders ;
         map<unsigned long, int>::iterator it ;
+//        map<unsigned long, int> leadersServers ;
+        vector<int> leadersServers;
 
         for(i=0,c=0;i<size;i++)
         {
@@ -86,8 +92,75 @@ namespace xios
           }
         }
 
-        myColor=colors[hashServer] ;
-        MPI_Comm_split(MPI_COMM_WORLD, myColor, rank, &intraComm) ;
+        nbSndSrvPools = size - leaders[hashServer2];    // one proc per secondary-server pool
+
+        // Taking into account multiple pools on secondary server
+        if (nbSndSrvPools > 1)
+        {
+          if (CXios::serverLevel > 1)
+          {
+            int nbProcs = size - leaders[hashServer2];
+            int remain = nbProcs % nbSndSrvPools;
+            int procsPerPool = nbProcs / nbSndSrvPools;
+            rankSndServers = rank - leaders[hashServer2];
+            StdString strTmp = CXios::xiosCodeIdSnd;
+
+            if (remain == 0)
+            {
+              poolNb = rankSndServers/procsPerPool;
+            }
+            else
+            {
+              if (rankSndServers <= (procsPerPool + 1) * remain)
+                poolNb = rankSndServers/(procsPerPool+1);
+              else
+              {
+                poolNb = remain + 1;
+                rankSndServers -= (procsPerPool + 1) * remain;
+                rankSndServers -= procsPerPool;
+                poolNb += rankSndServers/procsPerPool;
+              }
+            }
+            strTmp += boost::lexical_cast<string>(poolNb+1);  // add 1 to avoid hashing zero
+            hashServer = hashString(strTmp);
+            hashServer2 = hashString(strTmp);
+          }
+        }
+
+        if (nbSndSrvPools > 1)
+        {
+          myColor = size;
+          MPI_Comm_split(MPI_COMM_WORLD, myColor, rank, &serversInterComm) ;
+        }
+        else
+        {
+          myColor=colors[hashServer] ;
+          MPI_Comm_split(MPI_COMM_WORLD, myColor, rank, &intraComm) ;
+        }
+
+        if (nbSndSrvPools > 1)
+        {
+          int sizeServers;
+//          int rankServers;
+//          MPI_Comm_rank(serversInterComm, &rankServers) ;
+          MPI_Comm_size(serversInterComm, &sizeServers) ;
+          hashAllServers=new unsigned long[sizeServers] ;
+          MPI_Allgather(&hashServer, 1, MPI_LONG, hashAllServers, 1, MPI_LONG, serversInterComm) ;
+
+          for(i=0, c=0; i<sizeServers; i++)
+          {
+            if (colorsServers.find(hashAllServers[i])==colorsServers.end())
+            {
+              colorsServers[hashAllServers[i]]=c ;
+//              leadersServers[hashAllServers[i]]= leaders[hashServer1] + i ;
+              leadersServers.push_back( leaders[hashServer1] + i );
+              c++ ;
+            }
+          }
+          myColor=colorsServers[hashServer] ;
+          MPI_Comm_split(serversInterComm, myColor, rank, &intraComm) ;
+        }
+
 
         if (CXios::serverLevel == 0)
         {
@@ -103,69 +176,122 @@ namespace xios
               info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
-               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
                interCommLeft.push_back(newComm) ;
                interComm.push_back(newComm) ;
             }
           }
         }
-
-        else if ((CXios::serverLevel == 1))
+        else
         {
-          int clientLeader;
-          int srvSndLeader;
-          for(it=leaders.begin();it!=leaders.end();it++)
+          if ((CXios::serverLevel == 1))
           {
-            if (it->first != hashServer2)
+            // Creating interComm with client (interCommLeft)
+            int clientLeader;
+            int srvSndLeader;
+            for(it=leaders.begin();it!=leaders.end();it++)
             {
-              if (it->first != hashServer1)
+              if (it->first != hashServer2)
               {
-                clientLeader=it->second ;
-                int intraCommSize, intraCommRank ;
-                MPI_Comm_size(intraComm,&intraCommSize) ;
-                MPI_Comm_rank(intraComm,&intraCommRank) ;
-                info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
-                         <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
-                MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
-                interCommLeft.push_back(newComm) ;
-                interComm.push_back(newComm) ;
+                if (it->first != hashServer1)
+                {
+                  clientLeader=it->second ;
+                  int intraCommSize, intraCommRank ;
+                  MPI_Comm_size(intraComm, &intraCommSize) ;
+                  MPI_Comm_rank(intraComm, &intraCommRank) ;
+                  info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                           <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+                  MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+                  interCommLeft.push_back(newComm) ;
+                  interComm.push_back(newComm) ;
+                }
+              }
+              else
+              {
+                srvSndLeader = it->second;
+              }
+            }
+
+            // Creating interComm with secondary server pool(s) (interCommRight)
+//            if (nbSndSrvPools < 1)
+            if (nbSndSrvPools < 2)
+            {
+              CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+              interCommRight.push_back(CClient::getInterComm());
+              interComm.push_back(CClient::getInterComm());
+            }
+            else
+            {
+//              for(it=leadersServers.begin();it!=leadersServers.end();it++)
+//              {
+//                if (it->first != hashServer)
+//                {
+//                  srvSndLeader = it->second;
+//                  CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+//                  interCommRight.push_back(CClient::getInterComm());
+//                  interComm.push_back(CClient::getInterComm());
+//                }
+//              }
+
+              for(int i = 1; i < leadersServers.size(); ++i)
+              {
+                srvSndLeader = leadersServers[i];
+                CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
+                interCommRight.push_back(CClient::getInterComm());
+                interComm.push_back(CClient::getInterComm());
+              }
+            }
+          } // primary server
+
+          else // secondary server pool(s)
+          {
+            int clientLeader;
+            if (nbSndSrvPools < 2)
+//            if (nbSndSrvPools < 1)
+            {
+              for(it=leaders.begin();it!=leaders.end();it++)
+              {
+                if (it->first == hashServer1)
+                {
+                  clientLeader=it->second ;
+                  int intraCommSize, intraCommRank ;
+                  MPI_Comm_size(intraComm, &intraCommSize) ;
+                  MPI_Comm_rank(intraComm, &intraCommRank) ;
+                  info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                           <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+
+                  MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+                  interCommLeft.push_back(newComm) ;
+                  interComm.push_back(newComm) ;
+
+                  break;
+                }
               }
             }
             else
             {
-              srvSndLeader = it->second;
+//              for(it=leadersServers.begin();it!=leadersServers.end();it++)
+              {
+ //               if (it->first == hashServer1)
+                {
+//                  clientLeader=it->second ;
+                  clientLeader = leadersServers[0];
+                  int intraCommSize, intraCommRank ;
+                  MPI_Comm_size(intraComm, &intraCommSize) ;
+                  MPI_Comm_rank(intraComm, &intraCommRank) ;
+                  info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+                           <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+
+                  MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+                  interCommLeft.push_back(newComm) ;
+                  interComm.push_back(newComm) ;
+                }
+              }
             }
-          }
+          } // secondary server
+        } // CXios::serverLevel != 0
 
-          CClient::initializeClientOnServer(rank, intraComm, srvSndLeader);
-          interCommRight.push_back(CClient::getInterComm());
-          interComm.push_back(CClient::getInterComm());
-
-        }
-
-        else // secondary server pool
-        {
-          int clientLeader;
-          for(it=leaders.begin();it!=leaders.end();it++)
-          {
-            if (it->first == hashServer1)
-            {
-              clientLeader=it->second ;
-              int intraCommSize, intraCommRank ;
-              MPI_Comm_size(intraComm,&intraCommSize) ;
-              MPI_Comm_rank(intraComm,&intraCommRank) ;
-              info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
-                       <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
-
-              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
-              interCommLeft.push_back(newComm) ;
-              interComm.push_back(newComm) ;
-
-              break;
-            }
-          }
-        }
-
+        if (nbSndSrvPools > 1) delete [] hashAllServers;
         delete [] hashAll ;
 
       }
@@ -203,8 +329,7 @@ namespace xios
 	      oasis_enddef() ;
       }
 
-//      int rank;
-      MPI_Comm_rank(intraComm,&rank) ;
+      MPI_Comm_rank(intraComm, &rank) ;
       if (rank==0) isRoot=true;
       else isRoot=false;
       
@@ -488,7 +613,8 @@ namespace xios
 
        if (CXios::serverLevel == 1)
        {
-         CClient::registerContext(contextId, intraComm);
+//         CClient::registerContext(contextId, intraComm);
+         CClient::registerContextOnSrvPools(contextId, intraComm);
        }
 
        MPI_Comm_free(&inter);
@@ -530,6 +656,7 @@ namespace xios
       StdStringStream fileNameClient;
       int numDigit = 0;
       int size = 0;
+      int mpiRank;
       MPI_Comm_size(CXios::globalComm, &size);
       while (size)
       {
@@ -537,7 +664,11 @@ namespace xios
         ++numDigit;
       }
 
-      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ext;
+      if (nbSndSrvPools < 2)
+        mpiRank = getRank();
+      else
+        mpiRank = rankSndServers;
+      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << mpiRank << ext;
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())
         ERROR("void CServer::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",

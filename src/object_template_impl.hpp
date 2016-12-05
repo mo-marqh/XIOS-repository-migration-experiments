@@ -167,35 +167,39 @@ namespace xios
      CContext* context = CContext::getCurrent();
 
           // Use correct context client to send message
-     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-
-     std::map<int, size_t> minimumSizes;
-
-     if (contextClientTmp->isServerLeader())
+//     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-       size_t minimumSize = 0;
-       CAttributeMap& attrMap = *this;
-       CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
-       for (; it != itE; ++it)
+       CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
+
+       std::map<int, size_t> minimumSizes;
+
+       if (contextClientTmp->isServerLeader())
        {
-         if (!it->second->isEmpty())
+         size_t minimumSize = 0;
+         CAttributeMap& attrMap = *this;
+         CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+         for (; it != itE; ++it)
          {
-           size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
-           if (size > minimumSize)
-             minimumSize = size;
+           if (!it->second->isEmpty())
+           {
+             size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
+             if (size > minimumSize)
+               minimumSize = size;
+           }
+         }
+
+         if (minimumSize)
+         {
+           // Account for extra header info
+           minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
+
+           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             minimumSizes.insert(std::make_pair(*itRank, minimumSize));
          }
        }
-
-       if (minimumSize)
-       {
-         // Account for extra header info
-         minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
-
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           minimumSizes.insert(std::make_pair(*itRank, minimumSize));
-       }
-     }
 
      // if (client->isServerLeader())
      // {
@@ -223,7 +227,8 @@ namespace xios
      //   }
      // }
 
-     return minimumSizes;
+       return minimumSizes;
+     }
    }
 
    template<typename T>
@@ -237,6 +242,17 @@ namespace xios
      }
    }
 
+   template<typename T>
+   void CObjectTemplate<T>::sendAllAttributesToServer(const int srvPool)
+   {
+     CAttributeMap& attrMap = *this;
+     CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+     for (; it != itE; ++it)
+     {
+       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second), srvPool);
+     }
+   }
+
    template <class T>
    void CObjectTemplate<T>::sendAttributToServer(const string& id)
    {
@@ -245,35 +261,51 @@ namespace xios
       sendAttributToServer(*attr);
    }
 
+   template <class T>
+   void CObjectTemplate<T>::sendAttributToServer(const string& id, const int srvPool)
+   {
+      CAttributeMap & attrMap = *this;
+      CAttribute* attr=attrMap[id];
+      sendAttributToServer(*attr, srvPool);
+   }
+
   template <class T>
   void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
   {
     CContext* context=CContext::getCurrent();
 
      // Use correct context client to send message
-     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-
-    // if (!context->hasServer)
+//    CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
     if (context->hasClient)
     {
-       // CContextClient* contextClientTmp=context->contextClientTmp;
+      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      for (int i = 0; i < nbSrvPools; ++i)
+      {
+        CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
+        // CContextClient* contextClientTmp=context->contextClientTmp;
 
-       CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-//       msg << this->getId();
-         msg << this->getIdServer();
-         msg << attr.getName();
-         msg << attr;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
+        CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
+        if (contextClientTmp->isServerLeader())
+        {
+          CMessage msg;
+//          if (context->hasServer)
+//          {
+//            StdString tmp = this->getIdServer() + "_" +boost::lexical_cast<string>(i);
+//            msg<<tmp;
+//          }
+//          else
+            msg<<this->getIdServer();
+
+          msg << attr.getName();
+          msg << attr;
+          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+            event.push(*itRank,1,msg);
+          contextClientTmp->sendEvent(event);
+        }
+        else contextClientTmp->sendEvent(event);
+      }
     }
-
 //     // if (!context->hasServer)
 //     if (context->hasClient)
 //     {
@@ -297,6 +329,27 @@ namespace xios
 
   }
 
+  template <class T>
+  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr, const int srvPool)
+  {
+    CContext* context=CContext::getCurrent();
+    CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
+    CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
+    if (contextClientTmp->isServerLeader())
+    {
+      CMessage msg;
+      msg<<this->getIdServer();
+      msg << attr.getName();
+      msg << attr;
+      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        event.push(*itRank,1,msg);
+      contextClientTmp->sendEvent(event);
+    }
+    else contextClientTmp->sendEvent(event);
+  }
+
+
   /*!
     This generic funtion only provides instance for sending, for receving, each 
     child class must define itself.
@@ -311,20 +364,45 @@ namespace xios
     if (context->hasClient)
     {
        // Use correct context client to send message
-       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-       CEventClient event(this->getType(),ItemType(itemType));
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         contextClientTmp->sendEvent(event);
-       }
-       else contextClientTmp->sendEvent(event);
+//      CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      for (int i = 0; i < nbSrvPools; ++i)
+      {
+         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
+         CEventClient event(this->getType(),ItemType(itemType));
+         if (contextClientTmp->isServerLeader())
+         {
+           CMessage msg;
+           msg << this->getId();
+           msg << id;
+           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             event.push(*itRank,1,msg);
+           contextClientTmp->sendEvent(event);
+         }
+         else contextClientTmp->sendEvent(event);
+      }
     }
+  }
+
+  template<class T>
+  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType, const int srvPool)
+  {
+    CContext* context = CContext::getCurrent();
+    typedef typename T::EEventId ItemType;
+     CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
+     CEventClient event(this->getType(),ItemType(itemType));
+     if (contextClientTmp->isServerLeader())
+     {
+       CMessage msg;
+       msg << this->getId();
+       msg << id;
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event);
+     }
+     else contextClientTmp->sendEvent(event);
   }
 
   template <class T>

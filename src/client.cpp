@@ -17,7 +17,7 @@ namespace xios
     MPI_Comm CClient::intraComm ;
     MPI_Comm CClient::interComm ;
     std::list<MPI_Comm> CClient::contextInterComms;
-    int CClient::serverLeader;
+    vector <int> CClient::serverLeader;
     bool CClient::is_MPI_Initialized ;
     int CClient::rank = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
@@ -102,13 +102,17 @@ namespace xios
           if (CXios::usingServer)
           {
             int clientLeader=leaders[hashClient] ;
-            serverLeader=leaders[hashServer] ;
+//            serverLeader=leaders[hashServer] ;
+            serverLeader.push_back(leaders[hashServer]) ;
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm,&intraCommSize) ;
             MPI_Comm_rank(intraComm,&intraCommRank) ;
             info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
-                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
-             MPI_Intercomm_create(intraComm,0,CXios::globalComm,serverLeader,0,&interComm) ;
+                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader.back()<<endl ;
+             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader.back(), 0, &interComm) ;
+//             info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
+//                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
+//              MPI_Intercomm_create(intraComm,0,CXios::globalComm,serverLeader,0,&interComm) ;
           }
           else
           {
@@ -160,17 +164,18 @@ namespace xios
       MPI_Comm_dup(intraComm,&returnComm) ;
     }
 
-    void CClient::initializeClientOnServer(const int rank, MPI_Comm& intraCommPrmSrv, const int srvSndLeader)
+    void CClient::initializeClientOnServer(const int rank, const MPI_Comm& intraCommPrmSrv, const int srvSndLeader)
     {
       MPI_Comm_dup(intraCommPrmSrv, &intraComm) ;
-      serverLeader = srvSndLeader;
+      serverLeader.push_back(srvSndLeader);
       int intraCommSize, intraCommRank ;
       MPI_Comm_size(intraComm,&intraCommSize) ;
       MPI_Comm_rank(intraComm,&intraCommRank) ;
       info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
-          <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
-      MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader, 0, &interComm) ;
+          <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
+      MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &interComm) ;
     }
+
 
 ///---------------------------------------------------------------
 /*!
@@ -225,22 +230,77 @@ namespace xios
         CBufferOut buffer(buff,messageSize) ;
         buffer<<msg ;
 
-        MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader, 1, CXios::globalComm) ;
+        for (int i = 0; i < serverLeader.size(); ++i)
+        {
+          MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader[i], 1, CXios::globalComm) ;
+          MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader[i], 10+globalRank, &contextInterComm) ;
+          info(10)<<"Register new Context : "<<id<<endl ;
+          MPI_Comm inter ;
+          MPI_Intercomm_merge(contextInterComm,0,&inter) ;
+          MPI_Barrier(inter) ;
+
+          context->initClient(contextComm,contextInterComm) ;
+
+          contextInterComms.push_back(contextInterComm);
+          MPI_Comm_free(&inter);
+        }
         delete [] buff ;
 
-        MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader, 10+globalRank, &contextInterComm) ;
-        info(10)<<"Register new Context : "<<id<<endl ;
-
-        MPI_Comm inter ;
-        MPI_Intercomm_merge(contextInterComm,0,&inter) ;
-        MPI_Barrier(inter) ;
-
-        context->initClient(contextComm,contextInterComm) ;
-
-        contextInterComms.push_back(contextInterComm);
-        MPI_Comm_free(&inter);
       }
     }
+
+    ///---------------------------------------------------------------
+    /*!
+     * \fn void CClient::registerContext(const string& id, const int poolNb, MPI_Comm contextComm)
+     * Function creates intraComm (CClient::intraComm) for client group with id=codeId and interComm (CClient::interComm) between client and server groups.
+     * \param [in] id id of context.
+     * \param [in] contextComm.
+     */
+        void CClient::registerContextOnSrvPools(const string& id, MPI_Comm contextComm)
+        {
+          CContext::setCurrent(id) ;
+          CContext* context=CContext::create(id);
+          StdString idServer(id);
+          idServer += "_server_";
+
+          int size,rank,globalRank ;
+          size_t message_size ;
+          int leaderRank ;
+          MPI_Comm contextInterComm ;
+
+          MPI_Comm_size(contextComm,&size) ;
+          MPI_Comm_rank(contextComm,&rank) ;
+          MPI_Comm_rank(CXios::globalComm,&globalRank) ;
+          if (rank!=0) globalRank=0 ;
+
+          CMessage msg ;
+
+          int messageSize ;
+          void * buff ;
+
+          for (int i = 0; i < serverLeader.size(); ++i)
+          {
+            StdString str = idServer + boost::lexical_cast<string>(i);
+            msg<<str<<size<<globalRank ;
+            messageSize = msg.size() ;
+            buff = new char[messageSize] ;
+            CBufferOut buffer(buff,messageSize) ;
+            buffer<<msg ;
+
+            MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader[i], 1, CXios::globalComm) ;
+            MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader[i], 10+globalRank, &contextInterComm) ;
+            info(10)<<"Register new Context : "<<id<<endl ;
+            MPI_Comm inter ;
+            MPI_Intercomm_merge(contextInterComm,0,&inter) ;
+            MPI_Barrier(inter) ;
+
+            context->initClient(contextComm,contextInterComm) ;
+
+            contextInterComms.push_back(contextInterComm);
+            MPI_Comm_free(&inter);
+            delete [] buff ;
+          }
+        }
 
     void CClient::finalize(void)
     {

@@ -888,49 +888,50 @@ namespace xios {
                                  CServerDistributionDescription::ServerDistributionType distType)
   {
     CContext* context = CContext::getCurrent();
-
-    CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
-                                                                        : context->client;
-
-    
-    int nbServer = contextClientTmp->serverSize;
-
-    CServerDistributionDescription serverDescription(globalDim, nbServer);
-    serverDescription.computeServerDistribution();
-
-    std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-    std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-
-    globalDimGrid.resize(globalDim.size());
-    for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
-
-    CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-    if (contextClientTmp->isServerLeader())
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
     {
-      std::list<CMessage> msgs;
+      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
+                                                                          : context->client;
+      int nbServer = contextClientTmp->serverSize;
 
-      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      CServerDistributionDescription serverDescription(globalDim, nbServer);
+      serverDescription.computeServerDistribution();
+
+      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+      globalDimGrid.resize(globalDim.size());
+      for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
+
+      CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
+      if (contextClientTmp->isServerLeader())
       {
-        // Use const int to ensure CMessage holds a copy of the value instead of just a reference
-        const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
-        const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
-        const int end   = begin + ni - 1;
+        std::list<CMessage> msgs;
 
-        msgs.push_back(CMessage());
-        CMessage& msg = msgs.back();
-        msg << this->getId();
-        msg << ni << begin << end;
-        msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
-        msg << isCompressible_;
-        msg << orderPositionInGrid;
-        msg << globalDimGrid;
+        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+          const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
+          const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
+          const int end   = begin + ni - 1;
 
-        event.push(*itRank,1,msg);
+          msgs.push_back(CMessage());
+          CMessage& msg = msgs.back();
+          msg << this->getId();
+          msg << ni << begin << end;
+          msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
+          msg << isCompressible_;
+          msg << orderPositionInGrid;
+          msg << globalDimGrid;
+
+          event.push(*itRank,1,msg);
+        }
+        contextClientTmp->sendEvent(event);
       }
-      contextClientTmp->sendEvent(event);
+      else contextClientTmp->sendEvent(event);
     }
-    else contextClientTmp->sendEvent(event);
   }
 
   void CAxis::recvServerAttribut(CEventServer& event)

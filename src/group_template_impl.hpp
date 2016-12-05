@@ -378,20 +378,25 @@ namespace xios
     // if (!context->hasServer )
     {
       // Use correct context client to send message
-       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+//      CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      for (int i = 0; i < nbSrvPools; ++i)
+      {
+         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
 
-       CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;   
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg) ;
-         contextClientTmp->sendEvent(event) ;
-       }
-       else contextClientTmp->sendEvent(event) ;
+         CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;
+         if (contextClientTmp->isServerLeader())
+         {
+           CMessage msg ;
+           msg<<this->getId() ;
+           msg<<id ;
+           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+             event.push(*itRank,1,msg) ;
+           contextClientTmp->sendEvent(event) ;
+         }
+         else contextClientTmp->sendEvent(event) ;
+      }
     }
 
     // if (! context->hasServer )
@@ -415,6 +420,26 @@ namespace xios
    }
    
    template <class U, class V, class W>
+   void CGroupTemplate<U, V, W>::sendCreateChild(const string& id, const int srvPool)
+   {
+    CContext* context=CContext::getCurrent() ;
+    CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
+
+    CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;
+    if (contextClientTmp->isServerLeader())
+    {
+      CMessage msg ;
+      msg<<this->getId() ;
+      msg<<id ;
+      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+       event.push(*itRank,1,msg) ;
+      contextClientTmp->sendEvent(event) ;
+    }
+    else contextClientTmp->sendEvent(event) ;
+   }
+
+   template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::sendCreateChildGroup(const string& id)
    {
     CContext* context=CContext::getCurrent() ;
@@ -423,20 +448,24 @@ namespace xios
     if (context->hasClient)
     {
         // Use correct context client to send message
-       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-
-       CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;   
-       if (contextClientTmp->isServerLeader())
-       {
-         CMessage msg ;
-         msg<<this->getId() ;
-         msg<<id ;
-         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg) ;
-         contextClientTmp->sendEvent(event) ;
-       }
-       else contextClientTmp->sendEvent(event) ;
+//      CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      for (int i = 0; i < nbSrvPools; ++i)
+      {
+        CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
+        CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;
+        if (contextClientTmp->isServerLeader())
+        {
+          CMessage msg ;
+          msg<<this->getId() ;
+          msg<<id ;
+          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+            event.push(*itRank,1,msg) ;
+          contextClientTmp->sendEvent(event) ;
+        }
+        else contextClientTmp->sendEvent(event) ;
+      }
     }
 
     // if (! context->hasServer )

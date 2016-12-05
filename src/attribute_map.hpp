@@ -19,7 +19,7 @@ namespace xios
          public :
 
             /// Tests ///
-            inline bool hasAttribute(const StdString & key) const;
+            bool hasAttribute(const StdString & key) const;
 
             /// Accesseurs ///
             CAttribute * operator[](const StdString & key);
@@ -70,6 +70,11 @@ namespace xios
             static CAttributeMap * Current;
 
       };  // class CAttributeMap
+
+      inline bool CAttributeMap::hasAttribute(const StdString& key) const
+      {
+        return (this->find(key) != this->end());
+      }
 
 } // namespace xios
 

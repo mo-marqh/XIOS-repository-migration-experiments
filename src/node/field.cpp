@@ -122,7 +122,68 @@ namespace xios{
 
     CContext* context = CContext::getCurrent();
 //    CContextClient* client = context->client;
-    CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer;
+    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
+    {
+      CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer[i];
+
+      CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
+
+      map<int, CArray<int,1> >::iterator it;
+      list<CMessage> list_msg;
+      list<CArray<double,1> > list_data;
+
+      if (!grid->doGridHaveDataDistributed())
+      {
+         if (client->isServerLeader())
+         {
+            for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+            {
+              int rank = it->first;
+              CArray<int,1>& index = it->second;
+
+              list_msg.push_back(CMessage());
+              list_data.push_back(CArray<double,1>(index.numElements()));
+
+              CArray<double,1>& data_tmp = list_data.back();
+              for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+
+              list_msg.back() << getId() << data_tmp;
+              event.push(rank, 1, list_msg.back());
+            }
+            client->sendEvent(event);
+         }
+         else client->sendEvent(event);
+      }
+      else
+      {
+        for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+        {
+          int rank = it->first;
+          CArray<int,1>& index = it->second;
+
+          list_msg.push_back(CMessage());
+          list_data.push_back(CArray<double,1>(index.numElements()));
+
+          CArray<double,1>& data_tmp = list_data.back();
+          for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+
+          list_msg.back() << getId() << data_tmp;
+          event.push(rank, grid->nbSenders[rank], list_msg.back());
+        }
+        client->sendEvent(event);
+      }
+    }
+
+    CTimer::get("XIOS Send Data").suspend();
+  }
+
+  void CField::sendUpdateData(const CArray<double,1>& data, const int srvPool)
+  {
+    CTimer::get("XIOS Send Data").resume();
+
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->clientPrimServer[srvPool];
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
@@ -149,7 +210,7 @@ namespace xios{
             event.push(rank, 1, list_msg.back());
           }
           client->sendEvent(event);
-       } 
+       }
        else client->sendEvent(event);
     }
     else
@@ -170,7 +231,6 @@ namespace xios{
       }
       client->sendEvent(event);
     }
-
     CTimer::get("XIOS Send Data").suspend();
   }
 
@@ -247,10 +307,26 @@ namespace xios{
 //        field->outputCompressedField(fieldData);
 //      else
         this->outputField(fieldData);
-      sendUpdateData(fieldData);
+//        sendUpdateData(fieldData);
+        // Redirecting data to the correct secondary server
+        int fileIdx = std::find(context->enabledFiles.begin(), context->enabledFiles.end(), this->file) - context->enabledFiles.begin();
+        int srvId = fileIdx % context->clientPrimServer.size();
+        sendUpdateData(fieldData, srvId);
     }
     if (!context->hasClient && context->hasServer)
     {
+//      size_t writtenSize;
+//      if (this->getUseCompressedOutput())
+//        writtenSize = grid->getNumberWrittenIndexes();
+//      else
+//        writtenSize = grid->getWrittenDataSize();
+//
+//      CArray<double,1> fieldData(writtenSize);
+
+//      if (this->getUseCompressedOutput())
+//        this->outputCompressedField(fieldData);
+//      else
+//        this->outputField(fieldData);
       writeField();
     }
 
@@ -1245,6 +1321,20 @@ namespace xios{
        this->sendAddVariable((*it)->getId());
        (*it)->sendAllAttributesToServer();
        (*it)->sendValue();
+     }
+   }
+
+   void CField::sendAddAllVariables(const int srvPool)
+   {
+     std::vector<CVariable*> allVar = getAllVariables();
+     std::vector<CVariable*>::const_iterator it = allVar.begin();
+     std::vector<CVariable*>::const_iterator itE = allVar.end();
+
+     for (; it != itE; ++it)
+     {
+       this->sendAddVariable((*it)->getId());
+       (*it)->sendAllAttributesToServer(srvPool);
+       (*it)->sendValue(srvPool);
      }
    }
 

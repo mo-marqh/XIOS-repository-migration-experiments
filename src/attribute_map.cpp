@@ -28,11 +28,6 @@ namespace xios
 
       //---------------------------------------------------------------
 
-      bool CAttributeMap::hasAttribute(const StdString& key) const
-      {
-         return (this->find(key) != this->end());
-      }
-
       void CAttributeMap::clearAttribute(const StdString& key)
       {
         if (hasAttribute(key)) this->find(key)->second->reset();

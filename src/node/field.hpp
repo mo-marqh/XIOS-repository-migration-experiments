@@ -138,6 +138,7 @@ namespace xios {
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
         void sendUpdateData(const CArray<double,1>& data);
+        void sendUpdateData(const CArray<double,1>& data, const int srvPool);
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
         void writeField(void);
@@ -167,12 +168,14 @@ namespace xios {
         CVariable* addVariable(const string& id = "");
         CVariableGroup* addVariableGroup(const string& id = "");
         void sendAddVariable(const string& id = "");
+        void sendAddVariable(const string& id, const int srvPool);
         void sendAddVariableGroup(const string& id = "");
         static void recvAddVariable(CEventServer& event);
         void recvAddVariable(CBufferIn& buffer);
         static void recvAddVariableGroup(CEventServer& event);
         void recvAddVariableGroup(CBufferIn& buffer);
         void sendAddAllVariables();
+        void sendAddAllVariables(const int srvPool);
 
 
         const std::vector<StdString>& getRefDomainAxisIds();
