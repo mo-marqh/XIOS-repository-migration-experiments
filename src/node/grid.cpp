@@ -305,6 +305,9 @@ namespace xios {
 
      if (!(this->hasTransform() && !this->isTransformed())) 
       this->isChecked = true;
+
+     if (!(this->hasTransform() && (!this->isGenerated())))
+      this->isChecked = true; 
    }
 
    void CGrid::createMask(void)
