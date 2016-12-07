@@ -374,8 +374,7 @@ namespace xios {
          pos2=filename.find(strEndDate,pos1) ;
          if (pos2!=std::string::npos)
          {
-           middlePart=filename.substr(pos1,pos2-pos1) ;
-           cout<<pos2<<endl ;
+           middlePart=filename.substr(pos1,pos2-pos1) ;           
            pos2+=strEndDate.size() ;
            lastPart=filename.substr(pos2,filename.size()-pos2) ;
            hasEndDate=true ;

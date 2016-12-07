@@ -283,10 +283,10 @@ namespace xios{
 
     if (requestData)
     {
-      cout<<"currentDate : "<<currentDate<<endl ;
-      cout<<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
-      cout<<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
-      cout<<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
+      info(20) <<"currentDate : "<<currentDate<<endl ;
+      info(20) <<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
+      info(20) <<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
+      info(20) <<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
 
       sendReadDataRequest();
     }
