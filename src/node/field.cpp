@@ -35,9 +35,9 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
-      , isReadDataRequestPending(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
+      , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -48,9 +48,9 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
-      , isReadDataRequestPending(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
+      , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
@@ -250,13 +250,12 @@ namespace xios{
     }
   }
 
-  void CField::sendReadDataRequest(void)
+  void CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
 
-    lastDataRequestedFromServer = context->getCalendar()->getCurrentDate();
-    isReadDataRequestPending = true;
+    lastDataRequestedFromServer = tsDataRequested;
 
     CEventClient event(getType(), EVENT_ID_READ_DATA);
     if (client->isServerLeader())
@@ -279,19 +278,21 @@ namespace xios{
   {
     const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
 
-    bool requestData = (currentDate >= lastDataRequestedFromServer + file->output_freq.getValue());
+    bool dataRequested = false;
 
-    if (requestData)
+    while (currentDate >= lastDataRequestedFromServer)
     {
-      info(20) <<"currentDate : "<<currentDate<<endl ;
-      info(20) <<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
-      info(20) <<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
-      info(20) <<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
+      info(20) << "currentDate : " << currentDate << endl ;
+      info(20) << "lastDataRequestedFromServer : " << lastDataRequestedFromServer << endl ;
+      info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
+      info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
 
-      sendReadDataRequest();
+      sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
+
+      dataRequested = true;
     }
 
-    return requestData;
+    return dataRequested;
   }
 
   void CField::recvReadDataRequest(CEventServer& event)
@@ -393,8 +394,6 @@ namespace xios{
 
         this->incrementNStep();
 
-
-
         if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
           return false;
 
@@ -442,12 +441,18 @@ namespace xios{
         break;
     }
 
-    if (isEOF)
-      serverSourceFilter->signalEndOfStream(lastDataRequestedFromServer);
+    if (wasDataAlreadyReceivedFromServer)
+      lastDataReceivedFromServer = lastDataReceivedFromServer + file->output_freq;
     else
-      serverSourceFilter->streamDataFromServer(lastDataRequestedFromServer, data);
+    {
+      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
+      wasDataAlreadyReceivedFromServer = true;
+    }
 
-    isReadDataRequestPending = false;
+    if (isEOF)
+      serverSourceFilter->signalEndOfStream(lastDataReceivedFromServer);
+    else
+      serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
   }
 
    //----------------------------------------------------------------

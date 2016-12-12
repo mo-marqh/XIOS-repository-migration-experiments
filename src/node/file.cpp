@@ -744,7 +744,7 @@ namespace xios {
 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-       this->enabledFields[i]->sendReadDataRequest();
+       this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
    }
 
    /*!

@@ -142,7 +142,7 @@ namespace xios {
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
         void writeField(void);
-        void sendReadDataRequest(void);
+        void sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
@@ -194,7 +194,8 @@ namespace xios {
          int nstep, nstepMax;
          bool isEOF;
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
-         CDate lastDataRequestedFromServer;
+         CDate lastDataRequestedFromServer, lastDataReceivedFromServer;
+         bool wasDataAlreadyReceivedFromServer;
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
@@ -204,7 +205,6 @@ namespace xios {
          bool areAllReferenceSolved;
          bool isReferenceSolved;
          std::vector<StdString> domAxisScalarIds_;
-         bool isReadDataRequestPending;
          bool useCompressedOutput;
 
          // Two variable to identify the time_counter meta data written in file, which has no time_counter
