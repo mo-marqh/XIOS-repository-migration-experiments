@@ -1980,7 +1980,8 @@ namespace xios
 
         if (!field->wasWritten())
         {
-          if (appendMode && field->file->record_offset.isEmpty())
+          if (appendMode && field->file->record_offset.isEmpty() && 
+              field->getOperationTimeType() != func::CFunctor::once)
           {
             field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
           }
