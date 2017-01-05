@@ -570,10 +570,28 @@ namespace xios {
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
          {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
+            {
+              if ( allFiles[i]->output_freq.getValue() < this->getCalendar()->getTimeStep())
+              {
+                error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
+                    << "Output frequency in file \""<<allFiles[i]->getId()
+                    <<"\" is greater than the time step. File will not be written."<<endl;
+              }
+              else
                enabledFiles.push_back(allFiles[i]);
+            }
          }
-         else enabledFiles.push_back(allFiles[i]); // otherwise true by default
-
+         else
+         {
+           if ( allFiles[i]->output_freq.getValue() < this->getCalendar()->getTimeStep())
+           {
+             error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
+                 << "Output frequency in file \""<<allFiles[i]->getId()
+                 <<"\" is greater than the time step. File will not be written."<<endl;
+           }
+           else
+             enabledFiles.push_back(allFiles[i]); // otherwise true by default
+         }
 
       if (enabledFiles.size() == 0)
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
