@@ -123,4 +123,18 @@ double angle(const Coord &a, const Coord &b, const Coord &pole)
 	return scalarprod(crossprod(a, b), pole);
 }
 
+// return oriented vector angle in range [-pi..pi], pole must be orthogonal to a and b
+double vectAngle(const Coord &a, const Coord &b, const Coord &pole)
+{ 
+  double nab = 1./(norm(a)*norm(b)) ;
+  
+  Coord a_cross_b=crossprod(a, b)*nab ;
+  double sinVect ;
+  if (scalarprod(a_cross_b, pole) >= 0) sinVect=norm(a_cross_b) ;
+  else sinVect=-norm(a_cross_b) ;
+  double cosVect=scalarprod(a,b)*nab ;
+
+  return atan2(sinVect,cosVect) ;
+}
+
 }

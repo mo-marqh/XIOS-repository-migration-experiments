@@ -120,6 +120,10 @@ void rotsg(const Coord &a, Coord &b, const Coord &c,
            const Coord &d, Coord &x);
 
 double angle(const Coord &a, const Coord &b, const Coord &pole);
+
+// return oriented vector angle in range [-pi..pi], pole must be orthogonal to a and b
+double vectAngle(const Coord &a, const Coord &b, const Coord &pole) ;
+
 void print_Coord(Coord &p);
 
 }
