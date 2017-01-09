@@ -38,6 +38,7 @@ namespace xios{
       , hasTimeInstant(false)
       , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -51,6 +52,7 @@ namespace xios{
       , hasTimeInstant(false)
       , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
@@ -250,24 +252,31 @@ namespace xios{
     }
   }
 
-  void CField::sendReadDataRequest(const CDate& tsDataRequested)
+  bool CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
 
     lastDataRequestedFromServer = tsDataRequested;
 
-    CEventClient event(getType(), EVENT_ID_READ_DATA);
-    if (client->isServerLeader())
+    if (!isEOF) // No need to send the request if we already know we are at EOF
     {
-      CMessage msg;
-      msg << getId();
-      const std::list<int>& ranks = client->getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        event.push(*itRank, 1, msg);
-      client->sendEvent(event);
+      CEventClient event(getType(), EVENT_ID_READ_DATA);
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg << getId();
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+          event.push(*itRank, 1, msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
     }
-    else client->sendEvent(event);
+    else
+      serverSourceFilter->signalEndOfStream(tsDataRequested);
+
+    return !isEOF;
   }
 
   /*!
@@ -287,9 +296,7 @@ namespace xios{
       info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
       info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
 
-      sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
-
-      dataRequested = true;
+      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
     }
 
     return dataRequested;
@@ -426,8 +433,6 @@ namespace xios{
     CContext* context = CContext::getCurrent();
     int record;
     std::map<int, CArray<double,1> > data;
-
-    bool isEOF = false;
 
     for (int i = 0; i < ranks.size(); i++)
     {

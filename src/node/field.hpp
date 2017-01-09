@@ -142,7 +142,7 @@ namespace xios {
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
         void writeField(void);
-        void sendReadDataRequest(const CDate& tsDataRequested);
+        bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
