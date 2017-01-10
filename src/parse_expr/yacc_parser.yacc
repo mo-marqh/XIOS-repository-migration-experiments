@@ -41,11 +41,11 @@ extern "C"
 %token <str> NUMBER
 %token <str> VAR ID AVERAGE
 %token PLUS MINUS TIMES DIVIDE POWER
-%token EQ LT GT LE GE
+%token EQ LT GT LE GE NE
 %token LEFT_PARENTHESIS RIGHT_PARENTHESIS
 %token <str> END
 
-%left EQ LT GT LE GE
+%left EQ LT GT LE GE NE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %nonassoc NEG
@@ -76,6 +76,7 @@ Expression:
           | Expression GT Expression  { $$ = new CScalarBinaryOpExprNode($1, "gt", $3); }
           | Expression LE Expression  { $$ = new CScalarBinaryOpExprNode($1, "le", $3); }
           | Expression GE Expression  { $$ = new CScalarBinaryOpExprNode($1, "ge", $3); }
+          | Expression NE Expression  { $$ = new CScalarBinaryOpExprNode($1, "ne", $3); }
           | LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS    { $$ = $2; }
           | ID LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS { $$ = new CScalarUnaryOpExprNode(*$1, $3); delete $1; }
           ;
@@ -94,6 +95,7 @@ Field_expr:
           | Field_expr GT Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "gt", $3); }
           | Field_expr LE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "le", $3); }
           | Field_expr GE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "ge", $3); }
+          | Field_expr NE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "ne", $3); }
           | LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS	{ $$ = $2; }
           | Field_expr PLUS Expression   { $$ = new CFilterFieldScalarOpExprNode($1, "add", $3); }
           | Expression PLUS Field_expr   { $$ = new CFilterScalarFieldOpExprNode($1, "add", $3); }
@@ -114,6 +116,8 @@ Field_expr:
           | Expression LE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "le", $3); }
           | Field_expr GE Expression { $$ = new CFilterFieldScalarOpExprNode($1, "ge", $3); }
           | Expression GE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "ge", $3); }
+          | Field_expr NE Expression { $$ = new CFilterFieldScalarOpExprNode($1, "ne", $3); }
+          | Expression NE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "ne", $3); }
           | ID LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS { $$ = new CFilterUnaryOpExprNode(*$1, $3); delete $1; }
           ;
 %%

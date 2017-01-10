@@ -64,6 +64,7 @@ var      \${id}
 ">"  return GT;
 "<=" return LE;
 ">=" return GE;
+"/=" return NE;
 
 "("  return LEFT_PARENTHESIS;
 ")"  return RIGHT_PARENTHESIS;

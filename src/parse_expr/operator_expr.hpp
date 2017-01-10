@@ -42,6 +42,7 @@ namespace xios
       opScalarScalar[string("gt")] = gt_ss;
       opScalarScalar[string("le")] = le_ss;
       opScalarScalar[string("ge")] = ge_ss;
+      opScalarScalar[string("ne")] = ne_ss;
 
       opField[string("neg")] = neg_f;
       opField[string("cos")] = cos_f;
@@ -62,6 +63,7 @@ namespace xios
       opFieldField[string("gt")] = gt_ff;
       opFieldField[string("le")] = le_ff;
       opFieldField[string("ge")] = ge_ff;
+      opFieldField[string("ne")] = ne_ff;
 
       opFieldScalar[string("add")] = add_fs;
       opFieldScalar[string("minus")] = minus_fs;
@@ -73,6 +75,7 @@ namespace xios
       opFieldScalar[string("gt")] = gt_fs;
       opFieldScalar[string("le")] = le_fs;
       opFieldScalar[string("ge")] = ge_fs;
+      opFieldScalar[string("ne")] = ne_fs;
 
       opScalarField[string("add")] = add_sf;
       opScalarField[string("minus")] = minus_sf;
@@ -83,6 +86,7 @@ namespace xios
       opScalarField[string("gt")] = gt_sf;
       opScalarField[string("le")] = le_sf;
       opScalarField[string("ge")] = ge_sf;
+      opScalarField[string("ne")] = ne_sf;
     }
 
     functionScalar getOpScalar(const string& id)
@@ -159,6 +163,7 @@ namespace xios
     static inline double gt_ss(double x, double y)    { return x > y; }
     static inline double le_ss(double x, double y)    { return x <= y; }
     static inline double ge_ss(double x, double y)    { return x >= y; }
+    static inline double ne_ss(double x, double y)    { return x != y; }
 
     static inline CArray<double,1> neg_f(const CArray<double,1>& x)   { return Array<double,1>(-x); }
     static inline CArray<double,1> cos_f(const CArray<double,1>& x)   { return Array<double,1>(cos(x)); }
@@ -179,6 +184,7 @@ namespace xios
     static inline CArray<double,1> gt_ff(const CArray<double,1>& x, const CArray<double,1>& y)    { return Array<double,1>(x > y); }
     static inline CArray<double,1> le_ff(const CArray<double,1>& x, const CArray<double,1>& y)    { return Array<double,1>(x <= y); }
     static inline CArray<double,1> ge_ff(const CArray<double,1>& x, const CArray<double,1>& y)    { return Array<double,1>(x >= y); }
+    static inline CArray<double,1> ne_ff(const CArray<double,1>& x, const CArray<double,1>& y)    { return Array<double,1>(x != y); }
 
     static inline CArray<double,1> add_fs(const CArray<double,1>& x, double y)   { return Array<double,1>(x + y); }
     static inline CArray<double,1> minus_fs(const CArray<double,1>& x, double y) { return Array<double,1>(x - y); }
@@ -190,6 +196,7 @@ namespace xios
     static inline CArray<double,1> gt_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x > y); }
     static inline CArray<double,1> le_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x <= y); }
     static inline CArray<double,1> ge_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x >= y); }
+    static inline CArray<double,1> ne_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x != y); }
 
     static inline CArray<double,1> add_sf(double x, const CArray<double,1>& y)   { return Array<double,1>(x + y); }
     static inline CArray<double,1> minus_sf(double x, const CArray<double,1>& y) { return Array<double,1>(x - y); }
@@ -200,6 +207,7 @@ namespace xios
     static inline CArray<double,1> gt_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x > y); }
     static inline CArray<double,1> le_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x <= y); }
     static inline CArray<double,1> ge_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x >= y); }
+    static inline CArray<double,1> ne_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x != y); }
   };
 
   extern COperatorExpr operatorExpr;
