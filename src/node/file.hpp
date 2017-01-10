@@ -10,6 +10,7 @@
 #include "date.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include "context_client.hpp"
 #include "mpi.hpp"
 
 namespace xios {
@@ -113,17 +114,19 @@ namespace xios {
          CFieldGroup* addFieldGroup(const string& id = "");
          CVariable* addVariable(const string& id = "");
          CVariableGroup* addVariableGroup(const string& id = "");
+         void setContextClient(CContextClient* newContextClient);
+         CContextClient* getContextClient();
 
          // Send info to server
-         void sendEnabledFields();
-         void sendEnabledFields(const int srvPool);
+//         void sendEnabledFields();
+         void sendEnabledFields(CContextClient* client);
          void sendAddField(const string& id = "");
-         void sendAddField(const string& id, const int srvPool);
+         void sendAddField(const string& id, CContextClient* client);
          void sendAddFieldGroup(const string& id = "");
-         void sendAddAllVariables();
-         void sendAddAllVariables(const int srvPool);
-         void sendAddVariable(const string& id = "");
-         void sendAddVariable(const string& id, const int srvPool);
+         void sendAddAllVariables();                        // to be removed (?)
+         void sendAddAllVariables(CContextClient* client);
+         void sendAddVariable(const string& id = "");         // to be removed (?)
+         void sendAddVariable(const string& id, CContextClient* client);
          void sendAddVariableGroup(const string& id = "");
 
          // Receive info from client
@@ -168,6 +171,7 @@ namespace xios {
          boost::shared_ptr<CDataOutput> data_out;
          boost::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
+         CContextClient* client;
 
       public:
         //         virtual void toBinary  (StdOStream& os) const;

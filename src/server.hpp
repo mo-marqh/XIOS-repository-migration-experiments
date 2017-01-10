@@ -32,8 +32,10 @@ namespace xios
         static std::list<MPI_Comm> contextInterComms;
         static CEventScheduler* eventScheduler;
 
-        static int nbSndSrvPools;   // number of secondary server pools
-        static int poolNb;          // for secondary servers; stores the pool number
+        static int serverLevel ;
+
+//        static int nbSndSrvPools;   // number of secondary server pools
+//        static int poolNb;          // for secondary servers; stores the pool number
 
         struct contextMessage
         {
@@ -67,7 +69,9 @@ namespace xios
 
       private:
         static int rank;
-        static int rankSndServers;
+        static int serverSize;  //!< Number of procs dedicated to server
+        static int nbPools;     //!< Number of secondary-server pools
+        static int poolId;      //!< ID of a secondary-server pool
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

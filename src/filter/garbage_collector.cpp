@@ -2,29 +2,29 @@
 
 namespace xios
 {
-  void CGarbageCollector::registerFilter(CInputPin* inputPin, Time timestamp)
+  void CGarbageCollector::registerObject(InvalidableObject* Object, Time timestamp)
   {
-    registeredFilters[timestamp].insert(inputPin);
+    registeredObjects[timestamp].insert(Object);
   }
 
-  void CGarbageCollector::unregisterFilter(CInputPin* inputPin, Time timestamp)
+  void CGarbageCollector::unregisterObject(InvalidableObject* Object, Time timestamp)
   {
-    std::map<Time, std::set<CInputPin*> >::iterator it = registeredFilters.find(timestamp);
-    if (it != registeredFilters.end())
-      it->second.erase(inputPin);
+    std::map<Time, std::set<InvalidableObject*> >::iterator it = registeredObjects.find(timestamp);
+    if (it != registeredObjects.end())
+      it->second.erase(Object);
   }
 
   void CGarbageCollector::invalidate(Time timestamp)
   {
-    std::map<Time, std::set<CInputPin*> >::iterator it    = registeredFilters.begin(),
-                                                    itEnd = registeredFilters.lower_bound(timestamp);
+    std::map<Time, std::set<InvalidableObject*> >::iterator it    = registeredObjects.begin(),
+                                                            itEnd = registeredObjects.lower_bound(timestamp);
     for (; it != itEnd; ++it)
     {
-      std::set<CInputPin*>::iterator itFilter    = it->second.begin(),
-                                     itFilterEnd = it->second.end();
-      for (; itFilter != itFilterEnd; ++itFilter)
-        (*itFilter)->invalidate(timestamp);
+      std::set<InvalidableObject*>::iterator itObject    = it->second.begin(),
+                                             itObjectEnd = it->second.end();
+      for (; itObject != itObjectEnd; ++itObject)
+        (*itObject)->invalidate(timestamp);
     }
-    registeredFilters.erase(registeredFilters.begin(), itEnd);
+    registeredObjects.erase(registeredObjects.begin(), itEnd);
   }
 } // namespace xios

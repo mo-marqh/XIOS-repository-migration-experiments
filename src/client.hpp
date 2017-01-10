@@ -14,7 +14,7 @@ namespace xios
 
         static void finalize(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
-        static void registerContextOnSrvPools(const string& id, MPI_Comm contextComm);
+        static void registerContextByClienOfServer(const string& id, MPI_Comm contextComm);
 
         static MPI_Comm intraComm;
         static MPI_Comm interComm;

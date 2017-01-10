@@ -7,6 +7,7 @@ namespace xios
 {
   CStoreFilter::CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid)
     : CInputPin(gc, 1)
+    , gc(gc)
     , context(context)
     , grid(grid)
   {
@@ -22,10 +23,13 @@ namespace xios
   {
     CTimer timer("CStoreFilter::getPacket");
     CConstDataPacketPtr packet;
-    const double timeout = 10; // 10 seconds timeout
+    const double timeout = 10 ; // 10 seconds timeout
 
     do
     {
+      if (canBeTriggered())
+        trigger(timestamp);
+
       timer.resume();
 
       std::map<Time, CDataPacketPtr>::const_iterator it = packets.find(timestamp);
@@ -38,9 +42,14 @@ namespace xios
     } while (!packet && timer.getCumulatedTime() < timeout);
 
     if (!packet)
+    {
+      std::map<Time, CDataPacketPtr>::const_iterator it ;
+      info(0)<<"Impossible to get the packet with timestamp = " << timestamp<<std::endl<<"Available timestamp are : "<<std::endl ;
+      for(it=packets.begin();it!=packets.end();++it) info(0)<<it->first<<"  ";
+      info(0)<<std::endl ;
       ERROR("CConstDataPacketPtr CStoreFilter::getPacket(Time timestamp) const",
             << "Impossible to get the packet with timestamp = " << timestamp);
-
+    }
     return packet;
   }
 
@@ -68,7 +77,7 @@ namespace xios
     packets.insert(std::make_pair(data[0]->timestamp, data[0]));
     // The packet is always destroyed by the garbage collector
     // so we register but never unregister
-    gc.registerFilter(this, data[0]->timestamp);
+    gc.registerObject(this, data[0]->timestamp);
   }
 
   void CStoreFilter::invalidate(Time timestamp)

@@ -25,6 +25,28 @@ namespace xios
        */
       CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine);
 
+      /*!
+       * Sets the trigger for a specific input slot.
+       *
+       * \param inputSlot the input slot number
+       * \param trigger the corresponding trigger
+       */
+      void virtual setInputTrigger(size_t inputSlot, COutputPin* trigger);
+
+      /*!
+       * Triggers the filter for the specified timestamp.
+       *
+       * \param timestamp the timestamp for which we are triggering the filter
+       */
+      void virtual trigger(Time timestamp);
+
+      /*!
+       * Tests if the filter can be triggered.
+       *
+       * \return true if the filter can be triggered
+       */
+      bool virtual canBeTriggered() const;
+
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself
       size_t inputSlotCount; //!< Number of slot on filter

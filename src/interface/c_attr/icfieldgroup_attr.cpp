@@ -66,6 +66,58 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_cell_methods(fieldgroup_Ptr fieldgroup_hdl, const char * cell_methods, int cell_methods_size)
+  {
+    std::string cell_methods_str;
+    if (!cstr2string(cell_methods, cell_methods_size, cell_methods_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->cell_methods.setValue(cell_methods_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_cell_methods(fieldgroup_Ptr fieldgroup_hdl, char * cell_methods, int cell_methods_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->cell_methods.getInheritedValue(), cell_methods, cell_methods_size))
+      ERROR("void cxios_get_fieldgroup_cell_methods(fieldgroup_Ptr fieldgroup_hdl, char * cell_methods, int cell_methods_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_cell_methods(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->cell_methods.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_fieldgroup_cell_methods_mode(fieldgroup_Ptr fieldgroup_hdl, const char * cell_methods_mode, int cell_methods_mode_size)
+  {
+    std::string cell_methods_mode_str;
+    if (!cstr2string(cell_methods_mode, cell_methods_mode_size, cell_methods_mode_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->cell_methods_mode.fromString(cell_methods_mode_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_cell_methods_mode(fieldgroup_Ptr fieldgroup_hdl, char * cell_methods_mode, int cell_methods_mode_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->cell_methods_mode.getInheritedStringValue(), cell_methods_mode, cell_methods_mode_size))
+      ERROR("void cxios_get_fieldgroup_cell_methods_mode(fieldgroup_Ptr fieldgroup_hdl, char * cell_methods_mode, int cell_methods_mode_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_cell_methods_mode(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->cell_methods_mode.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_compression_level(fieldgroup_Ptr fieldgroup_hdl, int compression_level)
   {
     CTimer::get("XIOS").resume();
@@ -179,6 +231,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = fieldgroup_hdl->enabled.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_fieldgroup_expr(fieldgroup_Ptr fieldgroup_hdl, const char * expr, int expr_size)
+  {
+    std::string expr_str;
+    if (!cstr2string(expr, expr_size, expr_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->expr.setValue(expr_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_expr(fieldgroup_Ptr fieldgroup_hdl, char * expr, int expr_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->expr.getInheritedValue(), expr, expr_size))
+      ERROR("void cxios_get_fieldgroup_expr(fieldgroup_Ptr fieldgroup_hdl, char * expr, int expr_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_expr(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->expr.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

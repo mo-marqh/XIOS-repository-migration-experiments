@@ -15,6 +15,7 @@
 #include "declare_ref_func.hpp"
 #include "transformation_enum.hpp"
 #include "variable.hpp"
+#include "context_client.hpp"
 
 
 namespace xios {
@@ -123,6 +124,7 @@ namespace xios {
          boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
+         boost::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
 //         virtual void fromBinary(StdIStream& is);
 
@@ -138,11 +140,11 @@ namespace xios {
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
         void sendUpdateData(const CArray<double,1>& data);
-        void sendUpdateData(const CArray<double,1>& data, const int srvPool);
+        void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
         void writeField(void);
-        void sendReadDataRequest(void);
+        void sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
@@ -168,17 +170,19 @@ namespace xios {
         CVariable* addVariable(const string& id = "");
         CVariableGroup* addVariableGroup(const string& id = "");
         void sendAddVariable(const string& id = "");
-        void sendAddVariable(const string& id, const int srvPool);
+        void sendAddVariable(const string& id, CContextClient* client);
         void sendAddVariableGroup(const string& id = "");
         static void recvAddVariable(CEventServer& event);
         void recvAddVariable(CBufferIn& buffer);
         static void recvAddVariableGroup(CEventServer& event);
         void recvAddVariableGroup(CBufferIn& buffer);
         void sendAddAllVariables();
-        void sendAddAllVariables(const int srvPool);
-
+        void sendAddAllVariables(CContextClient* client);
 
         const std::vector<StdString>& getRefDomainAxisIds();
+
+        const string& getExpression(void);
+        bool hasExpression(void) const;
 
       public:
          /// Propriétés privées ///
@@ -193,7 +197,8 @@ namespace xios {
          int nstep, nstepMax;
          bool isEOF;
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
-         CDate lastDataRequestedFromServer;
+         CDate lastDataRequestedFromServer, lastDataReceivedFromServer;
+         bool wasDataAlreadyReceivedFromServer;
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
@@ -203,8 +208,11 @@ namespace xios {
          bool areAllReferenceSolved;
          bool isReferenceSolved;
          std::vector<StdString> domAxisScalarIds_;
-         bool isReadDataRequestPending;
          bool useCompressedOutput;
+
+         // Two variables to identify the time_counter meta data written in file, which has no time_counter
+         bool hasTimeInstant;
+         bool hasTimeCentered;
 
          DECLARE_REF_FUNC(Field,field)
 

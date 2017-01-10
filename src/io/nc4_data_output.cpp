@@ -1674,6 +1674,37 @@ namespace xios
            vector<CVariable*> listVars = field->getAllVariables() ;
            for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
 
+           bool alreadyAddCellMethod = false;
+           StdString cellMethodsPrefix(""), cellMethodsSuffix("");
+           if (!field->cell_methods.isEmpty())
+           {
+             StdString cellMethodString = field->cell_methods;
+             if (field->cell_methods_mode.isEmpty() ||
+                 (CField::cell_methods_mode_attr::overwrite == field->cell_methods_mode))
+             {
+               SuperClassWriter::addAttribute("cell_methods", cellMethodString, &fieldid);
+               alreadyAddCellMethod = true;
+             }
+             else
+             {
+               switch (field->cell_methods_mode)
+               {
+               case (CField::cell_methods_mode_attr::prefix):
+                 cellMethodsPrefix = cellMethodString;
+                 cellMethodsPrefix += " ";
+                 break;
+               case (CField::cell_methods_mode_attr::suffix):
+                 cellMethodsSuffix = " ";
+                 cellMethodsSuffix += cellMethodString;
+                 break;
+               case (CField::cell_methods_mode_attr::none):
+                 break;
+               default:
+                 break;
+               }
+             }
+           }
+
 
            if (wtime)
            {
@@ -1686,14 +1717,16 @@ namespace xios
               freqOut.solveTimeStep(*context->calendar);
               SuperClassWriter::addAttribute("interval_write", freqOut.toStringUDUnits(), &fieldid);
 
-              StdString cellMethods = "time: ";
+              StdString cellMethods(cellMethodsPrefix + "time: ");
               if (field->operation.getValue() == "instant") cellMethods += "point";
               else if (field->operation.getValue() == "average") cellMethods += "mean";
               else if (field->operation.getValue() == "accumulate") cellMethods += "sum";
               else cellMethods += field->operation;
               if (freqOp.resolve(*context->calendar) != freqOut.resolve(*context->calendar))
                 cellMethods += " (interval: " + freqOpStr + ")";
-              SuperClassWriter::addAttribute("cell_methods", cellMethods, &fieldid);
+              cellMethods += cellMethodsSuffix;
+              if (!alreadyAddCellMethod)
+                SuperClassWriter::addAttribute("cell_methods", cellMethods, &fieldid);
            }
 
            if (hasArea)
@@ -1927,7 +1960,8 @@ namespace xios
 
         if (!field->wasWritten())
         {
-          if (appendMode && field->file->record_offset.isEmpty())
+          if (appendMode && field->file->record_offset.isEmpty() &&
+               field->getOperationTimeType() != func::CFunctor::once)
           {
             field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
           }

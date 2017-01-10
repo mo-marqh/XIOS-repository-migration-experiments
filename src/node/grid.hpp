@@ -220,6 +220,7 @@ namespace xios {
          CArray<int, 1> storeIndex_client;
 
          map<int, CArray<int, 1> > storeIndex_toSrv;
+         map<int, CArray<int, 1> > storeIndex_fromSrv;
          map<int,int> nbSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;

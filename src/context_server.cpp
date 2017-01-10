@@ -43,27 +43,27 @@ namespace xios
 
   }
 
-  CContextServer::CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm_,MPI_Comm interComm_)
-  {
-    context=parent;
-    intraComm=intraComm_;
-    MPI_Comm_size(intraComm,&intraCommSize);
-    MPI_Comm_rank(intraComm,&intraCommRank);
-    interComm=interComm_;
-    int flag;
-    MPI_Comm_test_inter(interComm,&flag);
-    if (flag) MPI_Comm_remote_size(interComm,&commSize);
-    else  MPI_Comm_size(interComm,&commSize);
-
-    currentTimeLine=0;
-    scheduled=false;
-    finished=false;
-
-    boost::hash<string> hashString;
-    StdString contextId = context->getId();
-    hashId=hashString(contextId);
-
-  }
+//  CContextServer::CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm_,MPI_Comm interComm_)
+//  {
+//    context=parent;
+//    intraComm=intraComm_;
+//    MPI_Comm_size(intraComm,&intraCommSize);
+//    MPI_Comm_rank(intraComm,&intraCommRank);
+//    interComm=interComm_;
+//    int flag;
+//    MPI_Comm_test_inter(interComm,&flag);
+//    if (flag) MPI_Comm_remote_size(interComm,&commSize);
+//    else  MPI_Comm_size(interComm,&commSize);
+//
+//    currentTimeLine=0;
+//    scheduled=false;
+//    finished=false;
+//
+//    boost::hash<string> hashString;
+//    StdString contextId = context->getId();
+//    hashId=hashString(contextId);
+//
+//  }
   void CContextServer::setPendingEvent(void)
   {
     pendingEvent=true;

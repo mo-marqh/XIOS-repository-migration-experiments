@@ -13,7 +13,6 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "xios_spl.hpp"
-#include "context_client.hpp"
 #include "mpi.hpp"
 
 namespace xios {
@@ -375,7 +374,6 @@ namespace xios {
          if (pos2!=std::string::npos)
          {
            middlePart=filename.substr(pos1,pos2-pos1) ;
-           cout<<pos2<<endl ;
            pos2+=strEndDate.size() ;
            lastPart=filename.substr(pos2,filename.size()-pos2) ;
            hasEndDate=true ;
@@ -745,7 +743,7 @@ namespace xios {
 
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-       this->enabledFields[i]->sendReadDataRequest();
+       this->enabledFields[i]->sendReadDataRequest(CContext::getCurrent()->getCalendar()->getCurrentDate());
    }
 
    /*!
@@ -823,6 +821,16 @@ namespace xios {
      return vVariableGroup->createChildGroup(id);
    }
 
+   void CFile::setContextClient(CContextClient* newContextClient)
+   {
+     client = newContextClient;
+   }
+
+   CContextClient* CFile::getContextClient()
+   {
+     return client;
+   }
+
    /*!
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server
@@ -852,9 +860,9 @@ namespace xios {
 
    }
 
-   void CFile::sendAddField(const string& id, const int srvPool)
+   void CFile::sendAddField(const string& id, CContextClient* client)
    {
-      sendAddItem(id, EVENT_ID_ADD_FIELD, srvPool);
+      sendAddItem(id, EVENT_ID_ADD_FIELD, client);
     // CContext* context = CContext::getCurrent();
 
     // if (! context->hasServer )
@@ -973,7 +981,7 @@ namespace xios {
      }
    }
 
-   void CFile::sendAddAllVariables(const int srvPool)
+   void CFile::sendAddAllVariables(CContextClient* client)
    {
      std::vector<CVariable*> allVar = getAllVariables();
      std::vector<CVariable*>::const_iterator it = allVar.begin();
@@ -981,9 +989,9 @@ namespace xios {
 
      for (; it != itE; ++it)
      {
-       this->sendAddVariable((*it)->getId(), srvPool);
-       (*it)->sendAllAttributesToServer(srvPool);
-       (*it)->sendValue(srvPool);
+       this->sendAddVariable((*it)->getId(), client);
+       (*it)->sendAllAttributesToServer(client);
+       (*it)->sendValue(client);
      }
    }
 
@@ -1045,9 +1053,9 @@ namespace xios {
 
    }
 
-   void CFile::sendAddVariable(const string& id, const int srvPool)
+   void CFile::sendAddVariable(const string& id, CContextClient* client)
    {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, srvPool);
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
     // CContext* context = CContext::getCurrent();
 
     // if (! context->hasServer )
@@ -1125,29 +1133,36 @@ namespace xios {
    With these two id, it's easier to make reference to grid where all data should be written.
    Remark: This function must be called AFTER all active (enabled) files have been created on the server side
    */
-   void CFile::sendEnabledFields()
+//   void CFile::sendEnabledFields()
+//   {
+//     size_t size = this->enabledFields.size();
+//     for (size_t i = 0; i < size; ++i)
+//     {
+//       CField* field = this->enabledFields[i];
+//       this->sendAddField(field->getId());
+//       field->sendAllAttributesToServer();
+//       field->sendAddAllVariables();
+//     }
+//   }
+
+   /*!
+     \brief Sending all active (enabled) fields from client to server.
+   Each field is identified uniquely by its string identity. Not only should we
+   send the id to server but also we need to send ids of reference domain and reference axis.
+   With these two id, it's easier to make reference to grid where all data should be written.
+   Remark: This function must be called AFTER all active (enabled) files have been created on the server side
+   */   void CFile::sendEnabledFields(CContextClient* client)
    {
      size_t size = this->enabledFields.size();
      for (size_t i = 0; i < size; ++i)
      {
        CField* field = this->enabledFields[i];
-       this->sendAddField(field->getId());
-       field->sendAllAttributesToServer();
-       field->sendAddAllVariables();
+       this->sendAddField(field->getId(), client);
+       field->sendAllAttributesToServer(client);
+       field->sendAddAllVariables(client);
      }
    }
 
-   void CFile::sendEnabledFields(const int srvPool)
-   {
-     size_t size = this->enabledFields.size();
-     for (size_t i = 0; i < size; ++i)
-     {
-       CField* field = this->enabledFields[i];
-       this->sendAddField(field->getId(), srvPool);
-       field->sendAllAttributesToServer(srvPool);
-       field->sendAddAllVariables(srvPool);
-     }
-   }
 
    /*!
    \brief Dispatch event received from client

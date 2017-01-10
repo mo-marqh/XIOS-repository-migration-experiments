@@ -132,11 +132,8 @@ namespace xios {
          void sendUpdateCalendar(int step);
          void sendCreateFileHeader(void);
          void sendEnabledFiles();
-         void sendEnabledFiles(const int nbPools);
          void sendEnabledFields();
-         void sendEnabledFields(const int nbPools);
          void sendRefDomainsAxis();
-         void sendRefDomainsAxis(const int nbPools);
          void sendRefGrid();
          void sendPostProcessing();
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers

@@ -246,15 +246,16 @@ namespace xios {
    {
 
      hasClient = true;
-     if (CXios::serverLevel != 1)  // initClient is called by client pool
+     if (CServer::serverLevel != 1)
+//     if (CXios::serverLevel != 1)
+     // initClient is called by client pool
      {
        client = new CContextClient(this, intraComm, interComm, cxtServer);
        server = new CContextServer(this, intraComm, interComm);
      }
-     else                         // initClient is called by primary server pool
+     else
+     // initClient is called by primary server pool
      {
-//       clientPrimServer = new CContextClient(this, intraComm, interComm);
-//       serverPrimServer = new CContextServer(this, 1, intraComm, interComm);  // just some int parameter to distinguish server from serverPrimServer on server1
        clientPrimServer.push_back(new CContextClient(this, intraComm, interComm));
        serverPrimServer.push_back(new CContextServer(this, intraComm, interComm));
      }
@@ -375,11 +376,11 @@ namespace xios {
    //! Server side: Put server into a loop in order to listen message from client
    bool CContext::eventLoop(void)
    {
-     if (CXios::serverLevel == 0)
+     if (CServer::serverLevel == 0)
      {
        return server->eventLoop();
      }
-     else if (CXios::serverLevel == 1)
+     else if (CServer::serverLevel == 1)
      {
        bool serverFinished = server->eventLoop();
        bool serverPrimFinished = true;
@@ -398,12 +399,12 @@ namespace xios {
    //! Try to send the buffers and receive possible answers
    bool CContext::checkBuffersAndListen(void)
    {
-     if (CXios::serverLevel == 0)
+     if (CServer::serverLevel == 0)
      {
        client->checkBuffers();
        return server->eventLoop();
      }
-     else if (CXios::serverLevel == 1)
+     else if (CServer::serverLevel == 1)
      {
        client->checkBuffers();
        for (int i = 0; i < clientPrimServer.size(); ++i)
@@ -416,7 +417,7 @@ namespace xios {
        }
        return ( serverFinished && serverPrimFinished);
      }
-     else if (CXios::serverLevel == 2)
+     else if (CServer::serverLevel == 2)
      {
        client->checkBuffers();
        return server->eventLoop();
@@ -429,7 +430,7 @@ namespace xios {
      if (!finalized)
      {
        finalized = true;
-//        if (hasClient) sendRegistry() ;
+       if (hasClient) sendRegistry() ;
 
        if ((hasClient) && (hasServer))
        {
@@ -486,7 +487,6 @@ namespace xios {
    {
      // There is nothing client need to send to server
      if (hasClient)
-//     if (hasClient && !hasServer)
      {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
@@ -494,7 +494,6 @@ namespace xios {
 
      setClientServerBuffer();
 
-//     if (hasClient && !hasServer)
      if (hasClient)
      {
       // Send all attributes of current context to server
@@ -504,37 +503,28 @@ namespace xios {
       CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer();
 
       // We have enough information to send to server
-      if (!hasServer)
-      {
-        // First of all, send all enabled files
-       sendEnabledFiles();
-       // Then, send all enabled fields
-       sendEnabledFields();
-      }
-      else
-      {
-        sendEnabledFiles(clientPrimServer.size());
-        sendEnabledFields(clientPrimServer.size());
-      }
+      // First of all, send all enabled files
+      sendEnabledFiles();
+
+      // Then, send all enabled fields
+      sendEnabledFields();
 
       // At last, we have all info of domain and axis, then send them
        sendRefDomainsAxis();
-      // After that, send all grid (if any)
+
+       // After that, send all grid (if any)
        sendRefGrid();
+
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
      }
 
-    // We have a xml tree on the server side and now, it should be also processed
-   // if (hasClient && !hasServer) sendPostProcessing();
 
-//     // Now tell server that it can process all messages from client
-// //    if (hasClient && !hasServer) this->sendCloseDefinition();
+     // Now tell server that it can process all messages from client
      if (hasClient) this->sendCloseDefinition();
 
     // There are some processings that should be done after all of above. For example: check mask or index
      if (hasClient && !hasServer)
-//    if (hasClient)
     {
       this->buildFilterGraphOfEnabledFields();  // references are resolved here (access xml file)
       buildFilterGraphOfFieldsWithReadAccess();
@@ -691,6 +681,21 @@ namespace xios {
       if (enabledFiles.size() == 0)
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
                << getId() << "\" !");
+
+      // Assigning contextClient to each enabled file
+      if (hasClient)
+      {
+        for (int i = 0; i < enabledFiles.size(); ++i)
+        {
+          if (hasServer)
+          {
+            int srvId = i % clientPrimServer.size();
+            enabledFiles[i]->setContextClient(clientPrimServer[srvId]);
+          }
+          else
+            enabledFiles[i]->setContextClient(client);
+        }
+      }
    }
 
    void CContext::findEnabledReadModeFiles(void)
@@ -768,7 +773,6 @@ namespace xios {
    void CContext::sendCloseDefinition(void)
    {
      // Use correct context client to send message
-//     CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[0] : client;
      int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
@@ -882,7 +886,6 @@ namespace xios {
    void CContext::sendCreateFileHeader(void)
    {
      // Use correct context client to send message
-//     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
      int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
@@ -957,7 +960,6 @@ namespace xios {
    void CContext::sendPostProcessing()
    {
       // Use correct context client to send message
-//     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
      int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
@@ -1076,7 +1078,8 @@ namespace xios {
 
       // Check if some automatic time series should be generated
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      prepareTimeseries();
+      if (!hasServer)
+        prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
@@ -1203,31 +1206,9 @@ namespace xios {
      CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
      for (int i = 0; i < size; ++i)
      {
-       cfgrpPtr->sendCreateChild(this->enabledFiles[i]->getId());
-       this->enabledFiles[i]->sendAllAttributesToServer();
-       this->enabledFiles[i]->sendAddAllVariables();
-     }
-   }
-
-   //! Client side: Send infomation of active files (files are enabled to write out)
-   void CContext::sendEnabledFiles(const int nbPools)
-   {
-     int size = this->enabledFiles.size();
-
-     // In a context, each type has a root definition, e.g: axis, domain, field.
-     // Every object must be a child of one of these root definition. In this case
-     // all new file objects created on server must be children of the root "file_definition"
-     StdString fileDefRoot("file_definition");
-     CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
-
-     {
-       for (int i = 0; i < size; ++i)
-       {
-         int srvId = i % nbPools;
-         cfgrpPtr->sendCreateChild(this->enabledFiles[i]->getId(), srvId);
-         this->enabledFiles[i]->sendAllAttributesToServer(srvId);
-         this->enabledFiles[i]->sendAddAllVariables(srvId);
-       }
+       cfgrpPtr->sendCreateChild(this->enabledFiles[i]->getId(),enabledFiles[i]->getContextClient());
+       this->enabledFiles[i]->sendAllAttributesToServer(enabledFiles[i]->getContextClient());
+       this->enabledFiles[i]->sendAddAllVariables(enabledFiles[i]->getContextClient());
      }
    }
 
@@ -1237,17 +1218,7 @@ namespace xios {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->sendEnabledFields();
-     }
-   }
-
-   void CContext::sendEnabledFields(const int nbPools)
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       int srvId = i % nbPools;
-       this->enabledFiles[i]->sendEnabledFields(srvId);
+       this->enabledFiles[i]->sendEnabledFields(enabledFiles[i]->getContextClient());
      }
    }
 
@@ -1419,67 +1390,6 @@ namespace xios {
      }
    }
 
-   //! Client side: Send information of reference domain and axis of active fields
-   void CContext::sendRefDomainsAxis(const int nbPools)
-   {
-     std::set<StdString> domainIds, axisIds, scalarIds;
-
-     // Find all reference domain and axis of all active fields
-     int numEnabledFiles = this->enabledFiles.size();
-     for (int i = 0; i < numEnabledFiles; ++i)
-     {
-       std::vector<CField*> enabledFields = this->enabledFiles[i]->getEnabledFields();
-       int numEnabledFields = enabledFields.size();
-       for (int j = 0; j < numEnabledFields; ++j)
-       {
-         const std::vector<StdString>& prDomAxisScalarId = enabledFields[j]->getRefDomainAxisIds();
-         if ("" != prDomAxisScalarId[0]) domainIds.insert(prDomAxisScalarId[0]);
-         if ("" != prDomAxisScalarId[1]) axisIds.insert(prDomAxisScalarId[1]);
-         if ("" != prDomAxisScalarId[2]) scalarIds.insert(prDomAxisScalarId[2]);
-       }
-     }
-
-     // Create all reference axis on server side
-     std::set<StdString>::iterator itDom, itAxis, itScalar;
-     std::set<StdString>::const_iterator itE;
-
-     StdString scalarDefRoot("scalar_definition");
-     CScalarGroup* scalarPtr = CScalarGroup::get(scalarDefRoot);
-     itE = scalarIds.end();
-     for (itScalar = scalarIds.begin(); itScalar != itE; ++itScalar)
-     {
-       if (!itScalar->empty())
-       {
-         scalarPtr->sendCreateChild(*itScalar);
-         CScalar::get(*itScalar)->sendAllAttributesToServer();
-       }
-     }
-
-     StdString axiDefRoot("axis_definition");
-     CAxisGroup* axisPtr = CAxisGroup::get(axiDefRoot);
-     itE = axisIds.end();
-     for (itAxis = axisIds.begin(); itAxis != itE; ++itAxis)
-     {
-       if (!itAxis->empty())
-       {
-         axisPtr->sendCreateChild(*itAxis);
-         CAxis::get(*itAxis)->sendAllAttributesToServer();
-       }
-     }
-
-     // Create all reference domains on server side
-     StdString domDefRoot("domain_definition");
-     CDomainGroup* domPtr = CDomainGroup::get(domDefRoot);
-     itE = domainIds.end();
-     for (itDom = domainIds.begin(); itDom != itE; ++itDom)
-     {
-       if (!itDom->empty()) {
-          domPtr->sendCreateChild(*itDom);
-          CDomain::get(*itDom)->sendAllAttributesToServer();
-       }
-     }
-   }
-
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    {
@@ -1568,13 +1478,12 @@ namespace xios {
     registryOut->hierarchicalGatherRegistry() ;
 
     // Use correct context client to send message
-//    CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
       CEventClient event(CContext::GetType(), CContext::EVENT_ID_SEND_REGISTRY);
-            if (contextClientTmp->isServerLeader())
+        if (contextClientTmp->isServerLeader())
         {
            CMessage msg ;
            if (hasServer)
@@ -1582,7 +1491,7 @@ namespace xios {
            else
              msg<<this->getIdServer();
            if (contextClientTmp->clientRank==0) msg<<*registryOut ;
-           const std::list<int>& ranks = client->getRanksServerLeader();
+           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
              event.push(*itRank,1,msg);
            contextClientTmp->sendEvent(event);

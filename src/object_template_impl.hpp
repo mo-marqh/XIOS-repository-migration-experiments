@@ -163,11 +163,8 @@ namespace xios
    template<typename T>
    std::map<int, size_t> CObjectTemplate<T>::getMinimumBufferSizeForAttributes()
    {
-     // CContextClient* client = CContext::getCurrent()->client;
+     // Use correct context client to send message
      CContext* context = CContext::getCurrent();
-
-          // Use correct context client to send message
-//     CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
@@ -243,13 +240,13 @@ namespace xios
    }
 
    template<typename T>
-   void CObjectTemplate<T>::sendAllAttributesToServer(const int srvPool)
+   void CObjectTemplate<T>::sendAllAttributesToServer(CContextClient* client)
    {
      CAttributeMap& attrMap = *this;
      CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
      for (; it != itE; ++it)
      {
-       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second), srvPool);
+       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second), client);
      }
    }
 
@@ -262,40 +259,29 @@ namespace xios
    }
 
    template <class T>
-   void CObjectTemplate<T>::sendAttributToServer(const string& id, const int srvPool)
+   void CObjectTemplate<T>::sendAttributToServer(const string& id, CContextClient* client)
    {
       CAttributeMap & attrMap = *this;
       CAttribute* attr=attrMap[id];
-      sendAttributToServer(*attr, srvPool);
+      sendAttributToServer(*attr, client);
    }
 
   template <class T>
   void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr)
   {
-    CContext* context=CContext::getCurrent();
-
      // Use correct context client to send message
-//    CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+    CContext* context=CContext::getCurrent();
     if (context->hasClient)
     {
       int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
       for (int i = 0; i < nbSrvPools; ++i)
       {
         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-        // CContextClient* contextClientTmp=context->contextClientTmp;
-
         CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
         if (contextClientTmp->isServerLeader())
         {
           CMessage msg;
-//          if (context->hasServer)
-//          {
-//            StdString tmp = this->getIdServer() + "_" +boost::lexical_cast<string>(i);
-//            msg<<tmp;
-//          }
-//          else
-            msg<<this->getIdServer();
-
+          msg<<this->getIdServer();
           msg << attr.getName();
           msg << attr;
           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
@@ -330,25 +316,22 @@ namespace xios
   }
 
   template <class T>
-  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr, const int srvPool)
+  void CObjectTemplate<T>::sendAttributToServer(CAttribute& attr, CContextClient* client)
   {
-    CContext* context=CContext::getCurrent();
-    CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
     CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
-    if (contextClientTmp->isServerLeader())
+    if (client->isServerLeader())
     {
       CMessage msg;
       msg<<this->getIdServer();
       msg << attr.getName();
       msg << attr;
-      const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+      const std::list<int>& ranks = client->getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         event.push(*itRank,1,msg);
-      contextClientTmp->sendEvent(event);
+      client->sendEvent(event);
     }
-    else contextClientTmp->sendEvent(event);
+    else client->sendEvent(event);
   }
-
 
   /*!
     This generic funtion only provides instance for sending, for receving, each 
@@ -363,8 +346,7 @@ namespace xios
     typedef typename T::EEventId ItemType;
     if (context->hasClient)
     {
-       // Use correct context client to send message
-//      CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
+      // Use correct context client to send message
       int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
       for (int i = 0; i < nbSrvPools; ++i)
       {
@@ -386,24 +368,23 @@ namespace xios
   }
 
   template<class T>
-  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType, const int srvPool)
+  void CObjectTemplate<T>::sendAddItem(const StdString& id, int itemType, CContextClient* client)
   {
-    CContext* context = CContext::getCurrent();
     typedef typename T::EEventId ItemType;
-     CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
      CEventClient event(this->getType(),ItemType(itemType));
-     if (contextClientTmp->isServerLeader())
+     if (client->isServerLeader())
      {
        CMessage msg;
        msg << this->getId();
        msg << id;
-       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
          event.push(*itRank,1,msg);
-       contextClientTmp->sendEvent(event);
+       client->sendEvent(event);
      }
-     else contextClientTmp->sendEvent(event);
+     else client->sendEvent(event);
   }
+
 
   template <class T>
   void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)

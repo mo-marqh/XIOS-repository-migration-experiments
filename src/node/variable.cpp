@@ -126,22 +126,20 @@ namespace xios {
     // }
    }
 
-   void CVariable::sendValue(const int srvPool)
+   void CVariable::sendValue(CContextClient* client)
    {
-     CContext* context=CContext::getCurrent() ;
-     CContextClient* contextClientTmp = context->clientPrimServer[srvPool];
      CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
-     if (contextClientTmp->isServerLeader())
+     if (client->isServerLeader())
      {
        CMessage msg ;
        msg<<this->getId() ;
        msg<<content ;
-       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       const std::list<int>& ranks = client->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
          event.push(*itRank,1,msg);
-       contextClientTmp->sendEvent(event) ;
+       client->sendEvent(event) ;
      }
-     else contextClientTmp->sendEvent(event) ;
+     else client->sendEvent(event) ;
    }
 
    /*

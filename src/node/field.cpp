@@ -35,7 +35,7 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
-      , isReadDataRequestPending(false)
+      , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -46,7 +46,7 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
       , useCompressedOutput(false)
-      , isReadDataRequestPending(false)
+      , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
@@ -178,12 +178,9 @@ namespace xios{
     CTimer::get("XIOS Send Data").suspend();
   }
 
-  void CField::sendUpdateData(const CArray<double,1>& data, const int srvPool)
+  void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
   {
     CTimer::get("XIOS Send Data").resume();
-
-    CContext* context = CContext::getCurrent();
-    CContextClient* client = context->clientPrimServer[srvPool];
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
@@ -311,7 +308,7 @@ namespace xios{
         // Redirecting data to the correct secondary server
         int fileIdx = std::find(context->enabledFiles.begin(), context->enabledFiles.end(), this->file) - context->enabledFiles.begin();
         int srvId = fileIdx % context->clientPrimServer.size();
-        sendUpdateData(fieldData, srvId);
+        sendUpdateData(fieldData, context->clientPrimServer[srvId]);
     }
     if (!context->hasClient && context->hasServer)
     {
@@ -347,13 +344,12 @@ namespace xios{
     }
   }
 
-  void CField::sendReadDataRequest(void)
+  void CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
 
-    lastDataRequestedFromServer = context->getCalendar()->getCurrentDate();
-    isReadDataRequestPending = true;
+    lastDataRequestedFromServer = tsDataRequested;
 
     CEventClient event(getType(), EVENT_ID_READ_DATA);
     if (client->isServerLeader())
@@ -376,19 +372,19 @@ namespace xios{
   {
     const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
 
-    bool requestData = (currentDate >= lastDataRequestedFromServer + file->output_freq.getValue());
-
-    if (requestData)
+    bool dataRequested = false;
+    while (currentDate >= lastDataRequestedFromServer)
     {
-      cout<<"currentDate : "<<currentDate<<endl ;
-      cout<<"lastDataRequestedFromServer : "<<lastDataRequestedFromServer<<endl ;
-      cout<<"file->output_freq.getValue() : "<<file->output_freq.getValue()<<endl ;
-      cout<<"lastDataRequestedFromServer + file->output_freq.getValue() : "<<lastDataRequestedFromServer + file->output_freq.getValue()<<endl ;
+      info(20) << "currentDate : " << currentDate << endl ;
+      info(20) << "lastDataRequestedFromServer : " << lastDataRequestedFromServer << endl ;
+      info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
+      info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
 
-      sendReadDataRequest();
+      sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
+
+      dataRequested = true;
     }
-
-    return requestData;
+    return dataRequested;
   }
 
   void CField::recvReadDataRequest(CEventServer& event)
@@ -410,18 +406,76 @@ namespace xios{
     bool hasData = readField();
 
     map<int, CArray<double,1> >::iterator it;
-    for (it = data_srv.begin(); it != data_srv.end(); it++)
+//    for (it = data_srv.begin(); it != data_srv.end(); it++)
+//    {
+//      msgs.push_back(CMessage());
+//      CMessage& msg = msgs.back();
+//      msg << getId();
+//      if (hasData)
+//        msg << getNStep() - 1 << it->second;
+//      else
+//        msg << int(-1);
+//      event.push(it->first, grid->nbSenders[it->first], msg);
+//    }
+//    client->sendEvent(event);
+    if (!grid->doGridHaveDataDistributed())
     {
-      msgs.push_back(CMessage());
-      CMessage& msg = msgs.back();
-      msg << getId();
-      if (hasData)
-        msg << getNStep() - 1 << it->second;
-      else
-        msg << int(-1);
-      event.push(it->first, grid->nbSenders[it->first], msg);
+       if (client->isServerLeader())
+       {
+          if (!data_srv.empty())
+          {
+            it = data_srv.begin();
+            const std::list<int>& ranks = client->getRanksServerLeader();
+            for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+            {
+              msgs.push_back(CMessage());
+              CMessage& msg = msgs.back();
+              msg << getId();
+              if (hasData)
+                msg << getNStep() - 1 << it->second;
+              else
+                msg << int(-1);
+              event.push(*itRank, 1, msg);
+            }
+          }
+          client->sendEvent(event);
+       }
+       else
+       {
+          // if (!data_srv.empty())
+          // {
+          //   it = data_srv.begin();
+          //   const std::list<int>& ranks = client->getRanksServerNotLeader();
+          //   for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+          //   {
+          //     msgs.push_back(CMessage());
+          //     CMessage& msg = msgs.back();
+          //     msg << getId();
+          //     if (hasData)
+          //       msg << getNStep() - 1 << it->second;
+          //     else
+          //       msg << int(-1);
+          //     event.push(*itRank, 1, msg);
+          //   }
+          // }
+          client->sendEvent(event);
+       }
     }
-    client->sendEvent(event);
+    else
+    {
+      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      {
+        msgs.push_back(CMessage());
+        CMessage& msg = msgs.back();
+        msg << getId();
+        if (hasData)
+          msg << getNStep() - 1 << it->second;
+        else
+          msg << int(-1);
+        event.push(it->first, grid->nbSenders[it->first], msg);
+      }
+      client->sendEvent(event);
+    }
   }
 
   bool CField::readField(void)
@@ -493,12 +547,18 @@ namespace xios{
         break;
     }
 
-    if (isEOF)
-      serverSourceFilter->signalEndOfStream(lastDataRequestedFromServer);
+    if (wasDataAlreadyReceivedFromServer)
+      lastDataReceivedFromServer = lastDataReceivedFromServer + file->output_freq;
     else
-      serverSourceFilter->streamDataFromServer(lastDataRequestedFromServer, data);
+    {
+      lastDataReceivedFromServer = context->getCalendar()->getInitDate();
+      wasDataAlreadyReceivedFromServer = true;
+    }
 
-    isReadDataRequestPending = false;
+    if (isEOF)
+      serverSourceFilter->signalEndOfStream(lastDataReceivedFromServer);
+    else
+      serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
   }
 
    //----------------------------------------------------------------
@@ -748,7 +808,7 @@ namespace xios{
 
      solveGridDomainAxisRef(doSending2Server);
 
-     if (context->hasClient && !context->hasClient)
+     if (context->hasClient && !context->hasServer)
      {
        solveTransformedGrid();
      }
@@ -830,20 +890,38 @@ namespace xios{
      if (!instantDataFilter)
      {
        // Check if we have an expression to parse
-       if (!content.empty())
+       if (hasExpression())
        {
-         boost::scoped_ptr<IFilterExprNode> expr(parseExpr(content + '\0'));
-         instantDataFilter = expr->reduce(gc, *this);
+         boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
+         boost::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
+
+         // Check if a spatial transformation is needed
+         if (!field_ref.isEmpty())
+         {
+           CGrid* gridRef = CField::get(field_ref)->grid;
+
+           if (grid && grid != gridRef && grid->hasTransform())
+           {
+             double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
+             std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, defaultValue);
+
+             filter->connectOutput(filters.first, 0);
+             filter = filters.second;
+           }
+         }
+
+         instantDataFilter = filter;
        }
        // Check if we have a reference on another field
        else if (!field_ref.isEmpty())
          instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
-                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset));
+         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset,
+                                                                                                     true));
        else // The data might be passed from the model
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
      }
 
      // If the field data is to be read by the client or/and written to a file
@@ -863,6 +941,7 @@ namespace xios{
      }
    }
 
+
    /*!
     * Returns the filter needed to handle the field reference.
     * This method should only be called when building the filter graph corresponding to the field.
@@ -870,31 +949,29 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to the field reference
     */
-   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
-   {
-     if (instantDataFilter || field_ref.isEmpty())
-       ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
-             "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
-
-     CField* fieldRef = CField::get(field_ref);
-     fieldRef->buildFilterGraph(gc, false);
-
-     std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
-     // Check if a spatial transformation is needed
-     if (grid && grid != fieldRef->grid && grid->hasTransform())
+     boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
      {
-       double defaultValue = 0.0;
-       if (!default_value.isEmpty()) defaultValue = this->default_value;
-       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
+       if (instantDataFilter || field_ref.isEmpty())
+         ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
+               "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
+
+       CField* fieldRef = CField::get(field_ref);
+       fieldRef->buildFilterGraph(gc, false);
+
+       std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
+       // Check if a spatial transformation is needed
+       if (grid && grid != fieldRef->grid && grid->hasTransform())
+       {
+         double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
+         filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
+       }
+       else
+         filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
+
+       fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+
+       return filters.second;
      }
-
-     else
-       filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
-
-     fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
-
-     return filters.second;
-   }
 
    /*!
     * Returns the filter needed to handle a self reference in the field's expression.
@@ -907,7 +984,7 @@ namespace xios{
     */
    boost::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
    {
-     if (instantDataFilter || content.empty())
+     if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
              "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
 
@@ -916,17 +993,21 @@ namespace xios{
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid,
-                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset));
-
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset,
+                                                                                   true));
          selfReferenceFilter = serverSourceFilter;
        }
        else if (!field_ref.isEmpty())
-         selfReferenceFilter = getFieldReference(gc);
+       {
+         CField* fieldRef = CField::get(field_ref);
+         fieldRef->buildFilterGraph(gc, false);
+         selfReferenceFilter = fieldRef->getInstantDataFilter();
+       }
        else
        {
          if (!clientSourceFilter)
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(grid));
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
 
          selfReferenceFilter = clientSourceFilter;
        }
@@ -1125,7 +1206,8 @@ namespace xios{
      }
      else if (grid && grid->hasTransform() && !grid->isTransformed())
      {
-       grid->transformGrid(grid);
+       // Temporarily deactivate the self-transformation of grid
+       //grid->transformGrid(grid);
      }
    }
 
@@ -1324,7 +1406,7 @@ namespace xios{
      }
    }
 
-   void CField::sendAddAllVariables(const int srvPool)
+   void CField::sendAddAllVariables(CContextClient* client)
    {
      std::vector<CVariable*> allVar = getAllVariables();
      std::vector<CVariable*>::const_iterator it = allVar.begin();
@@ -1332,15 +1414,39 @@ namespace xios{
 
      for (; it != itE; ++it)
      {
-       this->sendAddVariable((*it)->getId());
-       (*it)->sendAllAttributesToServer(srvPool);
-       (*it)->sendValue(srvPool);
+       this->sendAddVariable((*it)->getId(), client);
+       (*it)->sendAllAttributesToServer(client);
+       (*it)->sendValue(client);
      }
    }
 
    void CField::sendAddVariable(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
+    // CContext* context = CContext::getCurrent();
+
+    // if (!context->hasServer)
+    // {
+    //    CContextClient* client = context->client;
+
+    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
+    //    if (client->isServerLeader())
+    //    {
+    //      CMessage msg;
+    //      msg << this->getId();
+    //      msg << id;
+    //      const std::list<int>& ranks = client->getRanksServerLeader();
+    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+    //        event.push(*itRank,1,msg);
+    //      client->sendEvent(event);
+    //    }
+    //    else client->sendEvent(event);
+    // }
+   }
+
+   void CField::sendAddVariable(const string& id, CContextClient* client)
+   {
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
     // CContext* context = CContext::getCurrent();
 
     // if (!context->hasServer)
@@ -1416,6 +1522,27 @@ namespace xios{
       buffer >> id;
       addVariableGroup(id);
    }
+
+   /*!
+    * Returns string arithmetic expression associated to the field.
+    * \return if content is defined return content string, otherwise, if "expr" attribute is defined, return expr string.
+    */
+   const string& CField::getExpression(void)
+   {
+     if (!expr.isEmpty() && content.empty())
+     {
+       content = expr;
+       expr.reset();
+     }
+
+     return content;
+   }
+
+   bool CField::hasExpression(void) const
+   {
+     return (!expr.isEmpty() || !content.empty());
+   }
+
 
    DEFINE_REF_FUNC(Field,field)
 } // namespace xios

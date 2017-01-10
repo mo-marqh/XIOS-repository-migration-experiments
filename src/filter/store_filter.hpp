@@ -64,6 +64,7 @@ namespace xios
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
 
     private:
+      CGarbageCollector& gc; //!< The garbage collector associated to the filter
       CContext* context; //!< The context to which the data belongs
       CGrid* grid; //!< The grid attached to the data the filter can accept
       std::map<Time, CDataPacketPtr> packets; //<! The stored packets

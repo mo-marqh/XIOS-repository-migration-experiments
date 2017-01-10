@@ -30,6 +30,27 @@ MODULE interpolate_domain_interface_attr
     END FUNCTION cxios_is_defined_interpolate_domain_file
 
 
+    SUBROUTINE cxios_set_interpolate_domain_mode(interpolate_domain_hdl, mode, mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: mode
+      INTEGER  (kind = C_INT)     , VALUE        :: mode_size
+    END SUBROUTINE cxios_set_interpolate_domain_mode
+
+    SUBROUTINE cxios_get_interpolate_domain_mode(interpolate_domain_hdl, mode, mode_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: mode
+      INTEGER  (kind = C_INT)     , VALUE        :: mode_size
+    END SUBROUTINE cxios_get_interpolate_domain_mode
+
+    FUNCTION cxios_is_defined_interpolate_domain_mode(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_mode
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_mode
+
+
     SUBROUTINE cxios_set_interpolate_domain_order(interpolate_domain_hdl, order) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
@@ -66,6 +87,46 @@ MODULE interpolate_domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_renormalize
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
     END FUNCTION cxios_is_defined_interpolate_domain_renormalize
+
+
+    SUBROUTINE cxios_set_interpolate_domain_weight_filename(interpolate_domain_hdl, weight_filename, weight_filename_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: weight_filename
+      INTEGER  (kind = C_INT)     , VALUE        :: weight_filename_size
+    END SUBROUTINE cxios_set_interpolate_domain_weight_filename
+
+    SUBROUTINE cxios_get_interpolate_domain_weight_filename(interpolate_domain_hdl, weight_filename, weight_filename_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: weight_filename
+      INTEGER  (kind = C_INT)     , VALUE        :: weight_filename_size
+    END SUBROUTINE cxios_get_interpolate_domain_weight_filename
+
+    FUNCTION cxios_is_defined_interpolate_domain_weight_filename(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_weight_filename
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_weight_filename
+
+
+    SUBROUTINE cxios_set_interpolate_domain_write_weight(interpolate_domain_hdl, write_weight) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: write_weight
+    END SUBROUTINE cxios_set_interpolate_domain_write_weight
+
+    SUBROUTINE cxios_get_interpolate_domain_write_weight(interpolate_domain_hdl, write_weight) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)             :: write_weight
+    END SUBROUTINE cxios_get_interpolate_domain_write_weight
+
+    FUNCTION cxios_is_defined_interpolate_domain_write_weight(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_write_weight
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_write_weight
 
   END INTERFACE
 

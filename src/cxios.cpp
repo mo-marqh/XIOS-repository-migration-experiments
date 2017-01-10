@@ -15,19 +15,21 @@ namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;
-  string CXios::xiosCodeIdPrm="xios.x.1" ;
-  string CXios::xiosCodeIdSnd="xios.x.2" ;
+//  string CXios::xiosCodeIdPrm="xios.x.1" ;
+//  string CXios::xiosCodeIdSnd="xios.x.2" ;
   string CXios::clientFile="./xios_client";
   string CXios::serverFile="./xios_server";
-  string CXios::serverPrimFile="./xios_server1";
-  string CXios::serverScndFile="./xios_server2";
+  string CXios::serverPrmFile="./xios_server1";
+  string CXios::serverSndFile="./xios_server2";
 
   bool CXios::isClient ;
   bool CXios::isServer ;
-  int CXios::serverLevel = 0 ;
+//  int CXios::serverLevel = 0 ;
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
+  bool CXios::usingServer2 = false;
+  int CXios::ratioServer2 = 50;
   double CXios::bufferSizeFactor = 1.0;
   const double CXios::defaultBufferSizeFactor = 1.0;
   StdSize CXios::minBufferSize = 1024 * sizeof(double);
@@ -51,6 +53,8 @@ namespace xios
   {
     usingOasis=getin<bool>("using_oasis",false) ;
     usingServer=getin<bool>("using_server",false) ;
+    usingServer2=getin<bool>("using_server2",false) ;
+    ratioServer2=getin<int>("ratio_server2",50);
     info.setLevel(getin<int>("info_level",0)) ;
     report.setLevel(getin<int>("info_level",50));
     printLogs2Files=getin<bool>("print_file",false);
@@ -134,34 +138,45 @@ namespace xios
   void CXios::initServerSide(int serverLvl)
   {
     initServer();
-    if (serverLvl == 1)
+
+//    if (serverLvl == 1)
+//      isClient = true;
+//    else
+//      isClient = false;
+//
+//    isServer = true;
+//    serverLevel = serverLvl;
+
+
+
+    // Initialize all aspects MPI
+    CServer::initialize();
+    isServer = true;
+    if (CServer::serverLevel == 1)
       isClient = true;
     else
       isClient = false;
 
-    isServer = true;
-    serverLevel = serverLvl;
-
-    // Initialize all aspects MPI
-    CServer::initialize();
     if (CServer::getRank()==0) globalRegistry = new CRegistry(CServer::intraComm) ;
     
     if (printLogs2Files)
     {
-      if (CXios::serverLevel == 0)
+      if (CServer::serverLevel == 0)
+//      if (CXios::serverLevel == 0)
       {
         CServer::openInfoStream(serverFile);
         CServer::openErrorStream(serverFile);
       }
-      else if (CXios::serverLevel == 1)
+      else if (CServer::serverLevel == 1)
+//      else if (CXios::serverLevel == 1)
       {
-        CServer::openInfoStream(serverPrimFile);
-        CServer::openErrorStream(serverPrimFile);
+        CServer::openInfoStream(serverPrmFile);
+        CServer::openErrorStream(serverPrmFile);
       }
       else
       {
-        CServer::openInfoStream(serverScndFile);
-        CServer::openErrorStream(serverScndFile);
+        CServer::openInfoStream(serverSndFile);
+        CServer::openErrorStream(serverSndFile);
       }
     }
     else
@@ -195,12 +210,6 @@ namespace xios
   {
     usingServer = true;
   }
-
-  //! Set using secondary server
-//  void CXios::setUsingSecondaryServer()
-//  {
-//    usingSecondaryServer = true;
-//  }
 
   //! Unset using server
   void CXios::setNotUsingServer()

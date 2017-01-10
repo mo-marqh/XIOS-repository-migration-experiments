@@ -5,6 +5,7 @@
 #include "declare_attribute.hpp"
 #include "event_server.hpp"
 #include "object_template.hpp"
+#include "context_client.hpp"
 
 namespace xios
 {
@@ -71,7 +72,7 @@ namespace xios
          void addChildGroup(V* childGroup) ; 
          static bool dispatchEvent(CEventServer& event) ;
          void sendCreateChild(const string& id="") ;
-         void sendCreateChild(const string& id, const int srvPool) ;
+         void sendCreateChild(const string& id, CContextClient* client) ;
          void sendCreateChildGroup(const string& id="") ;
          static void recvCreateChild(CEventServer& event) ;
          void recvCreateChild(CBufferIn& buffer) ;

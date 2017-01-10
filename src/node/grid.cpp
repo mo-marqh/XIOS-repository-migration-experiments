@@ -298,7 +298,9 @@ namespace xios {
             this->computeIndexScalarGrid();
          }
 
-         this->isChecked = true;
+//         this->isChecked = true;
+         if (!(this->hasTransform() && !this->isTransformed()))
+          this->isChecked = true;
          return;
        }
 
@@ -315,7 +317,12 @@ namespace xios {
           this->checkMask();
           this->computeIndex();
        }
-       this->isChecked = true;
+//       this->isChecked = true;
+       if (!(this->hasTransform() && !this->isTransformed()))
+        this->isChecked = true;
+
+       if (!(this->hasTransform() && (!this->isGenerated())))
+        this->isChecked = true;
      }
    }
 
@@ -1093,6 +1100,7 @@ namespace xios {
             outLocalIndexToServer(k)  = 0;
           }
 
+          storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
           listMsg.push_back(CMessage());
           listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
@@ -1101,7 +1109,21 @@ namespace xios {
         client->sendEvent(event);
       }
       else
+      {
+        const std::list<int>& ranks = client->getRanksServerNotLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          int rank = *itRank;
+          int nb = 1;
+          storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_fromSrv[rank];
+          for (int k = 0; k < nb; ++k)
+          {
+            outLocalIndexToServer(k)  = 0;
+          }
+        }
         client->sendEvent(event);
+      }
     }
   }
 
@@ -1135,11 +1157,11 @@ namespace xios {
             outLocalIndexToServer(idx) = itIndex->second;
           }
 
-          //int nbClient = client->clientSize; // This stupid variable signals the servers the number of client connect to them
           const std::list<int>& ranks = client->getRanksServerLeader();
           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
           {
             storeIndex_toSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
             listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
             listMsg.push_back(CMessage());
@@ -1150,7 +1172,21 @@ namespace xios {
           client->sendEvent(event);
         }
         else
-          client->sendEvent(event);
+        {
+           int indexSize = globalLocalIndexSendToServer.size();
+           CArray<int,1> outLocalIndexToServer(indexSize);
+           for (int idx = 0; itIndex != iteIndex; ++itIndex, ++idx)
+           {
+             outLocalIndexToServer(idx) = itIndex->second;
+           }
+
+           const std::list<int>& ranks = client->getRanksServerNotLeader();
+           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           {
+             storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+           }
+           client->sendEvent(event);
+         }
       }
       else
       {
@@ -1176,8 +1212,8 @@ namespace xios {
           }
         }
 
-//        for (int ns = 0; ns < connectedServerRank_.size(); ++ns)
-        for (int ns = 0; ns < client->serverSize; ++ns)
+        for (int ns = 0; ns < connectedServerRank_.size(); ++ns)
+//        for (int ns = 0; ns < client->serverSize; ++ns)
         {
           rank = connectedServerRank_[ns];
           int nb = 0;
@@ -1196,6 +1232,7 @@ namespace xios {
             outLocalIndexToServer(k)  = localIndexTmp[rank].at(k);
           }
 
+          storeIndex_fromSrv.insert(make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
           listMsg.push_back(CMessage());
           listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 

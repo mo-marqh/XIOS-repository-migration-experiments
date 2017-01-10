@@ -56,7 +56,8 @@ namespace xios
           boost::hash<string> hashString ;
 
           unsigned long hashClient = hashString(codeId) ;
-          unsigned long hashServer = hashString(CXios::xiosCodeIdPrm);
+          unsigned long hashServer = hashString(CXios::xiosCodeId);
+//          unsigned long hashServer = hashString(CXios::xiosCodeIdPrm);
           unsigned long* hashAll ;
           int size ;
           int myColor ;
@@ -87,9 +88,9 @@ namespace xios
           CXios::setNotUsingServer();
           for (i=0; i < size; ++i)
           {
-            if ((hashAll[i] == hashString(CXios::xiosCodeId))
-                || (hashAll[i] == hashString(CXios::xiosCodeIdPrm))
-                || (hashAll[i] == hashString(CXios::xiosCodeIdSnd)))
+            if (hashAll[i] == hashString(CXios::xiosCodeId))
+//                || (hashAll[i] == hashString(CXios::xiosCodeIdPrm))
+//                || (hashAll[i] == hashString(CXios::xiosCodeIdSnd)))
             {
               CXios::setUsingServer();
               break;
@@ -102,7 +103,6 @@ namespace xios
           if (CXios::usingServer)
           {
             int clientLeader=leaders[hashClient] ;
-//            serverLeader=leaders[hashServer] ;
             serverLeader.push_back(leaders[hashServer]) ;
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm,&intraCommSize) ;
@@ -110,9 +110,6 @@ namespace xios
             info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader.back()<<endl ;
              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader.back(), 0, &interComm) ;
-//             info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
-//                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
-//              MPI_Intercomm_create(intraComm,0,CXios::globalComm,serverLeader,0,&interComm) ;
           }
           else
           {
@@ -180,9 +177,10 @@ namespace xios
 ///---------------------------------------------------------------
 /*!
  * \fn void CClient::registerContext(const string& id, MPI_Comm contextComm)
- * Function creates intraComm (CClient::intraComm) for client group with id=codeId and interComm (CClient::interComm) between client and server groups.
+ * \brief Sends a request to create a context to server. Creates client/server contexts.
  * \param [in] id id of context.
  * \param [in] contextComm.
+ * Function is only called by client.
  */
     void CClient::registerContext(const string& id, MPI_Comm contextComm)
     {
@@ -249,14 +247,16 @@ namespace xios
       }
     }
 
-    ///---------------------------------------------------------------
-    /*!
-     * \fn void CClient::registerContext(const string& id, const int poolNb, MPI_Comm contextComm)
-     * Function creates intraComm (CClient::intraComm) for client group with id=codeId and interComm (CClient::interComm) between client and server groups.
-     * \param [in] id id of context.
-     * \param [in] contextComm.
-     */
-        void CClient::registerContextOnSrvPools(const string& id, MPI_Comm contextComm)
+///---------------------------------------------------------------
+/*!
+  * \fn void CClient::registerContextByClienOfServer(const string& id, MPI_Comm contextComm)
+  * \brief Sends a request to create contexts on secondary servers. Creates clientPrimServer/serverPrimServer contexts.
+  * \param [in] id id of context.
+  * \param [in] contextComm.
+  * Function is called by primary server.
+  * The only difference with CClient::registerContext() is naming of contexts on servers (appearing of pool id at the end).
+  */
+        void CClient::registerContextByClienOfServer(const string& id, MPI_Comm contextComm)
         {
           CContext::setCurrent(id) ;
           CContext* context=CContext::create(id);

@@ -28,23 +28,25 @@ namespace xios
     public:
      static string rootFile ; //!< Configuration filename
      static string xiosCodeId ; //!< Identity for XIOS
-     static string xiosCodeIdPrm ; //!< Identity for XIOS primary server
-     static string xiosCodeIdSnd ; //!< Identity for XIOS secondary server
+//     static string xiosCodeIdPrm ; //!< Identity for XIOS primary server
+//     static string xiosCodeIdSnd ; //!< Identity for XIOS secondary server
      static string clientFile;        //!< Filename template for client
      static string serverFile;        //!< Filename template for server
-     static string serverPrimFile;  //!< Filename template for primary server in case of two server groups
-     static string serverScndFile;  //!< Filename template for secondary server in case of two server groups
+     static string serverPrmFile;  //!< Filename template for primary server in case of two server levels
+     static string serverSndFile;  //!< Filename template for secondary server in case of two server levels
 
      static bool isClient ; //!< Check if xios is client
      static bool isServer ; //!< Check if xios is server
 
-     static int serverLevel ; //
+//     static int serverLevel ;
 
      static MPI_Comm globalComm ; //!< Global communicator
 
      static bool printLogs2Files; //!< Printing out logs into files
      static bool usingOasis ; //!< Using Oasis
      static bool usingServer ; //!< Using server (server mode)
+     static bool usingServer2 ; //!< Using secondary server (server mode)
+     static int ratioServer2 ;  //!< Percentage of server processors dedicated to secondary server
      static double bufferSizeFactor; //!< Factor used to tune the buffer size
      static const double defaultBufferSizeFactor; //!< Default factor value
      static StdSize minBufferSize; //!< Minimum buffer size
@@ -54,9 +56,6 @@ namespace xios
     public:
      //! Setting xios to use server mode
      static void setUsingServer();
-
-     //! Setting xios to use secondary server mode
-//     static void setUsingSecondaryServer();
 
      //! Setting xios NOT to use server mode
      static void setNotUsingServer();
