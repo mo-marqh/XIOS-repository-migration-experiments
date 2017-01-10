@@ -1,0 +1,36 @@
++ SCRIPT_PID=64261
++ /bin/bash -x /tmp/jobstart.64247
++ set +x
+++ id -u
++ '[' 24318 -ge 1000 ']'
++ MODULESHOME=/opt/Modules
++ export MODULESHOME
++ MODULEFILES=/opt/Modules/default/modulefiles
++ export MODULEFILES
++ '[' ccc:datadir/own:dfldatadir/own:licsrv/standard:c/intel/14.0.3.174:licsrv/intel:c++/intel/14.0.3.174:fortran/intel/14.0.3.174:mkl/14.0.3.174:idb/14.0.3.174:intel/14.0.3.174:mpi/bullxmpi/1.2.8.4:netcdf/4.3.3.1_hdf5_parallel:totalview/2016.07:licsrv/allinea:ddt/6.1.2:vtune/2017 = '' ']'
++ ENV=/etc/profile.d/modules.sh
++ export ENV
++ BASH_ENV=/etc/profile.d/modules.sh
++ export BASH_ENV
++ FPATH=/opt/Modules/init/fpath
++ export FPATH
++ [[ hxB =~ i ]]
++ typeset -fx module
++ [[ -s /opt/Modules/init/bash_completion ]]
++ [[ 4 -ge 3 ]]
++ [[ hxB =~ i ]]
++ '[' ccc:datadir/own:dfldatadir/own:licsrv/standard:c/intel/14.0.3.174:licsrv/intel:c++/intel/14.0.3.174:fortran/intel/14.0.3.174:mkl/14.0.3.174:idb/14.0.3.174:intel/14.0.3.174:mpi/bullxmpi/1.2.8.4:netcdf/4.3.3.1_hdf5_parallel:totalview/2016.07:licsrv/allinea:ddt/6.1.2:vtune/2017 = '' ']'
++ CURRENT=/ccc/work/cont003/dsm/p86nguey/Coupling_XIOS/dev_olga
++ cd /ccc/work/cont003/dsm/p86nguey/Coupling_XIOS/dev_olga/inputs
++ rm -f output_0.nc output_1.nc
++ rm -f output.nc
++ rm -f 'output_*'
++ rm -f xios_client_0.err xios_client_1.err xios_server1_0.err xios_server1_1.err xios_server2_0.err xios_server2_1.err
++ rm -f xios_client_0.out xios_client_1.out xios_server1_0.out xios_server1_1.out xios_server2_0.out xios_server2_1.out
++ rm -f 'info_output_*'
++ rm -f '*.nc'
++ rm -f 'appClient.conf_*'
++ ulimit -a
++ ulimit -aH
++ ddt -start -n 6 -mpiargs '-np 2 ../bin/test_client.exe : -np 2 ../bin/xios_server1.exe : -np 2 ../bin/xios_server2.exe'
+slurmd[curie1733]: error: *** JOB 7071754 CANCELLED AT 2017-01-10T14:43:56 DUE TO TIME LIMIT ***

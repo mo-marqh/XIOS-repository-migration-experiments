@@ -1,0 +1,6 @@
+%COMPIL_CFLAGS %DEV_CFLAGS
+%COMPIL_FFLAGS %DEV_FFLAGS
+%CPP_KEY        USING_NETCDF_PAR
+%CBASE_INC     -I /ccc/products/netcdf-4.3.3.1_hdf5_parallel/default/include  
+%FBASE_INC     -I /ccc/products/netcdf-4.3.3.1_hdf5_parallel/default/include  
+%ARCH_LD        -L /ccc/products/netcdf-4.3.3.1_hdf5_parallel/default/lib   -lnetcdf -lnetcdff -lhdf5_hl -lhdf5 -lz -lcurl 

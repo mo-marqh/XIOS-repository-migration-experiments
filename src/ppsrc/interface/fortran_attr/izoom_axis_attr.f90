@@ -1,0 +1,168 @@
+! * ************************************************************************** *
+! * Interface auto generated - do not modify *
+! * ************************************************************************** *
+
+
+MODULE izoom_axis_attr
+  USE, INTRINSIC :: ISO_C_BINDING
+  USE izoom_axis
+  USE zoom_axis_interface_attr
+
+CONTAINS
+
+  SUBROUTINE xios_set_zoom_axis_attr &
+    ( zoom_axis_id, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) :: zoom_axis_hdl
+      CHARACTER(LEN=*), INTENT(IN) ::zoom_axis_id
+      INTEGER , OPTIONAL, INTENT(IN) :: begin
+      INTEGER , OPTIONAL, INTENT(IN) :: n
+
+      CALL xios_get_zoom_axis_handle &
+      (zoom_axis_id,zoom_axis_hdl)
+      CALL xios_set_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_set_zoom_axis_attr
+
+  SUBROUTINE xios_set_zoom_axis_attr_hdl &
+    ( zoom_axis_hdl, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      INTEGER , OPTIONAL, INTENT(IN) :: begin
+      INTEGER , OPTIONAL, INTENT(IN) :: n
+
+      CALL xios_set_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_set_zoom_axis_attr_hdl
+
+  SUBROUTINE xios_set_zoom_axis_attr_hdl_ &
+    ( zoom_axis_hdl, begin_, n_ )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      INTEGER , OPTIONAL, INTENT(IN) :: begin_
+      INTEGER , OPTIONAL, INTENT(IN) :: n_
+
+      IF (PRESENT(begin_)) THEN
+        CALL cxios_set_zoom_axis_begin &
+      (zoom_axis_hdl%daddr, begin_)
+      ENDIF
+
+      IF (PRESENT(n_)) THEN
+        CALL cxios_set_zoom_axis_n &
+      (zoom_axis_hdl%daddr, n_)
+      ENDIF
+
+  END SUBROUTINE xios_set_zoom_axis_attr_hdl_
+
+  SUBROUTINE xios_get_zoom_axis_attr &
+    ( zoom_axis_id, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) :: zoom_axis_hdl
+      CHARACTER(LEN=*), INTENT(IN) ::zoom_axis_id
+      INTEGER , OPTIONAL, INTENT(OUT) :: begin
+      INTEGER , OPTIONAL, INTENT(OUT) :: n
+
+      CALL xios_get_zoom_axis_handle &
+      (zoom_axis_id,zoom_axis_hdl)
+      CALL xios_get_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_get_zoom_axis_attr
+
+  SUBROUTINE xios_get_zoom_axis_attr_hdl &
+    ( zoom_axis_hdl, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      INTEGER , OPTIONAL, INTENT(OUT) :: begin
+      INTEGER , OPTIONAL, INTENT(OUT) :: n
+
+      CALL xios_get_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_get_zoom_axis_attr_hdl
+
+  SUBROUTINE xios_get_zoom_axis_attr_hdl_ &
+    ( zoom_axis_hdl, begin_, n_ )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      INTEGER , OPTIONAL, INTENT(OUT) :: begin_
+      INTEGER , OPTIONAL, INTENT(OUT) :: n_
+
+      IF (PRESENT(begin_)) THEN
+        CALL cxios_get_zoom_axis_begin &
+      (zoom_axis_hdl%daddr, begin_)
+      ENDIF
+
+      IF (PRESENT(n_)) THEN
+        CALL cxios_get_zoom_axis_n &
+      (zoom_axis_hdl%daddr, n_)
+      ENDIF
+
+  END SUBROUTINE xios_get_zoom_axis_attr_hdl_
+
+  SUBROUTINE xios_is_defined_zoom_axis_attr &
+    ( zoom_axis_id, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) :: zoom_axis_hdl
+      CHARACTER(LEN=*), INTENT(IN) ::zoom_axis_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin
+      LOGICAL(KIND=C_BOOL) :: begin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
+
+      CALL xios_get_zoom_axis_handle &
+      (zoom_axis_id,zoom_axis_hdl)
+      CALL xios_is_defined_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_is_defined_zoom_axis_attr
+
+  SUBROUTINE xios_is_defined_zoom_axis_attr_hdl &
+    ( zoom_axis_hdl, begin, n )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin
+      LOGICAL(KIND=C_BOOL) :: begin_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n
+      LOGICAL(KIND=C_BOOL) :: n_tmp
+
+      CALL xios_is_defined_zoom_axis_attr_hdl_ &
+      ( zoom_axis_hdl, begin, n )
+
+  END SUBROUTINE xios_is_defined_zoom_axis_attr_hdl
+
+  SUBROUTINE xios_is_defined_zoom_axis_attr_hdl_ &
+    ( zoom_axis_hdl, begin_, n_ )
+
+    IMPLICIT NONE
+      TYPE(xios_zoom_axis) , INTENT(IN) :: zoom_axis_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: begin_
+      LOGICAL(KIND=C_BOOL) :: begin__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: n_
+      LOGICAL(KIND=C_BOOL) :: n__tmp
+
+      IF (PRESENT(begin_)) THEN
+        begin__tmp = cxios_is_defined_zoom_axis_begin &
+      (zoom_axis_hdl%daddr)
+        begin_ = begin__tmp
+      ENDIF
+
+      IF (PRESENT(n_)) THEN
+        n__tmp = cxios_is_defined_zoom_axis_n &
+      (zoom_axis_hdl%daddr)
+        n_ = n__tmp
+      ENDIF
+
+  END SUBROUTINE xios_is_defined_zoom_axis_attr_hdl_
+
+END MODULE izoom_axis_attr
