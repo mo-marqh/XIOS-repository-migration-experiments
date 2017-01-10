@@ -22,9 +22,13 @@ namespace xios
        * \param grid the grid to which the data is attached
        * \param offset the offset applied to the timestamp of all packets
        * \param manualTrigger whether the output should be triggered manually
+       * \param hasMissingValue whether data has missing value
+       * \param defaultValue missing value to detect
        */
       CSourceFilter(CGarbageCollector& gc, CGrid* grid,
-                    const CDuration offset = NoneDu, bool manualTrigger = false);
+                    const CDuration offset = NoneDu, bool manualTrigger = false,
+                    bool hasMissingValue = false,
+                    double defaultValue = 0.0);
 
       /*!
        * Transforms the data received from the model into a packet and send it
@@ -57,6 +61,8 @@ namespace xios
     private:
       CGrid* grid; //!< The grid attached to the data the filter can accept
       const CDuration offset; //!< The offset applied to the timestamp of all packets
+      bool hasMissingValue;
+      double defaultValue;
   }; // class CSourceFilter
 } // namespace xios
 

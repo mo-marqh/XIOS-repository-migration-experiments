@@ -14,12 +14,14 @@ namespace xios
     , nextOperationDate(initDate + opFreq)
     , isFirstOperation(true)
   {
+    double defaultValue = ignoreMissingValue ? std::numeric_limits<double>::quiet_NaN() : missingValue;
+    
 #define DECLARE_FUNCTOR(MType, mtype) \
     if (opId.compare(#mtype) == 0) \
     { \
       if (ignoreMissingValue) \
       { \
-        functor.reset(new func::C##MType(tmpData, missingValue)); \
+        functor.reset(new func::C##MType(tmpData, defaultValue)); \
       } \
       else \
       { \

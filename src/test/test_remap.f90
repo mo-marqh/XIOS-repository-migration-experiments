@@ -90,19 +90,27 @@ PROGRAM test_remap
     src_field_3D(i,:) = src_field_2D(i)
     IF (MOD(i,10)==0) THEN
       src_mask_2D(i)=.FALSE.
+      src_field_2D(i) = 100000
     ELSE
-      src_mask_2D(i)=.TRUE.
+      src_mask_2D(i)=.TRUE.      
     ENDIF
   ENDDO
 
   DO i=1,llm
     lval(i) = i*100
     src_field_pression(:,i) = i * 100
-    src_field_3D(:,i) = src_field_3D(:,i) + i * 10    
+    IF (MOD(i,3)==0) THEN
+      ! src_field_pression(:,i) = 100000
+      src_field_3D(:,i) = 100000
+    ELSE
+      ! src_field_pression(:,i) = i * 100
+      src_field_3D(:,i) = src_field_3D(:,i) + i * 10 
+    ENDIF
+    ! src_field_3D(:,i) = src_field_3D(:,i) + i * 10    
   ENDDO
 
   DO i=1,llm2
-    src_field_4D(:,:,i) = src_field_3D(:,:)
+    src_field_4D(:,:,i) = src_field_3D(:,:) + i * 100
   ENDDO
 
   DO i=1,interpolatedLlm
@@ -183,6 +191,7 @@ PROGRAM test_remap
     CALL xios_send_field("src_field_2D",src_field_2D)
     CALL xios_send_field("src_field_2D_clone",src_field_2D)
     CALL xios_send_field("src_field_3D",src_field_3D)
+    CALL xios_send_field("src_field_3D_clone",src_field_3D)
     CALL xios_send_field("src_field_4D",src_field_4D)
     CALL xios_send_field("src_field_3D_pression",src_field_pression)
     ! CALL xios_send_field("tmp_field_0",tmp_field_0)

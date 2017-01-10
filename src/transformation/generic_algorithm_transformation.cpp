@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "client_client_dht_template.hpp"
+#include "utils.hpp"
 
 namespace xios {
 
@@ -30,13 +31,13 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
                                             std::vector<bool>& flagInitial,
                                             const double& defaultValue)
 {
-  int nbLocalIndex = localIndex.size();
-  bool hasMissingValue = (0.0 != defaultValue) ? true : false;
+  int nbLocalIndex = localIndex.size();  
+  bool hasMissingValue = NumTraits<double>::isnan(defaultValue);  
   if (hasMissingValue)
   {
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      if (defaultValue == *(dataInput + idx))
+      if (NumTraits<double>::isnan(*(dataInput + idx)))
       {
         flagInitial[localIndex[idx].first] = false;
       }

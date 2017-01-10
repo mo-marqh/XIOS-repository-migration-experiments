@@ -794,8 +794,9 @@ namespace xios{
 
            if (grid && grid != gridRef && grid->hasTransform())
            {
-             double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
-             std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, defaultValue);
+             bool hasMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+             double defaultValue  = hasMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+             std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, hasMissingValue, defaultValue);
 
              filter->connectOutput(filters.first, 0);
              filter = filters.second;
@@ -813,7 +814,11 @@ namespace xios{
                                                                                                      freq_offset.isEmpty() ? NoneDu : freq_offset,
                                                                                                      true));
        else // The data might be passed from the model
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
+       {
+          bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+          double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+                                                                                                      ignoreMissingValue, defaultValue));       }
      }
 
      // If the field data is to be read by the client or/and written to a file
@@ -852,9 +857,10 @@ namespace xios{
      std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
      if (grid && grid != fieldRef->grid && grid->hasTransform())
-     {
-       double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
-       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
+     {       
+       bool hasMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+       double defaultValue  = hasMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);                                
+       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, hasMissingValue, defaultValue);
      }
      else
        filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
@@ -899,7 +905,12 @@ namespace xios{
        else
        {
          if (!clientSourceFilter)
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
+         {
+           bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+           double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0); 
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+                                                                                   ignoreMissingValue, defaultValue));
+         }
 
          selfReferenceFilter = clientSourceFilter;
        }
@@ -933,7 +944,7 @@ namespace xios{
          freq_offset.setValue(NoneDu);
 
        const bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-
+       
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,

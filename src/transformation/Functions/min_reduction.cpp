@@ -2,11 +2,12 @@
    \file min.cpp
    \author Ha NGUYEN
    \since 27 June 2016
-   \date 27 June 2016
+   \date 9 Jan 2017
 
    \brief min reduction
  */
 #include "min_reduction.hpp"
+#include "utils.hpp"
 
 namespace xios {
 
@@ -28,21 +29,48 @@ bool CMinReductionAlgorithm::registerTrans()
 void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
                                    const double* dataInput,
                                    CArray<double,1>& dataOut,
-                                   std::vector<bool>& flagInitial)
+                                   std::vector<bool>& flagInitial,
+                                   const double& defaultValue)
 {
-  int nbLocalIndex = localIndex.size();
-  int currentlocalIndex = 0;
-  for (int idx = 0; idx < nbLocalIndex; ++idx)
+  bool hasMissingValue = NumTraits<double>::isnan(defaultValue);
+
+  if (hasMissingValue)
   {
-    currentlocalIndex = localIndex[idx].first;
-    if (flagInitial[currentlocalIndex])
+    int nbLocalIndex = localIndex.size();
+    int currentlocalIndex = 0;
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      dataOut(currentlocalIndex) = *(dataInput + idx);
-      flagInitial[currentlocalIndex] = false;
+      currentlocalIndex = localIndex[idx].first;
+      if (!NumTraits<double>::isnan(*(dataInput + idx)))
+      {
+        if (flagInitial[currentlocalIndex])
+        {
+          dataOut(currentlocalIndex) = *(dataInput + idx);
+          flagInitial[currentlocalIndex] = false;
+        }
+        else
+        {
+          dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
+        }
+      }
     }
-    else
+  }
+  else
+  {
+    int nbLocalIndex = localIndex.size();
+    int currentlocalIndex = 0;
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
+      currentlocalIndex = localIndex[idx].first;
+      if (flagInitial[currentlocalIndex])
+      {
+        dataOut(currentlocalIndex) = *(dataInput + idx);
+        flagInitial[currentlocalIndex] = false;
+      }
+      else
+      {
+        dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
+      }
     }
   }
 }

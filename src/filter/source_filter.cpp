@@ -2,14 +2,18 @@
 #include "grid.hpp"
 #include "exception.hpp"
 #include "calendar_util.hpp"
+#include <limits> 
 
 namespace xios
 {
   CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid,
-                               const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/)
+                               const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/,
+                               bool hasMissingValue /*= false*/,
+                               double defaultValue /*= 0.0*/)
     : COutputPin(gc, manualTrigger)
     , grid(grid)
     , offset(offset)
+    , hasMissingValue(hasMissingValue), defaultValue(defaultValue)
   {
     if (!grid)
       ERROR("CSourceFilter::CSourceFilter(CGrid* grid)",
@@ -28,6 +32,18 @@ namespace xios
 
     packet->data.resize(grid->storeIndex_client.numElements());
     grid->inputField(data, packet->data);
+
+    // Convert missing values to NaN
+    if (hasMissingValue)
+    {
+      double nanValue = std::numeric_limits<double>::quiet_NaN();
+      size_t nbData = packet->data.numElements();
+      for (size_t idx = 0; idx < nbData; ++idx)
+      {
+        if (defaultValue == packet->data(idx))
+          packet->data(idx) = nanValue;
+      }
+    }
 
     onOutputReady(packet);
   }

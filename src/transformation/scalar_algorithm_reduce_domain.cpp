@@ -83,7 +83,7 @@ void CScalarAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double>
                                          std::vector<bool>& flagInitial,
                                          const double& defaultValue)
 {
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
+  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, defaultValue);
 }
 
 void CScalarAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)

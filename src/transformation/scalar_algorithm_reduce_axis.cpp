@@ -89,7 +89,7 @@ void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >
                                          std::vector<bool>& flagInitial,
                                          const double& defaultValue)
 {
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
+  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, defaultValue);
 }
 
 void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)

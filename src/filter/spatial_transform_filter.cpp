@@ -10,7 +10,7 @@ namespace xios
   { /* Nothing to do */ }
 
   std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
-  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, double defaultValue)
+  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, bool hasMissingValue, double missingValue)
   {
     if (!srcGrid || !destGrid)
       ERROR("std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >"
@@ -25,6 +25,7 @@ namespace xios
       CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
       const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
       size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
+      double defaultValue  = (hasMissingValue) ? std::numeric_limits<double>::quiet_NaN() : missingValue;
       boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
       if (!lastFilter)
@@ -102,7 +103,8 @@ namespace xios
         gridTransformation->computeAll(dataAuxInputs, packet->timestamp);
       }
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
-      packet->data = defaultValue;
+      if (0 != packet->data.numElements())
+        (packet->data)(0) = defaultValue;
       apply(data[0]->data, packet->data);
     }
 
