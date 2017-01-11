@@ -36,6 +36,7 @@ namespace xios {
    class CSourceFilter;
    class CStoreFilter;
    class CFileWriterFilter;
+   class CFileServerWriterFilter;
 
    ///--------------------------------------------------------------
 
@@ -120,6 +121,10 @@ namespace xios {
          void solveGenerateGrid();
          void solveGridDomainAxisBaseRef();
 
+         void solveAllEnabledFields();
+         void checkGridOfEnabledFields();
+         void sendGridOfEnabledFields();
+
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
          boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
@@ -142,7 +147,7 @@ namespace xios {
         void sendUpdateData(const CArray<double,1>& data);
         void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
         static void recvUpdateData(CEventServer& event);
-        void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
+        void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void writeField(void);
         void sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
@@ -178,6 +183,8 @@ namespace xios {
         void recvAddVariableGroup(CBufferIn& buffer);
         void sendAddAllVariables();
         void sendAddAllVariables(CContextClient* client);
+        void writeUpdateData(const CArray<double,1>& data);
+
 
         const std::vector<StdString>& getRefDomainAxisIds();
 
@@ -203,6 +210,9 @@ namespace xios {
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
          map<int, CArray<double,1> > data_srv;
+         CArray<double,1> recvDataSrv;
+         
+         boost::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;
 
          bool areAllReferenceSolved;
@@ -232,8 +242,10 @@ namespace xios {
          boost::shared_ptr<CSourceFilter> serverSourceFilter;
          //! The terminal filter which stores the instant data
          boost::shared_ptr<CStoreFilter> storeFilter;
-         //! The terminal filter which writes the data to file
+         //! The terminal filter which sends the data to file
          boost::shared_ptr<CFileWriterFilter> fileWriterFilter;
+         //! The terminal filter which writes data to file
+         boost::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
    }; // class CField
 
    ///--------------------------------------------------------------
