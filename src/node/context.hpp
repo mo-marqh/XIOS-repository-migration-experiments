@@ -50,7 +50,9 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY
+           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
+           EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
+           EVENT_ID_PROCESS_GRID_ENABLED_FIELDS
          };
 
          /// typedef ///
@@ -121,6 +123,10 @@ namespace xios {
          void solveAllRefOfFieldsWithReadAccess();
          void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
+         void postProcessingGlobalAttributes();         
+
+         void solveAllEnabledFields();
+         void processGridEnabledFields();
 
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
@@ -136,6 +142,8 @@ namespace xios {
          void sendRefDomainsAxis();
          void sendRefGrid();
          void sendPostProcessing();
+         void sendPostProcessingGlobalAttributes();
+         void sendProcessingGridOfEnabledFields();
          //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
          void sendRegistry(void) ;
 
@@ -152,6 +160,9 @@ namespace xios {
          void recvSolveInheritanceContext(CBufferIn& buffer);
          static void recvPostProcessing(CEventServer& event);
          void recvPostProcessing(CBufferIn& buffer);
+         static void recvProcessingGridOfEnabledFields(CEventServer& event);
+         static void recvPostProcessingGlobalAttributes(CEventServer& event);
+         void recvPostProcessingGlobalAttributes(CBufferIn& buffer);
          static void recvRegistry(CEventServer& event) ;
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
 
@@ -234,6 +245,7 @@ namespace xios {
 
       private:
          bool isPostProcessed;
+         bool allProcessed;
          bool finalized;
          StdString idServer_;
          CGarbageCollector garbageCollector;

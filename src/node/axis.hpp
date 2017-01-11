@@ -47,7 +47,9 @@ namespace xios {
            EVENT_ID_SERVER_ATTRIBUT,
            EVENT_ID_INDEX,
            EVENT_ID_DISTRIBUTED_VALUE,
-           EVENT_ID_NON_DISTRIBUTED_VALUE
+           EVENT_ID_NON_DISTRIBUTED_VALUE,
+           EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES,
+           EVENT_ID_DISTRIBUTED_ATTRIBUTES
          } ;
 
 
@@ -75,6 +77,11 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
+         int getStartWriteIndex() const;
+         int getCountWriteIndex() const;
+         int getLocalWriteSize() const;
+         int getGlobalWriteSize() const;
+
          std::map<int, StdSize> getAttributesBufferSize();
 
          /// Test ///
@@ -100,11 +107,11 @@ namespace xios {
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         void sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                 CServerDistributionDescription::ServerDistributionType distType);
+         // void sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
+         //                         CServerDistributionDescription::ServerDistributionType distType);
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
-         void recvServerAttribut(CBufferIn& buffer) ;
+         // void recvServerAttribut(CBufferIn& buffer) ;
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                          CServerDistributionDescription::ServerDistributionType distType = CServerDistributionDescription::BAND_DISTRIBUTION);
@@ -133,20 +140,18 @@ namespace xios {
          void checkData();
          void checkMask();
          void checkZoom();
-         void checkBounds();
-         void checkTransformations();
-         void sendValue();
+         void checkBounds();         
+         void sendAttributes();
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
-         void sendDistributedValue();
-         void sendNonDistributedValue();
 
-         static void recvIndex(CEventServer& event);
-         static void recvDistributedValue(CEventServer& event);
-         static void recvNonDistributedValue(CEventServer& event);
-         void recvIndex(int rank, CBufferIn& buffer);
-         void recvDistributedValue(int rank, CBufferIn& buffer);
-         void recvNonDistributedValue(int rank, CBufferIn& buffer);
+         void sendNonDistributedAttributes(void);
+         void sendDistributedAttributes(void);
+
+         static void recvNonDistributedAttributes(CEventServer& event);
+         static void recvDistributedAttributes(CEventServer& event);
+         void recvNonDistributedAttributes(int rank, CBufferIn& buffer);
+         void recvDistributedAttributes(vector<int>& rank, vector<CBufferIn*> buffers);
 
          void setTransformations(const TransMapTypes&);
 
@@ -160,13 +165,19 @@ namespace xios {
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
-         std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
+         boost::unordered_map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
          int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
+
+         int start_write_index_;
+         int count_write_index_;
+         int local_write_size_;
+         int global_write_size_;
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

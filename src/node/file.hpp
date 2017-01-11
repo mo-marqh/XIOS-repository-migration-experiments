@@ -109,6 +109,9 @@ namespace xios {
          void prefetchEnabledReadModeFields();
          void prefetchEnabledReadModeFieldsIfNeeded();
 
+         void checkGridOfEnabledFields();
+         void sendGridOfEnabledFields();
+
          // Add component into file
          CField* addField(const string& id = "");
          CFieldGroup* addFieldGroup(const string& id = "");

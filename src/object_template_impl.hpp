@@ -255,7 +255,8 @@ namespace xios
    {
       CAttributeMap & attrMap = *this;
       CAttribute* attr=attrMap[id];
-      sendAttributToServer(*attr);
+      if (attr->doSend()) 
+        sendAttributToServer(*attr);
    }
 
    template <class T>

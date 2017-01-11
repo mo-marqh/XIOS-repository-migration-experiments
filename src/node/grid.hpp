@@ -224,6 +224,7 @@ namespace xios {
          map<int,int> nbSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;
+         CArray<size_t,1> indexFromClients;
          void checkMask(void);
          void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
@@ -259,6 +260,9 @@ namespace xios {
         void setTransformationAlgorithms();
         void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
+
+        void computeClientIndex();
+        void computeConnectedClients();
 
       private:
         CDomainGroup* vDomainGroup_;

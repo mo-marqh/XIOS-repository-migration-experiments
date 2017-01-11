@@ -96,4 +96,9 @@ const CClientServerMapping::GlobalIndexMap& CClientServerMapping::getGlobalIndex
   return indexGlobalOnServer_;
 }
 
+CClientServerMapping::GlobalIndexMap& CClientServerMapping::getGlobalIndexOnServer()
+{
+  return indexGlobalOnServer_;
+}
+
 } //namespace xios

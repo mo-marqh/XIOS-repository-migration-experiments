@@ -1,1 +1,0 @@
-/ccc/work/cont003/dsm/p86nguey/Coupling_XIOS/dev_olga/fcm_env.sh

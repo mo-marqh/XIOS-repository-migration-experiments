@@ -41,6 +41,8 @@ public:
 
     const GlobalIndexMap& getGlobalIndexOnServer() const;
 
+    GlobalIndexMap& getGlobalIndexOnServer();
+
   protected:
     //! Global index of data on SERVER, which are calculated by client(s)
     GlobalIndexMap indexGlobalOnServer_;

@@ -10,7 +10,7 @@
 
 namespace xios {
 
-CDistributionClient::CDistributionClient(int rank, const GlobalLocalDataMap& globalLocalIndex)
+CDistributionClient::CDistributionClient(int rank, CGrid* grid, const GlobalLocalDataMap& globalLocalIndex)
   : CDistribution(rank, 0)
    , axisDomainOrder_()
    , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_(),nZoomBegin_(), nZoomEnd_()
@@ -33,6 +33,72 @@ CDistributionClient::CDistributionClient(int rank, const GlobalLocalDataMap& glo
     localMaskIndex_[idx] = localDataIndex_[idx] = it->second;
     ++idx;
   }
+
+  std::vector<CDomain*> domList = grid->getDomains();
+  std::vector<CAxis*> axisList = grid->getAxis();
+  std::vector<CScalar*> scalarList = grid->getScalars();
+  CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+
+  int numElement = axisDomainOrder.numElements();
+  // Because domain and axis can be in any order (axis1, domain1, axis2, axis3, )
+  // their position should be specified. In axisDomainOrder, domain == true, axis == false
+  int dims = numElement;
+  idx = 0;
+  std::vector<int> indexMap(numElement);  
+  for (int i = 0; i < numElement; ++i)
+  {
+    indexMap[i] = idx;
+    if (2 == axisDomainOrder(i))
+    {
+      ++dims;
+      idx += 2;
+    }
+    else ++idx;
+  }
+
+  nGlob_.resize(dims);
+
+  // Data_n_index of domain or axis (For now, axis uses its size as data_n_index
+  dataNIndex_.resize(numElement);
+  dataDims_.resize(numElement);
+  isDataDistributed_ = false;
+  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
+  for (idx = 0; idx < numElement; ++idx)
+  {
+    int eleDim = axisDomainOrder(idx);
+
+    // If this is a domain
+    if (2 == eleDim)
+    {
+      // On the j axis
+      nGlob_.at(indexMap[idx]+1)  = domList[domIndex]->nj_glo.getValue();
+      nGlob_.at(indexMap[idx]) = domList[domIndex]->ni_glo.getValue();
+      dataNIndex_.at(idx) = domList[domIndex]->data_i_index.numElements();
+      dataDims_.at(idx) = domList[domIndex]->data_dim.getValue();
+
+      isDataDistributed_ |= domList[domIndex]->isDistributed();
+      ++domIndex;
+    }
+    else if (1 == eleDim)// So it's an axis
+    {
+      nGlob_.at(indexMap[idx]) = axisList[axisIndex]->n_glo.getValue();
+      dataNIndex_.at(idx) = axisList[axisIndex]->data_index.numElements();
+      dataDims_.at(idx) = 1;
+
+      isDataDistributed_ |= axisList[axisIndex]->isDistributed();
+      ++axisIndex;
+    }
+    else // scalar
+    {
+      nGlob_.at(indexMap[idx]) = 1;
+      dataNIndex_.at(idx) = 1;
+      dataDims_.at(idx) = 1;
+
+      isDataDistributed_ |= false;
+      ++scalarIndex;
+    }
+  }
+
 }
 
 CDistributionClient::CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex)
@@ -191,21 +257,24 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   dataIndex_.resize(this->dims_);
   infoIndex_.resize(this->dims_);
 
-  // A trick to determine position of each domain in domainList
-  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
-  idx = 0;
-
   elementLocalIndex_.resize(numElement_);
   elementGlobalIndex_.resize(numElement_);
   elementIndexData_.resize(numElement_);
   elementZoomMask_.resize(numElement_);
   elementNLocal_.resize(numElement_);
   elementNGlobal_.resize(numElement_);
+
   elementNLocal_[0] = 1;
   elementNGlobal_[0] = 1;
+  isDataDistributed_ = false;
+
   size_t localSize = 1, globalSize = 1;
 
-  isDataDistributed_ = false;
+  // A trick to determine position of each domain in domainList
+  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
+  idx = 0;
+
+  
   // Update all the vectors above
   for (idx = 0; idx < numElement_; ++idx)
   {

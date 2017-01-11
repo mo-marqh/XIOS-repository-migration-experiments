@@ -54,6 +54,9 @@ namespace xios
 
             //! Returns true if and only if the attribute should be publicly exposed in the API
             virtual bool isPublic() const { return true; }
+            
+            //! Return true if the attribute should be sent to other clients or servers
+            virtual bool doSend() const { return true; }
 
             virtual void generateCInterface(ostream& oss, const string& className) = 0 ;
             virtual void generateCInterfaceIsDefined(ostream& oss, const string& className) ;

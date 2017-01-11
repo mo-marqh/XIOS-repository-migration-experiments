@@ -28,6 +28,7 @@ namespace xios {
       , isPostProcessed(false), finalized(false)
       , idServer_(), client(0), server(0)
 //	  , clientPrimServer(0), serverPrimServer(0)
+      , allProcessed(false)
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
@@ -36,6 +37,7 @@ namespace xios {
       , isPostProcessed(false), finalized(false)
       , idServer_(), client(0), server(0)
 //	  , clientPrimServer(0), serverPrimServer(0)
+      , allProcessed(false)
    { /* Ne rien faire de plus */ }
 
    CContext::~CContext(void)
@@ -474,18 +476,11 @@ namespace xios {
       }
    }
 
-   /*!
-   \brief Close all the context defintion and do processing data
-      After everything is well defined on client side, they will be processed and sent to server
-   From the version 2.0, sever and client work no more on the same database. Moreover, client(s) will send
-   all necessary information to server, from which each server can build its own database.
-   Because the role of server is to write out field data on a specific netcdf file,
-   the only information that it needs is the enabled files
-   and the active fields (fields will be written onto active files)
-   */
-   void CContext::closeDefinition(void)
+
+   void CContext::postProcessingGlobalAttributes()
    {
-     // There is nothing client need to send to server
+     if (allProcessed) return;
+     
      if (hasClient)
      {
        // After xml is parsed, there are some more works with post processing
@@ -518,22 +513,114 @@ namespace xios {
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
      }
+     allProcessed = true;
+   }
+
+   void CContext::sendPostProcessingGlobalAttributes()
+   {
+         // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
+     CEventClient event(getType(),EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES);
+
+     if (contextClientTmp->isServerLeader())
+     {
+       CMessage msg;
+       msg<<this->getIdServer();
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event);
+     }
+     else contextClientTmp->sendEvent(event);
+   }
+
+   void CContext::recvPostProcessingGlobalAttributes(CEventServer& event)
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id;
+      // get(id)->recvPostProcessingGlobalAttributes(*buffer);
+   }
+
+   void CContext::recvPostProcessingGlobalAttributes(CBufferIn& buffer)
+   {
+      // CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
+      postProcessingGlobalAttributes();
+   }
+
+   /*!
+   \brief Close all the context defintion and do processing data
+      After everything is well defined on client side, they will be processed and sent to server
+   From the version 2.0, sever and client work no more on the same database. Moreover, client(s) will send
+   all necessary information to server, from which each server can build its own database.
+   Because the role of server is to write out field data on a specific netcdf file,
+   the only information that it needs is the enabled files
+   and the active fields (fields will be written onto active files)
+   */
+   void CContext::closeDefinition(void)
+   {
+     // There is nothing client need to send to server
+//      if (hasClient)
+//     if (hasClient && !hasServer)
+//      if (hasClient)
+//      {
+//        // After xml is parsed, there are some more works with post processing
+//        postProcessing();
+//      }
+
+//      setClientServerBuffer();
+
+// //     if (hasClient && !hasServer)
+//      if (hasClient)
+//      {
+//       // Send all attributes of current context to server
+//       this->sendAllAttributesToServer();
+
+//       // Send all attributes of current calendar
+//       CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer();
+
+//       // We have enough information to send to server
+//       // First of all, send all enabled files
+//        sendEnabledFiles();
+
+//       // Then, send all enabled fields
+//        sendEnabledFields();
+
+//       // At last, we have all info of domain and axis, then send them
+//        sendRefDomainsAxis();
+
+//       // After that, send all grid (if any)
+//        sendRefGrid();
+
+//        // // We have a xml tree on the server side and now, it should be also processed
+//        sendPostProcessing();
+//      }
 
 
      // Now tell server that it can process all messages from client
-     if (hasClient) this->sendCloseDefinition();
+     // if (hasClient) this->sendCloseDefinition();
+    postProcessingGlobalAttributes();
+
+    if (hasClient) sendPostProcessingGlobalAttributes();
 
     // There are some processings that should be done after all of above. For example: check mask or index
+    this->buildFilterGraphOfEnabledFields();
+    
      if (hasClient && !hasServer)
     {
-      this->buildFilterGraphOfEnabledFields();  // references are resolved here (access xml file)
+      // this->buildFilterGraphOfEnabledFields();  // references are resolved here (access xml file)
       buildFilterGraphOfFieldsWithReadAccess();
-      this->solveAllRefOfEnabledFields(true);
+      // this->solveAllRefOfEnabledFields(true);
     }
 
+    // if (hasClient) this->solveAllRefOfEnabledFields(true);
+    this->processGridEnabledFields();
+    if (hasClient) this->sendProcessingGridOfEnabledFields();
+    // if (hasClient)        // We have a xml tree on the server side and now, it should be also processed
+    //    sendPostProcessing();
 //    // Now tell server that it can process all messages from client
 ////    if (hasClient && !hasServer) this->sendCloseDefinition();
-//    if (hasClient) this->sendCloseDefinition();
+   if (hasClient) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
 //    if (hasClient && !hasServer) CleanTree(); // Only on client side??
@@ -563,6 +650,32 @@ namespace xios {
       for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
    }
+
+   void CContext::solveAllEnabledFields()
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->solveOnlyRefOfEnabledFields(false);
+     }
+
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->generateNewTransformationGridDest();
+     }
+   }
+
+   void CContext::processGridEnabledFields()
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFiles[i]->checkGridOfEnabledFields();
+       this->enabledFiles[i]->sendGridOfEnabledFields();
+     }
+   }
+
+
 
    void CContext::solveOnlyRefOfEnabledFields(bool sendToServer)
    {
@@ -753,8 +866,15 @@ namespace xios {
             case EVENT_ID_SEND_REGISTRY:
              recvRegistry(event);
              return true;
-            break;
-
+             break;
+            case EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES:
+             recvPostProcessingGlobalAttributes(event);
+             return true;
+             break;
+            case EVENT_ID_PROCESS_GRID_ENABLED_FIELDS:
+             recvProcessingGridOfEnabledFields(event);
+             return true;
+             break;
            default :
              ERROR("bool CContext::dispatchEvent(CEventServer& event)",
                     <<"Unknown Event");
@@ -801,10 +921,10 @@ namespace xios {
       string id;
       *buffer>>id;
       get(id)->closeDefinition();
-      if (get(id)->hasClient && get(id)->hasServer)
-      {        
-        get(id)->sendCloseDefinition();
-      }
+      // if (get(id)->hasClient && get(id)->hasServer)
+      // {        
+      //   get(id)->sendCloseDefinition();
+      // }
    }
 
    //! Client side: Send a message to update calendar in each time step
@@ -832,33 +952,6 @@ namespace xios {
          }
          else contextClientTmp->sendEvent(event);
      }
-
-     // if (!hasServer)
-     // {
-     //   if (client->isServerLeader())
-     //   {
-     //     CMessage msg;
-     //     msg<<this->getIdServer()<<step;
-     //     const std::list<int>& ranks = client->getRanksServerLeader();
-     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //       event.push(*itRank,1,msg);
-     //     client->sendEvent(event);
-     //   }
-     //   else client->sendEvent(event);
-     // }
-     // else
-     // {
-     //   if (clientPrimServer->isServerLeader())
-     //   {
-     //     CMessage msg;
-     //     msg<<this->getIdServer()<<step;
-     //     const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //       event.push(*itRank,1,msg);
-     //     clientPrimServer->sendEvent(event);
-     //   }
-     //   else clientPrimServer->sendEvent(event);
-     // }
    }
 
    //! Server side: Receive a message of client annoucing calendar update
@@ -906,32 +999,6 @@ namespace xios {
        }
        else contextClientTmp->sendEvent(event);
      }
-     // if (!hasServer)
-     // {
-     //   if (client->isServerLeader())
-     //   {
-     //     CMessage msg;
-     //     msg<<this->getIdServer();
-     //     const std::list<int>& ranks = client->getRanksServerLeader();
-     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //       event.push(*itRank,1,msg) ;
-     //     client->sendEvent(event);
-     //   }
-     //   else client->sendEvent(event);
-     // }
-     // else
-     // {
-     //   if (clientPrimServer->isServerLeader())
-     //   {
-     //     CMessage msg;
-     //     msg<<this->getIdServer();
-     //     const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //       event.push(*itRank,1,msg) ;
-     //     clientPrimServer->sendEvent(event);
-     //   }
-     //   else clientPrimServer->sendEvent(event);
-     // }
    }
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
@@ -947,13 +1014,41 @@ namespace xios {
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    {
      // The creation of header file should be delegated to server2, for now
-      if (hasClient && hasServer)
-      {        
-        sendCreateFileHeader();
-      }
+      // if (hasClient && hasServer)
+      // {        
+      //   sendCreateFileHeader();
+      // }
       
       if (!hasClient && hasServer) 
         createFileHeader();
+   }
+
+   //! Client side: Send a message to do some post processing on server
+   void CContext::sendProcessingGridOfEnabledFields()
+   {
+      // Use correct context client to send message
+     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
+     CEventClient event(getType(),EVENT_ID_PROCESS_GRID_ENABLED_FIELDS);
+
+     if (contextClientTmp->isServerLeader())
+     {
+       CMessage msg;
+       msg<<this->getIdServer();
+       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+         event.push(*itRank,1,msg);
+       contextClientTmp->sendEvent(event);
+     }
+     else contextClientTmp->sendEvent(event);
+   }
+
+   //! Server side: Receive a message to do some post processing
+   void CContext::recvProcessingGridOfEnabledFields(CEventServer& event)
+   {
+      CBufferIn* buffer=event.subEvents.begin()->buffer;
+      string id;
+      *buffer>>id;
+      // get(id)->processGridEnabledFields();
    }
 
    //! Client side: Send a message to do some post processing on server
@@ -979,38 +1074,6 @@ namespace xios {
        }
        else contextClientTmp->sendEvent(event);
      }
-
-     // if (hasClient)
-     // {
-     //   if (!hasServer)
-     //   {
-     //     CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-     //     if (client->isServerLeader())
-     //     {
-     //       CMessage msg;
-     //       msg<<this->getIdServer();
-     //       const std::list<int>& ranks = client->getRanksServerLeader();
-     //       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //         event.push(*itRank,1,msg);
-     //       client->sendEvent(event);
-     //     }
-     //     else client->sendEvent(event);
-     //   }
-     //   else
-     //   {
-     //     CEventClient event(getType(),EVENT_ID_POST_PROCESS);
-     //     if (clientPrimServer->isServerLeader())
-     //     {
-     //       CMessage msg;
-     //       msg<<this->getIdServer();
-     //       const std::list<int>& ranks = clientPrimServer->getRanksServerLeader();
-     //       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //         event.push(*itRank,1,msg);
-     //       clientPrimServer->sendEvent(event);
-     //     }
-     //     else clientPrimServer->sendEvent(event);
-     //   }
-     // }
    }
 
    //! Server side: Receive a message to do some post processing
@@ -1074,20 +1137,27 @@ namespace xios {
 
       // Check if some axis, domains or grids are eligible to for compressed indexed output.
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      checkAxisDomainsGridsEligibilityForCompressedOutput();
+      checkAxisDomainsGridsEligibilityForCompressedOutput();      
 
       // Check if some automatic time series should be generated
       // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      if (!hasServer)
-        prepareTimeseries();
+      // prepareTimeseries();
+
+      // The timeseries should only be prepared in client
+      if (hasClient && !hasServer) prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
-      this->findEnabledReadModeFiles();
+      // this->findEnabledReadModeFiles();
+      // For now, only read files with client and only one level server
+      if (hasClient && !hasServer) this->findEnabledReadModeFiles();
+
 
       // Find all enabled fields of each file
       this->findAllEnabledFields();
-      this->findAllEnabledFieldsInReadModeFiles();
+      // this->findAllEnabledFieldsInReadModeFiles();
+      // For now, only read files with client and only one level server
+      if (hasClient && !hasServer) this->findAllEnabledFieldsInReadModeFiles();
 
 //     if (hasClient)
      if (hasClient && !hasServer)
@@ -1096,16 +1166,27 @@ namespace xios {
       this->readAttributesOfEnabledFieldsInReadModeFiles();
      }
 
+      // // Only search and rebuild all reference objects of enable fields, don't transform
+      // this->solveOnlyRefOfEnabledFields(false);
+
+      // // Search and rebuild all reference object of enabled fields
+      // this->solveAllRefOfEnabledFields(false);
+
+      // // Find all fields with read access from the public API
+      // findFieldsWithReadAccess();
+      // // and solve the all reference for them
+      // solveAllRefOfFieldsWithReadAccess();
+
       // Only search and rebuild all reference objects of enable fields, don't transform
-      this->solveOnlyRefOfEnabledFields(false);
+      if (hasClient) this->solveOnlyRefOfEnabledFields(false);
 
       // Search and rebuild all reference object of enabled fields
-      this->solveAllRefOfEnabledFields(false);
+      // if (hasClient) this->solveAllRefOfEnabledFields(false);
 
       // Find all fields with read access from the public API
-      findFieldsWithReadAccess();
+      if (hasClient && !hasServer) findFieldsWithReadAccess();
       // and solve the all reference for them
-      solveAllRefOfFieldsWithReadAccess();
+      if (hasClient && !hasServer) solveAllRefOfFieldsWithReadAccess();
 
       isPostProcessed = true;
    }

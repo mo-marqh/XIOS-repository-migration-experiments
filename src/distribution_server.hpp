@@ -29,6 +29,9 @@ class CDistributionServer : public CDistribution
                         const std::vector<int>& nZoomSizeServer,
                         const std::vector<int>& nZoomBeginGlobal,
                         const std::vector<int>& nGlobal);
+    CDistributionServer(int rank, 
+                        const std::vector<CArray<int,1> >& globalIndexEachDimension,
+                        const std::vector<int>& nGlobal);
 
     /** Default destructor */
     virtual ~CDistributionServer();
@@ -37,6 +40,7 @@ class CDistributionServer : public CDistribution
     const std::vector<int>& getZoomBeginServer() const;
     const std::vector<int>& getZoomSizeServer() const;
     const GlobalLocalMap& getGlobalLocalIndex() const { return globalLocalIndexMap_; }
+    const std::vector<CArray<int,1> >& getGlobalIndexEachDimension() const; 
 
     virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
@@ -44,6 +48,9 @@ class CDistributionServer : public CDistribution
 
   protected:
     virtual void createGlobalIndex();
+
+    void createGlobalIndexFromIndex(const std::vector<CArray<int,1> >& globalIndexOnEachDimension,
+                                    const std::vector<int>& nbGlobal);
 
   protected:
     GlobalLocalMap globalLocalIndexMap_;
@@ -53,6 +60,7 @@ class CDistributionServer : public CDistribution
     std::vector<int> nZoomBeginGlobal_;
     std::vector<int> nZoomSize_;
     std::vector<int> nZoomBegin_;
+    std::vector<CArray<int, 1> > globalIndexEachDimension_;
 
 };
 

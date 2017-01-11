@@ -688,8 +688,27 @@ namespace xios {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
+       // this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
+       this->enabledFields[i]->solveAllEnabledFields();
 //       this->enabledFields[i]->buildGridTransformationGraph();
+     }
+   }
+
+   void CFile::checkGridOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->checkGridOfEnabledFields();
+     }
+   }
+
+   void CFile::sendGridOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->sendGridOfEnabledFields();
      }
    }
 
