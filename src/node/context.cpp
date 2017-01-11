@@ -518,20 +518,24 @@ namespace xios {
 
    void CContext::sendPostProcessingGlobalAttributes()
    {
-         // Use correct context client to send message
-     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
-     CEventClient event(getType(),EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES);
-
-     if (contextClientTmp->isServerLeader())
+      // Use correct context client to send message
+     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-       CMessage msg;
-       msg<<this->getIdServer();
-       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg);
-       contextClientTmp->sendEvent(event);
+       CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
+       CEventClient event(getType(),EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES);
+
+       if (contextClientTmp->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         contextClientTmp->sendEvent(event);
+       }
+       else contextClientTmp->sendEvent(event);
      }
-     else contextClientTmp->sendEvent(event);
    }
 
    void CContext::recvPostProcessingGlobalAttributes(CEventServer& event)
@@ -1027,19 +1031,23 @@ namespace xios {
    void CContext::sendProcessingGridOfEnabledFields()
    {
       // Use correct context client to send message
-     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
-     CEventClient event(getType(),EVENT_ID_PROCESS_GRID_ENABLED_FIELDS);
-
-     if (contextClientTmp->isServerLeader())
+     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     for (int i = 0; i < nbSrvPools; ++i)
      {
-       CMessage msg;
-       msg<<this->getIdServer();
-       const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank,1,msg);
-       contextClientTmp->sendEvent(event);
+       CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
+       CEventClient event(getType(),EVENT_ID_PROCESS_GRID_ENABLED_FIELDS);
+
+       if (contextClientTmp->isServerLeader())
+       {
+         CMessage msg;
+         msg<<this->getIdServer();
+         const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           event.push(*itRank,1,msg);
+         contextClientTmp->sendEvent(event);
+       }
+       else contextClientTmp->sendEvent(event);
      }
-     else contextClientTmp->sendEvent(event);
    }
 
    //! Server side: Receive a message to do some post processing
