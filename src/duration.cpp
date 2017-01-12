@@ -25,13 +25,6 @@ namespace xios
         return *this;
       }
 
-      bool operator<(CDuration a, CDuration b)
-      {
-        double aSeconds = a.second + 60.*(a.minute + 60.*(a.hour + 24.*(a.day + a.year*365.25) ) );
-        double bSeconds = b.second + 60.*(b.minute + 60.*(b.hour + 24.*(b.day + b.year*365.25) ) );
-        return (aSeconds < bSeconds);
-      }
-
       StdOStream& operator<<(StdOStream& out, const CDuration& duration)
       {
          out << duration.toString();

@@ -70,15 +70,15 @@ namespace xios
       template <class T>
          T CAttributeTemplate<T>::getValue(void) const
       {
-         return CType<T>::get() ;
+        return CType<T>::get() ;
 /*
-         if (SuperClass::isEmpty())
-         {
-            ERROR("T CAttributeTemplate<T>::getValue(void) const",
-                  << "[ id = " << this->getId() << "]"
-                  << " L'attribut est requis mais n'est pas défini !");
-          }
-         return (SuperClass::getValue<T>());
+        if (SuperClass::isEmpty())
+        {
+           ERROR("T CAttributeTemplate<T>::getValue(void) const",
+                 << "[ id = " << this->getId() << "]"
+                 << " L'attribut est requis mais n'est pas défini !");
+         }
+        return (SuperClass::getValue<T>());
 */
       }
 

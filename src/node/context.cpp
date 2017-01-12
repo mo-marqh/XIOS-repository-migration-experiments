@@ -565,17 +565,18 @@ namespace xios {
    void CContext::findEnabledFiles(void)
    {
       const std::vector<CFile*> allFiles = CFile::getAll();
+      const CDate& initDate = calendar->getInitDate();
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
          {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
             {
-              if ( allFiles[i]->output_freq.getValue() < this->getCalendar()->getTimeStep())
+              if ((initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
               {
                 error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
-                    << "Output frequency in file \""<<allFiles[i]->getId()
-                    <<"\" is greater than the time step. File will not be written."<<endl;
+                    << "Output frequency in file \""<<allFiles[i]->getFileOutputName()
+                    <<"\" is less than the time step. File will not be written."<<endl;
               }
               else
                enabledFiles.push_back(allFiles[i]);
@@ -583,11 +584,11 @@ namespace xios {
          }
          else
          {
-           if ( allFiles[i]->output_freq.getValue() < this->getCalendar()->getTimeStep())
+           if ( (initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
            {
              error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
-                 << "Output frequency in file \""<<allFiles[i]->getId()
-                 <<"\" is greater than the time step. File will not be written."<<endl;
+                 << "Output frequency in file \""<<allFiles[i]->getFileOutputName()
+                 <<"\" is less than the time step. File will not be written."<<endl;
            }
            else
              enabledFiles.push_back(allFiles[i]); // otherwise true by default
