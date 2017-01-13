@@ -23,7 +23,7 @@ namespace xios
   {
     CTimer timer("CStoreFilter::getPacket");
     CConstDataPacketPtr packet;
-    const double timeout = 10 ; // 10 seconds timeout
+    const double timeout = CXios::recvFieldTimeout;
 
     do
     {
