@@ -123,7 +123,8 @@ namespace xios{
 
     CContext* context = CContext::getCurrent();
 //    CContextClient* client = context->client;
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer[i];

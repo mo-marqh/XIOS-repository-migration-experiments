@@ -1043,117 +1043,112 @@ namespace xios
       {
         CContext* context = CContext::getCurrent();
 
-        int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-        for (int i = 0; i < nbSrvPools; ++i)
+        if (axis->IsWritten(this->filename)) return;
+        axis->checkAttributes();
+
+        int local_size_write  = axis->getLocalWriteSize();
+        int global_size_write = axis->getGlobalWriteSize();
+        int start_write = axis->getStartWriteIndex();
+        int count_write = axis->getCountWriteIndex();
+
+        if ((0 == local_size_write) && (MULTI_FILE == SuperClass::type)) return;
+
+        std::vector<StdString> dims;
+        StdString axisid = axis->getAxisOutputName();
+        if (isWrittenAxis(axisid)) return ;
+        else setWrittenAxis(axisid);
+
+        try
         {
-          CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[i];
-
-          if (axis->IsWritten(this->filename)) return;
-          axis->checkAttributes();
-
-          int local_size_write  = axis->getLocalWriteSize();
-          int global_size_write = axis->getGlobalWriteSize();
-          int start_write = axis->getStartWriteIndex();
-          int count_write = axis->getCountWriteIndex();
-
-          if ((0 == local_size_write) && (MULTI_FILE == SuperClass::type)) return;
-
-          std::vector<StdString> dims;
-          StdString axisid = axis->getAxisOutputName();
-          if (isWrittenAxis(axisid)) return ;
-          else setWrittenAxis(axisid);
-
-          try
+          SuperClassWriter::addDimension(axisid, global_size_write);
+          if (axis->hasValue)
           {
-            SuperClassWriter::addDimension(axisid, global_size_write);
-            if (axis->hasValue)
+            dims.push_back(axisid);
+            SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
+
+            if (!axis->name.isEmpty())
+              SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
+
+            if (!axis->standard_name.isEmpty())
+              SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisid);
+
+            if (!axis->long_name.isEmpty())
+              SuperClassWriter::addAttribute("long_name", axis->long_name.getValue(), &axisid);
+
+            if (!axis->unit.isEmpty())
+              SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
+
+            if (!axis->positive.isEmpty())
             {
-              dims.push_back(axisid);
-              SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
+              SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
+              SuperClassWriter::addAttribute("positive",
+                                             (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
+                                             &axisid);
+            }
 
-              if (!axis->name.isEmpty())
-                SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
+            StdString axisBoundsId = axisid + "_bounds";
+            if (!axis->bounds.isEmpty())
+            {
+              dims.push_back("axis_nbounds");
+              SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
+              SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
+            }
 
-              if (!axis->standard_name.isEmpty())
-                SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisid);
+            SuperClassWriter::definition_end();
 
-              if (!axis->long_name.isEmpty())
-                SuperClassWriter::addAttribute("long_name", axis->long_name.getValue(), &axisid);
-
-              if (!axis->unit.isEmpty())
-                SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
-
-              if (!axis->positive.isEmpty())
+            switch (SuperClass::type)
+            {
+              case MULTI_FILE:
               {
-                SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
-                SuperClassWriter::addAttribute("positive",
-                                               (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
-                                               &axisid);
-              }
+                CArray<double,1> axis_value(local_size_write);
+                for (int i = 0; i < local_size_write; i++) axis_value(i) = axis->value(i);
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
-              StdString axisBoundsId = axisid + "_bounds";
-              if (!axis->bounds.isEmpty())
+                if (!axis->bounds.isEmpty())
+                  SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
+
+                SuperClassWriter::definition_start();
+
+                break;
+              }
+              case ONE_FILE:
               {
-                dims.push_back("axis_nbounds");
-                SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
-                SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
+                CArray<double,1> axis_value(count_write);
+                axis_value = axis->value;
+
+                std::vector<StdSize> start(1), startBounds(2) ;
+                std::vector<StdSize> count(1), countBounds(2) ;
+                start[0] = startBounds[0] = start_write;
+                count[0] = countBounds[0] = count_write;
+                startBounds[1] = 0;
+                countBounds[1] = 2;
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+
+                if (!axis->bounds.isEmpty())
+                  SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+
+                SuperClassWriter::definition_start();
+
+                break;
               }
-
-              SuperClassWriter::definition_end();
-
-              switch (SuperClass::type)
-              {
-                case MULTI_FILE:
-                {
-                  CArray<double,1> axis_value(local_size_write);
-                  for (int i = 0; i < local_size_write; i++) axis_value(i) = axis->value(i);
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
-
-                  if (!axis->bounds.isEmpty())
-                    SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
-
-                  SuperClassWriter::definition_start();
-
-                  break;
-                }
-                case ONE_FILE:
-                {
-                  CArray<double,1> axis_value(count_write);
-                  axis_value = axis->value;
-
-                  std::vector<StdSize> start(1), startBounds(2) ;
-                  std::vector<StdSize> count(1), countBounds(2) ;
-                  start[0] = startBounds[0] = start_write;
-                  count[0] = countBounds[0] = count_write;
-                  startBounds[1] = 0;
-                  countBounds[1] = 2;
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
-
-                  if (!axis->bounds.isEmpty())
-                    SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
-
-                  SuperClassWriter::definition_start();
-
-                  break;
-                }
-                default :
-                  ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)",
-                        << "[ type = " << SuperClass::type << "]"
-                        << " not implemented yet !");
-              }
+              default :
+                ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)",
+                      << "[ type = " << SuperClass::type << "]"
+                      << " not implemented yet !");
             }
           }
-          catch (CNetCdfException& e)
-          {
-            StdString msg("On writing the axis : ");
-            msg.append(axisid); msg.append("\n");
-            msg.append("In the context : ");
-            CContext* context = CContext::getCurrent() ;
-            msg.append(context->getId()); msg.append("\n");
-            msg.append(e.what());
-            ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
-          }
-      } // loop over nbSrvPools
+        }
+        catch (CNetCdfException& e)
+        {
+          StdString msg("On writing the axis : ");
+          msg.append(axisid); msg.append("\n");
+          msg.append("In the context : ");
+          CContext* context = CContext::getCurrent() ;
+          msg.append(context->getId()); msg.append("\n");
+          msg.append(e.what());
+          ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
+        }
+      
       axis->addRelFile(this->filename);
      }
 

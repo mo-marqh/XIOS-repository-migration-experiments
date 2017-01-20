@@ -18,7 +18,7 @@ PROGRAM test_client
   TYPE(xios_context) :: ctx_hdl
   INTEGER,PARAMETER :: ni_glo=4
   INTEGER,PARAMETER :: nj_glo=4
-  INTEGER,PARAMETER :: llm=5
+  INTEGER,PARAMETER :: llm=2
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
@@ -132,7 +132,7 @@ PROGRAM test_client
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
   DO ts=1,40
     CALL xios_update_calendar(ts)
-    ! CALL xios_send_field("field_A",field_A)
+    CALL xios_send_field("field_A",field_A)
     ! CALL xios_send_field("field_Axis",axisValue)
     ! CALL xios_send_field("field_Axis",lval)
     CALL xios_send_field("field_Domain",field_domain)

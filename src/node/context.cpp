@@ -519,7 +519,8 @@ namespace xios {
    void CContext::sendPostProcessingGlobalAttributes()
    {
       // Use correct context client to send message
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
@@ -692,6 +693,11 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->generateNewTransformationGridDest();
+     }
+
+     for (int i = 0; i < size; ++i)
+     {
+       //this->enabledFiles[i]->checkGridOfEnabledFields();
      }
    }
 
@@ -897,7 +903,8 @@ namespace xios {
    void CContext::sendCloseDefinition(void)
    {
      // Use correct context client to send message
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
@@ -925,10 +932,6 @@ namespace xios {
       string id;
       *buffer>>id;
       get(id)->closeDefinition();
-      // if (get(id)->hasClient && get(id)->hasServer)
-      // {        
-      //   get(id)->sendCloseDefinition();
-      // }
    }
 
    //! Client side: Send a message to update calendar in each time step
@@ -936,7 +939,8 @@ namespace xios {
    {
      // Use correct context client to send message
 //     CContextClient* contextClientTmp = (0 != clientPrimServer) ? clientPrimServer : client;
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
@@ -983,7 +987,8 @@ namespace xios {
    void CContext::sendCreateFileHeader(void)
    {
      // Use correct context client to send message
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
@@ -1031,7 +1036,8 @@ namespace xios {
    void CContext::sendProcessingGridOfEnabledFields()
    {
       // Use correct context client to send message
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (0 != clientPrimServer.size()) ? clientPrimServer[i] : client;
@@ -1063,7 +1069,8 @@ namespace xios {
    void CContext::sendPostProcessing()
    {
       // Use correct context client to send message
-     int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;
@@ -1567,7 +1574,8 @@ namespace xios {
     registryOut->hierarchicalGatherRegistry() ;
 
     // Use correct context client to send message
-    int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+    // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
+    int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* contextClientTmp = (hasServer) ? clientPrimServer[i] : client;

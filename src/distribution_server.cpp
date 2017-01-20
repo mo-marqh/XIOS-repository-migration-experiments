@@ -133,9 +133,9 @@ void CDistributionServer::createGlobalIndexFromIndex(const std::vector<CArray<in
       mulDim = 1;
       globalIndex = globalIndexOnEachDimension[0](i);
 
-      for (int k = 1; k < nbDim; ++k)
+      for (int k = 0; k < nbDim; ++k)
       {
-        mulDim *= nbGlobal[k-1];
+        mulDim *= nbGlobal[k];
         globalIndex += (currentIndex[k])*mulDim;
       }
       globalLocalIndexMap_[globalIndex] = idx;

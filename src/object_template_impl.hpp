@@ -165,7 +165,8 @@ namespace xios
    {
      // Use correct context client to send message
      CContext* context = CContext::getCurrent();
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
@@ -274,7 +275,8 @@ namespace xios
     CContext* context=CContext::getCurrent();
     if (context->hasClient)
     {
-      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
       for (int i = 0; i < nbSrvPools; ++i)
       {
         CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
@@ -348,7 +350,8 @@ namespace xios
     if (context->hasClient)
     {
       // Use correct context client to send message
-      int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
       for (int i = 0; i < nbSrvPools; ++i)
       {
          CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;

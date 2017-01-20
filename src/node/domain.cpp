@@ -1441,17 +1441,18 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
      // Use correct context client to send message
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
-       CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
+      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
                                                                          : context->client;    
       int nbServer = contextClientTmp->serverSize;
-    std::vector<int> nGlobDomain(2);
-    nGlobDomain[0] = this->ni_glo;
-    nGlobDomain[1] = this->nj_glo;
+      std::vector<int> nGlobDomain(2);
+      nGlobDomain[0] = this->ni_glo;
+      nGlobDomain[1] = this->nj_glo;
 
-    CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
+      CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
       if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
       else serverDescription.computeServerDistribution(false, 1);
 
@@ -1494,7 +1495,8 @@ namespace xios {
   void CDomain::computeConnectedClients()
   {
     CContext* context=CContext::getCurrent() ;
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -1665,6 +1667,9 @@ namespace xios {
       connectedServerRank_.clear();
       for (it = globalIndexDomainOnServer.begin(); it != ite; ++it) {
         connectedServerRank_.push_back(it->first);
+//        std::vector<size_t> vec = it->second;
+//        std::sort(vec.begin(), vec.end());
+//        indSrv_[it->first] = vec;
       }
 
       indSrv_.swap(globalIndexDomainOnServer);
@@ -1709,7 +1714,8 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -1779,7 +1785,8 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -1825,7 +1832,8 @@ namespace xios {
 
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -1874,7 +1882,8 @@ namespace xios {
 
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -1959,7 +1968,8 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -2149,8 +2159,8 @@ namespace xios {
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
          index = tmp(ind);
-         i_index(nbIndGlob) = index / ni_glo;
-         j_index(nbIndGlob) = index % ni_glo;
+         i_index(nbIndGlob) = index % ni_glo;
+         j_index(nbIndGlob) = index / ni_glo;
          ++nbIndGlob;
       } 
     }
@@ -2171,8 +2181,8 @@ namespace xios {
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
          index = tmp(ind);
-         zoom_i_index(nbZoomInd) = index / ni_glo;
-         zoom_j_index(nbZoomInd) = index % ni_glo;
+         zoom_i_index(nbZoomInd) = index % ni_glo;
+         zoom_j_index(nbZoomInd) = index / ni_glo;
          ++nbZoomInd;
       } 
     }    
@@ -2200,6 +2210,30 @@ namespace xios {
         }
         count_write_index_[0] = nbIZoom;
         count_write_index_[1] = nbJZoom;
+
+        // Reoder the zoom_index
+        for (int j = 0; j < nbJZoom; ++j)
+          for (int i = 0; i < nbIZoom; ++i)
+          {
+            idx = nbIZoom * j + i;
+            if (idx < ni_zoom)
+            {
+              zoom_i_index(idx) = ibegin + i;
+              zoom_j_index(idx) = jbegin + j;
+            }
+          }  
+
+        // Reorder the global index
+        for (int j = 0; j < nj; ++j)
+          for (int i = 0; i < ni; ++i)
+          {
+            idx = ni * j + i;
+            if (idx < nbIndGlob)
+            {
+              i_index(idx) = ibegin + i;
+              j_index(idx) = jbegin + j;
+            }
+          }         
       }
             
       MPI_Scan(&count_write_index_[0], &start_write_index_[0], 2, MPI_INT, MPI_SUM, server->intraComm);      

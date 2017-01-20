@@ -452,7 +452,8 @@ namespace xios {
                                      CServerDistributionDescription::ServerDistributionType distType)
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -747,8 +748,8 @@ namespace xios {
   void CAxis::sendNonDistributedAttributes()
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
@@ -853,8 +854,8 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-
+    //int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;

@@ -85,7 +85,8 @@ namespace xios {
      if (context->hasClient)
      {
        // Use correct context client to send message
-       int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+       // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
        for (int i = 0; i < nbSrvPools; ++i)
        {
 //       CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer

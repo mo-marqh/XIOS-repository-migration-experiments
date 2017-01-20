@@ -25,6 +25,7 @@ class CClientServerMapping
 {
 public:
   typedef boost::unordered_map<int, std::vector<size_t> > GlobalIndexMap;
+//  typedef boost::map<int, std::vector<size_t> > GlobalIndexMap;
   public:
     /** Default constructor */
     CClientServerMapping();

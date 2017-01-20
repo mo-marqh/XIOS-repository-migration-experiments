@@ -272,65 +272,45 @@ namespace xios {
    void CGrid::checkMaskIndex(bool doSendingIndex)
    {
      CContext* context = CContext::getCurrent();
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;   
+     nbSrvPools = 1;  
      for (int i = 0; i < nbSrvPools; ++i)
-     {
-       CContextClient* client= context->hasServer ? context->clientPrimServer[i] : context->client;
+     {       
        if (isScalarGrid())
-       {
-         // if (context->hasClient && !context->hasServer)
-        if (context->hasClient)
-          if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
+       {  
+          if (context->hasClient)
+            if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
 
-         if (this->isChecked) return;
-         // if (context->hasClient && !context->hasServer)
-         if (context->hasClient)
-         {
-          this->computeIndexScalarGrid();
-         }
-
-  //         this->isChecked = true;
-           if (!(this->hasTransform() && !this->isTransformed()))
-            this->isChecked = true;
-         return;
-       }
-
-       // if (context->hasClient && !context->hasServer)
-      // if (context->hasClient)
-      //   if (doSendingIndex && !isIndexSent)
-        {
-        if (context->hasClient)
-        {
-          if (this->isChecked && doSendingIndex && !isIndexSent)
-            {sendIndex(); this->isIndexSent = true;}
-        }
-
-        if (this->isChecked) return;
-        this->checkAttributesAfterTransformation();
-        this->checkMask();
-        this->computeIndex();
-    //       this->isChecked = true;
+          if (this->isChecked) continue;
+  
+          if (context->hasClient)
+          {
+            this->computeIndexScalarGrid();
+          }
+  
          if (!(this->hasTransform() && !this->isTransformed()))
           this->isChecked = true;
+         continue;
+       }
 
-         if (!(this->hasTransform() && (!this->isGenerated())))
-          this->isChecked = true;
+       if (context->hasClient)
+       {
+         if (this->isChecked && doSendingIndex && !isIndexSent)
+            {sendIndex(); this->isIndexSent = true;}
+       }
+     }
+    
+     if (this->isChecked) return;
+     this->checkAttributesAfterTransformation();
+     this->checkMask();
+     this->computeIndex();
 
+     if (!(this->hasTransform() && !this->isTransformed()))
+      this->isChecked = true;
 
-        }
-
-      //  if (this->isChecked) return;
-
-      //  // if (context->hasClient && !context->hasServer)
-      // // if (context->hasClient)
-      //  {
-      //     this->checkAttributesAfterTransformation();
-      //     this->checkMask();
-      //     this->computeIndex();
-      //  }
-      //  this->isChecked = true;
-      }
+     if (!(this->hasTransform() && (!this->isGenerated())))
+      this->isChecked = true;
    }
 
    void CGrid::createMask(void)
@@ -520,12 +500,19 @@ namespace xios {
    {
      CContext* context = CContext::getCurrent();
 
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+     // This needs to change one day
+     // It works only for the same number of procs on secondary pools
+     int nbSrvPools = 1; 
+
      for (int i = 0; i < nbSrvPools; ++i)
      {
-       CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-       CContextServer* server = (context->hasServer) ? context->server : 0 ;
-       int rank = (server && !client) ? server->intraCommRank : client->clientRank;
+       CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[i] : context->client) : context->client;
+       // CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
+       // CContextServer* server = (context->hasServer) ? context->server : 0 ;
+       // int rank = (server && !client) ? server->intraCommRank : client->clientRank;
+       int rank = client->clientRank;
 
        // First of all, compute distribution on client side
        if (0 != serverDistribution_)
@@ -537,14 +524,17 @@ namespace xios {
        storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
        int nbStoreIndex = storeIndex_client.numElements();
        for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
-       isDataDistributed_= clientDistribution_->isDataDistributed();
-     }
+       if (0 == serverDistribution_) 
+        isDataDistributed_= clientDistribution_->isDataDistributed();
+      }
    }
 
    void CGrid::computeConnectedClients()
    {
      CContext* context = CContext::getCurrent();
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+     // int nbSrvPools = 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
@@ -635,14 +625,12 @@ namespace xios {
      // for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
      // isDataDistributed_= clientDistribution_->isDataDistributed();
 
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-     for (int i = 0; i < nbSrvPools; ++i)
-     {
-       CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-       computeClientIndex();
-       if (context->hasClient)
-        computeConnectedClients();
-	 }
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+
+     computeClientIndex();
+     if (context->hasClient)
+      computeConnectedClients();
+
 
      // connectedServerRank_.clear();
 
@@ -714,7 +702,9 @@ namespace xios {
                                      CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
    {
      CContext* context = CContext::getCurrent();
-     int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+     nbSrvPools = 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
        CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
@@ -1108,20 +1098,22 @@ namespace xios {
 
    void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) const
    {
-      // const StdSize size = storeIndex_client.numElements();
+      const StdSize size = storeIndex_client.numElements();
 
-      // for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
-      
-      const StdSize size = indexFromClients.numElements();
+      for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
 
-      for(StdSize i = 0; i < size; i++) data[indexFromClients(i)] = stored(i);
+     // This is a solution for multilevel server      
+      // const StdSize size = indexFromClients.numElements();
+
+      // for(StdSize i = 0; i < size; i++) data[indexFromClients(i)] = stored(i);
 
    }
 
   void CGrid::computeIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
@@ -1181,7 +1173,8 @@ namespace xios {
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client;
@@ -1240,7 +1233,8 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
 //    CContextClient* client = context->client;
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client ;
@@ -1250,8 +1244,9 @@ namespace xios {
       list<CMessage> listMsg;
       list<CArray<size_t,1> > listOutIndex;
       const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
-      CDistributionClient::GlobalLocalDataMap::const_iterator itIndex = globalLocalIndexSendToServer.begin(),
-                                                             iteIndex = globalLocalIndexSendToServer.end();
+      CDistributionClient::GlobalLocalDataMap::const_iterator itbIndex = globalLocalIndexSendToServer.begin(), itIndex,
+                                                              iteIndex = globalLocalIndexSendToServer.end();
+      itIndex = itbIndex;                                                              
 
       if (!doGridHaveDataDistributed())
       {
@@ -1299,24 +1294,51 @@ namespace xios {
       }
       else
       {
-        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
-        itGlobalMap = globalIndexOnServer_.begin();
+        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap, itbGlobalMap;
+        itbGlobalMap = globalIndexOnServer_.begin(), itGlobalMap;
         iteGlobalMap = globalIndexOnServer_.end();
-
-        std::map<int,std::vector<int> >localIndexTmp;
-        std::map<int,std::vector<size_t> > globalIndexTmp;
-        for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+        
+        std::map<int,int > nbGlobalLocalTmp;
+        for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
         {
           int serverRank = itGlobalMap->first;
-          int indexSize = itGlobalMap->second.size();
+          nbGlobalLocalTmp[serverRank] = 0;
           const std::vector<size_t>& indexVec = itGlobalMap->second;
+          int indexSize = indexVec.size();          
           for (int idx = 0; idx < indexSize; ++idx)
           {
             itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
             if (iteIndex != itIndex)
             {
-              globalIndexTmp[serverRank].push_back(itIndex->first);
-              localIndexTmp[serverRank].push_back(itIndex->second);
+              ++nbGlobalLocalTmp[serverRank];
+            }
+          }
+        }
+
+        std::map<int,std::vector<int> >localIndexTmp;
+        std::map<int,std::vector<size_t> > globalIndexTmp;
+        for (std::map<int,int>::iterator it = nbGlobalLocalTmp.begin(); it != nbGlobalLocalTmp.end(); ++it)
+        {
+          localIndexTmp[it->first].resize(it->second);
+          globalIndexTmp[it->first].resize(it->second);
+          it->second = 0;
+        }
+
+        for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+        {
+          int serverRank = itGlobalMap->first;          
+          const std::vector<size_t>& indexVec = itGlobalMap->second;
+          int indexSize = indexVec.size();          
+          int ind = 0;
+          for (int idx = 0; idx < indexSize; ++idx)
+          {
+            itIndex = globalLocalIndexSendToServer.find(indexVec[idx]);
+            if (iteIndex != itIndex)
+            {              
+              ind = nbGlobalLocalTmp[serverRank];
+              globalIndexTmp[serverRank][ind] = itIndex->first;
+              localIndexTmp[serverRank][ind]  = itIndex->second;
+              ++nbGlobalLocalTmp[serverRank];
             }
           }
         }
@@ -1372,7 +1394,8 @@ namespace xios {
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    nbSrvPools = 1;
     for (int i = 0; i < nbSrvPools; ++i)
     {
       CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[i];
