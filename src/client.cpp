@@ -175,11 +175,11 @@ namespace xios
 //        msg<<id<<size<<globalRank ;
 
         int messageSize=msg.size() ;
-        void * buff = new char[messageSize] ;
-        CBufferOut buffer(buff,messageSize) ;
+        char * buff = new char[messageSize] ;
+        CBufferOut buffer((void*)buff,messageSize) ;
         buffer<<msg ;
 
-        MPI_Send(buff,buffer.count(),MPI_CHAR,serverLeader,1,CXios::globalComm) ;
+        MPI_Send((void*)buff,buffer.count(),MPI_CHAR,serverLeader,1,CXios::globalComm) ;
         delete [] buff ;
 
         MPI_Intercomm_create(contextComm,0,CXios::globalComm,serverLeader,10+globalRank,&contextInterComm) ;

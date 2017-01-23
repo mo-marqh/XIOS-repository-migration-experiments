@@ -249,7 +249,7 @@ namespace xios
 
        MPI_Status status ;
        int flag ;
-       static void* buffer ;
+       static char* buffer ;
        static MPI_Request request ;
        static bool recept=false ;
        int rank ;
@@ -265,7 +265,7 @@ namespace xios
            rank=status.MPI_SOURCE ;
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            buffer=new char[count] ;
-           MPI_Irecv(buffer,count,MPI_CHAR,rank,1,CXios::globalComm,&request) ;
+           MPI_Irecv((void*)buffer,count,MPI_CHAR,rank,1,CXios::globalComm,&request) ;
            recept=true ;
          }
        }
@@ -278,7 +278,7 @@ namespace xios
          {
            rank=status.MPI_SOURCE ;
            MPI_Get_count(&status,MPI_CHAR,&count) ;
-           recvContextMessage(buffer,count) ;
+           recvContextMessage((void*)buffer,count) ;
            delete [] buffer ;
            recept=false ;
          }
@@ -334,7 +334,7 @@ namespace xios
 
        MPI_Status status ;
        int flag ;
-       static void* buffer ;
+       static char* buffer ;
        static MPI_Request request ;
        static bool recept=false ;
        int rank ;
@@ -350,7 +350,7 @@ namespace xios
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            buffer=new char[count] ;
-           MPI_Irecv(buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
+           MPI_Irecv((void*)buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
            recept=true ;
          }
        }
@@ -360,7 +360,7 @@ namespace xios
          if (flag==true)
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
-           registerContext(buffer,count) ;
+           registerContext((void*)buffer,count) ;
            delete [] buffer ;
            recept=false ;
          }
