@@ -69,18 +69,10 @@ namespace xios
 
                   CContext::setCurrent(attributes["id"]) ;
 
-                  bool hasctxt = CContext::has(attributes["id"]);
-
-                  if(hasctxt)
-                  {
-                     DEBUG("The context will not be processed because it exist an other context with the same id" );
-                     continue;
-                  }
 
                   if (isParseAll)
                   {
                     CContext* context = CContext::create(attributes["id"]);
-//                  if (!hasctxt)  group_context->addChild(context);
                     context->parse(node);
 
                     attributes.clear();
@@ -91,7 +83,6 @@ namespace xios
                     if (itE != it)
                     {
                       CContext* context = CContext::create(*it);
-  //                  if (!hasctxt)  group_context->addChild(context);
                       context->parse(node);
 
                       attributes.clear();
