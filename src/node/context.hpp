@@ -92,8 +92,6 @@ namespace xios {
          bool isInitialized(void);
 
          // Put sever or client into loop state
-         bool eventLoop(void);
-
          bool checkBuffersAndListen(void);
 
          // Finalize a context

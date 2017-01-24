@@ -338,17 +338,17 @@ namespace xios {
      client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
    }
 
-   //! Server side: Put server into a loop in order to listen message from client
-   bool CContext::eventLoop(void)
-   {
-     return server->eventLoop();
-   }
-
    //! Try to send the buffers and receive possible answers
    bool CContext::checkBuffersAndListen(void)
    {
      client->checkBuffers();
-     return server->eventLoop();
+
+     bool hasTmpBufferedEvent = client->hasTemporarilyBufferedEvent();
+     if (hasTmpBufferedEvent)
+       hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
+
+     // Don't process events if there is a temporarily buffered event
+     return server->eventLoop(!hasTmpBufferedEvent);
    }
 
    //! Terminate a context

@@ -56,11 +56,12 @@ namespace xios
     return finished;
   }
 
-  bool CContextServer::eventLoop(void)
+  bool CContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
     listen();
     checkPendingRequest();
-    processEvents();
+    if (enableEventsProcessing)
+      processEvents();
     return finished;
   }
 
