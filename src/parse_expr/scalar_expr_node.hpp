@@ -106,6 +106,27 @@ namespace xios
       std::string opId; //!< The identifier of the field
       boost::scoped_ptr<IScalarExprNode> child1, child2; //!< The scalar child nodes to which the operator is applied
   };
+
+    class CScalarTernaryOpExprNode : public IScalarExprNode
+  {
+    public:
+      /*!
+       * Constructs an expression node corresponding to the specified ternary operation
+       * applied to the provided scalar child nodes.
+       * Note that the child nodes will be destroyed automatically when the parent node
+       * is destroyed.
+       *
+       * \param opId the identifier of the operator
+       * \param child1, child2 , child3 the scalar child nodes to which the operator is applied
+       */
+      CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3);
+
+      double reduce() const;
+
+    private:
+      std::string opId; //!< The identifier of the field
+      boost::scoped_ptr<IScalarExprNode> child1, child2, child3; //!< The scalar child nodes to which the operator is applied
+  };
 }
 
 #endif // __XIOS_SCALAR_EXPR_NODE_HPP__

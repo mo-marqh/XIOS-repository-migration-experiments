@@ -66,4 +66,22 @@ namespace xios
     COperatorExpr::functionScalarScalar op = operatorExpr.getOpScalarScalar(opId);
     return op(child1->reduce(), child2->reduce());
   }
+
+
+  CScalarTernaryOpExprNode::CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3)
+    : child1(child1)
+    , opId(opId)
+    , child2(child2)
+    , child3(child3)
+  {
+    if (!child1 || !child2 || !child3)
+      ERROR("CScalarTernaryOpExprNode::CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3)",
+            "Impossible to create the new expression node, an invalid child node was provided.");
+  }
+
+  double CScalarTernaryOpExprNode::reduce() const
+  {
+    COperatorExpr::functionScalarScalarScalar op = operatorExpr.getOpScalarScalarScalar(opId);
+    return op(child1->reduce(), child2->reduce(), child3->reduce());
+  }
 }

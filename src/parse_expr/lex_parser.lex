@@ -65,7 +65,8 @@ var      \${id}
 "<=" return LE;
 ">=" return GE;
 "/=" return NE;
-
+"?" return QUESTION_MARK;
+":" return COLON;
 "("  return LEFT_PARENTHESIS;
 ")"  return RIGHT_PARENTHESIS;
 
