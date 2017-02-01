@@ -9,27 +9,6 @@ MODULE interpolate_domain_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
-    SUBROUTINE cxios_set_interpolate_domain_file(interpolate_domain_hdl, file, file_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: file
-      INTEGER  (kind = C_INT)     , VALUE        :: file_size
-    END SUBROUTINE cxios_set_interpolate_domain_file
-
-    SUBROUTINE cxios_get_interpolate_domain_file(interpolate_domain_hdl, file, file_size) BIND(C)
-      USE ISO_C_BINDING
-      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
-      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: file
-      INTEGER  (kind = C_INT)     , VALUE        :: file_size
-    END SUBROUTINE cxios_get_interpolate_domain_file
-
-    FUNCTION cxios_is_defined_interpolate_domain_file(interpolate_domain_hdl) BIND(C)
-      USE ISO_C_BINDING
-      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_file
-      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
-    END FUNCTION cxios_is_defined_interpolate_domain_file
-
-
     SUBROUTINE cxios_set_interpolate_domain_mode(interpolate_domain_hdl, mode, mode_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
