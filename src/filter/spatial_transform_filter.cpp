@@ -192,7 +192,7 @@ namespace xios
         if (localMaskDest[i]) dataCurrentDest(i) = 0.0;
         else dataCurrentDest(i) = defaultValue;
 
-      std::vector<bool> localInitFlag(dataCurrentDest.size(), true);
+      std::vector<bool> localInitFlag(dataCurrentDest.numElements(), true);
       currentBuff = 0;
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
