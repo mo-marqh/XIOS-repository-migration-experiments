@@ -95,7 +95,7 @@ namespace xios
                                      const StdString & units,
                                      const StdString & nav_model);
 
-            StdSize getRecordFromTime(Time time);
+            StdSize getRecordFromTime(Time time, double factorUnit);
 
          private :
 

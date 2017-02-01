@@ -1983,7 +1983,11 @@ namespace xios
           if (appendMode && field->file->record_offset.isEmpty() && 
               field->getOperationTimeType() != func::CFunctor::once)
           {
-            field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
+			 double factorUnit;
+			 if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+			   factorUnit=context->getCalendar()->getDayLengthInSeconds() ; 
+			 else factorUnit=1 ;
+            field->resetNStep(getRecordFromTime(field->last_Write_srv,factorUnit) + 1);
           }
 
           field->setWritten();
@@ -2046,6 +2050,17 @@ namespace xios
           }
           else if (field->file->time_counter == CFile::time_counter_attr::record)
             time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
+
+
+
+          if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+          {
+            double secByDay=context->getCalendar()->getDayLengthInSeconds() ;
+            time_data/=secByDay;
+            time_data_bound/=secByDay;
+            time_counter/=secByDay;
+            time_counter_bound/=secByDay;
+          }
         }
 
          bool isRoot = (server->intraCommRank == 0);
@@ -2270,6 +2285,10 @@ namespace xios
          StdString axisBoundId("time_centered_bounds");
          StdString timeid(getTimeCounterName());
          StdString timeBoundId("axis_nbounds");
+
+         StdString strTimeUnits ;
+         if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days) strTimeUnits="days since " ;
+         else  strTimeUnits="seconds since " ;
  
          if (field->getOperationTimeType() == func::CFunctor::instant)
          {
@@ -2299,8 +2318,7 @@ namespace xios
               StdString strInitdate=oss2.str() ;
               StdString strTimeOrigin=timeOrigin.toString() ;
               this->writeTimeAxisAttributes
-                 (axisid, cal->getType(),
-                  StdString("seconds since ").append(strTimeOrigin),
+                 (axisid, cal->getType(),strTimeUnits+strTimeOrigin,
                   strTimeOrigin, axisBoundId);
            }
 
@@ -2333,7 +2351,7 @@ namespace xios
                   StdString strTimeOrigin = timeOrigin.toString();
 
                   this->writeTimeAxisAttributes(axisid, cal->getType(),
-                                                StdString("seconds since ").append(strTimeOrigin),
+                                                strTimeUnits+strTimeOrigin,
                                                 strTimeOrigin, axisBoundId);
                 }
              }
@@ -2568,7 +2586,7 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-      StdSize CNc4DataOutput::getRecordFromTime(Time time)
+      StdSize CNc4DataOutput::getRecordFromTime(Time time, double factorUnit)
       {
         std::map<Time, StdSize>::const_iterator it = timeToRecordCache.find(time);
         if (it == timeToRecordCache.end())
@@ -2579,7 +2597,8 @@ namespace xios
 
           CArray<double,2> timeAxisBounds;
           SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective);
-
+          timeAxisBounds*=factorUnit ;
+          
           StdSize record = 0;
           double dtime(time);
           for (int n = timeAxisBounds.extent(1) - 1; n >= 0; n--)
