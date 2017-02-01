@@ -1001,6 +1001,20 @@ namespace xios {
      {
        CFile* file = allFiles[i];
 
+       std::vector<CVariable*> fileVars, fieldVars, vars = file->getAllVariables();
+       for (size_t k = 0; k < vars.size(); k++)
+       {
+         CVariable* var = vars[k];
+
+         if (var->ts_target.isEmpty()
+              || var->ts_target == CVariable::ts_target_attr::file || var->ts_target == CVariable::ts_target_attr::both)
+           fileVars.push_back(var);
+
+         if (!var->ts_target.isEmpty()
+              && (var->ts_target == CVariable::ts_target_attr::field || var->ts_target == CVariable::ts_target_attr::both))
+           fieldVars.push_back(var);
+       }
+
        if (!file->timeseries.isEmpty() && file->timeseries != CFile::timeseries_attr::none)
        {
          StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : file->getFileOutputName();
@@ -1014,7 +1028,10 @@ namespace xios {
            {
              CFile* tsFile = CFile::create();
              tsFile->duplicateAttributes(file);
-             tsFile->setVirtualVariableGroup(file->getVirtualVariableGroup());
+
+             // Add variables originating from file and targeted to timeserie file
+             for (size_t k = 0; k < fileVars.size(); k++)
+               tsFile->getVirtualVariableGroup()->addChild(fileVars[k]);
 
              tsFile->name = tsPrefix + "_";
              if (!field->name.isEmpty())
@@ -1029,7 +1046,26 @@ namespace xios {
 
              CField* tsField = tsFile->addField();
              tsField->field_ref = field->getId();
-             tsField->setVirtualVariableGroup(field->getVirtualVariableGroup());
+
+             // Add variables originating from file and targeted to timeserie field
+             for (size_t k = 0; k < fieldVars.size(); k++)
+               tsField->getVirtualVariableGroup()->addChild(fieldVars[k]);
+
+             vars = field->getAllVariables();
+             for (size_t k = 0; k < vars.size(); k++)
+             {
+               CVariable* var = vars[k];
+
+               // Add variables originating from field and targeted to timeserie field
+               if (var->ts_target.isEmpty()
+                    || var->ts_target == CVariable::ts_target_attr::field || var->ts_target == CVariable::ts_target_attr::both)
+                 tsField->getVirtualVariableGroup()->addChild(var);
+
+               // Add variables originating from field and targeted to timeserie file
+               if (!var->ts_target.isEmpty()
+                    && (var->ts_target == CVariable::ts_target_attr::file || var->ts_target == CVariable::ts_target_attr::both))
+                 tsFile->getVirtualVariableGroup()->addChild(var);
+             }
 
              tsFile->solveFieldRefInheritance(true);
 

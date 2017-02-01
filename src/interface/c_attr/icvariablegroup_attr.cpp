@@ -69,6 +69,32 @@ extern "C"
   }
 
 
+  void cxios_set_variablegroup_ts_target(variablegroup_Ptr variablegroup_hdl, const char * ts_target, int ts_target_size)
+  {
+    std::string ts_target_str;
+    if (!cstr2string(ts_target, ts_target_size, ts_target_str)) return;
+    CTimer::get("XIOS").resume();
+    variablegroup_hdl->ts_target.fromString(ts_target_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_variablegroup_ts_target(variablegroup_Ptr variablegroup_hdl, char * ts_target, int ts_target_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(variablegroup_hdl->ts_target.getInheritedStringValue(), ts_target, ts_target_size))
+      ERROR("void cxios_get_variablegroup_ts_target(variablegroup_Ptr variablegroup_hdl, char * ts_target, int ts_target_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_variablegroup_ts_target(variablegroup_Ptr variablegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = variablegroup_hdl->ts_target.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_variablegroup_type(variablegroup_Ptr variablegroup_hdl, const char * type, int type_size)
   {
     std::string type_str;
