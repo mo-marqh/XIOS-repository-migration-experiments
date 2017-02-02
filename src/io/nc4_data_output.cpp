@@ -15,22 +15,24 @@ namespace xios
 {
       /// ////////////////////// Dfinitions ////////////////////// ///
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist)
+         (CFile* file, const StdString & filename, bool exist)
             : SuperClass()
             , SuperClassWriter(filename, exist)
             , filename(filename)
+            , file(file)
       {
         SuperClass::type = MULTI_FILE;
       }
 
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist, bool useClassicFormat, bool useCFConvention,
+         (CFile* file, const StdString & filename, bool exist, bool useClassicFormat, bool useCFConvention,
           MPI_Comm comm_file, bool multifile, bool isCollective, const StdString& timeCounterName)
             : SuperClass()
             , SuperClassWriter(filename, exist, useClassicFormat, useCFConvention, &comm_file, multifile, timeCounterName)
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
+            , file(file)
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
@@ -1970,10 +1972,15 @@ namespace xios
          time_t rawtime;
          struct tm * timeinfo = NULL;
          char buffer [buffer_size];
+         StdString formatStr;
+         if (file->time_stamp_format.isEmpty()) formatStr="%Y-%b-%d %H:%M:%S %Z" ;
+         else formatStr=file->time_stamp_format;
 
+//         time ( &rawtime );
+//         timeinfo = localtime ( &rawtime );
          time ( &rawtime );
-         timeinfo = localtime ( &rawtime );
-         strftime (buffer, buffer_size, "%Y-%b-%d %H:%M:%S %Z", timeinfo);
+         timeinfo = gmtime ( &rawtime );
+         strftime (buffer, buffer_size, formatStr.c_str(), timeinfo);
 
          return (StdString(buffer));
       }
@@ -2009,10 +2016,10 @@ namespace xios
           if (appendMode && field->file->record_offset.isEmpty() && 
               field->getOperationTimeType() != func::CFunctor::once)
           {
-			 double factorUnit;
-			 if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
-			   factorUnit=context->getCalendar()->getDayLengthInSeconds() ; 
-			 else factorUnit=1 ;
+            double factorUnit;
+            if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+            factorUnit=context->getCalendar()->getDayLengthInSeconds() ;
+            else factorUnit=1 ;
             field->resetNStep(getRecordFromTime(field->last_Write_srv,factorUnit) + 1);
           }
 
@@ -2560,7 +2567,10 @@ namespace xios
            SuperClassWriter::addAttribute("title"      , description);
            SuperClassWriter::addAttribute("Conventions", conventions);
            // SuperClassWriter::addAttribute("production" , production);
-           SuperClassWriter::addAttribute("timeStamp"  , timeStamp);
+           StdString timeStampStr ;
+           if (file->time_stamp_name.isEmpty()) timeStampStr="timeStamp" ;
+           else timeStampStr=file->time_stamp_name ;
+           SuperClassWriter::addAttribute(timeStampStr, timeStamp);
          }
          catch (CNetCdfException& e)
          {

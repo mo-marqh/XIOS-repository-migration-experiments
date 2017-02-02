@@ -462,7 +462,7 @@ namespace xios {
 
          if (isOpen) data_out->closeFile();
 
-        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat, useCFConvention,
+        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(this, oss.str(), append, useClassicFormat, useCFConvention,
                                                               fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
