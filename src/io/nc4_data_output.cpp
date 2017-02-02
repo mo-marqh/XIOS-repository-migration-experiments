@@ -74,8 +74,13 @@ namespace xios
          else setWrittenDomain(domid);
 
 
-         StdString dimXid, dimYid ;
+        StdString dimXid, dimYid ;
 
+        nc_type typePrec ;
+        if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+        else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+         
          bool isRegularDomain = (domain->type == CDomain::type_attr::rectilinear);
          switch (domain->type)
          {
@@ -163,12 +168,12 @@ namespace xios
                    switch (domain->type)
                    {
                      case CDomain::type_attr::curvilinear :
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim0);
                        break ;
                       case CDomain::type_attr::rectilinear :
-                        SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                        SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                        SuperClassWriter::addVariable(latid, typePrec, dim0);
+                        SuperClassWriter::addVariable(lonid, typePrec, dim1);
                         break ;
                    }
 
@@ -184,8 +189,8 @@ namespace xios
                      dim0.push_back(dimYid);
                      dim0.push_back(dimXid);
                      dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                     SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                    }
                  }
 
@@ -210,7 +215,7 @@ namespace xios
 
                  if (domain->hasArea)
                  {
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -263,8 +268,8 @@ namespace xios
                        dim0.push_back(dimYid); dim0.push_back(dimXid);
                        lonid = StdString("nav_lon").append(appendDomid);
                        latid = StdString("nav_lat").append(appendDomid);
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim0);
                        break;
 
                      case CDomain::type_attr::rectilinear :
@@ -272,8 +277,8 @@ namespace xios
                        dim1.push_back(dimXid);
                        lonid = StdString("lon").append(appendDomid);
                        latid = StdString("lat").append(appendDomid);
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim1);
                        break;
                    }
 
@@ -294,8 +299,8 @@ namespace xios
                      dim0.push_back(dimYid);
                      dim0.push_back(dimXid);
                      dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                     SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                    }
                  }
 
@@ -303,7 +308,7 @@ namespace xios
                  {
                    dim0.clear();
                    dim0.push_back(dimYid); dim0.push_back(dimXid);
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                    dim0.clear();
@@ -445,6 +450,11 @@ namespace xios
       if (domain->isEmpty())
         if (SuperClass::type==MULTI_FILE) return ;
 
+     nc_type typePrec ;
+     if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+     else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+     else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+
       std::vector<StdString> dim0;
       StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
@@ -496,11 +506,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->ni_glo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -515,11 +525,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodesGlo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -529,11 +539,11 @@ namespace xios
               SuperClassWriter::addDimension(dimEdge, domain->ni_glo);
               dim0.clear();
               dim0.push_back(dimEdge);
-              SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(edge_x, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
               SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-              SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(edge_y, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
               SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
@@ -555,11 +565,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodesGlo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -571,11 +581,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdgesGlo);
                 dim0.clear();
                 dim0.push_back(dimEdge);
-                SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(edge_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-                SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(edge_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
@@ -593,11 +603,11 @@ namespace xios
               SuperClassWriter::addDimension(dimVertex, domain->nvertex);
               dim0.clear();
               dim0.push_back(dimFace);
-              SuperClassWriter::addVariable(face_x, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(face_x, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &face_x);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh faces."), &face_x);
               SuperClassWriter::addAttribute("units", StdString("degrees_east"), &face_x);
-              SuperClassWriter::addVariable(face_y, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(face_y, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &face_y);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh faces."), &face_y);
               SuperClassWriter::addAttribute("units", StdString("degrees_north"), &face_y);
@@ -859,6 +869,11 @@ namespace xios
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
 
+         nc_type typePrec ;
+         if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+         else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+         else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+
          try
          {
            switch (SuperClass::type)
@@ -874,8 +889,8 @@ namespace xios
                  bounds_latid = StdString("bounds_lat").append(appendDomid);
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(latid, typePrec, dim0);
+                   SuperClassWriter::addVariable(lonid, typePrec, dim0);
                    this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                    if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
                    this->writeAxisAttributes(latid, "", "latitude", "Latitude", "degrees_north", domid);
@@ -887,15 +902,15 @@ namespace xios
                  {
                    dim0.push_back(dimXid);
                    dim0.push_back(dimVertId);
-                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                  }
 
                  dim0.clear();
                  dim0.push_back(dimXid);
                  if (domain->hasArea)
                  {
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -930,8 +945,8 @@ namespace xios
                  SuperClassWriter::addDimension(dimXid, domain->ni_glo);
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(latid, typePrec, dim0);
+                   SuperClassWriter::addVariable(lonid, typePrec, dim0);
 
                    this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                    if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
@@ -945,15 +960,15 @@ namespace xios
                  {
                    dim0.push_back(dimXid);
                    dim0.push_back(dimVertId);
-                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                  }
 
                  if (domain->hasArea)
                  {
                    dim0.clear();
                    dim0.push_back(dimXid);
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -1036,13 +1051,18 @@ namespace xios
         if (isWrittenAxis(axisid)) return ;
         else setWrittenAxis(axisid);
 
+        nc_type typePrec ;
+        if (axis->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (axis->prec==4)  typePrec =  NC_FLOAT ;
+        else if (axis->prec==8)   typePrec =  NC_DOUBLE ;
+         
         try
         {
           SuperClassWriter::addDimension(axisid, zoom_size);
           if (axis->hasValue)
           {
             dims.push_back(axisid);
-            SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
+            SuperClassWriter::addVariable(axisid, typePrec, dims);
 
             if (!axis->name.isEmpty())
               SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
@@ -1068,7 +1088,7 @@ namespace xios
             if (!axis->bounds.isEmpty())
             {
               dims.push_back("axis_nbounds");
-              SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
+              SuperClassWriter::addVariable(axisBoundsId, typePrec, dims);
               SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
             }
 
@@ -1139,13 +1159,19 @@ namespace xios
         if (isWrittenAxis(scalaId)) return ;
         else setWrittenAxis(scalaId);
 
+        nc_type typePrec ;
+        if (scalar->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (scalar->prec==4)  typePrec =  NC_FLOAT ;
+        else if (scalar->prec==8)   typePrec =  NC_DOUBLE ;
+
+        
         try
         {
           if (!scalar->value.isEmpty())
           {
 //            dims.push_back(scalaId);
             std::vector<StdString> dims;
-            SuperClassWriter::addVariable(scalaId, NC_FLOAT, dims);
+            SuperClassWriter::addVariable(scalaId, typePrec, dims);
 
             if (!scalar->name.isEmpty())
               SuperClassWriter::addAttribute("name", scalar->name.getValue(), &scalaId);
