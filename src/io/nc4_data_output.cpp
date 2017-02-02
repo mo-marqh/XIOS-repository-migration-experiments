@@ -10,6 +10,7 @@
 #include "context_server.hpp"
 #include "netCdfException.hpp"
 #include "exception.hpp"
+#include "uuid.hpp"
 
 namespace xios
 {
@@ -2567,10 +2568,19 @@ namespace xios
            SuperClassWriter::addAttribute("title"      , description);
            SuperClassWriter::addAttribute("Conventions", conventions);
            // SuperClassWriter::addAttribute("production" , production);
+
            StdString timeStampStr ;
            if (file->time_stamp_name.isEmpty()) timeStampStr="timeStamp" ;
            else timeStampStr=file->time_stamp_name ;
            SuperClassWriter::addAttribute(timeStampStr, timeStamp);
+
+           StdString uuidName ;
+           if (file->uuid_name.isEmpty()) uuidName="uuid" ;
+           else uuidName=file->uuid_name ;
+
+           if (file->uuid_format.isEmpty()) SuperClassWriter::addAttribute(uuidName, getUuidStr());
+           else SuperClassWriter::addAttribute(uuidName, getUuidStr(file->uuid_format));
+          
          }
          catch (CNetCdfException& e)
          {
