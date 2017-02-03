@@ -37,6 +37,17 @@ namespace xios
         double v = 1.0;
         char   c = '/';
         bool   invalidUnit = false;
+        CDuration sentinel = NoneDu;
+
+#define setDuration(unit, value)                                                  \
+        {                                                                         \
+          if (sentinel.unit)                                                      \
+            ERROR("StdIStream& operator>>(StdIStream& in , CDuration& duration)", \
+                  << "Bad duration format: " #unit " has already been set.");      \
+                                                                                  \
+          duration.unit = value;                                                  \
+          sentinel.unit = 1.0;                                                    \
+        }
 
         do
         {
@@ -47,22 +58,22 @@ namespace xios
 
           switch (c)
           {
-            case 'y': duration.year   = v; break;
-            case 'd': duration.day    = v; break;
-            case 'h': duration.hour   = v; break;
-            case 's': duration.second = v; break;
+            case 'y': setDuration(year, v) break;
+            case 'd': setDuration(day, v) break;
+            case 'h': setDuration(hour, v) break;
+            case 's': setDuration(second, v) break;
             case 'm':
             {
               in >> c;
-              if      (c == 'i') duration.minute = v;
-              else if (c == 'o') duration.month  = v;
+              if      (c == 'i') setDuration(minute, v)
+              else if (c == 'o') setDuration(month, v)
               else invalidUnit = true;
               break;
             }
             case 't':
             {
               in >> c;
-              if (c == 's') duration.timestep = v;
+              if (c == 's') setDuration(timestep, v)
               else invalidUnit = true;
               break;
             }
@@ -75,6 +86,8 @@ namespace xios
             ERROR("StdIStream& operator>>(StdIStream& in , CDuration& duration)",
                   << "Bad duration format: invalid unit, unexpected '" << c << "' character.");
         } while (in.peek() != EOF); // check whether there is a next character to read
+
+#undef setDuration
 
         return in;
       }
