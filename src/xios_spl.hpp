@@ -51,6 +51,8 @@ typedef  unsigned short int   ushort;
 typedef  unsigned int         uint;
 typedef  unsigned long int    ulong;
 
+const size_t stringArrayLen=255 ;
+
 /// XIOS headers ///
 #include "configure.hpp"
 #include "log.hpp"
