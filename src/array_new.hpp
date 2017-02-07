@@ -538,7 +538,7 @@ namespace xios
         int numDim;
         TinyVector<int,N_rank> vect;
         size_t ne;
-
+        
         ret =  buffer.get(numDim);
         ret &= buffer.get(vect.data(), N_rank);
         this->resize(vect);
@@ -550,6 +550,81 @@ namespace xios
         return ret;
       }
   };
+
+
+#define macro(NRANK)\
+\
+  template <>\
+  inline size_t CArray<StdString,NRANK>::size(void) const\
+  {\
+    size_t size=(1 + NRANK) * sizeof(int) ;\
+    Array<StdString,NRANK>::const_iterator it, itb=this->begin(), ite=this->end() ;\
+\
+    for(it=itb;it!=ite;++it)\
+    {\
+      size+= sizeof(size_t) ;\
+      size+= (*it).size();\
+    } \
+    return size ;\
+  }\
+\
+/* for array string this function is an evaluation of maximum size of the array, considering stringArrayLen is the maximum size of the strings*/ \
+  template <>\
+  inline size_t CArray<StdString,NRANK>::size(sizeType numElements)\
+  {\
+    return (NRANK + 1) * sizeof(int) + numElements * stringArrayLen;\
+  }\
+  \
+  template <>\
+  inline bool CArray<StdString,NRANK>::toBuffer(CBufferOut& buffer) const\
+  {\
+    bool ret;\
+    ret =  buffer.put(this->dimensions());\
+    ret &= buffer.put(this->shape().data(), this->dimensions());\
+\
+    Array<StdString,NRANK>::const_iterator it, itb=this->begin(), ite=this->end() ;\
+\
+    for(it=itb;it!=ite;++it)\
+    {\
+      ret &= buffer.put((*it).size()) ;\
+      ret &= buffer.put((*it).data(),(*it).size());\
+    } \
+    return ret;\
+  }\
+\
+  template <>\
+  inline bool CArray<StdString,NRANK>::fromBuffer(CBufferIn& buffer)\
+  {\
+     bool ret;\
+     int numDim;\
+     TinyVector<int,NRANK> vect;\
+     size_t ne;\
+\
+     ret =  buffer.get(numDim);\
+     ret &= buffer.get(vect.data(), NRANK);\
+     this->resize(vect);\
+\
+     Array<StdString,NRANK>::iterator it, itb=this->begin(), ite=this->end() ;\
+     for(it=itb;it!=ite;++it)\
+     {\
+       ret &= buffer.get(ne) ;\
+       char* str = new char[ne] ;\
+       ret &= buffer.get(str, ne);\
+       *it = string(str,ne) ;\
+       delete [] str ;\
+     }\
+     initialized = true;\
+     return ret;\
+  }
+macro(1)
+macro(2)
+macro(3)
+macro(4)
+macro(5)
+macro(6)
+macro(7)
+
+#undef macro
 
   template <typename T_numtype,int N_rank> inline CBufferOut& operator<<(CBufferOut& buffer, const CArray<T_numtype,N_rank>& array)
   {

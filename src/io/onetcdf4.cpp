@@ -502,11 +502,19 @@ namespace xios
       template <>
       void CONetCDF4::writeData_(int grpid, int varid,
                                  const std::vector<StdSize>& sstart,
+                                 const std::vector<StdSize>& scount, char* data)
+      {
+          CNetCdfInterface::putVaraType(grpid, varid, &sstart[0], &scount[0], data);
+      }
+      
+      template <>
+
+      void CONetCDF4::writeData_(int grpid, int varid,
+                                 const std::vector<StdSize>& sstart,
                                  const std::vector<StdSize>& scount, const int* data)
       {
           CNetCdfInterface::putVaraType(grpid, varid, &sstart[0], &scount[0], data);
       }
-
       //---------------------------------------------------------------
 
       template <>

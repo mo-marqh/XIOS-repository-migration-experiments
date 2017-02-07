@@ -546,6 +546,38 @@ macro(int)
 
 #undef macro
 
+#define macro(N,EXTENT)\
+  template <>\
+  void CInterface::AttributeCInterface<CArray<StdString,N> >(ostream& oss, const string& className, const string& name)\
+  { \
+    oss << "void cxios_set_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << "char* " << name <<", int str_len, int* str_size, int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  "<<className<<"_hdl->"<<name<<".resize(shape("<<EXTENT<<"));"<<iendl;\
+    oss << "  Array<StdString,"<<#N<<">::iterator it, itb="<<className<<"_hdl->"<<name<<".begin(), ite="<<className<<"_hdl->"<<name<<".end() ;"<<iendl ;\
+    oss << "  int i, n ;"<< iendl; \
+    oss << "  for(it=itb, i=0, n=0 ; it!=ite ; ++it,n+=str_len,++i) *it=StdString(&"<<name<<"[n],str_size[i]) ;"<<iendl ;\
+    oss << "  CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+    oss << iendl; \
+    oss << "void cxios_get_" << className << "_" << name << "(" << className << "_Ptr " << className << "_hdl, " << "char* " << name << ", int str_size, int* extent)" << iendl; \
+    oss << "{" << iendl; \
+    oss << "  CTimer::get(\"XIOS\").resume();" << iendl; \
+    oss << "  Array<StdString,"<<#N<<">::const_iterator it, itb="<<className<<"_hdl->"<<name<<".getInheritedValue().begin(), ite="<<className<<"_hdl->"<<name<<".getInheritedValue().end() ;" << iendl; \
+    oss << "  int n ;"<< iendl; \
+    oss << "  for(it=itb, n=0 ; it!=ite ; ++it, n+=str_size) it->copy(&"<<name<<"[n],it->size()) ; "<< iendl; \
+    oss << "  CTimer::get(\"XIOS\").suspend();" << iendl; \
+    oss << "}" << std::endl; \
+  }
+
+macro(1,"extent[0]")
+macro(2,"extent[0],extent[1]")
+macro(3,"extent[0],extent[1],extent[2]")
+macro(4,"extent[0],extent[1],extent[2],extent[3]")
+macro(5,"extent[0],extent[1],extent[2],extent[3],extent[4]")
+macro(6,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]")
+macro(7,"extent[0],extent[1],extent[2],extent[3],extent[4],extent[5],extent[6]")
+#undef macro
 // /////////////////////////////////////////////////
 // //          Fortran 2003 Interface             //
 // /////////////////////////////////////////////////
@@ -704,6 +736,37 @@ macro(int)
 
   #undef macro
 
+#define macro(T)\
+  template <>\
+  void CInterface::AttributeFortran2003Interface<CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
+  {\
+    oss << "SUBROUTINE cxios_set_" << className << "_" << name << "(" << className << "_hdl, " << name << ", str_len, str_size, extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  CHARACTER (KIND=C_CHAR), DIMENSION(*)    :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), VALUE            :: str_len" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: str_size" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_set_" << className << "_" << name << std::endl; \
+    oss << iendl; \
+    oss << "SUBROUTINE cxios_get_" << className << "_" << name << "(" << className << "_hdl, " << name << ", str_size, extent) BIND(C)" << iendl; \
+    oss << "  USE ISO_C_BINDING" << iendl; \
+    oss << "  INTEGER (kind = C_INTPTR_T), VALUE       :: " << className << "_hdl" << iendl; \
+    oss << "  CHARACTER (KIND=C_CHAR), DIMENSION(*)    :: " << name << iendl; \
+    oss << "  INTEGER (kind = C_INT), VALUE            :: str_size" << iendl; \
+    oss << "  INTEGER (kind = C_INT), DIMENSION(*)     :: extent" << iendl; \
+    oss << "END SUBROUTINE cxios_get_" << className << "_" << name << std::endl; \
+  }
+  macro(1)
+  macro(2)
+  macro(3)
+  macro(4)
+  macro(5)
+  macro(6)
+  macro(7)
+
+#undef macro
+
 #define macro(T) \
   template <> \
   void CInterface::AttributeFortranInterfaceDeclaration<CArray<T,1> >(ostream& oss, const string& className, const string& name) \
@@ -807,6 +870,33 @@ macro(int)
   macro(int)
 
 #undef macro
+
+#define macro(T,EXTENT)\
+  template <> \
+  void CInterface::AttributeFortranInterfaceDeclaration<CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
+  {\
+    oss << "CHARACTER(len=*) , OPTIONAL, INTENT(IN) :: " << name << "("<<EXTENT<<")"; \
+  }\
+\
+  template <>\ 
+  void CInterface::AttributeFortranInterfaceGetDeclaration<CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
+  {\
+    oss << "CHARACTER(len=*) , OPTIONAL, INTENT(OUT) :: " << name << "("<<EXTENT<<")"; \
+  }
+  macro(1,":")
+  macro(2,":,:")
+  macro(3,":,:,:")
+  macro(4,":,:,:,:")
+  macro(5,":,:,:,:,:")
+  macro(6,":,:,:,:,:,:")
+  macro(7,":,:,:,:,:,:,:")
+
+#undef macro
+
+
+
+
+  
 
 #define macro(T) \
   template <>  \
@@ -946,6 +1036,20 @@ macro(int)
 
 #undef macro
 
+#define macro(T)\
+  template <>\
+  void CInterface::AttributeFortranInterfaceBody< CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
+  {\
+     oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+     oss << "  CALL cxios_set_" << className << "_" << name << " &" << iendl; \
+     oss << "(" << className << "_hdl%daddr, " << name <<"_, LEN("<<name<<"_), LEN_TRIM("<<name<< "_), SHAPE(" << name << "_))" << iendl; \
+     oss << "ENDIF"; \
+  }
+
+  macro(1)
+  macro(2)
+#undef macro
+
 #define macro(T) \
   template <>  \
   void CInterface::AttributeFortranInterfaceGetBody< CArray<T,1> >(ostream& oss, const string& className, const string& name) \
@@ -1083,5 +1187,25 @@ macro(int)
   macro(int)
 
 #undef macro
+
+#define macro(T)\
+  template <> \
+  void CInterface::AttributeFortranInterfaceGetBody< CArray<StdString,T> >(ostream& oss, const string& className, const string& name)\
+  {\
+    oss << "IF (PRESENT(" << name << "_)) THEN" << iendl; \
+    oss << "  CALL cxios_get_" << className << "_" << name << " &" << iendl; \
+    oss << "(" << className << "_hdl%daddr, " << name << "_, LEN("<<name<<"_), SHAPE(" << name << "_))" << iendl; \
+    oss << "ENDIF"; \
+  }
+  macro(1)
+  macro(2)
+  macro(3)
+  macro(4)
+  macro(5)
+  macro(6)
+  macro(7)
+
+#undef macro
+  
 }
 #endif

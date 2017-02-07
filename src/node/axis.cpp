@@ -26,7 +26,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false)
+      , transformationMap_(), hasValue(false), hasLabel(false)
    {
    }
 
@@ -36,7 +36,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false)
+      , transformationMap_(), hasValue(false), hasLabel(false)
    {
    }
 
@@ -175,6 +175,9 @@ namespace xios {
          size_t sizeValEvent = CArray<double,1>::size(it->second.size());
          if (hasBounds_)
            sizeValEvent += CArray<double,2>::size(2 * it->second.size());
+ 
+         if (hasLabel)
+           sizeValEvent += CArray<StdString,1>::size(it->second.size());
 
          size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeValEvent);
          if (size > attributesSizes[it->first])
@@ -260,6 +263,7 @@ namespace xios {
       this->checkZoom();
       this->checkMask();
       this->checkBounds();
+      this->checkLabel();
 
       isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
                        (!this->n.isEmpty() && (this->n != this->n_glo));
@@ -332,6 +336,19 @@ namespace xios {
     else hasBounds_ = false;
   }
 
+  void CAxis::checkLabel()
+  {
+    if (!label.isEmpty())
+    {
+      if (label.extent(0) != n)
+        ERROR("CAxis::checkLabel(void)",
+              << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
+              << "Axis size is " << n.getValue() << "." << std::endl
+              << "label size is "<< label.extent(0)<<  " .");
+      hasLabel = true;
+    }
+    else hasLabel = false;
+  }
   void CAxis::checkEligibilityForCompressedOutput()
   {
     // We don't check if the mask is valid here, just if a mask has been defined at this point.
@@ -656,6 +673,7 @@ namespace xios {
     list<CArray<int,1> > list_writtenInd;
     list<CArray<double,1> > list_val;
     list<CArray<double,2> > list_bounds;
+    list<CArray<StdString,1> > list_label;
 
     std::map<int, std::vector<size_t> >::const_iterator it, iteMap;
     iteMap = indSrv_.end();
@@ -674,6 +692,11 @@ namespace xios {
       {
         list_bounds.push_back(CArray<double,2>(2,nbData));
       }
+      
+      if (hasLabel)
+      {
+        list_label.push_back(CArray<StdString,1>(nbData));
+      }
 
       CArray<int,1>& indi = list_indi.back();
       CArray<double,1>& val = list_val.back();
@@ -691,6 +714,12 @@ namespace xios {
           CArray<double,2>& boundsVal = list_bounds.back();
           boundsVal(0, n) = bounds(0,n);
           boundsVal(1, n) = bounds(1,n);
+        }
+        
+        if (hasLabel)
+        {
+          CArray<StdString,1>& labelVal = list_label.back();
+          labelVal(n) = label(n);
         }
       }
 
@@ -715,6 +744,11 @@ namespace xios {
       if (hasBounds_)
       {
         list_msgsVal.back() << list_bounds.back();
+      }
+ 
+      if (hasLabel)
+      {
+        list_msgsVal.back() << list_label.back();
       }
 
       eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
@@ -782,9 +816,11 @@ namespace xios {
     CArray<int,1> &indi = indiSrv_[rank];
     CArray<double,1> val;
     CArray<double,2> boundsVal;
+    CArray<StdString,1> labelVal;
 
     buffer >> val;
     if (hasBounds_) buffer >> boundsVal;
+    if (hasLabel) buffer >> labelVal;
 
     int i, j, ind_srv;
     for (int ind = 0; ind < indi.numElements(); ++ind)
@@ -797,6 +833,12 @@ namespace xios {
         bound_srv(0,ind_srv) = boundsVal(0, ind);
         bound_srv(1,ind_srv) = boundsVal(1, ind);
       }
+
+      if (hasLabel)
+      {
+        label_srv(ind_srv) = labelVal( ind);
+      }
+
     }
   }
 
@@ -835,6 +877,10 @@ namespace xios {
       {
         bound_srv(0,ind) = bounds(0,ind);
         bound_srv(1,ind) = bounds(1,ind);
+      }
+      if (hasLabel)
+      {
+        label_srv(ind) = label(ind);
       }
     }
 
@@ -926,6 +972,7 @@ namespace xios {
     {
       value_srv.resize(zoom_size_srv);
       if (hasBounds_)  bound_srv.resize(2,zoom_size_srv);
+      if (hasLabel)  label_srv.resize(zoom_size_srv);
     }
   }
 

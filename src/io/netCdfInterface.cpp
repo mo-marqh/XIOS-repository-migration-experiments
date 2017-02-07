@@ -966,6 +966,12 @@ int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, c
   return nc_get_vara_int(ncid, varid, start, count, data);
 }
 
+template<>
+int CNetCdfInterface::ncGetVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, char* data)
+{
+  return nc_get_vara_text(ncid, varid, start, count, data);
+}
+
 // Some specializations of putVariableType
 template<>
 int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const double* data)
@@ -983,6 +989,12 @@ template<>
 int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const int* data)
 {
   return nc_put_vara_int(ncid, varid, start, count, data);
+}
+
+template<>
+int CNetCdfInterface::ncPutVaraType(int ncid, int varid, const StdSize* start, const StdSize* count, const char* data)
+{
+  return nc_put_vara_text(ncid, varid, start, count, data);
 }
 
  /*!

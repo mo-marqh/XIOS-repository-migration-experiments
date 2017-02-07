@@ -32,7 +32,8 @@ namespace xios
   macroPutVar(double)
   macroPutVar(float)
   macroPutVar(int)
-
+  macroPutVar(char)
+  
 #define macroType(type, ncType) \
   template<> nc_type CNetCdfInterface::getNcType<type>() { return ncType; }
 

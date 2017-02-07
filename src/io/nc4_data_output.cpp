@@ -1059,12 +1059,16 @@ namespace xios
         else if (axis->prec==4)  typePrec =  NC_FLOAT ;
         else if (axis->prec==8)   typePrec =  NC_DOUBLE ;
          
+        if (!axis->label.isEmpty()) typePrec = NC_CHAR ;
+        string strId="str_len" ;
         try
         {
           SuperClassWriter::addDimension(axisid, zoom_size);
+          if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
           if (axis->hasValue)
           {
             dims.push_back(axisid);
+            if (!axis->label.isEmpty()) dims.push_back(strId);
             SuperClassWriter::addVariable(axisid, typePrec, dims);
 
             if (!axis->name.isEmpty())
@@ -1103,13 +1107,14 @@ namespace xios
               {
                 CArray<double,1> axis_value(zoom_size_srv);
                 for (int i = 0; i < zoom_size_srv; i++) axis_value(i) = axis->value_srv(i);
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+                if (axis->label.isEmpty())  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
-                if (!axis->bounds.isEmpty())
+                if (!axis->bounds.isEmpty() && axis->label.isEmpty())
                   SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0);
 
+                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
+ 
                 SuperClassWriter::definition_start();
-
                 break;
               }
               case ONE_FILE:
@@ -1123,10 +1128,12 @@ namespace xios
                 count[0] = countBounds[0] = zoom_size_srv;
                 startBounds[1] = 0;
                 countBounds[1] = 2;
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+                if (axis->label.isEmpty()) SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
-                if (!axis->bounds.isEmpty())
+                if (!axis->bounds.isEmpty()&& axis->label.isEmpty())
                   SuperClassWriter::writeData(axis->bound_srv, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+
+                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
 
                 SuperClassWriter::definition_start();
 

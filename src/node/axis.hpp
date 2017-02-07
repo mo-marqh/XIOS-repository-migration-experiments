@@ -122,6 +122,7 @@ namespace xios {
         int ni_srv, begin_srv, end_srv;
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
+        CArray<StdString,1> label_srv;
         bool hasValue;
 
       private:
@@ -129,6 +130,7 @@ namespace xios {
          void checkMask();
          void checkZoom();
          void checkBounds();
+         void checkLabel();
          void checkTransformations();
          void sendValue();
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -162,6 +164,7 @@ namespace xios {
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
+         bool hasLabel;
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);
