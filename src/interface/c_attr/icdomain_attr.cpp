@@ -746,6 +746,29 @@ extern "C"
   }
 
 
+  void cxios_set_domain_prec(domain_Ptr domain_hdl, int prec)
+  {
+    CTimer::get("XIOS").resume();
+    domain_hdl->prec.setValue(prec);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_prec(domain_Ptr domain_hdl, int* prec)
+  {
+    CTimer::get("XIOS").resume();
+    *prec = domain_hdl->prec.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_prec(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->prec.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domain_standard_name(domain_Ptr domain_hdl, const char * standard_name, int standard_name_size)
   {
     std::string standard_name_str;

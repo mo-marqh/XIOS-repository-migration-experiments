@@ -615,6 +615,25 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_nvertex
 
 
+    SUBROUTINE cxios_set_domain_prec(domain_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: prec
+    END SUBROUTINE cxios_set_domain_prec
+
+    SUBROUTINE cxios_get_domain_prec(domain_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      INTEGER (KIND=C_INT)             :: prec
+    END SUBROUTINE cxios_get_domain_prec
+
+    FUNCTION cxios_is_defined_domain_prec(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_prec
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_prec
+
+
     SUBROUTINE cxios_set_domain_standard_name(domain_hdl, standard_name, standard_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl

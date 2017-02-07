@@ -51,6 +51,25 @@ MODULE scalar_interface_attr
     END FUNCTION cxios_is_defined_scalar_name
 
 
+    SUBROUTINE cxios_set_scalar_prec(scalar_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: prec
+    END SUBROUTINE cxios_set_scalar_prec
+
+    SUBROUTINE cxios_get_scalar_prec(scalar_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      INTEGER (KIND=C_INT)             :: prec
+    END SUBROUTINE cxios_get_scalar_prec
+
+    FUNCTION cxios_is_defined_scalar_prec(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_prec
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_prec
+
+
     SUBROUTINE cxios_set_scalar_scalar_ref(scalar_hdl, scalar_ref, scalar_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl

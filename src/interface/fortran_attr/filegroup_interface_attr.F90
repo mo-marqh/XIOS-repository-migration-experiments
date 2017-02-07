@@ -436,6 +436,69 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_time_counter_name
 
 
+    SUBROUTINE cxios_set_filegroup_time_stamp_format(filegroup_hdl, time_stamp_format, time_stamp_format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_stamp_format
+      INTEGER  (kind = C_INT)     , VALUE        :: time_stamp_format_size
+    END SUBROUTINE cxios_set_filegroup_time_stamp_format
+
+    SUBROUTINE cxios_get_filegroup_time_stamp_format(filegroup_hdl, time_stamp_format, time_stamp_format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_stamp_format
+      INTEGER  (kind = C_INT)     , VALUE        :: time_stamp_format_size
+    END SUBROUTINE cxios_get_filegroup_time_stamp_format
+
+    FUNCTION cxios_is_defined_filegroup_time_stamp_format(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_time_stamp_format
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_time_stamp_format
+
+
+    SUBROUTINE cxios_set_filegroup_time_stamp_name(filegroup_hdl, time_stamp_name, time_stamp_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_stamp_name
+      INTEGER  (kind = C_INT)     , VALUE        :: time_stamp_name_size
+    END SUBROUTINE cxios_set_filegroup_time_stamp_name
+
+    SUBROUTINE cxios_get_filegroup_time_stamp_name(filegroup_hdl, time_stamp_name, time_stamp_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_stamp_name
+      INTEGER  (kind = C_INT)     , VALUE        :: time_stamp_name_size
+    END SUBROUTINE cxios_get_filegroup_time_stamp_name
+
+    FUNCTION cxios_is_defined_filegroup_time_stamp_name(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_time_stamp_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_time_stamp_name
+
+
+    SUBROUTINE cxios_set_filegroup_time_units(filegroup_hdl, time_units, time_units_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_units
+      INTEGER  (kind = C_INT)     , VALUE        :: time_units_size
+    END SUBROUTINE cxios_set_filegroup_time_units
+
+    SUBROUTINE cxios_get_filegroup_time_units(filegroup_hdl, time_units, time_units_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: time_units
+      INTEGER  (kind = C_INT)     , VALUE        :: time_units_size
+    END SUBROUTINE cxios_get_filegroup_time_units
+
+    FUNCTION cxios_is_defined_filegroup_time_units(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_time_units
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_time_units
+
+
     SUBROUTINE cxios_set_filegroup_timeseries(filegroup_hdl, timeseries, timeseries_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -497,6 +560,48 @@ MODULE filegroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_type
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
     END FUNCTION cxios_is_defined_filegroup_type
+
+
+    SUBROUTINE cxios_set_filegroup_uuid_format(filegroup_hdl, uuid_format, uuid_format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: uuid_format
+      INTEGER  (kind = C_INT)     , VALUE        :: uuid_format_size
+    END SUBROUTINE cxios_set_filegroup_uuid_format
+
+    SUBROUTINE cxios_get_filegroup_uuid_format(filegroup_hdl, uuid_format, uuid_format_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: uuid_format
+      INTEGER  (kind = C_INT)     , VALUE        :: uuid_format_size
+    END SUBROUTINE cxios_get_filegroup_uuid_format
+
+    FUNCTION cxios_is_defined_filegroup_uuid_format(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_uuid_format
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_uuid_format
+
+
+    SUBROUTINE cxios_set_filegroup_uuid_name(filegroup_hdl, uuid_name, uuid_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: uuid_name
+      INTEGER  (kind = C_INT)     , VALUE        :: uuid_name_size
+    END SUBROUTINE cxios_set_filegroup_uuid_name
+
+    SUBROUTINE cxios_get_filegroup_uuid_name(filegroup_hdl, uuid_name, uuid_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: uuid_name
+      INTEGER  (kind = C_INT)     , VALUE        :: uuid_name_size
+    END SUBROUTINE cxios_get_filegroup_uuid_name
+
+    FUNCTION cxios_is_defined_filegroup_uuid_name(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_uuid_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_uuid_name
 
   END INTERFACE
 
