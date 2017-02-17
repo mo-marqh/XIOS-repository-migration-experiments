@@ -124,10 +124,11 @@ namespace xios{
     CContext* context = CContext::getCurrent();
 //    CContextClient* client = context->client;
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
-    {
-      CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer[i];
+//    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+//    for (int i = 0; i < nbSrvPools; ++i)
+//    {
+//      CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer[i];
+      CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
       CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
@@ -175,11 +176,12 @@ namespace xios{
         }
         client->sendEvent(event);
       }
-    }
+//    }
 
     CTimer::get("XIOS Send Data").suspend();
   }
 
+/*
   void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
   {
     CTimer::get("XIOS Send Data").resume();
@@ -232,7 +234,7 @@ namespace xios{
     }
     CTimer::get("XIOS Send Data").suspend();
   }
-
+*/
   void CField::recvUpdateData(CEventServer& event)
   {
     std::map<int,CBufferIn*> rankBuffers;

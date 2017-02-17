@@ -83,24 +83,71 @@ namespace xios
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
+
       if (!event.isEmpty())
       {
         list<int> sizes = event.getSizes();
 
-        list<CBufferOut*> buffList = getBuffers(ranks, sizes);
+        // We force the getBuffers call to be non-blocking on the servers
+        list<CBufferOut*> buffList;
+        bool couldBuffer = getBuffers(ranks, sizes, buffList, !CXios::isClient);
+//        bool couldBuffer = getBuffers(ranks, sizes, buffList, CXios::isServer);
 
-        event.send(timeLine, sizes, buffList);
+        if (couldBuffer)
+        {
+          event.send(timeLine, sizes, buffList);
 
-        checkBuffers(ranks);
-      }
+          checkBuffers(ranks);
 
-      if (isAttachedModeEnabled())
-      {
-        waitEvent(ranks);
-        CContext::setCurrent(context->getId());
+          if (isAttachedModeEnabled()) // couldBuffer is always true in attached mode
+          {
+            waitEvent(ranks);
+            CContext::setCurrent(context->getId());
+          }
+        }
+        else
+        {
+          tmpBufferedEvent.ranks = ranks;
+          tmpBufferedEvent.sizes = sizes;
+
+          for (list<int>::const_iterator it = sizes.begin(); it != sizes.end(); it++)
+            tmpBufferedEvent.buffers.push_back(new CBufferOut(*it));
+
+          event.send(timeLine, tmpBufferedEvent.sizes, tmpBufferedEvent.buffers);
+        }
       }
 
       timeLine++;
+    }
+
+    /*!
+     * Send the temporarily buffered event (if any).
+     *
+     * \return true if a temporarily buffered event could be sent, false otherwise
+     */
+    bool CContextClient::sendTemporarilyBufferedEvent()
+    {
+      bool couldSendTmpBufferedEvent = false;
+
+      if (hasTemporarilyBufferedEvent())
+      {
+        list<CBufferOut*> buffList;
+        if (getBuffers(tmpBufferedEvent.ranks, tmpBufferedEvent.sizes, buffList, true)) // Non-blocking call
+        {
+          list<CBufferOut*>::iterator it, itBuffer;
+
+          for (it = tmpBufferedEvent.buffers.begin(), itBuffer = buffList.begin(); it != tmpBufferedEvent.buffers.end(); it++, itBuffer++)
+            (*itBuffer)->put((char*)(*it)->start(), (*it)->count());
+
+          checkBuffers(tmpBufferedEvent.ranks);
+
+          tmpBufferedEvent.clear();
+
+          couldSendTmpBufferedEvent = true;
+        }
+      }
+
+      return couldSendTmpBufferedEvent;
     }
 
     /*!
@@ -123,19 +170,23 @@ namespace xios
       }
     }
 
+
     /*!
-    Setup buffer for each connection to server and verify their state to put content into them
-    \param [in] serverList list of rank of connected server
-    \param [in] sizeList size of message corresponding to each connection
-    \return List of buffer input which event can be placed
+     * Get buffers for each connection to the servers. This function blocks until there is enough room in the buffers unless
+     * it is explicitly requested to be non-blocking.
+     *
+     * \param [in] serverList list of rank of connected server
+     * \param [in] sizeList size of message corresponding to each connection
+     * \param [out] retBuffers list of buffers that can be used to store an event
+     * \param [in] nonBlocking whether this function should be non-blocking
+     * \return whether the already allocated buffers could be used
     */
-    list<CBufferOut*> CContextClient::getBuffers(list<int>& serverList, list<int>& sizeList)
+    bool CContextClient::getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking /*= false*/)
     {
-      list<int>::iterator itServer, itSize;
+      list<int>::const_iterator itServer, itSize;
       list<CClientBuffer*> bufferList;
-      map<int,CClientBuffer*>::iterator it;
+      map<int,CClientBuffer*>::const_iterator it;
       list<CClientBuffer*>::iterator itBuffer;
-      list<CBufferOut*>  retBuffer;
       bool areBuffersFree;
 
       for (itServer = serverList.begin(); itServer != serverList.end(); itServer++)
@@ -159,16 +210,24 @@ namespace xios
         if (!areBuffersFree)
         {
           checkBuffers();
-          context->server->listen();
+//          if (?)
+//          {
+//            for (int i = 0; i < context->serverPrimServer.size(); ++i)
+//              context->serverPrimServer[i]->listen();
+//          }
+//          else
+            context->server->listen();
         }
-      } while (!areBuffersFree);
+      } while (!areBuffersFree && !nonBlocking);
       CTimer::get("Blocking time").suspend();
 
-      for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+      if (areBuffersFree)
       {
-        retBuffer.push_back((*itBuffer)->getBuffer(*itSize));
+        for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
+          retBuffers.push_back((*itBuffer)->getBuffer(*itSize));
       }
-      return retBuffer;
+
+      return areBuffersFree;
    }
 
    /*!
@@ -298,42 +357,53 @@ namespace xios
    /*!
    Finalize context client and do some reports
    */
-   void CContextClient::finalize(void)
-   {
-     map<int,CClientBuffer*>::iterator itBuff;
-     bool stop = true;
+  void CContextClient::finalize(void)
+  {
+    map<int,CClientBuffer*>::iterator itBuff;
+    bool stop = false;
 
-     CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
-     if (isServerLeader())
-     {
-       CMessage msg;
-       const std::list<int>& ranks = getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         event.push(*itRank, 1, msg);
-       sendEvent(event);
-     }
-     else sendEvent(event);
+    CTimer::get("Blocking time").resume();
+    while (hasTemporarilyBufferedEvent())
+    {
+      checkBuffers();
+      sendTemporarilyBufferedEvent();
+    }
+    CTimer::get("Blocking time").suspend();
 
-     CTimer::get("Blocking time").resume();
-     while (stop)
-     {
-       checkBuffers();
-       stop = false;
-       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop |= itBuff->second->hasPendingRequest();
-     }
-     CTimer::get("Blocking time").suspend();
+    CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_FINALIZE);
+    if (isServerLeader())
+    {
+      CMessage msg;
+      const std::list<int>& ranks = getRanksServerLeader();
+      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        event.push(*itRank, 1, msg);
+      sendEvent(event);
+    }
+    else sendEvent(event);
 
-     std::map<int,StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
-                                           iteMap = mapBufferSize_.end(), itMap;
-     StdSize totalBuf = 0;
-     for (itMap = itbMap; itMap != iteMap; ++itMap)
-     {
-       report(10) << " Memory report : Context <" << context->getId() << "> : client side : memory used for buffer of each connection to server" << endl
-                  << "  +) To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
-       totalBuf += itMap->second;
-     }
-     report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
+    CTimer::get("Blocking time").resume();
+    while (!stop)
+    {
+      checkBuffers();
+      if (hasTemporarilyBufferedEvent())
+        sendTemporarilyBufferedEvent();
 
-     releaseBuffers();
-   }
+      stop = true;
+      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
+    }
+    CTimer::get("Blocking time").suspend();
+
+    std::map<int,StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
+                                          iteMap = mapBufferSize_.end(), itMap;
+    StdSize totalBuf = 0;
+    for (itMap = itbMap; itMap != iteMap; ++itMap)
+    {
+      report(10) << " Memory report : Context <" << context->getId() << "> : client side : memory used for buffer of each connection to server" << endl
+                 << "  +) To server with rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+      totalBuf += itMap->second;
+    }
+    report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
+
+    releaseBuffers();
+  }
 }

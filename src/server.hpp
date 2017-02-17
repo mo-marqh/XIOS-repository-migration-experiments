@@ -13,7 +13,6 @@ namespace xios
     {
       public:
         static void initialize(void);
-        static void initialize(const StdString& serverId);
         static void finalize(void);
         static void eventLoop(void);
         static void contextEventLoop(void);
@@ -22,20 +21,15 @@ namespace xios
         static void recvContextMessage(void* buff,int count);
         static void listenRootContext(void);
         static void listenRootFinalize(void);
-        static void registerContext(void* buff,int count, int leaderRank=0);        // context registered by the primary server
+        static void registerContext(void* buff,int count, int leaderRank=0);
 
-        // Communicators for the primary group of servers
         static MPI_Comm intraComm;
-        static list<MPI_Comm> interCommLeft;   // interComm between server (primary or secondary) and its client (client or primary server)
-        static list<MPI_Comm> interCommRight;  // interComm between primary server and secondary server (non-empty only for primary server pool)
-        static list<MPI_Comm> interComm;       // interCommLeft + interCommRight
-        static std::list<MPI_Comm> contextInterComms;
+        static list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
+        static list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
+        static std::list<MPI_Comm> contextInterComms;  // significance ??
         static CEventScheduler* eventScheduler;
 
         static int serverLevel ;
-
-//        static int nbSndSrvPools;   // number of secondary server pools
-//        static int poolNb;          // for secondary servers; stores the pool number
 
         struct contextMessage
         {
@@ -45,7 +39,7 @@ namespace xios
 
         static bool isRoot;
 
-        static map<string,CContext*> contextList;       // contexts on the primary server
+        static map<string,CContext*> contextList;
         static bool finished;
         static bool is_MPI_Initialized;
 
@@ -69,9 +63,10 @@ namespace xios
 
       private:
         static int rank;
-        static int serverSize;  //!< Number of procs dedicated to server
-        static int nbPools;     //!< Number of secondary-server pools
-        static int poolId;      //!< ID of a secondary-server pool
+        static int serverLeader;  //!< Leader of the classical or primary server (needed in case of secondary servers)
+        static int serverSize;    //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
+        static int nbPools;       //!< Number of secondary server pools
+        static int poolId;        //!< id of a secondary server pool starting from 1
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

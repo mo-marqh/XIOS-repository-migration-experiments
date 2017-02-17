@@ -230,6 +230,7 @@ namespace xios
                        CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,local_size_write[0])) ;
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
                        CArray<double,1> lon = domain->lonvalue(Range(0,local_size_write[1])) ;
+//                       CArray<double,1> lon = domain->lonvalue(Range(0,local_size_write[1]-1)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
                        break;
                    }

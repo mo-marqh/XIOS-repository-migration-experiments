@@ -269,16 +269,21 @@ namespace xios {
     //! Verify state of a file
     void CFile::checkFile(void)
     {
-      if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+      CContext* context = CContext::getCurrent();
+      // Done by classical server or secondary server
+      if (!CXios::usingServer2 || (CXios::usingServer2 && !context->hasClient))
       {
-        if (!isOpen) createHeader();
-        checkSync();
+        if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+        {
+          if (!isOpen) createHeader();
+          checkSync();
+        }
+        else
+        {
+          if (!isOpen) openInReadMode();
+        }
+        checkSplit();
       }
-      else
-      {
-        if (!isOpen) openInReadMode();
-      }
-      checkSplit();
     }
 
     /*!
@@ -589,6 +594,7 @@ namespace xios {
      // Just check file and try to open it
      CContext* context = CContext::getCurrent();
      CContextClient* client=context->client;
+//     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      // It would probably be better to call initFile() somehow
      MPI_Comm_dup(client->intraComm, &fileComm);

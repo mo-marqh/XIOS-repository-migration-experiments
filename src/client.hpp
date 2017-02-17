@@ -10,11 +10,10 @@ namespace xios
     {
       public:
         static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
-        static void initializeClientOnServer(const int rank, const MPI_Comm& localComm, const int srvSndLeader);
 
         static void finalize(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
-        static void registerContextByClienOfServer(const string& id, MPI_Comm contextComm);
+//        static void registerContextByClientOfServer(const string& id, MPI_Comm contextComm);
 
         static MPI_Comm intraComm;
         static MPI_Comm interComm;

@@ -14,16 +14,17 @@ namespace xios
     public:
 
     CContextServer(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm) ;
-    CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm, MPI_Comm interComm) ;
-    bool eventLoop(void) ;
+
+    bool eventLoop(bool enableEventsProcessing = true);
     void listen(void) ;
     void checkPendingRequest(void) ;
-    void processRequest(int rank, char* buff,int count) ;
     void processEvents(void) ;
+    bool hasFinished(void);
     void dispatchEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
-    bool hasFinished(void);
+
+    void processRequest(int rank, char* buff,int count) ;
 
     MPI_Comm intraComm ;
     int intraCommSize ;
@@ -44,10 +45,14 @@ namespace xios
     bool pendingEvent ;
     bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
     size_t hashId ;
+
+    static size_t getTotalBuf(void);
+
     ~CContextServer() ;
 
     private:
-      std::map<int, StdSize> mapBufferSize_;
+    std::map<int, StdSize> mapBufferSize_;
+    static size_t totalBuf_ ;  /*!< Total memory allocated by servers per context.*/
 
   } ;
 

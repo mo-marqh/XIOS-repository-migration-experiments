@@ -248,41 +248,45 @@ namespace xios {
    {
 
      hasClient = true;
+
      if (CServer::serverLevel != 1)
-//     if (CXios::serverLevel != 1)
-     // initClient is called by client pool
+     // initClient is called by client
      {
        client = new CContextClient(this, intraComm, interComm, cxtServer);
        server = new CContextServer(this, intraComm, interComm);
+       MPI_Comm intraCommServer, interCommServer;
+       if (cxtServer) // Attached mode
+       {
+         intraCommServer = intraComm;
+         interCommServer = interComm;
+       }
+       else
+       {
+//         MPI_Comm_dup(intraComm, &intraCommServer);
+//         comms.push_back(intraCommServer);
+//         MPI_Comm_dup(interComm, &interCommServer);
+//         comms.push_back(interCommServer);
+       }
      }
+
      else
-     // initClient is called by primary server pool
+     // initClient is called by primary server
      {
        clientPrimServer.push_back(new CContextClient(this, intraComm, interComm));
        serverPrimServer.push_back(new CContextServer(this, intraComm, interComm));
      }
 
-     registryIn=new CRegistry(intraComm);
-     registryIn->setPath(getId()) ;
-     if (client->clientRank==0) registryIn->fromFile("xios_registry.bin") ;
-     registryIn->bcastRegistry() ;
 
-     registryOut=new CRegistry(intraComm) ;
-     registryOut->setPath(getId()) ;
 
-     MPI_Comm intraCommServer, interCommServer;
-     if (cxtServer) // Attached mode
-     {
-       intraCommServer = intraComm;
-       interCommServer = interComm;
-     }
-     else
-     {
-       MPI_Comm_dup(intraComm, &intraCommServer);
-       comms.push_back(intraCommServer);
-       MPI_Comm_dup(interComm, &interCommServer);
-       comms.push_back(interCommServer);
-     }
+//     registryIn=new CRegistry(intraComm);
+//     registryIn->setPath(getId()) ;
+//     if (client->clientRank==0) registryIn->fromFile("xios_registry.bin") ;
+//     registryIn->bcastRegistry() ;
+//
+//     registryOut=new CRegistry(intraComm) ;
+//     registryOut->setPath(getId()) ;
+
+
    }
 
    void CContext::setClientServerBuffer()
@@ -352,12 +356,12 @@ namespace xios {
      client = new CContextClient(this,intraComm,interComm);
 //     client = new CContextClient(this,intraComm,interComm, cxtClient);
 
-     registryIn=new CRegistry(intraComm);
-     registryIn->setPath(getId()) ;
-     if (server->intraCommRank==0) registryIn->fromFile("xios_registry.bin") ;
-     registryIn->bcastRegistry() ;
-     registryOut=new CRegistry(intraComm) ;
-     registryOut->setPath(getId()) ;
+//     registryIn=new CRegistry(intraComm);
+//     registryIn->setPath(getId()) ;
+//     if (server->intraCommRank==0) registryIn->fromFile("xios_registry.bin") ;
+//     registryIn->bcastRegistry() ;
+//     registryOut=new CRegistry(intraComm) ;
+//     registryOut->setPath(getId()) ;
 
      MPI_Comm intraCommClient, interCommClient;
      if (cxtClient) // Attached mode
@@ -367,36 +371,36 @@ namespace xios {
      }
      else
      {
-       MPI_Comm_dup(intraComm, &intraCommClient);
-       comms.push_back(intraCommClient);
-       MPI_Comm_dup(interComm, &interCommClient);
-       comms.push_back(interCommClient);
+//       MPI_Comm_dup(intraComm, &intraCommClient);
+//       comms.push_back(intraCommClient);
+//       MPI_Comm_dup(interComm, &interCommClient);
+//       comms.push_back(interCommClient);
      }
 
    }
 
    //! Server side: Put server into a loop in order to listen message from client
-   bool CContext::eventLoop(void)
-   {
-     if (CServer::serverLevel == 0)
-     {
-       return server->eventLoop();
-     }
-     else if (CServer::serverLevel == 1)
-     {
-       bool serverFinished = server->eventLoop();
-       bool serverPrimFinished = true;
-       for (int i = 0; i < serverPrimServer.size(); ++i)
-       {
-         serverPrimFinished *= serverPrimServer[i]->eventLoop();
-       }
-       return ( serverFinished && serverPrimFinished);
-     }
-     else
-     {
-       return server->eventLoop();
-     }
-   }
+//   bool CContext::eventLoop(void)
+//   {
+//     if (CServer::serverLevel == 0)
+//     {
+//       return server->eventLoop();
+//     }
+//     else if (CServer::serverLevel == 1)
+//     {
+//       bool serverFinished = server->eventLoop();
+//       bool serverPrimFinished = true;
+//       for (int i = 0; i < serverPrimServer.size(); ++i)
+//       {
+//         serverPrimFinished *= serverPrimServer[i]->eventLoop();
+//       }
+//       return ( serverFinished && serverPrimFinished);
+//     }
+//     else
+//     {
+//       return server->eventLoop();
+//     }
+//   }
 
    //! Try to send the buffers and receive possible answers
    bool CContext::checkBuffersAndListen(void)
@@ -404,25 +408,41 @@ namespace xios {
      if (CServer::serverLevel == 0)
      {
        client->checkBuffers();
-       return server->eventLoop();
+       bool hasTmpBufferedEvent = client->hasTemporarilyBufferedEvent();
+       if (hasTmpBufferedEvent)
+         hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
+
+       // Don't process events if there is a temporarily buffered event
+       return server->eventLoop(!hasTmpBufferedEvent);
      }
+
      else if (CServer::serverLevel == 1)
      {
        client->checkBuffers();
-       for (int i = 0; i < clientPrimServer.size(); ++i)
-         clientPrimServer[i]->checkBuffers();
-       bool serverFinished = server->eventLoop();
+       bool hasTmpBufferedEvent = client->hasTemporarilyBufferedEvent();
+       if (hasTmpBufferedEvent)
+         hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
+       bool serverFinished = server->eventLoop(!hasTmpBufferedEvent);
+
        bool serverPrimFinished = true;
-       for (int i = 0; i < serverPrimServer.size(); ++i)
+       for (int i = 0; i < clientPrimServer.size(); ++i)
        {
-         serverPrimFinished *= serverPrimServer[i]->eventLoop();
+         clientPrimServer[i]->checkBuffers();
+         bool hasTmpBufferedEventPrim = clientPrimServer[i]->hasTemporarilyBufferedEvent();
+         if (hasTmpBufferedEventPrim)
+           hasTmpBufferedEventPrim = !clientPrimServer[i]->sendTemporarilyBufferedEvent();
+         serverPrimFinished *= serverPrimServer[i]->eventLoop(hasTmpBufferedEventPrim);
        }
        return ( serverFinished && serverPrimFinished);
      }
+
      else if (CServer::serverLevel == 2)
      {
        client->checkBuffers();
-       return server->eventLoop();
+       bool hasTmpBufferedEvent = client->hasTemporarilyBufferedEvent();
+       if (hasTmpBufferedEvent)
+         hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
+       return server->eventLoop(!hasTmpBufferedEvent);
      }
    }
 
@@ -432,7 +452,13 @@ namespace xios {
      if (!finalized)
      {
        finalized = true;
-       if (hasClient) sendRegistry() ;
+//       if (hasClient) sendRegistry() ;
+
+       client->finalize();
+       while (!server->hasFinished())
+       {
+         server->eventLoop();
+       }
 
        if ((hasClient) && (hasServer))
        {
@@ -449,17 +475,14 @@ namespace xios {
          }
        }
 
-       client->finalize();
-       while (!server->hasFinished())
-       {
-         server->eventLoop();
-       }
+       report(0)<< " Memory report : Context <"<<getId()<<"> : server side : total memory used for buffers "<<CContextServer::getTotalBuf()<<" bytes"<<endl;
 
-       if (hasServer)
+//       if (hasServer)
+       if (hasServer && !hasClient)
        {
          closeAllFile();
-         registryOut->hierarchicalGatherRegistry() ;
-         if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
+//         registryOut->hierarchicalGatherRegistry() ;
+//         if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
        }
 
        for (std::vector<CContextClient*>::iterator it = clientPrimServer.begin(); it != clientPrimServer.end(); it++)
@@ -471,7 +494,6 @@ namespace xios {
        for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
          MPI_Comm_free(&(*it));
        comms.clear();
-
 
       }
    }
@@ -1624,6 +1646,11 @@ namespace xios {
     //    }
     //    else clientPrimServer->sendEvent(event);
     // }
+  }
+
+  bool CContext::isFinalized(void)
+  {
+    return finalized;
   }
 
 } // namespace xios

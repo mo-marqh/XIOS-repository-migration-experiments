@@ -135,19 +135,9 @@ namespace xios
   }
 
   //! Initialize server then put it into listening state
-  void CXios::initServerSide(int serverLvl)
+  void CXios::initServerSide(void)
   {
     initServer();
-
-//    if (serverLvl == 1)
-//      isClient = true;
-//    else
-//      isClient = false;
-//
-//    isServer = true;
-//    serverLevel = serverLvl;
-
-
 
     // Initialize all aspects MPI
     CServer::initialize();
@@ -162,13 +152,11 @@ namespace xios
     if (printLogs2Files)
     {
       if (CServer::serverLevel == 0)
-//      if (CXios::serverLevel == 0)
       {
         CServer::openInfoStream(serverFile);
         CServer::openErrorStream(serverFile);
       }
       else if (CServer::serverLevel == 1)
-//      else if (CXios::serverLevel == 1)
       {
         CServer::openInfoStream(serverPrmFile);
         CServer::openErrorStream(serverPrmFile);

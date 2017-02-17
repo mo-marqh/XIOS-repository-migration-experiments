@@ -30,10 +30,11 @@ namespace xios
 
       // Send event to server
       void sendEvent(CEventClient& event);
+      bool sendTemporarilyBufferedEvent();
       void waitEvent(list<int>& ranks);
 
-      // Functions relates to set/get buffers
-      list<CBufferOut*> getBuffers(list<int>& serverlist, list<int>& sizeList);
+      // Functions to set/get buffers
+      bool getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking = false);
       void newBuffer(int rank);
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
@@ -45,9 +46,10 @@ namespace xios
       const std::list<int>& getRanksServerNotLeader(void) const;
 
       bool isAttachedModeEnabled() const;
+      bool hasTemporarilyBufferedEvent() const { return !tmpBufferedEvent.isEmpty(); };
 
       // Close and finalize context client
-      void closeContext(void);
+//      void closeContext(void);  Never been implemented.
       void finalize(void);
 
       void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
@@ -67,13 +69,29 @@ namespace xios
 
       MPI_Comm intraComm; //!< Communicator of client group
 
-      map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
+      map<int,CClientBuffer*> buffers;     //!< Buffers for connection to servers
 
     private:
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
       //! Maximum number of events that can be buffered
       StdSize maxBufferedEvents;
+
+      struct {
+        std::list<int> ranks, sizes;
+        std::list<CBufferOut*> buffers;
+
+        bool isEmpty() const { return ranks.empty(); };
+        void clear() {
+          ranks.clear();
+          sizes.clear();
+
+          for (std::list<CBufferOut*>::iterator it = buffers.begin(); it != buffers.end(); it++)
+            delete *it;
+
+          buffers.clear();
+        };
+      } tmpBufferedEvent; //! Event temporarily buffered (used only on the server)
 
       //! Context for server (Only used in attached mode)
       CContext* parentServer;

@@ -169,12 +169,12 @@ namespace xios {
 
       private :
          /// Propriétés privées ///
+         CContextClient* client;
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup;
          boost::shared_ptr<CDataOutput> data_out;
          boost::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
-         CContextClient* client;
 
       public:
         //         virtual void toBinary  (StdOStream& os) const;

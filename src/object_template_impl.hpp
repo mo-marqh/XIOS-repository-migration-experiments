@@ -295,27 +295,6 @@ namespace xios
         else contextClientTmp->sendEvent(event);
       }
     }
-//     // if (!context->hasServer)
-//     if (context->hasClient)
-//     {
-//        CContextClient* client=context->client;
-
-//        CEventClient event(getType(),EVENT_ID_SEND_ATTRIBUTE);
-//        if (client->isServerLeader())
-//        {
-//          CMessage msg;
-// //       msg << this->getId();
-//          msg << this->getIdServer();
-//          msg << attr.getName();
-//          msg << attr;
-//          const std::list<int>& ranks = client->getRanksServerLeader();
-//          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-//            event.push(*itRank,1,msg);
-//          client->sendEvent(event);
-//        }
-//        else client->sendEvent(event);
-//     }
-
   }
 
   template <class T>

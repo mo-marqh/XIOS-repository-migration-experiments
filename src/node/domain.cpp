@@ -155,7 +155,10 @@ namespace xios {
     */
    std::map<int, StdSize> CDomain::getAttributesBufferSize()
    {
-     CContextClient* client = CContext::getCurrent()->client;
+     CContext* context = CContext::getCurrent();
+     // For now the assumption is that secondary server pools consist of the same number of procs.
+     // CHANGE the line below if the assumption changes.
+     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
@@ -271,7 +274,9 @@ namespace xios {
 
      this->isRedistributed_ = true;
      CContext* context = CContext::getCurrent();
-     CContextClient* client = context->client;
+     // For now the assumption is that secondary server pools consist of the same number of procs.
+     // CHANGE the line below if the assumption changes.
+     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
      int rankClient = client->clientRank;
      int rankOnDomain = rankClient%nbLocalDomain;
 
@@ -507,7 +512,9 @@ namespace xios {
    void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
    {
 	  CContext* context = CContext::getCurrent();
-      CContextClient* client = context->client;
+    // For now the assumption is that secondary server pools consist of the same number of procs.
+    // CHANGE the line below if the assumption changes.
+    CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 	  lon_g.resize(ni_glo) ;
 	  lat_g.resize(nj_glo) ;
 
@@ -1350,7 +1357,9 @@ namespace xios {
        // this->checkMask();
       this->computeConnectedClients();
        // if (hasLonLat || hasArea || isCompressible_) this->computeConnectedClients();
-       if (hasLonLat) this->completeLonLatClient();
+       if (hasLonLat)
+         if (!context->hasServer)
+           this->completeLonLatClient();
      }
 
      this->isClientAfterTransformationChecked = true;
@@ -1396,6 +1405,7 @@ namespace xios {
      if (this->isChecked) return;
      if (context->hasClient)
      {
+//       this->completeLonLatClient();
        sendAttributes();
      }
      this->isChecked = true;
@@ -1443,10 +1453,11 @@ namespace xios {
      // Use correct context client to send message
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
-                                                                         : context->client;    
+      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[p]
+                                                                       : context->client;
+
       int nbServer = contextClientTmp->serverSize;
       std::vector<int> nGlobDomain(2);
       nGlobDomain[0] = this->ni_glo;
@@ -1497,9 +1508,9 @@ namespace xios {
     CContext* context=CContext::getCurrent() ;
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
       int nbServer=client->serverSize;
       int rank = client->clientRank;
       bool doComputeGlobalIndexServer = true;
@@ -1667,20 +1678,27 @@ namespace xios {
       connectedServerRank_.clear();
       for (it = globalIndexDomainOnServer.begin(); it != ite; ++it) {
         connectedServerRank_.push_back(it->first);
-//        std::vector<size_t> vec = it->second;
-//        std::sort(vec.begin(), vec.end());
-//        indSrv_[it->first] = vec;
+        std::vector<size_t> vec = it->second;
+        std::sort(vec.begin(), vec.end());
+        indSrv_[it->first] = vec;
       }
 
-      indSrv_.swap(globalIndexDomainOnServer);
+//      indSrv_.swap(globalIndexDomainOnServer);
       nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
 
       clientServerMap->computeServerIndexMapping(globalIndexDomainZoom);
       CClientServerMapping::GlobalIndexMap& globalIndexDomainZoomOnServer = clientServerMap->getGlobalIndexOnServer();
-      indZoomSrv_.swap(globalIndexDomainZoomOnServer);
+//      indZoomSrv_.swap(globalIndexDomainZoomOnServer);
       std::vector<int> connectedServerZoomRank(indZoomSrv_.size());
-      for (it = indZoomSrv_.begin(); it != indZoomSrv_.end(); ++it)
+//      for (it = indZoomSrv_.begin(); it != indZoomSrv_.end(); ++it)
+//        connectedServerZoomRank.push_back(it->first);
+      for (it = globalIndexDomainZoomOnServer.begin(); it != globalIndexDomainZoomOnServer.end(); ++it)
+      {
         connectedServerZoomRank.push_back(it->first);
+        std::vector<size_t> vec = it->second;
+        std::sort(vec.begin(), vec.end());
+        indZoomSrv_[it->first] = vec;
+      }
       nbConnectedClientsZoom_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerZoomRank);
 
       delete clientServerMap;
@@ -1698,8 +1716,8 @@ namespace xios {
   */
   void CDomain::sendAttributes()
   {
-    sendIndex();
     sendDistributionAttributes();
+    sendIndex();
     sendMask();
     sendLonLat();
     sendArea();    
@@ -1716,9 +1734,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       CEventClient eventIndex(getType(), EVENT_ID_INDEX);
 
@@ -1787,9 +1805,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       // send area for each connected server
       CEventClient eventMask(getType(), EVENT_ID_MASK);
@@ -1834,9 +1852,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       // send area for each connected server
       CEventClient eventArea(getType(), EVENT_ID_AREA);
@@ -1884,9 +1902,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       // send lon lat for each connected server
       CEventClient eventLon(getType(), EVENT_ID_LON);
@@ -1953,7 +1971,6 @@ namespace xios {
         eventLon.push(rank, nbConnectedClients_[rank], list_msgsLon.back());
         eventLat.push(rank, nbConnectedClients_[rank], list_msgsLat.back());
       }
-
       client->sendEvent(eventLon);
       client->sendEvent(eventLat);
     }
@@ -1970,9 +1987,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       // send area for each connected server
       CEventClient eventDataIndex(getType(), EVENT_ID_DATA_INDEX);
@@ -2203,9 +2220,9 @@ namespace xios {
         int ni_zoom = zoom_i_index.numElements(), idx, nbIZoom = 0, nbJZoom = 0;
         for (idx =0; idx < ni_zoom; ++idx)
         {
-           if ((ibegin <= zoom_i_index(idx)) && (zoom_i_index(idx) < ibegin+ni) && (nbIZoom < ni))
+          if ((ibegin <= zoom_i_index(idx)) && (zoom_i_index(idx) < ibegin+ni) && (nbIZoom < ni))
             ++nbIZoom;
-           if ((jbegin <= zoom_j_index(idx)) && (zoom_j_index(idx) < jbegin+nj) && (nbJZoom < nj))
+          if ((jbegin <= zoom_j_index(idx)) && (zoom_j_index(idx) < jbegin+nj) && (nbJZoom < nj))
             ++nbJZoom;
         }
         count_write_index_[0] = nbIZoom;
@@ -2236,15 +2253,24 @@ namespace xios {
           }         
       }
             
-      MPI_Scan(&count_write_index_[0], &start_write_index_[0], 2, MPI_INT, MPI_SUM, server->intraComm);      
-      start_write_index_[0] = 0; 
-      start_write_index_[1] -= count_write_index_[1];
+      MPI_Scan(&count_write_index_[0], &start_write_index_[0], 2, MPI_INT, MPI_SUM, server->intraComm);
+      if ((this->type) != CDomain::type_attr::unstructured)
+      {
+        start_write_index_[0] = 0;
+        start_write_index_[1] -= count_write_index_[1];
+      }
+      else
+      {
+        start_write_index_[0] -= count_write_index_[0];
+      }
       local_write_size_[0] = count_write_index_[0];
       local_write_size_[1] = count_write_index_[1];
       MPI_Allreduce(&count_write_index_[0], &global_write_size_[0], 2, MPI_INT, MPI_SUM, server->intraComm);
-      global_write_size_[0] = count_write_index_[0];
-      global_write_size_[1] = (global_write_size_[1] > nj_glo) ? nj_glo : global_write_size_[1];
-         
+      if ((this->type) != CDomain::type_attr::unstructured)
+      {
+        global_write_size_[0] = count_write_index_[0];
+        global_write_size_[1] = (global_write_size_[1] > nj_glo) ? nj_glo : global_write_size_[1];
+      }
     }
 
     // int type_int;

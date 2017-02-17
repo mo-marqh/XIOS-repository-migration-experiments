@@ -173,7 +173,11 @@ namespace xios {
     */
    std::map<int, StdSize> CAxis::getAttributesBufferSize()
    {
-     CContextClient* client = CContext::getCurrent()->client;
+//     CContextClient* client = CContext::getCurrent()->client;
+     // For now the assumption is that secondary server pools consist of the same number of procs.
+     // CHANGE the line below if the assumption changes.
+     CContext* context = CContext::getCurrent();
+     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
@@ -454,9 +458,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
       int nbServer = client->serverSize;
       int range, clientSize = client->clientSize;
       int rank = client->clientRank;
@@ -750,9 +754,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
       size_t nbIndex = index.numElements();
@@ -856,9 +860,9 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     //int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[i] : context->client;
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
 
       CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
 

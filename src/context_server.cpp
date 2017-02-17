@@ -21,6 +21,7 @@
 
 namespace xios
 {
+  StdSize CContextServer::totalBuf_ = 0;
 
   CContextServer::CContextServer(CContext* parent, MPI_Comm intraComm_,MPI_Comm interComm_)
   {
@@ -28,6 +29,7 @@ namespace xios
     intraComm=intraComm_;
     MPI_Comm_size(intraComm,&intraCommSize);
     MPI_Comm_rank(intraComm,&intraCommRank);
+
     interComm=interComm_;
     int flag;
     MPI_Comm_test_inter(interComm,&flag);
@@ -37,37 +39,15 @@ namespace xios
     currentTimeLine=0;
     scheduled=false;
     finished=false;
-
     boost::hash<string> hashString;
     hashId=hashString(context->getId());
-
   }
 
-//  CContextServer::CContextServer(CContext* parent, int srvLvl, MPI_Comm intraComm_,MPI_Comm interComm_)
-//  {
-//    context=parent;
-//    intraComm=intraComm_;
-//    MPI_Comm_size(intraComm,&intraCommSize);
-//    MPI_Comm_rank(intraComm,&intraCommRank);
-//    interComm=interComm_;
-//    int flag;
-//    MPI_Comm_test_inter(interComm,&flag);
-//    if (flag) MPI_Comm_remote_size(interComm,&commSize);
-//    else  MPI_Comm_size(interComm,&commSize);
-//
-//    currentTimeLine=0;
-//    scheduled=false;
-//    finished=false;
-//
-//    boost::hash<string> hashString;
-//    StdString contextId = context->getId();
-//    hashId=hashString(contextId);
-//
-//  }
   void CContextServer::setPendingEvent(void)
   {
     pendingEvent=true;
   }
+
 
   bool CContextServer::hasPendingEvent(void)
   {
@@ -79,11 +59,12 @@ namespace xios
     return finished;
   }
 
-  bool CContextServer::eventLoop(void)
+  bool CContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
     listen();
     checkPendingRequest();
-    processEvents();
+    if (enableEventsProcessing)
+      processEvents();
     return finished;
   }
 
@@ -187,6 +168,8 @@ namespace xios
   {
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
+    boost::hash<string> hashString;
+    size_t hashId=hashString(context->getId());
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -223,9 +206,9 @@ namespace xios
   CContextServer::~CContextServer()
   {
     map<int,CServerBuffer*>::iterator it;
-    for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
+    for(it=buffers.begin();it!=buffers.end();++it)
+      delete it->second;
   }
-
 
   void CContextServer::dispatchEvent(CEventServer& event)
   {
@@ -234,7 +217,9 @@ namespace xios
     int MsgSize;
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
-    CContext::setCurrent(context->getId());
+//    CContext::setCurrent(context->getId());
+    StdString ctxId = context->getId();
+    CContext::setCurrent(ctxId);
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
@@ -242,15 +227,16 @@ namespace xios
       info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
-      StdSize totalBuf = 0;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
       {
-        report(10)<< " Memory report : Context <"<<context->getId()<<"> : server side : memory used for buffer of each connection to client" << endl
-            << "  +) With client of rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
-        totalBuf += itMap->second;
+        rank = itMap->first;
+        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
+            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
+        totalBuf_ += itMap->second;
       }
       context->finalize();
-      report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
+
+//      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);
@@ -273,4 +259,10 @@ namespace xios
       ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
     }
   }
+
+  size_t CContextServer::getTotalBuf(void)
+  {
+    return totalBuf_;
+  }
+
 }

@@ -145,7 +145,7 @@ namespace xios {
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
         void sendUpdateData(const CArray<double,1>& data);
-        void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
+//        void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void writeField(void);

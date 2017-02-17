@@ -94,8 +94,6 @@ namespace xios {
          bool isInitialized(void);
 
          // Put sever or client into loop state
-         bool eventLoop(void);
-
          bool checkBuffersAndListen(void);
 
          // Finalize a context
@@ -166,6 +164,8 @@ namespace xios {
          static void recvRegistry(CEventServer& event) ;
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
 
+         bool isFinalized(void);
+
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
 
@@ -207,6 +207,7 @@ namespace xios {
          // Verify if all root definition in a context have children
          virtual bool hasChild(void) const;
 
+
       public :
          // Calendar of context
          boost::shared_ptr<CCalendar>   calendar;
@@ -237,7 +238,6 @@ namespace xios {
          // Concrete context server
          CContextServer* server;
 
-         // Client-server pair in case of secondary server pool
 //         CContextClient* clientPrimServer;
 //         CContextServer* serverPrimServer;
          std::vector<CContextClient*> clientPrimServer;
@@ -249,7 +249,7 @@ namespace xios {
          bool finalized;
          StdString idServer_;
          CGarbageCollector garbageCollector;
-         std::list<MPI_Comm> comms; //!< Communicators allocated internally
+         std::list<MPI_Comm> comms; //!< Communicators allocated internally  --- significance??
 
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;

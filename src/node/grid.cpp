@@ -629,7 +629,9 @@ namespace xios {
 
      computeClientIndex();
      if (context->hasClient)
-      computeConnectedClients();
+     {
+       computeConnectedClients();
+     }
 
 
      // connectedServerRank_.clear();
@@ -791,8 +793,29 @@ namespace xios {
            }
          }
 
-         nbIndexOnServer = 0;
-         for (it = itb; it != ite; ++it)
+//         nbIndexOnServer = 0;
+//         for (it = itb; it != ite; ++it)
+//         {
+//           const std::vector<int>& tmp = it->second;
+//           nbIndexOnServerTmp = 0;
+//           for (int i = 0; i < tmp.size(); ++i)
+//           {
+//             if (0 == nbIndexOnServerTmp(tmp[i]))
+//             {
+//               globalElementIndexOnServer[idx][tmp[i]][nbIndexOnServer(tmp[i])] = it->first;
+//               ++nbIndexOnServerTmp(tmp[i]);
+//             }
+//           }
+//           nbIndexOnServer += nbIndexOnServerTmp;
+//         }
+//       }
+
+       nbIndexOnServer = 0;
+//       for (it = itb; it != ite; ++it)
+       for (size_t j = 0; j < globalIndexElementOnServerMap.size(); ++j)
+       {
+         it = globalIndexElementOnServerMap.find(globalIndexElementOnClient(j));
+         if (it != ite)
          {
            const std::vector<int>& tmp = it->second;
            nbIndexOnServerTmp = 0;
@@ -807,6 +830,7 @@ namespace xios {
            nbIndexOnServer += nbIndexOnServerTmp;
          }
        }
+     }
 
       // Determine server which contain global source index
       std::vector<bool> intersectedProc(serverSize, true);
@@ -1235,9 +1259,9 @@ namespace xios {
 //    CContextClient* client = context->client;
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = context->hasServer ? context->clientPrimServer[i] : context->client ;
+      CContextClient* client = context->hasServer ? context->clientPrimServer[p] : context->client ;
 
       CEventClient event(getType(), EVENT_ID_INDEX);
       int rank;
@@ -1396,10 +1420,12 @@ namespace xios {
     CContext* context = CContext::getCurrent();
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     nbSrvPools = 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[i];
-      CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer[i];
+      CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
+      CContextClient* client = (!context->hasClient) ? context->client : context->clientPrimServer[p];
+//      CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[p];
+//      CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer[p];
       numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
       connectedServerRank_ = ranks;
 
@@ -1502,8 +1528,14 @@ namespace xios {
           serverDistribution_->computeLocalIndex(outIndex);
         else
         {
-          dataSize = outIndex.numElements();
-          for (int i = 0; i < outIndex.numElements(); ++i) outIndex(i) = i;
+//          dataSize = outIndex.numElements();
+//          for (int i = 0; i < outIndex.numElements(); ++i) outIndex(i) = i;
+          // THE PROBLEM HERE IS THAT DATA CAN BE NONDISTRIBUTED ON CLIENT AND DISTRIBUTED ON SERVER
+          // BELOW IS THE TEMPORARY FIX only for a single type of element (domain, asix, scalar)
+          dataSize = serverDistribution_->getGlobalIndexEachDimension()[0].numElements();
+          outIndex.resize(dataSize);
+          outIndex = serverDistribution_->getGlobalIndexEachDimension()[0];
+
         }
         writtenDataSize_ += dataSize;
 

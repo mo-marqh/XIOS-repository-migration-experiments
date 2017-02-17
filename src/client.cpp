@@ -161,19 +161,6 @@ namespace xios
       MPI_Comm_dup(intraComm,&returnComm) ;
     }
 
-    void CClient::initializeClientOnServer(const int rank, const MPI_Comm& intraCommPrmSrv, const int srvSndLeader)
-    {
-      MPI_Comm_dup(intraCommPrmSrv, &intraComm) ;
-      serverLeader.push_back(srvSndLeader);
-      int intraCommSize, intraCommRank ;
-      MPI_Comm_size(intraComm,&intraCommSize) ;
-      MPI_Comm_rank(intraComm,&intraCommRank) ;
-      info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
-          <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
-      MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &interComm) ;
-    }
-
-
 ///---------------------------------------------------------------
 /*!
  * \fn void CClient::registerContext(const string& id, MPI_Comm contextComm)
@@ -256,51 +243,51 @@ namespace xios
   * Function is called by primary server.
   * The only difference with CClient::registerContext() is naming of contexts on servers (appearing of pool id at the end).
   */
-        void CClient::registerContextByClienOfServer(const string& id, MPI_Comm contextComm)
-        {
-          CContext::setCurrent(id) ;
-          CContext* context=CContext::create(id);
-          StdString idServer(id);
-          idServer += "_server_";
-
-          int size,rank,globalRank ;
-          size_t message_size ;
-          int leaderRank ;
-          MPI_Comm contextInterComm ;
-
-          MPI_Comm_size(contextComm,&size) ;
-          MPI_Comm_rank(contextComm,&rank) ;
-          MPI_Comm_rank(CXios::globalComm,&globalRank) ;
-          if (rank!=0) globalRank=0 ;
-
-          CMessage msg ;
-
-          int messageSize ;
-          void * buff ;
-
-          for (int i = 0; i < serverLeader.size(); ++i)
-          {
-            StdString str = idServer + boost::lexical_cast<string>(i);
-            msg<<str<<size<<globalRank ;
-            messageSize = msg.size() ;
-            buff = new char[messageSize] ;
-            CBufferOut buffer(buff,messageSize) ;
-            buffer<<msg ;
-
-            MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader[i], 1, CXios::globalComm) ;
-            MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader[i], 10+globalRank, &contextInterComm) ;
-            info(10)<<"Register new Context : "<<id<<endl ;
-            MPI_Comm inter ;
-            MPI_Intercomm_merge(contextInterComm,0,&inter) ;
-            MPI_Barrier(inter) ;
-
-            context->initClient(contextComm,contextInterComm) ;
-
-            contextInterComms.push_back(contextInterComm);
-            MPI_Comm_free(&inter);
-            delete [] buff ;
-          }
-        }
+//        void CClient::registerContextByClientOfServer(const string& id, MPI_Comm contextComm)
+//        {
+//          CContext::setCurrent(id) ;
+//          CContext* context=CContext::create(id);
+//          StdString idServer(id);
+//          idServer += "_server_";
+//
+//          int size,rank,globalRank ;
+//          size_t message_size ;
+//          int leaderRank ;
+//          MPI_Comm contextInterComm ;
+//
+//          MPI_Comm_size(contextComm,&size) ;
+//          MPI_Comm_rank(contextComm,&rank) ;
+//          MPI_Comm_rank(CXios::globalComm,&globalRank) ;
+//          if (rank!=0) globalRank=0 ;
+//
+//          CMessage msg ;
+//
+//          int messageSize ;
+//          void * buff ;
+//
+//          for (int i = 0; i < serverLeader.size(); ++i)
+//          {
+//            StdString str = idServer + boost::lexical_cast<string>(i);
+//            msg<<str<<size<<globalRank ;
+//            messageSize = msg.size() ;
+//            buff = new char[messageSize] ;
+//            CBufferOut buffer(buff,messageSize) ;
+//            buffer<<msg ;
+//
+//            MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader[i], 1, CXios::globalComm) ;
+//            MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader[i], 10+globalRank, &contextInterComm) ;
+//            info(10)<<"Register new Context : "<<id<<endl ;
+//            MPI_Comm inter ;
+//            MPI_Intercomm_merge(contextInterComm,0,&inter) ;
+//            MPI_Barrier(inter) ;
+//
+//            context->initClient(contextComm,contextInterComm) ;
+//
+////            contextInterComms.push_back(contextInterComm);
+//            MPI_Comm_free(&inter);
+//            delete [] buff ;
+//          }
+//        }
 
     void CClient::finalize(void)
     {

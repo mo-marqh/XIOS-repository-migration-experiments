@@ -38,7 +38,10 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
 {
   CContext* context=CContext::getCurrent() ;
-  CContextClient* client=context->client ;
+//  CContextClient* client=context->client ;
+  // For now the assumption is that secondary server pools consist of the same number of procs.
+  // CHANGE the line below if the assumption changes.
+  CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
   int nbServer=client->serverSize;
 
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
