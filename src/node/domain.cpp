@@ -589,7 +589,7 @@ namespace xios {
     }
     else
     {
-      if (bounds_lat_start.isEmpty()) bounds_lon_start=-90. ;
+      if (bounds_lat_start.isEmpty()) bounds_lat_start=-90. ;
       if (bounds_lat_end.isEmpty()) bounds_lat_end=90 ;
     }
 
