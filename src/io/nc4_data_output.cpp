@@ -2044,6 +2044,10 @@ namespace xios
 
         if (wtime)
         {
+          
+          if (field->getOperationTimeType() == func::CFunctor::instant) field->hasTimeInstant = true;                   
+          if (field->getOperationTimeType() == func::CFunctor::centered) field->hasTimeCentered = true;            
+
           Time lastWrite = field->last_Write_srv;
           Time lastLastWrite = field->lastlast_Write_srv;
 
