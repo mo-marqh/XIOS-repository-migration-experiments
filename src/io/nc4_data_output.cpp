@@ -2649,8 +2649,8 @@ namespace xios
         if (it == timeToRecordCache.end())
         {
           StdString timeAxisBoundsId(getTimeCounterName() + "_bounds");
-          if (!SuperClassWriter::varExist(timeAxisBoundsId))
-            timeAxisBoundsId = "time_instant_bounds";
+          if (!SuperClassWriter::varExist(timeAxisBoundsId)) timeAxisBoundsId = "time_centered_bounds";
+          if (!SuperClassWriter::varExist(timeAxisBoundsId)) timeAxisBoundsId = "time_instant_bounds";
 
           CArray<double,2> timeAxisBounds;
           SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective);
