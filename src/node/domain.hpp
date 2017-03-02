@@ -102,6 +102,7 @@ namespace xios {
          bool isEmpty(void) const;
          bool isDistributed(void) const;
          bool isCompressible(void) const;
+         bool distributionAttributesHaveValue() const;
 
          int ni_srv,ibegin_srv,iend_srv ;
          int zoom_ni_srv,zoom_ibegin_srv,zoom_iend_srv ;
@@ -135,7 +136,8 @@ namespace xios {
 
          void fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                            CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
-         void fillInRectilinearLonLat();
+         
+         void fillInLonLat();
 
          static bool dispatchEvent(CEventServer& event);
          static void recvServerAttribut(CEventServer& event);
@@ -188,6 +190,9 @@ namespace xios {
          void sendArea();
          void sendLonLat();
 
+         void fillInRectilinearLonLat();
+         void fillInCurvilinearLonLat();
+         void fillInUnstructuredLonLat();
        private:
          bool isChecked;
          std::set<StdString> relFiles, relFilesCompressed;
