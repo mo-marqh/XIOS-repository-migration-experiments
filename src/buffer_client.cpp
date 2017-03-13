@@ -73,6 +73,9 @@ namespace xios
     MPI_Status status;
     int flag;
 
+    int error, errclass, len;
+    char errstring[MPI_MAX_ERROR_STRING];
+
     if (pending)
     {
       traceOff();
@@ -85,8 +88,14 @@ namespace xios
     {
       if (count > 0)
       {
-        MPI_Comm_test_inter(interComm, &flag);
-        MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
+        MPI_Errhandler_set(interComm,MPI_ERRORS_RETURN);
+        error = MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
+        if (error != MPI_SUCCESS)
+        {
+          MPI_Error_class(error, &errclass);
+          MPI_Error_string(error, errstring, &len);
+          ERROR("MPI error class: ", <<errclass<<" MPI error "<<errstring );
+        }
         pending = true;
         if (current == 1) current = 0;
         else current = 1;

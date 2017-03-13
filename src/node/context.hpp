@@ -99,6 +99,7 @@ namespace xios {
          // Finalize a context
          void finalize(void);
          void closeDefinition(void);
+         bool isFinalized(void);
 
          // Some functions to process context
          void findAllEnabledFields(void);
@@ -164,7 +165,7 @@ namespace xios {
          static void recvRegistry(CEventServer& event) ;
          void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
 
-         bool isFinalized(void);
+         void freeComms(void); //!< Free internally allcoated communicators
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -230,18 +231,13 @@ namespace xios {
          // Determine context on server or not
          bool hasServer;
 
-         // Concrete contex client
-         CContextClient* client;
+         CContextServer* server;  //!< Concrete context server
+         CContextClient* client;  //!< Concrete contex client
+         std::vector<CContextServer*> serverPrimServer;
+         std::vector<CContextClient*> clientPrimServer;
+
          CRegistry* registryIn ;  //!< input registry which is read from file
          CRegistry* registryOut ; //!< output registry which will be wrote on file at the finalize
-
-         // Concrete context server
-         CContextServer* server;
-
-//         CContextClient* clientPrimServer;
-//         CContextServer* serverPrimServer;
-         std::vector<CContextClient*> clientPrimServer;
-         std::vector<CContextServer*> serverPrimServer;
 
       private:
          bool isPostProcessed;
@@ -249,7 +245,7 @@ namespace xios {
          bool finalized;
          StdString idServer_;
          CGarbageCollector garbageCollector;
-         std::list<MPI_Comm> comms; //!< Communicators allocated internally  --- significance??
+         std::list<MPI_Comm> comms; //!< Communicators allocated internally
 
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;

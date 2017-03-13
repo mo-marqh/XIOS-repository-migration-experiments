@@ -127,7 +127,7 @@ namespace xios {
     // }
    }
 
-   void CVariable::sendValue(CContextClient* client)
+   void CVariable::sendValue(CContextClient* client, bool clientPrim /*= false*/)
    {
      CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
      if (client->isServerLeader())

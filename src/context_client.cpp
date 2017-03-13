@@ -90,8 +90,8 @@ namespace xios
 
         // We force the getBuffers call to be non-blocking on the servers
         list<CBufferOut*> buffList;
-        bool couldBuffer = getBuffers(ranks, sizes, buffList, !CXios::isClient);
 //        bool couldBuffer = getBuffers(ranks, sizes, buffList, CXios::isServer);
+        bool couldBuffer = getBuffers(ranks, sizes, buffList, false);
 
         if (couldBuffer)
         {
@@ -181,7 +181,8 @@ namespace xios
      * \param [in] nonBlocking whether this function should be non-blocking
      * \return whether the already allocated buffers could be used
     */
-    bool CContextClient::getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers, bool nonBlocking /*= false*/)
+    bool CContextClient::getBuffers(const list<int>& serverList, const list<int>& sizeList, list<CBufferOut*>& retBuffers,
+                                    bool nonBlocking /*= false*/)
     {
       list<int>::const_iterator itServer, itSize;
       list<CClientBuffer*> bufferList;
@@ -210,13 +211,11 @@ namespace xios
         if (!areBuffersFree)
         {
           checkBuffers();
-//          if (?)
-//          {
+
+         // WHY DO WE PUT HERE SERVER INTO LISTENING LOOP AT ALL????
+//            context->server->listen();
 //            for (int i = 0; i < context->serverPrimServer.size(); ++i)
 //              context->serverPrimServer[i]->listen();
-//          }
-//          else
-            context->server->listen();
         }
       } while (!areBuffersFree && !nonBlocking);
       CTimer::get("Blocking time").suspend();
@@ -236,16 +235,16 @@ namespace xios
    */
    void CContextClient::newBuffer(int rank)
    {
-      if (!mapBufferSize_.count(rank))
-      {
-        error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
-        mapBufferSize_[rank] = CXios::minBufferSize;
-      }
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxBufferedEvents);
-      // Notify the server
-      CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
-      bufOut->put(mapBufferSize_[rank]); // Stupid C++
-      buffer->checkBuffer();
+     if (!mapBufferSize_.count(rank))
+     {
+       error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
+       mapBufferSize_[rank] = CXios::minBufferSize;
+     }
+     CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxBufferedEvents);
+     // Notify the server
+     CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
+     bufOut->put(mapBufferSize_[rank]); // Stupid C++
+     buffer->checkBuffer();
    }
 
    /*!
@@ -261,10 +260,11 @@ namespace xios
    }
 
    //! Release all buffers
-   void CContextClient::releaseBuffers(void)
+   void CContextClient::releaseBuffers()
    {
       map<int,CClientBuffer*>::iterator itBuff;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) delete itBuff->second;
+//        buffersReleased_ = true;
    }
 
    /*!
@@ -272,6 +272,7 @@ namespace xios
    \param [in] ranks list rank of server to which client connects to
    \return state of buffers, pending(true), ready(false)
    */
+//   bool CContextClient::checkBuffers(list<int>& ranks)
    bool CContextClient::checkBuffers(list<int>& ranks)
    {
       list<int>::iterator it;
@@ -357,7 +358,8 @@ namespace xios
    /*!
    Finalize context client and do some reports
    */
-  void CContextClient::finalize(void)
+//  void CContextClient::finalize(void)
+  void CContextClient::finalize()
   {
     map<int,CClientBuffer*>::iterator itBuff;
     bool stop = false;
@@ -395,6 +397,7 @@ namespace xios
 
     std::map<int,StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                                           iteMap = mapBufferSize_.end(), itMap;
+
     StdSize totalBuf = 0;
     for (itMap = itbMap; itMap != iteMap; ++itMap)
     {

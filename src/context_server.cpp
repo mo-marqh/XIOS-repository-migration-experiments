@@ -224,19 +224,19 @@ namespace xios
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       finished=true;
-      info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;
+//      info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;            // moved to CContext::finalize()
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
       {
         rank = itMap->first;
-        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
-            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
+//        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
+//            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
         totalBuf_ += itMap->second;
       }
       context->finalize();
 
-//      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
+//      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl; // moved to CContext::finalize()
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);

@@ -856,6 +856,7 @@ namespace xios {
      return client;
    }
 
+
    /*!
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server
@@ -1080,7 +1081,7 @@ namespace xios {
 
    void CFile::sendAddVariable(const string& id, CContextClient* client)
    {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
     // CContext* context = CContext::getCurrent();
 
     // if (! context->hasServer )

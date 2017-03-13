@@ -121,7 +121,7 @@ namespace xios {
          CContextClient* getContextClient();
 
          // Send info to server
-//         void sendEnabledFields();
+         void sendEnabledFields();
          void sendEnabledFields(CContextClient* client);
          void sendAddField(const string& id = "");
          void sendAddField(const string& id, CContextClient* client);

@@ -69,13 +69,16 @@ namespace xios
 
       MPI_Comm intraComm; //!< Communicator of client group
 
-      map<int,CClientBuffer*> buffers;     //!< Buffers for connection to servers
+      map<int,CClientBuffer*> buffers;         //!< Buffers for connection to servers
+//      map<int,CClientBuffer*> buffersPrim;     //!< Buffers for connection to secondary servers
 
     private:
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
       //! Maximum number of events that can be buffered
       StdSize maxBufferedEvents;
+
+//      bool buffersReleased_;
 
       struct {
         std::list<int> ranks, sizes;

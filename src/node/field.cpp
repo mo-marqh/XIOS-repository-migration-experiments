@@ -397,7 +397,9 @@ namespace xios{
   void CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
+//    CContextClient* client = context->client;
+    CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
+
 
     lastDataRequestedFromServer = tsDataRequested;
 

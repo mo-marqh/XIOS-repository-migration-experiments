@@ -26,7 +26,8 @@ namespace xios
         static MPI_Comm intraComm;
         static list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
         static list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
-        static std::list<MPI_Comm> contextInterComms;  // significance ??
+        static std::list<MPI_Comm> contextInterComms;  // list of context intercomms
+        static std::list<MPI_Comm> contextIntraComms;  // list of context intercomms (needed only in case of secondary servers)
         static CEventScheduler* eventScheduler;
 
         static int serverLevel ;
@@ -63,10 +64,11 @@ namespace xios
 
       private:
         static int rank;
-        static int serverLeader;  //!< Leader of the classical or primary server (needed in case of secondary servers)
-        static int serverSize;    //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
+        static int serverLeader_;  //!< Leader of the classical or primary server (needed in case of secondary servers)
+        static int serverSize_;    //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
         static int nbPools;       //!< Number of secondary server pools
         static int poolId;        //!< id of a secondary server pool starting from 1
+        static int nbContexts_;
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 
