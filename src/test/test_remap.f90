@@ -89,9 +89,9 @@ PROGRAM test_remap
   ierr=NF90_GET_VAR(ncid,varid, src_field_2D, start=(/src_ibegin+1/),count=(/src_ni/))
   DO i=1,src_ni
     src_field_3D(i,:) = src_field_2D(i)
-    IF ((23.5 < src_lat(i)) .AND. (src_lat(i) < 65.5) .AND. (0 < src_lon(i)) .AND. (src_lon(i) < 30)) THEN
+    IF ((0 < src_lat(i)) .AND. (src_lat(i) < 25.5) .AND. (30 < src_lon(i)) .AND. (src_lon(i) < 60)) THEN
       src_mask_2D(i)=.FALSE.
-      src_field_2D(i) = missing_value
+      ! src_field_2D(i) = missing_value
     ELSE
       src_mask_2D(i)=.TRUE.      
     ENDIF
@@ -191,11 +191,12 @@ PROGRAM test_remap
 
   CALL xios_get_domain_attr("src_domain_unstructured_read", ni=src_tmp_ni, nj=src_tmp_nj)
   ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
+  
+  CALL xios_recv_field("src_field_regular", tmp_field_0)
+  CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
+  CALL xios_recv_field("src_field_unstructured", tmp_field_2)
 
-  DO ts=1,1
-    CALL xios_recv_field("src_field_regular", tmp_field_0)
-    CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
-    CALL xios_recv_field("src_field_unstructured", tmp_field_2)
+  DO ts=1,10
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field_2D",src_field_2D)
     

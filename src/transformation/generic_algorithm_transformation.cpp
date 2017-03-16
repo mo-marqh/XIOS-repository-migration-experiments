@@ -29,11 +29,11 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
                                             std::vector<bool>& flagInitial,
-                                            const double& defaultValue)
+                                            bool ignoreMissingValue)
 {
-  int nbLocalIndex = localIndex.size();  
-  bool hasMissingValue = NumTraits<double>::isnan(defaultValue);  
-  if (hasMissingValue)
+  int nbLocalIndex = localIndex.size();   
+  double defaultValue = std::numeric_limits<double>::quiet_NaN();
+  if (ignoreMissingValue)
   {
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {

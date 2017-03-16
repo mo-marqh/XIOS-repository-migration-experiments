@@ -4,18 +4,18 @@
  <context id="test">
    <calendar type="Gregorian" start_date="2012-03-01 15:00:00" time_origin="2012-02-28 15:00:00 + 1d" />
    <field_definition level="1" >
-    <field_group id="fields_src" operation="instant" default_value="100000">
+    <field_group id="fields_src" operation="instant" detect_missing_value=".false.">
        <field id="src_field_2D" domain_ref="src_domain" />
-       <field id="src_field_2D_clone" domain_ref="src_domain_clone" detect_missing_value=".TRUE." />
+       <field id="src_field_2D_clone" domain_ref="src_domain_clone" />
        <field id="src_field_3D" domain_ref="src_domain" axis_ref="src_axis"  />
-       <field id="src_field_3D_clone" grid_ref="src_grid_3D" detect_missing_value=".TRUE."  />       
+       <field id="src_field_3D_clone" grid_ref="src_grid_3D"   />       
        <field id="src_field_3D_pression" grid_ref="src_grid_3D"  />
-       <field id="src_field_4D" grid_ref="src_grid_4D" detect_missing_value=".TRUE." />       
+       <field id="src_field_4D" grid_ref="src_grid_4D"  />       
     </field_group>
     <field_group  id="fields_dst">
       <field id="dst_field_2D" field_ref="src_field_2D" domain_ref="dst_domain"/>
       <field id="dst_field_2D_regular_pole" field_ref="src_field_2D" domain_ref="dst_domain_regular_pole"/>
-      <field id="dst_field_2D_clone" field_ref="src_field_2D_clone" domain_ref="dst_domain_regular_pole"  expr="@this" operation="average" detect_missing_value=".true."/>
+      <field id="dst_field_2D_clone" field_ref="src_field_2D_clone" domain_ref="dst_domain_regular_pole"  expr="@this" operation="average" />
       <field id="dst_field_2D_extract" field_ref="src_field_3D_clone" grid_ref="dst_grid_2D_extract"/>
       <field id="dst_field_3D" field_ref="src_field_3D" grid_ref="dst_grid_3D"/>
       <field id="dst_field_3D_interp" field_ref="src_field_3D" axis_ref="dst_axis"/>       
@@ -36,11 +36,11 @@
       <file_group id="write_files" >
         <file id="output_2D" name="output_2D" >
           <field field_ref="src_field_2D" name="field_src" />
-          <field field_ref="src_field_2D_clone" name="field_src_clone" />
+          <field field_ref="src_field_2D_clone" name="field_src_clone" default_value="100000" />
           <field field_ref="src_field_2D" name="field_dst_regular_0"  domain_ref="dst_domain_regular_pole" />
           <field field_ref="dst_field_2D" name="field_dst_regular_1" />
           <field field_ref="dst_field_2D_regular_pole" name="field_dst_regular_2" />
-          <field field_ref="dst_field_2D_clone" name="field_dst_regular_3" />
+          <field field_ref="dst_field_2D_clone" name="field_dst_regular_3" detect_missing_value=".false." default_value="100000" />
           <field field_ref="dst_field_2D_extract" name="field_dst_regular_4" />
         </file> 
        <file id="output_3D" name="output_3D" enabled=".TRUE." >

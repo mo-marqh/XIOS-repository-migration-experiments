@@ -32,8 +32,8 @@ public:
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
                      CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial,
-                     const double& defaultValue);
+                     std::vector<bool>& flagInitial,                     
+                     bool ignoreMissingValue);
 
   virtual ~CAxisAlgorithmExtractDomain();
 

@@ -29,13 +29,12 @@ bool CAverageReductionAlgorithm::registerTrans()
 void CAverageReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& localIndex,
                                        const double* dataInput,
                                        CArray<double,1>& dataOut,
-                                       std::vector<bool>& flagInitial,
-                                       const double& defaultValue)
+                                       std::vector<bool>& flagInitial,                     
+                                       bool ignoreMissingValue)
 {
-  if (resetWeight_) { weights_.resize(flagInitial.size()); weights_ = 1.0; resetWeight_ = false; }
-  bool hasMissingValue = NumTraits<double>::isnan(defaultValue);
+  if (resetWeight_) { weights_.resize(flagInitial.size()); weights_ = 1.0; resetWeight_ = false; }  
 
-  if (hasMissingValue)
+  if (ignoreMissingValue)
   {
     int nbLocalIndex = localIndex.size();
     int currentlocalIndex = 0;

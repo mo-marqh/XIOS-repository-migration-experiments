@@ -25,7 +25,7 @@ namespace xios
       CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
       const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
       size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
-      double defaultValue  = (hasMissingValue) ? std::numeric_limits<double>::quiet_NaN() : missingValue;
+      double defaultValue  = (hasMissingValue) ? std::numeric_limits<double>::quiet_NaN() : 0.0;
       boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
       if (!lastFilter)
@@ -116,8 +116,9 @@ namespace xios
     CContextClient* client = CContext::getCurrent()->client;
 
     // Get default value for output data
-    double defaultValue = 0.0;
-    if (0 != dataDest.numElements()) defaultValue = dataDest(0);
+    bool ignoreMissingValue = false; 
+    double defaultValue = std::numeric_limits<double>::quiet_NaN();
+    if (0 != dataDest.numElements()) ignoreMissingValue = NumTraits<double>::isnan(dataDest(0));
 
     const std::list<CGridTransformation::SendingIndexGridSourceMap>& listLocalIndexSend = gridTransformation->getLocalIndexToSendFromGridSource();
     const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
@@ -202,7 +203,7 @@ namespace xios
                          recvBuff+currentBuff,
                          dataCurrentDest,
                          localInitFlag,
-                         defaultValue);
+                         ignoreMissingValue);
 
         currentBuff += countSize;
       }

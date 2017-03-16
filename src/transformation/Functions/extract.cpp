@@ -29,7 +29,7 @@ void CExtractReductionAlgorithm::apply(const std::vector<std::pair<int,double> >
                                        const double* dataInput,
                                        CArray<double,1>& dataOut,
                                        std::vector<bool>& flagInitial,
-                                       const double& defaultValue)
+                                       bool ignoreMissingValue)
 {
   int nbLocalIndex = localIndex.size();
   int currentlocalIndex = 0;

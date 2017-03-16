@@ -26,7 +26,7 @@ public:
                      const double* dataInput,
                      CArray<double,1>& dataOut,
                      std::vector<bool>& flagInitial,
-                     const double& defaultValue);
+                     bool ignoreMissingValue);
 
   virtual ~CSumReductionAlgorithm() {}
 
