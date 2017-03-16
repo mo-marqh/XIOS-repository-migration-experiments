@@ -39,9 +39,24 @@ namespace xios {
       StdString id = (this->hasId()) ? this->getId() : StdString("undefined");
       if (!node.getContent(this->content))
       {
+        xml::THashAttributes attributes = node.getAttributes();
+        StdString variableName = attributes["name"];
+
+        node.goToParentElement();
+        StdString parentName = node.getElementName();
+        attributes = node.getAttributes();
+        error << "The variable id = " << id << " and name = " << variableName << " does not have any content. Please define it!" << std::endl
+              << "This variable is inside another element whose attributes are :" << std::endl;
+
+        for (xml::THashAttributes::iterator it = attributes.begin(); it != attributes.end(); ++it)
+        {
+           error << it->first << "=\"" << it->second.c_str() << "\" ";
+        }
+        error << std::endl; 
+
          ERROR("CVariable::parse(xml::CXMLNode & node)",
                << "[ variable id = " << id
-               << " ] variable is not defined !");
+               << " ] variable is not defined !. It does not have any content. See error log for more details.");
       }
       content = boost::trim_copy(content) ;
    }
