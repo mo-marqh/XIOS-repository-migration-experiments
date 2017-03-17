@@ -17,6 +17,52 @@ extern "C"
 {
   typedef xios::CExpandDomain* expand_domain_Ptr;
 
+  void cxios_set_expand_domain_i_periodic(expand_domain_Ptr expand_domain_hdl, bool i_periodic)
+  {
+    CTimer::get("XIOS").resume();
+    expand_domain_hdl->i_periodic.setValue(i_periodic);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_expand_domain_i_periodic(expand_domain_Ptr expand_domain_hdl, bool* i_periodic)
+  {
+    CTimer::get("XIOS").resume();
+    *i_periodic = expand_domain_hdl->i_periodic.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_expand_domain_i_periodic(expand_domain_Ptr expand_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = expand_domain_hdl->i_periodic.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_expand_domain_j_periodic(expand_domain_Ptr expand_domain_hdl, bool j_periodic)
+  {
+    CTimer::get("XIOS").resume();
+    expand_domain_hdl->j_periodic.setValue(j_periodic);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_expand_domain_j_periodic(expand_domain_Ptr expand_domain_hdl, bool* j_periodic)
+  {
+    CTimer::get("XIOS").resume();
+    *j_periodic = expand_domain_hdl->j_periodic.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_expand_domain_j_periodic(expand_domain_Ptr expand_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = expand_domain_hdl->j_periodic.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_expand_domain_order(expand_domain_Ptr expand_domain_hdl, int order)
   {
     CTimer::get("XIOS").resume();

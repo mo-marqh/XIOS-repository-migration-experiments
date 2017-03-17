@@ -29,11 +29,19 @@ public:
   static bool registerTrans();
 
 protected:
+  bool isXPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)
+  bool isYPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)
+
+protected:
   void expandDomainEdgeConnectivity(CDomain* domainDestination, CDomain* domainSource);
   void expandDomainNodeConnectivity(CDomain* domainDestination, CDomain* domainSource);
-  void updateDomainAttributes(CDomain* domainDestination,
-                              CDomain* domainSource,
-                              CArray<int,2>& neighborsDomainSrc);
+  void updateRectilinearDomainAttributes(CDomain* domainDestination,
+                                         CDomain* domainSource,
+                                         CArray<int,2>& neighborsDomainSrc);
+
+  void updateUnstructuredDomainAttributes(CDomain* domainDestination,
+                                          CDomain* domainSource,
+                                          CArray<int,2>& neighborsDomainSrc);
 
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);

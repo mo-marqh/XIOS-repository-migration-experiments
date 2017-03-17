@@ -86,7 +86,7 @@ namespace xios {
       public:
 
          /// Accesseurs ///
-         StdSize getDimension(void) const;
+         StdSize getDimension(void);
 
          StdSize  getDataSize(void) const;
 
@@ -228,11 +228,6 @@ namespace xios {
          void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify);
 
-         void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
-                                         const std::vector<CAxis*>& axis,
-                                         const std::vector<CScalar*>& scalars,
-                                         const CArray<int,1>& axisDomainOrder);
-
       private:
        template<int N>
        void checkGridMask(CArray<bool,N>& gridMask,
@@ -260,6 +255,13 @@ namespace xios {
         void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
 
+        int computeGridGlobalDimension(std::vector<int>& globalDim,
+                                       const std::vector<CDomain*> domains,
+                                       const std::vector<CAxis*> axis,
+                                       const std::vector<CScalar*> scalars,
+                                       const CArray<int,1>& axisDomainOrder);
+
+        int getDistributedDimension();
       private:
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
@@ -275,7 +277,7 @@ namespace xios {
         std::map<int,size_t> connectedDataSize_;
         std::vector<int> connectedServerRank_;
         bool isDataDistributed_;
-        int positionDimensionDistributed_;
+        
          //! True if and only if the data defined on the grid can be outputted in a compressed way
         bool isCompressible_;
         std::set<std::string> relFilesCompressed;
@@ -284,8 +286,7 @@ namespace xios {
         bool isGenerated_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
-        bool hasDomainAxisBaseRef_;
-        std::vector<int> globalDim_;
+        bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
         CClientServerMapping::GlobalIndexMap globalIndexOnServer_;

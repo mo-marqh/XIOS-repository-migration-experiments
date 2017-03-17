@@ -30,7 +30,7 @@ namespace xios {
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false), hasPole(false)
@@ -40,7 +40,7 @@ namespace xios {
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
       , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_()
-      , hasBounds(false), hasArea(false), isDistributed_(false), nGlobDomain_(), isCompressible_(false), isUnstructed_(false)
+      , hasBounds(false), hasArea(false), isDistributed_(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , lonvalue_client(), latvalue_client(), bounds_lon_client(), bounds_lat_client()
       , isRedistributed_(false), hasPole(false)
@@ -843,7 +843,7 @@ namespace xios {
        for (int j = 0; j < nj; ++j)
          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
      }
-     computeNGlobDomain();
+     
      checkZoom();
      
      isDistributed_ = !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
@@ -1549,7 +1549,7 @@ namespace xios {
     CContextClient* client = context->client;
     int nbServer = client->serverSize;
 
-    CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
+    CServerDistributionDescription serverDescription(getNbGlob(), nbServer);
     if (isUnstructed_) serverDescription.computeServerDistribution(false, 0);
     else serverDescription.computeServerDistribution(false, 1);
 
@@ -1586,11 +1586,13 @@ namespace xios {
     else client->sendEvent(event);
   }
 
-  void CDomain::computeNGlobDomain()
+  std::vector<int> CDomain::getNbGlob()
   {
-    nGlobDomain_.resize(2);
-    nGlobDomain_[0] = ni_glo.getValue();
-    nGlobDomain_[1] = nj_glo.getValue();
+     std::vector<int> nbGlob(2);
+     nbGlob[0] = ni_glo.getValue();
+     nbGlob[1] = nj_glo.getValue();
+
+     return nbGlob;
   }
 
   void CDomain::computeConnectedServer(void)
@@ -1684,7 +1686,7 @@ namespace xios {
 
     size_t globalSizeIndex = 1, indexBegin, indexEnd;
     int range, clientSize = client->clientSize;
-    for (int i = 0; i < nGlobDomain_.size(); ++i) globalSizeIndex *= nGlobDomain_[i];
+    for (int i = 0; i < getNbGlob().size(); ++i) globalSizeIndex *= getNbGlob()[i];
     indexBegin = 0;
     if (globalSizeIndex <= clientSize)
     {
@@ -1703,7 +1705,7 @@ namespace xios {
       indexEnd = indexBegin + range - 1;
     }
 
-    CServerDistributionDescription serverDescription(nGlobDomain_, nbServer);
+    CServerDistributionDescription serverDescription(getNbGlob(), nbServer);
     if (isUnstructed_) serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
     else serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 1);
 

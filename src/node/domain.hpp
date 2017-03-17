@@ -122,6 +122,7 @@ namespace xios {
         vector< vector<int> > i_indSrv ; // for each server, i global index to send
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
 
+         std::vector<int> getNbGlob();
       public:
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -209,8 +210,7 @@ namespace xios {
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
          bool isRedistributed_;
-         TransMapTypes transformationMap_;
-         std::vector<int> nGlobDomain_;
+         TransMapTypes transformationMap_;         
          bool isUnstructed_;
        
        private:
