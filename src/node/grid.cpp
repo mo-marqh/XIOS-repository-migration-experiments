@@ -1948,8 +1948,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CDomain* pDom = CDomain::get(*it);
-      // if (context->hasClient && !context->hasServer)
-     if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+      //if (context->hasClient)
       {
         pDom->solveRefInheritance(apply);
         pDom->solveInheritanceTransformation();
@@ -1961,8 +1961,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CAxis* pAxis = CAxis::get(*it);
-      // if (context->hasClient && !context->hasServer)
-     if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
       {
         pAxis->solveRefInheritance(apply);
         pAxis->solveInheritanceTransformation();
@@ -1974,8 +1974,8 @@ namespace xios {
     for (; it != itE; ++it)
     {
       CScalar* pScalar = CScalar::get(*it);
-      // if (context->hasClient && !context->hasServer)
-     if (context->hasClient)
+      if (context->hasClient && !context->hasServer)
+//     if (context->hasClient)
       {
         pScalar->solveRefInheritance(apply);
         pScalar->solveInheritanceTransformation();

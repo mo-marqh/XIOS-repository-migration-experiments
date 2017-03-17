@@ -78,8 +78,6 @@ namespace xios
       //! Maximum number of events that can be buffered
       StdSize maxBufferedEvents;
 
-//      bool buffersReleased_;
-
       struct {
         std::list<int> ranks, sizes;
         std::list<CBufferOut*> buffers;

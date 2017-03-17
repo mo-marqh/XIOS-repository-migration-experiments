@@ -263,8 +263,9 @@ namespace xios
    void CContextClient::releaseBuffers()
    {
       map<int,CClientBuffer*>::iterator itBuff;
-      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) delete itBuff->second;
-//        buffersReleased_ = true;
+      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
+          delete itBuff->second;
+      buffers.clear();
    }
 
    /*!

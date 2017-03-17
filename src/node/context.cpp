@@ -459,13 +459,9 @@ namespace xios {
          registryOut->hierarchicalGatherRegistry() ;
          if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
        }
-
-//       for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-//         MPI_Comm_free(&(*it));
-//       comms.clear();
-
       }
    }
+
    //! Free internally allocated communicators
    void CContext::freeComms(void)
    {
@@ -561,46 +557,6 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
-     // There is nothing client need to send to server
-//      if (hasClient)
-//     if (hasClient && !hasServer)
-//      if (hasClient)
-//      {
-//        // After xml is parsed, there are some more works with post processing
-//        postProcessing();
-//      }
-
-//      setClientServerBuffer();
-
-// //     if (hasClient && !hasServer)
-//      if (hasClient)
-//      {
-//       // Send all attributes of current context to server
-//       this->sendAllAttributesToServer();
-
-//       // Send all attributes of current calendar
-//       CCalendarWrapper::get(CCalendarWrapper::GetDefName())->sendAllAttributesToServer();
-
-//       // We have enough information to send to server
-//       // First of all, send all enabled files
-//        sendEnabledFiles();
-
-//       // Then, send all enabled fields
-//        sendEnabledFields();
-
-//       // At last, we have all info of domain and axis, then send them
-//        sendRefDomainsAxis();
-
-//       // After that, send all grid (if any)
-//        sendRefGrid();
-
-//        // // We have a xml tree on the server side and now, it should be also processed
-//        sendPostProcessing();
-//      }
-
-
-     // Now tell server that it can process all messages from client
-     // if (hasClient) this->sendCloseDefinition();
     postProcessingGlobalAttributes();
 
     if (hasClient) sendPostProcessingGlobalAttributes();
@@ -610,22 +566,15 @@ namespace xios {
     
      if (hasClient && !hasServer)
     {
-      // this->buildFilterGraphOfEnabledFields();  // references are resolved here (access xml file)
       buildFilterGraphOfFieldsWithReadAccess();
-      // this->solveAllRefOfEnabledFields(true);
     }
 
     // if (hasClient) this->solveAllRefOfEnabledFields(true);
     this->processGridEnabledFields();
     if (hasClient) this->sendProcessingGridOfEnabledFields();
-    // if (hasClient)        // We have a xml tree on the server side and now, it should be also processed
-    //    sendPostProcessing();
-//    // Now tell server that it can process all messages from client
-////    if (hasClient && !hasServer) this->sendCloseDefinition();
-   if (hasClient) this->sendCloseDefinition();
+    if (hasClient) this->sendCloseDefinition();
 
     // Nettoyage de l'arborescence
-//    if (hasClient && !hasServer) CleanTree(); // Only on client side??
     if (hasClient) CleanTree(); // Only on client side??
 
     if (hasClient)

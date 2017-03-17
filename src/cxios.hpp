@@ -28,8 +28,6 @@ namespace xios
     public:
      static string rootFile ; //!< Configuration filename
      static string xiosCodeId ; //!< Identity for XIOS
-//     static string xiosCodeIdPrm ; //!< Identity for XIOS primary server
-//     static string xiosCodeIdSnd ; //!< Identity for XIOS secondary server
      static string clientFile;        //!< Filename template for client
      static string serverFile;        //!< Filename template for server
      static string serverPrmFile;  //!< Filename template for primary server in case of two server levels

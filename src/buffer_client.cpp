@@ -79,7 +79,14 @@ namespace xios
     if (pending)
     {
       traceOff();
-      MPI_Test(&request, &flag, &status);
+      MPI_Errhandler_set(interComm,MPI_ERRORS_RETURN);
+      error=MPI_Test(&request, &flag, &status);
+      if (error != MPI_SUCCESS)
+      {
+        MPI_Error_class(error, &errclass);
+        MPI_Error_string(error, errstring, &len);
+        ERROR("MPI error class: ", <<errclass<<" MPI error "<<errstring );
+      }
       traceOn();
       if (flag == true) pending = false;
     }

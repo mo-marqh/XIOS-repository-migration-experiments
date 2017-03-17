@@ -63,7 +63,7 @@ namespace xios
         static void closeErrorStream();
 
       private:
-        static int rank;
+        static int rank_;
         static int serverLeader_;  //!< Leader of the classical or primary server (needed in case of secondary servers)
         static int serverSize_;    //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
         static int nbPools;       //!< Number of secondary server pools

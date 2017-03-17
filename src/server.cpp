@@ -29,7 +29,7 @@ namespace xios
     int CServer::poolId = 0;
     int CServer::nbContexts_ = 0;
     bool CServer::isRoot = false ;
-    int CServer::rank = INVALID_RANK;
+    int CServer::rank_ = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
     StdOFStream CServer::m_errorStream;
     map<string,CContext*> CServer::contextList ;
@@ -80,7 +80,7 @@ namespace xios
         MPI_Comm newComm, serversComm;
 
         MPI_Comm_size(CXios::globalComm, &size) ;
-        MPI_Comm_rank(CXios::globalComm, &rank);
+        MPI_Comm_rank(CXios::globalComm, &rank_);
 
         hashAll=new unsigned long[size] ;
         MPI_Allgather(&hashServer, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
@@ -103,7 +103,7 @@ namespace xios
         myColor = colors[hashServer];
         if (CXios::usingServer2)
         {
-          int serverRank = rank - leaders[hashServer]; // server proc rank starting 0
+          int serverRank = rank_ - leaders[hashServer]; // server proc rank starting 0
           serverSize_ = size - leaders[hashServer];
           nbPools = serverSize_ * CXios::ratioServer2 / 100;
           if ( serverRank < (serverSize_ - nbPools) )
@@ -114,11 +114,11 @@ namespace xios
           {
             serverLevel = 2;
             poolId = serverRank - serverSize_ + nbPools;
-            myColor = rank;
+            myColor = rank_;
           }
         }
 
-        MPI_Comm_split(CXios::globalComm, myColor, rank, &intraComm) ;
+        MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
 
         if (serverLevel == 0)
         {
@@ -131,7 +131,7 @@ namespace xios
               int intraCommSize, intraCommRank ;
               MPI_Comm_size(intraComm,&intraCommSize) ;
               MPI_Comm_rank(intraComm,&intraCommRank) ;
-              info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
@@ -151,7 +151,7 @@ namespace xios
               int intraCommSize, intraCommRank ;
               MPI_Comm_size(intraComm, &intraCommSize) ;
               MPI_Comm_rank(intraComm, &intraCommRank) ;
-              info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
               interCommLeft.push_back(newComm) ;
@@ -166,7 +166,7 @@ namespace xios
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm, &intraCommSize) ;
             MPI_Comm_rank(intraComm, &intraCommRank) ;
-            info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
+            info(50)<<"intercommCreate::client "<<rank_<<" intraCommSize : "<<intraCommSize
                 <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
             interCommRight.push_back(newComm) ;
@@ -179,7 +179,7 @@ namespace xios
           int intraCommSize, intraCommRank ;
           MPI_Comm_size(intraComm, &intraCommSize) ;
           MPI_Comm_rank(intraComm, &intraCommRank) ;
-          info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
+          info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
           MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
@@ -201,7 +201,7 @@ namespace xios
         oasis_get_localcomm(localComm);
         MPI_Comm_dup(localComm, &intraComm);
 
-        MPI_Comm_rank(intraComm,&rank) ;
+        MPI_Comm_rank(intraComm,&rank_) ;
         MPI_Comm_size(intraComm,&size) ;
         string codesId=CXios::getin<string>("oasis_codes_id") ;
 
@@ -216,7 +216,7 @@ namespace xios
         for(it=splitted.begin();it!=splitted.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
-          if (rank==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
+          if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
           MPI_Comm_remote_size(newComm,&size);
 //          interComm.push_back(newComm) ;
           interCommLeft.push_back(newComm) ;
@@ -224,9 +224,8 @@ namespace xios
 	      oasis_enddef() ;
       }
 
-      int rankServer;
-      MPI_Comm_rank(intraComm, &rankServer) ;
-      if (rankServer==0) isRoot=true;
+      MPI_Comm_rank(intraComm, &rank_) ;
+      if (rank_==0) isRoot=true;
       else isRoot=false;
       
       eventScheduler = new CEventScheduler(intraComm) ;
@@ -248,8 +247,8 @@ namespace xios
 //      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
 //        MPI_Comm_free(&(*it));
 
-        for (std::list<MPI_Comm>::iterator it = interCommLeft.begin(); it != interCommLeft.end(); it++)
-          MPI_Comm_free(&(*it));
+//        for (std::list<MPI_Comm>::iterator it = interCommLeft.begin(); it != interCommLeft.end(); it++)
+//          MPI_Comm_free(&(*it));
 
         for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
           MPI_Comm_free(&(*it));
@@ -523,7 +522,7 @@ namespace xios
          for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++, ++i)
          {
            StdString str = contextId +"_server_" + boost::lexical_cast<string>(i);
-           msg<<str<<size<<rank ;
+           msg<<str<<size<<rank_ ;
            messageSize = msg.size() ;
            buff = new char[messageSize] ;
            CBufferOut buffer(buff,messageSize) ;
@@ -554,21 +553,19 @@ namespace xios
          finished=it->second->isFinalized();
          if (finished)
          {
-//           it->second->freeComms();  // deallocate internally allcoated context communicators
+           it->second->freeComms();  // deallocate internally allocated context communicators
            contextList.erase(it) ;
            break ;
          }
          else
-         {
            finished=it->second->checkBuffersAndListen();
-         }
        }
      }
 
      //! Get rank of the current process
      int CServer::getRank()
      {
-       return rank;
+       return rank_;
      }
 
     /*!
@@ -597,7 +594,7 @@ namespace xios
       else
       {
         if (serverLevel == 1)
-          id = rank-serverLeader_;
+          id = rank_;
         else
           id = poolId;
       }
