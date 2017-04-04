@@ -87,9 +87,9 @@ void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >
                                          const double* dataInput,
                                          CArray<double,1>& dataOut,
                                          std::vector<bool>& flagInitial,
-                                         const double& defaultValue)
+				       bool ignoreMissingValue)
 {
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, defaultValue);
+  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue);
 }
 
 void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
