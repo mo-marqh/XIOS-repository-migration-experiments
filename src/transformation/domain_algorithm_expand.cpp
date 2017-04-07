@@ -56,10 +56,12 @@ CDomainAlgorithmExpand::CDomainAlgorithmExpand(CDomain* domainDestination,
   }
 
   this->type_ = (ELEMENT_MODIFICATION_WITH_DATA);
+  // Make sure domain source have all valid attributes
+  // domainSource->checkAllAttributes();
   expandDomain->checkValid(domainDestination);
   if (!expandDomain->i_periodic.isEmpty()) isXPeriodic_ = expandDomain->i_periodic;
   if (!expandDomain->j_periodic.isEmpty()) isYPeriodic_ = expandDomain->j_periodic;
-
+  
   switch (expandDomain->type)
   {
     case CExpandDomain::type_attr::node :
@@ -163,6 +165,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   int njGloSrc = domainSource->nj_glo;
   int niSrc = domainSource->ni, ibegin = domainSource->ibegin;
   int njSrc = domainSource->nj, jbegin = domainSource->jbegin;
+  int dataDimSrc = domainSource->data_dim;
   CArray<bool,1>& mask_1d_src = domainSource->mask_1d;
   CArray<int,1>& i_index_src = domainSource->i_index;
   CArray<int,1>& j_index_src = domainSource->j_index;
@@ -189,8 +192,11 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
 
   int nVertex       = bounds_lon_src.shape()[0];
   int oldNbLocal = i_index_src.numElements();
-  int dataIindexBoundSrc = max(i_index_src) - min(i_index_src);
-  int dataJindexBoundSrc = max(j_index_src) - min(j_index_src);
+  // Calculate ni, nj by using i_index and j_index
+  int niSrcByIndex = max(i_index_src) - min(i_index_src) + 1;
+  int njSrcByIndex = max(j_index_src) - min(j_index_src) + 1;  
+  int dataIindexBoundSrc = (1 == dataDimSrc) ? (niSrcByIndex * njSrcByIndex) : niSrcByIndex;
+  int dataJindexBoundSrc = (1 == dataDimSrc) ? (niSrcByIndex * njSrcByIndex) : njSrcByIndex;
 
   // Uncompress data_i_index, data_j_index
   CArray<int,1> data_i_index_src_full(oldNbLocal);
@@ -202,8 +208,8 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   {
     int dataIidx = data_i_index_src(idx) + data_i_begin_src;
     int dataJidx = data_j_index_src(idx) + data_j_begin_src;
-    if ((0 <= dataIidx) && (dataIidx <= dataIindexBoundSrc) &&
-        (0 <= dataJidx) && (dataJidx <= dataJindexBoundSrc))
+    if ((0 <= dataIidx) && (dataIidx < dataIindexBoundSrc) &&
+        (0 <= dataJidx) && (dataJidx < dataJindexBoundSrc))
     {
       data_i_index_src_full(nbUnMaskedPointOnLocalDomain) = dataIidx;
       data_j_index_src_full(nbUnMaskedPointOnLocalDomain) = dataJidx;
@@ -262,7 +268,6 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
       i_index_dst(idx) = i + ibegin;
       j_index_dst(idx) = j + jbegin;
     }
-
  
 
   // 1. Fill in array relating to global index (i_index, j_index, transmap, etc, ...)
@@ -408,6 +413,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
 
   
   // Finally, update data_i_index, data_j_index
+  int dataDstDim = domainDestination->data_dim;
   data_i_index_dst.resize(nbUnMaskedPointOnExtendedPart);
   data_j_index_dst.resize(nbUnMaskedPointOnExtendedPart); 
   int count = 0; 
@@ -417,18 +423,18 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
     dataJIndex = data_j_index_dst_full(idx);
     if ((0 <= dataIIndex) && (0 <= dataJIndex))
     {
-      data_i_index_dst(count) = i_index_dst(idx) - i_index_dst(0);
-      data_j_index_dst(count) = j_index_dst(idx) - j_index_dst(0);
+      data_i_index_dst(count) = (1 == dataDstDim) ? idx : i_index_dst(idx) - i_index_dst(0);
+      data_j_index_dst(count) = (1 == dataDstDim) ? 0   : j_index_dst(idx) - j_index_dst(0);
       ++count;
     }
   }
 
   // Update data_ni, data_nj
-  domainDestination->data_ni.setValue(niDst);
-  domainDestination->data_nj.setValue(njDst);
+  
+  domainDestination->data_ni.setValue((1==dataDstDim) ? niDst * njDst : niDst);
+  domainDestination->data_nj.setValue((1==dataDstDim) ? niDst * njDst : njDst);  
   domainDestination->data_ibegin.setValue(0);
   domainDestination->data_jbegin.setValue(0);
-
 
   // Update longitude and latitude 
   if (niSrc == domainSource->lonvalue_1d.numElements() && njSrc == domainSource->latvalue_1d.numElements()) // Ok, we have rectilinear here
