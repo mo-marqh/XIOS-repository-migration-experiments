@@ -1,7 +1,9 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass book
 \begin_preamble
 \usepackage{MnSymbol}
@@ -15,16 +17,16 @@ logicalmkup
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
-\font_sans default
-\font_typewriter default
-\font_math auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -79,8 +81,13 @@ logicalmkup
 XIOS User Guide
 \end_layout
 
-\begin_layout Author
-Draft
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter
@@ -1191,6 +1198,10 @@ duration = date2 - date1
 
 \begin_layout Itemize
 converting dates to
+\begin_inset Separator latexpar
+\end_inset
+
+
 \end_layout
 
 \begin_deeper
@@ -1766,7 +1777,7 @@ netcdf4
 status open
 
 \begin_layout Plain Layout
--\SpecialChar \nobreakdash-
+-\SpecialChar nobreakdash
 -enable-netcdf4
 \end_layout
 
@@ -1809,7 +1820,7 @@ one_file
 status open
 
 \begin_layout Plain Layout
--\SpecialChar \nobreakdash-
+-\SpecialChar nobreakdash
 -enable-parallel
 \end_layout
 
@@ -1852,7 +1863,7 @@ one_file
 status open
 
 \begin_layout Plain Layout
--\SpecialChar \nobreakdash-
+-\SpecialChar nobreakdash
 -enable-pnetcdf
 \end_layout
 
@@ -4798,6 +4809,26 @@ filename "inputs/user/Axis.lyx"
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "inputs/user/Scalar.lyx"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand include
+filename "inputs/user/Transformations.lyx"
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Chapter
 XIOS options
 \end_layout
@@ -4967,7 +4998,7 @@ performance
 \emph default
  mode, XIOS will ensure that all active fields can be buffered without having
  to flush the buffers.
- This mode is used by default since it allows more asynchronism and thus
+ This mode is used by default since it allows more asynchronous and thus
  better performance at the cost of being quite memory hungry.
 \end_layout
 
@@ -4980,9 +5011,9 @@ minimum_buffer_size
 \series bold
 int
 \series default
-) defines the mimimum buffer size in bytes (8192 by default).
+) defines the minimum buffer size in bytes (8192 by default).
  This value will be used by XIOS only for buffers whose detected size is
- smaller than the user defined mimimum size.
+ smaller than the user defined minimum size.
 \end_layout
 
 \begin_layout Itemize
@@ -5003,7 +5034,7 @@ int
  For each allocated buffers, the used size is defined as 
 \begin_inset Formula 
 \[
-{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\; detected\_size\;\times\; buffer\_size\_factor\right)}
+{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\;detected\_size\;\times\;buffer\_size\_factor\right)}
 \]
 
 \end_inset

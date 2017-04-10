@@ -1,7 +1,9 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass book
 \use_default_options true
 \master ../../XIOS_user_guide.lyx
@@ -10,16 +12,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
-\font_sans default
-\font_typewriter default
-\font_math auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -142,8 +144,7 @@ unique
 \shape default
 \color inherit
  among this kind of components.
- It is not allowed to have two domains with a same id, but it is permitted
- a domain and a grid, for example, to share a same one.
+ Domains defined by a same Id always represent only one domain.
 \end_layout
 
 \begin_layout Standard
@@ -180,7 +181,9 @@ In this way, with id, the domain can be processed, e.x modified its attributes,
 
 \begin_layout Standard
 Very often, after a domain is defined, it may be referenced many times.
- To make a reference to a domain, we use domain_ref
+ To make a reference to a domain, we use 
+\shape italic
+domain_ref
 \end_layout
 
 \begin_layout Standard
@@ -215,9 +218,9 @@ A domain defined by domain_ref will inherit all attributes of the referenced
  If there is no id specified, an implicit one is assigned to this new domain.
  The domain with implicit id can only be used inside the scope where it
  is defined, it can not be referenced, nor be processed.
- It is rare to define a domain without id inside domain_definition.
- However, the domain_ref is utilized widely outside the scope of domain_definiti
-on.
+ It is useless to define a domain without id inside domain_definition.
+ Meanwhile, the domain_ref is utilized widely outside the scope of domain_defini
+tion.
 \end_layout
 
 \begin_layout Standard
@@ -229,7 +232,7 @@ domain.
  
 \series default
 \color inherit
-Moreover it is the only region where we can define a new domain outside
+However, it is the only region where we can define a new domain outside
  domain_definition.
 \end_layout
 
@@ -285,203 +288,17 @@ Advanced configuration
 \end_layout
 
 \begin_layout Standard
-One of a new concept which differenciates XIOS 2.0 from its precedent is
- transformation.
- In a simple case, zoom feature is now considered to be a transformation.
- It can be more complicated for other geometric transformation such as inversion
- or interpolation.
- All transformation are taken place on grid level.
- It means that it is neccessary to define a grid source and a grid destination
- as well as a transformation or list of transformation which we'd like to
- have.
- In order to transform a grid to one another, we need to specify a transformatio
-n on its sub-component: domain or axis.
-\end_layout
-
-\begin_layout Standard
-Because transformation on a domain is different from one on an axis, we
- differenciate two categories of transformation: transformation_domain and
- transformation_axis.
-\end_layout
-
-\begin_layout Standard
-Till now, XIOS supports the following transformation on domain:
-\end_layout
-
-\begin_layout Itemize
-zoom_domain: Like zoom functionality in XIOS 1.0, the destination grid is
- the zoomed region of the source grid.
-\end_layout
-
-\begin_layout Itemize
-interpolation_domain: Implement interpolation from a domain to one another,
- for now XIOS can only do interpolation by reading calculated weight values
- from a file or calculate the weights on the fly.
-\end_layout
-
-\begin_layout Itemize
-generate_rectilinear_domain: auto generating, distributing a rectilinear
- domain then filling all mandatory attributes.
-\end_layout
-
-\begin_layout Standard
-It is not difficult to define a transformation: Include type of transformation
- inside domain definition, as the following
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-<domain_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-  <domain id="domain_A" />
-\end_layout
-
-\begin_layout Plain Layout
-
-  <domain id="domain_A_zoom" domain_ref="domain_A"> 
-\end_layout
-
-\begin_layout Plain Layout
-
-   <zoom_domain zoom_ibegin="1" zoom_ni="3" zoom_jbegin="0" zoom_nj="2"/>
-\end_layout
-
-\begin_layout Plain Layout
-
-  </domain>
-\end_layout
-
-\begin_layout Plain Layout
-
-</domain_definition>
-\end_layout
+One of a new concept which differentiates XIOS 2.0 from its precedent is
+ (spatial) transformation, which can be defined inside a domain.
+ All transformations on a domain have form *_domain.
+ See Chapter 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "chap:Transformation"
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-The concrete example above tells many things: a domain named domain_A_zoom
- is transformed from domain name domain_A with a zoom activity.
- The domain_A_zoom is the zoomed region of domain_A.
- The detailed attributes of zoom_domain can be found in reference document,
- but simply it contains the begining and size of zoomed region.
-\end_layout
-
-\begin_layout Standard
-One remark is the transformed domain SHOULD have an id, in this case, it's
- domain_A_zoom.
- As mentioned before, a no-id domain or any no-id component of XIOS can
- only be used inside its definition scope.
- It exists but is useless.
- So care about that.
-\end_layout
-
-\begin_layout Standard
-To make use of transformation, the grid must contain domains which reference
- to transformed ones.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-<grid id="grid_A">          
-\end_layout
-
-\begin_layout Plain Layout
-
-   <domain domain_ref="domain_A" />
-\end_layout
-
-\begin_layout Plain Layout
-
- </grid>
-\end_layout
-
-\begin_layout Plain Layout
-
-<grid id="grid_A_zoom">          
-\end_layout
-
-\begin_layout Plain Layout
-
-   <domain domain_ref="domain_A_zoom" />
-\end_layout
-
-\begin_layout Plain Layout
-
- </grid>
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-On defining this way, we tell XIOS to establish a connection between two
- grids by a transformation (zoom) with: grid source - grid_A, grid destination
- - grid_A_zoom.
-\end_layout
-
-\begin_layout Standard
-As mentioned in Grid Chapter, in order to use transformed grid, just reference
- to it in field_definition
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-<field_definition level="1" enabled=".TRUE." default_value="9.96921e+36">
-\end_layout
-
-\begin_layout Plain Layout
-
-  <field id="field_A"  operation="average" freq_op="3600s" grid_ref="grid_A"
- />
-\end_layout
-
-\begin_layout Plain Layout
-
-  <field id="field_A_zoom"  operation="average" freq_op="3600s" grid_ref="grid_A
-_zoom" />
-\end_layout
-
-\begin_layout Plain Layout
-
- </field_definition>
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Although xml is helpful to define several configurations, it is not convenient
- to customize attributes of domain.
- So it's the turn of Fortran interface.
+ for more details.
 \end_layout
 
 \begin_layout Section
@@ -525,7 +342,7 @@ In XIOS, a domain can be represented by one of three different types of
 \begin_layout Itemize
 rectilinear: a simple 2-dimensional Cartesian coordinates with two perpendicular
  axes.
- Latitude represents the y-axe while longitude represents the x-axe.
+ Latitude represents the y-axis while longitude represents the x-axe.
 \end_layout
 
 \begin_layout Itemize
@@ -536,8 +353,8 @@ curvilinear: a 2-dimensional coordinates allows the generality of two axes
 \end_layout
 
 \begin_layout Itemize
-unstructured: not any of two above, the latitutude and longitude, as curvilinear
-, are reprensented with the help of boundaries.
+unstructured: not any of two above, the latitude and longitude, as curvilinear,
+ are represented with the help of boundaries.
  
 \end_layout
 
@@ -563,7 +380,7 @@ CALL xios_set_domain_attr("domain_A",type='rectilinear')
 \end_layout
 
 \begin_layout Standard
-Althoug there are different domain types, they share the similar patterns
+Although there are different domain types, they share the similar patterns
  to settle local data on a client process: There are some essential attributes
  to define.
  The next sections describe their meanings and how to specify correctly
@@ -577,7 +394,7 @@ Local domain index
 \begin_layout Standard
 It is not uncommon that a global domain is broken into several pieces, each
  of which is distributed to one process.
- Following we consider a simple case: a domain of rectilinear type with
+ Following, we consider a simple case: a domain of rectilinear type with
  global size 9 x 9 and its data is distributed evenly among 9 client processes,
  each of which has 3x3.
 \end_layout
@@ -633,17 +450,17 @@ Specify the the beginning and size of local domain with:
 \end_layout
 
 \begin_layout Itemize
-ni_glo, nj_glo: global size of x-axis and y-axis correspondingly.
- 
-\end_layout
-
-\begin_layout Itemize
 ibegin, jbegin: global position on x-axis and y-axis where a local domain
  begin
 \end_layout
 
 \begin_layout Itemize
 ni, nj: local size of domain of each process on x-axis and y-axis
+\end_layout
+
+\begin_layout Itemize
+ni_glo, nj_glo: global size of x-axis and y-axis correspondingly.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -716,12 +533,12 @@ Similar to define local index, local data can be done in two ways.
 \end_layout
 
 \begin_layout Standard
-Specify the begining and size of data on the local domain:
+Specify the beginning and size of data on the local domain:
 \end_layout
 
 \begin_layout Itemize
 data_ibegin, data_jbegin: the local position of data on x-axis and y-axis
- where data begins
+ where data begins inside the local domain
 \end_layout
 
 \begin_layout Itemize
@@ -771,13 +588,13 @@ CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2,
 \end_layout
 
 \begin_layout Standard
-In order to be processed correctly, data must be specified with the begining
+In order to be processed correctly, data must be specified with the beginning
  and size of its block .
  For two-dimensional data, it can be done with data_ibegin, data_ni for
  the first dimension and data_jbegin, data_nj for the second dimension.
  In case of one-dimensional data, it is only necessary to determine data_ibegin
  and data_ni.
- Although the valid data must be inside a local domain, it is not neccessary
+ Although the valid data must be inside a local domain, it is not necessary
  for data to have same size as local domain.
  In fact, data can have larger size than domain on each dimension, this
  is often the case of 
@@ -856,7 +673,7 @@ reference "localDomain"
 \end_layout
 
 \begin_layout Standard
-With the secon way, data can be represented with:
+With the second way, data can be represented with:
 \end_layout
 
 \begin_layout Standard
@@ -890,7 +707,7 @@ dataI = {-1,0,1,2,3,-1,0,1,2,3,-1,0,1,2,3,-1,0,1,2,3,-1,0,1,2,3}
 
 \begin_layout Standard
 As mentioned, data on a domain are two-dimensional but in some cases, there
- is a need to write data continously, there comes one-dimensional data.
+ is a need to write data continuously, there comes one-dimensional data.
  With the precedent example, we can define one dimensional data with:
 \end_layout
 
@@ -920,9 +737,9 @@ dataI = {-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18}
 
 \begin_layout Standard
 Above are the mandatory attributes to define local domain.
- There are some auxilliary attributes which make data meaningful, especially
+ There are some auxiliary attributes which make data meaningful, especially
  for meteorological one.
- The next section disscuses these attributes.
+ The next section discuses these attributes.
 \end_layout
 
 \begin_layout Subsection
@@ -930,7 +747,7 @@ Longitude and latitude
 \end_layout
 
 \begin_layout Standard
-Different from the previous version, in XIOS 2.0, lonngitude and latitude
+Different from the previous version, in XIOS 2.0, longitude and latitude
  are optional.
  Moreover, to be coherent to the data_dim concept, there are more ways to
  input longitude and latitude values.
@@ -1024,8 +841,8 @@ lat1D = {
 
 \begin_layout Standard
 For unstructured mesh, a cell can have different number of vertices than
- rectinlinear, in this case, longitude and latitude value of the vertex
- of cell are specified with bounds_lon_1d and bounds_lat_1d.
+ rectilinear, in this case, longitude and latitude value of the vertex of
+ cell are specified with bounds_lon_1d and bounds_lat_1d.
 \end_layout
 
 \begin_layout Standard
@@ -1037,7 +854,7 @@ For curvilinear mesh, bounds_lon_2d and bounds_lat_2d provide a convenient
 
 \begin_layout Standard
 One thing to remind, only *_1d or *_2d attributes are used, if *_1d and
- *_2d of a same attribute are provides, there will be runtime error.
+ *_2d of a same attribute are provides, there will be run-time error.
 \end_layout
 
 \begin_layout Standard
