@@ -1017,8 +1017,17 @@ namespace xios {
 
        if (!file->timeseries.isEmpty() && file->timeseries != CFile::timeseries_attr::none)
        {
-         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : file->getFileOutputName();
-
+         StdString fileNameStr("%file_name%") ;
+         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : fileNameStr ;
+         
+         StdString fileName=file->getFileOutputName();
+         size_t pos=tsPrefix.find(fileNameStr) ;
+         while (pos!=std::string::npos)
+         {
+           tsPrefix=tsPrefix.replace(pos,fileNameStr.size(),fileName) ;
+           pos=tsPrefix.find(fileNameStr) ;
+         }
+        
          const std::vector<CField*> allFields = file->getAllFields();
          for (size_t j = 0; j < allFields.size(); j++)
          {
@@ -1033,6 +1042,7 @@ namespace xios {
              for (size_t k = 0; k < fileVars.size(); k++)
                tsFile->getVirtualVariableGroup()->addChild(fileVars[k]);
 
+            
              tsFile->name = tsPrefix + "_";
              if (!field->name.isEmpty())
                tsFile->name.get() += field->name;
