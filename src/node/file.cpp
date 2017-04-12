@@ -49,9 +49,9 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   const StdString& CFile::getFileOutputName(void) const
+   const StdString CFile::getFileOutputName(void) const
    {
-     return name.isEmpty() ? getId() : name;
+     return (name.isEmpty() ? getId() : name) + (name_suffix.isEmpty() ? StdString("") :  name_suffix.getValue());
    }
 
    //----------------------------------------------------------------
@@ -215,7 +215,8 @@ namespace xios {
       lastSplit = currentDate;
       if (!split_freq.isEmpty())
       {
-        if (context->registryIn->foundKey("splitStart") && context->registryIn->foundKey("splitEnd"))
+        StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+        if (context->registryIn->foundKey(keySuffix+"splitStart") && context->registryIn->foundKey(keySuffix+"splitEnd"))
         {
           CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
           context->registryIn->getKey("splitStart", savedSplitStart);
@@ -347,7 +348,6 @@ namespace xios {
       if (!allDomainEmpty)
       {
          StdString filename = getFileOutputName();
-         if (!name_suffix.isEmpty()) filename+=name_suffix.getValue();
 
 // determine splitting format in the file name  : firstPart%start_date%middlePart%end_date%lastPart
 
@@ -414,8 +414,9 @@ namespace xios {
            if (hasEndDate) oss << splitEnd.getStr(splitFormat);
            oss << lastPart ;
 
-           context->registryOut->setKey("splitStart", lastSplit);
-           context->registryOut->setKey("splitEnd",   splitEnd);
+           StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+           context->registryOut->setKey(keySuffix+"splitStart", lastSplit);
+           context->registryOut->setKey(keySuffix+"splitEnd",   splitEnd);
          }
          else oss<<firstPart<<lastPart ;
 
@@ -507,7 +508,6 @@ namespace xios {
       StdString filename = getFileOutputName();
       StdOStringStream oss;
       oss << filename;
-      if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
 
       if (!split_freq.isEmpty())
       {
