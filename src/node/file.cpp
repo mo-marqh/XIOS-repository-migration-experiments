@@ -219,8 +219,8 @@ namespace xios {
         if (context->registryIn->foundKey(keySuffix+"splitStart") && context->registryIn->foundKey(keySuffix+"splitEnd"))
         {
           CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
-          context->registryIn->getKey("splitStart", savedSplitStart);
-          context->registryIn->getKey("splitEnd",   savedSplitEnd);
+          context->registryIn->getKey(keySuffix+"splitStart", savedSplitStart);
+          context->registryIn->getKey(keySuffix+"splitEnd",   savedSplitEnd);
 
           if (savedSplitStart <= lastSplit && lastSplit <= savedSplitEnd)
             lastSplit = savedSplitStart;
