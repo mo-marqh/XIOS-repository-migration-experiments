@@ -1001,17 +1001,17 @@ namespace xios {
 
   void CGrid::computeCompressedIndex()
   {
-    compressedOutIndexFromClient = outIndexFromClient;
-
     std::map<size_t, size_t> indexes;
 
     {
-      std::map<int, CArray<size_t,1> >::const_iterator it = compressedOutIndexFromClient.begin();
-      std::map<int, CArray<size_t,1> >::const_iterator itEnd = compressedOutIndexFromClient.end();
+      std::map<int, CArray<size_t,1> >::const_iterator it = outIndexFromClient.begin();
+      std::map<int, CArray<size_t,1> >::const_iterator itEnd = outIndexFromClient.end();
       for (; it != itEnd; ++it)
       {
         for (int i = 0; i < it->second.numElements(); ++i)
           indexes.insert(std::make_pair(it->second(i), 0));
+
+        compressedOutIndexFromClient[it->first].resize(it->second.numElements());
       }
     }
 
@@ -1027,8 +1027,9 @@ namespace xios {
       std::map<int, CArray<size_t,1> >::iterator itEnd = compressedOutIndexFromClient.end();
       for (; it != itEnd; ++it)
       {
+        const CArray<size_t,1>& outIndex = outIndexFromClient[it->first];
         for (int i = 0; i < it->second.numElements(); ++i)
-          it->second(i) = indexes[it->second(i)];
+          it->second(i) = indexes[outIndex(i)];
       }
     }
   }
