@@ -173,7 +173,7 @@ namespace xios {
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
          std::map<int, StdSize> getAttributesBufferSize();
-         std::map<int, StdSize> getDataBufferSize(const std::string& id = "");
+         std::vector<std::map<int, StdSize> > getDataBufferSize(const std::string& id = "");
          std::vector<StdString> getDomainList();
          std::vector<StdString> getAxisList();
          std::vector<StdString> getScalarList();
@@ -221,7 +221,7 @@ namespace xios {
 
          map<int, CArray<int, 1> > storeIndex_toSrv;
          map<int, CArray<int, 1> > storeIndex_fromSrv;
-         map<int,int> nbSenders;
+         std::vector<map<int,int> > nbSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;
          CArray<size_t,1> indexFromClients;
@@ -276,8 +276,8 @@ namespace xios {
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-        std::map<int,size_t> connectedDataSize_;
-        std::vector<int> connectedServerRank_;
+        std::vector<std::map<int,size_t> > connectedDataSize_;
+        std::vector<std::vector<int> > connectedServerRank_;
         bool isDataDistributed_;
         int positionDimensionDistributed_;
          //! True if and only if the data defined on the grid can be outputted in a compressed way

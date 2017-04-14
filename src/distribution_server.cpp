@@ -174,14 +174,19 @@ CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& 
 */
 void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
 {
-  int ssize = globalIndex.numElements();
-  CArray<size_t,1> localIndex(ssize);
+  size_t ssize = globalIndex.numElements();
+  size_t localIndexSize = std::min(globalIndex_.numElements(), ssize);
+  CArray<size_t,1> localIndex(localIndexSize);
   GlobalLocalMap::const_iterator ite = globalLocalIndexMap_.end(), it;
-  for (int idx = 0; idx < ssize; ++idx)
+  int i = 0;
+  for (size_t idx = 0; idx < ssize; ++idx)
   {
     it = globalLocalIndexMap_.find(globalIndex(idx));
     if (ite != it)
-      localIndex(idx) = it->second;
+    {
+      localIndex(i) = it->second;
+      ++i;
+    }
   }
 
   globalIndex.reference(localIndex);
@@ -200,6 +205,13 @@ void CDistributionServer::computeGlobalIndex(CArray<int,1>& indexes) const
   }
 }
 
+/*!
+  Get the size of grid index in server (e.x: sizeGrid *= size of each dimensiion)
+*/
+int CDistributionServer::getGridSize() const
+{
+   return globalLocalIndexMap_.size();
+}
 
 const std::vector<int>& CDistributionServer::getZoomBeginGlobal() const
 {

@@ -124,10 +124,9 @@ namespace xios{
     CContext* context = CContext::getCurrent();
 //    CContextClient* client = context->client;
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-//    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-//    for (int i = 0; i < nbSrvPools; ++i)
-//    {
-//      CContextClient* client = (!context->hasServer) ? context->client : context->clientPrimServer[i];
+    // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+    // for (int i = 0; i < nbSrvPools; ++i)
+    // {
       CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
       CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
@@ -172,69 +171,68 @@ namespace xios{
           for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
           list_msg.back() << getId() << data_tmp;
-          event.push(rank, grid->nbSenders[rank], list_msg.back());
+          event.push(rank, grid->nbSenders[0][rank], list_msg.back());
         }
         client->sendEvent(event);
       }
-//    }
+    // }
 
     CTimer::get("XIOS Send Data").suspend();
   }
 
-/*
-  void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
-  {
-    CTimer::get("XIOS Send Data").resume();
+  // void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
+  // {
+  //   CTimer::get("XIOS Send Data").resume();
 
-    CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
+  //   CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
-    map<int, CArray<int,1> >::iterator it;
-    list<CMessage> list_msg;
-    list<CArray<double,1> > list_data;
+  //   map<int, CArray<int,1> >::iterator it;
+  //   list<CMessage> list_msg;
+  //   list<CArray<double,1> > list_data;
 
-    if (!grid->doGridHaveDataDistributed())
-    {
-       if (client->isServerLeader())
-       {
-          for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
-          {
-            int rank = it->first;
-            CArray<int,1>& index = it->second;
+  //   if (!grid->doGridHaveDataDistributed())
+  //   {
+  //      if (client->isServerLeader())
+  //      {
+  //         for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+  //         {
+  //           int rank = it->first;
+  //           CArray<int,1>& index = it->second;
 
-            list_msg.push_back(CMessage());
-            list_data.push_back(CArray<double,1>(index.numElements()));
+  //           list_msg.push_back(CMessage());
+  //           list_data.push_back(CArray<double,1>(index.numElements()));
 
-            CArray<double,1>& data_tmp = list_data.back();
-            for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+  //           CArray<double,1>& data_tmp = list_data.back();
+  //           for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
-            list_msg.back() << getId() << data_tmp;
-            event.push(rank, 1, list_msg.back());
-          }
-          client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
-    else
-    {
-      for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
-      {
-        int rank = it->first;
-        CArray<int,1>& index = it->second;
+  //           list_msg.back() << getId() << data_tmp;
+  //           event.push(rank, 1, list_msg.back());
+  //         }
+  //         client->sendEvent(event);
+  //      }
+  //      else client->sendEvent(event);
+  //   }
+  //   else
+  //   {
+  //     for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+  //     {
+  //       int rank = it->first;
+  //       CArray<int,1>& index = it->second;
 
-        list_msg.push_back(CMessage());
-        list_data.push_back(CArray<double,1>(index.numElements()));
+  //       list_msg.push_back(CMessage());
+  //       list_data.push_back(CArray<double,1>(index.numElements()));
 
-        CArray<double,1>& data_tmp = list_data.back();
-        for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
+  //       CArray<double,1>& data_tmp = list_data.back();
+  //       for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
-        list_msg.back() << getId() << data_tmp;
-        event.push(rank, grid->nbSenders[rank], list_msg.back());
-      }
-      client->sendEvent(event);
-    }
-    CTimer::get("XIOS Send Data").suspend();
-  }
-*/
+  //       list_msg.back() << getId() << data_tmp;
+  //       event.push(rank, grid->nbSenders[rank], list_msg.back());
+  //     }
+  //     client->sendEvent(event);
+  //   }
+  //   CTimer::get("XIOS Send Data").suspend();
+  // }
+
   void CField::recvUpdateData(CEventServer& event)
   {
     std::map<int,CBufferIn*> rankBuffers;
@@ -262,6 +260,7 @@ namespace xios{
       for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
       {
         sizeData += it->second.numElements();
+        data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
       }
 
       // Gather all data from different clients
@@ -270,18 +269,23 @@ namespace xios{
     }
 
     CArray<double,1> recv_data_tmp(recvDataSrv.numElements());
-    sizeData = 0;
+    // sizeData = 0;
     const CDate& currDate = context->getCalendar()->getCurrentDate();
-    const CDate opeDate      = last_operation_srv +freq_op + freq_operation_srv - freq_op;
+    const CDate opeDate   = last_operation_srv +freq_op + freq_operation_srv - freq_op;
 
     if (opeDate <= currDate)
     {
       for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
       {        
-        CArray<double,1> tmp;       
+        CArray<double,1> tmp;
+        CArray<size_t,1>& indexTmp = it->second;
         *(rankBuffers[it->first]) >> tmp;
-        recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
-        sizeData += it->second.numElements();      
+        for (int idx = 0; idx < indexTmp.numElements(); ++idx)
+        {
+          recv_data_tmp(indexTmp(idx)) = tmp(idx);
+        }
+        // recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
+        // sizeData += it->second.numElements();      
       }
     }
 
@@ -524,7 +528,7 @@ namespace xios{
           msg << getNStep() - 1 << it->second;
         else
           msg << int(-1);
-        event.push(it->first, grid->nbSenders[it->first], msg);
+        event.push(it->first, grid->nbSenders[0][it->first], msg);
       }
       client->sendEvent(event);
     }
@@ -923,7 +927,7 @@ namespace xios{
      return grid->getAttributesBufferSize();
    }
 
-   std::map<int, StdSize> CField::getGridDataBufferSize()
+   std::vector<std::map<int, StdSize> > CField::getGridDataBufferSize()
    {
      return grid->getDataBufferSize(getId());
    }
@@ -1423,13 +1427,15 @@ namespace xios{
 
    void CField::outputField(CArray<double,1>& fieldOut)
    {
-      // map<int, CArray<double,1> >::iterator it;
-
+      map<int, CArray<double,1> >::iterator it;
+      
+      fieldOut = recvDataSrv;
+      
       // for (it = data_srv.begin(); it != data_srv.end(); it++)
       // {
       //    grid->outputField(it->first, it->second, fieldOut.dataFirst());
       // }
-    grid->outputField(recvDataSrv, fieldOut);
+    // grid->outputField(recvDataSrv, fieldOut);
    }
 
    void CField::inputField(CArray<double,3>& fieldOut)

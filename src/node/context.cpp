@@ -299,6 +299,7 @@ namespace xios {
      std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize);
      std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize);
 
+
      std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
      for (it = dataBufferSize.begin(); it != ite; ++it)
        if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
@@ -474,11 +475,17 @@ namespace xios {
    {
      if (allProcessed) return;
      
-     if (hasClient)
-     {
+     // if (hasClient)
+     // {
        // After xml is parsed, there are some more works with post processing
        postProcessing();
-     }
+
+       // Check grid and calculate its distribution
+       checkGridEnabledFields();
+
+     //}
+
+
 
      setClientServerBuffer();
 
@@ -501,11 +508,14 @@ namespace xios {
        sendRefDomainsAxis();
 
        // After that, send all grid (if any)
-       sendRefGrid();
+       sendRefGrid();       
 
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
+
+       sendGridEnabledFields();       
      }
+
      allProcessed = true;
    }
 
@@ -522,7 +532,10 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         msg<<this->getIdServer();
+         if (hasServer)
+           msg<<this->getIdServer(i);
+         else
+           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
@@ -537,12 +550,11 @@ namespace xios {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      // get(id)->recvPostProcessingGlobalAttributes(*buffer);
+      get(id)->recvPostProcessingGlobalAttributes(*buffer);
    }
 
    void CContext::recvPostProcessingGlobalAttributes(CBufferIn& buffer)
-   {
-      // CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
+   {      
       postProcessingGlobalAttributes();
    }
 
@@ -569,8 +581,10 @@ namespace xios {
       buildFilterGraphOfFieldsWithReadAccess();
     }
 
-    // if (hasClient) this->solveAllRefOfEnabledFields(true);
-    this->processGridEnabledFields();
+    // if (hasClient) this->solveAllRefOfEnabledFields(true);    
+    checkGridEnabledFields();
+    // sendGridEnabledFields();
+
     if (hasClient) this->sendProcessingGridOfEnabledFields();
     if (hasClient) this->sendCloseDefinition();
 
@@ -616,13 +630,21 @@ namespace xios {
      }
    }
 
-   void CContext::processGridEnabledFields()
+   void CContext::sendGridEnabledFields()
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {       
+       this->enabledFiles[i]->sendGridOfEnabledFields();
+     }
+   }
+
+   void CContext::checkGridEnabledFields()
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->checkGridOfEnabledFields();
-       this->enabledFiles[i]->sendGridOfEnabledFields();
+       this->enabledFiles[i]->checkGridOfEnabledFields();       
      }
    }
 
@@ -992,7 +1014,10 @@ namespace xios {
        if (contextClientTmp->isServerLeader())
        {
          CMessage msg;
-         msg<<this->getIdServer();
+         if (hasServer)
+           msg<<this->getIdServer(i);
+         else
+           msg<<this->getIdServer();
          const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
          for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
            event.push(*itRank,1,msg);
@@ -1008,7 +1033,7 @@ namespace xios {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
-      // get(id)->processGridEnabledFields();
+      //get(id)->solveOnlyRefOfEnabledFields(false);
    }
 
    //! Client side: Send a message to do some post processing on server
@@ -1139,10 +1164,13 @@ namespace xios {
       // solveAllRefOfFieldsWithReadAccess();
 
       // Only search and rebuild all reference objects of enable fields, don't transform
-      if (hasClient) this->solveOnlyRefOfEnabledFields(false);
+      this->solveOnlyRefOfEnabledFields(false);
 
-      // Search and rebuild all reference object of enabled fields
-      // if (hasClient) this->solveAllRefOfEnabledFields(false);
+      // Search and rebuild all reference object of enabled fields, and transform
+      this->solveAllEnabledFields();
+
+      // // Check grid and calculate its distribution
+      // if (hasClient) checkGridEnabledFields();
 
       // Find all fields with read access from the public API
       if (hasClient && !hasServer) findFieldsWithReadAccess();
@@ -1215,19 +1243,22 @@ namespace xios {
          size_t numEnabledFields = enabledFields.size();
          for (size_t j = 0; j < numEnabledFields; ++j)
          {
-           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize();
-           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-           for (; it != itE; ++it)
+           const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
+           for (size_t c = 0; c < mapSize.size(); ++c)
            {
-             // If dataSize[it->first] does not exist, it will be zero-initialized
-             // so we can use it safely without checking for its existance
-             if (CXios::isOptPerformance)
-               dataSize[it->first] += it->second;
-             else if (dataSize[it->first] < it->second)
-               dataSize[it->first] = it->second;
+             std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
+             for (; it != itE; ++it)
+             {
+               // If dataSize[it->first] does not exist, it will be zero-initialized
+               // so we can use it safely without checking for its existance
+               if (CXios::isOptPerformance)
+                 dataSize[it->first] += it->second;
+               else if (dataSize[it->first] < it->second)
+                 dataSize[it->first] = it->second;
 
-             if (maxEventSize[it->first] < it->second)
-               maxEventSize[it->first] = it->second;
+               if (maxEventSize[it->first] < it->second)
+                 maxEventSize[it->first] = it->second;
+             }
            }
          }
        }

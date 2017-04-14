@@ -200,6 +200,7 @@ namespace xios {
          std::vector<int> local_write_size_;
          std::vector<int> global_write_size_;
 
+         bool doZoomByIndex_;
          bool isChecked;
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good

@@ -125,7 +125,8 @@ namespace xios {
          void postProcessingGlobalAttributes();         
 
          void solveAllEnabledFields();
-         void processGridEnabledFields();
+         void checkGridEnabledFields();
+         void sendGridEnabledFields();
 
          std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);

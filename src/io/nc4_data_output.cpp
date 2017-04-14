@@ -73,10 +73,10 @@ namespace xios
          if (isWrittenDomain(domid)) return ;
          else setWrittenDomain(domid);
 
-        const std::vector<int>& local_size_write  = domain->getLocalWriteSize();
-        const std::vector<int>& global_size_write = domain->getGlobalWriteSize();
-        const std::vector<int>& start_write = domain->getStartWriteIndex();
-        const std::vector<int>& count_write = domain->getCountWriteIndex();
+        // const std::vector<int>& local_size_write  = domain->getLocalWriteSize();
+        // const std::vector<int>& global_size_write = domain->getGlobalWriteSize();
+        // const std::vector<int>& start_write = domain->getStartWriteIndex();
+        // const std::vector<int>& count_write = domain->getCountWriteIndex();
         int nvertex = (domain->nvertex.isEmpty()) ? 0 : domain->nvertex;
 
          StdString dimXid, dimYid ;
@@ -139,22 +139,26 @@ namespace xios
                  bounds_lonid = StdString("bounds_lon").append(appendDomid);
                  bounds_latid = StdString("bounds_lat").append(appendDomid);
 
-                 SuperClassWriter::addDimension(dimXid, local_size_write[0]);
-                 SuperClassWriter::addDimension(dimYid, local_size_write[1]);
+                 SuperClassWriter::addDimension(dimXid, domain->zoom_ni);
+                 SuperClassWriter::addDimension(dimYid, domain->zoom_nj);
 
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
 
                  if (server->intraCommSize > 1)
                  {
-                   this->writeLocalAttributes(0, count_write[0],
-                                              0, count_write[1],
+                   this->writeLocalAttributes(domain->zoom_ibegin,
+                                              domain->zoom_ni,
+                                              domain->zoom_jbegin,
+                                              domain->zoom_nj,
                                               appendDomid);
 
                    if (singleDomain)
                     this->writeLocalAttributes_IOIPSL(dimXid, dimYid,
-                                                      0, count_write[0],
-                                                      0, count_write[1],
+                                                      domain->zoom_ibegin,
+                                                      domain->zoom_ni,
+                                                      domain->zoom_jbegin,
+                                                      domain->zoom_nj,
                                                       domain->ni_glo,domain->nj_glo,
                                                       server->intraCommRank,server->intraCommSize);
                  }
@@ -227,9 +231,9 @@ namespace xios
                        SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0);
                        break;
                      case CDomain::type_attr::rectilinear :
-                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,local_size_write[0])) ;
+                       CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->zoom_ni)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0);
-                       CArray<double,1> lon = domain->lonvalue(Range(0,local_size_write[1])) ;
+                       CArray<double,1> lon = domain->lonvalue(Range(0,domain->zoom_ni-1)) ;
 //                       CArray<double,1> lon = domain->lonvalue(Range(0,local_size_write[1]-1)) ;
                        SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0);
                        break;
@@ -251,8 +255,8 @@ namespace xios
               }
               case (ONE_FILE) :
               {
-                 SuperClassWriter::addDimension(dimXid, global_size_write[0]);
-                 SuperClassWriter::addDimension(dimYid, global_size_write[1]);
+                 SuperClassWriter::addDimension(dimXid, domain->global_zoom_ni);
+                 SuperClassWriter::addDimension(dimYid, domain->global_zoom_nj);
 
                  if (domain->hasBounds)
                    SuperClassWriter::addDimension(dimVertId, domain->nvertex);
@@ -326,13 +330,13 @@ namespace xios
                      }
                      else
                      {
-                       // start[1]=domain->zoom_ibegin_srv-domain->global_zoom_ibegin;
-                       // start[0]=domain->zoom_jbegin_srv-domain->global_zoom_jbegin;
-                       // count[1]=domain->zoom_ni_srv ; count[0]=domain->zoom_nj_srv ;
-                       start[1]= start_write[0];
-                       start[0]= start_write[1];
-                       count[1]= count_write[0];
-                       count[0]= count_write[1];
+                       start[1]=domain->zoom_ibegin-domain->global_zoom_ibegin;
+                       start[0]=domain->zoom_jbegin-domain->global_zoom_jbegin;
+                       count[1]=domain->zoom_ni ; count[0]=domain->zoom_nj ;
+                       // start[1]= start_write[0];
+                       // start[0]= start_write[1];
+                       // count[1]= count_write[0];
+                       // count[0]= count_write[1];
                      }
 
                      if (domain->hasLonLat)
@@ -358,14 +362,18 @@ namespace xios
                        }
                        else
                        {
-                         start[0]= start_write[1];
-                         count[0]= count_write[1];
-                         CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,count_write[0])) ;
+                         // start[0]= start_write[1];
+                         // count[0]= count_write[1];
+                         start[0]=domain->zoom_jbegin-domain->global_zoom_jbegin;
+                         count[0]=domain->zoom_nj;
+                         CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->zoom_ni)) ;
                          SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
-                         start[0]= start_write[0];
-                         count[0]= count_write[0];
-                         CArray<double,1> lon=domain->lonvalue(Range(0,count_write[1])) ;
+                         // start[0]= start_write[0];
+                         // count[0]= count_write[0];
+                         start[0]=domain->zoom_ibegin-domain->global_zoom_ibegin;
+                         count[0]=domain->zoom_ni;
+                         CArray<double,1> lon=domain->lonvalue(Range(0,domain->zoom_ni-1)) ;
                          SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                        }
                      }
@@ -385,11 +393,11 @@ namespace xios
                    else
                    {
                      start[2] = 0;
-                     start[1] = start_write[0];
-                     start[0] = start_write[1];
-                     count[2] = nvertex;
-                     count[1] = count_write[0];
-                     count[0] = count_write[1];
+                     start[1] = domain->zoom_ibegin - domain->global_zoom_ibegin;
+                     start[0] = domain->zoom_jbegin - domain->global_zoom_jbegin;
+                     count[2] = domain->nvertex;
+                     count[1] = domain->zoom_ni;
+                     count[0] = domain->zoom_nj;
                    }
 
                  SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0, &start, &count);
@@ -408,15 +416,15 @@ namespace xios
                    }
                    else
                    {
-                     // start[1] = domain->zoom_ibegin_srv - domain->global_zoom_ibegin;
-                     // start[0] = domain->zoom_jbegin_srv - domain->global_zoom_jbegin;
-                     // count[1] = domain->zoom_ni_srv;
-                     // count[0] = domain->zoom_nj_srv;
+                     start[1] = domain->zoom_ibegin - domain->global_zoom_ibegin;
+                     start[0] = domain->zoom_jbegin - domain->global_zoom_jbegin;
+                     count[1] = domain->zoom_ni;
+                     count[0] = domain->zoom_nj;
 
-                     start[1]= start_write[0];
-                     start[0]= start_write[1];
-                     count[1]= count_write[0];
-                     count[0]= count_write[1];
+                     // start[1]= start_write[0];
+                     // start[0]= start_write[1];
+                     // count[1]= count_write[0];
+                     // count[0]= count_write[1];
                    }
 
                    SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0, &start, &count);
@@ -1047,12 +1055,20 @@ namespace xios
         if (axis->IsWritten(this->filename)) return;
         axis->checkAttributes();
 
-        int local_size_write  = axis->getLocalWriteSize();
-        int global_size_write = axis->getGlobalWriteSize();
-        int start_write = axis->getStartWriteIndex();
-        int count_write = axis->getCountWriteIndex();
+        // int local_size_write  = axis->getLocalWriteSize();
+        // int global_size_write = axis->getGlobalWriteSize();
+        // int start_write = axis->getStartWriteIndex();
+        // int count_write = axis->getCountWriteIndex();
 
-        if ((0 == local_size_write) && (MULTI_FILE == SuperClass::type)) return;
+
+        // if ((0 == local_size_write) && (MULTI_FILE == SuperClass::type)) return;
+
+        int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n
+                                                          : axis->global_zoom_n;
+        int zoom_begin = (MULTI_FILE == SuperClass::type) ? axis->zoom_begin
+                                                          : axis->global_zoom_begin;
+
+        if ((0 == axis->zoom_n) && (MULTI_FILE == SuperClass::type)) return;
 
         std::vector<StdString> dims;
         StdString axisid = axis->getAxisOutputName();
@@ -1061,7 +1077,7 @@ namespace xios
 
         try
         {
-          SuperClassWriter::addDimension(axisid, global_size_write);
+          SuperClassWriter::addDimension(axisid, zoom_size);
           if (axis->hasValue)
           {
             dims.push_back(axisid);
@@ -1101,8 +1117,8 @@ namespace xios
             {
               case MULTI_FILE:
               {
-                CArray<double,1> axis_value(local_size_write);
-                for (int i = 0; i < local_size_write; i++) axis_value(i) = axis->value(i);
+                CArray<double,1> axis_value(axis->zoom_n);
+                for (int i = 0; i < axis->zoom_n; i++) axis_value(i) = axis->value(i);
                 SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
                 if (!axis->bounds.isEmpty())
@@ -1114,13 +1130,12 @@ namespace xios
               }
               case ONE_FILE:
               {
-                CArray<double,1> axis_value(count_write);
+                CArray<double,1> axis_value(axis->zoom_n);
                 axis_value = axis->value;
-
                 std::vector<StdSize> start(1), startBounds(2) ;
                 std::vector<StdSize> count(1), countBounds(2) ;
-                start[0] = startBounds[0] = start_write;
-                count[0] = countBounds[0] = count_write;
+                start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
+                count[0] = countBounds[0] = zoom_size;
                 startBounds[1] = 0;
                 countBounds[1] = 2;
                 SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
@@ -2294,22 +2309,28 @@ namespace xios
                       {
                         // start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
                         // count.push_back(nZoomSizeServer[idx]);
-                        start.push_back((domain->getStartWriteIndex())[idx]);
-                        count.push_back((domain->getCountWriteIndex())[idx]);
+                        // start.push_back((domain->getStartWriteIndex())[idx]);
+                        // count.push_back((domain->getCountWriteIndex())[idx]);
+                        start.push_back(domain->zoom_jbegin - domain->global_zoom_jbegin);
+                        count.push_back(domain->zoom_nj);
                       }
                       --idx ;
                       // start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
                       // count.push_back(nZoomSizeServer[idx]);
-                      start.push_back((domain->getStartWriteIndex())[idx]);
-                      count.push_back((domain->getCountWriteIndex())[idx]);
+                      // start.push_back((domain->getStartWriteIndex())[idx]);
+                      // count.push_back((domain->getCountWriteIndex())[idx]);
+                        start.push_back(domain->zoom_ibegin - domain->global_zoom_ibegin);
+                        count.push_back(domain->zoom_ni);
                       --idx ;
                       --idxDomain;
                     }
                     else if (1 == axisDomainOrder(i))
                     {
                       CAxis* axis = CAxis::get(axisList[idxAxis]);
-                      start.push_back(axis->getStartWriteIndex());
-                      count.push_back(axis->getCountWriteIndex());
+                      // start.push_back(axis->getStartWriteIndex());
+                      // count.push_back(axis->getCountWriteIndex());
+                        start.push_back(axis->zoom_begin - axis->global_zoom_begin);
+                        count.push_back(axis->zoom_n);
                       --idx;
                       --idxAxis;
                     }

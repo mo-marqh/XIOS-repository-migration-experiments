@@ -70,7 +70,8 @@ void C##type::removeRefInheritance()                                   \
                                                                        \
 bool C##type::hasDirect##type##Reference(void) const                   \
 {                                                                      \
-  return !this->name_##_ref.isEmpty();                                 \
+  return (!this->name_##_ref.isEmpty() &&                              \
+          C##type::has(this->name_##_ref));                            \
 }                                                                      \
                                                                        \
 C##type* C##type::getDirect##type##Reference(void) const               \

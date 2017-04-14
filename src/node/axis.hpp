@@ -44,7 +44,7 @@ namespace xios {
       public :
          enum EEventId
          {
-           EVENT_ID_SERVER_ATTRIBUT,
+           EVENT_ID_DISTRIBUTION_ATTRIBUTE,
            EVENT_ID_INDEX,
            EVENT_ID_DISTRIBUTED_VALUE,
            EVENT_ID_NON_DISTRIBUTED_VALUE,
@@ -107,11 +107,9 @@ namespace xios {
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         // void sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
-         //                         CServerDistributionDescription::ServerDistributionType distType);
          static bool dispatchEvent(CEventServer& event);
-         static void recvServerAttribut(CEventServer& event);
-         // void recvServerAttribut(CBufferIn& buffer) ;
+         static void recvDistributionAttribute(CEventServer& event);
+         void recvDistributionAttribute(CBufferIn& buffer) ;
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                          CServerDistributionDescription::ServerDistributionType distType = CServerDistributionDescription::BAND_DISTRIBUTION);
@@ -141,7 +139,10 @@ namespace xios {
          void checkMask();
          void checkZoom();
          void checkBounds();         
-         void sendAttributes();
+         void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+                             CServerDistributionDescription::ServerDistributionType distType);
+         void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                        CServerDistributionDescription::ServerDistributionType distType);
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
 
@@ -178,6 +179,8 @@ namespace xios {
          int count_write_index_;
          int local_write_size_;
          int global_write_size_;
+
+         bool doZoomByIndex_;
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

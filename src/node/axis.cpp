@@ -26,7 +26,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false)
+      , transformationMap_(), hasValue(false), doZoomByIndex_(false)
    {
    }
 
@@ -36,7 +36,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false)
+      , transformationMap_(), hasValue(false), doZoomByIndex_(false)
    {
    }
 
@@ -333,6 +333,8 @@ namespace xios {
      {
        zoom_index.setValue(index.getValue());
      }
+     if (zoom_n.isEmpty()) zoom_n.setValue(n);
+     if (zoom_begin.isEmpty()) zoom_begin.setValue(begin);
    }
 
    void CAxis::checkMask()
@@ -383,10 +385,10 @@ namespace xios {
       {
         switch(event.type)
         {
-           // case EVENT_ID_SERVER_ATTRIBUT :
-           //   recvServerAttribut(event);
-           //   return true;
-           //   break;
+           case EVENT_ID_DISTRIBUTION_ATTRIBUTE :
+             recvDistributionAttribute(event);
+             return true;
+             break;
           //  case EVENT_ID_INDEX:
           //   recvIndex(event);
           //   return true;
@@ -439,23 +441,28 @@ namespace xios {
      CContext* context = CContext::getCurrent();
 
      if (this->isChecked) return;
-     if (context->hasClient) sendAttributes();    
+     if (context->hasClient) sendAttributes(globalDim, orderPositionInGrid, distType);    
 
      this->isChecked = true;
    }
 
-  void CAxis::sendAttributes()
+  void CAxis::sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+                             CServerDistributionDescription::ServerDistributionType distType)
   {
      if (index.numElements() == n_glo.getValue())
        sendNonDistributedAttributes();
      else
+     {
        sendDistributedAttributes();
+       sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
+     }
   }
 
   void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
   {
     CContext* context = CContext::getCurrent();
+
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
@@ -465,47 +472,72 @@ namespace xios {
       int range, clientSize = client->clientSize;
       int rank = client->clientRank;
 
-      // size_t ni = this->n.getValue();
-      // size_t ibegin = this->begin.getValue();
-      // size_t zoom_end = global_zoom_begin+global_zoom_n-1;
-      // size_t nZoomCount = 0;
+      size_t ni = this->n.getValue();
+      size_t ibegin = this->begin.getValue();
+      size_t global_zoom_end = global_zoom_begin+global_zoom_n-1;
+      size_t nZoomCount = 0;
       size_t nbIndex = index.numElements();
-      for (size_t idx = 0; idx < nbIndex; ++idx)
+
+      if (doZoomByIndex_) 
       {
-        globalLocalIndexMap_[index(idx)] = idx;
-        // size_t globalIndex = index(idx);
-        // if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nZoomCount;
+        nZoomCount = zoom_index.numElements();
+      }
+      else
+      {
+        for (size_t idx = 0; idx < nbIndex; ++idx)
+        {
+          globalLocalIndexMap_[index(idx)] = idx;
+          size_t globalIndex = index(idx);
+          if (globalIndex >= global_zoom_begin && globalIndex <= global_zoom_end) ++nZoomCount;
+        }
       }
 
-      // CArray<size_t,1> globalIndexAxis(nbIndex);
-      // std::vector<size_t> globalAxisZoom(nZoomCount);
-      // nZoomCount = 0;
-      // for (size_t idx = 0; idx < nbIndex; ++idx)
-      // {
-      //   size_t globalIndex = index(idx);
-      //   globalIndexAxis(idx) = globalIndex;
-      //   if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
-      //   {
-      //     globalAxisZoom[nZoomCount] = globalIndex;
-      //     ++nZoomCount;
-      //   }
-      // }
 
-      // std::set<int> writtenInd;
-      // if (isCompressible_)
-      // {
-      //   for (int idx = 0; idx < data_index.numElements(); ++idx)
-      //   {
-      //     int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
+      CArray<size_t,1> globalIndexAxis(nbIndex);
+      std::vector<size_t> globalAxisZoom(nZoomCount);
+      nZoomCount = 0;
+      if (doZoomByIndex_) 
+      {
+        int nbIndexZoom = zoom_index.numElements();        
+        for (int i = 0; i < nbIndexZoom; ++i)
+        {   
+          globalIndexAxis(i) = zoom_index(i);
+        }
+      }
+      else 
+      {
+        for (size_t idx = 0; idx < nbIndex; ++idx)
+        {
+          size_t globalIndex = index(idx);
+          globalIndexAxis(idx) = globalIndex;
+          if (globalIndex >= global_zoom_begin && globalIndex <= global_zoom_end)
+          {
+            globalAxisZoom[nZoomCount] = globalIndex;
+            ++nZoomCount;
+          }
+        }
 
-      //     if (ind >= 0 && ind < ni && mask(ind))
-      //     {
-      //       ind += ibegin;
-      //       if (ind >= global_zoom_begin && ind <= zoom_end)
-      //         writtenInd.insert(ind);
-      //     }
-      //   }
-      // }
+        int end       = begin + n -1;        
+        zoom_begin    = global_zoom_begin > begin ? global_zoom_begin : begin;
+        int zoom_end  = global_zoom_end < end ? zoom_end : end;
+        zoom_n        = zoom_end-zoom_begin+1;
+      }
+
+      std::set<int> writtenInd;
+      if (isCompressible_)
+      {
+        for (int idx = 0; idx < data_index.numElements(); ++idx)
+        {
+          int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
+
+          if (ind >= 0 && ind < ni && mask(ind))
+          {
+            ind += ibegin;
+            if (ind >= global_zoom_begin && ind <= global_zoom_end)
+              writtenInd.insert(ind);
+          }
+        }
+      }
 
       CServerDistributionDescription serverDescriptionGlobal(globalDim, nbServer, distType);
       int distributedDimensionOnServer = serverDescriptionGlobal.getDimensionDistributed();
@@ -607,6 +639,57 @@ namespace xios {
     }
   }
 
+
+  void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                        CServerDistributionDescription::ServerDistributionType distType)
+  {
+    CContext* context = CContext::getCurrent();
+
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+    for (int i = 0; i < nbSrvPools; ++i)
+    {
+      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
+                                                                         : context->client;
+      int nbServer = contextClientTmp->serverSize;
+
+      CServerDistributionDescription serverDescription(globalDim, nbServer);
+      serverDescription.computeServerDistribution();
+
+      std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
+      std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
+
+      globalDimGrid.resize(globalDim.size());
+      for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
+
+      CEventClient event(getType(),EVENT_ID_DISTRIBUTION_ATTRIBUTE);
+      if (contextClientTmp->isServerLeader())
+      {
+        std::list<CMessage> msgs;
+
+        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          // Use const int to ensure CMessage holds a copy of the value instead of just a reference
+          const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
+          const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
+          const int end   = begin + ni - 1;
+
+          msgs.push_back(CMessage());
+          CMessage& msg = msgs.back();
+          msg << this->getId();
+          msg << ni << begin << end;
+          msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
+          msg << isCompressible_;
+          msg << orderPositionInGrid;
+          msg << globalDimGrid;
+
+          event.push(*itRank,1,msg);
+        }
+        contextClientTmp->sendEvent(event);
+      }
+      else contextClientTmp->sendEvent(event);
+    }
+  }
 
   // void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
   //                                    CServerDistributionDescription::ServerDistributionType distType)
@@ -752,6 +835,7 @@ namespace xios {
   void CAxis::sendNonDistributedAttributes()
   {
     CContext* context = CContext::getCurrent();
+
     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
@@ -858,6 +942,7 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
+
     //int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
@@ -893,10 +978,11 @@ namespace xios {
           nbData = it->second.size();
 
         list_indi.push_back(CArray<int,1>(nbData));
-        list_dataInd.push_back(CArray<int,1>(nbData));
-        list_zoomInd.push_back(CArray<int,1>(nbData));
+        list_dataInd.push_back(CArray<int,1>(nbData));        
         list_mask.push_back(CArray<bool,1>(nbData));
 
+        if (doZoomByIndex_)
+          list_zoomInd.push_back(CArray<int,1>(nbData));
 
         if (hasValue)
           list_val.push_back(CArray<double,1>(nbData));
@@ -907,8 +993,7 @@ namespace xios {
         }
 
         CArray<int,1>& indi = list_indi.back();
-        CArray<int,1>& dataIndi = list_dataInd.back();
-        CArray<int,1>& zoomIndi = list_zoomInd.back();
+        CArray<int,1>& dataIndi = list_dataInd.back();        
         CArray<bool,1>& maskIndi = list_mask.back();
 
         for (n = 0; n < nbData; ++n)
@@ -919,7 +1004,12 @@ namespace xios {
           ind = globalLocalIndexMap_[idx];
           dataIndi(n) = dataIndex(ind);
           maskIndi(n) = mask(ind);
-          zoomIndi(n) = zoom_index(ind);
+
+          if (doZoomByIndex_)
+          {
+            CArray<int,1>& zoomIndi = list_zoomInd.back();
+            zoomIndi(n) = zoom_index(ind);
+          }
 
           if (hasValue)
           {
@@ -937,10 +1027,16 @@ namespace xios {
 
         listData.push_back(CMessage());
         listData.back() << this->getId()
-                        << list_indi.back() << list_dataInd.back() << list_zoomInd.back() << list_mask.back()
-                        << hasValue;
+                        << list_indi.back() << list_dataInd.back() << list_mask.back();
+
+        listData.back() << doZoomByIndex_;           
+        if (doZoomByIndex_)
+          listData.back() << list_zoomInd.back();
+
+        listData.back() << hasValue;
         if (hasValue)
           listData.back() << list_val.back();
+
         listData.back() << hasBounds_;
         if (hasBounds_)
           listData.back() << list_bounds.back();
@@ -981,13 +1077,17 @@ namespace xios {
     {      
       CBufferIn& buffer = *buffers[idx];
       buffer >> vec_indi[idx];
-      buffer >> vec_dataInd[idx];
-      buffer >> vec_zoomInd[idx];
+      buffer >> vec_dataInd[idx];      
       buffer >> vec_mask[idx];
+
+      buffer >> doZoomByIndex_;
+      if (doZoomByIndex_)
+        buffer >> vec_zoomInd[idx];
 
       buffer >> hasValue;
       if (hasValue)
         buffer >> vec_val[idx];
+
       buffer >> hasBounds_;
       if (hasBounds_)
         buffer >> vec_bounds[idx];
@@ -1049,135 +1149,79 @@ namespace xios {
       }
     }
 
-    int nbZoomIndex = 0;
-    for (int idx = 0; idx < nbReceived; ++idx)
+    if (doZoomByIndex_)
     {
-      nbZoomIndex += vec_zoomInd[idx].numElements();
+      int nbZoomIndex = 0;
+      for (int idx = 0; idx < nbReceived; ++idx)
+      {
+        nbZoomIndex += vec_zoomInd[idx].numElements();
+      }
+
+      zoom_index.resize(nbZoomIndex);
+      nbZoomIndex = 0;      
+      for (int idx = 0; idx < nbReceived; ++idx)
+      {      
+        CArray<int,1>& tmp = vec_zoomInd[idx];
+        for (int i = 0; i < tmp.size(); ++i)
+        {
+          zoom_index(nbZoomIndex) = tmp(i);
+          ++nbZoomIndex;
+        }       
+      }
     }
 
-    zoom_index.resize(nbZoomIndex);
-    nbZoomIndex = 0;
-    CArray<int,1>& zoom_Index_Tmp = this->zoom_index;
-    for (int idx = 0; idx < nbReceived; ++idx)
-    {      
-      CArray<int,1> tmp = zoom_Index_Tmp(Range(nbZoomIndex, nbZoomIndex + vec_zoomInd[idx].numElements()-1));
-      tmp = vec_zoomInd[idx];
 
-      nbZoomIndex += vec_zoomInd[idx].numElements();
+    // {
+    //   CContextServer* server = CContext::getCurrent()->server;
+    //   count_write_index_ = zoom_index.numElements();      
+    //   MPI_Scan(&count_write_index_, &start_write_index_, 1, MPI_INT, MPI_SUM, server->intraComm);
+    //   global_write_size_ = start_write_index_;
+    //   start_write_index_ -= count_write_index_;
+    //   local_write_size_ = count_write_index_;      
+    // }
+  }
+
+  void CAxis::recvDistributionAttribute(CEventServer& event)
+  {
+    CBufferIn* buffer = event.subEvents.begin()->buffer;
+    string axisId;
+    *buffer >> axisId;
+    get(axisId)->recvDistributionAttribute(*buffer);
+  }
+
+  void CAxis::recvDistributionAttribute(CBufferIn& buffer)
+  {
+    int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_n_tmp;
+
+    buffer >> ni_srv >> begin_srv >> end_srv;
+    buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;
+    buffer >> isCompressible_;
+    buffer >> orderPosInGrid;
+    buffer >> globalDimGrid;
+
+    n.setValue(ni_srv);
+    begin.setValue(begin_srv);
+    global_zoom_begin = global_zoom_begin_tmp;
+    global_zoom_n  = global_zoom_n_tmp;
+    int global_zoom_end = global_zoom_begin + global_zoom_n - 1;
+
+    zoom_begin = global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
+    zoom_end_srv   = global_zoom_end < end_srv ? global_zoom_end : end_srv ;
+    zoom_n  = zoom_end_srv - zoom_begin_srv + 1;
+
+    if (zoom_n<=0)
+    {
+      zoom_begin = 0; zoom_end_srv = 0; zoom_n = 0;
     }
 
-
+    if (n_glo == n)
     {
-      CContextServer* server = CContext::getCurrent()->server;
-      count_write_index_ = zoom_index.numElements();      
-      MPI_Scan(&count_write_index_, &start_write_index_, 1, MPI_INT, MPI_SUM, server->intraComm);
-      global_write_size_ = start_write_index_;
-      start_write_index_ -= count_write_index_;
-      local_write_size_ = count_write_index_;      
+      zoom_begin = global_zoom_begin;
+      zoom_end_srv   = global_zoom_end; //zoom_end;
+      zoom_n     = zoom_end_srv - zoom_begin + 1;
     }
   }
 
-  // void CAxis::sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
-  //                                CServerDistributionDescription::ServerDistributionType distType)
-  // {
-  //   CContext* context = CContext::getCurrent();
-
-  //   CContextClient* contextClientTmp = (0 != context->clientPrimServer) ? context->clientPrimServer 
-  //                                                                       : context->client;
-
-    
-  //   int nbServer = contextClientTmp->serverSize;
-
-  //   CServerDistributionDescription serverDescription(globalDim, nbServer);
-  //   serverDescription.computeServerDistribution();
-
-  //   std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
-  //   std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
-
-  //   globalDimGrid.resize(globalDim.size());
-  //   for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
-
-  //   CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-  //   if (contextClientTmp->isServerLeader())
-  //   {
-  //     std::list<CMessage> msgs;
-
-  //     const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-  //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-  //     {
-  //       // Use const int to ensure CMessage holds a copy of the value instead of just a reference
-  //       const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
-  //       const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
-  //       const int end   = begin + ni - 1;
-
-  //       msgs.push_back(CMessage());
-  //       CMessage& msg = msgs.back();
-  //       msg << this->getId();
-  //       msg << ni << begin << end;
-  //       msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
-  //       msg << isCompressible_;
-  //       msg << orderPositionInGrid;
-  //       msg << globalDimGrid;
-
-  //       event.push(*itRank,1,msg);
-  //     }
-  //     contextClientTmp->sendEvent(event);
-  //   }
-  //   else contextClientTmp->sendEvent(event);
-  // }
-
-  // void CAxis::recvServerAttribut(CEventServer& event)
-  // {
-  //   CBufferIn* buffer = event.subEvents.begin()->buffer;
-  //   string axisId;
-  //   *buffer >> axisId;
-  //   get(axisId)->recvServerAttribut(*buffer);
-
-  //   CContext* context = CContext::getCurrent();
-  //   if (context->hasClient && context->hasServer)
-  //   {
-  //     std::vector<int> globalDim(get(axisId)->globalDimGrid.numElements());
-  //     for (int idx = 0; idx < globalDim.size(); ++idx) globalDim[idx] = get(axisId)->globalDimGrid(idx);
-  //     get(axisId)->sendServerAttribut(globalDim, get(axisId)->orderPosInGrid, 
-  //                                     CServerDistributionDescription::BAND_DISTRIBUTION);
-  //   }
-  // }
-
-  // void CAxis::recvServerAttribut(CBufferIn& buffer)
-  // {
-  //   int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_n_tmp;
-
-  //   buffer >> ni_srv >> begin_srv >> end_srv;
-  //   buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;
-  //   buffer >> isCompressible_;
-  //   buffer >> orderPosInGrid;
-  //   buffer >> globalDimGrid;
-
-  //   global_zoom_begin = global_zoom_begin_tmp;
-  //   global_zoom_n  = global_zoom_n_tmp;
-  //   int global_zoom_end = global_zoom_begin + global_zoom_n - 1;
-
-  //   zoom_begin_srv = global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
-  //   zoom_end_srv   = global_zoom_end < end_srv ? global_zoom_end : end_srv ;
-  //   zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
-
-  //   if (zoom_size_srv<=0)
-  //   {
-  //     zoom_begin_srv = 0; zoom_end_srv = 0; zoom_size_srv = 0;
-  //   }
-
-  //   if (n_glo == n)
-  //   {
-  //     zoom_begin_srv = global_zoom_begin;
-  //     zoom_end_srv   = global_zoom_end; //zoom_end;
-  //     zoom_size_srv  = zoom_end_srv - zoom_begin_srv + 1;
-  //   }
-  //   if (hasValue)
-  //   {
-  //     value_srv.resize(zoom_size_srv);
-  //     if (hasBounds_)  bound_srv.resize(2,zoom_size_srv);
-  //   }
-  // }
 
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
   {

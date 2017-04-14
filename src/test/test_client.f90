@@ -16,8 +16,8 @@ PROGRAM test_client
   CHARACTER(len=20) :: date_str
   CHARACTER(len=15) :: calendar_type
   TYPE(xios_context) :: ctx_hdl
-  INTEGER,PARAMETER :: ni_glo=4
-  INTEGER,PARAMETER :: nj_glo=4
+  INTEGER,PARAMETER :: ni_glo=100
+  INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=2
   DOUBLE PRECISION  :: lval(llm)=1
   TYPE(xios_field) :: field_hdl
@@ -49,7 +49,7 @@ PROGRAM test_client
       lon_glo(i,j)=(i-1)+(j-1)*ni_glo
       lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
       DO l=1,llm
-        field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
+        field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo*100+10000*l
       ENDDO
     ENDDO
   ENDDO
@@ -65,12 +65,12 @@ PROGRAM test_client
 
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni,nj), axisValue(nj), field_domain(0:ni+1,-1:nj+2))
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni,nj), axisValue(nj_glo), field_domain(0:ni+1,-1:nj+2))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
   field_domain(1:ni,1:nj) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,1)
-  axisValue(1:nj)=field_A(1,1:nj,1);
+  axisValue(1:nj_glo)=field_A_glo(1,1:nj_glo,1);
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
@@ -130,10 +130,10 @@ PROGRAM test_client
   CALL xios_close_context_definition()
 
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-  DO ts=1,40
+  DO ts=1,4
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
-    ! CALL xios_send_field("field_Axis",axisValue)
+    CALL xios_send_field("field_Axis",axisValue)
     ! CALL xios_send_field("field_Axis",lval)
     CALL xios_send_field("field_Domain",field_domain)
     CALL wait_us(5000) ;
