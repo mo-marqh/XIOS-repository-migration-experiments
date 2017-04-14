@@ -96,7 +96,8 @@ namespace xios
             StdString getUnlimitedDimensionName(void);
             const StdString& getTimeCounterName(void) const { return timeCounterName; };
 
-            void getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective);
+            void getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective );
+            void getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective, size_t record);
 
             bool varExist(const StdString& varname);
             bool dimExist(const StdString& dimname);

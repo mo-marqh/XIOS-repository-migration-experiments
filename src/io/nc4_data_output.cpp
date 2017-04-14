@@ -2742,14 +2742,15 @@ namespace xios
           if (!SuperClassWriter::varExist(timeAxisBoundsId)) timeAxisBoundsId = "time_instant_bounds";
 
           CArray<double,2> timeAxisBounds;
-          SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective);
-          timeAxisBounds*=factorUnit ;
+          std::vector<StdSize> dimSize(SuperClassWriter::getDimensions(timeAxisBoundsId)) ;
           
           StdSize record = 0;
           double dtime(time);
-          for (int n = timeAxisBounds.extent(1) - 1; n >= 0; n--)
+          for (StdSize n = dimSize[0] - 1; n >= 0; n--)
           {
-            if (timeAxisBounds(1, n) < dtime)
+            SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective, n);
+            timeAxisBounds*=factorUnit ;
+            if (timeAxisBounds(1, 0) < dtime)
             {
               record = n + 1;
               break;

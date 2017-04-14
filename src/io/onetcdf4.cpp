@@ -246,7 +246,28 @@ namespace xios
         CNetCdfInterface::getVaraType(grpid, varid, &start[0], &count[0], timeAxisBounds.dataFirst());
       }
 
-      //---------------------------------------------------------------
+      void CONetCDF4::getTimeAxisBounds(CArray<double,2>& timeAxisBounds, const StdString& name, bool collective, size_t record)
+      {
+        int grpid = this->getCurrentGroup();
+        int varid = this->getVariable(name);
+
+        std::vector<StdSize> start(2), count(2);
+        start[0] = record;
+        count[0] = 1 ;
+        start[1] = 0;
+        count[1] = 2;
+
+        timeAxisBounds.resize(2, 1);
+
+        if (this->wmpi && collective)
+          CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
+        if (this->wmpi && !collective)
+          CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
+
+        CNetCdfInterface::getVaraType(grpid, varid, &start[0], &count[0], timeAxisBounds.dataFirst());
+      }
+
+
 
       const CONetCDF4::CONetCDF4Path& CONetCDF4::getCurrentPath(void) const
       { return this->path; }
