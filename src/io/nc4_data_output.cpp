@@ -20,7 +20,7 @@ namespace xios
             : SuperClass()
             , SuperClassWriter(filename, exist)
             , filename(filename)
-            , file(file)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
       {
         SuperClass::type = MULTI_FILE;
       }
@@ -33,7 +33,7 @@ namespace xios
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
-            , file(file)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
@@ -1616,14 +1616,6 @@ namespace xios
           }
         }
 
-/*
-         StdString lonid_loc = (server->intraCommSize > 1)
-                             ? StdString("lon").append(appendDomid).append("_local")
-                             : lonid;
-         StdString latid_loc = (server->intraCommSize > 1)
-                             ? StdString("lat").append(appendDomid).append("_local")
-                             : latid;
-*/
         StdString fieldid = field->getFieldOutputName();
 
         nc_type type ;
@@ -1639,13 +1631,8 @@ namespace xios
 
         if (wtime)
         {
-
-          //StdOStringStream oss;
-          // oss << "time_" << field->operation.getValue()
-          //     << "_" << field->getRelFile()->output_freq.getValue();
-          //oss
-          if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
-          else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
+          if (field->hasTimeInstant && hasTimeInstant) coodinates.push_back(string("time_instant"));
+          else if (field->hasTimeCentered && hasTimeCentered)  coodinates.push_back(string("time_centered"));
           dims.push_back(timeid);
         }
 
@@ -2010,14 +1997,14 @@ namespace xios
 
         StdOStringStream oss;
         string timeAxisId;
-        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisId = "time_instant";
-        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisId = "time_centered";
+        if (field->hasTimeInstant) timeAxisId = "time_instant";
+        else if (field->hasTimeCentered) timeAxisId = "time_centered";
 
         StdString timeBoundId = getTimeCounterName() + "_bounds";
 
         StdString timeAxisBoundId;
-        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisBoundId = "time_instant_bounds";
-        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisBoundId = "time_centered_bounds";
+        if (field->hasTimeInstant) timeAxisBoundId = "time_instant_bounds";
+        else if (field->hasTimeCentered) timeAxisBoundId = "time_centered_bounds";
 
         if (!field->wasWritten())
         {
@@ -2041,62 +2028,51 @@ namespace xios
         CArray<double,1> time_counter_bound(2);
 
         bool wtime = (field->getOperationTimeType() != func::CFunctor::once);
+        bool wtimeCounter =false ;
+        bool wtimeData =false ;
+        
 
         if (wtime)
         {
-          
-          if (field->getOperationTimeType() == func::CFunctor::instant) field->hasTimeInstant = true;                   
-          if (field->getOperationTimeType() == func::CFunctor::centered) field->hasTimeCentered = true;            
 
           Time lastWrite = field->last_Write_srv;
           Time lastLastWrite = field->lastlast_Write_srv;
 
-          if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data(0) = lastWrite;
-          else if (field->getOperationTimeType() == func::CFunctor::centered)
-            time_data(0) = (lastWrite + lastLastWrite) / 2;
-
-          if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data_bound(0) = time_data_bound(1) = lastWrite;
-          else if (field->getOperationTimeType() == func::CFunctor::centered)
+          
+          if (field->hasTimeInstant)
           {
+            time_data(0) = time_data_bound(1) = lastWrite;
+            time_data_bound(0) = time_data_bound(1) = lastWrite;
+            if (timeCounterType==instant)
+            {
+              time_counter(0) = time_data(0);
+              time_counter_bound(0) = time_data_bound(0);
+              time_counter_bound(1) = time_data_bound(1);
+              wtimeCounter=true ;
+            }
+            if (hasTimeInstant) wtimeData=true ;
+          }
+          else if (field->hasTimeCentered)
+          {
+            time_data(0) = (lastWrite + lastLastWrite) / 2;
             time_data_bound(0) = lastLastWrite;
             time_data_bound(1) = lastWrite;
-          }
-          
-          if (field->file->time_counter.isEmpty())
-            if (field->hasTimeInstant && !field->hasTimeCentered)
-              time_counter(0) = lastWrite;
-            else 
-              time_counter(0) = (lastWrite + lastLastWrite) / 2;
-
-          else if (field->file->time_counter == CFile::time_counter_attr::instant)
-            time_counter(0) = lastWrite;
-          else if (field->file->time_counter == CFile::time_counter_attr::centered)
-            time_counter(0) = (lastWrite + lastLastWrite) / 2;
-          else if (field->file->time_counter == CFile::time_counter_attr::record)
-            time_counter(0) = field->getNStep() - 1;
-
-
-          if (field->file->time_counter.isEmpty())
-            if (field->hasTimeInstant && !field->hasTimeCentered)
-              time_counter_bound(0) = time_counter_bound(1) = lastWrite;
-            else 
+            if (timeCounterType==centered)
             {
-              time_counter_bound(0) = lastLastWrite;
-              time_counter_bound(1) = lastWrite;
-            }          
-          else if (field->file->time_counter == CFile::time_counter_attr::instant)
-            time_counter_bound(0) = time_counter_bound(1) = lastWrite;
-          else if (field->file->time_counter == CFile::time_counter_attr::centered)
-          {
-            time_counter_bound(0) = lastLastWrite;
-            time_counter_bound(1) = lastWrite;
+              time_counter(0) = time_data(0) ;
+              time_counter_bound(0) = time_data_bound(0) ;
+              time_counter_bound(1) = time_data_bound(1) ;
+              wtimeCounter=true ;
+            }
+            if (hasTimeCentered) wtimeData=true ;
           }
-          else if (field->file->time_counter == CFile::time_counter_attr::record)
+
+          if (timeCounterType==record)
+          {
+            time_counter(0) = field->getNStep() - 1;
             time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
-
-
+            wtimeCounter=true ;
+          }
 
           if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
           {
@@ -2144,15 +2120,15 @@ namespace xios
                  SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1);
                  if (wtime)
                  {
-                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
-                   SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
-                   if (field->file->time_counter.isEmpty() ||  
-                      (field->file->time_counter != CFile::time_counter_attr::none))
+                   if ( wtimeData)
+                   {
+                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                   }
+                   if (wtimeCounter)
                    {
                      SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
-                     if (field->file->time_counter.isEmpty() || 
-                        (field->file->time_counter != CFile::time_counter_attr::record))
-                       SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
                    }
                  }
                  break;
@@ -2280,19 +2256,19 @@ namespace xios
                 }
 
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);
-                if (wtime)
-                {
-                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
-                   SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
-                   if (field->file->time_counter.isEmpty() || 
-                      (field->file->time_counter != CFile::time_counter_attr::none))
+                 if (wtime)
+                 {
+                   if ( wtimeData)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1, isRoot);
-                     if (field->file->time_counter.isEmpty() ||  
-                        (field->file->time_counter != CFile::time_counter_attr::record))
-                       SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
                    }
-                }
+                   if (wtimeCounter)
+                   {
+                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
+                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                   }
+                 }
 
                 break;
               }
@@ -2316,18 +2292,15 @@ namespace xios
                    const boost::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;
-
+         bool createInstantAxis=false ;
+         bool createCenteredAxis=false ;
+         bool createTimeCounterAxis=false ;
+         
          if (field->getOperationTimeType() == func::CFunctor::once) return ;
 
-//         oss << "time_" << field->operation.getValue()
-//             << "_" << field->getRelFile()->output_freq.getValue();
 
-//         StdString axisid = oss.str();
-//         if (field->getOperationTimeType() == func::CFunctor::centered) axisid="time_centered" ;
-//         else if (field->getOperationTimeType() == func::CFunctor::instant) axisid="time_instant" ;
-
-         StdString axisid("time_centered") ;
-         StdString axisBoundId("time_centered_bounds");
+         StdString axisId ;
+         StdString axisBoundId;
          StdString timeid(getTimeCounterName());
          StdString timeBoundId("axis_nbounds");
 
@@ -2335,59 +2308,176 @@ namespace xios
          if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days) strTimeUnits="days since " ;
          else  strTimeUnits="seconds since " ;
  
-         if (field->getOperationTimeType() == func::CFunctor::instant)
+         if (field->getOperationTimeType() == func::CFunctor::instant) field->hasTimeInstant = true;
+         if (field->getOperationTimeType() == func::CFunctor::centered) field->hasTimeCentered = true;
+
+
+         if (field->file->time_counter.isEmpty())
          {
-            axisid = "time_instant";
-            axisBoundId = "time_instant_bounds";
-            field->hasTimeInstant = true;                   
+           if (timeCounterType==none) createTimeCounterAxis=true ;
+           if (field->hasTimeCentered)
+           {
+             timeCounterType=centered ;
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) timeCounterType=instant ;
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::instant)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=instant ;
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::centered)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=centered ;
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::instant_exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=instant ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::centered_exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=centered ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             if (timeCounterType==instant) createInstantAxis=true ;
+             timeCounterType=centered ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none)
+             {
+               createTimeCounterAxis=true ;
+               timeCounterType=instant ;
+             }
+             if (timeCounterType==centered)
+             {
+               if (!hasTimeInstant) createInstantAxis=true ;
+             }
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::none)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::record)
+         {
+           if (timeCounterType==none) createTimeCounterAxis=true ;
+           timeCounterType=record ;
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         
+         if (createInstantAxis)
+         {
+           axisId="time_instant" ;
+           axisBoundId="time_instant_bounds";
+           hasTimeInstant=true ;
          }
 
-         if (field->getOperationTimeType() == func::CFunctor::centered)
+         if (createCenteredAxis)
          {
-            field->hasTimeCentered = true;            
-         }          
+           axisId="time_centered" ;
+           axisBoundId="time_centered_bounds";
+           hasTimeCentered=true ;
+         }
 
+         
          try
          {
-          // Adding time_instant or time_centered
-           std::vector<StdString> dims;
-           dims.push_back(timeid);
-           if (!SuperClassWriter::varExist(axisid))
-           {
-              SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-
-              CDate timeOrigin=cal->getTimeOrigin() ;
-              StdOStringStream oss2;
-  //            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
-  //                <<initDate.getHour()<<"-"<<initDate.getMinute()<<"-"<<initDate.getSecond() ;
-              StdString strInitdate=oss2.str() ;
-              StdString strTimeOrigin=timeOrigin.toString() ;
-              this->writeTimeAxisAttributes
-                 (axisid, cal->getType(),strTimeUnits+strTimeOrigin,
-                  strTimeOrigin, axisBoundId);
-           }
-
-           // Adding time_instant_bounds or time_centered_bounds variables
-           if (!SuperClassWriter::varExist(axisBoundId))
-           {
-              dims.clear() ;
+            std::vector<StdString> dims;
+            
+            if (createInstantAxis || createCenteredAxis)
+            {
+              // Adding time_instant or time_centered
               dims.push_back(timeid);
-              dims.push_back(timeBoundId);
-              SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+              if (!SuperClassWriter::varExist(axisId))
+              {
+                SuperClassWriter::addVariable(axisId, NC_DOUBLE, dims);
+
+                CDate timeOrigin=cal->getTimeOrigin() ;
+                StdOStringStream oss2;
+                StdString strInitdate=oss2.str() ;
+                StdString strTimeOrigin=timeOrigin.toString() ;
+                this->writeTimeAxisAttributes(axisId, cal->getType(),strTimeUnits+strTimeOrigin,
+                                              strTimeOrigin, axisBoundId);
+             }
+
+             // Adding time_instant_bounds or time_centered_bounds variables
+             if (!SuperClassWriter::varExist(axisBoundId))
+             {
+                dims.clear() ;
+                dims.push_back(timeid);
+                dims.push_back(timeBoundId);
+                SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+             }
            }
 
-           if (field->file->time_counter.isEmpty() ||  
-              (field->file->time_counter != CFile::time_counter_attr::none))
+           if (createTimeCounterAxis)
            {
              // Adding time_counter
-             axisid = getTimeCounterName();
+             axisId = getTimeCounterName();
              axisBoundId = getTimeCounterName() + "_bounds";
              dims.clear();
              dims.push_back(timeid);
-             if (!SuperClassWriter::varExist(axisid))
+             if (!SuperClassWriter::varExist(axisId))
              {
-                SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-                SuperClassWriter::addAttribute("axis", string("T"), &axisid);
+                SuperClassWriter::addVariable(axisId, NC_DOUBLE, dims);
+                SuperClassWriter::addAttribute("axis", string("T"), &axisId);
 
                 if (field->file->time_counter.isEmpty() || 
                    (field->file->time_counter != CFile::time_counter_attr::record))
@@ -2395,15 +2485,14 @@ namespace xios
                   CDate timeOrigin = cal->getTimeOrigin();
                   StdString strTimeOrigin = timeOrigin.toString();
 
-                  this->writeTimeAxisAttributes(axisid, cal->getType(),
+                  this->writeTimeAxisAttributes(axisId, cal->getType(),
                                                 strTimeUnits+strTimeOrigin,
                                                 strTimeOrigin, axisBoundId);
                 }
              }
 
              // Adding time_counter_bound dimension
-             if (field->file->time_counter.isEmpty() ||  
-                (field->file->time_counter != CFile::time_counter_attr::record))
+             if (field->file->time_counter.isEmpty() || (field->file->time_counter != CFile::time_counter_attr::record))
              {
                 if (!SuperClassWriter::varExist(axisBoundId))
                 {

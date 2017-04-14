@@ -122,6 +122,10 @@ namespace xios
             std::set<std::string> writtenDomains, writtenCompressedDomains;
             std::set<std::string> writtenAxis, writtenCompressedAxis;
             std::set<std::string> writtenScalar;
+
+            enum { none, centered, instant, record} timeCounterType ;
+            bool hasTimeInstant ;
+            bool hasTimeCentered ;
       }; // class CNc4DataOutput
 
 } // namespace xios

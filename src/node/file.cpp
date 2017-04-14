@@ -483,6 +483,12 @@ namespace xios {
           for (it = this->enabledFields.begin(); it != end; it++)
           {
             CField* field = *it;
+            this->data_out->writeFieldTimeAxis(field);
+          }
+          
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
+            CField* field = *it;
             this->data_out->writeField(field);
           }
 

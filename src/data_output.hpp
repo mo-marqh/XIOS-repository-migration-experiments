@@ -24,6 +24,7 @@ namespace xios
             void syncFile      (void);
             void closeFile     (void);
             void writeField    (CField* field);
+            void writeFieldTimeAxis(CField* field) ;
             void writeFieldGrid(CField* field);
             void writeTimeDimension(void);
             void writeFieldData(CField* field);
