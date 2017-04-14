@@ -498,6 +498,16 @@ namespace xios {
 
           this->data_out->definition_end();
         }
+        else
+        {
+          // check time axis even in append mode
+          std::vector<CField*>::iterator it, end = this->enabledFields.end();
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
+            CField* field = *it;
+            this->data_out->writeFieldTimeAxis(field);
+          }
+        }
       }
    }
 
