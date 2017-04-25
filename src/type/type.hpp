@@ -127,14 +127,15 @@ namespace xios
     size_t _size(void) const ;
   } ;
 
-  template <typename T> inline bool operator==(const CType<T>& lhs, const T& rhs);   
-  template <typename T> inline bool operator==(const T& lhs, const CType<T>& rhs);   
-  template <typename T> inline bool operator==(const CType_ref<T>& lhs, const T& rhs);   
-  template <typename T> inline bool operator==(const T& lhs, const CType_ref<T>& rhs); 
-  template <typename T> inline bool operator==(const CType_ref<T>& lhs, const CType_ref<T>& rhs); 
+  template <typename T> bool operator==(const CType<T>& lhs, const T& rhs);   
+  template <typename T> bool operator==(const T& lhs, const CType<T>& rhs);   
+  template <typename T> bool operator==(const CType_ref<T>& lhs, const T& rhs);   
+  template <typename T> bool operator==(const T& lhs, const CType_ref<T>& rhs); 
+  template <typename T> bool operator==(const CType<T>& lhs, const CType<T>& rhs); 
+  template <typename T> bool operator==(const CType_ref<T>& lhs, const CType_ref<T>& rhs); 
 
   template <typename T>
-  inline bool operator==(const CType_ref<T>& lhs, const CType<T>& rhs)
+  bool operator==(const CType_ref<T>& lhs, const CType<T>& rhs)
   {
     if ((lhs.isEmpty() && !rhs.isEmpty()) || (!lhs.isEmpty() && rhs.isEmpty())) return false;
     if (lhs.isEmpty() && rhs.isEmpty()) return true;
@@ -142,7 +143,7 @@ namespace xios
   } 
 
   template <typename T>
-  inline bool operator==(const CType<T>& lhs, const CType_ref<T>& rhs)
+  bool operator==(const CType<T>& lhs, const CType_ref<T>& rhs)
   {
     return (rhs == lhs);
   }

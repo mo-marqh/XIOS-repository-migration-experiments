@@ -14,6 +14,10 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
+        /*!
+        \class CAttributeEnum
+        This class implements the attribute representing enumeration
+      */
       template <class T>
          class CAttributeEnum : public CAttribute, public CEnum<T>
       {
@@ -69,13 +73,8 @@ namespace xios
             virtual void generateFortranInterfaceDeclaration(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
-            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;      
 
-      
-         protected :
-
-            /// Constructeurs ///
-//            CAttributeTemplate(void); // Not implemented.
          private :
           StdString _toString(void) const;
           void _fromString(const StdString & str);

@@ -12,13 +12,16 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
+      /*!
+        \class CAttributeArray
+        This class implements the attribute representing array of value
+      */
       template <typename T_numtype, int N_rank>
          class CAttributeArray : public CAttribute, public CArray<T_numtype, N_rank>
       {
         public :
 
            using CArray<T_numtype,N_rank>::operator = ;
-//           using Array<T_numtype,N_rank>::operator = ;
 
             /// Constructeurs ///
             explicit CAttributeArray(const StdString & id);
@@ -61,11 +64,6 @@ namespace xios
             virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
-
-
-         protected :
-
-            /// Constructeurs ///
 
          private :
           CArray<T_numtype, N_rank> inheritedValue ;
