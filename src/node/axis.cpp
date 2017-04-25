@@ -976,6 +976,35 @@ namespace xios {
     }
   }
 
+  /*!
+    Compare two axis objects. 
+    They are equal if only if they have identical attributes as well as their values.
+    Moreover, they must have the same transformations.
+  \param [in] axis Compared axis
+  \return result of the comparison
+  */
+  bool CAxis::isEqual(CAxis* obj)
+  {
+    bool objEqual = SuperClass::isEqual(obj);
+    if (!objEqual) return objEqual;
+
+    TransMapTypes thisTrans = this->getAllTransformations();
+    TransMapTypes objTrans  = obj->getAllTransformations();
+
+    TransMapTypes::const_iterator it, itb, ite;
+    std::vector<ETranformationType> thisTransType, objTransType;
+    for (it = thisTrans.begin(); it != thisTrans.end(); ++it)
+      thisTransType.push_back(it->first);
+    for (it = objTrans.begin(); it != objTrans.end(); ++it)
+      objTransType.push_back(it->first);
+
+    if (thisTransType.size() != objTransType.size()) return false;
+    for (int idx = 0; idx < thisTransType.size(); ++idx)
+      objEqual &= (thisTransType[idx] == objTransType[idx]);
+
+    return objEqual;
+  }
+
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType,id)));
@@ -995,20 +1024,6 @@ namespace xios {
   CAxis::TransMapTypes CAxis::getAllTransformations(void)
   {
     return transformationMap_;
-  }
-
-  /*!
-    Check the validity of all transformations applied on axis
-  This functions is called AFTER all inherited attributes are solved
-  */
-  void CAxis::checkTransformations()
-  {
-    TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
-                                  ite = transformationMap_.end();
-//    for (it = itb; it != ite; ++it)
-//    {
-//      (it->second)->checkValid(this);
-//    }
   }
 
   void CAxis::duplicateTransformation(CAxis* src)

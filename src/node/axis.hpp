@@ -116,6 +116,7 @@ namespace xios {
          void fillInValues(const CArray<double,1>& values);
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
+         bool isEqual(CAxis* axis);
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
@@ -130,8 +131,7 @@ namespace xios {
          void checkMask();
          void checkZoom();
          void checkBounds();
-         void checkLabel();
-         void checkTransformations();
+         void checkLabel();         
          void sendValue();
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);

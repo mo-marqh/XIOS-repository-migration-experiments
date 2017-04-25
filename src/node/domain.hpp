@@ -123,6 +123,7 @@ namespace xios {
         vector< vector<int> > j_indSrv ; // for each server, j global index to send
 
          std::vector<int> getNbGlob();
+         bool isEqual(CDomain* domain);
       public:
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -131,7 +132,8 @@ namespace xios {
          void sendServerAttribut(void) ;
          void sendLonLatArea(void);
          void computeConnectedServer(void) ;
-
+         void computeLocalMask(void) ;
+         
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);
 
@@ -180,10 +182,8 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-         void checkZoom(void);
-         void computeLocalMask(void) ;
-
-         void checkTransformations();
+         void checkZoom(void);    
+         
          void setTransformations(const TransMapTypes&);
          void computeNGlobDomain();
 
