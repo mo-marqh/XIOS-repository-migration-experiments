@@ -47,11 +47,11 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
       }
     }
 
-    for (int idx = 0; idx < nbLocalIndex; ++idx)
-    {
-      if (!flagInitial[localIndex[idx].first])
-        dataOut(localIndex[idx].first) = defaultValue;
-    }
+    // for (int idx = 0; idx < nbLocalIndex; ++idx)
+    // {
+    //   if (!flagInitial[localIndex[idx].first])
+    //     dataOut(localIndex[idx].first) = defaultValue;
+    // }
   }
   else
   {
