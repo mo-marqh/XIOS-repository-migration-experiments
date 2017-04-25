@@ -93,7 +93,7 @@ namespace xios
     const CType_ref& operator = (T& val) const ;
     const CType_ref& operator = (CType<T>& val) const ;
     const CType_ref& operator = (const CType_ref& val) const;
-    operator T&() const;
+    operator T&() const;    
 
     inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
@@ -126,6 +126,26 @@ namespace xios
     bool _isEmpty() const ;
     size_t _size(void) const ;
   } ;
+
+  template <typename T> inline bool operator==(const CType<T>& lhs, const T& rhs);   
+  template <typename T> inline bool operator==(const T& lhs, const CType<T>& rhs);   
+  template <typename T> inline bool operator==(const CType_ref<T>& lhs, const T& rhs);   
+  template <typename T> inline bool operator==(const T& lhs, const CType_ref<T>& rhs); 
+  template <typename T> inline bool operator==(const CType_ref<T>& lhs, const CType_ref<T>& rhs); 
+
+  template <typename T>
+  inline bool operator==(const CType_ref<T>& lhs, const CType<T>& rhs)
+  {
+    if ((lhs.isEmpty() && !rhs.isEmpty()) || (!lhs.isEmpty() && rhs.isEmpty())) return false;
+    if (lhs.isEmpty() && rhs.isEmpty()) return true;
+    return (*lhs.ptrValue == *rhs.ptrValue);
+  } 
+
+  template <typename T>
+  inline bool operator==(const CType<T>& lhs, const CType_ref<T>& rhs)
+  {
+    return (rhs == lhs);
+  }
 
 
   class CMessage ;

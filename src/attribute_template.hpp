@@ -53,6 +53,9 @@ namespace xios
             T getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
 
+            bool isEqual(const CAttributeTemplate& attr );
+            bool isEqual(const CAttribute& attr );
+            
             /// Destructeur ///
             virtual ~CAttributeTemplate(void) { }
 

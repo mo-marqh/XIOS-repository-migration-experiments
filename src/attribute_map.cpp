@@ -15,6 +15,9 @@ namespace xios
 
       ///--------------------------------------------------------------
 
+      /*!
+         Clear all attributes of an object and reset them to empty state
+      */
       void CAttributeMap::clearAllAttributes(void)
       {
          typedef std::pair<StdString, CAttribute*> StdStrAttPair;
@@ -28,6 +31,10 @@ namespace xios
 
       //---------------------------------------------------------------
 
+      /*
+        Clear an attribute and reset its value
+        \param[in] key id of attribute
+      */
       void CAttributeMap::clearAttribute(const StdString& key)
       {
         if (hasAttribute(key)) this->find(key)->second->reset();
@@ -35,6 +42,11 @@ namespace xios
 
       //---------------------------------------------------------------
 
+      /*!
+        Set an attribute of certain id with a value
+        \param[in] key id of the attribute
+        \param[in] attr value of attribute
+      */
       void CAttributeMap::setAttribute(const StdString& key, CAttribute* const attr)
       {
          if (!this->hasAttribute(key))
@@ -49,6 +61,9 @@ namespace xios
 
       //---------------------------------------------------------------
 
+      /*!
+        Subscript operator. Return attribute with a specific id
+      */
       CAttribute* CAttributeMap::operator[](const StdString& key)
       {
          if (!this->hasAttribute(key))
@@ -103,6 +118,32 @@ namespace xios
          }
       }
 
+      /*!
+         Compare two attribute maps
+         \param [in] another attribute map to compare
+         \return true if these two maps have same attributes whose value are identical
+      */
+      bool CAttributeMap::isEqual(const CAttributeMap& another)
+      {
+         SuperClassMap::const_iterator itb = another.begin(), ite = another.end(), it;
+         for (it = itb; it !=ite; ++it)
+         {
+            if ((*it).first.compare(StdString("id")) != 0 && (*it).first.compare(StdString("src")) != 0)
+            {
+              if (this->hasAttribute(it->first))
+              { 
+                if (!((*it).second->isEqual(*(*this)[it->first])))
+                return false;
+              }
+              else
+                return false;
+            }
+         }
+
+         return true;
+      }
+
+
       //---------------------------------------------------------------
 
       /*!
@@ -138,6 +179,11 @@ namespace xios
          }
       }
 
+      /*!
+        Duplicate attribute map with a specific attribute map.
+        Copy all non-empty attribute of the current attribute map
+        \param [in] srcAttr attribute map which is copied from.
+      */
       void CAttributeMap::duplicateAttributes(const CAttributeMap* const srcAttr)
       {
          typedef std::pair<StdString, CAttribute*> StdStrAttPair;
@@ -215,6 +261,8 @@ namespace xios
          }
       }
  */
+
+      
       void CAttributeMap::generateCInterface(ostream& oss, const string& className)
       {
          SuperClassMap::const_iterator it = SuperClassMap::begin(), end = SuperClassMap::end();

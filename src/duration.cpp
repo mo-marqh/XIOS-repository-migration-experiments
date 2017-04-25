@@ -25,6 +25,15 @@ namespace xios
         return *this;
       }
 
+      /*!
+        This operation may not serve much, it's here because of the need of operator== from generic class CType<T>
+      */
+      bool CDuration::operator==(const CDuration& duration)
+      {
+        return (year == duration.year && month  == duration.month  && day == duration.day &&
+                hour == duration.hour && minute == duration.minute && second == duration.second && timestep == duration.timestep);        
+      }
+
       StdOStream& operator<<(StdOStream& out, const CDuration& duration)
       {
          out << duration.toString();

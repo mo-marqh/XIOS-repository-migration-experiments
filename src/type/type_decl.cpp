@@ -21,7 +21,14 @@ namespace xios
 /*  template CMessage& operator<< <decl_type> (CMessage& msg, const CType<decl_type>& type) ;*/ \
 /*  template CMessage& operator<< <decl_type> (CMessage& msg, const CType_ref<decl_type>& type) ;*/ \
   template CMessage& operator<< <decl_type> (CMessage& msg, const decl_type& type) ; \
-  template CMessage& operator<< <decl_type> (CMessage& msg, decl_type& type) ;
+  template CMessage& operator<< <decl_type> (CMessage& msg, decl_type& type) ;       \    
+  template bool operator==(const CType<decl_type>& lhs, const decl_type& rhs);                 \          
+  template bool operator==(const decl_type& lhs, const CType<decl_type>& rhs);                \
+  template bool operator==(const CType_ref<decl_type>& lhs, const decl_type& rhs);             \
+  template bool operator==(const decl_type& lhs, const CType_ref<decl_type>& rhs);             \
+  template bool operator==(const CType_ref<decl_type>& lhs, const CType<decl_type>& rhs);      \
+  template bool operator==(const CType<decl_type>& lhs, const CType_ref<decl_type>& rhs);     \
+  template bool operator==(const CType_ref<decl_type>& lhs, const CType_ref<decl_type>& rhs);    
   
   macro(string)
   macro(int)

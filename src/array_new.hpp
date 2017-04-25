@@ -301,6 +301,22 @@ namespace xios
         initialized = true;
       }
 
+      bool operator== (const CArray<T_numtype,N_rank>& array)
+      {
+        size_t nbThis = this->numElements();
+        size_t nbArr  = array.numElements();
+        if (nbThis != nbArr) return false;
+        for (size_t idx = 0; idx < nbThis; ++idx)
+          if ((*this)(idx) != array(idx)) return false;
+
+        return true;
+      }
+
+      bool operator== (const Array<T_numtype,N_rank>& array)
+      {
+        return ((*this) == (dynamic_cast<const CArray<T_numtype,N_rank>& >(array)));
+      }
+
       void resize(int extent)
       {
         Array<T_numtype,N_rank>::resize(extent);

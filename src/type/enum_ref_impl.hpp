@@ -262,7 +262,26 @@ namespace xios
                      << "Enum reference is not initialized.") ;
   }
                      
+  template <typename T> 
+  bool operator== (const CEnum_ref<T>& lhs, const typename T::t_enum& rhs)
+  {
+     if (lhs.isEmpty()) return false;
+     return (lhs.get() == rhs);
+  }
 
+  template <typename T> 
+  bool operator== (const typename T::t_enum& lhs, const CEnum_ref<T>& rhs)
+  {
+    return rhs == lhs;
+  }
+
+  template <typename T> 
+  bool operator== (const CEnum_ref<T>& lhs, const CEnum_ref<T>& rhs)
+  {
+    if ((lhs.isEmpty() && !rhs.isEmpty()) || (!lhs.isEmpty() && rhs.isEmpty())) return false;
+    if (lhs.isEmpty() && rhs.isEmpty()) return true;
+    return (lhs.get() == rhs.get());
+  }
   
   template <typename T>
   CBufferOut& operator<<(CBufferOut& buffer, const CEnum_ref<T>& type)

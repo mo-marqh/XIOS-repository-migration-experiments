@@ -102,6 +102,17 @@ namespace xios
       return !this->isEmpty() || !inheritedValue.isEmpty() ;
     }
 
+    template <typename T_numtype, int N_rank>
+    bool CAttributeArray<T_numtype,N_rank>::isEqual(const CAttributeArray& attr)
+    {
+      return ((dynamic_cast<CArray<T_numtype,N_rank>& >(*this)) == (dynamic_cast<const CArray<T_numtype,N_rank>& >(attr)));      
+    }
+
+    template <typename T_numtype, int N_rank>
+    bool CAttributeArray<T_numtype,N_rank>::isEqual(const CAttribute& attr)
+    {
+      return ((*this) == (dynamic_cast<const CAttributeArray<T_numtype,N_rank>& >(attr)));      
+    }
 
     template <typename T_numtype, int N_rank>
     StdString CAttributeArray<T_numtype,N_rank>::_toString(void) const

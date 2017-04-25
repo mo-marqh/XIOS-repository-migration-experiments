@@ -31,6 +31,7 @@ namespace xios
 
             /// Opérateurs ///
             CDate& operator=(const CDate& date);
+            bool operator==(const CDate& date);
             friend StdOStream& operator<<(StdOStream& out, const CDate& date);
             friend StdIStream& operator>>(StdIStream& in, CDate& date);
 

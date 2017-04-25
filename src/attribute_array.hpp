@@ -39,6 +39,9 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             CArray<T_numtype, N_rank> getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
+            
+            bool isEqual(const CAttributeArray& attr);
+            bool isEqual(const CAttribute& attr);
 
             /// Destructeur ///
             virtual ~CAttributeArray(void) { }

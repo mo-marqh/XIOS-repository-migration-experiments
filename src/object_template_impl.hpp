@@ -135,6 +135,25 @@ namespace xios
       return (false);
    }
 
+   /*!
+     Compare two object of same type
+   */
+   template <class T>
+   bool CObjectTemplate<T>::isEqual(const string& id)
+   {
+      T* obj = CObjectTemplate<T>::get(id);
+      return this->isEqual(obj);
+   }
+
+   template <class T>
+   bool CObjectTemplate<T>::isEqual(T* obj)
+   {
+
+      CAttributeMap& attrMapThis = *this;
+      CAttributeMap& attrMapObj  = *obj;
+      return (attrMapThis.isEqual(attrMapObj));
+   }
+
    //---------------------------------------------------------------
 
    template <class T>

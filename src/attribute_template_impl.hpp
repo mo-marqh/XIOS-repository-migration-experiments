@@ -140,6 +140,25 @@ namespace xios
       return !this->isEmpty() || !inheritedValue.isEmpty() ;
     }
 
+    template <class T>
+    bool CAttributeTemplate<T>::isEqual(const CAttribute& attr)
+    {
+      const CAttributeTemplate<T>& tmp = dynamic_cast<const CAttributeTemplate<T>& >(attr);
+      this->isEqual(tmp);
+
+    }
+
+    template <class T>
+    bool CAttributeTemplate<T>::isEqual(const CAttributeTemplate& attr)
+    {
+      if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
+          return true;
+      if (this->hasInheritedValue() && attr.hasInheritedValue())
+          return (this->getInheritedValue() == attr.getInheritedValue());
+      else 
+        return false;
+    }
+
       //---------------------------------------------------------------
 
       template <class T>

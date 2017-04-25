@@ -46,6 +46,9 @@ namespace xios
             string getInheritedStringValue(void) const;
             bool hasInheritedValue(void) const;          
           
+            bool isEqual(const CAttributeEnum& attr );
+            bool isEqual(const CAttribute& attr );
+
             /// Destructeur ///
             virtual ~CAttributeEnum(void) { }
 
