@@ -2746,19 +2746,19 @@ namespace xios
           
           StdSize record = 0;
           double dtime(time);
-          for (StdSize n = dimSize[0] - 1; n >= 0; n--)
+          for (int n = dimSize[0] - 1; n >= 0; n--)
           {
             SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective, n);
             timeAxisBounds*=factorUnit ;
             if (timeAxisBounds(1, 0) < dtime)
             {
               record = n + 1;
-              break;
+             break;
             }
           }
           it = timeToRecordCache.insert(std::make_pair(time, record)).first;
         }
-        return it->second;
+         return it->second;
       }
 
       ///--------------------------------------------------------------
