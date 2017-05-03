@@ -180,7 +180,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   if (domainSource->bounds_lon_1d.isEmpty() || domainSource->bounds_lat_1d.isEmpty())
   {
     CArray<double,1> lon = lon_src(Range(0,niSrc-1));
-    CArray<double,1> lat = lat_src(Range(0,lat_src.numElements()-1,niSrc));
+    CArray<double,1> lat = lat_src(Range(0,lat_src.numElements()-niSrc,niSrc));
     CArray<double,2>& bounds_lon_src = domainSource->bounds_lon_1d;
     CArray<double,2>& bounds_lat_src = domainSource->bounds_lat_1d;
     domainSource->fillInRectilinearBoundLonLat(lon_src, lat_src, bounds_lon_src, bounds_lat_src);
@@ -248,8 +248,8 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   mask_1d_dst.resize(newNbLocalDst);
   i_index_dst.resize(newNbLocalDst);
   j_index_dst.resize(newNbLocalDst);
-  CArray<int,1> data_i_index_dst_full(newNbLocalDst, -1);
-  CArray<int,1> data_j_index_dst_full(newNbLocalDst, -1);
+  CArray<int,1> data_i_index_dst_full(newNbLocalDst);
+  CArray<int,1> data_j_index_dst_full(newNbLocalDst);
 
   domainDestination->lonvalue_client.resizeAndPreserve(newNbLocalDst);  
   domainDestination->latvalue_client.resizeAndPreserve(newNbLocalDst);
@@ -442,7 +442,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
      domainDestination->lonvalue_1d.resize(niDst);
      domainDestination->lonvalue_1d = lon_dst(Range(0,niDst-1));
      domainDestination->latvalue_1d.resize(njDst);
-     domainDestination->latvalue_1d = lat_dst(Range(0,lat_dst.numElements()-1,niDst));
+     domainDestination->latvalue_1d = lat_dst(Range(0,lat_dst.numElements()-niDst,niDst));
   }
   else // It should be curvilinear
   {
