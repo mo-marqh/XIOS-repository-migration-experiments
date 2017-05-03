@@ -306,9 +306,8 @@ namespace xios
         size_t nbThis = this->numElements();
         size_t nbArr  = array.numElements();
         if (nbThis != nbArr) return false;
-        for (size_t idx = 0; idx < nbThis; ++idx)
-          if ((*this)(idx) != array(idx)) return false;
-
+        typename Array<T_numtype,N_rank>::const_iterator itx=array.begin(), itxe=array.end(), ity=this->begin() ;
+        for(;itx!=itxe;++itx,++ity) if (*itx!=*ity) return false ;
         return true;
       }
 
