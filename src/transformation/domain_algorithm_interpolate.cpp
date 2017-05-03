@@ -99,9 +99,13 @@ void CDomainAlgorithmInterpolate::computeRemap()
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();
   bool renormalize ;
+  bool quantity ;
 
   if (interpDomain_->renormalize.isEmpty()) renormalize=true;
   else renormalize = interpDomain_->renormalize;
+
+  if (interpDomain_->quantity.isEmpty()) quantity=false;
+  else quantity = interpDomain_->quantity;
 
   const double poleValue = 90.0;
   const int constNVertex = 4; // Value by default number of vertex for rectangular domain
@@ -341,7 +345,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
   mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
 
-  std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize);
+  std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize,quantity);
 
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   std::map<int,std::vector<std::pair<int,double> > >::const_iterator iteNorthPole = interpMapValueNorthPole.end(),
