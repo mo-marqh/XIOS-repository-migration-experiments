@@ -64,8 +64,11 @@ namespace xios
 
             virtual void setInheritedValue(const CAttribute& ) = 0 ;
             virtual bool hasInheritedValue(void) const = 0;
-            
+
+            bool canInherite(void) {return _canInherite ;}
          protected : 
+            bool _canInherite ;
+            static const StdString resetInheritanceStr ; 
 
       }; // class CAttribute
 

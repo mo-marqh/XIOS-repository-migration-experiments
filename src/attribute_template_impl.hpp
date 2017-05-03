@@ -124,7 +124,7 @@ namespace xios
     template <class T>
     void CAttributeTemplate<T>::setInheritedValue(const CAttributeTemplate& attr)
     {
-      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
+      if (this->isEmpty() && _canInherite && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
     }
 
     template <class T>

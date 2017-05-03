@@ -61,7 +61,7 @@ namespace xios
 
             /// Autre ///
             virtual StdString toString(void) const { return _toString();}
-            virtual void fromString(const StdString & str) { _fromString(str);}
+            virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
 
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);} 
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); } 

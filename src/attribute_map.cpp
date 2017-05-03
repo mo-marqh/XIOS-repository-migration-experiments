@@ -169,7 +169,7 @@ namespace xios
                CAttribute* parentAtt = el.second;
                if (apply)
                {
-                 if (currentAtt->isEmpty() && !el.second->isEmpty())
+                 if (currentAtt->isEmpty() && currentAtt->canInherite() && !el.second->isEmpty())
                  {
                     this->setAttribute(el.first, el.second);
                  }

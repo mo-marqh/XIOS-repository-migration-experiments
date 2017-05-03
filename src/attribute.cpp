@@ -5,9 +5,12 @@
 
 namespace xios
 {
+
+      const StdString CAttribute::resetInheritanceStr("_reset_") ;
+
       /// ////////////////////// Définitions ////////////////////// ///
       CAttribute::CAttribute(const StdString & id)
-         : CObject(id), CBaseType()
+         : CObject(id), CBaseType(), _canInherite(true)
 //         , value()
       { /* Ne rien faire de plus */ }
 /*

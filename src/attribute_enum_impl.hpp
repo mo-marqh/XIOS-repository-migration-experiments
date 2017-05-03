@@ -87,7 +87,7 @@ namespace xios
   template <class T>
   void CAttributeEnum<T>::setInheritedValue(const CAttributeEnum& attr)
   {
-    if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue());
+    if (this->isEmpty() && _canInherite && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue());
   }
 
   template <class T>

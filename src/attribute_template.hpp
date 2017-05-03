@@ -64,7 +64,7 @@ namespace xios
 
             /// Autre ///
             virtual StdString toString(void) const { return _toString();}
-            virtual void fromString(const StdString & str) { _fromString(str);}
+            virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
 //            virtual CAttributeTemplate* clone() const {}
 //            virtual void toBinary  (StdOStream & os) const;
 //            virtual void fromBinary(StdIStream & is);
