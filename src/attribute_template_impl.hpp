@@ -144,12 +144,11 @@ namespace xios
     bool CAttributeTemplate<T>::isEqual(const CAttribute& attr)
     {
       const CAttributeTemplate<T>& tmp = dynamic_cast<const CAttributeTemplate<T>& >(attr);
-      this->isEqual(tmp);
-
+      return this->isEqual_(tmp);
     }
 
     template <class T>
-    bool CAttributeTemplate<T>::isEqual(const CAttributeTemplate& attr)
+    bool CAttributeTemplate<T>::isEqual_(const CAttributeTemplate& attr)
     {
       if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
           return true;

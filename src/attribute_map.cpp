@@ -121,22 +121,38 @@ namespace xios
       /*!
          Compare two attribute maps
          \param [in] another attribute map to compare
+         \param [in] excludedAttrs attribute to be excluded from comparasion
          \return true if these two maps have same attributes whose value are identical
       */
-      bool CAttributeMap::isEqual(const CAttributeMap& another)
+      bool CAttributeMap::isEqual(const CAttributeMap& another, const vector<StdString>& excludedAttrs)
       {
          SuperClassMap::const_iterator itb = another.begin(), ite = another.end(), it;
          for (it = itb; it !=ite; ++it)
          {
-            if ((*it).first.compare(StdString("id")) != 0 && (*it).first.compare(StdString("src")) != 0)
+            bool excluded = false;
+            for (int idx = 0; idx < excludedAttrs.size(); ++idx)
             {
-              if (this->hasAttribute(it->first))
-              { 
-                if (!((*it).second->isEqual(*(*this)[it->first])))
-                return false;
+               if (0 == (*it).first.compare(excludedAttrs[idx]))
+               {
+                 excluded = true;
+                 break;
+               } 
+            }
+
+            if (!excluded)
+            {
+              if ((*it).first.compare(StdString("id")) != 0 && (*it).first.compare(StdString("src")) != 0)
+              {
+                if (this->hasAttribute(it->first))
+                { 
+                  if (!((*it).second->isEqual(*(*this)[it->first])))
+                  {
+                    return false;
+                  }
+                }
+                else
+                  return false;
               }
-              else
-                return false;
             }
          }
 

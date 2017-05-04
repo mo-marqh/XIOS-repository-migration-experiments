@@ -2246,7 +2246,9 @@ namespace xios {
   */
   bool CDomain::isEqual(CDomain* obj)
   {
-    bool objEqual = SuperClass::isEqual(obj);
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("domain_ref");
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);
     if (!objEqual) return objEqual;
 
     TransMapTypes thisTrans = this->getAllTransformations();

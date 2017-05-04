@@ -139,19 +139,19 @@ namespace xios
      Compare two object of same type
    */
    template <class T>
-   bool CObjectTemplate<T>::isEqual(const string& id)
+   bool CObjectTemplate<T>::isEqual(const string& id, const vector<StdString>& excludedAttrs)
    {
       T* obj = CObjectTemplate<T>::get(id);
-      return this->isEqual(obj);
+      return this->isEqual(obj, excludedAttrs);
    }
 
    template <class T>
-   bool CObjectTemplate<T>::isEqual(T* obj)
+   bool CObjectTemplate<T>::isEqual(T* obj, const vector<StdString>& excludedAttrs)
    {
 
       CAttributeMap& attrMapThis = *this;
       CAttributeMap& attrMapObj  = *obj;
-      return (attrMapThis.isEqual(attrMapObj));
+      return (attrMapThis.isEqual(attrMapObj, excludedAttrs));
    }
 
    //---------------------------------------------------------------

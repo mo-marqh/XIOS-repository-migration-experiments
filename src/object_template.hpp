@@ -60,8 +60,8 @@ namespace xios
          static void recvAttributFromClient(CEventServer& event) ;
          static bool dispatchEvent(CEventServer& event) ;
 
-         bool isEqual(const string& id);
-         bool isEqual(T* obj);
+         bool isEqual(const string& id, const vector<StdString>& excludedAttrs);
+         bool isEqual(T* obj, const vector<StdString>& excludedAttrs);
 
          /// Accesseur statique ///
          static std::vector<boost::shared_ptr<DerivedType> > &

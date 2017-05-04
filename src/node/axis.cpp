@@ -985,7 +985,10 @@ namespace xios {
   */
   bool CAxis::isEqual(CAxis* obj)
   {
-    bool objEqual = SuperClass::isEqual(obj);
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("axis_ref");
+
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);    
     if (!objEqual) return objEqual;
 
     TransMapTypes thisTrans = this->getAllTransformations();

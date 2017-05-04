@@ -15,6 +15,10 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
+  /*!
+    \class CAttributeTemplate
+    The class implements attribute of some basic types
+  */
       template <class T>
          class CAttributeTemplate : public CAttribute, public CType<T>
       {
@@ -53,9 +57,9 @@ namespace xios
             T getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
 
-            bool isEqual(const CAttributeTemplate& attr );
+            bool isEqual_(const CAttributeTemplate& attr );
             bool isEqual(const CAttribute& attr );
-            
+
             /// Destructeur ///
             virtual ~CAttributeTemplate(void) { }
 

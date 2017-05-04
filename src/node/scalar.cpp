@@ -73,7 +73,9 @@ namespace xios {
   */
   bool CScalar::isEqual(CScalar* obj)
   {
-    bool objEqual = SuperClass::isEqual(obj);
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("scalar_ref");
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);
     if (!objEqual) return objEqual;
 
     TransMapTypes thisTrans = this->getAllTransformations();
