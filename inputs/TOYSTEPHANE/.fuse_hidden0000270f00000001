@@ -1,0 +1,24 @@
+
+<file_definition  type="one_file">
+
+  <file ts_prefix="@IOXDIR@/%file_name%" name="@EXPID@_arpsfx_daily"
+	output_freq="1d" split_freq="1y" timeseries="exclusive"
+	append="true" time_units="days" enabled="false" >
+
+    <field_group  operation="average" 
+		  expr="@this" default_value="1.e+20"
+		  ts_split_freq="1y" ts_enabled="true" > 
+
+      <field field_ref="pa_p" grid_ref="grid_complete_3D_p_id" name="pa_id"/>
+    </field_group>
+  </file>
+
+  <file name="output" output_freq="1d" >
+    <field field_ref="pa_p" grid_ref="grid_complete_3D_p" name="pa_complete_ref" default_value="1.e+20" />
+    <field field_ref="pressure" grid_ref="grid_3D_p" name="pa_p_ref" />
+    <field field_ref="pa_p" name="pa_p" />
+    <field field_ref="pa_clone" name="pa_clone" />
+    <field field_ref="pa_p_clone" name="pa_p_clone" />
+  </file>
+
+</file_definition>
