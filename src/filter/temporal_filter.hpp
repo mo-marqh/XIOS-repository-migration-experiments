@@ -50,6 +50,7 @@ namespace xios
       const boost::scoped_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
       CArray<double, 1> tmpData; //!< The array of data used for temporary storage
       const CDuration samplingFreq; //!< The sampling frequency, i.e. the frequency at which the input data will be used
+      const CDuration samplingOffset; //!< The sampling offset, i.e. the offset after which the input data will be used
       const CDuration opFreq; //!< The operation frequency, i.e. the frequency at which the output data will be computed
       CDate nextSamplingDate; //!< The date of the next sampling
       CDate nextOperationDate; //!< The date of the next operation

@@ -11,10 +11,12 @@ namespace xios
                                    bool ignoreMissingValue /*= false*/, double missingValue /*= 0.0*/)
     : CFilter(gc, 1, this)
     , functor(createFunctor(opId, ignoreMissingValue, missingValue, tmpData))
-    , samplingFreq(samplingFreq)
+    // If we can optimize the sampling when dealing with an instant functor we do it
+    , samplingFreq((functor->timeType() == func::CFunctor::instant && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq : samplingFreq)
+    , samplingOffset((functor->timeType() == func::CFunctor::instant && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq - initDate.getRelCalendar().getTimeStep() : samplingOffset)
     , opFreq(opFreq)
-    , nextSamplingDate(initDate + samplingOffset + initDate.getRelCalendar().getTimeStep())
-    , nextOperationDate(initDate + samplingOffset + opFreq)
+    , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
+    , nextOperationDate(initDate + this->samplingOffset + opFreq)
     , isFirstOperation(true)
     , isOnceOperation(functor->timeType() == func::CFunctor::once)
   {
