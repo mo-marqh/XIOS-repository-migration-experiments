@@ -11,7 +11,7 @@ namespace xios
     , samplingFreq(samplingFreq)
     , opFreq(opFreq)
     , nextSamplingDate(initDate + samplingOffset + initDate.getRelCalendar().getTimeStep())
-    , nextOperationDate(initDate + opFreq)
+    , nextOperationDate(initDate + samplingOffset + opFreq)
     , isFirstOperation(true)
   {
     double defaultValue = ignoreMissingValue ? std::numeric_limits<double>::quiet_NaN() : missingValue;
