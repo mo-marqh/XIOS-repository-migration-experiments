@@ -519,10 +519,15 @@ namespace xios{
 
    bool CField::isActive(bool atCurrentTimestep /*= false*/) const
    {
-      if (atCurrentTimestep && clientSourceFilter)
-        return clientSourceFilter->isDataExpected(CContext::getCurrent()->getCalendar()->getCurrentDate());
-      else
-        return (instantDataFilter != NULL);
+      if (clientSourceFilter)
+        return atCurrentTimestep ? clientSourceFilter->isDataExpected(CContext::getCurrent()->getCalendar()->getCurrentDate()) : true;
+      else if (storeFilter)
+        return true;
+      else if (instantDataFilter)
+        ERROR("bool CField::isActive(bool atCurrentTimestep)",
+              << "Impossible to check if field [ id = " << getId() << " ] is active as it cannot be used to receive nor send data.");
+
+      return false;
    }
 
    //----------------------------------------------------------------
