@@ -4,38 +4,20 @@
 
 namespace xios
 {
+  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, double missingValue, CArray<double, 1>& tmpData);
+
   CTemporalFilter::CTemporalFilter(CGarbageCollector& gc, const std::string& opId,
                                    const CDate& initDate, const CDuration samplingFreq, const CDuration samplingOffset, const CDuration opFreq,
                                    bool ignoreMissingValue /*= false*/, double missingValue /*= 0.0*/)
     : CFilter(gc, 1, this)
+    , functor(createFunctor(opId, ignoreMissingValue, missingValue, tmpData))
     , samplingFreq(samplingFreq)
     , opFreq(opFreq)
     , nextSamplingDate(initDate + samplingOffset + initDate.getRelCalendar().getTimeStep())
     , nextOperationDate(initDate + samplingOffset + opFreq)
     , isFirstOperation(true)
+    , isOnceOperation(functor->timeType() == func::CFunctor::once)
   {
-    double defaultValue = ignoreMissingValue ? std::numeric_limits<double>::quiet_NaN() : missingValue;
-    
-#define DECLARE_FUNCTOR(MType, mtype) \
-    if (opId.compare(#mtype) == 0) \
-    { \
-      if (ignoreMissingValue) \
-      { \
-        functor.reset(new func::C##MType(tmpData, defaultValue)); \
-      } \
-      else \
-      { \
-        functor.reset(new func::C##MType(tmpData)); \
-      } \
-    }
-
-#include "functor_type.conf"
-
-    if (!functor)
-      ERROR("CTemporalFilter::CTemporalFilter(CGarbageCollector& gc, const std::string& opId, ...)",
-            << "\"" << opId << "\" is not a valid operation.");
-
-    isOnceOperation = (functor->timeType() == func::CFunctor::once);
   }
 
   CDataPacketPtr CTemporalFilter::apply(std::vector<CDataPacketPtr> data)
@@ -78,5 +60,33 @@ namespace xios
   bool CTemporalFilter::isDataExpected(const CDate& date) const
   {
     return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date + samplingFreq > nextOperationDate);
+  }
+
+  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, double missingValue, CArray<double, 1>& tmpData)
+  {
+    func::CFunctor* functor = NULL;
+
+    double defaultValue = ignoreMissingValue ? std::numeric_limits<double>::quiet_NaN() : missingValue;
+
+#define DECLARE_FUNCTOR(MType, mtype) \
+    if (opId.compare(#mtype) == 0) \
+    { \
+      if (ignoreMissingValue) \
+      { \
+        functor = new func::C##MType(tmpData, defaultValue); \
+      } \
+      else \
+      { \
+        functor = new func::C##MType(tmpData); \
+      } \
+    }
+
+#include "functor_type.conf"
+
+    if (!functor)
+      ERROR("createFunctor(const std::string& opId, ...)",
+            << "\"" << opId << "\" is not a valid operation.");
+
+    return functor;
   }
 } // namespace xios
