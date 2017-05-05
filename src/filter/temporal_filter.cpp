@@ -11,14 +11,15 @@ namespace xios
                                    bool ignoreMissingValue /*= false*/, double missingValue /*= 0.0*/)
     : CFilter(gc, 1, this)
     , functor(createFunctor(opId, ignoreMissingValue, missingValue, tmpData))
+    , isOnceOperation(functor->timeType() == func::CFunctor::once)
+    , isInstantOperation(functor->timeType() == func::CFunctor::instant)
     // If we can optimize the sampling when dealing with an instant functor we do it
-    , samplingFreq((functor->timeType() == func::CFunctor::instant && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq : samplingFreq)
-    , samplingOffset((functor->timeType() == func::CFunctor::instant && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq - initDate.getRelCalendar().getTimeStep() : samplingOffset)
+    , samplingFreq((isInstantOperation && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq : samplingFreq)
+    , samplingOffset((isInstantOperation && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq - initDate.getRelCalendar().getTimeStep() : samplingOffset)
     , opFreq(opFreq)
     , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
     , nextOperationDate(initDate + this->samplingOffset + opFreq)
     , isFirstOperation(true)
-    , isOnceOperation(functor->timeType() == func::CFunctor::once)
   {
   }
 
@@ -28,28 +29,44 @@ namespace xios
 
     if (data[0]->status != CDataPacket::END_OF_STREAM)
     {
-      const bool usePacket = isOnceOperation ? isFirstOperation : (data[0]->date >= nextSamplingDate);
+      bool usePacket, outputResult, copyLess;
+      if (isOnceOperation)
+        usePacket = outputResult = copyLess = isFirstOperation;
+      else
+      {
+        usePacket = (data[0]->date >= nextSamplingDate);
+        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
+        copyLess = (isInstantOperation && usePacket && outputResult);
+      }
+
       if (usePacket)
       {
-        if (!tmpData.numElements())
-          tmpData.resize(data[0]->data.numElements());
+        if (!copyLess)
+        {
+          if (!tmpData.numElements())
+            tmpData.resize(data[0]->data.numElements());
 
-        (*functor)(data[0]->data);
+          (*functor)(data[0]->data);
+        }
 
         nextSamplingDate = nextSamplingDate + samplingFreq;
       }
 
-      const bool outputResult = isOnceOperation ? isFirstOperation : (data[0]->date + samplingFreq > nextOperationDate);
       if (outputResult)
       {
-        functor->final();
+        if (!copyLess)
+        {
+          functor->final();
 
-        packet = CDataPacketPtr(new CDataPacket);
-        packet->date = data[0]->date;
-        packet->timestamp = data[0]->timestamp;
-        packet->status = data[0]->status;
-        packet->data.resize(tmpData.numElements());
-        packet->data = tmpData;
+          packet = CDataPacketPtr(new CDataPacket);
+          packet->date = data[0]->date;
+          packet->timestamp = data[0]->timestamp;
+          packet->status = data[0]->status;
+          packet->data.resize(tmpData.numElements());
+          packet->data = tmpData;
+        }
+        else
+          packet = data[0];
 
         isFirstOperation = false;
         nextOperationDate = nextOperationDate + samplingFreq + opFreq - samplingFreq;

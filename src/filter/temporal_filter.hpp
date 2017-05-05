@@ -56,6 +56,7 @@ namespace xios
       CDate nextOperationDate; //!< The date of the next operation
       bool isFirstOperation; //!< True before the first operation was been computed
       const bool isOnceOperation; //!< True if the operation should be computed just once
+      const bool isInstantOperation; //!< True if the operation is instant
   }; // class CTemporalFilter
 } // namespace xios
 
