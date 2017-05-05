@@ -39,6 +39,13 @@ namespace xios
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
 
+      /*!
+       * Tests whether data is expected for the specified date.
+       *
+       * \param date the date associated to the data
+       */
+      bool virtual isDataExpected(const CDate& date) const;
+
     private:
       boost::scoped_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
       CArray<double, 1> tmpData; //!< The array of data used for temporary storage

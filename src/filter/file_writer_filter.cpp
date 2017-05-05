@@ -32,4 +32,9 @@ namespace xios
 
     field->sendUpdateData(data[0]->data);
   }
+
+  bool CFileWriterFilter::isDataExpected(const CDate& date) const
+  {
+    return true;
+  }
 } // namespace xios

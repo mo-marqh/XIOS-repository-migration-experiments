@@ -80,6 +80,11 @@ namespace xios
     gc.registerObject(this, data[0]->timestamp);
   }
 
+  bool CStoreFilter::isDataExpected(const CDate& date) const
+  {
+    return true;
+  }
+
   void CStoreFilter::invalidate(Time timestamp)
   {
     CInputPin::invalidate(timestamp);

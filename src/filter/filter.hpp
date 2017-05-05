@@ -47,6 +47,13 @@ namespace xios
        */
       bool virtual canBeTriggered() const;
 
+      /*!
+       * Tests whether data is expected for the specified date.
+       *
+       * \param date the date associated to the data
+       */
+      bool virtual isDataExpected(const CDate& date) const;
+
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself
       size_t inputSlotCount; //!< Number of slot on filter

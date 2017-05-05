@@ -96,7 +96,7 @@ namespace xios {
          std::map<int, StdSize> getGridDataBufferSize();
 
        public:
-         bool isActive(void) const;
+         bool isActive(bool atCurrentTimestep = false) const;
          bool hasOutputFile;
 
          bool wasWritten() const;

@@ -45,6 +45,13 @@ namespace xios
       bool virtual canBeTriggered() const;
 
       /*!
+       * Tests whether data is expected for the specified date.
+       *
+       * \param date the date associated to the data
+       */
+      bool virtual isDataExpected(const CDate& date) const;
+
+      /*!
        * Removes all pending packets which are older than the specified timestamp.
        *
        * \param timestamp the timestamp used for invalidation

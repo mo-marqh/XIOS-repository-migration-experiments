@@ -141,27 +141,33 @@ MODULE IFIELD
 
    END FUNCTION  xios(is_valid_fieldgroup)
    
-  LOGICAL FUNCTION xios(field_is_active_id(field_id))
+  LOGICAL FUNCTION xios(field_is_active_id)(field_id, at_current_timestep_arg)
       IMPLICIT NONE
-      CHARACTER(len  = *)    , INTENT(IN) :: field_id
-      LOGICAL  (kind = 1)                 :: val
-      TYPE(txios(field))                 :: field_hdl
-      
-      CALL xios(get_field_handle)(field_id,field_hdl)
-      xios(field_is_active_id)=xios(field_is_active_hdl(field_hdl))
+      CHARACTER(len  = *) , INTENT(IN) :: field_id
+      LOGICAL, OPTIONAL   , INTENT(IN) :: at_current_timestep_arg
+      TYPE(txios(field))               :: field_hdl
 
-   END FUNCTION  xios(field_is_active_id)
-   
-   
-   LOGICAL FUNCTION xios(field_is_active_hdl(field_hdl))
+      CALL xios(get_field_handle)(field_id,field_hdl)
+      xios(field_is_active_id) = xios(field_is_active_hdl)(field_hdl, at_current_timestep_arg)
+
+   END FUNCTION xios(field_is_active_id)
+
+   LOGICAL FUNCTION xios(field_is_active_hdl)(field_hdl, at_current_timestep_arg)
       IMPLICIT NONE
-      TYPE(txios(field)),INTENT(IN)       :: field_hdl
-      LOGICAL  (kind = 1)                 :: ret
-      
-      CALL cxios_field_is_active(field_hdl%daddr, ret);
+      TYPE(txios(field)) , INTENT(IN) :: field_hdl
+      LOGICAL, OPTIONAL  , INTENT(IN) :: at_current_timestep_arg
+      LOGICAL(kind = C_BOOL)          :: at_current_timestep
+      LOGICAL(kind = C_BOOL)          :: ret
+
+      IF (PRESENT(at_current_timestep_arg)) THEN
+         at_current_timestep = at_current_timestep_arg
+      ELSE
+         at_current_timestep = .FALSE.
+      ENDIF
+
+      CALL cxios_field_is_active(field_hdl%daddr, at_current_timestep, ret);
       xios(field_is_active_hdl) = ret
       
-   END FUNCTION  xios(field_is_active_hdl) 
+   END FUNCTION xios(field_is_active_hdl)
  
-
 END MODULE IFIELD

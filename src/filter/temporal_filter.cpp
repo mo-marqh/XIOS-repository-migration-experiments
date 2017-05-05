@@ -74,4 +74,9 @@ namespace xios
 
     return packet;
   }
+
+  bool CTemporalFilter::isDataExpected(const CDate& date) const
+  {
+    return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date + samplingFreq > nextOperationDate);
+  }
 } // namespace xios

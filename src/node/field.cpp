@@ -517,9 +517,12 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   bool CField::isActive(void) const
+   bool CField::isActive(bool atCurrentTimestep /*= false*/) const
    {
-      return (instantDataFilter != NULL);
+      if (atCurrentTimestep && clientSourceFilter)
+        return clientSourceFilter->isDataExpected(CContext::getCurrent()->getCalendar()->getCurrentDate());
+      else
+        return (instantDataFilter != NULL);
    }
 
    //----------------------------------------------------------------
