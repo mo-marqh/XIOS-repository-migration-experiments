@@ -59,12 +59,17 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 */
 void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
+  // We use all index of source and destination to calculate the mapping index of zoom.
+  // The server who receives the "zoomed" fields will decide whether it will forward these fields or write "real zoomed" fields into file
+  // That means servers need to change to cover this problem.
   StdSize niSource = axisSrc_->n.getValue();
   StdSize ibeginSource = axisSrc_->begin.getValue();
   StdSize iendSource = ibeginSource + niSource - 1;
 
   StdSize ibegin = std::max(ibeginSource, zoomBegin_);
   StdSize iend = std::min(iendSource, zoomEnd_);
+  // StdSize ibegin = ibeginSource;
+  // StdSize iend = iendSource;
   StdSize ni = iend + 1 - ibegin;
   if (iend < ibegin) ni = 0;
 
@@ -81,7 +86,7 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   }
 
   updateZoom();
-  updateAxisDestinationMask();
+  // updateAxisDestinationMask();
 }
 
 /*!

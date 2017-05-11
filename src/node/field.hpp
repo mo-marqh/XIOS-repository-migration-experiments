@@ -121,7 +121,7 @@ namespace xios {
          void solveGenerateGrid();
          void solveGridDomainAxisBaseRef();
 
-         void solveAllEnabledFields();
+         void solveAllEnabledFieldsAndTransform();
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
 
@@ -215,8 +215,6 @@ namespace xios {
          boost::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;
 
-         bool areAllReferenceSolved;
-         bool isReferenceSolved;
          std::vector<StdString> domAxisScalarIds_;
          bool useCompressedOutput;
 
@@ -224,7 +222,13 @@ namespace xios {
          bool hasTimeInstant;
          bool hasTimeCentered;
 
+
          DECLARE_REF_FUNC(Field,field)
+
+      private:
+         bool areAllReferenceSolved;
+         bool isReferenceSolved;
+         bool isReferenceSolvedAndTransformed;
 
       private:
          //! The type of operation attached to the field

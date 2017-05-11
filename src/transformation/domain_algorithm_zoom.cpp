@@ -112,7 +112,7 @@ void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<d
   }
 
   updateZoom();
-  updateDomainDestinationMask();
+  // updateDomainDestinationMask();
 }
 
 /*!

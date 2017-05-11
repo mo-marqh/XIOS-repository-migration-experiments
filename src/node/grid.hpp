@@ -139,6 +139,7 @@ namespace xios {
          void computeIndex(void);
          void computeIndexScalarGrid();
          void computeCompressedIndex();
+         void computeWrittenIndex();
 
          void solveDomainRef(bool checkAtt);
          void solveAxisRef(bool checkAtt);
@@ -223,11 +224,24 @@ namespace xios {
          map<int, CArray<int, 1> > storeIndex_fromSrv;
          std::vector<map<int,int> > nbSenders;
 
-         map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient;
+         map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
+
+         // A client receives global index from other clients (via recvIndex)
+         // then does mapping these index into local index of STORE_CLIENTINDEX
+         // In this way, store_clientIndex can be used as an input of a source filter
+         // Maybe we need a flag to determine whether a client wants to write. TODO
+         map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient; 
+
+         // If a client wants to write out data, it'll use this index.
+         // A client receives global index of data from other clients (via recvIndex),
+         // then does remapping these index into local index to WRITE into a file
+         CArray<size_t,1> localIndexToWriteOnClient, localIndexToWriteOnServer;
+
          CArray<size_t,1> indexFromClients;
          void checkMask(void);
          void createMask(void);
-         void modifyMask(const CArray<int,1>& indexToModify);
+         void modifyMask(const CArray<int,1>& indexToModify, bool valueToModify = false);
+         void modifyMaskSize(const std::vector<int>& newDimensionSize, bool newValue = false);
 
          void computeGridGlobalDimension(const std::vector<CDomain*>& domains,
                                          const std::vector<CAxis*>& axis,
@@ -242,7 +256,10 @@ namespace xios {
                           const CArray<int,1>& axisDomainOrder,
                           bool createMask = false);
         template<int N>
-        void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify);
+        void modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify, bool valueToModify);
+
+        template<int N>
+        void modifyGridMaskSize(CArray<bool,N>& gridMask, const std::vector<int>& eachDimSize, bool newValue);
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -284,8 +301,8 @@ namespace xios {
         bool isCompressible_;
         std::set<std::string> relFilesCompressed;
 
-        bool isTransformed_;
-        bool isGenerated_;
+        bool isTransformed_, isGenerated_;
+        bool computedWrittenIndex_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
         bool hasDomainAxisBaseRef_;
@@ -415,15 +432,34 @@ namespace xios {
 
    }
 
+   template<int N>
+   void CGrid::modifyGridMaskSize(CArray<bool,N>& gridMask,
+                                  const std::vector<int>& eachDimSize,
+                                  bool newValue)
+   {
+      if (N != eachDimSize.size())
+      {
+        // ERROR("CGrid::modifyGridMaskSize(CArray<bool,N>& gridMask,
+        //                                  const std::vector<int>& eachDimSize,
+        //                                  bool newValue)",
+        //       << "Dimension size of the mask is different from input dimension size." << std::endl
+        //       << "Mask dimension is " << N << "." << std::endl
+        //       << "Input dimension is " << eachDimSize.size() << "." << std::endl
+        //       << "Grid = " << this->GetName())
+      }
+      CArrayBoolTraits<CArray<bool,N> >::resizeArray(gridMask,eachDimSize);
+      gridMask = newValue;
+   }
+                                 
+
    /*!
      Modify the current mask of grid, the local index to be modified will take value false
      \param [in/out] gridMask current mask of grid
      \param [in] indexToModify local index to modify
    */
    template<int N>
-   void CGrid::modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify)
-   {
-     bool valueToModify = false;
+   void CGrid::modifyGridMask(CArray<bool,N>& gridMask, const CArray<int,1>& indexToModify, bool valueToModify)
+   {     
      int num = indexToModify.numElements();
      for (int idx = 0; idx < num; ++idx)
      {

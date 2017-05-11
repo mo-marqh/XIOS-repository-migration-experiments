@@ -34,7 +34,8 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
+      , domAxisScalarIds_(vector<StdString>(3,""))
+      , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
       , useCompressedOutput(false)
       , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
@@ -45,7 +46,8 @@ namespace xios{
       , written(false)
       , nstep(0), nstepMax(0)
       , hasOutputFile(false)
-      , domAxisScalarIds_(vector<StdString>(3,"")), areAllReferenceSolved(false), isReferenceSolved(false)
+      , domAxisScalarIds_(vector<StdString>(3,""))
+      , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
       , useCompressedOutput(false)
       , wasDataAlreadyReceivedFromServer(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
@@ -256,15 +258,23 @@ namespace xios{
 
     size_t sizeData = 0;
     if (0 == recvDataSrv.numElements())
-    {      
-      for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-      {
-        sizeData += it->second.numElements();
-        data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
-      }
+    {            
+      CArray<int,1>& storeClient = grid->storeIndex_client;
+      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+      // {
+      //   // sizeData += it->second.numElements();
+      //   data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
+      // }
+
+      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
+      // {
+      //   // sizeData += it->second.numElements();
+      //   data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
+      // }
 
       // Gather all data from different clients
-      recvDataSrv.resize(sizeData);
+      // recvDataSrv.resize(sizeData);
+      recvDataSrv.resize(storeClient.numElements());
       recvFoperationSrv = boost::shared_ptr<func::CFunctor>(new func::CInstant(recvDataSrv));
     }
 
@@ -275,8 +285,8 @@ namespace xios{
 
     if (opeDate <= currDate)
     {
-      for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-      {        
+       for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
+      {
         CArray<double,1> tmp;
         CArray<size_t,1>& indexTmp = it->second;
         *(rankBuffers[it->first]) >> tmp;
@@ -287,6 +297,19 @@ namespace xios{
         // recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
         // sizeData += it->second.numElements();      
       }
+
+      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+      // {        
+      //   CArray<double,1> tmp;
+      //   CArray<size_t,1>& indexTmp = it->second;
+      //   *(rankBuffers[it->first]) >> tmp;
+      //   for (int idx = 0; idx < indexTmp.numElements(); ++idx)
+      //   {
+      //     recv_data_tmp(indexTmp(idx)) = tmp(idx);
+      //   }
+      //   // recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
+      //   // sizeData += it->second.numElements();      
+      // }
     }
 
     this->setData(recv_data_tmp);
@@ -315,6 +338,7 @@ namespace xios{
     {
       recvFoperationSrv->final();
       last_Write_srv = writeDate;
+      grid->computeWrittenIndex();
       writeField();
       lastlast_Write_srv = last_Write_srv;
     }
@@ -812,20 +836,24 @@ namespace xios{
      }
    }
    
-   void CField::solveAllEnabledFields()
+   /*!
+     Solve reference of all enabled fields even the source fields .
+     In this step, we do transformations.
+   */
+   void CField::solveAllEnabledFieldsAndTransform()
    {
      CContext* context = CContext::getCurrent();
      bool hasClient = context->hasClient;
      bool hasServer = context->hasServer;
 
-     if (!isReferenceSolved)
+     if (!isReferenceSolvedAndTransformed)
      {
-        isReferenceSolved = true;
+        isReferenceSolvedAndTransformed = true;
 
         if (hasClient && !hasServer)
         {
           solveRefInheritance(true);
-          if (hasDirectFieldReference()) getDirectFieldReference()->solveAllEnabledFields();
+          if (hasDirectFieldReference()) getDirectFieldReference()->solveAllEnabledFieldsAndTransform();
         }
 
         if (hasServer)
@@ -991,7 +1019,7 @@ namespace xios{
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
    {
      // if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
-    if (!isReferenceSolved) solveAllEnabledFields();
+    if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
      CContext* context = CContext::getCurrent();
      bool hasWriterServer = context->hasServer && !context->hasClient;
      bool hasIntermediateServer = context->hasServer && context->hasClient;
@@ -1427,10 +1455,15 @@ namespace xios{
 
    void CField::outputField(CArray<double,1>& fieldOut)
    {
-      map<int, CArray<double,1> >::iterator it;
-      
-      fieldOut = recvDataSrv;
-      
+      map<int, CArray<double,1> >::iterator it;      
+     
+      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
+      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
+      for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
+      {
+        fieldOut(outIndexServer(idx)) = recvDataSrv(outIndexClient(idx));
+      }
+
       // for (it = data_srv.begin(); it != data_srv.end(); it++)
       // {
       //    grid->outputField(it->first, it->second, fieldOut.dataFirst());

@@ -290,8 +290,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nGlob_.at(indexMap_[idx]+1)  = domList[domIndex]->nj_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]+1) = 0;
       nBeginGlobal_.at(indexMap_[idx]+1) = domList[domIndex]->jbegin;
-      nZoomBegin_.at((indexMap_[idx]+1)) = domList[domIndex]->global_zoom_jbegin;
-      nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
+      nZoomBegin_.at((indexMap_[idx]+1)) = 0; //domList[domIndex]->global_zoom_jbegin;
+      nZoomEnd_.at((indexMap_[idx]+1))   = domList[domIndex]->nj_glo.getValue()- 1; //domList[domIndex]->global_zoom_jbegin + domList[domIndex]->global_zoom_nj-1;
 
       dataBegin_.at(indexMap_[idx]+1) = domList[domIndex]->data_jbegin.getValue();
       dataIndex_.at(indexMap_[idx]+1).reference(domList[domIndex]->data_j_index);
@@ -302,8 +302,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nGlob_.at(indexMap_[idx]) = domList[domIndex]->ni_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = domList[domIndex]->ibegin;
-      nZoomBegin_.at((indexMap_[idx])) = domList[domIndex]->global_zoom_ibegin;
-      nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
+      nZoomBegin_.at((indexMap_[idx])) = 0; // domList[domIndex]->global_zoom_ibegin;
+      nZoomEnd_.at((indexMap_[idx]))   = domList[domIndex]->ni_glo.getValue() -1; //domList[domIndex]->global_zoom_ibegin + domList[domIndex]->global_zoom_ni-1;
 
       dataBegin_.at(indexMap_[idx]) = domList[domIndex]->data_ibegin.getValue();
       dataIndex_.at(indexMap_[idx]).reference(domList[domIndex]->data_i_index);
@@ -324,8 +324,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
       nGlob_.at(indexMap_[idx]) = axisList[axisIndex]->n_glo.getValue();
       nBeginLocal_.at(indexMap_[idx]) = 0;
       nBeginGlobal_.at(indexMap_[idx]) = axisList[axisIndex]->begin.getValue();
-      nZoomBegin_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin;
-      nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
+      nZoomBegin_.at((indexMap_[idx])) = 0; //axisList[axisIndex]->global_zoom_begin;
+      nZoomEnd_.at((indexMap_[idx])) = axisList[axisIndex]->n_glo.getValue() - 1; //axisList[axisIndex]->global_zoom_begin + axisList[axisIndex]->global_zoom_n-1;
 
       dataBegin_.at(indexMap_[idx]) = axisList[axisIndex]->data_begin.getValue();
       dataIndex_.at(indexMap_[idx]).reference(axisList[axisIndex]->data_index);
@@ -586,6 +586,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   // Now allocate these arrays
   localDataIndex_.resize(indexLocalDataOnClientCount);
   localMaskIndex_.resize(indexSend2ServerCount);
+  globalDataIndex_.rehash(std::ceil(indexLocalDataOnClientCount/globalDataIndex_.max_load_factor())); //globalLocalDataSendToServerMap_.reserve(indexSend2ServerCount);
   globalLocalDataSendToServerMap_.rehash(std::ceil(indexSend2ServerCount/globalLocalDataSendToServerMap_.max_load_factor())); //globalLocalDataSendToServerMap_.reserve(indexSend2ServerCount);
 
   // We need to loop with data index
@@ -651,6 +652,12 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
           if (gridMask_(gridMaskIndex))
           {
+            size_t globalIndex = 0;
+            for (int k = 0; k < numElement_; ++k)
+            {
+              globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
+            }
+            globalDataIndex_[globalIndex] = indexLocalDataOnClientCount;
             localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
             bool isIndexOnServer = true;
             for (int idxElement = 0; idxElement < this->numElement_; ++idxElement)
@@ -660,11 +667,6 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
             if (isIndexOnServer)
             {
-              size_t globalIndex = 0;
-              for (int k = 0; k < numElement_; ++k)
-              {
-                globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
-              }
               globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
               localMaskIndex_[indexSend2ServerCount] = gridMaskIndex;
               ++indexSend2ServerCount;
@@ -733,6 +735,12 @@ CDistributionClient::GlobalLocalDataMap& CDistributionClient::getGlobalLocalData
 {
   if (!isComputed_) createGlobalIndexSendToServer();
   return globalLocalDataSendToServerMap_;
+}
+
+CDistributionClient::GlobalLocalDataMap& CDistributionClient::getGlobalDataIndexOnClient()
+{
+  if (!isComputed_) createGlobalIndexSendToServer();
+  return globalDataIndex_;
 }
 
 /*!

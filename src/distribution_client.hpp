@@ -44,6 +44,7 @@ public:
 
     virtual const std::vector<int>& getLocalDataIndexOnClient();
     GlobalLocalDataMap& getGlobalLocalDataSendToServer();
+    GlobalLocalDataMap& getGlobalDataIndexOnClient();
     const std::vector<int>& getLocalMaskIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
@@ -79,6 +80,7 @@ public:
   private:
     //!< LocalData index on client
     GlobalLocalDataMap globalLocalDataSendToServerMap_;
+    GlobalLocalDataMap globalDataIndex_;
     std::vector<int> localDataIndex_;
     std::vector<int> localMaskIndex_;
 

@@ -694,8 +694,8 @@ namespace xios {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
      {
-       // this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
-       this->enabledFields[i]->solveAllEnabledFields();
+       this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
+       // this->enabledFields[i]->solveAllEnabledFields();
 //       this->enabledFields[i]->buildGridTransformationGraph();
      }
    }
@@ -735,12 +735,13 @@ namespace xios {
    all information of active fields are created on server side, e.g: checking mask or index
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
-   void CFile::solveAllRefOfEnabledFields(bool sendToServer)
+   void CFile::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
+       // this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
+      this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
      }
    }
 

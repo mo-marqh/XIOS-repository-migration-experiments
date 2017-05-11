@@ -104,11 +104,12 @@ namespace xios {
          void processEnabledFile(void);
          void solveOnlyRefOfEnabledFields(bool sendToServer);
          void generateNewTransformationGridDest();
-         void solveAllRefOfEnabledFields(bool sendToServer);
+         
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void prefetchEnabledReadModeFields();
          void prefetchEnabledReadModeFieldsIfNeeded();
 
+         void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
 

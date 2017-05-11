@@ -77,11 +77,6 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
-         int getStartWriteIndex() const;
-         int getCountWriteIndex() const;
-         int getLocalWriteSize() const;
-         int getGlobalWriteSize() const;
-
          std::map<int, StdSize> getAttributesBufferSize();
 
          /// Test ///
@@ -118,6 +113,7 @@ namespace xios {
 
          void checkEligibilityForCompressedOutput();
 
+         void computeWrittenIndex();
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();
@@ -133,6 +129,7 @@ namespace xios {
         bool hasValue;
         CArray<int,1> globalDimGrid;
         int orderPosInGrid;
+        CArray<size_t,1> localIndexToWriteOnServer;
 
       private:
          void checkData();
@@ -175,12 +172,8 @@ namespace xios {
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
 
-         int start_write_index_;
-         int count_write_index_;
-         int local_write_size_;
-         int global_write_size_;
-
          bool doZoomByIndex_;
+         bool computedWrittenIndex_;
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

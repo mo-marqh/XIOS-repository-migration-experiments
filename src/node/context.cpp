@@ -571,14 +571,13 @@ namespace xios {
    {
     postProcessingGlobalAttributes();
 
-    if (hasClient) sendPostProcessingGlobalAttributes();
-
-    // There are some processings that should be done after all of above. For example: check mask or index
+    if (hasClient) sendPostProcessingGlobalAttributes();   
+    
     this->buildFilterGraphOfEnabledFields();
     
-     if (hasClient && !hasServer)
+    if (hasClient && !hasServer)
     {
-      buildFilterGraphOfFieldsWithReadAccess();
+      buildFilterGraphOfFieldsWithReadAccess();      
     }
 
     // if (hasClient) this->solveAllRefOfEnabledFields(true);    
@@ -622,6 +621,7 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFiles[i]->solveOnlyRefOfEnabledFields(false);
+       // this->enabledFiles[i]->solveAllReferenceEnabledField(false);
      }
 
      for (int i = 0; i < size; ++i)
@@ -662,19 +662,14 @@ namespace xios {
      {
        this->enabledFiles[i]->generateNewTransformationGridDest();
      }
-
-     for (int i = 0; i < size; ++i)
-     {
-       //this->enabledFiles[i]->checkGridOfEnabledFields();
-     }
    }
 
-   void CContext::solveAllRefOfEnabledFields(bool sendToServer)
+   void CContext::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->solveAllRefOfEnabledFields(sendToServer);
+       this->enabledFiles[i]->solveAllRefOfEnabledFieldsAndTransform(sendToServer);
      }
    }
 
@@ -1167,8 +1162,8 @@ namespace xios {
       this->solveOnlyRefOfEnabledFields(false);
 
       // Search and rebuild all reference object of enabled fields, and transform
-      this->solveAllEnabledFields();
-
+      // this->solveAllEnabledFields
+      this->solveAllRefOfEnabledFieldsAndTransform(false);
       // // Check grid and calculate its distribution
       // if (hasClient) checkGridEnabledFields();
 

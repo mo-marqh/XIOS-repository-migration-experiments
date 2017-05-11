@@ -50,7 +50,8 @@ namespace xios {
          {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
            EVENT_ID_AREA, EVENT_ID_MASK,
-           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT
+           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT,
+           EVENT_ID_INDEX_ZOOM
          } ;
 
 
@@ -105,6 +106,7 @@ namespace xios {
          const std::vector<int>& getGlobalWriteSize() const;
 
          std::map<int, StdSize> getAttributesBufferSize();
+         CArray<size_t,1> localIndexToWriteOnServer;
 
          bool isEmpty(void) const;
          bool isDistributed(void) const;
@@ -126,6 +128,7 @@ namespace xios {
          void addRelFileCompressed(const StdString& filename);
          void completeLonLatClient(void);         
          void computeConnectedClients();
+         void computeWrittenIndex();
 
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);
@@ -137,15 +140,16 @@ namespace xios {
          static bool dispatchEvent(CEventServer& event);
          static void recvDistributionAttributes(CEventServer& event);
          static void recvIndex(CEventServer& event);
+         static void recvIndexZoom(CEventServer& event);
          static void recvMask(CEventServer& event);
          static void recvZoom(CEventServer& event);
          static void recvLon(CEventServer& event);
          static void recvLat(CEventServer& event);
          static void recvArea(CEventServer& event);
          static void recvDataIndex(CEventServer& event);
-         void recvDistributionAttributes(CBufferIn& buffer);         
-         void recvZoom(std::vector<int>& rank, std::vector<CBufferIn*>& buffers);
+         void recvDistributionAttributes(CBufferIn& buffer);                  
          void recvIndex(std::map<int, CBufferIn*>& rankBuffers);
+         void recvIndexZoom(std::map<int, CBufferIn*>& rankBuffers);
          void recvMask(std::map<int, CBufferIn*>& rankBuffers);
          void recvLon(std::map<int, CBufferIn*>& rankBuffers);
          void recvLat(std::map<int, CBufferIn*>& rankBuffers);
@@ -191,8 +195,10 @@ namespace xios {
          void sendMask();
          void sendArea();
          void sendLonLat();
-         void sendZoom();
+         void sendIndexZoom();
          void sendDataIndex();
+
+         void convertLonLatValue();
 
        private:         
          std::vector<int> start_write_index_;
@@ -201,27 +207,27 @@ namespace xios {
          std::vector<int> global_write_size_;
 
          bool doZoomByIndex_;
-         bool isChecked;
+         bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
-         std::map<int, CArray<int,1> > indiSrv, indjSrv, indGlob_;
+         std::map<int, CArray<int,1> > indiSrv, indjSrv, indGlob_, indGlobZoom_;
          std::map<int,int> nbConnectedClients_, nbConnectedClientsZoom_; // Mapping of number of communicating client to a server
 
          boost::unordered_map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
          boost::unordered_map<int, vector<size_t> > indZoomSrv_; // Global index of each client sent to server
          std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
          std::vector<int> indexesToWrite;
-         std::vector<int> recvClientRanks_;
+         std::vector<int> recvClientRanks_, recvClientZoomRanks_;
          int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_;
+         std::vector<int> connectedServerRank_, connectedServerZoomRank_;
          bool isDistributed_;
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
-         boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
+         boost::unordered_map<size_t,size_t> globalLocalIndexMap_, globalLocalIndexZoomMap_;
        
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

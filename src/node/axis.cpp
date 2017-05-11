@@ -27,6 +27,7 @@ namespace xios {
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), doZoomByIndex_(false)
+      , computedWrittenIndex_(false)
    {
    }
 
@@ -37,6 +38,7 @@ namespace xios {
       , isDistributed_(false), hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), doZoomByIndex_(false)
+      , computedWrittenIndex_(false)
    {
    }
 
@@ -128,40 +130,6 @@ namespace xios {
    int CAxis::getOffsetWrittenIndexes() const
    {
      return offsetWrittenIndexes_;
-   }
-
-   /*!
-     Returns the start of indexes written by each server.
-     \return the start of indexes written by each server
-   */
-   int CAxis::getStartWriteIndex() const
-   {
-     return start_write_index_;
-   }
-
-   /*!
-     Returns the count of indexes written by each server.
-     \return the count of indexes written by each server
-   */
-   int CAxis::getCountWriteIndex() const
-   {
-     return count_write_index_;
-   }
-
-   /*!
-     Returns the local data written by each server.     
-   */
-   int CAxis::getLocalWriteSize() const
-   {
-     return local_write_size_;
-   }
-
-   /*!
-     Returns the global data written by all server.     
-   */
-   int CAxis::getGlobalWriteSize() const
-   {
-     return global_write_size_;
    }
 
    //----------------------------------------------------------------
@@ -453,9 +421,9 @@ namespace xios {
        sendNonDistributedAttributes();
      else
      {
-       sendDistributedAttributes();
-       sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
+       sendDistributedAttributes();       
      }
+     sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
   }
 
   void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -638,6 +606,41 @@ namespace xios {
       nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
     }
   }
+
+   void CAxis::computeWrittenIndex()
+   {  
+      if (computedWrittenIndex_) return;
+      computedWrittenIndex_ = true;
+
+      CContext* context=CContext::getCurrent() ;
+      CContextClient* client = context->client; 
+
+      std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
+      nBegin[0]       = zoom_begin;
+      nSize[0]        = zoom_n;   
+      nBeginGlobal[0] = 0; 
+      nGlob[0]        = n_glo;
+      CDistributionServer srvDist(client->clientSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
+
+      size_t nbWritten = 0, indGlo;      
+      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+                                                          ite = globalLocalIndexMap_.end(), it;          
+      CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
+                                       itSrve = writtenGlobalIndex.end(), itSrv;
+      localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
+        {
+          localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
+          ++nbWritten;
+        }                 
+      }
+
+   }
+
 
 
   void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -874,10 +877,12 @@ namespace xios {
           msgs.push_back(CMessage());
           CMessage& msg = msgs.back();
           msg << this->getId();
-          msg << index.getValue() << dataIndex << zoom_index.getValue() << mask.getValue();
+          msg << index.getValue() << dataIndex << mask.getValue();
+
+          msg << doZoomByIndex_;
+          if (doZoomByIndex_) msg << zoom_index.getValue();
           msg << hasValue;
           if (hasValue) msg << value.getValue();
-
           msg << hasBounds_;
           if (hasBounds_) msg << bounds.getValue();
 
@@ -912,10 +917,16 @@ namespace xios {
     index.reference(tmp_index);
     buffer >> tmp_data_index;
     data_index.reference(tmp_data_index);
-    buffer >> tmp_zoom_index;
-    zoom_index.reference(tmp_zoom_index);
     buffer >> tmp_mask;
     mask.reference(tmp_mask);
+
+    buffer >> doZoomByIndex_;
+    if (doZoomByIndex_)
+    {
+      buffer >> tmp_zoom_index;
+      zoom_index.reference(tmp_zoom_index);
+    }
+
     buffer >> hasValue;
     if (hasValue)
     {
@@ -930,12 +941,9 @@ namespace xios {
       bounds.reference(tmp_bnds);
     }
 
-    {      
-      count_write_index_ = zoom_index.numElements();            
-      start_write_index_ = 0;
-      local_write_size_ = count_write_index_;
-      global_write_size_ = count_write_index_;
-    }
+    data_begin.setValue(0);
+    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
+    for (int idx = 0; idx < index.numElements(); ++idx) globalLocalIndexMap_[idx] = index(idx);
   }
 
   void CAxis::sendDistributedAttributes(void)
@@ -1065,6 +1073,7 @@ namespace xios {
     get(axisId)->recvDistributedAttributes(ranks, buffers);
   }
 
+
   void CAxis::recvDistributedAttributes(vector<int>& ranks, vector<CBufferIn*> buffers)
   {
     int nbReceived = ranks.size();
@@ -1098,8 +1107,9 @@ namespace xios {
     {
       nbData += vec_indi[idx].numElements();
     }
-    
+
     index.resize(nbData);
+    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
     CArray<int,1> nonCompressedData(nbData);    
     mask.resize(nbData);
     if (hasValue)
@@ -1117,6 +1127,7 @@ namespace xios {
       for (int n = 0; n < nb; ++n)
       {
         index(nbData) = indi(n);
+        globalLocalIndexMap_[indi(n)] = nbData;
         nonCompressedData(nbData) = (0 <= dataIndi(n)) ? nbData : -1;
         mask(nbData) = maskIndi(n);
         if (hasValue)
@@ -1148,6 +1159,7 @@ namespace xios {
         ++nbCompressedData;        
       }
     }
+    data_begin.setValue(0);
 
     if (doZoomByIndex_)
     {
@@ -1169,16 +1181,6 @@ namespace xios {
         }       
       }
     }
-
-
-    // {
-    //   CContextServer* server = CContext::getCurrent()->server;
-    //   count_write_index_ = zoom_index.numElements();      
-    //   MPI_Scan(&count_write_index_, &start_write_index_, 1, MPI_INT, MPI_SUM, server->intraComm);
-    //   global_write_size_ = start_write_index_;
-    //   start_write_index_ -= count_write_index_;
-    //   local_write_size_ = count_write_index_;      
-    // }
   }
 
   void CAxis::recvDistributionAttribute(CEventServer& event)
