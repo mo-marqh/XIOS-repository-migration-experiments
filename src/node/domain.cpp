@@ -3050,8 +3050,8 @@ namespace xios {
        indexI = dataIIndex(ind); indexJ = dataJIndex(ind);
        if ((0 <= indexI) && (0 <= indexJ))
        {
-          data_i_index(nbCompressedData) = (1 == data_dim) ? ind : i_index(ind) - i_index(0);
-          data_j_index(nbCompressedData) = (1 == data_dim) ? 0   : j_index(ind) - j_index(0);  
+          data_i_index(nbCompressedData) = (1 == data_dim) ? ind : ind % ni;
+          data_j_index(nbCompressedData) = (1 == data_dim) ? 0   : ind / ni;
          ++nbCompressedData;
        }
     }

@@ -2456,7 +2456,7 @@ namespace xios
            msg.append("In the context : ");
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
-               ERROR("CNc4DataOutput::writeFieldData_ (CField*  field)", << msg);
+           ERROR("CNc4DataOutput::writeFieldData_ (CField*  field)", << msg);
          }
       }
 

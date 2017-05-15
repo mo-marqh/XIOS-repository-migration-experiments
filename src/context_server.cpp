@@ -21,7 +21,6 @@
 
 namespace xios
 {
-  StdSize CContextServer::totalBuf_ = 0;
 
   CContextServer::CContextServer(CContext* parent, MPI_Comm intraComm_,MPI_Comm interComm_)
   {
@@ -40,7 +39,10 @@ namespace xios
     scheduled=false;
     finished=false;
     boost::hash<string> hashString;
-    hashId=hashString(context->getId());
+    if (CServer::serverLevel == 1)
+      hashId=hashString(context->getId() + boost::lexical_cast<string>(context->clientPrimServer.size()));
+    else
+      hashId=hashString(context->getId());
   }
 
   void CContextServer::setPendingEvent(void)
@@ -168,8 +170,6 @@ namespace xios
   {
     map<size_t,CEventServer*>::iterator it;
     CEventServer* event;
-    boost::hash<string> hashString;
-    size_t hashId=hashString(context->getId());
 
     it=events.find(currentTimeLine);
     if (it!=events.end())
@@ -188,7 +188,7 @@ namespace xios
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-//         if (!CServer::eventScheduler) MPI_Barrier(intraComm) ;
+         if (!CServer::eventScheduler && CXios::isServer) MPI_Barrier(intraComm) ;
 
          CTimer::get("Process events").resume();
          dispatchEvent(*event);
@@ -217,26 +217,25 @@ namespace xios
     int MsgSize;
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
-//    CContext::setCurrent(context->getId());
     StdString ctxId = context->getId();
     CContext::setCurrent(ctxId);
+    StdSize totalBuf = 0;
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       finished=true;
-//      info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;            // moved to CContext::finalize()
+//      info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;   // moved to CContext::finalize()
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
       {
         rank = itMap->first;
-//        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
-//            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
-        totalBuf_ += itMap->second;
+        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
+            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
+        totalBuf += itMap->second;
       }
       context->finalize();
-
-//      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl; // moved to CContext::finalize()
+      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);
@@ -258,11 +257,6 @@ namespace xios
     {
       ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
     }
-  }
-
-  size_t CContextServer::getTotalBuf(void)
-  {
-    return totalBuf_;
   }
 
 }

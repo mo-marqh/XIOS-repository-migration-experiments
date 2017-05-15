@@ -24,7 +24,6 @@ namespace xios
 
   bool CXios::isClient ;
   bool CXios::isServer ;
-//  int CXios::serverLevel = 0 ;
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
@@ -142,10 +141,7 @@ namespace xios
     // Initialize all aspects MPI
     CServer::initialize();
     isServer = true;
-    if (CServer::serverLevel == 1)
-      isClient = true;
-    else
-      isClient = false;
+    isClient = false;
 
     if (CServer::getRank()==0) globalRegistry = new CRegistry(CServer::intraComm) ;
     

@@ -865,51 +865,11 @@ namespace xios {
    void CFile::sendAddField(const string& id)
    {
       sendAddItem(id, EVENT_ID_ADD_FIELD);
-    // CContext* context = CContext::getCurrent();
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
    }
 
    void CFile::sendAddField(const string& id, CContextClient* client)
    {
       sendAddItem(id, EVENT_ID_ADD_FIELD, client);
-    // CContext* context = CContext::getCurrent();
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
    }
 
    /*!
@@ -919,25 +879,6 @@ namespace xios {
    void CFile::sendAddFieldGroup(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP);
-    // CContext* context = CContext::getCurrent();
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
    }
 
    /*!
@@ -1029,25 +970,6 @@ namespace xios {
    void CFile::sendAddVariableGroup(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
-    // CContext* context = CContext::getCurrent();
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
    }
 
    /*!
@@ -1058,51 +980,11 @@ namespace xios {
    void CFile::sendAddVariable(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
-    // CContext* context = CContext::getCurrent();
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
    }
 
    void CFile::sendAddVariable(const string& id, CContextClient* client)
    {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
-    // CContext* context = CContext::getCurrent();
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
-
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
    }
 
    /*!
@@ -1152,25 +1034,6 @@ namespace xios {
       buffer>>id;
       addVariableGroup(id);
    }
-
-   /*!
-     \brief Sending all active (enabled) fields from client to server.
-   Each field is identified uniquely by its string identity. Not only should we
-   send the id to server but also we need to send ids of reference domain and reference axis.
-   With these two id, it's easier to make reference to grid where all data should be written.
-   Remark: This function must be called AFTER all active (enabled) files have been created on the server side
-   */
-//   void CFile::sendEnabledFields()
-//   {
-//     size_t size = this->enabledFields.size();
-//     for (size_t i = 0; i < size; ++i)
-//     {
-//       CField* field = this->enabledFields[i];
-//       this->sendAddField(field->getId());
-//       field->sendAllAttributesToServer();
-//       field->sendAddAllVariables();
-//     }
-//   }
 
    /*!
      \brief Sending all active (enabled) fields from client to server.

@@ -46,13 +46,10 @@ namespace xios
     bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
     size_t hashId ;
 
-    static size_t getTotalBuf(void);
-
     ~CContextServer() ;
 
     private:
     std::map<int, StdSize> mapBufferSize_;
-    static size_t totalBuf_ ;  /*!< Total memory allocated by servers per context.*/
 
   } ;
 

@@ -10,6 +10,7 @@
 #include "mpi.hpp"
 #include "timer.hpp"
 #include "cxios.hpp"
+#include "server.hpp"
 
 namespace xios
 {
@@ -88,10 +89,10 @@ namespace xios
       {
         list<int> sizes = event.getSizes();
 
-        // We force the getBuffers call to be non-blocking on the servers
+        // We force the getBuffers call to be non-blocking on classical servers
         list<CBufferOut*> buffList;
-//        bool couldBuffer = getBuffers(ranks, sizes, buffList, CXios::isServer);
-        bool couldBuffer = getBuffers(ranks, sizes, buffList, false);
+        bool couldBuffer = getBuffers(ranks, sizes, buffList, (!CXios::isClient && (CServer::serverLevel == 0) ));
+        //bool couldBuffer = getBuffers(ranks, sizes, buffList, false );
 
         if (couldBuffer)
         {
@@ -211,13 +212,22 @@ namespace xios
         if (!areBuffersFree)
         {
           checkBuffers();
+          if (CServer::serverLevel == 0)
+            context->server->listen();
 
-         // WHY DO WE PUT HERE SERVER INTO LISTENING LOOP AT ALL????
-//            context->server->listen();
-//            for (int i = 0; i < context->serverPrimServer.size(); ++i)
-//              context->serverPrimServer[i]->listen();
+          else if (CServer::serverLevel == 1)
+          {
+            context->server->listen();
+            for (int i = 0; i < context->serverPrimServer.size(); ++i)
+              context->serverPrimServer[i]->listen();
+          }
+
+          else if (CServer::serverLevel == 2)
+            context->server->listen();
+
         }
       } while (!areBuffersFree && !nonBlocking);
+
       CTimer::get("Blocking time").suspend();
 
       if (areBuffersFree)
@@ -255,7 +265,8 @@ namespace xios
    {
       map<int,CClientBuffer*>::iterator itBuff;
       bool pending = false;
-      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) pending |= itBuff->second->checkBuffer();
+      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
+        pending |= itBuff->second->checkBuffer();
       return pending;
    }
 
@@ -273,7 +284,6 @@ namespace xios
    \param [in] ranks list rank of server to which client connects to
    \return state of buffers, pending(true), ready(false)
    */
-//   bool CContextClient::checkBuffers(list<int>& ranks)
    bool CContextClient::checkBuffers(list<int>& ranks)
    {
       list<int>::iterator it;
@@ -357,10 +367,9 @@ namespace xios
   }
 
    /*!
-   Finalize context client and do some reports
+   * Finalize context client and do some reports. Function is non-blocking.
    */
-//  void CContextClient::finalize(void)
-  void CContextClient::finalize()
+  void CContextClient::finalize(void)
   {
     map<int,CClientBuffer*>::iterator itBuff;
     bool stop = false;
@@ -385,14 +394,14 @@ namespace xios
     else sendEvent(event);
 
     CTimer::get("Blocking time").resume();
-    while (!stop)
+//    while (!stop)
     {
       checkBuffers();
       if (hasTemporarilyBufferedEvent())
         sendTemporarilyBufferedEvent();
 
       stop = true;
-      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
+//      for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
     }
     CTimer::get("Blocking time").suspend();
 
@@ -408,6 +417,19 @@ namespace xios
     }
     report(0) << " Memory report : Context <" << context->getId() << "> : client side : total memory used for buffer " << totalBuf << " bytes" << endl;
 
-    releaseBuffers();
+    //releaseBuffers(); // moved to CContext::finalize()
   }
+
+  /*!
+  */
+  bool CContextClient::havePendingRequests(void)
+  {
+    bool pending = false;
+    map<int,CClientBuffer*>::iterator itBuff;
+    for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
+      pending |= itBuff->second->hasPendingRequest();
+    return pending;
+  }
+
+
 }

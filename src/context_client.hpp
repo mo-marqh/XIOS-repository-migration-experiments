@@ -39,6 +39,7 @@ namespace xios
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
       void releaseBuffers(void);
+      bool havePendingRequests(void);
 
       bool isServerLeader(void) const;
       bool isServerNotLeader(void) const;
@@ -70,7 +71,6 @@ namespace xios
       MPI_Comm intraComm; //!< Communicator of client group
 
       map<int,CClientBuffer*> buffers;         //!< Buffers for connection to servers
-//      map<int,CClientBuffer*> buffersPrim;     //!< Buffers for connection to secondary servers
 
     private:
       //! Mapping of server and buffer size for each connection to server
