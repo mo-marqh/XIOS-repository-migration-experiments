@@ -132,6 +132,7 @@ namespace xios {
          void sendAddVariable(const string& id = "");         // to be removed (?)
          void sendAddVariable(const string& id, CContextClient* client);
          void sendAddVariableGroup(const string& id = "");
+         void sendAddVariableGroup(const string& id, CContextClient* client);
 
          // Receive info from client
          static void recvAddField(CEventServer& event);

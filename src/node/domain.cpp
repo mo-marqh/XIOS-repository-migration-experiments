@@ -1369,6 +1369,10 @@ namespace xios {
 
        hasBounds = true;
      }
+     else if (hasBoundValues)
+     {
+       hasBounds = true;       
+     }
      else
      {
        hasBounds = false;
@@ -2772,36 +2776,6 @@ namespace xios {
         }
       }       
     }
-
-
-
-    // lonvalue.resize(zoom_ni*zoom_nj);
-    // lonvalue = 0;
-
-    // if (hasBounds)
-    // {
-    //   bounds_lonvalue.resize(nvertex,zoom_ni*zoom_nj);
-    //   bounds_lonvalue = 0.;
-    // }
-    
-    // if (0 == lonvalue.numElements()) return;
-
-    // for (i = 0; i < nbReceived; ++i)
-    // {
-    //   int rank = recvClientRanks_[i];
-    //   CArray<int,1> &indi = indGlob_[rank], &indj = indGlob_[rank];      
-    //   for (ind = 0; ind < indi.numElements(); ++ind)
-    //   {
-    //      iindex = indi(ind) % ni_glo; jindex = indj(ind) / ni_glo;
-    //      index = (iindex - zoom_ibegin) + (jindex - zoom_jbegin) * zoom_ni;
-    //      lonvalue(index) = recvLonValue[i](ind);
-    //      if (hasBounds)
-    //      {          
-    //       for (int nv = 0; nv < nvertex; ++nv)
-    //         bounds_lonvalue(nv, index) = recvBoundsLonValue[i](nv, ind);
-    //      }         
-    //   }
-    // }
   }
 
   /*!

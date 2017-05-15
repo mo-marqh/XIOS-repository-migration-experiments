@@ -631,6 +631,8 @@ namespace xios {
             outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));            
             CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient[rank];
             size_t nbIndex = 0;
+            
+            // Keep this code for this moment but it should be removed (or moved to DEBUG) to improve performance
             for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
             {
               if (itGloe != globalDataIndex.find(globalIndex(idx)))
@@ -639,6 +641,7 @@ namespace xios {
               }              
             }
 
+            
             if (nbIndex != localIndex.numElements())
                  ERROR("void CGrid::computeClientIndex()",
                     << "Number of local index on client is different from number of received global index" 

@@ -973,6 +973,16 @@ namespace xios {
    }
 
    /*!
+   \brief Send a message to create a variable group on server side
+   \param[in] id String identity of variable group that will be created on server
+   \param [in] client client to which we will send this adding action
+   */
+   void CFile::sendAddVariableGroup(const string& id, CContextClient* client)
+   {
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
+   }
+
+   /*!
    \brief Send a message to create a variable on server side
       A variable always belongs to a variable group
    \param[in] id String identity of variable that will be created on server
@@ -982,6 +992,11 @@ namespace xios {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
    }
 
+   /*
+     Send message to add a variable into a file within a certain client
+     \param [in] id String identity of a variable
+     \param [in] client client to which we will send this adding action
+   */
    void CFile::sendAddVariable(const string& id, CContextClient* client)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
