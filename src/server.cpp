@@ -84,6 +84,7 @@ namespace xios
 
         map<unsigned long, int> colors ;
         map<unsigned long, int> leaders ;
+        map<unsigned long, int> lastProcesses ;  // needed in case of two server levels
         map<unsigned long, int>::iterator it ;
 
         for(i=0,c=0;i<size;i++)
@@ -94,6 +95,8 @@ namespace xios
             leaders[hashAll[i]]=i ;
             c++ ;
           }
+          if (hashAll[i+1] != hashAll[i])
+            lastProcesses[hashAll[i]]=i ;
         }
 
         // Setting the number of secondary pools
@@ -101,7 +104,8 @@ namespace xios
         if (CXios::usingServer2)
         {
           int serverRank = rank_ - leaders[hashServer]; // server proc rank starting 0
-          serverSize_ = size - leaders[hashServer];
+          serverSize_ = lastProcesses[hashServer] - leaders[hashServer] + 1;
+//          serverSize_ = lastProcesses - leaders[hashServer];
           nbPools = serverSize_ * CXios::ratioServer2 / 100;
           if ( serverRank < (serverSize_ - nbPools) )
           {
