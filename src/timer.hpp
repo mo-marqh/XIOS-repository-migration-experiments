@@ -22,6 +22,7 @@ namespace xios
       static std::map<std::string,CTimer> allTimer;
       static double getTime(void);
       static CTimer& get(std::string name);
+      static std::string getAllCumulatedTime(void) ;
   };
 }
 

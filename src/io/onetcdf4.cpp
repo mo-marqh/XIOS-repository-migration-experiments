@@ -6,6 +6,7 @@
 #include "netcdf.hpp"
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -54,21 +55,24 @@ namespace xios
          // If the file does not exist, we always create it
          if (!append || !std::ifstream(filename.c_str()))
          {
+            CTimer::get("Files : create").resume();
             if (wmpi)
                CNetCdfInterface::createPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
             else
                CNetCdfInterface::create(filename, mode, this->ncidp);
-
+            CTimer::get("Files : create").suspend();
+ 
             this->appendMode = false;
          }
          else
          {
             mode |= NC_WRITE;
+            CTimer::get("Files : open").resume();
             if (wmpi)
                CNetCdfInterface::openPar(filename, mode, *comm, MPI_INFO_NULL, this->ncidp);
             else
                CNetCdfInterface::open(filename, mode, this->ncidp);
-
+            CTimer::get("Files : open").suspend();
             this->appendMode = true;
          }
 
@@ -82,7 +86,9 @@ namespace xios
 
       void CONetCDF4::close()
       {
+        CTimer::get("Files : close").resume();
         CNetCdfInterface::close(this->ncidp);
+        CTimer::get("Files : close").suspend();
       }
 
       //---------------------------------------------------------------
@@ -556,7 +562,9 @@ namespace xios
          std::vector<StdSize> sstart, scount;
 
          this->getWriteDataInfos(name, 0, array_size,  sstart, scount, NULL, NULL);
+
          this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
+
       }
 
       void CONetCDF4::writeTimeAxisData(const CArray<double, 1>& data, const StdString& name,
@@ -582,16 +590,35 @@ namespace xios
             CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
 
          this->getWriteDataInfos(name, record, array_size,  sstart, scount, NULL, NULL);
-         if (using_netcdf_internal)
-         {
-           if (!isRoot)
-           {
-             sstart[0] = sstart[0] + 1;
-             scount[0] = 0;
-           }
-         }
          this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
        }
+
+      void CONetCDF4::writeTimeAxisDataBounds(const CArray<double, 1>& data, const StdString& name,
+                                        bool collective, StdSize record, bool isRoot)
+      {
+         int grpid = this->getCurrentGroup();
+         int varid = this->getVariable(name);
+
+         map<int,size_t>::iterator it=timeAxis.find(varid);
+         if (it == timeAxis.end()) timeAxis[varid] = record;
+         else
+         {
+           if (it->second >= record) return;
+           else it->second =record;
+         }
+
+         StdSize array_size = 1;
+         std::vector<StdSize> sstart, scount;
+
+         if (this->wmpi && collective)
+            CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
+         if (this->wmpi && !collective)
+            CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
+
+         this->getWriteDataInfos(name, record, array_size,  sstart, scount, NULL, NULL);
+         this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
+       }
+
 
       //---------------------------------------------------------------
 

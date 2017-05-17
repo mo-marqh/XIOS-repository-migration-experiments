@@ -10,8 +10,8 @@
 #include "context_server.hpp"
 #include "netCdfException.hpp"
 #include "exception.hpp"
+#include "timer.hpp"
 #include "uuid.hpp"
-
 namespace xios
 {
       /// ////////////////////// Dfinitions ////////////////////// ///
@@ -1831,19 +1831,20 @@ namespace xios
 
          singleDomain = (file->nbDomains == 1);
 
+         StdString conv_str ;
+         if (file->convention_str.isEmpty())
+         {
+            if (SuperClassWriter::useCFConvention) conv_str="CF-1.6" ;
+            else conv_str="UGRID" ;
+         }
+         else conv_str=file->convention_str ;
+           
          try
          {
-       if (SuperClassWriter::useCFConvention)
-             this->writeFileAttributes(filename, description,
-                                       StdString("CF-1.6"),
-                                       StdString("An IPSL model"),
-                                       this->getTimeStamp());
-           else
-             this->writeFileAttributes(filename, description,
-                                       StdString("UGRID"),
-                                       StdString("An IPSL model"),
-                                       this->getTimeStamp());
-
+           this->writeFileAttributes(filename, description,
+                                      conv_str,
+                                      StdString("An IPSL model"),
+                                      this->getTimeStamp());
 
            if (!appendMode)
              SuperClassWriter::addDimension("axis_nbounds", 2);
@@ -1988,11 +1989,18 @@ namespace xios
         CContextServer* server = context->server;
         CGrid* grid = field->grid;
 
-        if (field->getNStep()<1) return ;
+        if (field->getNStep()<1) 
+        {
+          return;
+        }
         
         if (!grid->doGridHaveDataToWrite())
-          if (SuperClass::type == MULTI_FILE || !isCollective) return;
+          if (SuperClass::type == MULTI_FILE || !isCollective)
+          {
+            return;
+          }
 
+          
         StdString fieldid = field->getFieldOutputName();
 
         StdOStringStream oss;
@@ -2117,19 +2125,27 @@ namespace xios
            {
               case (MULTI_FILE) :
               {
+                 CTimer::get("Files : writing data").resume();
                  SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1);
+                 CTimer::get("Files : writing data").suspend();
                  if (wtime)
                  {
+                   CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
-                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
-                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
-                   }
+//                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                       SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
+                       SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                  }
                    if (wtimeCounter)
                    {
-                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
-                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
+//                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
+                   CTimer::get("Files : writing time axis").suspend();
                  }
                  break;
               }
@@ -2255,19 +2271,30 @@ namespace xios
                   }
                 }
 
+
+                CTimer::get("Files : writing data").resume();
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);
+                CTimer::get("Files : writing data").suspend();
+
                  if (wtime)
                  {
+                   CTimer::get("Files : writing time axis").resume();
                    if ( wtimeData)
                    {
-                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
-                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
                    if (wtimeCounter)
                    {
-                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
-                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
+//                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+
                    }
+                   CTimer::get("Files : writing time axis").suspend();  
                  }
 
                 break;

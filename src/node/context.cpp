@@ -13,6 +13,7 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "xios_spl.hpp"
+#include "timer.hpp"
 
 
 namespace xios {
@@ -388,6 +389,7 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
+     CTimer::get("Context : close definition").resume() ;
      // There is nothing client need to send to server
      if (hasClient)
      {
@@ -441,6 +443,7 @@ namespace xios {
 
       startPrefetchingOfEnabledReadModeFiles();
     }
+    CTimer::get("Context : close definition").suspend() ;
    }
 
    void CContext::findAllEnabledFields(void)
