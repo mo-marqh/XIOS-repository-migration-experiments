@@ -86,7 +86,8 @@ namespace xios {
          bool isSyncTime(void);
          bool checkSplit(void);
          bool checkSync(void);
-         void checkFile(void);
+         void checkWriteFile(void);
+         void checkReadFile(void);
          void initFile(void);
 
          /// Mutateurs ///
@@ -95,7 +96,7 @@ namespace xios {
          void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
 
          void createHeader(void);
-         void openInReadMode(void);
+         void openInReadMode(MPI_Comm* readComm = NULL);
          void close(void);
          void readAttributesOfEnabledFieldsInReadMode();
 
@@ -127,6 +128,7 @@ namespace xios {
          void sendAddField(const string& id = "");
          void sendAddField(const string& id, CContextClient* client);
          void sendAddFieldGroup(const string& id = "");
+         void sendAddFieldGroup(const string& id, CContextClient* client);
          void sendAddAllVariables();                        // to be removed (?)
          void sendAddAllVariables(CContextClient* client);
          void sendAddVariable(const string& id = "");         // to be removed (?)

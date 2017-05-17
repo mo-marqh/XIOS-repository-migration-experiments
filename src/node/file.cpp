@@ -266,23 +266,45 @@ namespace xios {
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
 
-    //! Verify state of a file
-    void CFile::checkFile(void)
+    /*
+       Check condition to write into a file
+       For now, we only use the level-2 server to write files (if this mode is activated)
+       or classical server to do this job.
+    */
+    void CFile::checkWriteFile(void)
     {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
-      if (!CXios::usingServer2 || (CXios::usingServer2 && !context->hasClient))
+      // This condition should be changed soon
+      if (!CXios::usingServer2 || (CXios::usingServer2 && !context->hasClient))          
       {
         if (mode.isEmpty() || mode.getValue() == mode_attr::write)
         {
           if (!isOpen) createHeader();
           checkSync();
-        }
-        else
+        }        
+        checkSplit(); // REally need this?
+      }
+    }
+
+    /*
+       Check condition to read from a file
+       For now, we only use the level-1 server to write files (if this mode is activated)
+       or classical server to do this job.
+       This function can be used by client for reading metadata
+    */
+    void CFile::checkReadFile(void)
+    {
+      CContext* context = CContext::getCurrent();
+      // Done by classical server or secondary server
+      // TODO: This condition should be changed soon. It only works with maximum number of level as 2
+      if (!CXios::usingServer2 || (CXios::usingServer2 && context->hasClient))
+      {
+        if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
-          if (!isOpen) openInReadMode();
+          if (!isOpen) openInReadMode(&(context->server->intraComm));
         }
-        checkSplit();
+        //checkSplit(); // Really need for reading?
       }
     }
 
@@ -501,10 +523,11 @@ namespace xios {
   /*!
   \brief Open an existing NetCDF file in read-only mode
   */
-  void CFile::openInReadMode(void)
+  void CFile::openInReadMode(MPI_Comm* comm)
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
+    MPI_Comm readComm = *comm;
 
     if (!allDomainEmpty)
     {
@@ -546,8 +569,8 @@ namespace xios {
       if (multifile)
       {
         int commSize, commRank;
-        MPI_Comm_size(fileComm, &commSize);
-        MPI_Comm_rank(fileComm, &commRank);
+        MPI_Comm_size(readComm, &commSize);
+        MPI_Comm_rank(readComm, &commRank);
 
         if (server->intraCommSize > 1)
         {
@@ -566,8 +589,8 @@ namespace xios {
       bool isCollective = par_access.isEmpty() || par_access == par_access_attr::collective;
 
       if (isOpen) data_out->closeFile();
-      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective));
-      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, time_counter_name));
+      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective));
+      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, time_counter_name));
       isOpen = true;
     }
   }
@@ -593,14 +616,14 @@ namespace xios {
 
      // Just check file and try to open it
      CContext* context = CContext::getCurrent();
-     CContextClient* client=context->client;
-//     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
+     // CContextClient* client=context->client;
+     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      // It would probably be better to call initFile() somehow
-     MPI_Comm_dup(client->intraComm, &fileComm);
+     // MPI_Comm_dup(client->intraComm, &fileComm);
      if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
 
-     checkFile();
+     checkReadFile();
 
      for (int idx = 0; idx < enabledFields.size(); ++idx)
      {
@@ -882,6 +905,15 @@ namespace xios {
    }
 
    /*!
+   \brief Send a message to create a field group on server side
+   \param[in] id String identity of field group that will be created on server
+   */
+   void CFile::sendAddFieldGroup(const string& id, CContextClient* client)
+   {
+      sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP, client);
+   }
+
+   /*!
    \brief Receive a message annoucing the creation of a field on server side
    \param[in] event Received event
    */
@@ -1056,7 +1088,8 @@ namespace xios {
    send the id to server but also we need to send ids of reference domain and reference axis.
    With these two id, it's easier to make reference to grid where all data should be written.
    Remark: This function must be called AFTER all active (enabled) files have been created on the server side
-   */   void CFile::sendEnabledFields(CContextClient* client)
+   */
+   void CFile::sendEnabledFields(CContextClient* client)
    {
      size_t size = this->enabledFields.size();
      for (size_t i = 0; i < size; ++i)

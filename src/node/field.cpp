@@ -124,11 +124,6 @@ namespace xios{
     CTimer::get("XIOS Send Data").resume();
 
     CContext* context = CContext::getCurrent();
-//    CContextClient* client = context->client;
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    // for (int i = 0; i < nbSrvPools; ++i)
-    // {
       CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
       CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
@@ -260,32 +255,19 @@ namespace xios{
     if (0 == recvDataSrv.numElements())
     {            
       CArray<int,1>& storeClient = grid->storeIndex_client;
-      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-      // {
-      //   // sizeData += it->second.numElements();
-      //   data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
-      // }
 
-      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
-      // {
-      //   // sizeData += it->second.numElements();
-      //   data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
-      // }
-
-      // Gather all data from different clients
-      // recvDataSrv.resize(sizeData);
+      // Gather all data from different clients      
       recvDataSrv.resize(storeClient.numElements());
       recvFoperationSrv = boost::shared_ptr<func::CFunctor>(new func::CInstant(recvDataSrv));
     }
 
-    CArray<double,1> recv_data_tmp(recvDataSrv.numElements());
-    // sizeData = 0;
+    CArray<double,1> recv_data_tmp(recvDataSrv.numElements());    
     const CDate& currDate = context->getCalendar()->getCurrentDate();
     const CDate opeDate   = last_operation_srv +freq_op + freq_operation_srv - freq_op;
 
     if (opeDate <= currDate)
     {
-       for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
+      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); it != grid->outLocalIndexStoreOnClient.end(); ++it)
       {
         CArray<double,1> tmp;
         CArray<size_t,1>& indexTmp = it->second;
@@ -293,23 +275,8 @@ namespace xios{
         for (int idx = 0; idx < indexTmp.numElements(); ++idx)
         {
           recv_data_tmp(indexTmp(idx)) = tmp(idx);
-        }
-        // recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
-        // sizeData += it->second.numElements();      
+        }      
       }
-
-      // for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-      // {        
-      //   CArray<double,1> tmp;
-      //   CArray<size_t,1>& indexTmp = it->second;
-      //   *(rankBuffers[it->first]) >> tmp;
-      //   for (int idx = 0; idx < indexTmp.numElements(); ++idx)
-      //   {
-      //     recv_data_tmp(indexTmp(idx)) = tmp(idx);
-      //   }
-      //   // recv_data_tmp(Range(sizeData,sizeData+it->second.numElements()-1)) = tmp;  
-      //   // sizeData += it->second.numElements();      
-      // }
     }
 
     this->setData(recv_data_tmp);
@@ -327,11 +294,6 @@ namespace xios{
     {
       (*recvFoperationSrv)(data);
       last_operation_srv = currDate;
-//        sendUpdateData(fieldData);
-        // Redirecting data to the correct secondary server
-        //int fileIdx = std::find(context->enabledFiles.begin(), context->enabledFiles.end(), this->file) - context->enabledFiles.begin();
-        //int srvId = fileIdx % context->clientPrimServer.size();
-        //sendUpdateData(fieldData, context->clientPrimServer[srvId]);
     }
 
     if (writeDate < (currDate + freq_operation_srv))
@@ -415,7 +377,7 @@ namespace xios{
     {
       if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
       {
-        getRelFile()->checkFile();
+        getRelFile()->checkWriteFile();
         this->incrementNStep();
         getRelFile()->getDataOutput()->writeFieldData(CField::get(this));
       }
@@ -478,33 +440,20 @@ namespace xios{
   void CField::recvReadDataRequest(void)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
+    CContextClient* client = context->client;    
 
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
 
     bool hasData = readField();
 
-    map<int, CArray<double,1> >::iterator it;
-//    for (it = data_srv.begin(); it != data_srv.end(); it++)
-//    {
-//      msgs.push_back(CMessage());
-//      CMessage& msg = msgs.back();
-//      msg << getId();
-//      if (hasData)
-//        msg << getNStep() - 1 << it->second;
-//      else
-//        msg << int(-1);
-//      event.push(it->first, grid->nbSenders[it->first], msg);
-//    }
-//    client->sendEvent(event);
+    
     if (!grid->doGridHaveDataDistributed())
     {
        if (client->isServerLeader())
        {
-          if (!data_srv.empty())
-          {
-            it = data_srv.begin();
+          if (0 != recvDataSrv.numElements())
+          {            
             const std::list<int>& ranks = client->getRanksServerLeader();
             for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
             {
@@ -512,47 +461,40 @@ namespace xios{
               CMessage& msg = msgs.back();
               msg << getId();
               if (hasData)
-                msg << getNStep() - 1 << it->second;
+                msg << getNStep() - 1 << recvDataSrv;
               else
                 msg << int(-1);
               event.push(*itRank, 1, msg);
             }
           }
+
           client->sendEvent(event);
        }
        else
        {
-          // if (!data_srv.empty())
-          // {
-          //   it = data_srv.begin();
-          //   const std::list<int>& ranks = client->getRanksServerNotLeader();
-          //   for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-          //   {
-          //     msgs.push_back(CMessage());
-          //     CMessage& msg = msgs.back();
-          //     msg << getId();
-          //     if (hasData)
-          //       msg << getNStep() - 1 << it->second;
-          //     else
-          //       msg << int(-1);
-          //     event.push(*itRank, 1, msg);
-          //   }
-          // }
           client->sendEvent(event);
        }
     }
     else
     {
-      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      for (map<int, CArray<size_t, 1> >::iterator it = grid->outLocalIndexStoreOnClient.begin(); 
+                                                  it != grid->outLocalIndexStoreOnClient.end(); ++it)
       {
+        CArray<size_t,1>& indexTmp = it->second;
+        CArray<double,1> tmp(indexTmp.numElements());
+        for (int idx = 0; idx < indexTmp.numElements(); ++idx)
+        {
+          tmp(idx) = recvDataSrv(indexTmp(idx));
+        } 
+
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
         msg << getId();
         if (hasData)
-          msg << getNStep() - 1 << it->second;
+          msg << getNStep() - 1 << tmp;
         else
           msg << int(-1);
-        event.push(it->first, grid->nbSenders[0][it->first], msg);
+        event.push(it->first, grid->nbReadSenders[0][it->first], msg);
       }
       client->sendEvent(event);
     }
@@ -560,25 +502,24 @@ namespace xios{
 
   bool CField::readField(void)
   {
+    grid->computeWrittenIndex();
     if (!getRelFile()->allDomainEmpty)
     {
       if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
       {
-        if (data_srv.empty())
-        {
-          for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-            data_srv.insert(std::make_pair(it->first, CArray<double,1>(it->second.numElements())));
+        if (0 == recvDataSrv.numElements())
+        {            
+          CArray<int,1>& storeClient = grid->storeIndex_client;          
+          recvDataSrv.resize(storeClient.numElements());          
         }
 
-        getRelFile()->checkFile();
+        getRelFile()->checkReadFile();
         if (!nstepMax)
         {
           nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
         }
 
         this->incrementNStep();
-
-
 
         if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
           return false;
@@ -1425,77 +1366,42 @@ namespace xios{
 
    void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
    {
-     map<int, CArray<double,1> >::iterator it;
-     for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = (it->second - addOffset) / scaleFactor;
+     // map<int, CArray<double,1> >::iterator it;
+     // for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = (it->second - addOffset) / scaleFactor;
+     recvDataSrv = (recvDataSrv - addOffset) / scaleFactor;
    }
 
    void CField::invertScaleFactorAddOffset(double scaleFactor, double addOffset)
    {
-     map<int, CArray<double,1> >::iterator it;
-     for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = it->second * scaleFactor + addOffset;
-   }
-
-   void CField::outputField(CArray<double,3>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;
-      for (it = data_srv.begin(); it != data_srv.end(); it++)
-      {
-        grid->outputField(it->first, it->second, fieldOut.dataFirst());
-      }
-   }
-
-   void CField::outputField(CArray<double,2>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;
-      for(it=data_srv.begin();it!=data_srv.end();it++)
-      {
-         grid->outputField(it->first, it->second, fieldOut.dataFirst());
-      }
+     // map<int, CArray<double,1> >::iterator it;
+     // for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = it->second * scaleFactor + addOffset;
+     recvDataSrv = recvDataSrv * scaleFactor + addOffset;
    }
 
    void CField::outputField(CArray<double,1>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;      
-     
+   { 
       CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
       CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
       for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
       {
         fieldOut(outIndexServer(idx)) = recvDataSrv(outIndexClient(idx));
       }
+   }
 
+   void CField::inputField(CArray<double,1>& fieldIn)
+   {
+      // map<int, CArray<double,1> >::iterator it;
       // for (it = data_srv.begin(); it != data_srv.end(); it++)
       // {
-      //    grid->outputField(it->first, it->second, fieldOut.dataFirst());
+      //    grid->inputField(it->first, fieldOut.dataFirst(), it->second);
       // }
-    // grid->outputField(recvDataSrv, fieldOut);
-   }
-
-   void CField::inputField(CArray<double,3>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;
-      for (it = data_srv.begin(); it != data_srv.end(); it++)
+      CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
+      CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
+      for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
       {
-        grid->inputField(it->first, fieldOut.dataFirst(), it->second);
+        recvDataSrv(outIndexClient(idx)) = fieldIn(outIndexServer(idx));
       }
-   }
 
-   void CField::inputField(CArray<double,2>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;
-      for(it = data_srv.begin(); it != data_srv.end(); it++)
-      {
-         grid->inputField(it->first, fieldOut.dataFirst(), it->second);
-      }
-   }
-
-   void CField::inputField(CArray<double,1>& fieldOut)
-   {
-      map<int, CArray<double,1> >::iterator it;
-      for (it = data_srv.begin(); it != data_srv.end(); it++)
-      {
-         grid->inputField(it->first, fieldOut.dataFirst(), it->second);
-      }
    }
 
    void CField::outputCompressedField(CArray<double,1>& fieldOut)
@@ -1602,72 +1508,16 @@ namespace xios{
    void CField::sendAddVariable(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
-    // CContext* context = CContext::getCurrent();
-
-    // if (!context->hasServer)
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
    }
 
    void CField::sendAddVariable(const string& id, CContextClient* client)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
-    // CContext* context = CContext::getCurrent();
-
-    // if (!context->hasServer)
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
    }
 
    void CField::sendAddVariableGroup(const string& id)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
-    // CContext* context = CContext::getCurrent();
-    // if (!context->hasServer)
-    // {
-    //    CContextClient* client = context->client;
-
-    //    CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg;
-    //      msg << this->getId();
-    //      msg << id;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event);
-    //    }
-    //    else client->sendEvent(event);
-    // }
    }
 
    void CField::recvAddVariable(CEventServer& event)

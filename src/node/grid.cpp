@@ -408,7 +408,7 @@ namespace xios {
    {
       using namespace std;
       std::vector<CDomain*> domainP = this->getDomains();
-      std::vector<CAxis*> axisP = this->getAxis();
+      std::vector<CAxis*> axisP = this->getAxis();      
       int dim = domainP.size() * 2 + axisP.size();
 
       switch (dim) {
@@ -441,7 +441,7 @@ namespace xios {
    void CGrid::modifyMaskSize(const std::vector<int>& newDimensionSize, bool newValue)
    {      
       std::vector<CDomain*> domainP = this->getDomains();
-      std::vector<CAxis*> axisP = this->getAxis();
+      std::vector<CAxis*> axisP = this->getAxis();            
       int dim = domainP.size() * 2 + axisP.size();
 
       switch (dim) {
@@ -590,23 +590,8 @@ namespace xios {
      for (int p = 0; p < nbSrvPools; ++p)
      {
        CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client) : context->client;
-       // CContextClient* client = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-       // CContextServer* server = (context->hasServer) ? context->server : 0 ;
-       // int rank = (server && !client) ? server->intraCommRank : client->clientRank;
        int rank = client->clientRank;
 
-       // First of all, compute distribution on client side
-       // if (0 != serverDistribution_)
-       // {
-       //   // clientDistribution_ = new CDistributionClient(rank, this, serverDistribution_->getGlobalLocalIndex());
-       //   clientDistribution_ = new CDistributionClient(rank, this);
-       //   storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
-       //   // storeIndex_client.resize(serverDistribution_->getGridSize());
-       //   int nbStoreIndex = storeIndex_client.numElements();
-       //   for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = idx;
-       // }
-       // else
-       // {
          clientDistribution_ = new CDistributionClient(rank, this);
          // Get local data index on client
          storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
@@ -664,10 +649,14 @@ namespace xios {
       }
    }
 
+   /*!
+     Compute the connected clients and index to send to these clients.
+     Each client can connect to a pool of other clients, each of which can have a piece of information of a grid
+
+   */
    void CGrid::computeConnectedClients()
    {
      CContext* context = CContext::getCurrent();
-     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
      connectedServerRank_.resize(nbSrvPools);
      connectedDataSize_.resize(nbSrvPools);
@@ -746,88 +735,11 @@ namespace xios {
    void CGrid::computeIndex(void)
    {
      CContext* context = CContext::getCurrent();
-//     CContextClient* client = context->client;
-     // CContextClient* client = (context->hasServer) ? context->clientPrimServer : context->client;
-     
-
-     // // First of all, compute distribution on client side
-     // if (0 != serverDistribution_)
-     //   clientDistribution_ = new CDistributionClient(client->clientRank, this, serverDistribution_->getGlobalLocalIndex());
-     // else
-     //   clientDistribution_ = new CDistributionClient(client->clientRank, this);
-
-     // // Get local data index on client
-     // int tmp = clientDistribution_->getLocalDataIndexOnClient().size();
-     // storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
-     // int nbStoreIndex = storeIndex_client.numElements();
-     // for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
-     // isDataDistributed_= clientDistribution_->isDataDistributed();
-
-
-     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-
      computeClientIndex();
      if (context->hasClient)
      {
        computeConnectedClients();
      }
-
-     // connectedServerRank_.clear();
-
-     // if (!doGridHaveDataDistributed())
-     // {
-     //    if (client->isServerLeader())
-     //    {
-     //      size_t ssize = clientDistribution_->getLocalDataIndexOnClient().size();
-     //      const std::list<int>& ranks = client->getRanksServerLeader();
-     //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //      {
-     //        connectedServerRank_.push_back(*itRank);
-     //        connectedDataSize_[*itRank] = ssize;
-     //      }
-     //    }
-     //    return;
-     // }
-
-     // // Compute mapping between client and server
-     // std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
-     // CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
-     // serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
-     //                                                            client->clientRank,
-     //                                                            client->clientSize,
-     //                                                            axis_domain_order,
-     //                                                            positionDimensionDistributed_);
-     // computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
-
-     // const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
-     // CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
-     // CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-     // itGlobalMap  = itbGlobalMap = globalIndexOnServer_.begin();
-     // iteGlobalMap = globalIndexOnServer_.end();
-
-     // for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
-     // {
-     //   int serverRank = itGlobalMap->first;
-     //   int indexSize = itGlobalMap->second.size();
-     //   const std::vector<size_t>& indexVec = itGlobalMap->second;
-     //   for (int idx = 0; idx < indexSize; ++idx)
-     //   {
-     //      itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
-     //      if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
-     //      {
-     //         if (connectedDataSize_.end() == connectedDataSize_.find(serverRank))
-     //           connectedDataSize_[serverRank] = 1;
-     //         else
-     //           ++connectedDataSize_[serverRank];
-     //      }
-     //   }
-     // }
-
-     // for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
-     //   connectedServerRank_.push_back(itGlobalMap->first);
-     // }
-
-     // nbSenders = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
    }
 
    /*!
@@ -949,7 +861,6 @@ namespace xios {
 //       }
 
        nbIndexOnServer = 0;
-//       for (it = itb; it != ite; ++it)
        for (size_t j = 0; j < globalIndexElementOnServerMap.size(); ++j)
        {
          it = globalIndexElementOnServerMap.find(globalIndexElementOnClient(j));
@@ -1584,11 +1495,12 @@ namespace xios {
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     nbSrvPools = 1;
     // connectedServerRank_.resize(nbSrvPools);
-    // nbSenders.resize(nbSrvPools);
+    nbReadSenders.resize(nbSrvPools);
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
       CContextClient* client = (!context->hasClient) ? context->client : context->clientPrimServer[p];
+      
 //      CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[p];
 //      CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer[p];
       numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
@@ -1698,7 +1610,8 @@ namespace xios {
         int axisId = 0, domainId = 0, scalarId = 0, globalSize = 1;
         std::vector<CDomain*> domainList = getDomains();
         std::vector<CAxis*> axisList = getAxis();
-        std::vector<int> nBegin(ssize), nSize(ssize), nGlob(ssize), nBeginGlobal(ssize);        
+        int dimSize = 2 * domainList.size() + axisList.size();
+        std::vector<int> nBegin(dimSize), nSize(dimSize), nGlob(dimSize), nBeginGlobal(dimSize);        
         for (int i = 0; i < numElement; ++i)
         {          
           if (2 == axis_domain_order(i)) //domain
@@ -1725,12 +1638,6 @@ namespace xios {
           }
           else // scalar
           { 
-            nBegin[indexMap[i]] = 0;
-            nSize[indexMap[i]]  = 1;
-            nBeginGlobal[indexMap[i]] = 0;              
-            nGlob[indexMap[i]] = 1;
-
-            ++scalarId;
           }
         }
         
@@ -1781,7 +1688,7 @@ namespace xios {
       else
         totalNumberWrittenIndexes_ = numberWrittenIndexes_;
 
-      // nbSenders[p] = CClientServerMappingDistributed::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, ranks);
+      nbReadSenders[p] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
     }
   }
 

@@ -175,7 +175,7 @@ PROGRAM test_remap
   ! CALL xios_get_domain_attr("src_domain_unstructured_read", ni=src_tmp_ni, nj=src_tmp_nj)
   ! ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
 
-  DO ts=1,5
+  DO ts=1,1
     CALL xios_recv_field("src_field_regular", tmp_field_0)
     ! CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
     ! CALL xios_recv_field("src_field_unstructured", tmp_field_2)
@@ -183,8 +183,8 @@ PROGRAM test_remap
     CALL xios_send_field("src_field_2D",src_field_2D)
     CALL xios_send_field("src_field_2D_clone",src_field_2D)
     CALL xios_send_field("src_field_3D",src_field_3D)
-    CALL xios_send_field("src_field_4D",src_field_4D)
-    CALL xios_send_field("src_field_3D_pression",src_field_pression)
+    ! CALL xios_send_field("src_field_4D",src_field_4D)
+    ! CALL xios_send_field("src_field_3D_pression",src_field_pression)
     CALL xios_send_field("tmp_field_0",tmp_field_0)
     ! CALL xios_send_field("tmp_field_1",tmp_field_1)
     ! CALL xios_send_field("tmp_field_2",tmp_field_2)

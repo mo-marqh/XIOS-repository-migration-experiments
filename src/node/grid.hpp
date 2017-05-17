@@ -222,7 +222,7 @@ namespace xios {
 
          map<int, CArray<int, 1> > storeIndex_toSrv;
          map<int, CArray<int, 1> > storeIndex_fromSrv;
-         std::vector<map<int,int> > nbSenders;
+         std::vector<map<int,int> > nbSenders, nbReadSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
 

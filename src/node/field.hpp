@@ -156,11 +156,7 @@ namespace xios {
         bool readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
-        void outputField(CArray<double,3>& fieldOut);
-        void outputField(CArray<double,2>& fieldOut);
         void outputField(CArray<double,1>& fieldOut);
-        void inputField(CArray<double,3>& fieldOut);
-        void inputField(CArray<double,2>& fieldOut);
         void inputField(CArray<double,1>& fieldOut);
         void outputCompressedField(CArray<double, 1>& fieldOut);
         void scaleFactorAddOffset(double scaleFactor, double addOffset);

@@ -19,14 +19,14 @@
       <field id="dst_field_4D_extract" field_ref="src_field_4D" grid_ref="grid_4D_extract"/>      
       <field id="dst_field_2D_clone" field_ref="src_field_2D_clone" domain_ref="dst_domain"/>
     </field_group>
-    <field_group id="read_fields" operation="instant">
-<!--       <field id="tmp_field_0" domain_ref="src_domain_regular_read"/>
+    <field_group id="read_fields" operation="instant" enabled="FALSE">
+      <field id="tmp_field_0" domain_ref="src_domain_regular_read" enabled="true"/>
       <field id="tmp_field_clone" field_ref="tmp_field_0"/>
       <field id="tmp_field_1" grid_ref="src_grid_curvilinear_read" />
       <field id="tmp_field_2" grid_ref="src_grid_unstructured_read" />
       <field id="dst_field_regular" field_ref="tmp_field_2" grid_ref="dst_grid_regular"/>      
       <field id="dst_field_regular_pole_0" field_ref="tmp_field_0" domain_ref="dst_domain_regular_pole"/>
-      <field id="dst_field_regular_pole_1" field_ref="tmp_field_clone" domain_ref="dst_domain_regular_pole"/> -->
+      <field id="dst_field_regular_pole_1" field_ref="tmp_field_clone" domain_ref="dst_domain_regular_pole"/>
     </field_group> 
    </field_definition>
 
@@ -51,10 +51,10 @@
         </file>
      </file_group>
      <file_group id="read_files" >
-<!--        <file id="output_src_regular" name="output_src_regular" mode="read" >
+       <file id="output_src_regular" name="output_src_regular" mode="read" >
           <field id="src_field_regular" name="field" grid_ref="src_grid_regular_read" operation="instant"/>
        </file>
-       <file id="output_src_curvilinear" name="output_src_curvilinear" mode="read" >
+<!--        <file id="output_src_curvilinear" name="output_src_curvilinear" mode="read" >
           <field id="src_field_curvilinear" name="field_A" grid_ref="src_grid_curvilinear_read" operation="instant"/>
        </file>
        <file id="output_src_unstructured" name="output_src_unstructured" mode="read" >
@@ -169,6 +169,11 @@
 
   <context id="xios">
       <variable_definition>
+         <variable_group id="server">
+            <variable id="using_server2" type="bool">true</variable>
+            <variable id="ratio_server2" type="int">50</variable>
+         </variable_group>
+
         <variable_group id="buffer">
             <variable id="optimal_buffer_size" type="string">performance</variable>
             <variable id="buffer_size_factor" type="double">30.0</variable>
