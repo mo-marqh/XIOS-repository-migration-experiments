@@ -50,6 +50,7 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
+           EVENT_ID_CONTEXT_POST_FINALIZE,
            EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
            EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
            EVENT_ID_PROCESS_GRID_ENABLED_FIELDS
@@ -246,7 +247,7 @@ namespace xios {
       private:
          bool isPostProcessed;
          bool allProcessed;
-//         bool finalized;
+         bool finalized;
          int countChildCtx_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
          StdString idServer_;
          CGarbageCollector garbageCollector;

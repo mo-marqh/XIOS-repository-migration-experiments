@@ -275,7 +275,9 @@ namespace xios
    {
       map<int,CClientBuffer*>::iterator itBuff;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
+      {
           delete itBuff->second;
+      }
       buffers.clear();
    }
 
@@ -419,6 +421,46 @@ namespace xios
 
     //releaseBuffers(); // moved to CContext::finalize()
   }
+
+  /*!
+  * Finalize context client and do some reports. Function is non-blocking.
+  */
+ void CContextClient::postFinalize(void)
+ {
+   map<int,CClientBuffer*>::iterator itBuff;
+   bool stop = false;
+
+   CTimer::get("Blocking time").resume();
+   while (hasTemporarilyBufferedEvent())
+   {
+     checkBuffers();
+     sendTemporarilyBufferedEvent();
+   }
+   CTimer::get("Blocking time").suspend();
+
+   CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_POST_FINALIZE);
+   if (isServerLeader())
+   {
+     CMessage msg;
+     const std::list<int>& ranks = getRanksServerLeader();
+     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+       event.push(*itRank, 1, msg);
+     sendEvent(event);
+   }
+   else sendEvent(event);
+
+   CTimer::get("Blocking time").resume();
+//    while (!stop)
+   {
+     checkBuffers();
+     if (hasTemporarilyBufferedEvent())
+       sendTemporarilyBufferedEvent();
+
+     stop = true;
+   }
+   CTimer::get("Blocking time").suspend();
+
+ }
 
   /*!
   */

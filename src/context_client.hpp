@@ -52,6 +52,7 @@ namespace xios
       // Close and finalize context client
 //      void closeContext(void);  Never been implemented.
       void finalize(void);
+      void postFinalize(void);
 
       void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
 

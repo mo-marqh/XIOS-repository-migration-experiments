@@ -318,7 +318,6 @@ namespace xios
        CTimer::get("XIOS server").resume() ;
        while(!stop)
        {
-
          if (isRoot)
          {
            listenContext();
@@ -587,7 +586,6 @@ namespace xios
      void CServer::contextEventLoop(void)
      {
        bool isFinalized ;
-
        map<string,CContext*>::iterator it ;
 
        for(it=contextList.begin();it!=contextList.end();it++)
@@ -595,14 +593,12 @@ namespace xios
          isFinalized=it->second->isFinalized();
          if (isFinalized)
          {
-           it->second->postFinalize();
+//           it->second->postFinalize();
            contextList.erase(it) ;
            break ;
          }
          else
-         {
-           isFinalized=it->second->checkBuffersAndListen();
-         }
+           it->second->checkBuffersAndListen();
        }
      }
 

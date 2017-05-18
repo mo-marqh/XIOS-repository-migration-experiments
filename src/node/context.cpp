@@ -25,7 +25,7 @@ namespace xios {
    CContext::CContext(void)
       : CObjectTemplate<CContext>(), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
-      , isPostProcessed(false)//, finalized(false)
+      , isPostProcessed(false), finalized(false)
       , idServer_(), client(0), server(0)
       , allProcessed(false), countChildCtx_(0)
    { /* Ne rien faire de plus */ }
@@ -33,7 +33,7 @@ namespace xios {
    CContext::CContext(const StdString & id)
       : CObjectTemplate<CContext>(id), CContextAttributes()
       , calendar(), hasClient(false), hasServer(false)
-      , isPostProcessed(false)//, finalized(false)
+      , isPostProcessed(false), finalized(false)
       , idServer_(), client(0), server(0)
       , allProcessed(false), countChildCtx_(0)
    { /* Ne rien faire de plus */ }
@@ -44,6 +44,7 @@ namespace xios {
      delete server;
      for (std::vector<CContextClient*>::iterator it = clientPrimServer.begin(); it != clientPrimServer.end(); it++)  delete *it;
      for (std::vector<CContextServer*>::iterator it = serverPrimServer.begin(); it != serverPrimServer.end(); it++)  delete *it;
+
    }
 
    //----------------------------------------------------------------
@@ -390,13 +391,18 @@ namespace xios {
     }
     else if (CServer::serverLevel == 1)
     {
-      client->checkBuffers();
-      bool serverFinished = server->eventLoop();
+      if (!finalized)
+        client->checkBuffers();
+      bool serverFinished = true;
+      if (!finalized)
+        serverFinished = server->eventLoop();
       bool serverPrimFinished = true;
       for (int i = 0; i < clientPrimServer.size(); ++i)
       {
-        clientPrimServer[i]->checkBuffers();
-        serverPrimFinished *= serverPrimServer[i]->eventLoop();
+        if (!finalized)
+          clientPrimServer[i]->checkBuffers();
+        if (!finalized)
+          serverPrimFinished *= serverPrimServer[i]->eventLoop();
       }
       return ( serverFinished && serverPrimFinished);
     }
@@ -418,6 +424,7 @@ namespace xios {
      // Client:
      // (1) blocking send context finalize to its server
      // (2) blocking receive context finalize from its server
+     // (3) send post finalize to its server
      if (CXios::isClient)
      {
        // Make sure that client (model) enters the loop only once
@@ -431,6 +438,12 @@ namespace xios {
 
          while (!server->hasFinished())
            server->eventLoop();
+
+         if (CXios::isServer) // Mode attache
+           postFinalize();
+         else                  // Mode server
+           client->postFinalize();
+
        }
      }
      // Server: non-blocking send context finalize
@@ -441,25 +454,38 @@ namespace xios {
          for (int i = 0; i < clientPrimServer.size(); ++i)
            clientPrimServer[i]->finalize();
 
-       // (Last) context finalized message received => send context finalize to its parent context
+       // (Last) context finalized message received
+       // Close files, gather registries, send context finalize to its parent context
        if (countChildCtx_ == clientPrimServer.size())
          client->finalize();
 
        ++countChildCtx_;
      }
-
-     // If in mode attache call postFinalize
-     if (CXios::isServer && CXios::isClient)
-       postFinalize();
    }
 
    /*!
    * \fn void CContext::postFinalize(void)
-   * Close files, gather registries, , and make deallocations.
+   * Close files, gather registries, and make deallocations.
    * Function is called when a context is finalized (it has nothing to receive and nothing to send).
    */
    void CContext::postFinalize(void)
    {
+     finalized = true;
+
+     // Primary server: blocking send post finalize to secondary servers
+     for (int i = 0; i < clientPrimServer.size(); ++i)
+       clientPrimServer[i]->postFinalize();
+     bool buffersReleased;
+     do
+     {
+       buffersReleased = true;
+       for (int i = 0; i < clientPrimServer.size(); ++i)
+       {
+         clientPrimServer[i]->checkBuffers();
+         buffersReleased *= !clientPrimServer[i]->havePendingRequests();
+       }
+     } while (!buffersReleased);
+
      info(20)<<"Context <"<<getId()<<"> is finalized."<<endl;
 
      //     if (hasServer && !hasClient)
@@ -469,15 +495,16 @@ namespace xios {
        if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
      }
 
+     //! Deallocate client buffers
+     client->releaseBuffers();
+     for (int i = 0; i < clientPrimServer.size(); ++i)
+       clientPrimServer[i]->releaseBuffers();
+
      //! Free internally allocated communicators
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
        MPI_Comm_free(&(*it));
      comms.clear();
 
-     //! Deallocate client buffers
-     client->releaseBuffers();
-     for (int i = 0; i < clientPrimServer.size(); ++i)
-       clientPrimServer[i]->releaseBuffers();
    }
 
    //! Free internally allocated communicators
@@ -999,12 +1026,6 @@ namespace xios {
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
    {
-     // The creation of header file should be delegated to server2, for now
-      // if (hasClient && hasServer)
-      // {        
-      //   sendCreateFileHeader();
-      // }
-      
       if (!hasClient && hasServer) 
         createFileHeader();
    }
@@ -1013,7 +1034,6 @@ namespace xios {
    void CContext::sendProcessingGridOfEnabledFields()
    {
       // Use correct context client to send message
-     // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
      int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
      for (int i = 0; i < nbSrvPools; ++i)
      {
@@ -1150,7 +1170,6 @@ namespace xios {
 
       // Find all enabled fields of each file
       this->findAllEnabledFields();
-      // this->findAllEnabledFieldsInReadModeFiles();
       // For now, only read files with client and only one level server
       if (hasClient && !hasServer) this->findAllEnabledFieldsInReadModeFiles();
 
@@ -1161,25 +1180,11 @@ namespace xios {
       this->readAttributesOfEnabledFieldsInReadModeFiles();
      }
 
-      // // Only search and rebuild all reference objects of enable fields, don't transform
-      // this->solveOnlyRefOfEnabledFields(false);
-
-      // // Search and rebuild all reference object of enabled fields
-      // this->solveAllRefOfEnabledFields(false);
-
-      // // Find all fields with read access from the public API
-      // findFieldsWithReadAccess();
-      // // and solve the all reference for them
-      // solveAllRefOfFieldsWithReadAccess();
-
       // Only search and rebuild all reference objects of enable fields, don't transform
       this->solveOnlyRefOfEnabledFields(false);
 
       // Search and rebuild all reference object of enabled fields, and transform
-      // this->solveAllEnabledFields
       this->solveAllRefOfEnabledFieldsAndTransform(false);
-      // // Check grid and calculate its distribution
-      // if (hasClient) checkGridEnabledFields();
 
       // Find all fields with read access from the public API
       if (hasClient && !hasServer) findFieldsWithReadAccess();
@@ -1584,21 +1589,11 @@ namespace xios {
 
   /*!
   * \fn bool CContext::isFinalized(void)
-  * Context is finalized if:
-  * (1) it has received all context finalize events
-  * (2) it has no pending events to send.
+  * Context is finalized if it received context post finalize event.
   */
   bool CContext::isFinalized(void)
   {
-    if (countChildCtx_==clientPrimServer.size()+1)
-    {
-      bool buffersReleased = !client->havePendingRequests();
-      for (int i = 0; i < clientPrimServer.size(); ++i)
-        buffersReleased *= !clientPrimServer[i]->havePendingRequests();
-      return buffersReleased;
-    }
-    else
-      return false;
+    return finalized;
   }
 
 } // namespace xios
