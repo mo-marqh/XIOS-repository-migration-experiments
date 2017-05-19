@@ -238,8 +238,8 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
 	double **sendArea = new double*[mpiSize];
 	Coord **sendGrad = new Coord*[mpiSize];
 	GloId **sendNeighIds = new GloId*[mpiSize];
-	MPI_Request *sendRequest = new MPI_Request[3*mpiSize];
-	MPI_Request *recvRequest = new MPI_Request[3*mpiSize];
+	MPI_Request *sendRequest = new MPI_Request[4*mpiSize];
+	MPI_Request *recvRequest = new MPI_Request[4*mpiSize];
 	for (int rank = 0; rank < mpiSize; rank++)
 	{
 		if (nbSendElement[rank] > 0)
@@ -266,9 +266,10 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
 			nbRecvRequest++;
 		}
 	}
-	MPI_Status *status = new MPI_Status[3*mpiSize];
-	MPI_Waitall(nbRecvRequest, recvRequest, status);
+	MPI_Status *status = new MPI_Status[4*mpiSize];
+	
 	MPI_Waitall(nbSendRequest, sendRequest, status);
+        MPI_Waitall(nbRecvRequest, recvRequest, status);
 
 	/* for all indices that have been received from requesting ranks: pack values and gradients, then send */
 	nbSendRequest = 0;
@@ -342,8 +343,10 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
 			}
 		}
 	}
+        
+        MPI_Waitall(nbSendRequest, sendRequest, status);
 	MPI_Waitall(nbRecvRequest, recvRequest, status);
-	MPI_Waitall(nbSendRequest, sendRequest, status);
+	
 
 	/* now that all values and gradients are available use them to computed interpolated values on target
 	   and also to compute weights */
