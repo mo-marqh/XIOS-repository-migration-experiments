@@ -87,6 +87,7 @@ namespace xios
         map<unsigned long, int> lastProcesses ;  // needed in case of two server levels
         map<unsigned long, int>::iterator it ;
 
+        int nbSrv = 0;
         for(i=0,c=0;i<size;i++)
         {
           if (colors.find(hashAll[i])==colors.end())
@@ -95,8 +96,9 @@ namespace xios
             leaders[hashAll[i]]=i ;
             c++ ;
           }
-          if (hashAll[i+1] != hashAll[i])
-            lastProcesses[hashAll[i]]=i ;
+          if (hashAll[i] == hashServer) ++nbSrv;
+          //if (hashAll[i+1] != hashAll[i])  // Potential bug here!
+          //  lastProcesses[hashAll[i]]=i ; // It seems that lastprocesses is only used for calculating the server size. Can we count server size directly?
         }
 
         // Setting the number of secondary pools
@@ -104,7 +106,7 @@ namespace xios
         if (CXios::usingServer2)
         {
           int serverRank = rank_ - leaders[hashServer]; // server proc rank starting 0
-          serverSize_ = lastProcesses[hashServer] - leaders[hashServer] + 1;
+          serverSize_ = nbSrv; //lastProcesses[hashServer] - leaders[hashServer] + 1;
 //          serverSize_ = lastProcesses - leaders[hashServer];
           nbPools = serverSize_ * CXios::ratioServer2 / 100;
           if ( serverRank < (serverSize_ - nbPools) )
@@ -115,7 +117,7 @@ namespace xios
           {
             serverLevel = 2;
             poolId = serverRank - serverSize_ + nbPools;
-            myColor = rank_;
+            myColor = rank_ + size; // + size to make sure that myColor is unique among not only servers but also clients. It's only a temporary solution
           }
         }
 
@@ -132,7 +134,7 @@ namespace xios
               int intraCommSize, intraCommRank ;
               MPI_Comm_size(intraComm,&intraCommSize) ;
               MPI_Comm_rank(intraComm,&intraCommRank) ;
-              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
+              info(50)<<"intercommCreate::server (classical mode) "<<rank_<<" intraCommSize : "<<intraCommSize
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
@@ -152,7 +154,7 @@ namespace xios
               int intraCommSize, intraCommRank ;
               MPI_Comm_size(intraComm, &intraCommSize) ;
               MPI_Comm_rank(intraComm, &intraCommRank) ;
-              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
+              info(50)<<"intercommCreate::server (server level 1) "<<rank_<<" intraCommSize : "<<intraCommSize
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
               interCommLeft.push_back(newComm) ;
@@ -167,9 +169,9 @@ namespace xios
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm, &intraCommSize) ;
             MPI_Comm_rank(intraComm, &intraCommRank) ;
-            info(50)<<"intercommCreate::client "<<rank_<<" intraCommSize : "<<intraCommSize
+            info(50)<<"intercommCreate::client (server level 1) "<<rank_<<" intraCommSize : "<<intraCommSize
                 <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
-            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
+            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 1, &newComm) ;
             interCommRight.push_back(newComm) ;
           }
         } // primary server
@@ -180,10 +182,10 @@ namespace xios
           int intraCommSize, intraCommRank ;
           MPI_Comm_size(intraComm, &intraCommSize) ;
           MPI_Comm_rank(intraComm, &intraCommRank) ;
-          info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<intraCommSize
+          info(50)<<"intercommCreate::server (server level 2) "<<rank_<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
-          MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+          MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 1, &newComm) ;
           interCommLeft.push_back(newComm) ;
         } // secondary server
 
