@@ -378,8 +378,6 @@ namespace xios
 
                      if (domain->hasLonLat)
                      {
-                       // SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0,&start,&count);
-                       // SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0,&start,&count);
                        SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
                        SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
                      }
@@ -395,23 +393,18 @@ namespace xios
                        {
                          start[0]=0 ;
                          count[0]=0 ;
-                         // SuperClassWriter::writeData(domain->latvalue, latid, isCollective, 0,&start,&count);
-                         // SuperClassWriter::writeData(domain->lonvalue, lonid, isCollective, 0,&start,&count);
-
                          SuperClassWriter::writeData(writtenLat, latid, isCollective, 0,&start,&count);
                          SuperClassWriter::writeData(writtenLon, lonid, isCollective, 0,&start,&count);
                        }
                        else
                        { 
                          start[0]=domain->zoom_jbegin-domain->global_zoom_jbegin;
-                         count[0]=domain->zoom_nj;
-                         // CArray<double,1> lat = domain->latvalue(Range(fromStart,toEnd,domain->zoom_ni));
+                         count[0]=domain->zoom_nj;                         
                          CArray<double,1> lat = writtenLat(Range(fromStart,toEnd,domain->zoom_ni));
                          SuperClassWriter::writeData(CArray<double,1>(lat.copy()), latid, isCollective, 0,&start,&count);
 
                          start[0]=domain->zoom_ibegin-domain->global_zoom_ibegin;
-                         count[0]=domain->zoom_ni;
-                         // CArray<double,1> lon=domain->lonvalue(Range(0,domain->zoom_ni-1));
+                         count[0]=domain->zoom_ni;                         
                          CArray<double,1> lon = writtenLon(Range(0,domain->zoom_ni-1));
                          SuperClassWriter::writeData(CArray<double,1>(lon.copy()), lonid, isCollective, 0,&start,&count);
                        }
@@ -438,9 +431,7 @@ namespace xios
                      count[1] = domain->zoom_ni;
                      count[0] = domain->zoom_nj;
                    }
-
-                 // SuperClassWriter::writeData(domain->bounds_lonvalue, bounds_lonid, isCollective, 0, &start, &count);
-                 // SuperClassWriter::writeData(domain->bounds_latvalue, bounds_latid, isCollective, 0, &start, &count);
+                 
                    SuperClassWriter::writeData(writtenBndsLon, bounds_lonid, isCollective, 0, &start, &count);
                    SuperClassWriter::writeData(writtenBndsLat, bounds_latid, isCollective, 0, &start, &count);
                  }
@@ -462,8 +453,7 @@ namespace xios
                      count[1] = domain->zoom_ni;
                      count[0] = domain->zoom_nj;
                    }
-
-                   // SuperClassWriter::writeData(domain->areavalue, areaId, isCollective, 0, &start, &count);
+                   
                    SuperClassWriter::writeData(writtenArea, areaId, isCollective, 0, &start, &count);
                  }
 
@@ -1389,16 +1379,17 @@ namespace xios
            }
            SuperClassWriter::addAttribute("compress", compress.str(), &varId);
 
-           grid->computeCompressedIndex();
+           // grid->computeCompressedIndex();
 
            CArray<int, 1> indexes(grid->getNumberWrittenIndexes());
-           std::map<int, CArray<size_t, 1> >::const_iterator it;
-           for (it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-           {
-             const CArray<size_t, 1> compressedIndexes = grid->compressedOutIndexFromClient[it->first];
-             for (int i = 0; i < it->second.numElements(); i++)
-               indexes(compressedIndexes(i)) = it->second(i);
-           }
+           indexes = grid->localIndexToWriteOnServer;
+           // std::map<int, CArray<size_t, 1> >::const_iterator it;
+           // for (it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
+           // {
+           //   const CArray<size_t, 1> compressedIndexes = grid->compressedOutIndexFromClient[it->first];
+           //   for (int i = 0; i < it->second.numElements(); i++)
+           //     indexes(compressedIndexes(i)) = it->second(i);
+           // }
 
            switch (SuperClass::type)
            {
@@ -1455,10 +1446,13 @@ namespace xios
                    break;
                }
 
-               const std::vector<int>& indexesToWrite = domain->getIndexesToWrite();
-               indexes.resize(indexesToWrite.size());
-               for (int n = 0; n < indexes.numElements(); ++n)
-                 indexes(n) = indexesToWrite[n];
+               // const std::vector<int>& indexesToWrite = domain->getIndexesToWrite();
+               // indexes.resize(indexesToWrite.size());
+               // for (int n = 0; n < indexes.numElements(); ++n)
+               //   indexes(n) = indexesToWrite[n];
+
+               indexes.resize(domain->compressedIndexToWriteOnServer.numElements());
+               indexes = domain->compressedIndexToWriteOnServer;
 
                isDistributed = domain->isDistributed();
                nbIndexes = domain->getNumberWrittenIndexes();
@@ -1483,10 +1477,13 @@ namespace xios
                varId = axisId + "_points";
                compress = axisId;
 
-               const std::vector<int>& indexesToWrite = axis->getIndexesToWrite();
-               indexes.resize(indexesToWrite.size());
-               for (int n = 0; n < indexes.numElements(); ++n)
-                 indexes(n) = indexesToWrite[n];
+               // const std::vector<int>& indexesToWrite = axis->getIndexesToWrite();
+               // indexes.resize(indexesToWrite.size());
+               // for (int n = 0; n < indexes.numElements(); ++n)
+               //   indexes(n) = indexesToWrite[n];
+
+               indexes.resize(axis->compressedIndexToWriteOnServer.numElements());
+               indexes = axis->compressedIndexToWriteOnServer;
 
                isDistributed = axis->isDistributed();
                nbIndexes = axis->getNumberWrittenIndexes();
@@ -1533,8 +1530,8 @@ namespace xios
              }
            }
 
-           if (!dims.empty())
-             grid->computeCompressedIndex();
+           // if (!dims.empty())
+           //   grid->computeCompressedIndex();
          }
 
          grid->addRelFileCompressed(this->filename);
@@ -2180,78 +2177,6 @@ namespace xios
               }
               case (ONE_FILE) :
               {
-                // const std::vector<int>& nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
-                // const std::vector<int>& nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
-                // const std::vector<int>& nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
-
-                // std::vector<StdSize> start, count;
-
-                // if (field->getUseCompressedOutput())
-                // {
-                //   if (grid->isCompressible())
-                //   {
-                //     start.push_back(grid->getOffsetWrittenIndexes());
-                //     count.push_back(grid->getNumberWrittenIndexes());
-                //   }
-                //   else
-                //   {
-                //     CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-                //     std::vector<StdString> domainList = grid->getDomainList();
-                //     std::vector<StdString> axisList   = grid->getAxisList();
-                //     int numElement = axisDomainOrder.numElements();
-                //     int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
-                //     int idx = nZoomBeginGlobal.size() - 1;
-
-                //     start.reserve(nZoomBeginGlobal.size());
-                //     count.reserve(nZoomBeginGlobal.size());
-
-
-                //     for (int i = numElement - 1; i >= 0; --i)
-                //     {
-                //       if (2 == axisDomainOrder(i))
-                //       {
-                //         CDomain* domain = CDomain::get(domainList[idxDomain]);
-
-                //         if (domain->isCompressible())
-                //         {
-                //           start.push_back(domain->getOffsetWrittenIndexes());
-                //           count.push_back(domain->getNumberWrittenIndexes());
-                //           idx -= 2;
-                //         }
-                //         else
-                //         {
-                //           if ((domain->type) != CDomain::type_attr::unstructured)
-                //           {
-                //             start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                //             count.push_back(nZoomSizeServer[idx]);
-                //           }
-                //           --idx;
-                //           start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                //           count.push_back(nZoomSizeServer[idx]);
-                //           --idx;
-                //         }
-                //         --idxDomain;
-                //       }
-                //       else if (1 == axisDomainOrder(i))
-                //       {
-                //         CAxis* axis = CAxis::get(axisList[idxAxis]);
-
-                //         if (axis->isCompressible())
-                //         {
-                //           start.push_back(axis->getOffsetWrittenIndexes());
-                //           count.push_back(axis->getNumberWrittenIndexes());
-                //         }
-                //         else
-                //         {
-                //           start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                //           count.push_back(nZoomSizeServer[idx]);
-                //         }
-
-                //         --idxAxis;
-                //         --idx;
-                //       }
-                //     }
-                //   }
                 const std::vector<int>& nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
                 const std::vector<int>& nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
                 const std::vector<int>& nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
@@ -2327,47 +2252,6 @@ namespace xios
                 }
                 else
                 {
-                  // CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-                  // std::vector<StdString> domainList = grid->getDomainList();
-                  // std::vector<StdString> axisList   = grid->getAxisList();
-                  // int numElement = axisDomainOrder.numElements();
-                  // int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
-                  // int idx = nZoomBeginGlobal.size() - 1;
-
-                  // start.reserve(nZoomBeginGlobal.size());
-                  // count.reserve(nZoomBeginGlobal.size());
-
-                  // for (int i = numElement - 1; i >= 0; --i)
-                  // {
-                  //   if (2 == axisDomainOrder(i))
-                  //   {
-                  //     CDomain* domain = CDomain::get(domainList[idxDomain]);
-                  //     if ((domain->type) != CDomain::type_attr::unstructured)
-                  //     {
-                  //       start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                  //       count.push_back(nZoomSizeServer[idx]);
-                  //     }
-                  //     --idx ;
-                  //     start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                  //     count.push_back(nZoomSizeServer[idx]);
-                  //     --idx ;
-                  //     --idxDomain;
-                  //   }
-                  //   else if (1 == axisDomainOrder(i))
-                  //   {
-                  //     start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                  //     count.push_back(nZoomSizeServer[idx]);
-                  //     --idx;
-                  //   }
-                  //   else
-                  //   {
-                  //     if (1 == axisDomainOrder.numElements())
-                  //     {
-                  //       start.push_back(0);
-                  //       count.push_back(1);
-                  //     }
-                  //     --idx;
-                  //   }
                   CArray<int,1> axisDomainOrder = grid->axis_domain_order;
                   std::vector<StdString> domainList = grid->getDomainList();
                   std::vector<StdString> axisList   = grid->getAxisList();
@@ -2385,18 +2269,11 @@ namespace xios
                       CDomain* domain = CDomain::get(domainList[idxDomain]);
                       if ((domain->type) != CDomain::type_attr::unstructured)
                       {
-                        // start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                        // count.push_back(nZoomSizeServer[idx]);
-                        // start.push_back((domain->getStartWriteIndex())[idx]);
-                        // count.push_back((domain->getCountWriteIndex())[idx]);
                         start.push_back(domain->zoom_jbegin - domain->global_zoom_jbegin);
                         count.push_back(domain->zoom_nj);
                       }
                       --idx ;
-                      // start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-                      // count.push_back(nZoomSizeServer[idx]);
-                      // start.push_back((domain->getStartWriteIndex())[idx]);
-                      // count.push_back((domain->getCountWriteIndex())[idx]);
+
                         start.push_back(domain->zoom_ibegin - domain->global_zoom_ibegin);
                         count.push_back(domain->zoom_ni);
                       --idx ;
@@ -2404,9 +2281,7 @@ namespace xios
                     }
                     else if (1 == axisDomainOrder(i))
                     {
-                      CAxis* axis = CAxis::get(axisList[idxAxis]);
-                      // start.push_back(axis->getStartWriteIndex());
-                      // count.push_back(axis->getCountWriteIndex());
+                        CAxis* axis = CAxis::get(axisList[idxAxis]);
                         start.push_back(axis->zoom_begin - axis->global_zoom_begin);
                         count.push_back(axis->zoom_n);
                       --idx;

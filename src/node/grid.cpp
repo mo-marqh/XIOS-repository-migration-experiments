@@ -561,6 +561,20 @@ namespace xios {
       localIndexToWriteOnClient.resize(nbWritten);  
       localIndexToWriteOnServer.resize(nbWritten);
 
+      // if (isCompressible())
+      {
+        numberWrittenIndexes_ = nbWritten;
+        if (isDataDistributed_)
+        {
+          CContextServer* server = CContext::getCurrent()->server;      
+          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          offsetWrittenIndexes_ -= numberWrittenIndexes_;
+        }
+        else
+          totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+      }
+
       nbWritten = 0; 
       for (it = itb; it != ite; ++it)
       {
@@ -1174,12 +1188,6 @@ namespace xios {
       const StdSize size = storeIndex_client.numElements();
 
       for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
-
-     // This is a solution for multilevel server      
-      // const StdSize size = indexFromClients.numElements();
-
-      // for(StdSize i = 0; i < size; i++) data[indexFromClients(i)] = stored(i);
-
    }
 
   void CGrid::computeIndexScalarGrid()
@@ -1503,7 +1511,7 @@ namespace xios {
       
 //      CContextServer* server = (context->hasServer) ? context->server : context->serverPrimServer[p];
 //      CContextClient* client = (context->hasServer) ? context->client : context->clientPrimServer[p];
-      numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
+      // numberWrittenIndexes_ = totalNumberWrittenIndexes_ = offsetWrittenIndexes_ = 0;
       //connectedServerRank_[p] = ranks;
 
       int idx = 0, numElement = axis_domain_order.numElements();
@@ -1601,7 +1609,7 @@ namespace xios {
 
         // outIndexFromClient.insert(std::make_pair(rank, outIndex));
         // connectedDataSize_[p][rank] = outIndex.numElements();
-        numberWrittenIndexes_ += outIndex.numElements();
+        // numberWrittenIndexes_ += outIndex.numElements();
       }
 
 
@@ -1679,14 +1687,14 @@ namespace xios {
 
       // if (isScalarGrid()) return;
 
-      if (isDataDistributed_)
-      {
-        MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-        MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-        offsetWrittenIndexes_ -= numberWrittenIndexes_;
-      }
-      else
-        totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+      // if (isDataDistributed_)
+      // {
+      //   MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      //   MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      //   offsetWrittenIndexes_ -= numberWrittenIndexes_;
+      // }
+      // else
+      //   totalNumberWrittenIndexes_ = numberWrittenIndexes_;
 
       nbReadSenders[p] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
     }

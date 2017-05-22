@@ -107,6 +107,7 @@ namespace xios {
 
          std::map<int, StdSize> getAttributesBufferSize();
          CArray<size_t,1> localIndexToWriteOnServer;
+         CArray<int, 1> compressedIndexToWriteOnServer;
 
          bool isEmpty(void) const;
          bool isDistributed(void) const;
@@ -220,8 +221,7 @@ namespace xios {
          std::vector<int> indexesToWrite;
          std::vector<int> recvClientRanks_, recvClientZoomRanks_;
          int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_, connectedServerZoomRank_;
-         bool isDistributed_;
+         std::vector<int> connectedServerRank_, connectedServerZoomRank_;         
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
          bool isRedistributed_;

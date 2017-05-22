@@ -24,7 +24,7 @@ namespace xios {
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
-      , isDistributed_(false), hasBounds_(false), isCompressible_(false)
+      , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), doZoomByIndex_(false)
       , computedWrittenIndex_(false)
@@ -35,7 +35,7 @@ namespace xios {
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
-      , isDistributed_(false), hasBounds_(false), isCompressible_(false)
+      , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), doZoomByIndex_(false)
       , computedWrittenIndex_(false)
@@ -75,7 +75,8 @@ namespace xios {
 
    bool CAxis::isDistributed(void) const
    {
-      return isDistributed_;
+      return (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
+             (!this->n.isEmpty() && (this->n != this->n_glo));;
    }
 
    /*!
@@ -265,10 +266,7 @@ namespace xios {
       this->checkData();
       this->checkZoom();
       this->checkMask();
-      this->checkBounds();
-
-      isDistributed_ = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
-                       (!this->n.isEmpty() && (this->n != this->n_glo));
+      this->checkBounds();      
    }
 
    void CAxis::checkData()
@@ -612,23 +610,35 @@ namespace xios {
       if (computedWrittenIndex_) return;
       computedWrittenIndex_ = true;
 
-      CContext* context=CContext::getCurrent() ;
-      CContextClient* client = context->client; 
+      CContext* context=CContext::getCurrent();      
+      CContextServer* server = context->server; 
 
       std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
       nBegin[0]       = zoom_begin;
       nSize[0]        = zoom_n;   
       nBeginGlobal[0] = 0; 
       nGlob[0]        = n_glo;
-      CDistributionServer srvDist(client->clientSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
       size_t nbWritten = 0, indGlo;      
       boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;          
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
-                                       itSrve = writtenGlobalIndex.end(), itSrv;
-      localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
+                                       itSrve = writtenGlobalIndex.end(), itSrv;      
+
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
+        {          
+          ++nbWritten;
+        }                 
+      }
+
+      localIndexToWriteOnServer.resize(nbWritten);
+
+      nbWritten = 0;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       {
         indGlo = *itSrv;
@@ -637,6 +647,52 @@ namespace xios {
           localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
           ++nbWritten;
         }                 
+      }
+
+      if (isCompressible())
+      {
+        nbWritten = 0;
+        boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+        {
+          indGlo = *itSrv;
+          if (ite != globalLocalIndexMap_.find(indGlo))
+          {
+            localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
+            ++nbWritten;
+          }                 
+        }
+
+        nbWritten = 0;
+        for (int idx = 0; idx < data_index.numElements(); ++idx)
+        {
+          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+          {
+            ++nbWritten;
+          }
+        }
+
+        compressedIndexToWriteOnServer.resize(nbWritten);
+        nbWritten = 0;
+        for (int idx = 0; idx < data_index.numElements(); ++idx)
+        {
+          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+          {
+            compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_index(idx)];
+            ++nbWritten;
+          }
+        }
+
+        numberWrittenIndexes_ = nbWritten;
+        if (isDistributed())
+        {
+               
+          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          offsetWrittenIndexes_ -= numberWrittenIndexes_;
+        }
+        else
+          totalNumberWrittenIndexes_ = numberWrittenIndexes_;
       }
 
    }

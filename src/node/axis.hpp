@@ -130,6 +130,7 @@ namespace xios {
         CArray<int,1> globalDimGrid;
         int orderPosInGrid;
         CArray<size_t,1> localIndexToWriteOnServer;
+        CArray<int, 1> compressedIndexToWriteOnServer;
 
       private:
          void checkData();
@@ -158,8 +159,7 @@ namespace xios {
          bool areClientAttributesChecked_;
          bool isClientAfterTransformationChecked;
          std::set<StdString> relFiles, relFilesCompressed;
-         TransMapTypes transformationMap_;
-         bool isDistributed_;
+         TransMapTypes transformationMap_;         
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
          std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
