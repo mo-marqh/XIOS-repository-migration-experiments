@@ -90,20 +90,13 @@ namespace xios {
          void duplicateTransformation(CDomain*);
          CTransformation<CDomain>* addTransformation(ETranformationType transType, const StdString& id="");
 
-      public:
-         const std::set<StdString> & getRelFiles(void) const;
+      public:         
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
-
-         const std::vector<int>& getIndexesToWrite(void) const;
+         
          int getNumberWrittenIndexes() const;
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
-
-         const std::vector<int>& getStartWriteIndex() const;
-         const std::vector<int>& getCountWriteIndex() const;
-         const std::vector<int>& getLocalWriteSize() const;
-         const std::vector<int>& getGlobalWriteSize() const;
 
          std::map<int, StdSize> getAttributesBufferSize();
          CArray<size_t,1> localIndexToWriteOnServer;
@@ -163,9 +156,8 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
+         static ENodeType GetType(void);   
 
-         static ENodeType GetType(void);
-         const boost::unordered_map<int, vector<size_t> >& getIndexServer() const;
          CArray<bool, 1> localMask;
          bool isCurvilinear ;
          bool hasBounds ;
@@ -198,15 +190,9 @@ namespace xios {
          void sendLonLat();
          void sendIndexZoom();
          void sendDataIndex();
-
          void convertLonLatValue();
 
        private:         
-         std::vector<int> start_write_index_;
-         std::vector<int> count_write_index_;
-         std::vector<int> local_write_size_;
-         std::vector<int> global_write_size_;
-
          bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;

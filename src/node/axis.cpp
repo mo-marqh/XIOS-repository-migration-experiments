@@ -57,12 +57,6 @@ namespace xios {
    }
 
    ///---------------------------------------------------------------
-
-   const std::set<StdString> & CAxis::getRelFiles(void) const
-   {
-      return (this->relFiles);
-   }
-
    bool CAxis::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
@@ -100,11 +94,6 @@ namespace xios {
    }
 
    //----------------------------------------------------------------
-
-   const std::vector<int>& CAxis::getIndexesToWrite(void) const
-   {
-     return indexesToWrite;
-   }
 
    /*!
      Returns the number of indexes written by each server.
@@ -206,11 +195,10 @@ namespace xios {
      return axis;
    }
 
-   void CAxis::fillInValues(const CArray<double,1>& values)
-   {
-     this->value = values;
-   }
-
+   /*!
+     Check common attributes of an axis.
+     This check should be done in the very beginning of work flow
+   */
    void CAxis::checkAttributes(void)
    {
       if (this->n_glo.isEmpty())
@@ -269,6 +257,9 @@ namespace xios {
       this->checkBounds();      
    }
 
+   /*!
+      Check the validity of data and fill in values if any.
+   */
    void CAxis::checkData()
    {
       if (data_begin.isEmpty()) data_begin.setValue(0);
@@ -291,6 +282,9 @@ namespace xios {
       }
    }
 
+   /*!
+     Check validity of zoom info and fill in values if any.
+   */
    void CAxis::checkZoom(void)
    {
      if (global_zoom_begin.isEmpty()) global_zoom_begin.setValue(0);
@@ -303,6 +297,9 @@ namespace xios {
      if (zoom_begin.isEmpty()) zoom_begin.setValue(begin);
    }
 
+   /*!
+     Check validity of mask info and fill in values if any.
+   */
    void CAxis::checkMask()
    {
       if (!mask.isEmpty())
@@ -324,27 +321,30 @@ namespace xios {
       }
    }
 
-  void CAxis::checkBounds()
-  {
-    if (!bounds.isEmpty())
-    {
-      if (bounds.extent(0) != 2 || bounds.extent(1) != n)
-        ERROR("CAxis::checkAttributes(void)",
-              << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
-              << "Axis size is " << n.getValue() << "." << std::endl
-              << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
-      hasBounds_ = true;
-    }
-    else hasBounds_ = false;
-  }
+   /*!
+     Check validity of bounds info and fill in values if any.
+   */
+   void CAxis::checkBounds()
+   {
+     if (!bounds.isEmpty())
+     {
+       if (bounds.extent(0) != 2 || bounds.extent(1) != n)
+         ERROR("CAxis::checkAttributes(void)",
+               << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
+               << "Axis size is " << n.getValue() << "." << std::endl
+               << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
+       hasBounds_ = true;
+     }
+     else hasBounds_ = false;
+   }
 
-  void CAxis::checkEligibilityForCompressedOutput()
-  {
-    // We don't check if the mask is valid here, just if a mask has been defined at this point.
-    isCompressible_ = !mask.isEmpty();
-  }
+   void CAxis::checkEligibilityForCompressedOutput()
+   {
+     // We don't check if the mask is valid here, just if a mask has been defined at this point.
+     isCompressible_ = !mask.isEmpty();
+   }
 
-  bool CAxis::dispatchEvent(CEventServer& event)
+   bool CAxis::dispatchEvent(CEventServer& event)
    {
       if (SuperClass::dispatchEvent(event)) return true;
       else
@@ -355,10 +355,6 @@ namespace xios {
              recvDistributionAttribute(event);
              return true;
              break;
-          //  case EVENT_ID_INDEX:
-          //   recvIndex(event);
-          //   return true;
-          //   break;
           case EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES:
             recvNonDistributedAttributes(event);
             return true;
@@ -375,6 +371,9 @@ namespace xios {
       }
    }
 
+   /*!
+     Check attributes on client side (This name is still adequate???)
+   */
    void CAxis::checkAttributesOnClient()
    {
      if (this->areClientAttributesChecked_) return;
@@ -384,6 +383,9 @@ namespace xios {
      this->areClientAttributesChecked_ = true;
    }
 
+   /*
+     The (spatial) transformation sometimes can change attributes of an axis. Therefore, we should recheck them.
+   */
    void CAxis::checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                           CServerDistributionDescription::ServerDistributionType distType)
    {
@@ -412,6 +414,11 @@ namespace xios {
      this->isChecked = true;
    }
 
+  /*!
+    Send attributes from one client to other clients
+    \param[in] globalDim global dimension of grid which contains this axis
+    \param[in] order
+  */
   void CAxis::sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType)
   {
@@ -560,47 +567,14 @@ namespace xios {
 
       indSrv_.swap(globalIndexAxisOnServer);
 
-      // CClientServerMapping::GlobalIndexMap::const_iterator it = globalIndexAxisOnServer.begin(),
-      //                                                      ite = globalIndexAxisOnServer.end();
       CClientServerMapping::GlobalIndexMap::const_iterator it = indSrv_.begin(),
                                                            ite = indSrv_.end();
-      // std::vector<size_t>::const_iterator itbVec = (globalAxisZoom).begin(),
-      //                                     iteVec = (globalAxisZoom).end();
-      // indSrv_.clear();
-      // indWrittenSrv_.clear();
-      // for (; it != ite; ++it)
-      // {
-      //   int rank = it->first;
-      //   const std::vector<size_t>& globalIndexTmp = it->second;
-      //   int nb = globalIndexTmp.size();
-
-      //   for (int i = 0; i < nb; ++i)
-      //   {
-      //     if (std::binary_search(itbVec, iteVec, globalIndexTmp[i]))
-      //     {
-      //       indSrv_[rank].push_back(globalIndexTmp[i]);
-      //     }
-
-      //     if (writtenInd.count(globalIndexTmp[i]))
-      //     {
-      //       indWrittenSrv_[rank].push_back(globalIndexTmp[i]);
-      //     }
-      //   }
-      // }
 
       connectedServerRank_.clear();
       for (it = indSrv_.begin(); it != ite; ++it) {
         connectedServerRank_.push_back(it->first);
       }
 
-      // if (!indSrv_.empty())
-      // {
-      //   std::map<int, vector<size_t> >::const_iterator itIndSrv  = indSrv_.begin(),
-      //                                                  iteIndSrv = indSrv_.end();
-      //   connectedServerRank_.clear();
-      //   for (; itIndSrv != iteIndSrv; ++itIndSrv)
-      //     connectedServerRank_.push_back(itIndSrv->first);
-      // }
       nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
     }
   }
@@ -749,147 +723,6 @@ namespace xios {
       else contextClientTmp->sendEvent(event);
     }
   }
-
-  // void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
-  //                                    CServerDistributionDescription::ServerDistributionType distType)
-  // {
-  //   CContext* context = CContext::getCurrent();
-  //   CContextClient* client = (0 != context->clientPrimServer) ? context->clientPrimServer : context->client;
-  //   int nbServer = client->serverSize;
-  //   int range, clientSize = client->clientSize;
-  //   int rank = client->clientRank;
-
-  //   size_t ni = this->n.getValue();
-  //   size_t ibegin = this->begin.getValue();
-  //   size_t zoom_end = global_zoom_begin+global_zoom_n-1;
-  //   size_t nZoomCount = 0;
-  //   size_t nbIndex = index.numElements();
-  //   for (size_t idx = 0; idx < nbIndex; ++idx)
-  //   {
-  //     size_t globalIndex = index(idx);
-  //     if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end) ++nZoomCount;
-  //   }
-
-  //   CArray<size_t,1> globalIndexAxis(nbIndex);
-  //   std::vector<size_t> globalAxisZoom(nZoomCount);
-  //   nZoomCount = 0;
-  //   for (size_t idx = 0; idx < nbIndex; ++idx)
-  //   {
-  //     size_t globalIndex = index(idx);
-  //     globalIndexAxis(idx) = globalIndex;
-  //     if (globalIndex >= global_zoom_begin && globalIndex <= zoom_end)
-  //     {
-  //       globalAxisZoom[nZoomCount] = globalIndex;
-  //       ++nZoomCount;
-  //     }
-  //   }
-
-  //   std::set<int> writtenInd;
-  //   if (isCompressible_)
-  //   {
-  //     for (int idx = 0; idx < data_index.numElements(); ++idx)
-  //     {
-  //       int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
-
-  //       if (ind >= 0 && ind < ni && mask(ind))
-  //       {
-  //         ind += ibegin;
-  //         if (ind >= global_zoom_begin && ind <= zoom_end)
-  //           writtenInd.insert(ind);
-  //       }
-  //     }
-  //   }
-
-  //   CServerDistributionDescription serverDescriptionGlobal(globalDim, nbServer);
-  //   int distributedDimensionOnServer = serverDescriptionGlobal.getDimensionDistributed();
-  //   CClientServerMapping::GlobalIndexMap globalIndexAxisOnServer;
-  //   if (distributedDimensionOnServer == orderPositionInGrid) // So we have distributed axis on client side and also on server side*
-  //   {
-  //     std::vector<int> nGlobAxis(1);
-  //     nGlobAxis[0] = n_glo.getValue();
-
-  //     size_t globalSizeIndex = 1, indexBegin, indexEnd;
-  //     for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
-  //     indexBegin = 0;
-  //     if (globalSizeIndex <= clientSize)
-  //     {
-  //       indexBegin = rank%globalSizeIndex;
-  //       indexEnd = indexBegin;
-  //     }
-  //     else
-  //     {
-  //       for (int i = 0; i < clientSize; ++i)
-  //       {
-  //         range = globalSizeIndex / clientSize;
-  //         if (i < (globalSizeIndex%clientSize)) ++range;
-  //         if (i == client->clientRank) break;
-  //         indexBegin += range;
-  //       }
-  //       indexEnd = indexBegin + range - 1;
-  //     }
-
-  //     CServerDistributionDescription serverDescription(nGlobAxis, nbServer);
-  //     serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd));
-  //     CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-  //     clientServerMap->computeServerIndexMapping(globalIndexAxis);
-  //     globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();
-  //     delete clientServerMap;
-  //   }
-  //   else
-  //   {
-  //     std::vector<size_t> globalIndexServer(n_glo.getValue());
-  //     for (size_t idx = 0; idx < n_glo.getValue(); ++idx)
-  //     {
-  //       globalIndexServer[idx] = idx;
-  //     }
-
-  //     for (int idx = 0; idx < nbServer; ++idx)
-  //     {
-  //       globalIndexAxisOnServer[idx] = globalIndexServer;
-  //     }
-  //   }
-
-  //   CClientServerMapping::GlobalIndexMap::const_iterator it = globalIndexAxisOnServer.begin(),
-  //                                                        ite = globalIndexAxisOnServer.end();
-  //   std::vector<size_t>::const_iterator itbVec = (globalAxisZoom).begin(),
-  //                                       iteVec = (globalAxisZoom).end();
-  //   indSrv_.clear();
-  //   indWrittenSrv_.clear();
-  //   for (; it != ite; ++it)
-  //   {
-  //     int rank = it->first;
-  //     const std::vector<size_t>& globalIndexTmp = it->second;
-  //     int nb = globalIndexTmp.size();
-
-  //     for (int i = 0; i < nb; ++i)
-  //     {
-  //       if (std::binary_search(itbVec, iteVec, globalIndexTmp[i]))
-  //       {
-  //         indSrv_[rank].push_back(globalIndexTmp[i]);
-  //       }
-
-  //       if (writtenInd.count(globalIndexTmp[i]))
-  //       {
-  //         indWrittenSrv_[rank].push_back(globalIndexTmp[i]);
-  //       }
-  //     }
-  //   }
-
-  //   connectedServerRank_.clear();
-  //   for (it = globalIndexAxisOnServer.begin(); it != ite; ++it) {
-  //     connectedServerRank_.push_back(it->first);
-  //   }
-
-  //   if (!indSrv_.empty())
-  //   {
-  //     std::map<int, vector<size_t> >::const_iterator itIndSrv  = indSrv_.begin(),
-  //                                                    iteIndSrv = indSrv_.end();
-  //     connectedServerRank_.clear();
-  //     for (; itIndSrv != iteIndSrv; ++itIndSrv)
-  //       connectedServerRank_.push_back(itIndSrv->first);
-  //   }
-  //   nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
-  // }
 
   void CAxis::sendNonDistributedAttributes()
   {

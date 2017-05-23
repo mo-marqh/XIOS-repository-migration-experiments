@@ -32,9 +32,7 @@ public:
   typedef CDistribution::GlobalLocalMap GlobalLocalDataMap;
 
   public:
-    /** Default constructor */
-    CDistributionClient(int rank, CGrid* grid, const GlobalLocalDataMap& globalLocalIndex);
-    CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
+    /** Default constructor */        
     CDistributionClient(int rank, CGrid* grid);
 
     void createGlobalIndexSendToServer();

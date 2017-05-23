@@ -78,17 +78,6 @@ namespace xios {
      m["expand_domain"] = TRANS_EXPAND_DOMAIN;
    }
 
-   const std::set<StdString> & CDomain::getRelFiles(void) const
-   {
-      return (this->relFiles);
-   }
-
-
-   const std::vector<int>& CDomain::getIndexesToWrite(void) const
-   {
-     return indexesToWrite;
-   }
-
    /*!
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
@@ -114,40 +103,6 @@ namespace xios {
    int CDomain::getOffsetWrittenIndexes() const
    {
      return offsetWrittenIndexes_;
-   }
-
-   /*!
-     Returns the start of indexes written by each server.
-     \return the start of indexes written by each server
-   */
-   const std::vector<int>& CDomain::getStartWriteIndex() const
-   {
-     return start_write_index_;
-   }
-
-   /*!
-     Returns the count of indexes written by each server.
-     \return the count of indexes written by each server
-   */
-   const std::vector<int>& CDomain::getCountWriteIndex() const
-   {
-     return count_write_index_;
-   }
-
-   /*!
-     Returns the local data written by each server.     
-   */
-   const std::vector<int>& CDomain::getLocalWriteSize() const
-   {
-     return local_write_size_;
-   }
-
-   /*!
-     Returns the global data written by all server.     
-   */
-   const std::vector<int>& CDomain::getGlobalWriteSize() const
-   {
-     return global_write_size_;
    }
 
    //----------------------------------------------------------------
@@ -1563,11 +1518,11 @@ namespace xios {
       this->isChecked = true;
    }
 
-
-  // void CDomain::computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
-  //                                     CServerDistributionDescription::ServerDistributionType distType)
   /*!
-     Compute the connection of a client to other clients to determine which clients to send attributes to
+     Compute the connection of a client to other clients to determine which clients to send attributes to.
+     The sending clients are supposed to already know the distribution of receiving clients (In simple cases, it's band)
+     The connection among clients is calculated by using global index. 
+     A client connects to other clients which holds the same global index as it.     
   */
   void CDomain::computeConnectedClients()
   {
@@ -1608,37 +1563,8 @@ namespace xios {
         }
       }
 
-      // for (i = 0; i < nbIndex; ++i)
-      // {
-      //   i_ind=i_index(i);
-      //   j_ind=j_index(i);
-
-      //   if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-      //   {
-      //     ++globalIndexCountZoom;
-      //   }
-      // }
-
-      // int globalIndexWrittenCount = 0;
-      // if (isCompressible_)
-      // {
-      //   for (i = 0; i < data_i_index.numElements(); ++i)
-      //   {
-      //     i_ind = CDistributionClient::getDomainIndex(data_i_index(i), data_j_index(i),
-      //                                                 data_ibegin, data_jbegin, data_dim, ni,
-      //                                                 j_ind);
-      //     if (i_ind >= 0 && i_ind < ni && j_ind >= 0 && j_ind < nj && mask_1d(i_ind + j_ind * ni))
-      //     {
-      //       i_ind += ibegin;
-      //       j_ind += jbegin;
-      //       if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-      //         ++globalIndexWrittenCount;
-      //     }
-      //   }
-      // }
 
       // Fill in index
-
       CArray<size_t,1> globalIndexDomainZoom(globalIndexCountZoom);
       CArray<size_t,1> localIndexDomainZoom(globalIndexCountZoom);
       CArray<size_t,1> globalIndexDomain(nbIndex);
@@ -1671,12 +1597,6 @@ namespace xios {
           globalIndex = i_ind + j_ind * ni_glo;
           globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
           ++globalIndexCountZoom;
-          // if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-          // {
-          //   globalIndexDomainZoom(globalIndexCountZoom) = globalIndex;
-          //   localIndexDomainZoom(globalIndexCountZoom) = i;
-          //   ++globalIndexCountZoom;
-          // }
         }
       }
       else 
@@ -1698,7 +1618,7 @@ namespace xios {
           int iend = ibegin + ni -1;
           int jend = jbegin + nj -1;
           zoom_ibegin = global_zoom_ibegin > ibegin ? global_zoom_ibegin : ibegin;
-          int zoom_iend   = global_zoom_iend < iend ? zoom_iend : iend ;
+          int zoom_iend  = global_zoom_iend < iend ? zoom_iend : iend ;
           zoom_ni     = zoom_iend-zoom_ibegin+1 ;
 
           zoom_jbegin = global_zoom_jbegin > jbegin ? global_zoom_jbegin : jbegin ;
@@ -1706,35 +1626,6 @@ namespace xios {
           zoom_nj     = zoom_jend-zoom_jbegin+1;
       }
 
-      // if (globalLocalIndexZoomMap_.empty())
-      // {
-      //   int nbIndexZoom = globalIndexDomainZoom.numElements();
-      //   for (i = 0; i < nbIndex; ++i)
-      //     globalLocalIndexZoomMap_[globalIndexDomainZoom(i)] = i;
-      // }
-
-
-      // CArray<int,1> globalIndexWrittenDomain(globalIndexWrittenCount);
-      // if (isCompressible_)
-      // {
-      //   globalIndexWrittenCount = 0;
-      //   for (i = 0; i < data_i_index.numElements(); ++i)
-      //   {
-      //     i_ind = CDistributionClient::getDomainIndex(data_i_index(i), data_j_index(i),
-      //                                                 data_ibegin, data_jbegin, data_dim, ni,
-      //                                                 j_ind);
-      //     if (i_ind >= 0 && i_ind < ni && j_ind >= 0 && j_ind < nj && mask_1d(i_ind + j_ind * ni))
-      //     {
-      //       i_ind += ibegin;
-      //       j_ind += jbegin;
-      //       if (i_ind >= global_zoom_ibegin && i_ind <= global_zoom_iend && j_ind >= global_zoom_jbegin && j_ind <= global_zoom_jend)
-      //       {
-      //         globalIndexWrittenDomain(globalIndexWrittenCount) = i_ind + j_ind * ni_glo;
-      //         ++globalIndexWrittenCount;
-      //       }
-      //     }
-      //   }
-      // }
 
       size_t globalSizeIndex = 1, indexBegin, indexEnd;
       int range, clientSize = client->clientSize;
@@ -1771,36 +1662,6 @@ namespace xios {
 
       CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
                                                            ite = globalIndexDomainOnServer.end();
-      // typedef XIOSBinarySearchWithIndex<size_t> BinarySearch;
-      // std::vector<int>::iterator itVec;
-
-      // indSrv_.clear();
-      // indWrittenSrv_.clear();
-      // for (; it != ite; ++it)
-      // {
-      //   int rank = it->first;
-      //   int indexSize = it->second.size();
-      //   std::vector<int> permutIndex(indexSize);
-      //   XIOSAlgorithms::fillInIndex(indexSize, permutIndex);
-      //   XIOSAlgorithms::sortWithIndex<size_t, CVectorStorage>(it->second, permutIndex);
-      //   BinarySearch binSearch(it->second);
-      //   int nb = globalIndexDomainZoom.numElements();
-      //   for (int i = 0; i < nb; ++i)
-      //   {
-      //     if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexDomainZoom(i), itVec))
-      //     {
-      //       indSrv_[rank].push_back(localIndexDomainZoom(i));
-      //     }
-      //   }
-      //   for (int i = 0; i < globalIndexWrittenDomain.numElements(); ++i)
-      //   {
-      //     if (binSearch.search(permutIndex.begin(), permutIndex.end(), globalIndexWrittenDomain(i), itVec))
-      //     {
-      //       indWrittenSrv_[rank].push_back(globalIndexWrittenDomain(i));
-      //     }
-      //   }
-      // }
-
       connectedServerRank_.clear();
       for (it = globalIndexDomainOnServer.begin(); it != ite; ++it) {
         connectedServerRank_.push_back(it->first);
@@ -1822,11 +1683,11 @@ namespace xios {
     }
   }
 
-  const boost::unordered_map<int, vector<size_t> >& CDomain::getIndexServer() const
-  {
-    return indSrv_;
-  }
-
+   /*!
+     Compute index to write data. We only write data on the zoomed region, therefore, there should
+     be a map between the complete grid and the reduced grid where we write data.
+     By using global index we can easily create this kind of mapping.
+   */
    void CDomain::computeWrittenIndex()
    {  
       if (computedWrittenIndex_) return;
@@ -1975,18 +1836,6 @@ namespace xios {
         list_msgsIndex.back() << isCurvilinear;
         list_msgsIndex.back() << list_indGlob.back(); //list_indi.back() << list_indj.back();
        
-        // if (isCompressible_)
-        // {
-        //   std::vector<int>& writtenIndSrc = indWrittenSrv_[rank];
-        //   list_writtenInd.push_back(CArray<int,1>(writtenIndSrc.size()));
-        //   CArray<int,1>& writtenInd = list_writtenInd.back();
-
-        //   for (n = 0; n < writtenInd.numElements(); ++n)
-        //     writtenInd(n) = writtenIndSrc[n];
-
-        //   list_msgsIndex.back() << writtenInd;
-        // }
-
         eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
       }
 
@@ -1996,7 +1845,8 @@ namespace xios {
 
   /*!
     Send global index and zoom index from client to connected client(s)
-    zoom index can be smaller than global index
+    zoom index can be smaller than global index.
+    This function can be used in the future???
   */
   void CDomain::sendIndexZoom()
   {
@@ -2099,7 +1949,7 @@ namespace xios {
   }
 
   /*!
-    Send mask index from client to connected(s)
+    Send mask index from client to connected(s) clients    
   */
   void CDomain::sendMask()
   {
@@ -2195,7 +2045,7 @@ namespace xios {
 
   /*!
     Send longitude and latitude from client to servers
-    Each client send long and lat information to corresponding connected server(s).
+    Each client send long and lat information to corresponding connected clients(s).
     Because longitude and latitude are optional, this function only called if latitude and longitude exist
   */
   void CDomain::sendLonLat()
@@ -2294,6 +2144,7 @@ namespace xios {
     Send data index to corresponding connected clients.
     Data index can be compressed however, we always send decompressed data index
     and they will be compressed on receiving.
+    The compressed index are represented with 1 and others are represented with -1
   */
   void CDomain::sendDataIndex()
   {
@@ -2430,21 +2281,11 @@ namespace xios {
       rankBuffers[it->rank] = buffer;        
     }
     get(domainId)->recvIndex(rankBuffers);
-
-    // if (domain->isCompressible_)
-    // {
-    //   std::sort(domain->indexesToWrite.begin(), domain->indexesToWrite.end());
-
-    //   CContextServer* server = CContext::getCurrent()->server;
-    //   domain->numberWrittenIndexes_ = domain->indexesToWrite.size();
-    //   MPI_Allreduce(&domain->numberWrittenIndexes_, &domain->totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-    //   MPI_Scan(&domain->numberWrittenIndexes_, &domain->offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-    //   domain->offsetWrittenIndexes_ -= domain->numberWrittenIndexes_;
-    // }
   }
 
   /*!
-    Receive index information from client(s)
+    Receive index information from client(s). We use the global index for mapping index between
+    sending clients and receiving clients.
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvIndex(std::map<int, CBufferIn*>& rankBuffers)
@@ -2483,82 +2324,7 @@ namespace xios {
          globalLocalIndexMap_[index] = nbIndGlob;  
          ++nbIndGlob;
       } 
-    }   
-    
-    // {
-    //   CContextServer* server = CContext::getCurrent()->server;
-    //   count_write_index_.resize(2);
-    //   start_write_index_.resize(2);
-    //   local_write_size_.resize(2);
-    //   global_write_size_.resize(2);
-    //   if ((this->type) == CDomain::type_attr::unstructured)
-    //   {
-    //     count_write_index_[0] = zoom_i_index.numElements();
-    //     count_write_index_[1] = 0;
-    //   }
-    //   else
-    //   {
-    //     int ni_zoom = zoom_i_index.numElements(), idx, nbIZoom = 0, nbJZoom = 0;
-    //     for (idx =0; idx < ni_zoom; ++idx)
-    //     {
-    //        if ((ibegin <= zoom_i_index(idx)) && (zoom_i_index(idx) < ibegin+ni) && (nbIZoom < ni))
-    //         ++nbIZoom;
-    //        if ((jbegin <= zoom_j_index(idx)) && (zoom_j_index(idx) < jbegin+nj) && (nbJZoom < nj))
-    //         ++nbJZoom;
-    //     }
-    //     count_write_index_[0] = nbIZoom;
-    //     count_write_index_[1] = nbJZoom;
-
-    //     // Reoder the zoom_index
-    //     for (int j = 0; j < nbJZoom; ++j)
-    //       for (int i = 0; i < nbIZoom; ++i)
-    //       {
-    //         idx = nbIZoom * j + i;
-    //         if (idx < ni_zoom)
-    //         {
-    //           zoom_i_index(idx) = ibegin + i;
-    //           zoom_j_index(idx) = jbegin + j;
-    //         }
-    //       }  
-
-    //     // Reorder the global index
-    //     for (int j = 0; j < nj; ++j)
-    //       for (int i = 0; i < ni; ++i)
-    //       {
-    //         idx = ni * j + i;
-    //         if (idx < nbIndGlob)
-    //         {
-    //           i_index(idx) = ibegin + i;
-    //           j_index(idx) = jbegin + j;
-    //         }
-    //       }         
-    //   }
-
-            
-    //   MPI_Scan(&count_write_index_[0], &start_write_index_[0], 2, MPI_INT, MPI_SUM, server->intraComm);      
-    //   start_write_index_[0] = 0; 
-    //   start_write_index_[1] -= count_write_index_[1];
-    //   local_write_size_[0] = count_write_index_[0];
-    //   local_write_size_[1] = count_write_index_[1];
-    //   MPI_Allreduce(&count_write_index_[0], &global_write_size_[0], 2, MPI_INT, MPI_SUM, server->intraComm);
-    //   global_write_size_[0] = count_write_index_[0];
-    //   global_write_size_[1] = (global_write_size_[1] > nj_glo) ? nj_glo : global_write_size_[1];
-         
-
-    // }
-
-    // int type_int;
-    // buffer >> type_int >> isCurvilinear >> indiSrv[rank] >> indjSrv[rank];
-    // type.setValue((type_attr::t_enum)type_int); // probleme des type enum avec les buffers : ToFix
-
-    // if (isCompressible_)
-    // {
-    //   CArray<int, 1> writtenIndexes;
-    //   buffer >> writtenIndexes;
-    //   indexesToWrite.reserve(indexesToWrite.size() + writtenIndexes.numElements());
-    //   for (int i = 0; i < writtenIndexes.numElements(); ++i)
-    //     indexesToWrite.push_back(writtenIndexes(i));
-    // }
+    } 
   }
 
   /*!
@@ -2626,15 +2392,6 @@ namespace xios {
     else 
     {
     }
-
-    // globalLocalIndexZoomMap_.rehash(std::ceil(nbZoomInd/globalLocalIndexZoomMap_.max_load_factor()));
-    // nbZoomInd = 0;
-    // for (int j = 0; j < zoom_nj; ++j) 
-    //   for (int i = 0; i < zoom_ni; ++i)
-    //   {
-    //     globalLocalIndexZoomMap_[(i + zoom_ibegin) + (j + zoom_jbegin) * ni_glo] = nbZoomInd;
-    //     ++nbZoomInd;
-    //   }
   }
 
   /*!
@@ -3003,17 +2760,6 @@ namespace xios {
       rankBuffers[it->rank] = buffer;        
     }
     get(domainId)->recvDataIndex(rankBuffers);
-
-    // if (domain->isCompressible_)
-    // {
-    //   std::sort(domain->indexesToWrite.begin(), domain->indexesToWrite.end());
-
-    //   CContextServer* server = CContext::getCurrent()->server;
-    //   domain->numberWrittenIndexes_ = domain->indexesToWrite.size();
-    //   MPI_Allreduce(&domain->numberWrittenIndexes_, &domain->totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-    //   MPI_Scan(&domain->numberWrittenIndexes_, &domain->offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-    //   domain->offsetWrittenIndexes_ -= domain->numberWrittenIndexes_;
-    // }
   }
 
   /*!

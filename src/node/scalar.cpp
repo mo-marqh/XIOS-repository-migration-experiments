@@ -85,20 +85,6 @@ namespace xios {
     return transformationMap_;
   }
 
-  /*!
-    Check the validity of all transformations applied on scalar
-  This functions is called AFTER all inherited attributes are solved
-  */
-  void CScalar::checkTransformations()
-  {
-    TransMapTypes::const_iterator itb = transformationMap_.begin(), it,
-                                  ite = transformationMap_.end();
-//    for (it = itb; it != ite; ++it)
-//    {
-//      (it->second)->checkValid(this);
-//    }
-  }
-
   void CScalar::duplicateTransformation(CScalar* src)
   {
     if (src->hasTransformation())

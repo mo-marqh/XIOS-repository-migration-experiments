@@ -169,18 +169,15 @@ namespace xios {
         virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
 
         CVariable* addVariable(const string& id = "");
-        CVariableGroup* addVariableGroup(const string& id = "");
-        void sendAddVariable(const string& id = "");
+        CVariableGroup* addVariableGroup(const string& id = "");        
         void sendAddVariable(const string& id, CContextClient* client);
-        void sendAddVariableGroup(const string& id = "");
+        void sendAddVariableGroup(const string& id, CContextClient* client);
         static void recvAddVariable(CEventServer& event);
         void recvAddVariable(CBufferIn& buffer);
         static void recvAddVariableGroup(CEventServer& event);
-        void recvAddVariableGroup(CBufferIn& buffer);
-        void sendAddAllVariables();
+        void recvAddVariableGroup(CBufferIn& buffer);        
         void sendAddAllVariables(CContextClient* client);
         void writeUpdateData(const CArray<double,1>& data);
-
 
         const std::vector<StdString>& getRefDomainAxisIds();
 
@@ -205,7 +202,7 @@ namespace xios {
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
-         map<int, CArray<double,1> > data_srv;
+         // map<int, CArray<double,1> > data_srv;
          CArray<double,1> recvDataSrv;
          
          boost::shared_ptr<func::CFunctor> recvFoperationSrv;

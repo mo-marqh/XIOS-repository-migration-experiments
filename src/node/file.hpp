@@ -122,20 +122,14 @@ namespace xios {
          void setContextClient(CContextClient* newContextClient);
          CContextClient* getContextClient();
 
-         // Send info to server
-         void sendEnabledFields();
-         void sendEnabledFields(CContextClient* client);
-         void sendAddField(const string& id = "");
-         void sendAddField(const string& id, CContextClient* client);
-         void sendAddFieldGroup(const string& id = "");
-         void sendAddFieldGroup(const string& id, CContextClient* client);
-         void sendAddAllVariables();                        // to be removed (?)
-         void sendAddAllVariables(CContextClient* client);
-         void sendAddVariable(const string& id = "");         // to be removed (?)
+         // Send info to server         
+         void sendEnabledFields(CContextClient* client);         
+         void sendAddField(const string& id, CContextClient* client);         
+         void sendAddFieldGroup(const string& id, CContextClient* client);                           
          void sendAddVariable(const string& id, CContextClient* client);
-         void sendAddVariableGroup(const string& id = "");
          void sendAddVariableGroup(const string& id, CContextClient* client);
-
+         void sendAddAllVariables(CContextClient* client);
+         
          // Receive info from client
          static void recvAddField(CEventServer& event);
          void recvAddField(CBufferIn& buffer);

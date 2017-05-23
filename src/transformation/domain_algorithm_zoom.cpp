@@ -131,26 +131,26 @@ void CDomainAlgorithmZoom::updateZoom()
   Because only zoomed region on domain is not masked, the remaining must be masked to make sure
 correct index be extracted
 */
-void CDomainAlgorithmZoom::updateDomainDestinationMask()
-{
-  int niMask     = domainDest_->ni.getValue();
-  int iBeginMask = domainDest_->ibegin.getValue();
-  int njMask     = domainDest_->nj.getValue();
-  int jBeginMask = domainDest_->jbegin.getValue();
-  int niGlob = domainDest_->ni_glo.getValue();
-  int globalIndexMask = 0;
+// void CDomainAlgorithmZoom::updateDomainDestinationMask()
+// {
+//   int niMask     = domainDest_->ni.getValue();
+//   int iBeginMask = domainDest_->ibegin.getValue();
+//   int njMask     = domainDest_->nj.getValue();
+//   int jBeginMask = domainDest_->jbegin.getValue();
+//   int niGlob = domainDest_->ni_glo.getValue();
+//   int globalIndexMask = 0;
 
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationIndexMap::const_iterator ite = (transMap).end();
-  for (int j = 0; j < njMask; ++j)
-  {
-    for (int i = 0; i < niMask; ++i)
-    {
-      globalIndexMask = (j+jBeginMask) * niGlob + (i + iBeginMask);
-      if (transMap.find(globalIndexMask) == ite)
-        (domainDest_->mask_1d)(i+j*niMask) = false;
-    }
-  }
-}
+//   TransformationIndexMap& transMap = this->transformationMapping_[0];
+//   TransformationIndexMap::const_iterator ite = (transMap).end();
+//   for (int j = 0; j < njMask; ++j)
+//   {
+//     for (int i = 0; i < niMask; ++i)
+//     {
+//       globalIndexMask = (j+jBeginMask) * niGlob + (i + iBeginMask);
+//       if (transMap.find(globalIndexMask) == ite)
+//         (domainDest_->mask_1d)(i+j*niMask) = false;
+//     }
+//   }
+// }
 
 }

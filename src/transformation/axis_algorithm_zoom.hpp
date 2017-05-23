@@ -34,7 +34,7 @@ protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 private:
-  void updateAxisDestinationMask();
+  // void updateAxisDestinationMask();
   void updateZoom();
 
 private:

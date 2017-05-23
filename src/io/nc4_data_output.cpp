@@ -1377,19 +1377,10 @@ namespace xios
 
              if (i != 0) compress << ' ';
            }
-           SuperClassWriter::addAttribute("compress", compress.str(), &varId);
-
-           // grid->computeCompressedIndex();
+           SuperClassWriter::addAttribute("compress", compress.str(), &varId);         
 
            CArray<int, 1> indexes(grid->getNumberWrittenIndexes());
            indexes = grid->localIndexToWriteOnServer;
-           // std::map<int, CArray<size_t, 1> >::const_iterator it;
-           // for (it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-           // {
-           //   const CArray<size_t, 1> compressedIndexes = grid->compressedOutIndexFromClient[it->first];
-           //   for (int i = 0; i < it->second.numElements(); i++)
-           //     indexes(compressedIndexes(i)) = it->second(i);
-           // }
 
            switch (SuperClass::type)
            {
@@ -1446,11 +1437,6 @@ namespace xios
                    break;
                }
 
-               // const std::vector<int>& indexesToWrite = domain->getIndexesToWrite();
-               // indexes.resize(indexesToWrite.size());
-               // for (int n = 0; n < indexes.numElements(); ++n)
-               //   indexes(n) = indexesToWrite[n];
-
                indexes.resize(domain->compressedIndexToWriteOnServer.numElements());
                indexes = domain->compressedIndexToWriteOnServer;
 
@@ -1476,11 +1462,6 @@ namespace xios
 
                varId = axisId + "_points";
                compress = axisId;
-
-               // const std::vector<int>& indexesToWrite = axis->getIndexesToWrite();
-               // indexes.resize(indexesToWrite.size());
-               // for (int n = 0; n < indexes.numElements(); ++n)
-               //   indexes(n) = indexesToWrite[n];
 
                indexes.resize(axis->compressedIndexToWriteOnServer.numElements());
                indexes = axis->compressedIndexToWriteOnServer;
@@ -1528,10 +1509,7 @@ namespace xios
                  }
                }
              }
-           }
-
-           // if (!dims.empty())
-           //   grid->computeCompressedIndex();
+            }
          }
 
          grid->addRelFileCompressed(this->filename);

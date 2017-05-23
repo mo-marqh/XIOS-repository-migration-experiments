@@ -103,19 +103,19 @@ void CAxisAlgorithmZoom::updateZoom()
   Because only zoomed region on axis is not masked, the remaining must be masked to make sure
 correct index be extracted
 */
-void CAxisAlgorithmZoom::updateAxisDestinationMask()
-{
-  StdSize niMask = axisDest_->mask.numElements();
-  StdSize iBeginMask = axisDest_->begin.getValue();
-  StdSize globalIndexMask = 0;
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationIndexMap::const_iterator ite = (transMap).end();
-  for (StdSize idx = 0; idx < niMask; ++idx)
-  {
-    globalIndexMask = iBeginMask + idx;
-    if (transMap.find(globalIndexMask) == ite)
-      (axisDest_->mask)(idx) = false;
-  }
-}
+// void CAxisAlgorithmZoom::updateAxisDestinationMask()
+// {
+//   StdSize niMask = axisDest_->mask.numElements();
+//   StdSize iBeginMask = axisDest_->begin.getValue();
+//   StdSize globalIndexMask = 0;
+//   TransformationIndexMap& transMap = this->transformationMapping_[0];
+//   TransformationIndexMap::const_iterator ite = (transMap).end();
+//   for (StdSize idx = 0; idx < niMask; ++idx)
+//   {
+//     globalIndexMask = iBeginMask + idx;
+//     if (transMap.find(globalIndexMask) == ite)
+//       (axisDest_->mask)(idx) = false;
+//   }
+// }
 
 }

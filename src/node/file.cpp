@@ -615,12 +615,6 @@ namespace xios {
      if (enabledFields.empty()) return;
 
      // Just check file and try to open it
-     CContext* context = CContext::getCurrent();
-     // CContextClient* client=context->client;
-     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
-
-     // It would probably be better to call initFile() somehow
-     // MPI_Comm_dup(client->intraComm, &fileComm);
      if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
 
      checkReadFile();
@@ -718,8 +712,6 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
-       // this->enabledFields[i]->solveAllEnabledFields();
-//       this->enabledFields[i]->buildGridTransformationGraph();
      }
    }
 
@@ -762,8 +754,7 @@ namespace xios {
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-     {
-       // this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
+     {       
       this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
      }
    }
@@ -885,23 +876,9 @@ namespace xios {
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server
    */
-   void CFile::sendAddField(const string& id)
-   {
-      sendAddItem(id, EVENT_ID_ADD_FIELD);
-   }
-
    void CFile::sendAddField(const string& id, CContextClient* client)
    {
       sendAddItem(id, EVENT_ID_ADD_FIELD, client);
-   }
-
-   /*!
-   \brief Send a message to create a field group on server side
-   \param[in] id String identity of field group that will be created on server
-   */
-   void CFile::sendAddFieldGroup(const string& id)
-   {
-      sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP);
    }
 
    /*!
@@ -967,20 +944,6 @@ namespace xios {
    all these attributes on server side. Because variable can have a value, the second thing
    is to duplicate this value on server, too.
    */
-   void CFile::sendAddAllVariables()
-   {
-     std::vector<CVariable*> allVar = getAllVariables();
-     std::vector<CVariable*>::const_iterator it = allVar.begin();
-     std::vector<CVariable*>::const_iterator itE = allVar.end();
-
-     for (; it != itE; ++it)
-     {
-       this->sendAddVariable((*it)->getId());
-       (*it)->sendAllAttributesToServer();
-       (*it)->sendValue();
-     }
-   }
-
    void CFile::sendAddAllVariables(CContextClient* client)
    {
      std::vector<CVariable*> allVar = getAllVariables();
@@ -998,30 +961,11 @@ namespace xios {
    /*!
    \brief Send a message to create a variable group on server side
    \param[in] id String identity of variable group that will be created on server
-   */
-   void CFile::sendAddVariableGroup(const string& id)
-   {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
-   }
-
-   /*!
-   \brief Send a message to create a variable group on server side
-   \param[in] id String identity of variable group that will be created on server
    \param [in] client client to which we will send this adding action
    */
    void CFile::sendAddVariableGroup(const string& id, CContextClient* client)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
-   }
-
-   /*!
-   \brief Send a message to create a variable on server side
-      A variable always belongs to a variable group
-   \param[in] id String identity of variable that will be created on server
-   */
-   void CFile::sendAddVariable(const string& id)
-   {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
    }
 
    /*

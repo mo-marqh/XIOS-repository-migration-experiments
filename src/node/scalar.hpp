@@ -80,8 +80,7 @@ namespace xios
            std::set<StdString> relFiles;
 
          private:
-            TransMapTypes transformationMap_;
-            void checkTransformations();
+            TransMapTypes transformationMap_;            
             void setTransformations(const TransMapTypes&);
 
        private:

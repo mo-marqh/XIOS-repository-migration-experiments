@@ -171,64 +171,10 @@ namespace xios{
           event.push(rank, grid->nbSenders[0][rank], list_msg.back());
         }
         client->sendEvent(event);
-      }
-    // }
+      }    
 
     CTimer::get("XIOS Send Data").suspend();
   }
-
-  // void CField::sendUpdateData(const CArray<double,1>& data, CContextClient* client)
-  // {
-  //   CTimer::get("XIOS Send Data").resume();
-
-  //   CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
-
-  //   map<int, CArray<int,1> >::iterator it;
-  //   list<CMessage> list_msg;
-  //   list<CArray<double,1> > list_data;
-
-  //   if (!grid->doGridHaveDataDistributed())
-  //   {
-  //      if (client->isServerLeader())
-  //      {
-  //         for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
-  //         {
-  //           int rank = it->first;
-  //           CArray<int,1>& index = it->second;
-
-  //           list_msg.push_back(CMessage());
-  //           list_data.push_back(CArray<double,1>(index.numElements()));
-
-  //           CArray<double,1>& data_tmp = list_data.back();
-  //           for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
-
-  //           list_msg.back() << getId() << data_tmp;
-  //           event.push(rank, 1, list_msg.back());
-  //         }
-  //         client->sendEvent(event);
-  //      }
-  //      else client->sendEvent(event);
-  //   }
-  //   else
-  //   {
-  //     for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
-  //     {
-  //       int rank = it->first;
-  //       CArray<int,1>& index = it->second;
-
-  //       list_msg.push_back(CMessage());
-  //       list_data.push_back(CArray<double,1>(index.numElements()));
-
-  //       CArray<double,1>& data_tmp = list_data.back();
-  //       for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
-
-  //       list_msg.back() << getId() << data_tmp;
-  //       event.push(rank, grid->nbSenders[rank], list_msg.back());
-  //     }
-  //     client->sendEvent(event);
-  //   }
-  //   CTimer::get("XIOS Send Data").suspend();
-  // }
 
   void CField::recvUpdateData(CEventServer& event)
   {
@@ -387,7 +333,6 @@ namespace xios{
   void CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
-//    CContextClient* client = context->client;
     CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
 
@@ -685,7 +630,6 @@ namespace xios{
    {
      CContext* context = CContext::getCurrent();
      if (context->hasClient && !context->hasServer)
-//     if (context->hasClient)
      {
        if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        {
@@ -701,7 +645,6 @@ namespace xios{
    {
      CContext* context = CContext::getCurrent();
      if (context->hasClient && !context->hasServer)
-//     if (context->hasClient)
      {
        std::map<CGrid*,std::pair<bool,StdString> >& gridSrcMap = grid->getTransGridSource();
        if (1 < gridSrcMap.size())
@@ -839,19 +782,17 @@ namespace xios{
         isReferenceSolved = true;
 
         if (context->hasClient && !context->hasServer)
-//        if (context->hasClient)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveOnlyReferenceEnabledField(false);
         }
-//        else if (context->hasServer)
+
         if (context->hasServer)
           solveServerOperation();
 
         solveGridReference();
 
         if (context->hasClient && !context->hasServer)
-//       if (context->hasClient)
        {
          solveGenerateGrid();
          buildGridTransformationGraph();
@@ -867,15 +808,13 @@ namespace xios{
      if (!areAllReferenceSolved)
      {
         areAllReferenceSolved = true;
-
-       // if (context->hasClient)
+       
         if (context->hasClient && !context->hasServer)
         {
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
-       else if (context->hasServer)
-        // if (context->hasServer && !context->hasClient)
+       else if (context->hasServer)        
           solveServerOperation();
 
         solveGridReference();
@@ -958,8 +897,7 @@ namespace xios{
     *                     read by the client or/and written to a file
     */
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
-   {
-     // if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
+   {     
     if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
      CContext* context = CContext::getCurrent();
      bool hasWriterServer = context->hasServer && !context->hasClient;
@@ -1366,15 +1304,11 @@ namespace xios{
 
    void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
    {
-     // map<int, CArray<double,1> >::iterator it;
-     // for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = (it->second - addOffset) / scaleFactor;
      recvDataSrv = (recvDataSrv - addOffset) / scaleFactor;
    }
 
    void CField::invertScaleFactorAddOffset(double scaleFactor, double addOffset)
    {
-     // map<int, CArray<double,1> >::iterator it;
-     // for (it = data_srv.begin(); it != data_srv.end(); it++) it->second = it->second * scaleFactor + addOffset;
      recvDataSrv = recvDataSrv * scaleFactor + addOffset;
    }
 
@@ -1401,13 +1335,6 @@ namespace xios{
 
    void CField::outputCompressedField(CArray<double,1>& fieldOut)
    {
-      // map<int, CArray<double,1> >::iterator it;
-
-      // for (it = data_srv.begin(); it != data_srv.end(); it++)
-      // {
-      //    grid->outputCompressedField(it->first, it->second, fieldOut.dataFirst());
-      // }
-
       CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
       CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
       for (size_t idx = 0; idx < outIndexServer.numElements(); ++idx)
@@ -1479,20 +1406,6 @@ namespace xios{
      return vVariableGroup->createChildGroup(id);
    }
 
-   void CField::sendAddAllVariables()
-   {
-     std::vector<CVariable*> allVar = getAllVariables();
-     std::vector<CVariable*>::const_iterator it = allVar.begin();
-     std::vector<CVariable*>::const_iterator itE = allVar.end();
-
-     for (; it != itE; ++it)
-     {
-       this->sendAddVariable((*it)->getId());
-       (*it)->sendAllAttributesToServer();
-       (*it)->sendValue();
-     }
-   }
-
    void CField::sendAddAllVariables(CContextClient* client)
    {
      std::vector<CVariable*> allVar = getAllVariables();
@@ -1507,19 +1420,14 @@ namespace xios{
      }
    }
 
-   void CField::sendAddVariable(const string& id)
-   {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE);
-   }
-
    void CField::sendAddVariable(const string& id, CContextClient* client)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
    }
 
-   void CField::sendAddVariableGroup(const string& id)
+   void CField::sendAddVariableGroup(const string& id, CContextClient* client)
    {
-      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP);
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
    }
 
    void CField::recvAddVariable(CEventServer& event)

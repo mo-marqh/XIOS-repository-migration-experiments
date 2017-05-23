@@ -44,8 +44,7 @@ namespace xios {
       public :
          enum EEventId
          {
-           EVENT_ID_DISTRIBUTION_ATTRIBUTE,
-           EVENT_ID_INDEX,
+           EVENT_ID_DISTRIBUTION_ATTRIBUTE,           
            EVENT_ID_DISTRIBUTED_VALUE,
            EVENT_ID_NON_DISTRIBUTED_VALUE,
            EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES,
@@ -68,11 +67,7 @@ namespace xios {
          CAxis(const CAxis * const axis); // Not implemented yet.
 
          static CAxis* createAxis();
-
-         /// Accesseurs ///
-         const std::set<StdString> & getRelFiles(void) const;
-
-         const std::vector<int>& getIndexesToWrite(void) const;
+     
          int getNumberWrittenIndexes() const;
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
@@ -116,8 +111,7 @@ namespace xios {
          void computeWrittenIndex();
          bool hasTransformation();
          void solveInheritanceTransformation();
-         TransMapTypes getAllTransformations();
-         void fillInValues(const CArray<double,1>& values);
+         TransMapTypes getAllTransformations();         
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
 

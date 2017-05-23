@@ -525,19 +525,13 @@ namespace xios {
 
    void CContext::postProcessingGlobalAttributes()
    {
-     if (allProcessed) return;
+     if (allProcessed) return;  
      
-     // if (hasClient)
-     // {
-       // After xml is parsed, there are some more works with post processing
-       postProcessing();
+     // After xml is parsed, there are some more works with post processing
+     postProcessing();
 
-       // Check grid and calculate its distribution
-       checkGridEnabledFields();
-
-     //}
-
-
+     // Check grid and calculate its distribution
+     checkGridEnabledFields();    
 
      setClientServerBuffer();
 
@@ -564,6 +558,7 @@ namespace xios {
 
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
+
        sendGridEnabledFields();       
      }
      allProcessed = true;
@@ -604,8 +599,7 @@ namespace xios {
    }
 
    void CContext::recvPostProcessingGlobalAttributes(CBufferIn& buffer)
-   {
-      // CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
+   {      
       postProcessingGlobalAttributes();
    }
 
@@ -631,10 +625,8 @@ namespace xios {
     {
       buildFilterGraphOfFieldsWithReadAccess();
     }
-
-    // if (hasClient) this->solveAllRefOfEnabledFields(true);    
-    checkGridEnabledFields();
-    // sendGridEnabledFields();
+    
+    checkGridEnabledFields();    
 
     if (hasClient) this->sendProcessingGridOfEnabledFields();
     if (hasClient) this->sendCloseDefinition();
@@ -665,20 +657,6 @@ namespace xios {
    {
       for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
-   }
-
-   void CContext::solveAllEnabledFields()
-   {
-     int size = this->enabledFiles.size();
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->solveOnlyRefOfEnabledFields(false);
-     }
-
-     for (int i = 0; i < size; ++i)
-     {
-       this->enabledFiles[i]->generateNewTransformationGridDest();
-     }
    }
 
    void CContext::sendGridEnabledFields()
@@ -1061,8 +1039,7 @@ namespace xios {
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
-      *buffer>>id;
-      //get(id)->solveOnlyRefOfEnabledFields(false);
+      *buffer>>id;      
    }
 
    //! Client side: Send a message to do some post processing on server
@@ -1155,30 +1132,28 @@ namespace xios {
       checkAxisDomainsGridsEligibilityForCompressedOutput();      
 
       // Check if some automatic time series should be generated
-      // Warning: This must be done after solving the inheritance and before the rest of post-processing
-      // prepareTimeseries();
+      // Warning: This must be done after solving the inheritance and before the rest of post-processing      
 
       // The timeseries should only be prepared in client
       if (hasClient && !hasServer) prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
       this->findEnabledFiles();
-      // this->findEnabledReadModeFiles();
+      
       // For now, only read files with client and only one level server
       if (hasClient && !hasServer) this->findEnabledReadModeFiles();
-
 
       // Find all enabled fields of each file
       this->findAllEnabledFields();
       // For now, only read files with client and only one level server
       if (hasClient && !hasServer) this->findAllEnabledFieldsInReadModeFiles();
 
-//     if (hasClient)
-     if (hasClient && !hasServer)
-     {
-      // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
-      this->readAttributesOfEnabledFieldsInReadModeFiles();
-     }
+
+      if (hasClient && !hasServer)
+      {
+       // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
+       this->readAttributesOfEnabledFieldsInReadModeFiles();
+      }
 
       // Only search and rebuild all reference objects of enable fields, don't transform
       this->solveOnlyRefOfEnabledFields(false);

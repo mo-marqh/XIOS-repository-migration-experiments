@@ -90,16 +90,11 @@ namespace xios {
 
          StdSize  getDataSize(void) const;
 
-         /// Entrées-sorties de champs ///
+         /// Entrées-sorties de champs 
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
-         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;
-
-         void outputField(int rank, const CArray<double,1>& stored, double* field);
-         void inputField(int rank, const double* const field, CArray<double,1>& stored);
-
-         void outputCompressedField(int rank, const CArray<double,1>& stored, double* field);
+         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;      
 
          virtual void parse(xml::CXMLNode& node);
 
@@ -128,17 +123,10 @@ namespace xios {
          static StdString generateId(const CGrid* gridSrc, const CGrid* gridDest);
          static CGrid* cloneGrid(const StdString& idNewGrid, CGrid* gridSrc);
 
-      public:
-
-         /// Entrées-sorties de champs (interne) ///
-         void storeField_arr(const double* const data, CArray<double,1>& stored) const;
-         void restoreField_arr(const CArray<double,1>& stored, double* const data) const;
-
-         /// Traitements protégés ///
+      public:            
          void computeIndexServer(void);
          void computeIndex(void);
          void computeIndexScalarGrid();
-         void computeCompressedIndex();
          void computeWrittenIndex();
 
          void solveDomainRef(bool checkAtt);
@@ -187,7 +175,6 @@ namespace xios {
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
          bool isScalarGrid() const;
-         std::vector<int> getAxisPositionInGrid() const;
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed();
@@ -260,6 +247,9 @@ namespace xios {
 
         template<int N>
         void modifyGridMaskSize(CArray<bool,N>& gridMask, const std::vector<int>& eachDimSize, bool newValue);
+
+        void storeField_arr(const double* const data, CArray<double, 1>& stored) const;
+        void restoreField_arr(const CArray<double, 1>& stored, double* const data) const;
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);

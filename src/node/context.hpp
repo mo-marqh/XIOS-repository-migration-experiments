@@ -127,7 +127,6 @@ namespace xios {
          void postProcessingGlobalAttributes();         
 
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
-         void solveAllEnabledFields();
          void checkGridEnabledFields();
          void sendGridEnabledFields();
 
