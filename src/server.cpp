@@ -232,22 +232,32 @@ namespace xios
         MPI_Comm newComm ;
         int globalRank ;
         MPI_Comm_rank(CXios::globalComm,&globalRank);
+        if (rank_ == 0)
+          serverLeader_ = globalRank;
 
         for(it=splitted.begin();it!=splitted.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
 //        interComm.push_back(newComm) ;
           if ( !CXios::usingServer2)
+          {
             interCommLeft.push_back(newComm) ;
+            if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
+          }
           else
           {
             if (serverLevel == 1)
             {
-              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<size
-                       <<" intraCommRank :"<<rank_<<"  clientLeader "<< rank<<endl ;
-              MPI_Intercomm_create(intraComm, 0, localComm, rank, 0, &newComm) ;
-              interCommRight.push_back(newComm) ;
-
+              interCommLeft.push_back(newComm) ;
+              if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
+              for (int i = 0; i < nbPools; ++i)
+              {
+                int srvSndLeader = serverLeader_ + serverSize_ - nbPools + i;
+                info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<size
+                    <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvSndLeader<<endl ;
+                MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
+                interCommRight.push_back(newComm) ;
+              }
             }
             else if (serverLevel == 2)
             {
@@ -255,14 +265,9 @@ namespace xios
                        <<" intraCommRank :"<<rank_<<"  clientLeader "<< 0<<endl ;
               MPI_Intercomm_create(intraComm, 0, localComm, 0, 0, &newComm) ;
               interCommLeft.push_back(newComm) ;
-
             }
-
           }
-//          if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
 //          MPI_Comm_remote_size(newComm,&size);
-          // Send serverLeader to client
-          if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,interCommLeft.back()) ;
         }
 	      oasis_enddef() ;
       }
