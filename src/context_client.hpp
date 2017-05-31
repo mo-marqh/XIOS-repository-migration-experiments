@@ -104,12 +104,6 @@ namespace xios
       //! List of server ranks for which the client is not leader
       std::list<int> ranksServerNotLeader;
 
-    public: // Some function should be removed in the future
-      //    void registerEvent(CEventClient& event);
-//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes);
-//    bool locked;
-//    set<int> connectedServer;
-
   };
 }
 

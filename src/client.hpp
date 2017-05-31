@@ -17,7 +17,7 @@ namespace xios
         static MPI_Comm intraComm;
         static MPI_Comm interComm;
         static std::list<MPI_Comm> contextInterComms;
-        static vector<int> serverLeader;
+        static int serverLeader;
         static bool is_MPI_Initialized ;
 
         static MPI_Comm& getInterComm();
@@ -40,7 +40,7 @@ namespace xios
         static void closeErrorStream();
 
       protected:
-        static int rank;
+        static int rank_;                 //!< Rank in model intraComm
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

@@ -17,9 +17,9 @@ namespace xios
     MPI_Comm CClient::intraComm ;
     MPI_Comm CClient::interComm ;
     std::list<MPI_Comm> CClient::contextInterComms;
-    vector <int> CClient::serverLeader;
+    int CClient::serverLeader;
     bool CClient::is_MPI_Initialized ;
-    int CClient::rank = INVALID_RANK;
+    int CClient::rank_ = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
     StdOFStream CClient::m_errorStream;
 
@@ -65,7 +65,7 @@ namespace xios
           MPI_Comm newComm ;
 
           MPI_Comm_size(CXios::globalComm,&size) ;
-          MPI_Comm_rank(CXios::globalComm,&rank);
+          MPI_Comm_rank(CXios::globalComm,&rank_);
 
           hashAll=new unsigned long[size] ;
 
@@ -98,18 +98,19 @@ namespace xios
           }
 
           myColor=colors[hashClient] ;
-          MPI_Comm_split(CXios::globalComm,myColor,rank,&intraComm) ;
+          MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
 
           if (CXios::usingServer)
           {
             int clientLeader=leaders[hashClient] ;
-            serverLeader.push_back(leaders[hashServer]) ;
+            serverLeader=leaders[hashServer] ;
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm,&intraCommSize) ;
             MPI_Comm_rank(intraComm,&intraCommRank) ;
-            info(50)<<"intercommCreate::client "<<rank<<" intraCommSize : "<<intraCommSize
-                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader.back()<<endl ;
-             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader.back(), 0, &interComm) ;
+            info(50)<<"intercommCreate::client "<<rank_<<" intraCommSize : "<<intraCommSize
+                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
+             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader, 0, &interComm) ;
+             rank_ = intraCommRank;
           }
           else
           {
@@ -148,10 +149,10 @@ namespace xios
         if (CXios::usingServer)
         {
           MPI_Status status ;
-          MPI_Comm_rank(intraComm,&rank) ;
+          MPI_Comm_rank(intraComm,&rank_) ;
 
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
-          if (rank==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
+          if (rank_==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
 
         }
@@ -215,20 +216,17 @@ namespace xios
         CBufferOut buffer(buff,messageSize) ;
         buffer<<msg ;
 
-        for (int i = 0; i < serverLeader.size(); ++i)
-        {
-          MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader[i], 1, CXios::globalComm) ;
-          MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader[i], 10+globalRank, &contextInterComm) ;
-          info(10)<<"Register new Context : "<<id<<endl ;
-          MPI_Comm inter ;
-          MPI_Intercomm_merge(contextInterComm,0,&inter) ;
-          MPI_Barrier(inter) ;
+        MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader, 1, CXios::globalComm) ;
+        MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader, 10+globalRank, &contextInterComm) ;
+        info(10)<<"Register new Context : "<<id<<endl ;
+        MPI_Comm inter ;
+        MPI_Intercomm_merge(contextInterComm,0,&inter) ;
+        MPI_Barrier(inter) ;
 
-          context->initClient(contextComm,contextInterComm) ;
+        context->initClient(contextComm,contextInterComm) ;
 
-          contextInterComms.push_back(contextInterComm);
-          MPI_Comm_free(&inter);
-        }
+        contextInterComms.push_back(contextInterComm);
+        MPI_Comm_free(&inter);
         delete [] buff ;
 
       }
@@ -275,10 +273,12 @@ namespace xios
 
    }
 
-
+    /*!
+    * Return rank in model intraComm
+    */
    int CClient::getRank()
    {
-     return rank;
+     return rank_;
    }
 
     /*!

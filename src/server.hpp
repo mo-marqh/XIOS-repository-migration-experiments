@@ -64,11 +64,11 @@ namespace xios
 
       private:
         static int rank_;
-        static int serverLeader_;  //!< Leader of the classical or primary server (needed in case of secondary servers)
-        static int serverSize_;    //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
-        static int nbPools;       //!< Number of secondary server pools
-        static int poolId;        //!< id of a secondary server pool starting from 1
-        static int nbContexts_;
+        static int serverLeader_;     //!< Leader of the classical or primary server (needed in case of secondary servers)
+        static int serverSize_;       //!< Number of procs dedicated to servers (primary and seconday (if any) combined)
+        static int nbPools;           //!< Number of secondary server pools
+        static int poolId;            //!< id of a secondary server pool starting from 1
+        static int nbContexts;        //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

@@ -27,7 +27,7 @@ namespace xios
     int CServer::serverSize_ = 0;
     int CServer::nbPools = 0;
     int CServer::poolId = 0;
-    int CServer::nbContexts_ = 0;
+    int CServer::nbContexts = 0;
     bool CServer::isRoot = false ;
     int CServer::rank_ = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
@@ -43,10 +43,10 @@ namespace xios
  * Creates intraComm for each possible type of servers (classical, primary or secondary).
  * In case of secondary servers intraComm is created for each secondary server pool.
  * (For now the assumption is that there is one proc per pool.)
- * Creates the following lists of interComms:
+ * Creates interComm and stores them into the following lists:
  *   classical server -- interCommLeft
  *   primary server -- interCommLeft and interCommRight
- *   secondary server -- interComm for each pool.
+ *   secondary server -- interCommLeft for each pool.
  */
     void CServer::initialize(void)
     {
@@ -84,7 +84,6 @@ namespace xios
 
         map<unsigned long, int> colors ;
         map<unsigned long, int> leaders ;
-        map<unsigned long, int> lastProcesses ;  // needed in case of two server levels
         map<unsigned long, int>::iterator it ;
 
         int nbSrv = 0;
@@ -96,9 +95,7 @@ namespace xios
             leaders[hashAll[i]]=i ;
             c++ ;
           }
-          if (hashAll[i] == hashServer) ++nbSrv;
-          //if (hashAll[i+1] != hashAll[i])  // Potential bug here!
-          //  lastProcesses[hashAll[i]]=i ; // It seems that lastprocesses is only used for calculating the server size. Can we count server size directly?
+          if (hashAll[i] == hashServer) ++serverSize_;
         }
 
         // Setting the number of secondary pools
@@ -106,8 +103,6 @@ namespace xios
         if (CXios::usingServer2)
         {
           int serverRank = rank_ - leaders[hashServer]; // server proc rank starting 0
-          serverSize_ = nbSrv; //lastProcesses[hashServer] - leaders[hashServer] + 1;
-//          serverSize_ = lastProcesses - leaders[hashServer];
           nbPools = serverSize_ * CXios::ratioServer2 / 100;
           if ( serverRank < (serverSize_ - nbPools) )
           {
@@ -323,6 +318,7 @@ namespace xios
          if (isRoot)
          {
            listenContext();
+           listenRootContext();
            if (!finished) listenFinalize() ;
          }
          else
@@ -466,15 +462,30 @@ namespace xios
        {
          int size ;
          MPI_Comm_size(intraComm,&size) ;
-         MPI_Request* requests= new MPI_Request[size-1] ;
-         MPI_Status* status= new MPI_Status[size-1] ;
+//         MPI_Request* requests= new MPI_Request[size-1] ;
+//         MPI_Status* status= new MPI_Status[size-1] ;
+         MPI_Request* requests= new MPI_Request[size] ;
+         MPI_Status* status= new MPI_Status[size] ;
 
-         for(int i=1;i<size;i++)
+         CMessage msg ;
+         msg<<id<<it->second.leaderRank;
+         int messageSize=msg.size() ;
+         void * sendBuff = new char[messageSize] ;
+         CBufferOut sendBuffer(sendBuff,messageSize) ;
+         sendBuffer<<msg ;
+
+         // Include root itself in order not to have a divergence
+         for(int i=0; i<size; i++)
          {
-            MPI_Isend(buff,count,MPI_CHAR,i,2,intraComm,&requests[i-1]) ;
+           MPI_Isend(sendBuff,count,MPI_CHAR,i,2,intraComm,&requests[i]) ;
          }
-         MPI_Waitall(size-1,requests,status) ;
-         registerContext(buff,count,it->second.leaderRank) ;
+
+//         for(int i=1;i<size;i++)
+//         {
+//            MPI_Isend(buff,count,MPI_CHAR,i,2,intraComm,&requests[i-1]) ;
+//         }
+//         MPI_Waitall(size-1,requests,status) ;
+//         registerContext(buff,count,it->second.leaderRank) ;
 
          recvContextId.erase(it) ;
          delete [] requests ;
@@ -491,9 +502,13 @@ namespace xios
        static MPI_Request request ;
        static bool recept=false ;
        int rank ;
-       int count ;
+//       int count ;
+       static int count ;
        const int root=0 ;
+       boost::hash<string> hashString;
+       size_t hashId = hashString("RegisterContext");
 
+       // (1) Receive context id from the root
        if (recept==false)
        {
          traceOff() ;
@@ -507,16 +522,25 @@ namespace xios
            recept=true ;
          }
        }
+       // (2) If context id is received, save it into a buffer and register an event
        else
        {
          MPI_Test(&request,&flag,&status) ;
          if (flag==true)
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
-           registerContext(buffer,count) ;
-           delete [] buffer ;
+           eventScheduler->registerEvent(nbContexts,hashId);
+//           registerContext(buffer,count) ;
+//           delete [] buffer ;
            recept=false ;
          }
+       }
+       // (3) If event has been scheduled, call register context
+       if (eventScheduler->queryEvent(nbContexts,hashId))
+       {
+         registerContext(buffer,count) ;
+         ++nbContexts;
+         delete [] buffer ;
        }
      }
 
@@ -524,7 +548,8 @@ namespace xios
      {
        string contextId;
        CBufferIn buffer(buff, count);
-       buffer >> contextId;
+//       buffer >> contextId;
+       buffer >> contextId>>leaderRank;
        CContext* context;
 
        info(20) << "CServer : Register new Context : " << contextId << endl;
@@ -536,7 +561,9 @@ namespace xios
        context=CContext::create(contextId);
        contextList[contextId]=context;
 
-       // Primary or classical server: initialize its own server (CContextServer)
+       // Primary or classical server: create communication channel with a client
+       // (1) create interComm (with a client)
+       // (2) initialize client and server (contextClient and contextServer)
        MPI_Comm inter;
        if (serverLevel < 2)
        {
@@ -549,7 +576,12 @@ namespace xios
          contextInterComms.push_back(contextInterComm);
 
        }
-       // Secondary server: initialize its own server (CContextServer)
+       // Secondary server: create communication channel with a primary server
+       // (1) duplicate interComm with a primary server
+       // (2) initialize client and server (contextClient and contextServer)
+       // Remark: in the case of the secondary server there is no need to create an interComm calling MPI_Intercomm_create,
+       //         because interComm of CContext is defined on the same processes as the interComm of CServer.
+       //         So just duplicate it.
        else if (serverLevel == 2)
        {
          MPI_Comm_dup(interCommLeft.front(), &inter);
@@ -557,7 +589,9 @@ namespace xios
          context->initServer(intraComm, contextInterComms.back());
        }
 
-       // Primary server: send create context message to secondary servers and initialize its own client (CContextClient)
+       // Primary server:
+       // (1) send create context message to secondary servers
+       // (2) initialize communication channels with secondary servers (create contextClient and contextServer)
        if (serverLevel == 1)
        {
          int i = 0, size;
@@ -581,7 +615,6 @@ namespace xios
            context->initClient(contextIntraComms.back(), contextInterComms.back()) ;
            delete [] buff ;
          }
-         ++nbContexts_;
        }
      }
 
@@ -595,7 +628,6 @@ namespace xios
          isFinalized=it->second->isFinalized();
          if (isFinalized)
          {
-//           it->second->postFinalize();
            contextList.erase(it) ;
            break ;
          }
@@ -604,7 +636,7 @@ namespace xios
        }
      }
 
-     //! Get rank of the current process
+     //! Get rank of the current process in the intraComm
      int CServer::getRank()
      {
        return rank_;
