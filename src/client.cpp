@@ -40,6 +40,7 @@ namespace xios
       MPI_Initialized(&initialized) ;
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
+      int rank ;
 
 // don't use OASIS
       if (!CXios::usingOasis)
@@ -89,16 +90,18 @@ namespace xios
           for (i=0; i < size; ++i)
           {
             if (hashAll[i] == hashString(CXios::xiosCodeId))
-//                || (hashAll[i] == hashString(CXios::xiosCodeIdPrm))
-//                || (hashAll[i] == hashString(CXios::xiosCodeIdSnd)))
             {
               CXios::setUsingServer();
               break;
             }
           }
 
-          myColor=colors[hashClient] ;
+//          myColor=colors[hashClient];
+          myColor=leaders[hashClient] ;
           MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
+
+          if (CXios::usingServer2)
+            MPI_Allgather(&hashClient, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
 
           if (CXios::usingServer)
           {
@@ -110,7 +113,7 @@ namespace xios
             info(50)<<"intercommCreate::client "<<rank_<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader, 0, &interComm) ;
-             rank_ = intraCommRank;
+             //rank_ = intraCommRank;
           }
           else
           {
@@ -149,10 +152,10 @@ namespace xios
         if (CXios::usingServer)
         {
           MPI_Status status ;
-          MPI_Comm_rank(intraComm,&rank_) ;
+          MPI_Comm_rank(intraComm,&rank) ;
 
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
-          if (rank_==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
+          if (rank==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
 
         }

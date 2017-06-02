@@ -19,20 +19,16 @@ namespace xios
     MPI_Comm CServer::intraComm ;
     list<MPI_Comm> CServer::interCommLeft ;
     list<MPI_Comm> CServer::interCommRight ;
-//    list<MPI_Comm> CServer::interComm ;
     std::list<MPI_Comm> CServer::contextInterComms;
     std::list<MPI_Comm> CServer::contextIntraComms;
     int CServer::serverLevel = 0 ;
-    int CServer::serverLeader_ = 0;
-    int CServer::serverSize_ = 0;
-    int CServer::nbPools = 0;
-    int CServer::poolId = 0;
     int CServer::nbContexts = 0;
     bool CServer::isRoot = false ;
     int CServer::rank_ = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
     StdOFStream CServer::m_errorStream;
     map<string,CContext*> CServer::contextList ;
+    vector<int> CServer::sndServerGlobalRanks;
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
@@ -54,6 +50,7 @@ namespace xios
       MPI_Initialized(&initialized) ;
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
+      int rank ;
 
       // Not using OASIS
       if (!CXios::usingOasis)
@@ -69,12 +66,12 @@ namespace xios
         unsigned long hashServer = hashString(CXios::xiosCodeId);
 
         unsigned long* hashAll ;
+        unsigned long* srvLevelAll ;
 
-//        int rank ;
         int size ;
         int myColor ;
         int i,c ;
-        MPI_Comm newComm, serversComm;
+        MPI_Comm newComm;
 
         MPI_Comm_size(CXios::globalComm, &size) ;
         MPI_Comm_rank(CXios::globalComm, &rank_);
@@ -87,6 +84,9 @@ namespace xios
         map<unsigned long, int>::iterator it ;
 
         int nbSrv = 0;
+        int srvNodeSize = 1, srvNodeLeader = 0;
+
+        // (1) Establish client leaders, distribute processes between two server levels
         for(i=0,c=0;i<size;i++)
         {
           if (colors.find(hashAll[i])==colors.end())
@@ -95,28 +95,48 @@ namespace xios
             leaders[hashAll[i]]=i ;
             c++ ;
           }
-          if (hashAll[i] == hashServer) ++serverSize_;
+          if (CXios::usingServer2)
+          {
+            if (hashAll[i] == hashServer)
+            {
+              if (hashAll[i-1] != hashServer || i == 0)
+              {
+                srvNodeLeader = i;
+              }
+              if (hashAll[i+1] == hashServer)
+              {
+                ++srvNodeSize;
+              }
+              else
+              {
+                if ( (rank_-srvNodeLeader) >= 0 &&
+                     (rank_-srvNodeLeader) < (1.- CXios::ratioServer2/100.)*srvNodeSize )
+                {
+                  serverLevel = 1;
+                }
+                if ( (rank_-srvNodeLeader) >= (1.- CXios::ratioServer2/100.)*srvNodeSize &&
+                     (rank_ - srvNodeLeader) < srvNodeSize )
+                {
+                  serverLevel = 2;
+                }
+                srvNodeSize = 1;
+              }
+            }
+          }
         }
 
-        // Setting the number of secondary pools
-        myColor = colors[hashServer];
+        // (2) Create intraComm
+        myColor = (serverLevel == 2) ? rank_ : colors[hashServer];
+        MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
+
+        // (3) Create interComm
         if (CXios::usingServer2)
         {
-          int serverRank = rank_ - leaders[hashServer]; // server proc rank starting 0
-          nbPools = serverSize_ * CXios::ratioServer2 / 100;
-          if ( serverRank < (serverSize_ - nbPools) )
-          {
-            serverLevel = 1;
-          }
-          else
-          {
-            serverLevel = 2;
-            poolId = serverRank - serverSize_ + nbPools;
-            myColor = rank_ + size; // + size to make sure that myColor is unique among not only servers but also clients. It's only a temporary solution
-          }
+          MPI_Allgather(&serverLevel, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
+          for (i=0; i<size; i++)
+            if (hashAll[i] == 2)
+              sndServerGlobalRanks.push_back(i);
         }
-
-        MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
 
         if (serverLevel == 0)
         {
@@ -141,6 +161,7 @@ namespace xios
         {
           int clientLeader, srvSndLeader;
           int srvPrmLeader ;
+
           for (it=leaders.begin();it!=leaders.end();it++)
           {
             if (it->first != hashServer)
@@ -154,19 +175,16 @@ namespace xios
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
               interCommLeft.push_back(newComm) ;
             }
-            else
-              serverLeader_ = it->second;
           }
 
-          for (int i = 0; i < nbPools; ++i)
+          for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
           {
-            srvSndLeader = serverLeader_ + serverSize_ - nbPools + i;
             int intraCommSize, intraCommRank ;
             MPI_Comm_size(intraComm, &intraCommSize) ;
             MPI_Comm_rank(intraComm, &intraCommRank) ;
             info(50)<<"intercommCreate::client (server level 1) "<<rank_<<" intraCommSize : "<<intraCommSize
-                <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
-            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 1, &newComm) ;
+                <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< sndServerGlobalRanks[i]<<endl ;
+            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, sndServerGlobalRanks[i], 1, &newComm) ;
             interCommRight.push_back(newComm) ;
           }
         } // primary server
@@ -190,7 +208,7 @@ namespace xios
       // using OASIS
       else
       {
-        int size, rank;
+        int size;
         int myColor;
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
@@ -203,10 +221,13 @@ namespace xios
           MPI_Comm_dup(localComm, &intraComm);
         else
         {
-          MPI_Comm_rank(localComm,&rank) ;
-          MPI_Comm_size(localComm,&serverSize_) ;
-          nbPools = serverSize_ * CXios::ratioServer2 / 100;
-          if ( rank < (serverSize_ - nbPools) )
+          MPI_Comm_rank(localComm,&rank_) ;
+          MPI_Comm_size(localComm,&size) ;
+
+          for (int i=size*CXios::ratioServer2/100; i<size; i++)
+            sndServerGlobalRanks.push_back(i);
+
+          if ( rank_ < (size - sndServerGlobalRanks.size()) )
           {
             serverLevel = 1;
             myColor = 0;
@@ -214,15 +235,12 @@ namespace xios
           else
           {
             serverLevel = 2;
-            poolId = rank - serverSize_ + nbPools;
-            myColor = rank;
+            myColor = rank_;
           }
-          MPI_Comm_split(localComm, myColor, rank, &intraComm) ;
+          MPI_Comm_split(localComm, myColor, rank_, &intraComm) ;
 
         }
-        MPI_Comm_rank(intraComm,&rank_) ;
         MPI_Comm_size(intraComm,&size) ;
-
         string codesId=CXios::getin<string>("oasis_codes_id") ;
 
         vector<string> splitted ;
@@ -232,8 +250,6 @@ namespace xios
         MPI_Comm newComm ;
         int globalRank ;
         MPI_Comm_rank(CXios::globalComm,&globalRank);
-        if (rank_ == 0)
-          serverLeader_ = globalRank;
 
         for(it=splitted.begin();it!=splitted.end();it++)
         {
@@ -250,9 +266,9 @@ namespace xios
             {
               interCommLeft.push_back(newComm) ;
               if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
-              for (int i = 0; i < nbPools; ++i)
+              for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
               {
-                int srvSndLeader = serverLeader_ + serverSize_ - nbPools + i;
+                int srvSndLeader = sndServerGlobalRanks[i];
                 info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<size
                     <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvSndLeader<<endl ;
                 MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
@@ -272,8 +288,8 @@ namespace xios
 	      oasis_enddef() ;
       }
 
-      MPI_Comm_rank(intraComm, &rank_) ;
-      if (rank_==0) isRoot=true;
+      MPI_Comm_rank(intraComm, &rank) ;
+      if (rank==0) isRoot=true;
       else isRoot=false;
       
       eventScheduler = new CEventScheduler(intraComm) ;
@@ -611,8 +627,7 @@ namespace xios
            buff = new char[messageSize] ;
            CBufferOut buffer(buff,messageSize) ;
            buffer<<msg ;
-           int sndServerGloRanks = serverSize_-nbPools+serverLeader_ +i;  // the assumption is that there is only one proc per secondary server pool
-           MPI_Send(buff, buffer.count(), MPI_CHAR, sndServerGloRanks, 1, CXios::globalComm) ;
+           MPI_Send(buff, buffer.count(), MPI_CHAR, sndServerGlobalRanks[i], 1, CXios::globalComm) ;
            MPI_Comm_dup(*it, &inter);
            contextInterComms.push_back(inter);
            MPI_Comm_dup(intraComm, &inter);
@@ -667,16 +682,17 @@ namespace xios
         size /= 10;
         ++numDigit;
       }
+      id = getRank();
 
-      if (!CXios::usingServer2)
-        id = getRank();
-      else
-      {
-        if (serverLevel == 1)
-          id = rank_;
-        else
-          id = poolId;
-      }
+//      if (!CXios::usingServer2)
+//        id = getRank();
+//      else
+//      {
+//        if (serverLevel == 1)
+//          id = rank_;
+//        else
+//          id = poolId;
+//      }
       fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())
