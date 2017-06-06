@@ -44,14 +44,16 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
       else
       {
         dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+        flagInitial[localIndex[idx].first] = true; // Reset flag to indicate not all data source are nan
       }
     }
 
-    // for (int idx = 0; idx < nbLocalIndex; ++idx)
-    // {
-    //   if (!flagInitial[localIndex[idx].first])
-    //     dataOut(localIndex[idx].first) = defaultValue;
-    // }
+    // If all data source are nan then data destination must be nan
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (!flagInitial[localIndex[idx].first])
+        dataOut(localIndex[idx].first) = defaultValue;
+    }
   }
   else
   {

@@ -35,9 +35,7 @@ void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
   if (ignoreMissingValue)
   {
     int nbLocalIndex = localIndex.size();
-    int currentlocalIndex = 0;
-
-    dataOut=std::numeric_limits<double>::quiet_NaN();
+    int currentlocalIndex = 0;    
   
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
@@ -53,6 +51,11 @@ void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
         {
           dataOut(currentlocalIndex) += *(dataInput + idx);
         }
+      }
+      else
+      {
+        if (flagInitial[currentlocalIndex]) 
+          dataOut(currentlocalIndex) = std::numeric_limits<double>::quiet_NaN();
       }
     }    
   }
