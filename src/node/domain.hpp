@@ -41,11 +41,10 @@ namespace xios {
       : public CObjectTemplate<CDomain>
       , public CDomainAttributes
    {
-               /// typedef ///
-         typedef CObjectTemplate<CDomain>   SuperClass;
-         typedef CDomainAttributes SuperClassAttribute;
-         
-      public :
+     /// typedef ///
+     typedef CObjectTemplate<CDomain>   SuperClass;
+     typedef CDomainAttributes SuperClassAttribute;
+     public:
          enum EEventId
          {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
@@ -90,7 +89,8 @@ namespace xios {
          void duplicateTransformation(CDomain*);
          CTransformation<CDomain>* addTransformation(ETranformationType transType, const StdString& id="");
 
-      public:         
+      public:
+         const std::set<StdString> & getRelFiles(void) const;
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
          
@@ -115,7 +115,8 @@ namespace xios {
          vector<int> nbDataSrv ; // size of data to send to each server
          vector< vector<int> > i_indSrv ; // for each server, i global index to send
          vector< vector<int> > j_indSrv ; // for each server, j global index to send
-
+         std::vector<int> getNbGlob();
+         bool isEqual(CDomain* domain);
       public:
          /// Mutateur ///
          void addRelFile(const StdString & filename);
@@ -129,7 +130,9 @@ namespace xios {
 
          void fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                            CArray<double,2>& boundsLon, CArray<double,2>& boundsLat);
-         void fillInRectilinearLonLat();
+         
+         void fillInLonLat();
+         bool distributionAttributesHaveValue() const;
 
          static bool dispatchEvent(CEventServer& event);
          static void recvDistributionAttributes(CEventServer& event);
@@ -156,8 +159,9 @@ namespace xios {
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
-         static ENodeType GetType(void);   
 
+         static ENodeType GetType(void);
+         const std::map<int, vector<size_t> >& getIndexServer() const;
          CArray<bool, 1> localMask;
          bool isCurvilinear ;
          bool hasBounds ;
@@ -181,7 +185,7 @@ namespace xios {
          void computeLocalMask(void) ;
 
          void setTransformations(const TransMapTypes&);         
-
+         void computeNGlobDomain();
          void sendAttributes();
          void sendIndex();
          void sendDistributionAttributes();
@@ -191,7 +195,9 @@ namespace xios {
          void sendIndexZoom();
          void sendDataIndex();
          void convertLonLatValue();
-
+         void fillInRectilinearLonLat();
+         void fillInCurvilinearLonLat();
+         void fillInUnstructuredLonLat();
        private:         
          bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;

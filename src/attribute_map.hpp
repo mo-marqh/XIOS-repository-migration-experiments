@@ -11,6 +11,12 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
+      /*!
+        \class CAttributeMap
+        This class represents the set of attributes which an object can have.
+        Each attribute in the set is represented by an unique id.
+      */
+
       class CAttributeMap
          : public xios_map<StdString, CAttribute*>
       {
@@ -33,6 +39,7 @@ namespace xios
             void clearAllAttributes(void);
 
             void clearAttribute(const StdString& key);
+            bool isEqual(const CAttributeMap& another, const vector<StdString>& excludedAttrs);
 
             /// Destructeur ///
             virtual ~CAttributeMap(void);
@@ -73,7 +80,7 @@ namespace xios
 
       inline bool CAttributeMap::hasAttribute(const StdString& key) const
       {
-        return (this->find(key) != this->end());
+         return (this->find(key) != this->end());
       }
 
 } // namespace xios

@@ -3,6 +3,7 @@
 
 #include "onetcdf4.hpp"
 #include "netCdfInterface.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -22,8 +23,11 @@ namespace xios
     if (this->wmpi && !collective)
     CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
 
+    CTimer::get("Files : get data infos").resume();
     this->getWriteDataInfos
     (name, record, array_size,  sstart, scount, start, count);
+    CTimer::get("Files : get data infos").suspend();
+
     if (data.numElements() != array_size)
     {
       ERROR("CONetCDF4::writeData(...)",
@@ -33,6 +37,48 @@ namespace xios
     }
 
     this->writeData_(grpid, varid, sstart, scount, data.dataFirst());
+  }
+
+  template <>
+  void CONetCDF4::writeData(const CArray<StdString, 1>& data, const StdString & name,
+                            bool collective, StdSize record,
+                            const std::vector<StdSize> * start,
+                            const std::vector<StdSize> * count)
+  {
+    int grpid = this->getCurrentGroup();
+    int varid = this->getVariable(name);
+    StdSize array_size = 1;
+    std::vector<StdSize> sstart, scount;
+
+    if (this->wmpi && collective)
+    CNetCdfInterface::varParAccess(grpid, varid, NC_COLLECTIVE);
+    if (this->wmpi && !collective)
+    CNetCdfInterface::varParAccess(grpid, varid, NC_INDEPENDENT);
+
+    CTimer::get("CONetCDF4::writeData getWriteDataInfos").resume();
+    this->getWriteDataInfos(name, record, array_size,  sstart, scount, start, count);
+    CTimer::get("CONetCDF4::writeData getWriteDataInfos").suspend();
+ 
+    if (data.numElements()*stringArrayLen != array_size)
+    {
+      ERROR("CONetCDF4::writeData(...)",
+      << "[ input array size = "  << data.numElements()
+      << ", intern array size = " << array_size
+      << " ] Invalid input data !" );
+    }
+    char* ArrayStr ;
+    char *PtrArrayStr ;
+    PtrArrayStr=ArrayStr=new char[data.numElements()*stringArrayLen] ;
+    Array<StdString,1>::const_iterator it, itb=data.begin(), ite=data.end() ;
+    for(it=itb;it!=ite;++it,PtrArrayStr+=stringArrayLen)
+    {
+      it->copy(PtrArrayStr,it->size()) ;
+      PtrArrayStr[it->size()]='\0' ;
+    }
+    CTimer::get("CONetCDF4::writeData writeData_").resume();
+    this->writeData_(grpid, varid, sstart, scount, ArrayStr);
+    CTimer::get("CONetCDF4::writeData writeData_").suspend();
+    delete [] ArrayStr ;
   }
 
 //----------------------------------------------------------------

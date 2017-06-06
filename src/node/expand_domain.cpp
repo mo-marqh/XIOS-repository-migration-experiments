@@ -37,12 +37,12 @@ namespace xios {
 
   void CExpandDomain::checkValid(CDomain* domainDst)
   {
-    if (CDomain::type_attr::unstructured != domainDst->type)
-    {
-      ERROR("CExpandDomain::checkValid(CDomain* domainDst)",
-            << "Domain extension is only supported for unstructured" << std::endl
-            << "Check type of domain destination, id = " << domainDst->getId());
-    }
+    // if (CDomain::type_attr::unstructured != domainDst->type)
+    // {
+    //   ERROR("CExpandDomain::checkValid(CDomain* domainDst)",
+    //         << "Domain extension is only supported for unstructured" << std::endl
+    //         << "Check type of domain destination, id = " << domainDst->getId());
+    // }
 
     if (this->type.isEmpty()) this->type.setValue(CExpandDomain::type_attr::edge);
   }

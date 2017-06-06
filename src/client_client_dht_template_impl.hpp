@@ -306,7 +306,6 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   }
 
   indexToInfoMappingLevel_.swap(indexToInfoMapping);
-
   if (0 != recvNbIndexCount) delete [] recvIndexBuff;
   for (boost::unordered_map<int,size_t*>::const_iterator it = client2ClientIndex.begin();
                                                         it != client2ClientIndex.end(); ++it)

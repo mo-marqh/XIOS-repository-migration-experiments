@@ -187,6 +187,34 @@ extern "C"
   }
 
 
+  void cxios_set_axis_label(axis_Ptr axis_hdl, char* label, int str_len, int* str_size, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    axis_hdl->label.resize(shape(extent[0]));
+    Array<StdString,1>::iterator it, itb=axis_hdl->label.begin(), ite=axis_hdl->label.end() ;
+    int i, n ;
+    for(it=itb, i=0, n=0 ; it!=ite ; ++it,n+=str_len,++i) *it=StdString(&label[n],str_size[i]) ;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_label(axis_Ptr axis_hdl, char* label, int str_size, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    Array<StdString,1>::const_iterator it, itb=axis_hdl->label.getInheritedValue().begin(), ite=axis_hdl->label.getInheritedValue().end() ;
+    int n ;
+    for(it=itb, n=0 ; it!=ite ; ++it, n+=str_size) it->copy(&label[n],it->size()) ; 
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_label(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->label.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axis_long_name(axis_Ptr axis_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
@@ -354,6 +382,29 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axis_hdl->positive.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axis_prec(axis_Ptr axis_hdl, int prec)
+  {
+    CTimer::get("XIOS").resume();
+    axis_hdl->prec.setValue(prec);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axis_prec(axis_Ptr axis_hdl, int* prec)
+  {
+    CTimer::get("XIOS").resume();
+    *prec = axis_hdl->prec.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axis_prec(axis_Ptr axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axis_hdl->prec.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

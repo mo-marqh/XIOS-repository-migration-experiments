@@ -201,8 +201,9 @@ void CGridTransformationSelector::initializeScalarAlgorithms(int scalarPositionI
       scalarSrcPos = elementPositionInGridSrc2ScalarPosition_[scalarPositionInGrid];
 
     // If source and destination grid share the same scalar
-    if ((-1 != scalarDstPos) && (-1 != scalarSrcPos) &&
-        (scalarListDestP[scalarDstPos] == scalarListSrcP[scalarSrcPos]) && !isSameGrid_) return;
+    if ((-1 != scalarDstPos) && (-1 != scalarSrcPos)  && !isSameGrid_ &&
+        ((scalarListDestP[scalarDstPos] == scalarListSrcP[scalarSrcPos]) ||
+         (scalarListDestP[scalarDstPos]->isEqual(scalarListSrcP[scalarSrcPos])))) return;
 
     if (scalarListDestP[scalarDstPos]->hasTransformation())
     {
@@ -241,8 +242,9 @@ void CGridTransformationSelector::initializeAxisAlgorithms(int axisPositionInGri
       axisSrcPos = elementPositionInGridSrc2AxisPosition_[axisPositionInGrid];
 
     // If source and destination grid share the same axis
-    if ((-1 != axisDstPos) && (-1 != axisSrcPos) &&
-        (axisListDestP[axisDstPos] == axisListSrcP[axisSrcPos]) && !isSameGrid_) return;
+    if ((-1 != axisDstPos) && (-1 != axisSrcPos) && !isSameGrid_ &&
+        ((axisListDestP[axisDstPos] == axisListSrcP[axisSrcPos]) ||
+         (axisListDestP[axisDstPos]->isEqual(axisListSrcP[axisSrcPos]))) ) return;
 
     if (axisListDestP[axisDstPos]->hasTransformation())
     {
@@ -280,8 +282,9 @@ void CGridTransformationSelector::initializeDomainAlgorithms(int domPositionInGr
       domSrcPos = elementPositionInGridSrc2DomainPosition_[domPositionInGrid];
 
     // If source and destination grid share the same domain
-    if ((-1 != domDstPos) && (-1 != domSrcPos) &&
-        (domListDestP[domDstPos] == domListSrcP[domSrcPos]) && !isSameGrid_) return;
+    if ((-1 != domDstPos) && (-1 != domSrcPos) && !isSameGrid_ &&
+        ((domListDestP[domDstPos] == domListSrcP[domSrcPos]) ||
+         (domListDestP[domDstPos]->isEqual(domListSrcP[domSrcPos])))) return;
 
     if (domListDestP[domDstPos]->hasTransformation())
     {

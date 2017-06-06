@@ -71,7 +71,7 @@ namespace xios
 
       MPI_Comm intraComm; //!< Communicator of client group
 
-      map<int,CClientBuffer*> buffers;         //!< Buffers for connection to servers
+      map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 
     private:
       //! Mapping of server and buffer size for each connection to server

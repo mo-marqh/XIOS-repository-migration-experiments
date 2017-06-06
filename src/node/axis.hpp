@@ -67,7 +67,10 @@ namespace xios {
          CAxis(const CAxis * const axis); // Not implemented yet.
 
          static CAxis* createAxis();
-     
+
+         /// Accesseurs ///
+         const std::set<StdString> & getRelFiles(void) const;
+
          int getNumberWrittenIndexes() const;
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
@@ -114,12 +117,14 @@ namespace xios {
          TransMapTypes getAllTransformations();         
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
+         bool isEqual(CAxis* axis);
 
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
+        CArray<StdString,1> label_srv;
         bool hasValue;
         CArray<int,1> globalDimGrid;
         int orderPosInGrid;
@@ -130,7 +135,8 @@ namespace xios {
          void checkData();
          void checkMask();
          void checkZoom();
-         void checkBounds();         
+         void checkBounds();
+         void checkLabel();
          void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
@@ -165,7 +171,7 @@ namespace xios {
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
-
+         bool hasLabel;
          bool doZoomByIndex_;
          bool computedWrittenIndex_;
 

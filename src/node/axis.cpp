@@ -26,7 +26,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false), doZoomByIndex_(false)
+      , transformationMap_(), hasValue(false), doZoomByIndex_(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
    }
@@ -37,7 +37,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false), doZoomByIndex_(false)
+      , transformationMap_(), hasValue(false), doZoomByIndex_(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
    }
@@ -57,6 +57,12 @@ namespace xios {
    }
 
    ///---------------------------------------------------------------
+
+   const std::set<StdString> & CAxis::getRelFiles(void) const
+   {
+      return (this->relFiles);
+   }
+
    bool CAxis::IsWritten(const StdString & filename) const
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
@@ -69,8 +75,12 @@ namespace xios {
 
    bool CAxis::isDistributed(void) const
    {
-      return (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
-             (!this->n.isEmpty() && (this->n != this->n_glo));;
+      bool distributed = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
+             (!this->n.isEmpty() && (this->n != this->n_glo));
+      // A same stupid condition to make sure that if there is only one client, axis
+      // should be considered to be distributed. This should be a temporary solution     
+      distributed |= (1 == CContext::getCurrent()->client->clientSize);
+      return distributed;
    }
 
    /*!
@@ -131,7 +141,6 @@ namespace xios {
     */
    std::map<int, StdSize> CAxis::getAttributesBufferSize()
    {
-//     CContextClient* client = CContext::getCurrent()->client;
      // For now the assumption is that secondary server pools consist of the same number of procs.
      // CHANGE the line below if the assumption changes.
      CContext* context = CContext::getCurrent();
@@ -171,6 +180,9 @@ namespace xios {
          size_t sizeValEvent = CArray<double,1>::size(it->second.size());
          if (hasBounds_)
            sizeValEvent += CArray<double,2>::size(2 * it->second.size());
+ 
+         if (hasLabel)
+           sizeValEvent += CArray<StdString,1>::size(it->second.size());
 
          size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeValEvent);
          if (size > attributesSizes[it->first])
@@ -254,7 +266,8 @@ namespace xios {
       this->checkData();
       this->checkZoom();
       this->checkMask();
-      this->checkBounds();      
+      this->checkBounds();
+      this->checkLabel();
    }
 
    /*!
@@ -338,11 +351,24 @@ namespace xios {
      else hasBounds_ = false;
    }
 
-   void CAxis::checkEligibilityForCompressedOutput()
-   {
-     // We don't check if the mask is valid here, just if a mask has been defined at this point.
-     isCompressible_ = !mask.isEmpty();
-   }
+  void CAxis::checkLabel()
+  {
+    if (!label.isEmpty())
+    {
+      if (label.extent(0) != n)
+        ERROR("CAxis::checkLabel(void)",
+              << "The label array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension of axis size." << std::endl
+              << "Axis size is " << n.getValue() << "." << std::endl
+              << "label size is "<< label.extent(0)<<  " .");
+      hasLabel = true;
+    }
+    else hasLabel = false;
+  }
+  void CAxis::checkEligibilityForCompressedOutput()
+  {
+    // We don't check if the mask is valid here, just if a mask has been defined at this point.
+    isCompressible_ = !mask.isEmpty();
+  }
 
    bool CAxis::dispatchEvent(CEventServer& event)
    {
@@ -436,7 +462,6 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
 
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
     {
@@ -728,7 +753,6 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
 
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
     {
@@ -1070,6 +1094,11 @@ namespace xios {
         }       
       }
     }
+
+    if (hasLabel)
+    {
+      //label_srv(ind_srv) = labelVal( ind);
+    }
   }
 
   void CAxis::recvDistributionAttribute(CEventServer& event)
@@ -1113,6 +1142,37 @@ namespace xios {
     }
   }
 
+  /*!
+    Compare two axis objects. 
+    They are equal if only if they have identical attributes as well as their values.
+    Moreover, they must have the same transformations.
+  \param [in] axis Compared axis
+  \return result of the comparison
+  */
+  bool CAxis::isEqual(CAxis* obj)
+  {
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("axis_ref");
+
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);    
+    if (!objEqual) return objEqual;
+
+    TransMapTypes thisTrans = this->getAllTransformations();
+    TransMapTypes objTrans  = obj->getAllTransformations();
+
+    TransMapTypes::const_iterator it, itb, ite;
+    std::vector<ETranformationType> thisTransType, objTransType;
+    for (it = thisTrans.begin(); it != thisTrans.end(); ++it)
+      thisTransType.push_back(it->first);
+    for (it = objTrans.begin(); it != objTrans.end(); ++it)
+      objTransType.push_back(it->first);
+
+    if (thisTransType.size() != objTransType.size()) return false;
+    for (int idx = 0; idx < thisTransType.size(); ++idx)
+      objEqual &= (thisTransType[idx] == objTransType[idx]);
+
+    return objEqual;
+  }
 
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
   {

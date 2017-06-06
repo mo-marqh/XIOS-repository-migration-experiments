@@ -17,4 +17,9 @@ namespace xios
   {
     field->writeUpdateData(data[0]->data);
   }
+
+  bool CFileServerWriterFilter::isDataExpected(const CDate& date) const
+  {
+    return true;
+  }
 } // namespace xios

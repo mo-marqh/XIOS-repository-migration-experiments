@@ -64,6 +64,37 @@ namespace xios {
 
   }
 
+  /*!
+    Compare two scalar objects. 
+    They are equal if only if they have identical attributes as well as their values.
+    Moreover, they must have the same transformations.
+  \param [in] scalar Compared scalar
+  \return result of the comparison
+  */
+  bool CScalar::isEqual(CScalar* obj)
+  {
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("scalar_ref");
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);
+    if (!objEqual) return objEqual;
+
+    TransMapTypes thisTrans = this->getAllTransformations();
+    TransMapTypes objTrans  = obj->getAllTransformations();
+
+    TransMapTypes::const_iterator it, itb, ite;
+    std::vector<ETranformationType> thisTransType, objTransType;
+    for (it = thisTrans.begin(); it != thisTrans.end(); ++it)
+      thisTransType.push_back(it->first);
+    for (it = objTrans.begin(); it != objTrans.end(); ++it)
+      objTransType.push_back(it->first);
+
+    if (thisTransType.size() != objTransType.size()) return false;
+    for (int idx = 0; idx < thisTransType.size(); ++idx)
+      objEqual &= (thisTransType[idx] == objTransType[idx]);
+
+    return objEqual;
+  }
+
   CTransformation<CScalar>* CScalar::addTransformation(ETranformationType transType, const StdString& id)
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CScalar>::createTransformation(transType,id)));

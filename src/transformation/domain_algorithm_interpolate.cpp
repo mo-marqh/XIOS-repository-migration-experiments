@@ -99,9 +99,13 @@ void CDomainAlgorithmInterpolate::computeRemap()
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();
   bool renormalize ;
+  bool quantity ;
 
   if (interpDomain_->renormalize.isEmpty()) renormalize=true;
   else renormalize = interpDomain_->renormalize;
+
+  if (interpDomain_->quantity.isEmpty()) quantity=false;
+  else quantity = interpDomain_->quantity;
 
   const double poleValue = 90.0;
   const int constNVertex = 4; // Value by default number of vertex for rectangular domain
@@ -341,7 +345,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
   mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
 
-  std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize);
+  std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize,quantity);
 
   std::map<int,std::vector<std::pair<int,double> > > interpMapValue;
   std::map<int,std::vector<std::pair<int,double> > >::const_iterator iteNorthPole = interpMapValueNorthPole.end(),
@@ -676,17 +680,22 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
  
 /*! Redefined some functions of CONetCDF4 to make use of them */
 CDomainAlgorithmInterpolate::WriteNetCdf::WriteNetCdf(const StdString& filename, const MPI_Comm comm)
-  : CNc4DataOutput(filename, false, false, true, comm, false, true) {}
+  : CNc4DataOutput(NULL, filename, false, false, true, comm, false, true) {}
 int CDomainAlgorithmInterpolate::WriteNetCdf::addDimensionWrite(const StdString& name, 
                                                                 const StdSize size)
 {
-  CONetCDF4::addDimension(name, size);  
+  return CONetCDF4::addDimension(name, size);  
 }
 
 int CDomainAlgorithmInterpolate::WriteNetCdf::addVariableWrite(const StdString& name, nc_type type,
                                                                const std::vector<StdString>& dim)
 {
-  CONetCDF4::addVariable(name, type, dim);
+  return CONetCDF4::addVariable(name, type, dim);
+}
+
+void CDomainAlgorithmInterpolate::WriteNetCdf::endDefinition()
+{
+  CONetCDF4::definition_end();
 }
 
 void CDomainAlgorithmInterpolate::WriteNetCdf::writeDataIndex(const CArray<int,1>& data, const StdString& name,
@@ -750,12 +759,19 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
   MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, MPI_LONG, MPI_SUM, client->intraComm);
   MPI_Scan(&localNbWeight, &startIndex, 1, MPI_LONG, MPI_SUM, client->intraComm);
   
+  if (0 == globalNbWeight)
+  {
+    info << "There is no interpolation weights calculated between "
+         << "domain source: " << domainSrc_->getDomainOutputName()
+         << " and domain destination: " << domainDest_->getDomainOutputName()
+         << std::endl;
+    return;
+  }
+
   std::vector<StdSize> start(1, startIndex - localNbWeight);
   std::vector<StdSize> count(1, localNbWeight);
-
-  WriteNetCdf netCdfWriter(filename, client->intraComm);
-
-  // netCdfWriter = CONetCDF4(filename, false, false, true, client->intraComm, false);
+  
+  WriteNetCdf netCdfWriter(filename, client->intraComm);  
 
   // Define some dimensions
   netCdfWriter.addDimensionWrite("n_src", n_src);
@@ -769,10 +785,16 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
   netCdfWriter.addVariableWrite("dst_idx", NC_INT, dims);
   netCdfWriter.addVariableWrite("weight", NC_DOUBLE, dims);
 
+  // End of definition
+  netCdfWriter.endDefinition();
+
   // // Write variables
-  netCdfWriter.writeDataIndex(src_idx, "src_idx", true, 0, &start, &count);
-  netCdfWriter.writeDataIndex(dst_idx, "dst_idx", true, 0, &start, &count);
-  netCdfWriter.writeDataIndex(weights, "weight", true, 0, &start, &count);
+  if (0 != localNbWeight)
+  {
+    netCdfWriter.writeDataIndex(src_idx, "src_idx", false, 0, &start, &count);
+    netCdfWriter.writeDataIndex(dst_idx, "dst_idx", false, 0, &start, &count);
+    netCdfWriter.writeDataIndex(weights, "weight", false, 0, &start, &count);
+  }
 
   netCdfWriter.closeFile();
 }

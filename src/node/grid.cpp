@@ -30,9 +30,9 @@ namespace xios {
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
+      , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
    {
@@ -49,9 +49,9 @@ namespace xios {
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , globalDim_(), connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
-      , axisPositionInGrid_(), positionDimensionDistributed_(1), hasDomainAxisBaseRef_(false)
+      , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
    {
@@ -75,9 +75,9 @@ namespace xios {
    ENodeType CGrid::GetType(void)    { return eGrid; }
 
 
-   StdSize CGrid::getDimension(void) const
+   StdSize CGrid::getDimension(void)
    {
-      return globalDim_.size();
+      return getGlobalDimension().size();
    }
 
    //---------------------------------------------------------------
@@ -195,7 +195,7 @@ namespace xios {
 
         for (int i = 0; i < axisListP.size(); ++i)
         {
-          axisListP[i]->checkAttributesOnClientAfterTransformation(globalDim_,axisPositionInGrid_[i]);
+          axisListP[i]->checkAttributesOnClientAfterTransformation(getGlobalDimension(),axisPositionInGrid_[i]);
         }
       }
 
@@ -242,8 +242,7 @@ namespace xios {
 
      this->solveScalarRef(areAttributesChecked);
      this->solveAxisRef(areAttributesChecked);
-     this->solveDomainRef(areAttributesChecked);
-     computeGridGlobalDimension(getDomains(), getAxis(), getScalars(), axis_domain_order);
+     this->solveDomainRef(areAttributesChecked);     
      this->isDomainAxisChecked = areAttributesChecked;
    }
 
@@ -310,6 +309,11 @@ namespace xios {
          if (this->isChecked && doSendingIndex && !isIndexSent)
             {sendIndex(); this->isIndexSent = true;}
        }
+
+       // Not sure about this
+       //if (!(this->hasTransform() && !this->isTransformed()))
+       // this->isChecked = true;
+       //return;
      }
     
      if (this->isChecked) return;
@@ -408,7 +412,7 @@ namespace xios {
    {
       using namespace std;
       std::vector<CDomain*> domainP = this->getDomains();
-      std::vector<CAxis*> axisP = this->getAxis();      
+      std::vector<CAxis*> axisP = this->getAxis();
       int dim = domainP.size() * 2 + axisP.size();
 
       switch (dim) {
@@ -511,7 +515,7 @@ namespace xios {
         for (int i = 0; i < axisListP.size(); ++i)
         {
           if (sendAtt)
-            axisListP[i]->sendCheckedAttributes(globalDim_,axisPositionInGrid_[i]);
+            axisListP[i]->sendCheckedAttributes(getGlobalDimension(),axisPositionInGrid_[i]);
           else
             axisListP[i]->checkAttributesOnClient();
         }
@@ -533,6 +537,10 @@ namespace xios {
 //          else scalarListP[i]->checkAttributesOnClient();
         }
       }
+   }
+   std::vector<int> CGrid::getAxisPositionInGrid() const
+   {
+     return axisPositionInGrid_;
    }
 
    /*!
@@ -651,8 +659,6 @@ namespace xios {
                 localIndex(idx) = globalDataIndex[globalIndex(idx)];                
               }              
             }
-
-
           }          
         }
       }
@@ -694,7 +700,7 @@ namespace xios {
 
        // Compute mapping between client and server
        std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
-       CServerDistributionDescription serverDistributionDescription(globalDim_, client->serverSize);
+       CServerDistributionDescription serverDistributionDescription(getGlobalDimension(), client->serverSize);
        serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
                                                                   client->clientRank,
                                                                   client->clientSize,
@@ -932,7 +938,7 @@ namespace xios {
           }
         }
       }
-     }
+    }
    }
    //----------------------------------------------------------------
 
@@ -1121,6 +1127,39 @@ namespace xios {
      return this->vScalarGroup_;
    }
 
+/*
+   void CGrid::outputField(int rank, const CArray<double, 1>& stored, double* field)
+   {
+     const CArray<size_t,1>& out_i = outIndexFromClient[rank];
+     StdSize numElements = stored.numElements();
+     for (StdSize n = 0; n < numElements; ++n)
+     {
+       field[out_i(n)] = stored(n);
+     }
+   }
+
+   void CGrid::inputField(int rank, const double* const field, CArray<double,1>& stored)
+   {
+     const CArray<size_t,1>& out_i = outIndexFromClient[rank];
+     StdSize numElements = stored.numElements();
+     for (StdSize n = 0; n < numElements; ++n)
+     {
+       stored(n) = field[out_i(n)];
+     }
+   }
+
+   void CGrid::outputCompressedField(int rank, const CArray<double,1>& stored, double* field)
+   {
+     const CArray<size_t,1>& out_i = compressedOutIndexFromClient[rank];
+     StdSize numElements = stored.numElements();
+     for (StdSize n = 0; n < numElements; ++n)
+     {
+       field[out_i(n)] = stored(n);
+     }
+   }
+*/
+   //----------------------------------------------------------------
+
    void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
    {
       const StdSize size = storeIndex_client.numElements();
@@ -1169,7 +1208,6 @@ namespace xios {
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
     {
@@ -1537,12 +1575,23 @@ namespace xios {
     }
   }
 
-  void CGrid::computeGridGlobalDimension(const std::vector<CDomain*>& domains,
-                                         const std::vector<CAxis*>& axis,
-                                         const std::vector<CScalar*>& scalars,
-                                         const CArray<int,1>& axisDomainOrder)
+  /*
+     Compute on the fly the global dimension of a grid with its elements
+     \param[in/out] globalDim global dimension of grid
+     \param[in] domains list of its domains
+     \param[in] axiss list of its axis
+     \param[in] scalars list of its scalars
+     \param[in] axisDomainOrder the order of element in a grid (e.g: scalar then axis)
+     \return The dimension of which we do distribution (often for server)
+  */
+  int CGrid::computeGridGlobalDimension(std::vector<int>& globalDim,
+                                        const std::vector<CDomain*> domains,
+                                        const std::vector<CAxis*> axis,
+                                        const std::vector<CScalar*> scalars,
+                                        const CArray<int,1>& axisDomainOrder)
   {
-    globalDim_.resize(domains.size()*2+axis.size()+scalars.size());
+    globalDim.resize(domains.size()*2+axis.size()+scalars.size());
+    int positionDimensionDistributed = 1;
     int idx = 0, idxDomain = 0, idxAxis = 0, idxScalar = 0;
     for (int i = 0; i < axisDomainOrder.numElements(); ++i)
     {
@@ -1550,37 +1599,50 @@ namespace xios {
       {
         if (!(domains[idxDomain]->type.isEmpty()) && (domains[idxDomain]->type==CDomain::type_attr::unstructured))
         {
-          positionDimensionDistributed_ = idx;
+          positionDimensionDistributed = idx;
         }
         else
         {
-          positionDimensionDistributed_ = idx +1;
+          positionDimensionDistributed = idx +1;
         }
 
-        globalDim_[idx]   = domains[idxDomain]->ni_glo.getValue();
-        globalDim_[idx+1] = domains[idxDomain]->nj_glo.getValue();
+        globalDim[idx]   = domains[idxDomain]->ni_glo.getValue();
+        globalDim[idx+1] = domains[idxDomain]->nj_glo.getValue();
 
         ++idxDomain;
         idx += 2;
       }
       else if (1 == axisDomainOrder(i))
       {
-        globalDim_[idx] = axis[idxAxis]->n_glo.getValue();
+        globalDim[idx] = axis[idxAxis]->n_glo.getValue();
         ++idxAxis;
         ++idx;
       }
       else
       {
-        globalDim_[idx] = 1;
+        globalDim[idx] = 1;
         ++idxScalar;
         ++idx;
       }
     }
+
+    return positionDimensionDistributed;
   }
 
+  // Retrieve the global dimension of grid
   std::vector<int> CGrid::getGlobalDimension()
   {
-    return globalDim_;
+    std::vector<int> globalDim;
+    computeGridGlobalDimension(globalDim, getDomains(), getAxis(), getScalars(), axis_domain_order);
+
+    return globalDim;
+  }
+
+  // Retrieve dimension on which we do distribution (Very often, it should be 2nd dimension)
+  int CGrid::getDistributedDimension()
+  {
+    std::vector<int> globalDim;
+    return computeGridGlobalDimension(globalDim, getDomains(), getAxis(), getScalars(), axis_domain_order);    
   }
 
   bool CGrid::isScalarGrid() const

@@ -7,7 +7,6 @@ MODULE IDATA
    INTERFACE ! Ne pas appeler directement/Interface FORTRAN 2003 <-> C99
 
       SUBROUTINE  cxios_init_server() BIND(C)
-         USE ISO_C_BINDING
       END SUBROUTINE cxios_init_server
 
      SUBROUTINE cxios_init_client(client_id, len_client_id, f_local_comm, f_return_comm) BIND(C)
@@ -453,7 +452,7 @@ MODULE IDATA
 
    SUBROUTINE  xios(init_server)()
    IMPLICIT NONE
-       CALL cxios_init_server()
+     CALL cxios_init_server()
    END SUBROUTINE xios(init_server)
 
    SUBROUTINE  xios(initialize)(client_id, local_comm, return_comm)

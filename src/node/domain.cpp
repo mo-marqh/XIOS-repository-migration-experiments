@@ -25,7 +25,7 @@
 
 namespace xios {
 
-   /// ////////////////////// Dfinitions ////////////////////// ///
+   /// ////////////////////// Définitions ////////////////////// ///
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
@@ -77,6 +77,12 @@ namespace xios {
      m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
      m["expand_domain"] = TRANS_EXPAND_DOMAIN;
    }
+
+   const std::set<StdString> & CDomain::getRelFiles(void) const
+   {
+      return (this->relFiles);
+   }
+
 
    /*!
      Returns the number of indexes written by each server.
@@ -169,8 +175,7 @@ namespace xios {
    bool CDomain::isEmpty(void) const
    {
       return ((this->zoom_i_index.isEmpty()) || (0 == this->zoom_i_index.numElements()));
-      // return ((this->zoom_ni_srv == 0) ||
-      //         (this->zoom_nj_srv == 0));
+
    }
 
    //----------------------------------------------------------------
@@ -189,8 +194,11 @@ namespace xios {
 
    bool CDomain::isDistributed(void) const
    {
-      return !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
+      bool distributed =  !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
               (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
+      distributed |= (1 == CContext::getCurrent()->client->clientSize);
+
+      return distributed;
    }
 
    //----------------------------------------------------------------
@@ -220,6 +228,23 @@ namespace xios {
    ENodeType CDomain::GetType(void)   { return (eDomain); }
 
    //----------------------------------------------------------------
+
+   /*!
+      Verify if all distribution information of a domain are available
+      This checking verifies the definition of distribution attributes (ni, nj, ibegin, jbegin)
+   */
+   bool CDomain::distributionAttributesHaveValue() const
+   {
+      bool hasValues = true;
+
+      if (ni.isEmpty() && ibegin.isEmpty() && i_index.isEmpty())
+      {
+        hasValues = false;
+        return hasValues;
+      }
+
+      return hasValues;
+   }
 
    /*!
      Redistribute RECTILINEAR domain with a number of local domains.
@@ -330,10 +355,7 @@ namespace xios {
             nj.setValue(njVec[jIdx]);
             ni.setValue(ni_glo - ibeginVec[iIdx]);
           }
-        }
-
-        // Now fill other attributes
-        if (type_attr::rectilinear == type) fillInRectilinearLonLat();
+        } 
      }
      else  // unstructured domain
      {
@@ -379,6 +401,9 @@ namespace xios {
             ni.setValue(niVec[iIdx]);
             nj.setValue(1);
           }
+
+          i_index.resize(ni);          
+          for(int idx = 0; idx < ni; ++idx) i_index(idx)=ibegin+idx;
         }
         else
         {
@@ -390,6 +415,29 @@ namespace xios {
      }
 
      checkDomain();
+   }
+
+   /*!
+     Fill in longitude and latitude whose values are read from file
+   */
+   void CDomain::fillInLonLat()
+   {
+     switch (type)
+     {
+      case type_attr::rectilinear:
+        fillInRectilinearLonLat();
+        break;
+      case type_attr::curvilinear:
+        fillInCurvilinearLonLat();
+        break;
+      case type_attr::unstructured:
+        fillInUnstructuredLonLat();
+        break;
+
+      default:
+      break;
+     }
+
    }
 
    /*!
@@ -467,8 +515,116 @@ namespace xios {
      }
    }
 
+    /*
+      Fill in longitude and latitude of curvilinear domain read from a file
+      If there are already longitude and latitude defined by model. We just igonore reading value.
+    */
+   void CDomain::fillInCurvilinearLonLat()
+   {
+     if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty())
+     {
+       lonvalue_2d.resize(ni,nj);
+       for (int jdx = 0; jdx < nj; ++jdx)
+        for (int idx = 0; idx < ni; ++idx)
+         lonvalue_2d(idx,jdx) = lonvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
 
+       lonvalue_curvilinear_read_from_file.free();
+     }
 
+     if (!latvalue_curvilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty())
+     {
+       latvalue_2d.resize(ni,nj);
+       for (int jdx = 0; jdx < nj; ++jdx)
+        for (int idx = 0; idx < ni; ++idx)
+         latvalue_2d(idx,jdx) = latvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
+
+       latvalue_curvilinear_read_from_file.free();
+     }
+
+     if (!bounds_lonvalue_curvilinear_read_from_file.isEmpty() && bounds_lon_2d.isEmpty())
+     {
+       bounds_lon_2d.resize(nvertex,ni,nj);
+       for (int jdx = 0; jdx < nj; ++jdx)
+        for (int idx = 0; idx < ni; ++idx)
+          for (int ndx = 0; ndx < nvertex; ++ndx)
+         bounds_lon_2d(ndx,idx,jdx) = bounds_lonvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
+
+       bounds_lonvalue_curvilinear_read_from_file.free();
+     }
+
+     if (!bounds_latvalue_curvilinear_read_from_file.isEmpty() && bounds_lat_2d.isEmpty())
+     {
+       bounds_lat_2d.resize(nvertex,ni,nj);
+       for (int jdx = 0; jdx < nj; ++jdx)
+        for (int idx = 0; idx < ni; ++idx)
+          for (int ndx = 0; ndx < nvertex; ++ndx)
+            bounds_lat_2d(ndx,idx,jdx) = bounds_latvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
+
+       bounds_latvalue_curvilinear_read_from_file.free();
+     }
+
+   }
+
+    /*
+      Fill in longitude and latitude of unstructured domain read from a file
+      If there are already longitude and latitude defined by model. We just igonore reading value.
+    */
+   void CDomain::fillInUnstructuredLonLat()
+   {
+     if (i_index.isEmpty())
+     {
+       i_index.resize(ni);
+       for(int idx = 0; idx < ni; ++idx) i_index(idx)=ibegin+idx;
+     }
+
+     if (!lonvalue_unstructured_read_from_file.isEmpty() && lonvalue_1d.isEmpty())
+     {
+        lonvalue_1d.resize(ni);
+        for (int idx = 0; idx < ni; ++idx)
+          lonvalue_1d(idx) = lonvalue_unstructured_read_from_file(i_index(idx));
+
+        // We dont need these values anymore, so just delete them
+        lonvalue_unstructured_read_from_file.free();
+     } 
+
+     if (!latvalue_unstructured_read_from_file.isEmpty() && latvalue_1d.isEmpty())
+     {
+        latvalue_1d.resize(ni);
+        for (int idx = 0; idx < ni; ++idx)
+          latvalue_1d(idx) =  latvalue_unstructured_read_from_file(i_index(idx));
+
+        // We dont need these values anymore, so just delete them
+        latvalue_unstructured_read_from_file.free();
+     }
+
+     if (!bounds_lonvalue_unstructured_read_from_file.isEmpty() && bounds_lon_1d.isEmpty())
+     {
+        int nbVertex = nvertex;
+        bounds_lon_1d.resize(nbVertex,ni);
+        for (int idx = 0; idx < ni; ++idx)
+          for (int jdx = 0; jdx < nbVertex; ++jdx)
+            bounds_lon_1d(jdx,idx) = bounds_lonvalue_unstructured_read_from_file(jdx, i_index(idx));
+
+        // We dont need these values anymore, so just delete them
+        lonvalue_unstructured_read_from_file.free();
+     }
+
+     if (!bounds_latvalue_unstructured_read_from_file.isEmpty() && bounds_lat_1d.isEmpty())
+     {
+        int nbVertex = nvertex;
+        bounds_lat_1d.resize(nbVertex,ni);
+        for (int idx = 0; idx < ni; ++idx)
+          for (int jdx = 0; jdx < nbVertex; ++jdx)
+            bounds_lat_1d(jdx,idx) = bounds_latvalue_unstructured_read_from_file(jdx, i_index(idx));
+
+        // We dont need these values anymore, so just delete them
+        lonvalue_unstructured_read_from_file.free();
+     }
+   }
+
+  /*
+    Get global longitude and latitude of rectilinear domain.
+  */
    void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
    {
 	  CContext* context = CContext::getCurrent();
@@ -589,7 +745,7 @@ namespace xios {
     }
     else
     {
-      if (bounds_lat_start.isEmpty()) bounds_lon_start=-90. ;
+      if (bounds_lat_start.isEmpty()) bounds_lat_start=-90. ;
       if (bounds_lat_end.isEmpty()) bounds_lat_end=90 ;
     }
 
@@ -694,7 +850,8 @@ namespace xios {
        j_index.resize(ni*nj);
        for (int j = 0; j < nj; ++j)
          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
-     }     
+     }
+     
      checkZoom();
    }
 
@@ -1430,9 +1587,7 @@ namespace xios {
      if (this->isClientAfterTransformationChecked) return;
      if (context->hasClient)
      {
-       // this->checkMask();
       this->computeConnectedClients();
-       // if (hasLonLat || hasArea || isCompressible_) this->computeConnectedClients();
        if (hasLonLat)
          if (!context->hasServer)
            this->completeLonLatClient();
@@ -1481,7 +1636,6 @@ namespace xios {
      if (this->isChecked) return;
      if (context->hasClient)
      {
-//       this->completeLonLatClient();
        sendAttributes();
      }
      this->isChecked = true;
@@ -2693,7 +2847,6 @@ namespace xios {
     get(domainId)->recvArea(rankBuffers);
   }
 
-
   /*!
     Receive area information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
@@ -2741,6 +2894,37 @@ namespace xios {
       }
       
     }
+  }
+
+  /*!
+    Compare two domain objects. 
+    They are equal if only if they have identical attributes as well as their values.
+    Moreover, they must have the same transformations.
+  \param [in] domain Compared domain
+  \return result of the comparison
+  */
+  bool CDomain::isEqual(CDomain* obj)
+  {
+    vector<StdString> excludedAttr;
+    excludedAttr.push_back("domain_ref");
+    bool objEqual = SuperClass::isEqual(obj, excludedAttr);
+    if (!objEqual) return objEqual;
+
+    TransMapTypes thisTrans = this->getAllTransformations();
+    TransMapTypes objTrans  = obj->getAllTransformations();
+
+    TransMapTypes::const_iterator it, itb, ite;
+    std::vector<ETranformationType> thisTransType, objTransType;
+    for (it = thisTrans.begin(); it != thisTrans.end(); ++it)
+      thisTransType.push_back(it->first);
+    for (it = objTrans.begin(); it != objTrans.end(); ++it)
+      objTransType.push_back(it->first);
+
+    if (thisTransType.size() != objTransType.size()) return false;
+    for (int idx = 0; idx < thisTransType.size(); ++idx)
+      objEqual &= (thisTransType[idx] == objTransType[idx]);
+
+    return objEqual;
   }
 
   /*!

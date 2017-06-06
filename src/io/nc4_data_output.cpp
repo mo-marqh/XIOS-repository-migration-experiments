@@ -10,29 +10,32 @@
 #include "context_server.hpp"
 #include "netCdfException.hpp"
 #include "exception.hpp"
-
+#include "timer.hpp"
+#include "uuid.hpp"
 namespace xios
 {
       /// ////////////////////// Dfinitions ////////////////////// ///
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist)
+         (CFile* file, const StdString & filename, bool exist)
             : SuperClass()
             , SuperClassWriter(filename, exist)
             , filename(filename)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
       {
-    SuperClass::type = MULTI_FILE;
+        SuperClass::type = MULTI_FILE;
       }
 
       CNc4DataOutput::CNc4DataOutput
-         (const StdString & filename, bool exist, bool useClassicFormat, bool useCFConvention,
+         (CFile* file, const StdString & filename, bool exist, bool useClassicFormat, bool useCFConvention,
           MPI_Comm comm_file, bool multifile, bool isCollective, const StdString& timeCounterName)
             : SuperClass()
             , SuperClassWriter(filename, exist, useClassicFormat, useCFConvention, &comm_file, multifile, timeCounterName)
             , comm_file(comm_file)
             , filename(filename)
             , isCollective(isCollective)
+            , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
       {
-    SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
+        SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
       }
 
       CNc4DataOutput::~CNc4DataOutput(void)
@@ -59,7 +62,6 @@ namespace xios
           return ;
         }
 
-        
          CContext* context = CContext::getCurrent() ;
          CContextServer* server=context->server ;
 
@@ -77,8 +79,14 @@ namespace xios
         
          int nvertex = (domain->nvertex.isEmpty()) ? 0 : domain->nvertex;
 
-         StdString dimXid, dimYid ;
 
+        StdString dimXid, dimYid ;
+
+        nc_type typePrec ;
+        if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+        else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+         
          bool isRegularDomain = (domain->type == CDomain::type_attr::rectilinear);
          switch (domain->type)
          {
@@ -208,12 +216,12 @@ namespace xios
                    switch (domain->type)
                    {
                      case CDomain::type_attr::curvilinear :
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim0);
                        break ;
                       case CDomain::type_attr::rectilinear :
-                        SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                        SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                        SuperClassWriter::addVariable(latid, typePrec, dim0);
+                        SuperClassWriter::addVariable(lonid, typePrec, dim1);
                         break ;
                    }
 
@@ -229,8 +237,8 @@ namespace xios
                      dim0.push_back(dimYid);
                      dim0.push_back(dimXid);
                      dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                     SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                    }
                  }
 
@@ -255,7 +263,7 @@ namespace xios
 
                  if (domain->hasArea)
                  {
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -310,8 +318,8 @@ namespace xios
                        dim0.push_back(dimYid); dim0.push_back(dimXid);
                        lonid = StdString("nav_lon").append(appendDomid);
                        latid = StdString("nav_lat").append(appendDomid);
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim0);
                        break;
 
                      case CDomain::type_attr::rectilinear :
@@ -319,8 +327,8 @@ namespace xios
                        dim1.push_back(dimXid);
                        lonid = StdString("lon").append(appendDomid);
                        latid = StdString("lat").append(appendDomid);
-                       SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                       SuperClassWriter::addVariable(lonid, NC_FLOAT, dim1);
+                       SuperClassWriter::addVariable(latid, typePrec, dim0);
+                       SuperClassWriter::addVariable(lonid, typePrec, dim1);
                        break;
                    }
 
@@ -341,8 +349,8 @@ namespace xios
                      dim0.push_back(dimYid);
                      dim0.push_back(dimXid);
                      dim0.push_back(dimVertId);
-                     SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                     SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                     SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                     SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                    }
                  }
 
@@ -350,7 +358,7 @@ namespace xios
                  {
                    dim0.clear();
                    dim0.push_back(dimYid); dim0.push_back(dimXid);
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                    dim0.clear();
@@ -491,6 +499,11 @@ namespace xios
       if (domain->isEmpty())
         if (SuperClass::type==MULTI_FILE) return ;
 
+     nc_type typePrec ;
+     if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+     else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+     else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+
       std::vector<StdString> dim0;
       StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
@@ -542,11 +555,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->ni_glo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -561,11 +574,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodesGlo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -575,11 +588,11 @@ namespace xios
               SuperClassWriter::addDimension(dimEdge, domain->ni_glo);
               dim0.clear();
               dim0.push_back(dimEdge);
-              SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(edge_x, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
               SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-              SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(edge_y, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
               SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
@@ -601,11 +614,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimNode, domain->mesh->nbNodesGlo);
                 dim0.clear();
                 dim0.push_back(dimNode);
-                SuperClassWriter::addVariable(node_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &node_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Longitude of mesh nodes."), &node_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &node_x);
-                SuperClassWriter::addVariable(node_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(node_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &node_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Latitude of mesh nodes."), &node_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &node_y);
@@ -617,11 +630,11 @@ namespace xios
                 SuperClassWriter::addDimension(dimEdge, domain->mesh->nbEdgesGlo);
                 dim0.clear();
                 dim0.push_back(dimEdge);
-                SuperClassWriter::addVariable(edge_x, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(edge_x, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &edge_x);
                 SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh edges."), &edge_x);
                 SuperClassWriter::addAttribute("units", StdString("degrees_east"), &edge_x);
-                SuperClassWriter::addVariable(edge_y, NC_FLOAT, dim0);
+                SuperClassWriter::addVariable(edge_y, typePrec, dim0);
                 SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &edge_y);
                 SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh edges."), &edge_y);
                 SuperClassWriter::addAttribute("units", StdString("degrees_north"), &edge_y);
@@ -639,11 +652,11 @@ namespace xios
               SuperClassWriter::addDimension(dimVertex, domain->nvertex);
               dim0.clear();
               dim0.push_back(dimFace);
-              SuperClassWriter::addVariable(face_x, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(face_x, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("longitude"), &face_x);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic longitude of mesh faces."), &face_x);
               SuperClassWriter::addAttribute("units", StdString("degrees_east"), &face_x);
-              SuperClassWriter::addVariable(face_y, NC_FLOAT, dim0);
+              SuperClassWriter::addVariable(face_y, typePrec, dim0);
               SuperClassWriter::addAttribute("standard_name", StdString("latitude"), &face_y);
               SuperClassWriter::addAttribute("long_name", StdString("Characteristic latitude of mesh faces."), &face_y);
               SuperClassWriter::addAttribute("units", StdString("degrees_north"), &face_y);
@@ -905,6 +918,11 @@ namespace xios
          string lonid,latid,bounds_lonid,bounds_latid ;
          string areaId = "area" + appendDomid;
 
+         nc_type typePrec ;
+         if (domain->prec.isEmpty()) typePrec =  NC_FLOAT ;
+         else if (domain->prec==4)  typePrec =  NC_FLOAT ;
+         else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
+
          int nvertex = (domain->nvertex.isEmpty()) ? 0 : domain->nvertex;
 
          CArray<size_t, 1>& indexToWrite = domain->localIndexToWriteOnServer;
@@ -964,8 +982,8 @@ namespace xios
                  bounds_latid = StdString("bounds_lat").append(appendDomid);
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(latid, typePrec, dim0);
+                   SuperClassWriter::addVariable(lonid, typePrec, dim0);
                    this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                    if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
                    this->writeAxisAttributes(latid, "", "latitude", "Latitude", "degrees_north", domid);
@@ -977,15 +995,15 @@ namespace xios
                  {
                    dim0.push_back(dimXid);
                    dim0.push_back(dimVertId);
-                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                  }
 
                  dim0.clear();
                  dim0.push_back(dimXid);
                  if (domain->hasArea)
                  {
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -1020,8 +1038,8 @@ namespace xios
                  SuperClassWriter::addDimension(dimXid, domain->ni_glo);
                  if (domain->hasLonLat)
                  {
-                   SuperClassWriter::addVariable(latid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(lonid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(latid, typePrec, dim0);
+                   SuperClassWriter::addVariable(lonid, typePrec, dim0);
 
                    this->writeAxisAttributes(lonid, "", "longitude", "Longitude", "degrees_east", domid);
                    if (domain->hasBounds) SuperClassWriter::addAttribute("bounds",bounds_lonid, &lonid);
@@ -1035,15 +1053,15 @@ namespace xios
                  {
                    dim0.push_back(dimXid);
                    dim0.push_back(dimVertId);
-                   SuperClassWriter::addVariable(bounds_lonid, NC_FLOAT, dim0);
-                   SuperClassWriter::addVariable(bounds_latid, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(bounds_lonid, typePrec, dim0);
+                   SuperClassWriter::addVariable(bounds_latid, typePrec, dim0);
                  }
 
                  if (domain->hasArea)
                  {
                    dim0.clear();
                    dim0.push_back(dimXid);
-                   SuperClassWriter::addVariable(areaId, NC_FLOAT, dim0);
+                   SuperClassWriter::addVariable(areaId, typePrec, dim0);
                    SuperClassWriter::addAttribute("standard_name", StdString("cell_area"), &areaId);
                    SuperClassWriter::addAttribute("units", StdString("m2"), &areaId);
                  }
@@ -1110,8 +1128,6 @@ namespace xios
 
       void CNc4DataOutput::writeAxis_(CAxis* axis)
       {
-        CContext* context = CContext::getCurrent();
-
         if (axis->IsWritten(this->filename)) return;
         axis->checkAttributes();
 
@@ -1129,13 +1145,22 @@ namespace xios
         if (isWrittenAxis(axisid)) return ;
         else setWrittenAxis(axisid);
 
+        nc_type typePrec ;
+        if (axis->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (axis->prec==4)  typePrec =  NC_FLOAT ;
+        else if (axis->prec==8)   typePrec =  NC_DOUBLE ;
+         
+        if (!axis->label.isEmpty()) typePrec = NC_CHAR ;
+        string strId="str_len" ;
         try
         {
           SuperClassWriter::addDimension(axisid, zoom_size);
+          if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
           if (axis->hasValue)
           {
             dims.push_back(axisid);
-            SuperClassWriter::addVariable(axisid, NC_FLOAT, dims);
+            if (!axis->label.isEmpty()) dims.push_back(strId);
+            SuperClassWriter::addVariable(axisid, typePrec, dims);
 
             if (!axis->name.isEmpty())
               SuperClassWriter::addAttribute("name", axis->name.getValue(), &axisid);
@@ -1161,7 +1186,7 @@ namespace xios
             if (!axis->bounds.isEmpty())
             {
               dims.push_back("axis_nbounds");
-              SuperClassWriter::addVariable(axisBoundsId, NC_FLOAT, dims);
+              SuperClassWriter::addVariable(axisBoundsId, typePrec, dims);
               SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
             }
 
@@ -1177,21 +1202,19 @@ namespace xios
             {
               case MULTI_FILE:
               {
-                // CArray<double,1> axis_value(axis->zoom_n);
-                // for (int i = 0; i < axis->zoom_n; i++) axis_value(i) = axis->value(i);
                 SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
-                if (!axis->bounds.isEmpty())
+                if (!axis->bounds.isEmpty() && axis->label.isEmpty())
                   SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
 
+                // Need to check after
+                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
+ 
                 SuperClassWriter::definition_start();
-
                 break;
               }
               case ONE_FILE:
               {
-                // CArray<double,1> axis_value(axis->zoom_n);
-                // axis_value = axis->value;
                 std::vector<StdSize> start(1), startBounds(2) ;
                 std::vector<StdSize> count(1), countBounds(2) ;
                 start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
@@ -1200,7 +1223,7 @@ namespace xios
                 countBounds[1] = 2;
                 SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
-                if (!axis->bounds.isEmpty())
+                if (!axis->bounds.isEmpty()&& axis->label.isEmpty())
                 {
                   axis_bounds.resize(2, indexToWrite.numElements());
                   for (int i = 0; i < nbWritten; ++i)
@@ -1210,6 +1233,9 @@ namespace xios
                   }
                   SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
                 }
+
+                // Need to check after
+                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
 
                 SuperClassWriter::definition_start();
 
@@ -1232,8 +1258,7 @@ namespace xios
           msg.append(e.what());
           ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)", << msg);
         }
-      
-      axis->addRelFile(this->filename);
+        axis->addRelFile(this->filename);
      }
 
       void CNc4DataOutput::writeScalar_(CScalar* scalar)
@@ -1246,13 +1271,19 @@ namespace xios
         if (isWrittenAxis(scalaId)) return ;
         else setWrittenAxis(scalaId);
 
+        nc_type typePrec ;
+        if (scalar->prec.isEmpty()) typePrec =  NC_FLOAT ;
+        else if (scalar->prec==4)  typePrec =  NC_FLOAT ;
+        else if (scalar->prec==8)   typePrec =  NC_DOUBLE ;
+
+        
         try
         {
           if (!scalar->value.isEmpty())
           {
 //            dims.push_back(scalaId);
             std::vector<StdString> dims;
-            SuperClassWriter::addVariable(scalaId, NC_FLOAT, dims);
+            SuperClassWriter::addVariable(scalaId, typePrec, dims);
 
             if (!scalar->name.isEmpty())
               SuperClassWriter::addAttribute("name", scalar->name.getValue(), &scalaId);
@@ -1549,184 +1580,171 @@ namespace xios
 
       void CNc4DataOutput::writeField_(CField* field)
       {
-         CContext* context = CContext::getCurrent() ;
-         CContextServer* server=context->server ;
+        CContext* context = CContext::getCurrent() ;
+        CContextServer* server=context->server ;
 
-         std::vector<StdString> dims, coodinates;
-         CGrid* grid = field->grid;
-         if (!grid->doGridHaveDataToWrite())
+        std::vector<StdString> dims, coodinates;
+        CGrid* grid = field->grid;
+        if (!grid->doGridHaveDataToWrite())
           if (SuperClass::type==MULTI_FILE) return ;
 
-         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
-         int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
-         std::vector<StdString> domainList = grid->getDomainList();
-         std::vector<StdString> axisList   = grid->getAxisList();
-         std::vector<StdString> scalarList = grid->getScalarList();
+        CArray<int,1> axisDomainOrder = grid->axis_domain_order;
+        int numElement = axisDomainOrder.numElements(), idxDomain = 0, idxAxis = 0, idxScalar = 0;
+        std::vector<StdString> domainList = grid->getDomainList();
+        std::vector<StdString> axisList   = grid->getAxisList();
+        std::vector<StdString> scalarList = grid->getScalarList();        
 
-         StdString timeid  = getTimeCounterName();
-         StdString dimXid,dimYid;
-         std::deque<StdString> dimIdList, dimCoordList;
-         bool hasArea = false;
-         StdString cellMeasures = "area:";
-         bool compressedOutput = !field->indexed_output.isEmpty() && field->indexed_output;
+        StdString timeid  = getTimeCounterName();
+        StdString dimXid,dimYid;
+        std::deque<StdString> dimIdList, dimCoordList;
+        bool hasArea = false;
+        StdString cellMeasures = "area:";
+        bool compressedOutput = !field->indexed_output.isEmpty() && field->indexed_output;
 
-         for (int i = 0; i < numElement; ++i)
-         {
-           if (2 == axisDomainOrder(i))
-           {
-             CDomain* domain = CDomain::get(domainList[idxDomain]);
-             StdString domId = domain->getDomainOutputName();
-             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
+        for (int i = 0; i < numElement; ++i)
+        {
+          if (2 == axisDomainOrder(i))
+          {
+            CDomain* domain = CDomain::get(domainList[idxDomain]);
+            StdString domId = domain->getDomainOutputName();
+            StdString appendDomId  = singleDomain ? "" : "_" + domId ;
 
-             if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
-             {
-               dimIdList.push_back(domId + "_points");
-               field->setUseCompressedOutput();
-             }
-
-             switch (domain->type)
-             {
-               case CDomain::type_attr::curvilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("x").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("y").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
-                 dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
-                 break ;
-               case CDomain::type_attr::rectilinear:
-                 if (!compressedOutput || !domain->isCompressible())
-                 {
-                   dimXid     = StdString("lon").append(appendDomId);
-                   dimIdList.push_back(dimXid);
-                   dimYid     = StdString("lat").append(appendDomId);
-                   dimIdList.push_back(dimYid);
-                 }
-                 break ;
-               case CDomain::type_attr::unstructured:
-               {
-           if (SuperClassWriter::useCFConvention)
-           {
-            dimXid     = StdString("cell").append(appendDomId);
-            dimIdList.push_back(dimXid);
-            dimCoordList.push_back(StdString("lon").append(appendDomId));
-            dimCoordList.push_back(StdString("lat").append(appendDomId));
-          }
-           else
-           {
-            StdString domainName = domain->name;
-            if (domain->nvertex == 1)
+            if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
             {
-              dimXid     = "n" + domainName + "_node";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_node_x"));
-              dimCoordList.push_back(StdString(domainName + "_node_y"));
+              dimIdList.push_back(domId + "_points");
+              field->setUseCompressedOutput();
             }
-            else if (domain->nvertex == 2)
+
+            switch (domain->type)
             {
-              dimXid     = "n" + domainName + "_edge";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_edge_x"));
-              dimCoordList.push_back(StdString(domainName + "_edge_y"));
+              case CDomain::type_attr::curvilinear:
+                if (!compressedOutput || !domain->isCompressible())
+                {
+                  dimXid     = StdString("x").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimYid     = StdString("y").append(appendDomId);
+                  dimIdList.push_back(dimYid);
+                }
+                dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
+                dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
+              break ;
+              case CDomain::type_attr::rectilinear:
+                if (!compressedOutput || !domain->isCompressible())
+                {
+                  dimXid     = StdString("lon").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimYid     = StdString("lat").append(appendDomId);
+                  dimIdList.push_back(dimYid);
+                }
+              break ;
+              case CDomain::type_attr::unstructured:
+              {
+                if (SuperClassWriter::useCFConvention)
+                {
+                  dimXid     = StdString("cell").append(appendDomId);
+                  dimIdList.push_back(dimXid);
+                  dimCoordList.push_back(StdString("lon").append(appendDomId));
+                  dimCoordList.push_back(StdString("lat").append(appendDomId));
+                }
+                else
+                {
+                  StdString domainName = domain->name;
+                  if (domain->nvertex == 1)
+                  {
+                    dimXid     = "n" + domainName + "_node";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_node_x"));
+                    dimCoordList.push_back(StdString(domainName + "_node_y"));
+                  }
+                  else if (domain->nvertex == 2)
+                  {
+                    dimXid     = "n" + domainName + "_edge";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_edge_x"));
+                    dimCoordList.push_back(StdString(domainName + "_edge_y"));
+                  }
+                  else
+                  {
+                    dimXid     = "n" + domainName + "_face";
+                    dimIdList.push_back(dimXid);
+                    dimCoordList.push_back(StdString(domainName + "_face_x"));
+                    dimCoordList.push_back(StdString(domainName + "_face_y"));
+                  }
+                }  // ugrid convention
+              }  // case unstructured domain
+            }
+
+            if (domain->hasArea)
+            {
+              hasArea = true;
+              cellMeasures += " area" + appendDomId;
+            }
+            ++idxDomain;
+          }
+          else if (1 == axisDomainOrder(i))
+          {
+            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            StdString axisId = axis->getAxisOutputName();
+
+            if (compressedOutput && axis->isCompressible())
+            {
+              dimIdList.push_back(axisId + "_points");
+              field->setUseCompressedOutput();
             }
             else
-            {
-              dimXid     = "n" + domainName + "_face";
-              dimIdList.push_back(dimXid);
-              dimCoordList.push_back(StdString(domainName + "_face_x"));
-              dimCoordList.push_back(StdString(domainName + "_face_y"));
-            }
-          }  // ugrid convention
-        }  // case unstructured domain
-             }
+              dimIdList.push_back(axisId);
 
-             if (domain->hasArea)
-             {
-               hasArea = true;
-               cellMeasures += " area" + appendDomId;
-             }
-             ++idxDomain;
-           }
-           else if (1 == axisDomainOrder(i))
-           {
-             CAxis* axis = CAxis::get(axisList[idxAxis]);
-             StdString axisId = axis->getAxisOutputName();
-
-             if (compressedOutput && axis->isCompressible())
-             {
-               dimIdList.push_back(axisId + "_points");
-               field->setUseCompressedOutput();
-             }
-             else
-               dimIdList.push_back(axisId);
-
-             dimCoordList.push_back(axisId);
-             ++idxAxis;
-           }
-           else // scalar
-           {
+            dimCoordList.push_back(axisId);
+            ++idxAxis;
+          }
+          else // scalar
+          {
              /* Do nothing here */
-           }
-         }
+          }
+        }
 
-/*
-         StdString lonid_loc = (server->intraCommSize > 1)
-                             ? StdString("lon").append(appendDomid).append("_local")
-                             : lonid;
-         StdString latid_loc = (server->intraCommSize > 1)
-                             ? StdString("lat").append(appendDomid).append("_local")
-                             : latid;
-*/
-         StdString fieldid = field->getFieldOutputName();
+        StdString fieldid = field->getFieldOutputName();
 
-         nc_type type ;
-         if (field->prec.isEmpty()) type =  NC_FLOAT ;
-         else
-         {
-           if (field->prec==2) type = NC_SHORT ;
-           else if (field->prec==4)  type =  NC_FLOAT ;
-           else if (field->prec==8)   type =  NC_DOUBLE ;
-         }
+        nc_type type ;
+        if (field->prec.isEmpty()) type =  NC_FLOAT ;
+        else
+        {
+          if (field->prec==2) type = NC_SHORT ;
+          else if (field->prec==4)  type =  NC_FLOAT ;
+          else if (field->prec==8)   type =  NC_DOUBLE ;
+        }
 
-         bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
+        bool wtime   = !(!field->operation.isEmpty() && field->getOperationTimeType() == func::CFunctor::once);
 
-         if (wtime)
-         {
+        if (wtime)
+        {
+          if (field->hasTimeInstant && hasTimeInstant) coodinates.push_back(string("time_instant"));
+          else if (field->hasTimeCentered && hasTimeCentered)  coodinates.push_back(string("time_centered"));
+          dims.push_back(timeid);
+        }
 
-            //StdOStringStream oss;
-           // oss << "time_" << field->operation.getValue()
-           //     << "_" << field->getRelFile()->output_freq.getValue();
-          //oss
-            if (field->getOperationTimeType() == func::CFunctor::instant) coodinates.push_back(string("time_instant"));
-            else if (field->getOperationTimeType() == func::CFunctor::centered) coodinates.push_back(string("time_centered"));
-            dims.push_back(timeid);
-         }
+        if (compressedOutput && grid->isCompressible())
+        {
+          dims.push_back(grid->getId() + "_points");
+          field->setUseCompressedOutput();
+        }
+        else
+        {
+          while (!dimIdList.empty())
+          {
+            dims.push_back(dimIdList.back());
+            dimIdList.pop_back();
+          }
+        }
 
-         if (compressedOutput && grid->isCompressible())
-         {
-           dims.push_back(grid->getId() + "_points");
-           field->setUseCompressedOutput();
-         }
-         else
-         {
-           while (!dimIdList.empty())
-           {
-             dims.push_back(dimIdList.back());
-             dimIdList.pop_back();
-           }
-         }
+        while (!dimCoordList.empty())
+        {
+          coodinates.push_back(dimCoordList.back());
+          dimCoordList.pop_back();
+        }
 
-         while (!dimCoordList.empty())
-         {
-           coodinates.push_back(dimCoordList.back());
-           dimCoordList.pop_back();
-         }
-
-         try
-         {
+        try
+        {
            SuperClassWriter::addVariable(fieldid, type, dims);
 
            if (!field->standard_name.isEmpty())
@@ -1741,7 +1759,27 @@ namespace xios
               SuperClassWriter::addAttribute
                  ("units", field->unit.getValue(), &fieldid);
 
-            if (!field->valid_min.isEmpty())
+           // Ugrid field attributes "mesh" and "location"
+           if (!SuperClassWriter::useCFConvention)
+           {
+            if (!domainList.empty())
+            {
+              CDomain* domain = CDomain::get(domainList[0]); // Suppose that we have only domain
+              StdString mesh = domain->name;
+              SuperClassWriter::addAttribute("mesh", mesh, &fieldid);
+              StdString location;
+              if (domain->nvertex == 1)
+                location = "node";
+              else if (domain->nvertex == 2)
+                location = "edge";
+              else if (domain->nvertex > 2)
+                location = "face";
+              SuperClassWriter::addAttribute("location", location, &fieldid);
+            }
+
+           }
+
+           if (!field->valid_min.isEmpty())
               SuperClassWriter::addAttribute
                  ("valid_min", field->valid_min.getValue(), &fieldid);
 
@@ -1770,31 +1808,31 @@ namespace xios
            StdString cellMethodsPrefix(""), cellMethodsSuffix("");
            if (!field->cell_methods.isEmpty())
            {
-             StdString cellMethodString = field->cell_methods;
-             if (field->cell_methods_mode.isEmpty() ||
+              StdString cellMethodString = field->cell_methods;
+              if (field->cell_methods_mode.isEmpty() ||
                  (CField::cell_methods_mode_attr::overwrite == field->cell_methods_mode))
-             {
-               SuperClassWriter::addAttribute("cell_methods", cellMethodString, &fieldid);
-               alreadyAddCellMethod = true;
-             }
-             else
-             {
-               switch (field->cell_methods_mode)
-               {
-               case (CField::cell_methods_mode_attr::prefix):
-                 cellMethodsPrefix = cellMethodString;
-                 cellMethodsPrefix += " ";
-                 break;
-               case (CField::cell_methods_mode_attr::suffix):
-                 cellMethodsSuffix = " ";
-                 cellMethodsSuffix += cellMethodString;
-                 break;
-               case (CField::cell_methods_mode_attr::none):
-                 break;
-               default:
-                 break;
-               }
-             }
+              {
+                SuperClassWriter::addAttribute("cell_methods", cellMethodString, &fieldid);
+                alreadyAddCellMethod = true;
+              }
+              else
+              {
+                switch (field->cell_methods_mode)
+                {
+                  case (CField::cell_methods_mode_attr::prefix):
+                    cellMethodsPrefix = cellMethodString;
+                    cellMethodsPrefix += " ";
+                    break;
+                  case (CField::cell_methods_mode_attr::suffix):
+                    cellMethodsSuffix = " ";
+                    cellMethodsSuffix += cellMethodString;
+                    break;
+                  case (CField::cell_methods_mode_attr::none):
+                    break;
+                  default:
+                    break;
+                }
+              }
            }
 
 
@@ -1880,19 +1918,20 @@ namespace xios
 
          singleDomain = (file->nbDomains == 1);
 
+         StdString conv_str ;
+         if (file->convention_str.isEmpty())
+         {
+            if (SuperClassWriter::useCFConvention) conv_str="CF-1.6" ;
+            else conv_str="UGRID" ;
+         }
+         else conv_str=file->convention_str ;
+           
          try
          {
-       if (SuperClassWriter::useCFConvention)
-             this->writeFileAttributes(filename, description,
-                                       StdString("CF-1.5"),
-                                       StdString("An IPSL model"),
-                                       this->getTimeStamp());
-           else
-             this->writeFileAttributes(filename, description,
-                                       StdString("UGRID"),
-                                       StdString("An IPSL model"),
-                                       this->getTimeStamp());
-
+           this->writeFileAttributes(filename, description,
+                                      conv_str,
+                                      StdString("An IPSL model"),
+                                      this->getTimeStamp());
 
            if (!appendMode)
              SuperClassWriter::addDimension("axis_nbounds", 2);
@@ -2016,10 +2055,15 @@ namespace xios
          time_t rawtime;
          struct tm * timeinfo = NULL;
          char buffer [buffer_size];
+         StdString formatStr;
+         if (file->time_stamp_format.isEmpty()) formatStr="%Y-%b-%d %H:%M:%S %Z" ;
+         else formatStr=file->time_stamp_format;
 
+//         time ( &rawtime );
+//         timeinfo = localtime ( &rawtime );
          time ( &rawtime );
-         timeinfo = localtime ( &rawtime );
-         strftime (buffer, buffer_size, "%Y-%b-%d %H:%M:%S %Z", timeinfo);
+         timeinfo = gmtime ( &rawtime );
+         strftime (buffer, buffer_size, formatStr.c_str(), timeinfo);
 
          return (StdString(buffer));
       }
@@ -2032,30 +2076,40 @@ namespace xios
         CContextServer* server = context->server;
         CGrid* grid = field->grid;
 
-        if (field->getNStep()<1) return ;
+        if (field->getNStep()<1) 
+        {
+          return;
+        }
         
         if (!grid->doGridHaveDataToWrite())
-          if (SuperClass::type == MULTI_FILE || !isCollective) return;
+          if (SuperClass::type == MULTI_FILE || !isCollective)
+          {
+            return;
+          }
 
         StdString fieldid = field->getFieldOutputName();
 
         StdOStringStream oss;
         string timeAxisId;
-        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisId = "time_instant";
-        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisId = "time_centered";
+        if (field->hasTimeInstant) timeAxisId = "time_instant";
+        else if (field->hasTimeCentered) timeAxisId = "time_centered";
 
         StdString timeBoundId = getTimeCounterName() + "_bounds";
 
         StdString timeAxisBoundId;
-        if (field->getOperationTimeType() == func::CFunctor::instant) timeAxisBoundId = "time_instant_bounds";
-        else if (field->getOperationTimeType() == func::CFunctor::centered) timeAxisBoundId = "time_centered_bounds";
+        if (field->hasTimeInstant) timeAxisBoundId = "time_instant_bounds";
+        else if (field->hasTimeCentered) timeAxisBoundId = "time_centered_bounds";
 
         if (!field->wasWritten())
         {
-          if (appendMode && field->file->record_offset.isEmpty() &&
-               field->getOperationTimeType() != func::CFunctor::once)
+          if (appendMode && field->file->record_offset.isEmpty() && 
+              field->getOperationTimeType() != func::CFunctor::once)
           {
-            field->resetNStep(getRecordFromTime(field->last_Write_srv) + 1);
+            double factorUnit;
+            if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+            factorUnit=context->getCalendar()->getDayLengthInSeconds() ;
+            else factorUnit=1 ;
+            field->resetNStep(getRecordFromTime(field->last_Write_srv,factorUnit) + 1);
           }
 
           field->setWritten();
@@ -2068,42 +2122,59 @@ namespace xios
         CArray<double,1> time_counter_bound(2);
 
         bool wtime = (field->getOperationTimeType() != func::CFunctor::once);
+        bool wtimeCounter =false ;
+        bool wtimeData =false ;
+        
 
         if (wtime)
         {
           Time lastWrite = field->last_Write_srv;
           Time lastLastWrite = field->lastlast_Write_srv;
 
-          if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data(0) = lastWrite;
-          else if (field->getOperationTimeType() == func::CFunctor::centered)
-            time_data(0) = (lastWrite + lastLastWrite) / 2;
-
-          if (field->getOperationTimeType() == func::CFunctor::instant)
-            time_data_bound(0) = time_data_bound(1) = lastWrite;
-          else if (field->getOperationTimeType() == func::CFunctor::centered)
+          
+          if (field->hasTimeInstant)
           {
+            time_data(0) = time_data_bound(1) = lastWrite;
+            time_data_bound(0) = time_data_bound(1) = lastWrite;
+            if (timeCounterType==instant)
+            {
+              time_counter(0) = time_data(0);
+              time_counter_bound(0) = time_data_bound(0);
+              time_counter_bound(1) = time_data_bound(1);
+              wtimeCounter=true ;
+            }
+            if (hasTimeInstant) wtimeData=true ;
+          }
+          else if (field->hasTimeCentered)
+          {
+            time_data(0) = (lastWrite + lastLastWrite) / 2;
             time_data_bound(0) = lastLastWrite;
             time_data_bound(1) = lastWrite;
+            if (timeCounterType==centered)
+            {
+              time_counter(0) = time_data(0) ;
+              time_counter_bound(0) = time_data_bound(0) ;
+              time_counter_bound(1) = time_data_bound(1) ;
+              wtimeCounter=true ;
+            }
+            if (hasTimeCentered) wtimeData=true ;
           }
 
-          if (field->file->time_counter == CFile::time_counter_attr::instant)
-            time_counter(0) = lastWrite;
-          else if (field->file->time_counter == CFile::time_counter_attr::centered)
-            time_counter(0) = (lastWrite + lastLastWrite) / 2;
-          else if (field->file->time_counter == CFile::time_counter_attr::record)
-            time_counter(0) = field->getNStep() - 1;
-
-
-          if (field->file->time_counter == CFile::time_counter_attr::instant)
-            time_counter_bound(0) = time_counter_bound(1) = lastWrite;
-          else if (field->file->time_counter == CFile::time_counter_attr::centered)
+          if (timeCounterType==record)
           {
-            time_counter_bound(0) = lastLastWrite;
-            time_counter_bound(1) = lastWrite;
-          }
-          else if (field->file->time_counter == CFile::time_counter_attr::record)
+            time_counter(0) = field->getNStep() - 1;
             time_counter_bound(0) = time_counter_bound(1) = field->getNStep() - 1;
+            wtimeCounter=true ;
+          }
+
+          if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days)
+          {
+            double secByDay=context->getCalendar()->getDayLengthInSeconds() ;
+            time_data/=secByDay;
+            time_data_bound/=secByDay;
+            time_counter/=secByDay;
+            time_counter_bound/=secByDay;
+          }
         }
 
          bool isRoot = (server->intraCommRank == 0);
@@ -2139,17 +2210,27 @@ namespace xios
            {
               case (MULTI_FILE) :
               {
+                 CTimer::get("Files : writing data").resume();
                  SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1);
+                 CTimer::get("Files : writing data").suspend();
                  if (wtime)
                  {
-                   SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
-                   SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
-                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                   CTimer::get("Files : writing time axis").resume();
+                   if ( wtimeData)
                    {
-                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
-                     if (field->file->time_counter != CFile::time_counter_attr::record)
-                       SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                       SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
+                       SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
+                  }
+                   if (wtimeCounter)
+                   {
+//                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
+//                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
+                   CTimer::get("Files : writing time axis").suspend();
                  }
                  break;
               }
@@ -2226,7 +2307,7 @@ namespace xios
                         --idx;
                       }
                     }
-                  }                
+                  }
                 }
                 else
                 {
@@ -2277,18 +2358,31 @@ namespace xios
                   }
                 }
 
+
+                CTimer::get("Files : writing data").resume();
                 SuperClassWriter::writeData(fieldData, fieldid, isCollective, field->getNStep() - 1, &start, &count);
-                if (wtime)
-                {
-                   SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
-                   SuperClassWriter::writeTimeAxisData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
-                   if (field->file->time_counter != CFile::time_counter_attr::none)
+                CTimer::get("Files : writing data").suspend();
+
+                 if (wtime)
+                 {
+                   CTimer::get("Files : writing time axis").resume();
+                   if ( wtimeData)
                    {
-                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1, isRoot);
-                     if (field->file->time_counter != CFile::time_counter_attr::record)
-                       SuperClassWriter::writeTimeAxisData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+//                     SuperClassWriter::writeData(time_data, timeAxisId, isCollective, field->getNStep() - 1);
+//                     SuperClassWriter::writeData(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_data, timeAxisId, isCollective, field->getNStep() - 1, isRoot);
+                     SuperClassWriter::writeTimeAxisDataBounds(time_data_bound, timeAxisBoundId, isCollective, field->getNStep() - 1, isRoot);
                    }
-                }
+                   if (wtimeCounter)
+                   {
+//                     SuperClassWriter::writeData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1);
+//                     if (timeCounterType!=record) SuperClassWriter::writeData(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1);
+                     SuperClassWriter::writeTimeAxisData(time_counter, getTimeCounterName(), isCollective, field->getNStep() - 1,isRoot);
+                     if (timeCounterType!=record) SuperClassWriter::writeTimeAxisDataBounds(time_counter_bound, timeBoundId, isCollective, field->getNStep() - 1, isRoot);
+
+                   }
+                   CTimer::get("Files : writing time axis").suspend();  
+                 }
 
                 break;
               }
@@ -2312,82 +2406,207 @@ namespace xios
                    const boost::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;
-
+         bool createInstantAxis=false ;
+         bool createCenteredAxis=false ;
+         bool createTimeCounterAxis=false ;
+         
          if (field->getOperationTimeType() == func::CFunctor::once) return ;
 
-//         oss << "time_" << field->operation.getValue()
-//             << "_" << field->getRelFile()->output_freq.getValue();
 
-//         StdString axisid = oss.str();
-//         if (field->getOperationTimeType() == func::CFunctor::centered) axisid="time_centered" ;
-//         else if (field->getOperationTimeType() == func::CFunctor::instant) axisid="time_instant" ;
-
-         StdString axisid("time_centered") ;
-         StdString axisBoundId("time_centered_bounds");
+         StdString axisId ;
+         StdString axisBoundId;
          StdString timeid(getTimeCounterName());
          StdString timeBoundId("axis_nbounds");
 
-         if (field->getOperationTimeType() == func::CFunctor::instant)
+         StdString strTimeUnits ;
+         if (!field->file->time_units.isEmpty() && field->file->time_units==CFile::time_units_attr::days) strTimeUnits="days since " ;
+         else  strTimeUnits="seconds since " ;
+ 
+         if (field->getOperationTimeType() == func::CFunctor::instant) field->hasTimeInstant = true;
+         if (field->getOperationTimeType() == func::CFunctor::centered) field->hasTimeCentered = true;
+
+
+         if (field->file->time_counter.isEmpty())
          {
-            axisid = "time_instant";
-            axisBoundId = "time_instant_bounds";
+           if (timeCounterType==none) createTimeCounterAxis=true ;
+           if (field->hasTimeCentered)
+           {
+             timeCounterType=centered ;
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) timeCounterType=instant ;
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::instant)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=instant ;
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::centered)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=centered ;
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::instant_exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=instant ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::centered_exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             timeCounterType=centered ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::exclusive)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (timeCounterType==none) createTimeCounterAxis=true ;
+             if (timeCounterType==instant) createInstantAxis=true ;
+             timeCounterType=centered ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (timeCounterType==none)
+             {
+               createTimeCounterAxis=true ;
+               timeCounterType=instant ;
+             }
+             if (timeCounterType==centered)
+             {
+               if (!hasTimeInstant) createInstantAxis=true ;
+             }
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::none)
+         {
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         else if (field->file->time_counter==CFile::time_counter_attr::record)
+         {
+           if (timeCounterType==none) createTimeCounterAxis=true ;
+           timeCounterType=record ;
+           if (field->hasTimeCentered)
+           {
+             if (!hasTimeCentered) createCenteredAxis=true ;
+           }
+           if (field->hasTimeInstant)
+           {
+             if (!hasTimeInstant) createInstantAxis=true ;
+           }
+         }
+         
+         if (createInstantAxis)
+         {
+           axisId="time_instant" ;
+           axisBoundId="time_instant_bounds";
+           hasTimeInstant=true ;
          }
 
+         if (createCenteredAxis)
+         {
+           axisId="time_centered" ;
+           axisBoundId="time_centered_bounds";
+           hasTimeCentered=true ;
+         }
+
+         
          try
          {
-          // Adding time_instant or time_centered
-           std::vector<StdString> dims;
-           dims.push_back(timeid);
-           if (!SuperClassWriter::varExist(axisid))
-           {
-              SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-
-              CDate timeOrigin=cal->getTimeOrigin() ;
-              StdOStringStream oss2;
-  //            oss2<<initDate.getYear()<<"-"<<initDate.getMonth()<<"-"<<initDate.getDay()<<" "
-  //                <<initDate.getHour()<<"-"<<initDate.getMinute()<<"-"<<initDate.getSecond() ;
-              StdString strInitdate=oss2.str() ;
-              StdString strTimeOrigin=timeOrigin.toString() ;
-              this->writeTimeAxisAttributes
-                 (axisid, cal->getType(),
-                  StdString("seconds since ").append(strTimeOrigin),
-                  strTimeOrigin, axisBoundId);
-           }
-
-           // Adding time_instant_bounds or time_centered_bounds variables
-           if (!SuperClassWriter::varExist(axisBoundId))
-           {
-              dims.clear() ;
+            std::vector<StdString> dims;
+            
+            if (createInstantAxis || createCenteredAxis)
+            {
+              // Adding time_instant or time_centered
               dims.push_back(timeid);
-              dims.push_back(timeBoundId);
-              SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+              if (!SuperClassWriter::varExist(axisId))
+              {
+                SuperClassWriter::addVariable(axisId, NC_DOUBLE, dims);
+
+                CDate timeOrigin=cal->getTimeOrigin() ;
+                StdOStringStream oss2;
+                StdString strInitdate=oss2.str() ;
+                StdString strTimeOrigin=timeOrigin.toString() ;
+                this->writeTimeAxisAttributes(axisId, cal->getType(),strTimeUnits+strTimeOrigin,
+                                              strTimeOrigin, axisBoundId);
+             }
+
+             // Adding time_instant_bounds or time_centered_bounds variables
+             if (!SuperClassWriter::varExist(axisBoundId))
+             {
+                dims.clear() ;
+                dims.push_back(timeid);
+                dims.push_back(timeBoundId);
+                SuperClassWriter::addVariable(axisBoundId, NC_DOUBLE, dims);
+             }
            }
 
-           if (field->file->time_counter != CFile::time_counter_attr::none)
+           if (createTimeCounterAxis)
            {
              // Adding time_counter
-             axisid = getTimeCounterName();
+             axisId = getTimeCounterName();
              axisBoundId = getTimeCounterName() + "_bounds";
              dims.clear();
              dims.push_back(timeid);
-             if (!SuperClassWriter::varExist(axisid))
+             if (!SuperClassWriter::varExist(axisId))
              {
-                SuperClassWriter::addVariable(axisid, NC_DOUBLE, dims);
-                SuperClassWriter::addAttribute("axis", string("T"), &axisid);
+                SuperClassWriter::addVariable(axisId, NC_DOUBLE, dims);
+                SuperClassWriter::addAttribute("axis", string("T"), &axisId);
 
-                if (field->file->time_counter != CFile::time_counter_attr::record)
+                if (field->file->time_counter.isEmpty() || 
+                   (field->file->time_counter != CFile::time_counter_attr::record))
                 {
                   CDate timeOrigin = cal->getTimeOrigin();
                   StdString strTimeOrigin = timeOrigin.toString();
 
-                  this->writeTimeAxisAttributes(axisid, cal->getType(),
-                                                StdString("seconds since ").append(strTimeOrigin),
+                  this->writeTimeAxisAttributes(axisId, cal->getType(),
+                                                strTimeUnits+strTimeOrigin,
                                                 strTimeOrigin, axisBoundId);
                 }
              }
 
              // Adding time_counter_bound dimension
-             if (field->file->time_counter != CFile::time_counter_attr::record)
+             if (field->file->time_counter.isEmpty() || (field->file->time_counter != CFile::time_counter_attr::record))
              {
                 if (!SuperClassWriter::varExist(axisBoundId))
                 {
@@ -2562,8 +2781,20 @@ namespace xios
            SuperClassWriter::addAttribute("description", description);
            SuperClassWriter::addAttribute("title"      , description);
            SuperClassWriter::addAttribute("Conventions", conventions);
-           SuperClassWriter::addAttribute("production" , production);
-           SuperClassWriter::addAttribute("timeStamp"  , timeStamp);
+           // SuperClassWriter::addAttribute("production" , production);
+
+           StdString timeStampStr ;
+           if (file->time_stamp_name.isEmpty()) timeStampStr="timeStamp" ;
+           else timeStampStr=file->time_stamp_name ;
+           SuperClassWriter::addAttribute(timeStampStr, timeStamp);
+
+           StdString uuidName ;
+           if (file->uuid_name.isEmpty()) uuidName="uuid" ;
+           else uuidName=file->uuid_name ;
+
+           if (file->uuid_format.isEmpty()) SuperClassWriter::addAttribute(uuidName, getUuidStr());
+           else SuperClassWriter::addAttribute(uuidName, getUuidStr(file->uuid_format));
+          
          }
          catch (CNetCdfException& e)
          {
@@ -2615,23 +2846,25 @@ namespace xios
 
       ///--------------------------------------------------------------
 
-      StdSize CNc4DataOutput::getRecordFromTime(Time time)
+      StdSize CNc4DataOutput::getRecordFromTime(Time time, double factorUnit)
       {
         std::map<Time, StdSize>::const_iterator it = timeToRecordCache.find(time);
         if (it == timeToRecordCache.end())
         {
           StdString timeAxisBoundsId(getTimeCounterName() + "_bounds");
-          if (!SuperClassWriter::varExist(timeAxisBoundsId))
-            timeAxisBoundsId = "time_instant_bounds";
+          if (!SuperClassWriter::varExist(timeAxisBoundsId)) timeAxisBoundsId = "time_centered_bounds";
+          if (!SuperClassWriter::varExist(timeAxisBoundsId)) timeAxisBoundsId = "time_instant_bounds";
 
           CArray<double,2> timeAxisBounds;
-          SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective);
-
+          std::vector<StdSize> dimSize(SuperClassWriter::getDimensions(timeAxisBoundsId)) ;
+          
           StdSize record = 0;
           double dtime(time);
-          for (int n = timeAxisBounds.extent(1) - 1; n >= 0; n--)
+          for (int n = dimSize[0] - 1; n >= 0; n--)
           {
-            if (timeAxisBounds(1, n) < dtime)
+            SuperClassWriter::getTimeAxisBounds(timeAxisBounds, timeAxisBoundsId, isCollective, n);
+            timeAxisBounds*=factorUnit ;
+            if (timeAxisBounds(1, 0) < dtime)
             {
               record = n + 1;
               break;

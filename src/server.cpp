@@ -297,7 +297,6 @@ namespace xios
 
     void CServer::finalize(void)
     {
-
       CTimer::get("XIOS").suspend() ;
      
       delete eventScheduler ;
@@ -327,6 +326,7 @@ namespace xios
       report(0)<<"Performance report : Time spent for XIOS : "<<CTimer::get("XIOS server").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Time spent in processing events : "<<CTimer::get("Process events").getCumulatedTime()<<endl  ;
       report(0)<<"Performance report : Ratio : "<<CTimer::get("Process events").getCumulatedTime()/CTimer::get("XIOS server").getCumulatedTime()*100.<<"%"<<endl  ;
+      report(100)<<CTimer::getAllCumulatedTime()<<endl ;
     }
 
      void CServer::eventLoop(void)
@@ -351,7 +351,6 @@ namespace xios
          contextEventLoop() ;
          if (finished && contextList.empty()) stop=true ;
          eventScheduler->checkEvent() ;
-
        }
        CTimer::get("XIOS server").suspend() ;
      }
@@ -421,7 +420,7 @@ namespace xios
 
        MPI_Status status ;
        int flag ;
-       static void* buffer ;
+       static char* buffer ;
        static MPI_Request request ;
        static bool recept=false ;
        int rank ;
@@ -437,7 +436,7 @@ namespace xios
            rank=status.MPI_SOURCE ;
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            buffer=new char[count] ;
-           MPI_Irecv(buffer,count,MPI_CHAR,rank,1,CXios::globalComm,&request) ;
+           MPI_Irecv((void*)buffer,count,MPI_CHAR,rank,1,CXios::globalComm,&request) ;
            recept=true ;
          }
        }
@@ -450,8 +449,8 @@ namespace xios
          {
            rank=status.MPI_SOURCE ;
            MPI_Get_count(&status,MPI_CHAR,&count) ;
-           recvContextMessage(buffer,count) ;
-           delete [] buffer;
+           recvContextMessage((void*)buffer,count) ;
+           delete [] buffer ;
            recept=false ;
          }
        }
@@ -539,7 +538,7 @@ namespace xios
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            buffer=new char[count] ;
-           MPI_Irecv(buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
+           MPI_Irecv((void*)buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
            recept=true ;
          }
        }
@@ -551,7 +550,7 @@ namespace xios
          {
            MPI_Get_count(&status,MPI_CHAR,&count) ;
            eventScheduler->registerEvent(nbContexts,hashId);
-//           registerContext(buffer,count) ;
+//           registerContext((void*)buffer,count) ;
 //           delete [] buffer ;
            recept=false ;
          }
@@ -684,15 +683,6 @@ namespace xios
       }
       id = getRank();
 
-//      if (!CXios::usingServer2)
-//        id = getRank();
-//      else
-//      {
-//        if (serverLevel == 1)
-//          id = rank_;
-//        else
-//          id = poolId;
-//      }
       fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())

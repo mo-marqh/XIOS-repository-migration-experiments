@@ -104,6 +104,19 @@ struct Elt : Polyg
 		}
 	}
 
+  void insert_vertex(int i, const Coord& v)
+  {
+    for(int j=n; j > i ; j--)
+    {
+      vertex[j]=vertex[j-1] ;
+      edge[j]=edge[j-1] ;
+      d[j]=d[j-1] ;
+      neighbour[j]=neighbour[j-1] ;
+    }
+    vertex[i+1]=v ;
+    n++ ;
+  }
+  
 	int neighbour[NMAX];
 	double d[NMAX]; /**< distance of centre of small circle to origin, zero if great circle */
 	double val;     /**< value (sample if src element, interpolated if dest element) */

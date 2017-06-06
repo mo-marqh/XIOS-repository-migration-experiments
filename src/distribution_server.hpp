@@ -42,9 +42,6 @@ class CDistributionServer : public CDistribution
   protected:
     virtual void createGlobalIndex();
 
-    void createGlobalIndexFromIndex(const std::vector<CArray<int,1> >& globalIndexOnEachDimension,
-                                    const std::vector<int>& nbGlobal);
-
   protected:
     GlobalLocalMap globalLocalIndexMap_;
 

@@ -22,6 +22,7 @@ namespace xios
        */
       CFileServerWriterFilter(CGarbageCollector& gc, CField* field);
 
+      bool virtual isDataExpected(const CDate& date) const;
     protected:
       /*!
        * Callbacks a field to write a packet to a file.

@@ -261,7 +261,7 @@ namespace xios
     for (int i = 0; i < elementPosition; ++i, ++itMapNi) {}
     itMapNj = itMapNi; ++itMapNj;
 
-    if ((CDomain::type_attr::rectilinear == domain->type))// || this->isRectilinear(fieldId))
+    if ((CDomain::type_attr::rectilinear == domain->type))
     {
       // Ok, try to read some f.. attributes such as longitude and latitude
       bool hasLat = SuperClassWriter::hasVariable(itMapNj->first);
@@ -278,127 +278,117 @@ namespace xios
         domain->lonvalue_rectilinear_read_from_file.resize(itMapNi->second);
         std::vector<StdSize> nBeginLon(1, 0), nSizeLon(1, itMapNi->second);
         readFieldVariableValue(domain->lonvalue_rectilinear_read_from_file, itMapNi->first, nBeginLon, nSizeLon, true);
-      }
-      domain->fillInRectilinearLonLat();
+      }      
     }
-    else if ((CDomain::type_attr::curvilinear == domain->type))// || (this->isCurvilinear(fieldId)))
+    else if ((CDomain::type_attr::curvilinear == domain->type))
     {
       int ni = domain->ni;
       int nj = domain->nj;
       std::vector<StdSize> nBeginLatLon(2), nSizeLatLon(2);
-      nBeginLatLon[0] = domain->jbegin.getValue(); nBeginLatLon[1] = domain->ibegin.getValue();
-      nSizeLatLon[0]  = nj; nSizeLatLon[1] = ni;
+      nBeginLatLon[0] = 0; nBeginLatLon[1] = 0;
+      nSizeLatLon[0]  = domain->nj_glo.getValue(); nSizeLatLon[1] = domain->ni_glo.getValue();
 
       StdString latName = this->getLatCoordName(fieldId);
-      if (SuperClassWriter::hasVariable(latName)) //(0 != latName.compare(""))
+      if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_2d.resize(ni,nj);
-        readFieldVariableValue(domain->latvalue_2d, latName, nBeginLatLon, nSizeLatLon);
+        domain->latvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
+        readFieldVariableValue(domain->latvalue_curvilinear_read_from_file, latName, nBeginLatLon, nSizeLatLon);
       }
       StdString lonName = this->getLonCoordName(fieldId);
-      if (SuperClassWriter::hasVariable(lonName)) //(0 != lonName.compare(""))
+      if (SuperClassWriter::hasVariable(lonName))
       {
-        domain->lonvalue_2d.resize(ni,nj);
-        readFieldVariableValue(domain->lonvalue_2d, lonName, nBeginLatLon, nSizeLatLon);
+        domain->lonvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
+        readFieldVariableValue(domain->lonvalue_curvilinear_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
       StdString boundsLatName = this->getBoundsId(latName);
       StdString boundsLonName = this->getBoundsId(lonName);
 
       int nbVertex = this->getNbVertex(fieldId);
-      if (SuperClassWriter::hasVariable(boundsLatName) || SuperClassWriter::hasVariable(boundsLonName)) //if ((0 != boundsLatName.compare("")) || (0 != boundsLonName.compare("")))
+      if (!domain->nvertex.isEmpty() && (domain->nvertex != nbVertex))
+      {
+        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
+          << "The domain " << domain->getDomainOutputName()
+          << " has nvertex read from file " << this->filename << " and nvertex provided from model"
+          << " are not coherent. They should be the same." << std::endl 
+          << " nvertex read from file: "<< nbVertex
+          << " nvertex from model: "<< domain->nvertex << std::endl);
+      } 
+
+      if (SuperClassWriter::hasVariable(boundsLatName) || SuperClassWriter::hasVariable(boundsLonName)) 
         domain->nvertex.setValue(nbVertex);
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
-      nBeginBndsLatLon[0] = domain->jbegin.getValue(); nSizeBndsLatLon[0] = nj;
-      nBeginBndsLatLon[1] = domain->ibegin.getValue(); nSizeBndsLatLon[1] = ni;
+      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->nj_glo.getValue();
+      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = domain->nj_glo.getValue();
       nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
 
-      if (SuperClassWriter::hasVariable(boundsLatName)) //(0 != boundsLatName.compare(""))
+      if (SuperClassWriter::hasVariable(boundsLatName))
       {
-        domain->bounds_lat_2d.resize(nbVertex,ni,nj);
-        readFieldVariableValue(domain->bounds_lat_2d, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
+        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
+        readFieldVariableValue(domain->bounds_latvalue_curvilinear_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
 
       }
-      if (SuperClassWriter::hasVariable(boundsLonName)) //(0 != boundsLonName.compare(""))
+      if (SuperClassWriter::hasVariable(boundsLonName)) 
       {
-        domain->bounds_lon_2d.resize(nbVertex,ni,nj);
-        readFieldVariableValue(domain->bounds_lon_2d, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
-      }
+        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
+        readFieldVariableValue(domain->bounds_lonvalue_curvilinear_read_from_file, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
+      }      
     }
     else if ((CDomain::type_attr::unstructured == domain->type))// || (this->isUnstructured(fieldId)))
     {
-      /*
-      if (domain->i_index.isEmpty())
-         ERROR("CNc4DataInput::readDomainAttributeValueFromFile(...)",
-              << "Field '" << fieldId << std::endl
-              << "Trying to read attributes from unstructured grid."
-              << "i_index of domain" << domain->getId() << " is mandatory");
-
-      int ni = domain->i_index.numElements();
-*/
-
-      int ni     = domain->ni.isEmpty() ? 0 : domain->ni;
-      int ibegin = domain->ibegin.isEmpty() ? 0 : domain->ibegin;
-
-      if (domain->i_index.isEmpty() && (!domain->ni.isEmpty()) )
-      {
-        domain->i_index.resize(ni) ;
-        for(int idx = 0; idx < ni; ++idx) domain->i_index(idx)=ibegin+idx ;
-      }
-
       std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
       nSizeLatLon[0]  = domain->ni_glo.getValue();
       CArray<double,1> globalLonLat(domain->ni_glo.getValue());
 
       StdString latName = this->getLatCoordName(fieldId);
-      if (SuperClassWriter::hasVariable(latName)) //(0 != latName.compare(""))
+      if (SuperClassWriter::hasVariable(latName))
       {
-        readFieldVariableValue(globalLonLat, latName, nBeginLatLon, nSizeLatLon);
-        domain->latvalue_1d.resize(ni);
-        for (int idx = 0; idx < ni; ++idx)
-          domain->latvalue_1d(idx) =  globalLonLat(domain->i_index(idx));
+        domain->latvalue_unstructured_read_from_file.resize(domain->ni_glo);
+        readFieldVariableValue(domain->latvalue_unstructured_read_from_file, latName, nBeginLatLon, nSizeLatLon);  
       }
 
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName)) //(0 != lonName.compare(""))
       {
-        readFieldVariableValue(globalLonLat, lonName, nBeginLatLon, nSizeLatLon);
-        domain->lonvalue_1d.resize(ni);
-        for (int idx = 0; idx < ni; ++idx)
-          domain->lonvalue_1d(idx) = globalLonLat(domain->i_index(idx));
+        // readFieldVariableValue(globalLonLat, lonName, nBeginLatLon, nSizeLatLon);
+        domain->lonvalue_unstructured_read_from_file.resize(domain->ni_glo);
+        readFieldVariableValue(domain->lonvalue_unstructured_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
       StdString boundsLatName = this->getBoundsId(latName);
       StdString boundsLonName = this->getBoundsId(lonName);
 
       int nbVertex = this->getNbVertex(fieldId);
-      if (SuperClassWriter::hasVariable(boundsLatName) || SuperClassWriter::hasVariable(boundsLonName)) // (0 != boundsLatName.compare("")) || (0 != boundsLonName.compare("")))
+      if (!domain->nvertex.isEmpty() && (domain->nvertex != nbVertex))
+      {
+        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
+          << "The domain " << domain->getDomainOutputName()
+          << " has nvertex read from file " << this->filename << " and nvertex provided from model"
+          << " are not coherent. They should be the same." << std::endl 
+          << " nvertex read from file: "<< nbVertex
+          << " nvertex from model: "<< domain->nvertex << std::endl);
+      } 
+      
+      if (SuperClassWriter::hasVariable(boundsLatName) || SuperClassWriter::hasVariable(boundsLonName)) 
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(2), nSizeBndsLatLon(2);
       nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->ni_glo.getValue();
       nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
 
-      if (SuperClassWriter::hasVariable(boundsLatName)) //(0 != boundsLatName.compare(""))
+      if (SuperClassWriter::hasVariable(boundsLatName)) 
       {
-        CArray<double,2> globalBndsLonLat(nSizeBndsLatLon[1], nSizeBndsLatLon[0]);
-        readFieldVariableValue(globalBndsLonLat, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
-        domain->bounds_lat_1d.resize(nbVertex,ni);
-        for (int idx = 0; idx < ni; ++idx)
-          for (int jdx = 0; jdx < nbVertex; ++jdx)
-            domain->bounds_lat_1d(jdx,idx) = globalBndsLonLat(jdx, domain->i_index(idx));
+        domain->bounds_latvalue_unstructured_read_from_file.resize(nSizeBndsLatLon[1], nSizeBndsLatLon[0]);
+        readFieldVariableValue(domain->bounds_latvalue_unstructured_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
       }
 
-      if (SuperClassWriter::hasVariable(boundsLonName)) //(0 != boundsLonName.compare(""))
+      if (SuperClassWriter::hasVariable(boundsLonName)) 
       {
-        CArray<double,2> globalBndsLonLat(nSizeBndsLatLon[1], nSizeBndsLatLon[0]);
-        readFieldVariableValue(globalBndsLonLat, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
-        domain->bounds_lon_1d.resize(nbVertex,ni);
-        for (int idx = 0; idx < ni; ++idx)
-          for (int jdx = 0; jdx < nbVertex; ++jdx)
-            domain->bounds_lon_1d(jdx,idx) = globalBndsLonLat(jdx, domain->i_index(idx));
-      }
+        domain->bounds_lonvalue_unstructured_read_from_file.resize(nSizeBndsLatLon[1], nSizeBndsLatLon[0]);
+        readFieldVariableValue(domain->bounds_lonvalue_unstructured_read_from_file, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
+      }      
     }
+    domain->fillInLonLat();
   }
 
   /*!
@@ -420,12 +410,41 @@ namespace xios
 
     if (this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
     {
+      if (!domain->nj_glo.isEmpty() && (domain->nj_glo != itMapNj->second))
+      {
+        ERROR("void CNc4DataInput::readDomainAttributesFromFile(...)",
+          << "The domain " << domain->getDomainOutputName()
+          << " has nj_glo read from file " << this->filename << " and nj_glo provided from model"
+          << " are not coherent. They should be the same." << std::endl 
+          << " nj_glo read from file: "<< itMapNj->second
+          << " nj_glo from model: "<< domain->nj_glo << std::endl);
+      } 
       domain->nj_glo.setValue(itMapNj->second);
+
+      if (!domain->ni_glo.isEmpty() && (domain->ni_glo != itMapNi->second))
+      {
+        ERROR("void CNc4DataInput::readDomainAttributesFromFile(...)",
+          << "The domain " << domain->getDomainOutputName()
+          << " has ni_glo read from file " << this->filename << " and ni_glo provided from model"
+          << " are not coherent. They should be the same." << std::endl 
+          << " ni_glo read from file: "<< itMapNi->second
+          << " ni_glo from model: "<< domain->ni_glo << std::endl);
+      } 
       domain->ni_glo.setValue(itMapNi->second);
     }
     else if (this->isUnstructured(fieldId))
     {
       domain->nj_glo.setValue(1);
+
+      if (!domain->ni_glo.isEmpty() && (domain->ni_glo != itMapNi->second))
+      {
+        ERROR("void CNc4DataInput::readDomainAttributesFromFile(...)",
+          << "The domain " << domain->getDomainOutputName()
+          << " has ni_glo read from file " << this->filename << " and ni_glo provided from model"
+          << " are not coherent. They should be the same." << std::endl 
+          << " ni_glo read from file: "<< itMapNi->second
+          << " ni_glo from model: "<< domain->ni_glo << std::endl);
+      }       
       domain->ni_glo.setValue(itMapNi->second);
     }
   }
@@ -443,6 +462,16 @@ namespace xios
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
                                                               iteMap = dimSizeMap.end();
     for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
+
+    if (!axis->n_glo.isEmpty() && (axis->n_glo != itMapN->second))
+    {
+      ERROR("void CNc4DataInput::readAxisAttributesFromFile(...)",
+        << "The axis " << axis->getAxisOutputName()
+        << " has n_glo read from file " << this->filename << " and n_glo provided from model"
+        << " are not coherent. They should be the same." << std::endl 
+        << " n_glo read from file: "<< itMapN->second
+        << " n_glo from model: "<< axis->n_glo << std::endl);
+    }    
     axis->n_glo.setValue(itMapN->second);
   }
 
@@ -482,10 +511,7 @@ namespace xios
   void CNc4DataInput::readScalarAttributesFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                   int elementPosition, const StdString& fieldId)
   {
-//    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
-//                                                              iteMap = dimSizeMap.end();
-//    for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
-//    axis->n_glo.setValue(itMapN->second);
+    /*Nothing to do */
   }
 
   /*!
@@ -498,20 +524,7 @@ namespace xios
   void CNc4DataInput::readScalarAttributeValueFromFile(CScalar* scalar, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                       int elementPosition, const StdString& fieldId)
   {
-//    std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
-//                                                              iteMap = dimSizeMap.end();
-//    for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
-//
-//    { // Read axis value
-//      std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
-//      CArray<double,1> readAxisValue(itMapN->second);
-//      readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
-//      int begin = 0, n = itMapN->second;
-//      if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
-//      if (!axis->n.isEmpty()) n = axis->n.getValue();
-//      axis->value.resize(n);
-//      for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
-//    }
+    /*Nothing to do */
   }
 
   void CNc4DataInput::closeFile_(void)

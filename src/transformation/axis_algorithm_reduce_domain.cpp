@@ -75,10 +75,10 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, C
 void CAxisAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
                                        const double* dataInput,
                                        CArray<double,1>& dataOut,
-                                       std::vector<bool>& flagInitial,
-                                       const double& defaultValue)
+                                       std::vector<bool>& flagInitial,                     
+                                       bool ignoreMissingValue)
 {
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial);
+  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue);
 }
 
 void CAxisAlgorithmReduceDomain::updateData(CArray<double,1>& dataOut)

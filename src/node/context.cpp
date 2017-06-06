@@ -13,6 +13,8 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "xios_spl.hpp"
+#include "timer.hpp"
+#include "memtrack.hpp"
 
 #include "server.hpp"
 
@@ -371,7 +373,7 @@ namespace xios {
        MPI_Comm_dup(interComm, &interCommClient);
        comms.push_back(interCommClient);
      }
-     client = new CContextClient(this,intraCommClient,interCommClient,cxtClient);
+     client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
    }
 
    //! Try to send the buffers and receive possible answers
@@ -614,6 +616,7 @@ namespace xios {
    */
    void CContext::closeDefinition(void)
    {
+    CTimer::get("Context : close definition").resume() ;
     postProcessingGlobalAttributes();
 
     if (hasClient) sendPostProcessingGlobalAttributes();
@@ -639,6 +642,7 @@ namespace xios {
       sendCreateFileHeader();
       if (!hasServer) startPrefetchingOfEnabledReadModeFiles();
     }
+    CTimer::get("Context : close definition").suspend() ;
    }
 
    void CContext::findAllEnabledFields(void)
@@ -689,7 +693,6 @@ namespace xios {
      {
        this->enabledFiles[i]->generateNewTransformationGridDest();
      }
-
    }
 
    void CContext::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
@@ -782,15 +785,34 @@ namespace xios {
    void CContext::findEnabledFiles(void)
    {
       const std::vector<CFile*> allFiles = CFile::getAll();
+      const CDate& initDate = calendar->getInitDate();
 
       for (unsigned int i = 0; i < allFiles.size(); i++)
          if (!allFiles[i]->enabled.isEmpty()) // Si l'attribut 'enabled' est défini.
          {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
+            {
+              if ((initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
+              {
+                error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
+                    << "Output frequency in file \""<<allFiles[i]->getFileOutputName()
+                    <<"\" is less than the time step. File will not be written."<<endl;
+              }
+              else
                enabledFiles.push_back(allFiles[i]);
+            }
          }
-         else enabledFiles.push_back(allFiles[i]); // otherwise true by default
-
+         else
+         {
+           if ( (initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
+           {
+             error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
+                 << "Output frequency in file \""<<allFiles[i]->getFileOutputName()
+                 <<"\" is less than the time step. File will not be written."<<endl;
+           }
+           else
+             enabledFiles.push_back(allFiles[i]); // otherwise true by default
+         }
 
       if (enabledFiles.size() == 0)
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
@@ -1266,6 +1288,7 @@ namespace xios {
      // all new file objects created on server must be children of the root "file_definition"
      StdString fileDefRoot("file_definition");
      CFileGroup* cfgrpPtr = CFileGroup::get(fileDefRoot);
+
      for (int i = 0; i < size; ++i)
      {
        cfgrpPtr->sendCreateChild(this->enabledFiles[i]->getId(),enabledFiles[i]->getContextClient());
@@ -1312,10 +1335,33 @@ namespace xios {
      {
        CFile* file = allFiles[i];
 
+       std::vector<CVariable*> fileVars, fieldVars, vars = file->getAllVariables();
+       for (size_t k = 0; k < vars.size(); k++)
+       {
+         CVariable* var = vars[k];
+
+         if (var->ts_target.isEmpty()
+              || var->ts_target == CVariable::ts_target_attr::file || var->ts_target == CVariable::ts_target_attr::both)
+           fileVars.push_back(var);
+
+         if (!var->ts_target.isEmpty()
+              && (var->ts_target == CVariable::ts_target_attr::field || var->ts_target == CVariable::ts_target_attr::both))
+           fieldVars.push_back(var);
+       }
+
        if (!file->timeseries.isEmpty() && file->timeseries != CFile::timeseries_attr::none)
        {
-         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : file->getFileOutputName();
-
+         StdString fileNameStr("%file_name%") ;
+         StdString tsPrefix = !file->ts_prefix.isEmpty() ? file->ts_prefix : fileNameStr ;
+         
+         StdString fileName=file->getFileOutputName();
+         size_t pos=tsPrefix.find(fileNameStr) ;
+         while (pos!=std::string::npos)
+         {
+           tsPrefix=tsPrefix.replace(pos,fileNameStr.size(),fileName) ;
+           pos=tsPrefix.find(fileNameStr) ;
+         }
+        
          const std::vector<CField*> allFields = file->getAllFields();
          for (size_t j = 0; j < allFields.size(); j++)
          {
@@ -1325,8 +1371,12 @@ namespace xios {
            {
              CFile* tsFile = CFile::create();
              tsFile->duplicateAttributes(file);
-             tsFile->setVirtualVariableGroup(file->getVirtualVariableGroup());
 
+             // Add variables originating from file and targeted to timeserie file
+             for (size_t k = 0; k < fileVars.size(); k++)
+               tsFile->getVirtualVariableGroup()->addChild(fileVars[k]);
+
+            
              tsFile->name = tsPrefix + "_";
              if (!field->name.isEmpty())
                tsFile->name.get() += field->name;
@@ -1340,7 +1390,26 @@ namespace xios {
 
              CField* tsField = tsFile->addField();
              tsField->field_ref = field->getId();
-             tsField->setVirtualVariableGroup(field->getVirtualVariableGroup());
+
+             // Add variables originating from file and targeted to timeserie field
+             for (size_t k = 0; k < fieldVars.size(); k++)
+               tsField->getVirtualVariableGroup()->addChild(fieldVars[k]);
+
+             vars = field->getAllVariables();
+             for (size_t k = 0; k < vars.size(); k++)
+             {
+               CVariable* var = vars[k];
+
+               // Add variables originating from field and targeted to timeserie field
+               if (var->ts_target.isEmpty()
+                    || var->ts_target == CVariable::ts_target_attr::field || var->ts_target == CVariable::ts_target_attr::both)
+                 tsField->getVirtualVariableGroup()->addChild(var);
+
+               // Add variables originating from field and targeted to timeserie file
+               if (!var->ts_target.isEmpty()
+                    && (var->ts_target == CVariable::ts_target_attr::file || var->ts_target == CVariable::ts_target_attr::both))
+                 tsFile->getVirtualVariableGroup()->addChild(var);
+             }
 
              tsFile->solveFieldRefInheritance(true);
 
@@ -1455,10 +1524,12 @@ namespace xios {
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    {
-      info(50) <<"Context "<< this->getId() <<" updateCalendar : before : " << calendar->getCurrentDate() << endl;
+      info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
       calendar->update(step);
-      info(50) <<"Context "<< this->getId() << " updateCalendar : after : " << calendar->getCurrentDate() << endl;
-
+      info(50) << "updateCalendar : after : " << calendar->getCurrentDate() << endl;
+#ifdef XIOS_MEMTRACK_LIGHT
+      info(50) << " Current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte, at timestep "<<step<<" of context "<<this->getId()<<endl ;
+#endif
       if (hasClient)
       {
         checkPrefetchingOfEnabledReadModeFiles();
@@ -1536,7 +1607,7 @@ namespace xios {
   }
 
   void CContext::sendRegistry(void)
-  {    
+  {
     registryOut->hierarchicalGatherRegistry() ;
 
     // Use correct context client to send message

@@ -636,6 +636,25 @@ MODULE domaingroup_interface_attr
     END FUNCTION cxios_is_defined_domaingroup_nvertex
 
 
+    SUBROUTINE cxios_set_domaingroup_prec(domaingroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: prec
+    END SUBROUTINE cxios_set_domaingroup_prec
+
+    SUBROUTINE cxios_get_domaingroup_prec(domaingroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+      INTEGER (KIND=C_INT)             :: prec
+    END SUBROUTINE cxios_get_domaingroup_prec
+
+    FUNCTION cxios_is_defined_domaingroup_prec(domaingroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domaingroup_prec
+      INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl
+    END FUNCTION cxios_is_defined_domaingroup_prec
+
+
     SUBROUTINE cxios_set_domaingroup_standard_name(domaingroup_hdl, standard_name, standard_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domaingroup_hdl

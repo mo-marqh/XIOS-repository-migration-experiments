@@ -59,10 +59,13 @@ extern int yydebug;
     GT = 269,
     LE = 270,
     GE = 271,
-    LEFT_PARENTHESIS = 272,
-    RIGHT_PARENTHESIS = 273,
-    END = 274,
-    NEG = 275
+    NE = 272,
+    LEFT_PARENTHESIS = 273,
+    RIGHT_PARENTHESIS = 274,
+    QUESTION_MARK = 275,
+    COLON = 276,
+    END = 277,
+    NEG = 278
   };
 #endif
 
@@ -77,7 +80,7 @@ union YYSTYPE
   xios::IScalarExprNode* scalarNode;
   xios::IFilterExprNode* filterNode;
 
-#line 81 "yacc_parser.hpp" /* yacc.c:1909  */
+#line 84 "yacc_parser.hpp" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

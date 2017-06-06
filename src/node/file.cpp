@@ -13,7 +13,9 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "xios_spl.hpp"
+#include "context_client.hpp"
 #include "mpi.hpp"
+#include "timer.hpp"
 
 namespace xios {
 
@@ -48,9 +50,9 @@ namespace xios {
 
    //----------------------------------------------------------------
 
-   const StdString& CFile::getFileOutputName(void) const
+   const StdString CFile::getFileOutputName(void) const
    {
-     return name.isEmpty() ? getId() : name;
+     return (name.isEmpty() ? getId() : name) + (name_suffix.isEmpty() ? StdString("") :  name_suffix.getValue());
    }
 
    //----------------------------------------------------------------
@@ -214,11 +216,12 @@ namespace xios {
       lastSplit = currentDate;
       if (!split_freq.isEmpty())
       {
-        if (context->registryIn->foundKey("splitStart") && context->registryIn->foundKey("splitEnd"))
+        StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+        if (context->registryIn->foundKey(keySuffix+"splitStart") && context->registryIn->foundKey(keySuffix+"splitEnd"))
         {
           CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
-          context->registryIn->getKey("splitStart", savedSplitStart);
-          context->registryIn->getKey("splitEnd",   savedSplitEnd);
+          context->registryIn->getKey(keySuffix+"splitStart", savedSplitStart);
+          context->registryIn->getKey(keySuffix+"splitEnd",   savedSplitEnd);
 
           if (savedSplitStart <= lastSplit && lastSplit <= savedSplitEnd)
             lastSplit = savedSplitStart;
@@ -233,8 +236,6 @@ namespace xios {
 //              "Invalid 'record_offset', this attribute cannot be negative.");
       const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
 
-//      set<CAxis*> setAxis;
-//      set<CDomain*> setDomains;
       set<StdString> setAxis;
       set<StdString> setDomains;
 
@@ -262,7 +263,7 @@ namespace xios {
       MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
       if (allDomainEmpty) MPI_Comm_free(&fileComm);
 
-      if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
+      // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
 
@@ -280,7 +281,9 @@ namespace xios {
       {
         if (mode.isEmpty() || mode.getValue() == mode_attr::write)
         {
+          CTimer::get("Files : create headers").resume();
           if (!isOpen) createHeader();
+          CTimer::get("Files : create headers").suspend();
           checkSync();
         }        
         checkSplit(); // REally need this?
@@ -302,7 +305,9 @@ namespace xios {
       {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
+          CTimer::get("Files : open headers").resume();
           if (!isOpen) openInReadMode(&(context->server->intraComm));
+          CTimer::get("Files : open headers").suspend();
         }
         //checkSplit(); // Really need for reading?
       }
@@ -373,7 +378,6 @@ namespace xios {
       if (!allDomainEmpty)
       {
          StdString filename = getFileOutputName();
-         if (!name_suffix.isEmpty()) filename+=name_suffix.getValue();
 
 // determine splitting format in the file name  : firstPart%start_date%middlePart%end_date%lastPart
 
@@ -440,8 +444,9 @@ namespace xios {
            if (hasEndDate) oss << splitEnd.getStr(splitFormat);
            oss << lastPart ;
 
-           context->registryOut->setKey("splitStart", lastSplit);
-           context->registryOut->setKey("splitEnd",   splitEnd);
+           StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+           context->registryOut->setKey(keySuffix+"splitStart", lastSplit);
+           context->registryOut->setKey(keySuffix+"splitEnd",   splitEnd);
          }
          else oss<<firstPart<<lastPart ;
 
@@ -488,7 +493,7 @@ namespace xios {
 
          if (isOpen) data_out->closeFile();
 
-        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(oss.str(), append, useClassicFormat, useCFConvention,
+        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(this, oss.str(), append, useClassicFormat, useCFConvention,
                                                               fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
@@ -508,6 +513,12 @@ namespace xios {
           for (it = this->enabledFields.begin(); it != end; it++)
           {
             CField* field = *it;
+            this->data_out->writeFieldTimeAxis(field);
+          }
+          
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
+            CField* field = *it;
             this->data_out->writeField(field);
           }
 
@@ -516,6 +527,16 @@ namespace xios {
             this->data_out->writeAttribute(*it);
 
           this->data_out->definition_end();
+        }
+        else
+        {
+          // check time axis even in append mode
+          std::vector<CField*>::iterator it, end = this->enabledFields.end();
+          for (it = this->enabledFields.begin(); it != end; it++)
+          {
+            CField* field = *it;
+            this->data_out->writeFieldTimeAxis(field);
+          }
         }
       }
    }
@@ -534,7 +555,6 @@ namespace xios {
       StdString filename = getFileOutputName();
       StdOStringStream oss;
       oss << filename;
-      if (!name_suffix.isEmpty()) oss << name_suffix.getValue();
 
       if (!split_freq.isEmpty())
       {
@@ -870,7 +890,6 @@ namespace xios {
    {
      return client;
    }
-
 
    /*!
    \brief Send a message to create a field on server side

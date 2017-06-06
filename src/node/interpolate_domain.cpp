@@ -54,7 +54,7 @@ namespace xios {
     switch (this->mode)
     {
       case mode_attr::read:
-        if (this->file.isEmpty())
+        if (this->weight_filename.isEmpty())
         {
           if (!this->write_weight)
             ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",
@@ -63,7 +63,7 @@ namespace xios {
         }
         else
         {
-          weightFile = this->file;
+          weightFile = this->weight_filename;
           ifstream f(weightFile.c_str());
           if (!f.good())
             ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",
@@ -74,9 +74,9 @@ namespace xios {
       case mode_attr::compute:
         break;
       case mode_attr::read_or_compute:
-        if (!this->file.isEmpty() && !this->write_weight)
+        if (!this->weight_filename.isEmpty() && !this->write_weight)
         {
-          weightFile = this->file;
+          weightFile = this->weight_filename;
           ifstream f(weightFile.c_str());
           if (!f.good())
             ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",

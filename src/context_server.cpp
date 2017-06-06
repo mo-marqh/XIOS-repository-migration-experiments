@@ -22,7 +22,7 @@
 namespace xios
 {
 
-  CContextServer::CContextServer(CContext* parent, MPI_Comm intraComm_,MPI_Comm interComm_)
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
   {
     context=parent;
     intraComm=intraComm_;
@@ -49,7 +49,6 @@ namespace xios
   {
     pendingEvent=true;
   }
-
 
   bool CContextServer::hasPendingEvent(void)
   {
@@ -206,8 +205,7 @@ namespace xios
   CContextServer::~CContextServer()
   {
     map<int,CServerBuffer*>::iterator it;
-    for(it=buffers.begin();it!=buffers.end();++it)
-      delete it->second;
+    for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
   }
 
   void CContextServer::dispatchEvent(CEventServer& event)
@@ -262,5 +260,4 @@ namespace xios
       ERROR("void CContextServer::dispatchEvent(CEventServer& event)",<<" Bad event class Id"<<endl);
     }
   }
-
 }

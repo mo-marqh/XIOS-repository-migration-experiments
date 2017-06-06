@@ -37,7 +37,10 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,""))
       , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
       , useCompressedOutput(false)
+      , hasTimeInstant(false)
+      , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -49,7 +52,10 @@ namespace xios{
       , domAxisScalarIds_(vector<StdString>(3,""))
       , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
       , useCompressedOutput(false)
+      , hasTimeInstant(false)
+      , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
@@ -121,7 +127,7 @@ namespace xios{
 
   void CField::sendUpdateData(const CArray<double,1>& data)
   {
-    CTimer::get("XIOS Send Data").resume();
+    CTimer::get("Field : send data").resume();
 
     CContext* context = CContext::getCurrent();
       CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
@@ -173,7 +179,7 @@ namespace xios{
         client->sendEvent(event);
       }    
 
-    CTimer::get("XIOS Send Data").suspend();
+    CTimer::get("Field : send data").suspend();
   }
 
   void CField::recvUpdateData(CEventServer& event)
@@ -182,7 +188,7 @@ namespace xios{
 
     list<CEventServer::SSubEvent>::iterator it;
     string fieldId;
-
+    CTimer::get("Field : recv data").resume();
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
     {
       int rank = it->rank;
@@ -191,6 +197,7 @@ namespace xios{
       rankBuffers[rank] = buffer;
     }
     get(fieldId)->recvUpdateData(rankBuffers);
+    CTimer::get("Field : recv data").suspend();
   }
 
   void  CField::recvUpdateData(std::map<int,CBufferIn*>& rankBuffers)
@@ -251,71 +258,6 @@ namespace xios{
       lastlast_Write_srv = last_Write_srv;
     }
   }
-  
-//   void  CField::recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers)
-//   {
-//     CContext* context = CContext::getCurrent();
-
-//     if (data_srv.empty())
-//     {
-//       for (map<int, CArray<size_t, 1> >::iterator it = grid->outIndexFromClient.begin(); it != grid->outIndexFromClient.end(); ++it)
-//       {
-//         int rank = it->first;
-//         data_srv.insert(std::make_pair(rank, CArray<double,1>(it->second.numElements())));
-//         foperation_srv.insert(pair<int,boost::shared_ptr<func::CFunctor> >(rank,boost::shared_ptr<func::CFunctor>(new func::CInstant(data_srv[rank]))));
-//       }
-//     }
-
-//     const CDate& currDate = context->getCalendar()->getCurrentDate();
-//     const CDate opeDate      = last_operation_srv +freq_op + freq_operation_srv - freq_op;
-//     const CDate writeDate    = last_Write_srv     + freq_write_srv;
-
-//     if (opeDate <= currDate)
-//     {
-//       for (int n = 0; n < ranks.size(); n++)
-//       {
-//         CArray<double,1> data_tmp;
-//         *buffers[n] >> data_tmp;
-//         (*foperation_srv[ranks[n]])(data_tmp);
-//       }
-//       last_operation_srv = currDate;
-//     }
-
-//     if (writeDate < (currDate + freq_operation_srv))
-//     {
-//       for (int n = 0; n < ranks.size(); n++)
-//       {
-//         this->foperation_srv[ranks[n]]->final();
-//       }
-
-//       last_Write_srv = writeDate;
-//     }
-
-//     if (context->hasClient && context->hasServer)
-//     {
-//       size_t writtenSize;
-// //      if (field->getUseCompressedOutput())
-// //        writtenSize = grid->getNumberWrittenIndexes();
-// //      else
-//         writtenSize = grid->getWrittenDataSize();
-
-//       CArray<double,1> fieldData(writtenSize);
-// //      if (!field->default_value.isEmpty()) fieldData = field->default_value;
-
-// //      if (field->getUseCompressedOutput())
-// //        field->outputCompressedField(fieldData);
-// //      else
-//         this->outputField(fieldData);
-//       sendUpdateData(fieldData);
-//     }
-//     if (!context->hasClient && context->hasServer)
-//     {
-//       writeField();
-//     }
-
-//     lastlast_Write_srv = last_Write_srv;
-
-//   }
 
   void CField::writeField(void)
   {
@@ -330,7 +272,7 @@ namespace xios{
     }
   }
 
-  void CField::sendReadDataRequest(const CDate& tsDataRequested)
+  bool CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
@@ -338,17 +280,24 @@ namespace xios{
 
     lastDataRequestedFromServer = tsDataRequested;
 
-    CEventClient event(getType(), EVENT_ID_READ_DATA);
-    if (client->isServerLeader())
+    if (!isEOF) // No need to send the request if we already know we are at EOF
     {
-      CMessage msg;
-      msg << getId();
-      const std::list<int>& ranks = client->getRanksServerLeader();
-      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        event.push(*itRank, 1, msg);
-      client->sendEvent(event);
+      CEventClient event(getType(), EVENT_ID_READ_DATA);
+      if (client->isServerLeader())
+      {
+        CMessage msg;
+        msg << getId();
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+          event.push(*itRank, 1, msg);
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
     }
-    else client->sendEvent(event);
+    else
+      serverSourceFilter->signalEndOfStream(tsDataRequested);
+
+    return !isEOF;
   }
 
   /*!
@@ -360,6 +309,7 @@ namespace xios{
     const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
 
     bool dataRequested = false;
+
     while (currentDate >= lastDataRequestedFromServer)
     {
       info(20) << "currentDate : " << currentDate << endl ;
@@ -367,10 +317,9 @@ namespace xios{
       info(20) << "file->output_freq.getValue() : " << file->output_freq.getValue() << endl ;
       info(20) << "lastDataRequestedFromServer + file->output_freq.getValue() : " << lastDataRequestedFromServer + file->output_freq << endl ;
 
-      sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
-
-      dataRequested = true;
+      dataRequested |= sendReadDataRequest(lastDataRequestedFromServer + file->output_freq);
     }
+
     return dataRequested;
   }
 
@@ -385,14 +334,14 @@ namespace xios{
   void CField::recvReadDataRequest(void)
   {
     CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;    
+    CContextClient* client = context->client;
 
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
 
     bool hasData = readField();
 
-    
+    map<int, CArray<double,1> >::iterator it;
     if (!grid->doGridHaveDataDistributed())
     {
        if (client->isServerLeader())
@@ -412,7 +361,6 @@ namespace xios{
               event.push(*itRank, 1, msg);
             }
           }
-
           client->sendEvent(event);
        }
        else
@@ -499,8 +447,6 @@ namespace xios{
     int record;
     std::map<int, CArray<double,1> > data;
 
-    bool isEOF = false;
-
     for (int i = 0; i < ranks.size(); i++)
     {
       int rank = ranks[i];
@@ -584,9 +530,17 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   bool CField::isActive(void) const
+   bool CField::isActive(bool atCurrentTimestep /*= false*/) const
    {
-      return (instantDataFilter != NULL);
+      if (clientSourceFilter)
+        return atCurrentTimestep ? clientSourceFilter->isDataExpected(CContext::getCurrent()->getCalendar()->getCurrentDate()) : true;
+      else if (storeFilter)
+        return true;
+      else if (instantDataFilter)
+        ERROR("bool CField::isActive(bool atCurrentTimestep)",
+              << "Impossible to check if field [ id = " << getId() << " ] is active as it cannot be used to receive nor send data.");
+
+      return false;
    }
 
    //----------------------------------------------------------------
@@ -814,7 +768,7 @@ namespace xios{
           solveRefInheritance(true);
           if (hasDirectFieldReference()) getDirectFieldReference()->solveAllReferenceEnabledField(false);
         }
-       else if (context->hasServer)        
+        else if (context->hasServer)
           solveServerOperation();
 
         solveGridReference();
@@ -939,58 +893,63 @@ namespace xios{
        if (!instantDataFilter)
        {
          // Check if we have an expression to parse
-       if (hasExpression())
+         if (hasExpression())
          {
-         boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
-         boost::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
+           boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
+           boost::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
 
-         // Check if a spatial transformation is needed
-         if (!field_ref.isEmpty())
-         {
-           CGrid* gridRef = CField::get(field_ref)->grid;
-
-           if (grid && grid != gridRef && grid->hasTransform())
+           // Check if a spatial transformation is needed
+           if (!field_ref.isEmpty())
            {
-             double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
-             std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, defaultValue);
+             CGrid* gridRef = CField::get(field_ref)->grid;
 
-             filter->connectOutput(filters.first, 0);
-             filter = filters.second;
+             if (grid && grid != gridRef && grid->hasTransform())
+             {
+               bool hasMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+               double defaultValue  = hasMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+               std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, hasMissingValue, defaultValue);
+
+               filter->connectOutput(filters.first, 0);
+               filter = filters.second;
+             }
            }
-         }
 
-         instantDataFilter = filter;
+           instantDataFilter = filter;
          }
          // Check if we have a reference on another field
          else if (!field_ref.isEmpty())
            instantDataFilter = getFieldReference(gc);
          // Check if the data is to be read from a file
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
-                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset,
-                                                                                                     true));
+           instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+                                                                                                       freq_offset.isEmpty() ? NoneDu : freq_offset,
+                                                                                                       true));
          else // The data might be passed from the model
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
-       }
-
-       // If the field data is to be read by the client or/and written to a file
-       if (enableOutput && !storeFilter && !fileWriterFilter)
-       {
-         if (!read_access.isEmpty() && read_access)
          {
-           storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid));
-           instantDataFilter->connectOutput(storeFilter, 0);
-         }
-
-         if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
-         {
-           fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
-           getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+            bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+            double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
+            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+                                                                                                        ignoreMissingValue, defaultValue));
          }
        }
      }
-   }
 
+     // If the field data is to be read by the client or/and written to a file
+     if (enableOutput && !storeFilter && !fileWriterFilter)
+     {
+       if (!read_access.isEmpty() && read_access)
+       {
+         storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid));
+         instantDataFilter->connectOutput(storeFilter, 0);
+       }
+
+       if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+       {
+         fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+         getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+       }
+     }
+   }
 
    /*!
     * Returns the filter needed to handle the field reference.
@@ -999,29 +958,30 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to the field reference
     */
-     boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
-     {
-       if (instantDataFilter || field_ref.isEmpty())
-         ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
-               "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
+   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
+   {
+     if (instantDataFilter || field_ref.isEmpty())
+       ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
+             "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
 
-       CField* fieldRef = CField::get(field_ref);
-       fieldRef->buildFilterGraph(gc, false);
+     CField* fieldRef = CField::get(field_ref);
+     fieldRef->buildFilterGraph(gc, false);
 
-       std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
-       // Check if a spatial transformation is needed
-       if (grid && grid != fieldRef->grid && grid->hasTransform())
-       {
-         double defaultValue = !default_value.isEmpty() ? default_value : 0.0;
-         filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, defaultValue);
-       }
-       else
-         filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
-
-       fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
-
-       return filters.second;
+     std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
+     // Check if a spatial transformation is needed
+     if (grid && grid != fieldRef->grid && grid->hasTransform())
+     {       
+       bool hasMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+       double defaultValue  = hasMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);                                
+       filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, hasMissingValue, defaultValue);
      }
+     else
+       filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
+
+     fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+
+     return filters.second;
+   }
 
    /*!
     * Returns the filter needed to handle a self reference in the field's expression.
@@ -1057,7 +1017,12 @@ namespace xios{
        else
        {
          if (!clientSourceFilter)
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
+         {
+           bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+           double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0); 
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+                                                                                   ignoreMissingValue, defaultValue));
+         }
 
          selfReferenceFilter = clientSourceFilter;
        }
@@ -1103,6 +1068,49 @@ namespace xios{
 
      return it->second;
    }
+
+  /*!
+    * Returns the temporal filter corresponding to the field's temporal operation
+    * for the specified operation frequency.
+    *
+    * \param gc the garbage collector to use
+    * \param outFreq the operation frequency, i.e. the frequency at which the output data will be computed
+    * \return the output pin corresponding to the requested temporal filter
+    */
+   
+   boost::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   {
+     if (instantDataFilter || !hasExpression())
+       ERROR("COutputPin* CField::getSelfTemporalDataFilter(CGarbageCollector& gc)",
+             "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
+
+     if (!selfReferenceFilter) getSelfReference(gc) ;
+
+     if (serverSourceFilter || clientSourceFilter)
+     {
+       if (operation.isEmpty())
+         ERROR("void CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
+               << "An operation must be defined for field \"" << getId() << "\".");
+
+       if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
+       if (freq_offset.isEmpty()) freq_offset.setValue(NoneDu);
+
+       const bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+
+       boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
+                                                                             CContext::getCurrent()->getCalendar()->getInitDate(),
+                                                                             freq_op, freq_offset, outFreq,
+                                                                             ignoreMissingValue, ignoreMissingValue ? default_value : 0.0));
+       selfReferenceFilter->connectOutput(temporalFilter, 0);
+       return temporalFilter ;
+     }
+     else if (!field_ref.isEmpty())
+     {
+       CField* fieldRef = CField::get(field_ref);
+       fieldRef->buildFilterGraph(gc, false); 
+       return fieldRef->getTemporalDataFilter(gc, outFreq) ;
+     }
+  }
 
    //----------------------------------------------------------------
 /*

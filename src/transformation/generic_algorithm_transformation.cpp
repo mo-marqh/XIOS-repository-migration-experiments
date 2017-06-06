@@ -10,6 +10,7 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "client_client_dht_template.hpp"
+#include "utils.hpp"
 
 namespace xios {
 
@@ -28,15 +29,15 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
                                             std::vector<bool>& flagInitial,
-                                            const double& defaultValue)
+                                            bool ignoreMissingValue)
 {
-  int nbLocalIndex = localIndex.size();
-  bool hasMissingValue = (0.0 != defaultValue) ? true : false;
-  if (hasMissingValue)
+  int nbLocalIndex = localIndex.size();   
+  double defaultValue = std::numeric_limits<double>::quiet_NaN();
+  if (ignoreMissingValue)
   {
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      if (defaultValue == *(dataInput + idx))
+      if (NumTraits<double>::isnan(*(dataInput + idx)))
       {
         flagInitial[localIndex[idx].first] = false;
       }
@@ -46,11 +47,11 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
       }
     }
 
-    for (int idx = 0; idx < nbLocalIndex; ++idx)
-    {
-      if (!flagInitial[localIndex[idx].first])
-        dataOut(localIndex[idx].first) = defaultValue;
-    }
+    // for (int idx = 0; idx < nbLocalIndex; ++idx)
+    // {
+    //   if (!flagInitial[localIndex[idx].first])
+    //     dataOut(localIndex[idx].first) = defaultValue;
+    // }
   }
   else
   {

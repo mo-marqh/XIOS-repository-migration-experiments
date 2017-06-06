@@ -256,6 +256,9 @@ struct NumTraits<double>
   static inline Scalar dummy_precision() {
     return 1e-12;
   }
+  static inline bool isnan(const Scalar& v) {
+    return (v != v);
+  }
 };
 
 template<typename T>

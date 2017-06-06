@@ -41,11 +41,13 @@ extern "C"
 %token <str> NUMBER
 %token <str> VAR ID AVERAGE
 %token PLUS MINUS TIMES DIVIDE POWER
-%token EQ LT GT LE GE
+%token EQ LT GT LE GE NE
 %token LEFT_PARENTHESIS RIGHT_PARENTHESIS
+%token QUESTION_MARK COLON
 %token <str> END
 
-%left EQ LT GT LE GE
+%nonassoc QUESTION_MARK COLON
+%left EQ LT GT LE GE NE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %nonassoc NEG
@@ -76,6 +78,8 @@ Expression:
           | Expression GT Expression  { $$ = new CScalarBinaryOpExprNode($1, "gt", $3); }
           | Expression LE Expression  { $$ = new CScalarBinaryOpExprNode($1, "le", $3); }
           | Expression GE Expression  { $$ = new CScalarBinaryOpExprNode($1, "ge", $3); }
+          | Expression NE Expression  { $$ = new CScalarBinaryOpExprNode($1, "ne", $3); }
+          | Expression QUESTION_MARK Expression COLON Expression {$$ = new CScalarTernaryOpExprNode($1, "cond", $3, $5);} 
           | LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS    { $$ = $2; }
           | ID LEFT_PARENTHESIS Expression RIGHT_PARENTHESIS { $$ = new CScalarUnaryOpExprNode(*$1, $3); delete $1; }
           ;
@@ -94,7 +98,15 @@ Field_expr:
           | Field_expr GT Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "gt", $3); }
           | Field_expr LE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "le", $3); }
           | Field_expr GE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "ge", $3); }
+          | Field_expr NE Field_expr { $$ = new CFilterFieldFieldOpExprNode($1, "ne", $3); }
           | LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS	{ $$ = $2; }
+          | Expression QUESTION_MARK Expression COLON Field_expr {$$ = new CFilterScalarScalarFieldOpExprNode($1, "cond",$3, $5);}
+          | Expression QUESTION_MARK Field_expr COLON Expression {$$ = new CFilterScalarFieldScalarOpExprNode($1, "cond",$3, $5);}
+          | Expression QUESTION_MARK Field_expr COLON Field_expr {$$ = new CFilterScalarFieldFieldOpExprNode($1, "cond",$3, $5);}
+          | Field_expr QUESTION_MARK Expression COLON Expression {$$ = new CFilterFieldScalarScalarOpExprNode($1, "cond",$3, $5);}
+          | Field_expr QUESTION_MARK Expression COLON Field_expr {$$ = new CFilterFieldScalarFieldOpExprNode($1, "cond",$3, $5);}
+          | Field_expr QUESTION_MARK Field_expr COLON Expression {$$ = new CFilterFieldFieldScalarOpExprNode($1, "cond",$3, $5);}
+          | Field_expr QUESTION_MARK Field_expr COLON Field_expr {$$ = new CFilterFieldFieldFieldOpExprNode($1, "cond",$3, $5);}
           | Field_expr PLUS Expression   { $$ = new CFilterFieldScalarOpExprNode($1, "add", $3); }
           | Expression PLUS Field_expr   { $$ = new CFilterScalarFieldOpExprNode($1, "add", $3); }
           | Field_expr MINUS Expression  { $$ = new CFilterFieldScalarOpExprNode($1, "minus", $3); }
@@ -114,6 +126,8 @@ Field_expr:
           | Expression LE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "le", $3); }
           | Field_expr GE Expression { $$ = new CFilterFieldScalarOpExprNode($1, "ge", $3); }
           | Expression GE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "ge", $3); }
+          | Field_expr NE Expression { $$ = new CFilterFieldScalarOpExprNode($1, "ne", $3); }
+          | Expression NE Field_expr { $$ = new CFilterScalarFieldOpExprNode($1, "ne", $3); }
           | ID LEFT_PARENTHESIS Field_expr RIGHT_PARENTHESIS { $$ = new CFilterUnaryOpExprNode(*$1, $3); delete $1; }
           ;
 %%

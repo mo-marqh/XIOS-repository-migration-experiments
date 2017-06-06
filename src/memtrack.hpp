@@ -60,7 +60,8 @@ namespace MemTrack
     void TrackStamp(void *p, const MemStamp &stamp, char const *typeName);
     void TrackDumpBlocks();
     void TrackListMemoryUsage();
-
+    size_t getCurrentMemorySize(void) ;
+    size_t getMaxMemorySize(void) ;
     /* ---------------------------------------- operator * (MemStamp, ptr) */
 
     template <class T> inline T *operator*(const MemStamp &stamp, T *p)

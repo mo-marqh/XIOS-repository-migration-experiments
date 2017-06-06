@@ -12,13 +12,16 @@
 namespace xios
 {
       /// ////////////////////// Déclarations ////////////////////// ///
+      /*!
+        \class CAttributeArray
+        This class implements the attribute representing array of value
+      */
       template <typename T_numtype, int N_rank>
          class CAttributeArray : public CAttribute, public CArray<T_numtype, N_rank>
       {
         public :
 
            using CArray<T_numtype,N_rank>::operator = ;
-//           using Array<T_numtype,N_rank>::operator = ;
 
             /// Constructeurs ///
             explicit CAttributeArray(const StdString & id);
@@ -39,6 +42,9 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             CArray<T_numtype, N_rank> getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
+            
+            bool isEqual(const CAttributeArray& attr);
+            bool isEqual(const CAttribute& attr);
 
             /// Destructeur ///
             virtual ~CAttributeArray(void) { }
@@ -46,7 +52,7 @@ namespace xios
 
             /// Autre ///
             virtual string toString(void) const { return _toString();}
-            virtual void fromString(const StdString & str) { _fromString(str);}
+            virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);}
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); }
 
@@ -58,11 +64,6 @@ namespace xios
             virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
-
-
-         protected :
-
-            /// Constructeurs ///
 
          private :
           CArray<T_numtype, N_rank> inheritedValue ;

@@ -235,8 +235,7 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
     }
   }
 
-  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder);
-  tmpGridDestination_->computeGridGlobalDimension(domainDst, axisDst, scalarDst, elementOrder);
+  tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder);  
   tempGridDests_.push_back(tmpGridDestination_);
 }
 
@@ -321,8 +320,7 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid)
     }
   }
 
-  gridSource_ = CGrid::createGrid(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);
-  gridSource_->computeGridGlobalDimension(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);
+  gridSource_ = CGrid::createGrid(domainSrc, axisSrc, scalarSrc, tmpGridDestination_->axis_domain_order);  
 
   tempGridSrcs_.push_back(gridSource_);
 }

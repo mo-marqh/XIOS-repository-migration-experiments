@@ -99,7 +99,7 @@ namespace xios
     __INLINE__ const CEnum_ref& operator = (CEnum<T>& val) const ;
     __INLINE__ const CEnum_ref& operator = (const CEnum_ref& val) const;
     __INLINE__ operator T_enum&() const;
-    bool operator == (const CEnum_ref &other) {return this->get()==other.get() ;}
+    
 
     inline virtual CBaseType* clone(void) const   { return _clone(); }
     virtual void fromString(const string& str)   { _fromString(str); }
@@ -133,6 +133,15 @@ namespace xios
     __INLINE__  size_t _size(void) const ;
   } ;
   
+  template <typename T> bool operator== (const CEnum<T>& lhs, const typename T::t_enum& rhs);
+  template <typename T> bool operator== (const typename T::t_enum& lhs, const CEnum<T>& rhs);
+  template <typename T> bool operator== (const CEnum<T>& lhs, const CEnum<T>& rhs);  
+  template <typename T> bool operator== (const CEnum_ref<T>& lhs, const CEnum_ref<T>& rhs);
+  template <typename T> bool operator== (const CEnum_ref<T>& lhs, const typename T::t_enum& rhs);
+  template <typename T> bool operator== (const typename T::t_enum& lhs, const CEnum_ref<T>& rhs);
+  template <typename T> bool operator== (const CEnum<T>& lhs, const CEnum_ref<T>& rhs) {return (lhs.get() == rhs.get());}
+  template <typename T> bool operator== (const CEnum_ref<T>& lhs, const CEnum<T>& rhs) {return (rhs == lhs); }
+
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const CEnum<T>& type) ;
   template <typename T> __INLINE__ CBufferOut& operator<<(CBufferOut& buffer, const typename T::t_enum & type) ;  
   template <typename T> __INLINE__ CBufferIn& operator>>(CBufferIn& buffer, CEnum<T>& type) ;

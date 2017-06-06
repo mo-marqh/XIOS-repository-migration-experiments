@@ -171,6 +171,30 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_index
 
 
+    SUBROUTINE cxios_set_axisgroup_label(axisgroup_hdl, label, str_len, str_size, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
+      CHARACTER (KIND=C_CHAR), DIMENSION(*)    :: label
+      INTEGER (kind = C_INT), VALUE            :: str_len
+      INTEGER (kind = C_INT), DIMENSION(*)     :: str_size
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_axisgroup_label
+
+    SUBROUTINE cxios_get_axisgroup_label(axisgroup_hdl, label, str_size, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: axisgroup_hdl
+      CHARACTER (KIND=C_CHAR), DIMENSION(*)    :: label
+      INTEGER (kind = C_INT), VALUE            :: str_size
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_axisgroup_label
+
+    FUNCTION cxios_is_defined_axisgroup_label(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_label
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_label
+
+
     SUBROUTINE cxios_set_axisgroup_long_name(axisgroup_hdl, long_name, long_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
@@ -310,6 +334,25 @@ MODULE axisgroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_positive
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
     END FUNCTION cxios_is_defined_axisgroup_positive
+
+
+    SUBROUTINE cxios_set_axisgroup_prec(axisgroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: prec
+    END SUBROUTINE cxios_set_axisgroup_prec
+
+    SUBROUTINE cxios_get_axisgroup_prec(axisgroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      INTEGER (KIND=C_INT)             :: prec
+    END SUBROUTINE cxios_get_axisgroup_prec
+
+    FUNCTION cxios_is_defined_axisgroup_prec(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_prec
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_prec
 
 
     SUBROUTINE cxios_set_axisgroup_standard_name(axisgroup_hdl, standard_name, standard_name_size) BIND(C)

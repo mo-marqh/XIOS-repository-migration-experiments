@@ -21,6 +21,7 @@ namespace xios
          public:
             /// Opérateurs ///
             CDuration& operator=(const CDuration& duration);
+            bool operator==(const CDuration& duration);
 
             friend StdOStream& operator<<(StdOStream& out, const CDuration& duration);
             friend StdIStream& operator>>(StdIStream& in , CDuration& duration);

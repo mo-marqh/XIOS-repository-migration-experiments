@@ -86,7 +86,7 @@ namespace xios {
       public:
 
          /// Accesseurs ///
-         StdSize getDimension(void) const;
+         StdSize getDimension(void);
 
          StdSize  getDataSize(void) const;
 
@@ -175,6 +175,7 @@ namespace xios {
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
          bool isScalarGrid() const;
+         std::vector<int> getAxisPositionInGrid() const;
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed();
@@ -267,6 +268,12 @@ namespace xios {
         void setTransformationAlgorithms();
         void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
+        int computeGridGlobalDimension(std::vector<int>& globalDim,
+                                       const std::vector<CDomain*> domains,
+                                       const std::vector<CAxis*> axis,
+                                       const std::vector<CScalar*> scalars,
+                                       const CArray<int,1>& axisDomainOrder);
+        int getDistributedDimension();
 
         void computeClientIndex();
         void computeConnectedClients();
@@ -295,8 +302,7 @@ namespace xios {
         bool computedWrittenIndex_;
         std::vector<int> axisPositionInGrid_;
         CGridTransformation* transformations_;
-        bool hasDomainAxisBaseRef_;
-        std::vector<int> globalDim_;
+        bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
         CClientServerMapping::GlobalIndexMap globalIndexOnServer_;

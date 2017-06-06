@@ -39,15 +39,24 @@ namespace xios
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
 
+      /*!
+       * Tests whether data is expected for the specified date.
+       *
+       * \param date the date associated to the data
+       */
+      bool virtual isDataExpected(const CDate& date) const;
+
     private:
-      boost::scoped_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
+      const boost::scoped_ptr<func::CFunctor> functor; //!< The functor corresponding to the temporal operation
       CArray<double, 1> tmpData; //!< The array of data used for temporary storage
       const CDuration samplingFreq; //!< The sampling frequency, i.e. the frequency at which the input data will be used
+      const CDuration samplingOffset; //!< The sampling offset, i.e. the offset after which the input data will be used
       const CDuration opFreq; //!< The operation frequency, i.e. the frequency at which the output data will be computed
       CDate nextSamplingDate; //!< The date of the next sampling
       CDate nextOperationDate; //!< The date of the next operation
       bool isFirstOperation; //!< True before the first operation was been computed
-      bool isOnceOperation; //!< True if the operation should be computed just once
+      const bool isOnceOperation; //!< True if the operation should be computed just once
+      const bool isInstantOperation; //!< True if the operation is instant
   }; // class CTemporalFilter
 } // namespace xios
 

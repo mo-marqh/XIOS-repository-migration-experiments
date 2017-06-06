@@ -1,6 +1,7 @@
 #include "minimum.hpp"
 #include "array_new.hpp"
 #include <algorithm>
+#include "utils.hpp"
 
 namespace xios
 {
@@ -25,7 +26,7 @@ namespace xios
                                  CArray<double,1>& _doutput)
       {
         const double * it1  = _dinput.dataFirst(),
-                      * end1 = _dinput.dataFirst() + _dinput.numElements();
+                      *end1 = _dinput.dataFirst() + _dinput.numElements();
         double * it   = _doutput.dataFirst();
         
         if (this->nbcall == 1)  for (; it1 != end1; it1++, it++) *it = *it1;
@@ -34,9 +35,9 @@ namespace xios
           if (hasMissingValue) 
           { 
             for (; it1 != end1; it1++, it++) 
-              if (*it1!=missingValue)
+              if (!NumTraits<double>::isnan(*it1))
               {
-                if (*it != missingValue) *it = std::min(*it1, *it);
+                if (!NumTraits<double>::isnan(*it)) *it = std::min(*it1, *it);
                 else *it=*it1 ;
               }
           }

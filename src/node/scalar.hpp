@@ -75,12 +75,12 @@ namespace xios
            TransMapTypes getAllTransformations();
            void duplicateTransformation(CScalar*);
            CTransformation<CScalar>* addTransformation(ETranformationType transType, const StdString& id="");
+           bool isEqual(CScalar* scalar);
 
          private:
            std::set<StdString> relFiles;
+           TransMapTypes transformationMap_;
 
-         private:
-            TransMapTypes transformationMap_;            
             void setTransformations(const TransMapTypes&);
 
        private:

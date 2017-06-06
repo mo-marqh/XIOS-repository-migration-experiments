@@ -17,7 +17,7 @@ namespace xios
     MPI_Comm CClient::intraComm ;
     MPI_Comm CClient::interComm ;
     std::list<MPI_Comm> CClient::contextInterComms;
-    int CClient::serverLeader;
+    int CClient::serverLeader ;
     bool CClient::is_MPI_Initialized ;
     int CClient::rank_ = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
@@ -53,12 +53,11 @@ namespace xios
             MPI_Init(NULL, NULL);
           }
           CTimer::get("XIOS").resume() ;
-          CTimer::get("XIOS init").resume() ;
+          CTimer::get("XIOS init/finalize").resume() ;
           boost::hash<string> hashString ;
 
-          unsigned long hashClient = hashString(codeId) ;
-          unsigned long hashServer = hashString(CXios::xiosCodeId);
-//          unsigned long hashServer = hashString(CXios::xiosCodeIdPrm);
+          unsigned long hashClient=hashString(codeId) ;
+          unsigned long hashServer=hashString(CXios::xiosCodeId) ;
           unsigned long* hashAll ;
           int size ;
           int myColor ;
@@ -70,7 +69,7 @@ namespace xios
 
           hashAll=new unsigned long[size] ;
 
-          MPI_Allgather(&hashClient, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
+          MPI_Allgather(&hashClient,1,MPI_LONG,hashAll,1,MPI_LONG,CXios::globalComm) ;
 
           map<unsigned long, int> colors ;
           map<unsigned long, int> leaders ;
@@ -89,7 +88,7 @@ namespace xios
           CXios::setNotUsingServer();
           for (i=0; i < size; ++i)
           {
-            if (hashAll[i] == hashString(CXios::xiosCodeId))
+            if (hashServer == hashAll[i])
             {
               CXios::setUsingServer();
               break;
@@ -147,7 +146,7 @@ namespace xios
         MPI_Comm_dup(localComm,&intraComm) ;
 
         CTimer::get("XIOS").resume() ;
-        CTimer::get("XIOS init").resume() ;
+        CTimer::get("XIOS init/finalize").resume() ;
 
         if (CXios::usingServer)
         {
@@ -215,12 +214,13 @@ namespace xios
 //        msg<<id<<size<<globalRank ;
 
         int messageSize=msg.size() ;
-        void * buff = new char[messageSize] ;
-        CBufferOut buffer(buff,messageSize) ;
+        char * buff = new char[messageSize] ;
+        CBufferOut buffer((void*)buff,messageSize) ;
         buffer<<msg ;
 
-        MPI_Send(buff, buffer.count(), MPI_CHAR, serverLeader, 1, CXios::globalComm) ;
-        MPI_Intercomm_create(contextComm, 0, CXios::globalComm, serverLeader, 10+globalRank, &contextInterComm) ;
+        MPI_Send((void*)buff,buffer.count(),MPI_CHAR,serverLeader,1,CXios::globalComm) ;
+
+        MPI_Intercomm_create(contextComm,0,CXios::globalComm,serverLeader,10+globalRank,&contextInterComm) ;
         info(10)<<"Register new Context : "<<id<<endl ;
         MPI_Comm inter ;
         MPI_Intercomm_merge(contextInterComm,0,&inter) ;
@@ -256,7 +256,7 @@ namespace xios
       MPI_Comm_free(&interComm);
       MPI_Comm_free(&intraComm);
 
-      CTimer::get("XIOS finalize").suspend() ;
+      CTimer::get("XIOS init/finalize").suspend() ;
       CTimer::get("XIOS").suspend() ;
 
       if (!is_MPI_Initialized)
@@ -266,14 +266,15 @@ namespace xios
       }
       
       info(20) << "Client side context is finalized"<<endl ;
+      report(0) <<" Performance report : Whole time from XIOS init and finalize: "<< CTimer::get("XIOS init/finalize").getCumulatedTime()<<" s"<<endl ;
       report(0) <<" Performance report : total time spent for XIOS : "<< CTimer::get("XIOS").getCumulatedTime()<<" s"<<endl ;
       report(0)<< " Performance report : time spent for waiting free buffer : "<< CTimer::get("Blocking time").getCumulatedTime()<<" s"<<endl ;
-      report(0)<< " Performance report : Ratio : "<< CTimer::get("Blocking time").getCumulatedTime()/CTimer::get("XIOS").getCumulatedTime()*100.<<" %"<<endl ;
+      report(0)<< " Performance report : Ratio : "<< CTimer::get("Blocking time").getCumulatedTime()/CTimer::get("XIOS init/finalize").getCumulatedTime()*100.<<" %"<<endl ;
       report(0)<< " Performance report : This ratio must be close to zero. Otherwise it may be usefull to increase buffer size or numbers of server"<<endl ;
 //      report(0)<< " Memory report : Current buffer_size : "<<CXios::bufferSize<<endl ;
       report(0)<< " Memory report : Minimum buffer size required : " << CClientBuffer::maxRequestSize << " bytes" << endl ;
       report(0)<< " Memory report : increasing it by a factor will increase performance, depending of the volume of data wrote in file at each time step of the file"<<endl ;
-
+      report(100)<<CTimer::getAllCumulatedTime()<<endl ;
    }
 
     /*!

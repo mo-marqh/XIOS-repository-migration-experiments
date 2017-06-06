@@ -72,6 +72,18 @@ namespace xios
       it->first->setInputTrigger(it->second, this);
   }
 
+  bool COutputPin::isDataExpected(const CDate& date) const
+  {
+    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
+    for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
+    {
+      if (it->first->isDataExpected(date))
+        return true;
+    }
+
+    return false;
+  }
+
   void COutputPin::invalidate(Time timestamp)
   {
     outputPackets.erase(outputPackets.begin(), outputPackets.lower_bound(timestamp));

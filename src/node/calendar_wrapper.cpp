@@ -82,7 +82,7 @@ namespace xios {
   void CCalendarWrapper::createCalendar(void)
   {
     // Create the calendar if possible
-    if (0 != calendar)
+    if (calendar)
     {
       ERROR("CCalendarWrapper::createCalendar(void)",
             << "Error: the calendar can only be defined once!");

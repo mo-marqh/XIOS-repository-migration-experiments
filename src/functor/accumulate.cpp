@@ -1,5 +1,6 @@
 #include "accumulate.hpp"
 #include "array_new.hpp"
+#include "utils.hpp"
 
 namespace xios
 {
@@ -32,9 +33,9 @@ namespace xios
             const double * in=_dinput.dataFirst() ;
             double* out=_doutput.dataFirst();
             for (i=0; i<n; ++i,++in,++out) 
-              if (*in!=missingValue)
+              if (!NumTraits<double>::isnan(*in))
               {
-                if(*out!=missingValue) *out  += *in;
+                if(!NumTraits<double>::isnan(*out)) *out  += *in;
                 else *out=*in ;
               }
           }

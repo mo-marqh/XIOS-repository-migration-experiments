@@ -22,10 +22,18 @@ namespace xios
 
   double CScalarVarExprNode::reduce() const
   {
-    if (!CVariable::has(varId)) 
-      ERROR("double CScalarVarExprNode::reduce() const", << "The variable " << varId << " does not exist.");
+    // $missing_value will be replaced with NaN
+    if (varId == "missing_value")
+    {
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+    else
+    {
+      if (!CVariable::has(varId)) 
+        ERROR("double CScalarVarExprNode::reduce() const", << "The variable " << varId << " does not exist.");
 
-    return CVariable::get(varId)->getData<double>();
+      return CVariable::get(varId)->getData<double>();
+    }
   }
 
   CScalarUnaryOpExprNode::CScalarUnaryOpExprNode(const std::string& opId, IScalarExprNode* child)
@@ -57,5 +65,23 @@ namespace xios
   {
     COperatorExpr::functionScalarScalar op = operatorExpr.getOpScalarScalar(opId);
     return op(child1->reduce(), child2->reduce());
+  }
+
+
+  CScalarTernaryOpExprNode::CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3)
+    : child1(child1)
+    , opId(opId)
+    , child2(child2)
+    , child3(child3)
+  {
+    if (!child1 || !child2 || !child3)
+      ERROR("CScalarTernaryOpExprNode::CScalarTernaryOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3)",
+            "Impossible to create the new expression node, an invalid child node was provided.");
+  }
+
+  double CScalarTernaryOpExprNode::reduce() const
+  {
+    COperatorExpr::functionScalarScalarScalar op = operatorExpr.getOpScalarScalarScalar(opId);
+    return op(child1->reduce(), child2->reduce(), child3->reduce());
   }
 }

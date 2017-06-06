@@ -39,4 +39,9 @@ namespace xios
   {
     return (CInputPin::canBeTriggered() || COutputPin::canBeTriggered());
   }
+
+  bool CFilter::isDataExpected(const CDate& date) const
+  {
+    return COutputPin::isDataExpected(date);
+  }
 } // namespace xios

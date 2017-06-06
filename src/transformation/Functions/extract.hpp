@@ -25,7 +25,8 @@ public:
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
                      CArray<double,1>& dataOut,
-                     std::vector<bool>& flagInitial);
+                     std::vector<bool>& flagInitial,
+                     bool ignoreMissingValue);
 
   virtual ~CExtractReductionAlgorithm() {}
 

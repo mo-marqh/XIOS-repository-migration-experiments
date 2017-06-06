@@ -87,7 +87,7 @@ namespace xios
   template <class T>
   void CAttributeEnum<T>::setInheritedValue(const CAttributeEnum& attr)
   {
-    if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue());
+    if (this->isEmpty() && _canInherite && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue());
   }
 
   template <class T>
@@ -108,6 +108,18 @@ namespace xios
   bool CAttributeEnum<T>::hasInheritedValue(void) const
   {
     return !this->isEmpty() || !inheritedValue.isEmpty();
+  }
+
+  template <class T>
+  bool CAttributeEnum<T>::isEqual(const CAttribute& attr)
+  {
+    return (this->isEqual(dynamic_cast<const CAttributeEnum<T>& >(attr)));
+  }
+
+  template <class T>
+  bool CAttributeEnum<T>::isEqual(const CAttributeEnum& attr)
+  {
+    return ((dynamic_cast<const CEnum<T>& >(*this)) == (dynamic_cast<const CEnum<T>& >(attr)));
   }
 
   //---------------------------------------------------------------

@@ -51,7 +51,8 @@ namespace xios
         for (int i = 0; i < serverByClient; i++)
           ranksServerLeader.push_back(rankStart + i);
 
-        ranksServerNotLeader.resize(0);      }
+        ranksServerNotLeader.resize(0);
+      }
       else
       {
         int clientByServer = clientSize / serverSize;
@@ -124,7 +125,7 @@ namespace xios
     /*!
      * Send the temporarily buffered event (if any).
      *
-     * \return true if a temporarily buffered event could be sent, false otherwise
+     * \return true if a temporarily buffered event could be sent, false otherwise 
      */
     bool CContextClient::sendTemporarilyBufferedEvent()
     {
@@ -170,7 +171,6 @@ namespace xios
        parentServer->server->eventLoop();
       }
     }
-
 
     /*!
      * Get buffers for each connection to the servers. This function blocks until there is enough room in the buffers unless
@@ -322,23 +322,23 @@ namespace xios
                           + 1;                                   // the other local buffer might contain only one event
    }
 
-   /*!
-    Get leading server in the group of connected server
-    \return ranks of leading servers
-    */
-    const std::list<int>& CContextClient::getRanksServerNotLeader(void) const
-    {
-      return ranksServerNotLeader;
-    }
+  /*!
+  Get leading server in the group of connected server
+  \return ranks of leading servers
+  */
+  const std::list<int>& CContextClient::getRanksServerNotLeader(void) const
+  {
+    return ranksServerNotLeader;
+  }
 
-    /*!
-    Check if client connects to leading server
-    \return connected(true), not connected (false)
-    */
-    bool CContextClient::isServerNotLeader(void) const
-    {
-      return !ranksServerNotLeader.empty();
-    }
+  /*!
+  Check if client connects to leading server
+  \return connected(true), not connected (false)
+  */
+  bool CContextClient::isServerNotLeader(void) const
+  {
+    return !ranksServerNotLeader.empty();
+  }
 
   /*!
   Get leading server in the group of connected server

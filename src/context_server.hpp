@@ -13,18 +13,16 @@ namespace xios
   {
     public:
 
-    CContextServer(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm) ;
-
+    CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     bool eventLoop(bool enableEventsProcessing = true);
     void listen(void) ;
     void checkPendingRequest(void) ;
+    void processRequest(int rank, char* buff,int count) ;
     void processEvents(void) ;
     bool hasFinished(void);
     void dispatchEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
-
-    void processRequest(int rank, char* buff,int count) ;
 
     MPI_Comm intraComm ;
     int intraCommSize ;
@@ -49,8 +47,7 @@ namespace xios
     ~CContextServer() ;
 
     private:
-    std::map<int, StdSize> mapBufferSize_;
-
+      std::map<int, StdSize> mapBufferSize_;
   } ;
 
 }

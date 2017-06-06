@@ -108,7 +108,7 @@ void Mapper::getTargetValue(double* val)
   for(int i=0;i<size;++i) val[i]=targetElements[i].val ;
 }
 
-vector<double> Mapper::computeWeights(int interpOrder, bool renormalize)
+vector<double> Mapper::computeWeights(int interpOrder, bool renormalize, bool quantity)
 {
 	vector<double> timings;
 	int mpiSize, mpiRank;
@@ -151,7 +151,7 @@ vector<double> Mapper::computeWeights(int interpOrder, bool renormalize)
 
 	if (mpiRank == 0 && verbose) cout << "Remapping..." << endl;
 	tic = cputime();
-	nWeights = remap(&targetElements[0], targetElements.size(), interpOrder, renormalize);
+	nWeights = remap(&targetElements[0], targetElements.size(), interpOrder, renormalize, quantity);
 	timings.push_back(cputime() - tic);
 
   for (int i = 0; i < targetElements.size(); i++) targetElements[i].delete_intersections();
@@ -165,7 +165,7 @@ vector<double> Mapper::computeWeights(int interpOrder, bool renormalize)
    @param nbElements is the size of the elements array.
    @param order is the order of interpolaton (must be 1 or 2).
 */
-int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
+int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bool quantity)
 {
 	int mpiSize, mpiRank;
 	MPI_Comm_size(communicator, &mpiSize);
@@ -183,6 +183,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 	int *nbSendElement = new int[mpiSize];
 	int **sendElement = new int*[mpiSize]; /* indices of elements required from other rank */
 	double **recvValue = new double*[mpiSize];
+	double **recvArea = new double*[mpiSize];
 	Coord **recvGrad = new Coord*[mpiSize];
 	GloId **recvNeighIds = new GloId*[mpiSize]; /* ids of the of the source neighbours which also contribute through gradient */
 	for (int rank = 0; rank < mpiSize; rank++)
@@ -204,6 +205,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 		{
 			sendElement[rank] = new int[nbSendElement[rank]];
 			recvValue[rank]   = new double[nbSendElement[rank]];
+			recvArea[rank]    = new double[nbSendElement[rank]];
 			if (order == 2)
 			{
 				recvNeighIds[rank] = new GloId[nbSendElement[rank]*(NMAX+1)];
@@ -233,10 +235,11 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 	int nbRecvRequest = 0;
 	int **recvElement = new int*[mpiSize];
 	double **sendValue = new double*[mpiSize];
+	double **sendArea = new double*[mpiSize];
 	Coord **sendGrad = new Coord*[mpiSize];
 	GloId **sendNeighIds = new GloId*[mpiSize];
-	MPI_Request *sendRequest = new MPI_Request[3*mpiSize];
-	MPI_Request *recvRequest = new MPI_Request[3*mpiSize];
+	MPI_Request *sendRequest = new MPI_Request[4*mpiSize];
+	MPI_Request *recvRequest = new MPI_Request[4*mpiSize];
 	for (int rank = 0; rank < mpiSize; rank++)
 	{
 		if (nbSendElement[rank] > 0)
@@ -249,6 +252,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 		{
 			recvElement[rank] = new int[nbRecvElement[rank]];
 			sendValue[rank]   = new double[nbRecvElement[rank]];
+			sendArea[rank]   = new double[nbRecvElement[rank]];
 			if (order == 2)
 			{
 				sendNeighIds[rank] = new GloId[nbRecvElement[rank]*(NMAX+1)];
@@ -262,9 +266,10 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 			nbRecvRequest++;
 		}
 	}
-	MPI_Status *status = new MPI_Status[3*mpiSize];
-	MPI_Waitall(nbRecvRequest, recvRequest, status);
+	MPI_Status *status = new MPI_Status[4*mpiSize];
+	
 	MPI_Waitall(nbSendRequest, sendRequest, status);
+        MPI_Waitall(nbRecvRequest, recvRequest, status);
 
 	/* for all indices that have been received from requesting ranks: pack values and gradients, then send */
 	nbSendRequest = 0;
@@ -277,6 +282,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 			for (int j = 0; j < nbRecvElement[rank]; j++)
 			{
 				sendValue[rank][j] = sstree.localElements[recvElement[rank][j]].val;
+				sendArea[rank][j] = sstree.localElements[recvElement[rank][j]].area;
 				if (order == 2)
 				{
 					sendGrad[rank][jj] = sstree.localElements[recvElement[rank][j]].grad;
@@ -295,6 +301,8 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 					sendNeighIds[rank][j] = sstree.localElements[recvElement[rank][j]].src_id;
 			}
 			MPI_Issend(sendValue[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
+			nbSendRequest++;
+			MPI_Issend(sendArea[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
 			nbSendRequest++;
 			if (order == 2)
 			{
@@ -316,6 +324,8 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 		{
 			MPI_Irecv(recvValue[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 			nbRecvRequest++;
+			MPI_Irecv(recvArea[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+			nbRecvRequest++;
 			if (order == 2)
 			{
 				MPI_Irecv(recvGrad[rank], 3*nbSendElement[rank]*(NMAX+1),
@@ -333,8 +343,10 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 			}
 		}
 	}
+        
+        MPI_Waitall(nbSendRequest, sendRequest, status);
 	MPI_Waitall(nbRecvRequest, recvRequest, status);
-	MPI_Waitall(nbSendRequest, sendRequest, status);
+	
 
 	/* now that all values and gradients are available use them to computed interpolated values on target
 	   and also to compute weights */
@@ -356,12 +368,14 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 			int n1 = (*it)->id.ind;
 			int rank = (*it)->id.rank;
 			double fk = recvValue[rank][n1];
+			double srcArea = recvArea[rank][n1];
 			double w = (*it)->area;
+      if (quantity) w/=srcArea ;
 
 			/* first order: src value times weight (weight = supermesh area), later divide by target area */
 			int kk = (order == 2) ? n1 * (NMAX + 1) : n1;
 			GloId neighID = recvNeighIds[rank][kk];
-			wgt_map[neighID] += (*it)->area;
+			wgt_map[neighID] += w;
 
 			if (order == 2)
 			{
@@ -382,7 +396,8 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 
     for (map<GloId,double>::iterator it = wgt_map.begin(); it != wgt_map.end(); it++)
 		{
-			this->remapMatrix[i] = (it->second / e.area) / renorm;
+      if (quantity)  this->remapMatrix[i] = (it->second ) / renorm;
+			else this->remapMatrix[i] = (it->second / e.area) / renorm;
 			this->srcAddress[i] = it->first.ind;
 			this->srcRank[i] = it->first.rank;
 			this->dstAddress[i] = j;
@@ -399,6 +414,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 		{
 			delete[] sendElement[rank];
 			delete[] recvValue[rank];
+			delete[] recvArea[rank];
 			if (order == 2)
 			{
 				delete[] recvGrad[rank];
@@ -409,6 +425,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize)
 		{
 			delete[] recvElement[rank];
 			delete[] sendValue[rank];
+			delete[] sendArea[rank];
 			if (order == 2)
 				delete[] sendGrad[rank];
 			delete[] sendNeighIds[rank];

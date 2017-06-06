@@ -7,6 +7,7 @@
 #include "group_template.hpp"
 #include "context.hpp"
 #include "event_client.hpp"
+#include "context_client.hpp"
 #include "message.hpp"
 #include "type.hpp"
 #include "type_util.hpp"
@@ -397,24 +398,6 @@ namespace xios
          else contextClientTmp->sendEvent(event) ;
       }
     }
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client=context->client ;
-
-    //    CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD) ;   
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg ;
-    //      msg<<this->getId() ;
-    //      msg<<id ;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg) ;
-    //      client->sendEvent(event) ;
-    //    }
-    //    else client->sendEvent(event) ;
-    // }
       
    }
 
@@ -463,31 +446,11 @@ namespace xios
         else contextClientTmp->sendEvent(event) ;
       }
     }
-
-    // if (! context->hasServer )
-    // {
-    //    CContextClient* client=context->client ;
-
-    //    CEventClient event(this->getType(),EVENT_ID_CREATE_CHILD_GROUP) ;   
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg ;
-    //      msg<<this->getId() ;
-    //      msg<<id ;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg) ;
-    //      client->sendEvent(event) ;
-    //    }
-    //    else client->sendEvent(event) ;
-    // }
-      
    }
    
    template <class U, class V, class W>
    void CGroupTemplate<U, V, W>::recvCreateChild(CEventServer& event)
    {
-      
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id ;

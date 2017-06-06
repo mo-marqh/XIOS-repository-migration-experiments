@@ -39,9 +39,24 @@ namespace xios {
       StdString id = (this->hasId()) ? this->getId() : StdString("undefined");
       if (!node.getContent(this->content))
       {
+        xml::THashAttributes attributes = node.getAttributes();
+        StdString variableName = attributes["name"];
+
+        node.goToParentElement();
+        StdString parentName = node.getElementName();
+        attributes = node.getAttributes();
+        error << "The variable id = " << id << " and name = " << variableName << " does not have any content. Please define it!" << std::endl
+              << "This variable is inside another element whose attributes are :" << std::endl;
+
+        for (xml::THashAttributes::iterator it = attributes.begin(); it != attributes.end(); ++it)
+        {
+           error << it->first << "=\"" << it->second.c_str() << "\" ";
+        }
+        error << std::endl; 
+
          ERROR("CVariable::parse(xml::CXMLNode & node)",
                << "[ variable id = " << id
-               << " ] variable is not defined !");
+               << " ] variable is not defined !. It does not have any content. See error log for more details.");
       }
       content = boost::trim_copy(content) ;
    }
@@ -107,24 +122,6 @@ namespace xios {
          else contextClientTmp->sendEvent(event) ;
       }
      }
-
-    //  if (!context->hasServer)
-    //  {
-    //    CContextClient* client=context->client ;
-
-    //    CEventClient event(this->getType(),EVENT_ID_VARIABLE_VALUE) ;
-    //    if (client->isServerLeader())
-    //    {
-    //      CMessage msg ;
-    //      msg<<this->getId() ;
-    //      msg<<content ;
-    //      const std::list<int>& ranks = client->getRanksServerLeader();
-    //      for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-    //        event.push(*itRank,1,msg);
-    //      client->sendEvent(event) ;
-    //    }
-    //    else client->sendEvent(event) ;
-    // }
    }
 
    void CVariable::sendValue(CContextClient* client, bool clientPrim /*= false*/)

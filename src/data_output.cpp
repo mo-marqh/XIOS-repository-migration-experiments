@@ -83,13 +83,17 @@ namespace xios
 
       //----------------------------------------------------------------
 
-      void CDataOutput::writeField(CField* field)
+      void CDataOutput::writeFieldTimeAxis(CField* field)
       {
          CContext* context = CContext::getCurrent() ;
          boost::shared_ptr<CCalendar> calendar = context->getCalendar();
 
-         this->writeField_(field);
          this->writeTimeAxis_(field, calendar);
+      }
+      
+      void CDataOutput::writeField(CField* field)
+      {
+         this->writeField_(field);
       }
 
       //----------------------------------------------------------------

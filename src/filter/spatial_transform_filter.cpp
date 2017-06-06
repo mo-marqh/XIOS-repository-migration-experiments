@@ -10,7 +10,7 @@ namespace xios
   { /* Nothing to do */ }
 
   std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
-  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, double defaultValue)
+  CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, bool hasMissingValue, double missingValue)
   {
     if (!srcGrid || !destGrid)
       ERROR("std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >"
@@ -25,6 +25,7 @@ namespace xios
       CSpatialTransformFilterEngine* engine = CSpatialTransformFilterEngine::get(destGrid->getTransformations());
       const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
       size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
+      double defaultValue  = (hasMissingValue) ? std::numeric_limits<double>::quiet_NaN() : 0.0;
       boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
       if (!lastFilter)
@@ -102,7 +103,8 @@ namespace xios
         gridTransformation->computeAll(dataAuxInputs, packet->timestamp);
       }
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
-      packet->data = defaultValue;
+      if (0 != packet->data.numElements())
+        (packet->data)(0) = defaultValue;
       apply(data[0]->data, packet->data);
     }
 
@@ -114,8 +116,9 @@ namespace xios
     CContextClient* client = CContext::getCurrent()->client;
 
     // Get default value for output data
-    double defaultValue = 0.0;
-    if (0 != dataDest.numElements()) defaultValue = dataDest(0);
+    bool ignoreMissingValue = false; 
+    double defaultValue = std::numeric_limits<double>::quiet_NaN();
+    if (0 != dataDest.numElements()) ignoreMissingValue = NumTraits<double>::isnan(dataDest(0));
 
     const std::list<CGridTransformation::SendingIndexGridSourceMap>& listLocalIndexSend = gridTransformation->getLocalIndexToSendFromGridSource();
     const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
@@ -190,7 +193,7 @@ namespace xios
         if (localMaskDest[i]) dataCurrentDest(i) = 0.0;
         else dataCurrentDest(i) = defaultValue;
 
-      std::vector<bool> localInitFlag(dataCurrentDest.size(), true);
+      std::vector<bool> localInitFlag(dataCurrentDest.numElements(), true);
       currentBuff = 0;
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
@@ -200,7 +203,7 @@ namespace xios
                          recvBuff+currentBuff,
                          dataCurrentDest,
                          localInitFlag,
-                         defaultValue);
+                         ignoreMissingValue);
 
         currentBuff += countSize;
       }

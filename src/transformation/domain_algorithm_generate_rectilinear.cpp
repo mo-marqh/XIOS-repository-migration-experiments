@@ -126,7 +126,9 @@ void CDomainAlgorithmGenerateRectilinear::computeDistributionGridDestination(CGr
 */
 void CDomainAlgorithmGenerateRectilinear::fillInAttributesDomainDestination()
 {
-  domainDest_->redistribute(nbDomainDistributedPart_);
+  if (!domainDest_->distributionAttributesHaveValue())
+    domainDest_->redistribute(nbDomainDistributedPart_);
+  domainDest_->fillInLonLat();
 }
 
 }

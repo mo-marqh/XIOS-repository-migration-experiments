@@ -210,6 +210,27 @@ namespace xios
     if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
   }
 
+  template <typename T>
+  bool operator==(const CType<T>& lhs, const T& rhs)
+  {
+    if (lhs.isEmpty()) return false;
+    return (*lhs.ptrValue == rhs);    
+  }
+
+  template <typename T>
+  bool operator==(const T& lhs, const CType<T>& rhs)
+  {
+    return (rhs == lhs);
+  }
+
+  template <typename T>
+  bool operator==(const CType<T>& lhs, const CType<T>& rhs)
+  {
+    if ((lhs.isEmpty() && !rhs.isEmpty()) || (!lhs.isEmpty() && rhs.isEmpty())) return false;
+    if (lhs.isEmpty() && rhs.isEmpty()) return true;
+    
+    return (*lhs.ptrValue == *rhs.ptrValue);
+  }
 
   template <typename T>
   CBufferOut& operator<<(CBufferOut& buffer, const CType<T>& type)

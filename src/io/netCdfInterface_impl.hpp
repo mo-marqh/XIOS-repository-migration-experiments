@@ -120,18 +120,6 @@ namespace xios
       sstr << nc_strerror(status) << std::endl;
       inqVarName(ncid, varId, varName);
       sstr << "Unable to write data given the location id: " << ncid << " and the variable whose id: " << varId << " and name: " << varName << std::endl;
-//      if (status == NC_ENOTVAR )
-//        sstr <<   "Variable not found. "<< std::endl;
-//      else if (status == NC_EINVALCOORDS)
-//        sstr <<   "Index exceeds dimension bound. "<< std::endl;
-//      else if (status == NC_EEDGE)
-//        sstr <<   " Start+count exceeds dimension bound. "<< std::endl;
-//      else if (status == NC_ERANGE)
-//        sstr <<   " One or more of the values are out of range. "<< std::endl;
-//      else if (status == NC_EINDEFINE)
-//        sstr <<   " Operation not allowed in define mode. "<< std::endl;
-//      else if (status == NC_EBADID)
-//        sstr <<   "Bad ncid. "<< std::endl;
       throw CNetCdfException(sstr.str());
     }
 

@@ -31,10 +31,12 @@ namespace xios
        * \param gc the associated garbage collector
        * \param srcGrid the source grid
        * \param destGrid the destination grid
+       * \param hasMissingValue whether field source has missing value
+       * \param defaultValue default value
        * \return the first and the last filters of the filter graph
        */
       static std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
-      buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, double defaultValue);
+      buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, bool hasMissingValue, double defaultValue);
 
     protected:
       /*!

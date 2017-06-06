@@ -70,15 +70,15 @@ namespace xios
       template <class T>
          T CAttributeTemplate<T>::getValue(void) const
       {
-         return CType<T>::get() ;
+        return CType<T>::get() ;
 /*
-         if (SuperClass::isEmpty())
-         {
-            ERROR("T CAttributeTemplate<T>::getValue(void) const",
-                  << "[ id = " << this->getId() << "]"
-                  << " L'attribut est requis mais n'est pas défini !");
-          }
-         return (SuperClass::getValue<T>());
+        if (SuperClass::isEmpty())
+        {
+           ERROR("T CAttributeTemplate<T>::getValue(void) const",
+                 << "[ id = " << this->getId() << "]"
+                 << " L'attribut est requis mais n'est pas défini !");
+         }
+        return (SuperClass::getValue<T>());
 */
       }
 
@@ -124,7 +124,7 @@ namespace xios
     template <class T>
     void CAttributeTemplate<T>::setInheritedValue(const CAttributeTemplate& attr)
     {
-      if (this->isEmpty() && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
+      if (this->isEmpty() && _canInherite && attr.hasInheritedValue()) inheritedValue.set(attr.getInheritedValue()) ;
     }
 
     template <class T>
@@ -138,6 +138,24 @@ namespace xios
     bool CAttributeTemplate<T>::hasInheritedValue(void) const
     {
       return !this->isEmpty() || !inheritedValue.isEmpty() ;
+    }
+
+    template <class T>
+    bool CAttributeTemplate<T>::isEqual(const CAttribute& attr)
+    {
+      const CAttributeTemplate<T>& tmp = dynamic_cast<const CAttributeTemplate<T>& >(attr);
+      return this->isEqual_(tmp);
+    }
+
+    template <class T>
+    bool CAttributeTemplate<T>::isEqual_(const CAttributeTemplate& attr)
+    {
+      if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
+          return true;
+      if (this->hasInheritedValue() && attr.hasInheritedValue())
+          return (this->getInheritedValue() == attr.getInheritedValue());
+      else 
+        return false;
     }
 
       //---------------------------------------------------------------

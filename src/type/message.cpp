@@ -26,8 +26,7 @@ namespace xios
      list<CBaseType*>::const_iterator it; 
      size_t retSize=0 ;
      
-     for(it=typeList.begin();it!=typeList.end();it++)
-    	 retSize+=(*it)->size() ;
+     for(it=typeList.begin();it!=typeList.end();it++) retSize+=(*it)->size() ;
      return retSize ;
    }
    

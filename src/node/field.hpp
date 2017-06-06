@@ -98,7 +98,7 @@ namespace xios {
          std::vector<std::map<int, StdSize> > getGridDataBufferSize(); // Grid data buffer size for each connection of contextclient
 
        public:
-         bool isActive(void) const;
+         bool isActive(bool atCurrentTimestep = false) const;
          bool hasOutputFile;
 
          bool wasWritten() const;
@@ -149,14 +149,18 @@ namespace xios {
         static void recvUpdateData(CEventServer& event);
         void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void writeField(void);
-        void sendReadDataRequest(const CDate& tsDataRequested);
+        bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
         bool readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
+        void outputField(CArray<double,3>& fieldOut);
+        void outputField(CArray<double,2>& fieldOut);
         void outputField(CArray<double,1>& fieldOut);
+        void inputField(CArray<double,3>& fieldOut);
+        void inputField(CArray<double,2>& fieldOut);
         void inputField(CArray<double,1>& fieldOut);
         void outputCompressedField(CArray<double, 1>& fieldOut);
         void scaleFactorAddOffset(double scaleFactor, double addOffset);
@@ -239,7 +243,7 @@ namespace xios {
          boost::shared_ptr<CSourceFilter> serverSourceFilter;
          //! The terminal filter which stores the instant data
          boost::shared_ptr<CStoreFilter> storeFilter;
-         //! The terminal filter which sends the data to file
+         //! The terminal filter which writes the data to file
          boost::shared_ptr<CFileWriterFilter> fileWriterFilter;
          //! The terminal filter which writes data to file
          boost::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;

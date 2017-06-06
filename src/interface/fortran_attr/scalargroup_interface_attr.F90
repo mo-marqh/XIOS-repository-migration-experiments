@@ -72,6 +72,25 @@ MODULE scalargroup_interface_attr
     END FUNCTION cxios_is_defined_scalargroup_name
 
 
+    SUBROUTINE cxios_set_scalargroup_prec(scalargroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      INTEGER (KIND=C_INT)      , VALUE :: prec
+    END SUBROUTINE cxios_set_scalargroup_prec
+
+    SUBROUTINE cxios_get_scalargroup_prec(scalargroup_hdl, prec) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      INTEGER (KIND=C_INT)             :: prec
+    END SUBROUTINE cxios_get_scalargroup_prec
+
+    FUNCTION cxios_is_defined_scalargroup_prec(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_prec
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_prec
+
+
     SUBROUTINE cxios_set_scalargroup_scalar_ref(scalargroup_hdl, scalar_ref, scalar_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl

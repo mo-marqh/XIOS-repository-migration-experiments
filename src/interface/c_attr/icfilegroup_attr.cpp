@@ -578,6 +578,84 @@ extern "C"
   }
 
 
+  void cxios_set_filegroup_time_stamp_format(filegroup_Ptr filegroup_hdl, const char * time_stamp_format, int time_stamp_format_size)
+  {
+    std::string time_stamp_format_str;
+    if (!cstr2string(time_stamp_format, time_stamp_format_size, time_stamp_format_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->time_stamp_format.setValue(time_stamp_format_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_time_stamp_format(filegroup_Ptr filegroup_hdl, char * time_stamp_format, int time_stamp_format_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->time_stamp_format.getInheritedValue(), time_stamp_format, time_stamp_format_size))
+      ERROR("void cxios_get_filegroup_time_stamp_format(filegroup_Ptr filegroup_hdl, char * time_stamp_format, int time_stamp_format_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_time_stamp_format(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->time_stamp_format.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_filegroup_time_stamp_name(filegroup_Ptr filegroup_hdl, const char * time_stamp_name, int time_stamp_name_size)
+  {
+    std::string time_stamp_name_str;
+    if (!cstr2string(time_stamp_name, time_stamp_name_size, time_stamp_name_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->time_stamp_name.setValue(time_stamp_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_time_stamp_name(filegroup_Ptr filegroup_hdl, char * time_stamp_name, int time_stamp_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->time_stamp_name.getInheritedValue(), time_stamp_name, time_stamp_name_size))
+      ERROR("void cxios_get_filegroup_time_stamp_name(filegroup_Ptr filegroup_hdl, char * time_stamp_name, int time_stamp_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_time_stamp_name(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->time_stamp_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_filegroup_time_units(filegroup_Ptr filegroup_hdl, const char * time_units, int time_units_size)
+  {
+    std::string time_units_str;
+    if (!cstr2string(time_units, time_units_size, time_units_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->time_units.fromString(time_units_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_time_units(filegroup_Ptr filegroup_hdl, char * time_units, int time_units_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->time_units.getInheritedStringValue(), time_units, time_units_size))
+      ERROR("void cxios_get_filegroup_time_units(filegroup_Ptr filegroup_hdl, char * time_units, int time_units_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_time_units(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->time_units.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_filegroup_timeseries(filegroup_Ptr filegroup_hdl, const char * timeseries, int timeseries_size)
   {
     std::string timeseries_str;
@@ -651,6 +729,58 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = filegroup_hdl->type.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_filegroup_uuid_format(filegroup_Ptr filegroup_hdl, const char * uuid_format, int uuid_format_size)
+  {
+    std::string uuid_format_str;
+    if (!cstr2string(uuid_format, uuid_format_size, uuid_format_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->uuid_format.setValue(uuid_format_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_uuid_format(filegroup_Ptr filegroup_hdl, char * uuid_format, int uuid_format_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->uuid_format.getInheritedValue(), uuid_format, uuid_format_size))
+      ERROR("void cxios_get_filegroup_uuid_format(filegroup_Ptr filegroup_hdl, char * uuid_format, int uuid_format_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_uuid_format(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->uuid_format.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_filegroup_uuid_name(filegroup_Ptr filegroup_hdl, const char * uuid_name, int uuid_name_size)
+  {
+    std::string uuid_name_str;
+    if (!cstr2string(uuid_name, uuid_name_size, uuid_name_str)) return;
+    CTimer::get("XIOS").resume();
+    filegroup_hdl->uuid_name.setValue(uuid_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_filegroup_uuid_name(filegroup_Ptr filegroup_hdl, char * uuid_name, int uuid_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(filegroup_hdl->uuid_name.getInheritedValue(), uuid_name, uuid_name_size))
+      ERROR("void cxios_get_filegroup_uuid_name(filegroup_Ptr filegroup_hdl, char * uuid_name, int uuid_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_filegroup_uuid_name(filegroup_Ptr filegroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = filegroup_hdl->uuid_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

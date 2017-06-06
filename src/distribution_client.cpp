@@ -151,24 +151,21 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   dataIndex_.resize(this->dims_);
   infoIndex_.resize(this->dims_);
 
+  // A trick to determine position of each domain in domainList
+  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
+  idx = 0;
+
   elementLocalIndex_.resize(numElement_);
   elementGlobalIndex_.resize(numElement_);
   elementIndexData_.resize(numElement_);
   elementZoomMask_.resize(numElement_);
   elementNLocal_.resize(numElement_);
   elementNGlobal_.resize(numElement_);
-
   elementNLocal_[0] = 1;
   elementNGlobal_[0] = 1;
-  isDataDistributed_ = false;
-
   size_t localSize = 1, globalSize = 1;
 
-  // A trick to determine position of each domain in domainList
-  int domIndex = 0, axisIndex = 0, scalarIndex = 0;
-  idx = 0;
-
-  
+  isDataDistributed_ = false;
   // Update all the vectors above
   for (idx = 0; idx < numElement_; ++idx)
   {

@@ -135,6 +135,25 @@ namespace xios
       return (false);
    }
 
+   /*!
+     Compare two object of same type
+   */
+   template <class T>
+   bool CObjectTemplate<T>::isEqual(const string& id, const vector<StdString>& excludedAttrs)
+   {
+      T* obj = CObjectTemplate<T>::get(id);
+      return this->isEqual(obj, excludedAttrs);
+   }
+
+   template <class T>
+   bool CObjectTemplate<T>::isEqual(T* obj, const vector<StdString>& excludedAttrs)
+   {
+
+      CAttributeMap& attrMapThis = *this;
+      CAttributeMap& attrMapObj  = *obj;
+      return (attrMapThis.isEqual(attrMapObj, excludedAttrs));
+   }
+
    //---------------------------------------------------------------
 
    template <class T>
@@ -198,33 +217,6 @@ namespace xios
              minimumSizes.insert(std::make_pair(*itRank, minimumSize));
          }
        }
-
-     // if (client->isServerLeader())
-     // {
-     //   size_t minimumSize = 0;
-     //   CAttributeMap& attrMap = *this;
-     //   CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
-     //   for (; it != itE; ++it)
-     //   {
-     //     if (!it->second->isEmpty())
-     //     {
-     //       size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
-     //       if (size > minimumSize)
-     //         minimumSize = size;
-     //     }
-     //   }
-
-     //   if (minimumSize)
-     //   {
-     //     // Account for extra header info
-     //     minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
-
-     //     const std::list<int>& ranks = client->getRanksServerLeader();
-     //     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-     //       minimumSizes.insert(std::make_pair(*itRank, minimumSize));
-     //   }
-     // }
-
        return minimumSizes;
      }
    }
@@ -256,8 +248,7 @@ namespace xios
    {
       CAttributeMap & attrMap = *this;
       CAttribute* attr=attrMap[id];
-      if (attr->doSend()) 
-        sendAttributToServer(*attr);
+      sendAttributToServer(*attr);
    }
 
    template <class T>
@@ -367,7 +358,6 @@ namespace xios
      }
      else client->sendEvent(event);
   }
-
 
   template <class T>
   void CObjectTemplate<T>::recvAttributFromClient(CEventServer& event)

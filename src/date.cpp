@@ -63,6 +63,14 @@ namespace xios
          return (*this);
       }
 
+      bool CDate::operator==(const CDate& date)
+      {         
+         return (&(*relCalendar) == &(*date.relCalendar) &&
+                 year == date.year && month  == date.month  && day == date.day &&
+                 hour == date.hour && minute == date.minute && second == date.second);
+         
+      }
+
       StdOStream& operator<<(StdOStream& out, const CDate& date)
       {
         std::streamsize s;

@@ -15,8 +15,6 @@ namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
   string CXios::xiosCodeId="xios.x" ;
-//  string CXios::xiosCodeIdPrm="xios.x.1" ;
-//  string CXios::xiosCodeIdSnd="xios.x.2" ;
   string CXios::clientFile="./xios_client";
   string CXios::serverFile="./xios_server";
   string CXios::serverPrmFile="./xios_server1";
@@ -35,6 +33,7 @@ namespace xios
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
+  double CXios::recvFieldTimeout = 10.0;
 
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
@@ -70,6 +69,9 @@ namespace xios
 
     bufferSizeFactor = getin<double>("buffer_size_factor", defaultBufferSizeFactor);
     minBufferSize = getin<int>("min_buffer_size", 1024 * sizeof(double));
+    recvFieldTimeout = getin<double>("recv_field_timeout", 10.0);
+    if (recvFieldTimeout < 0.0)
+      ERROR("CXios::parseXiosConfig()", "recv_field_timeout cannot be negative.");
 
     globalComm=MPI_COMM_WORLD ;
   }
@@ -114,12 +116,21 @@ namespace xios
        globalRegistry->toFile("xios_registry.bin") ;
        delete globalRegistry ;
      }
-     CClient::closeInfoStream();
-  
 
 #ifdef XIOS_MEMTRACK
+
+#ifdef XIOS_MEMTRACK_LIGHT
+       report(10) << " Memory report : current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+       report(10) << " Memory report : maximum memory used by XIOS : "<<  MemTrack::getMaxMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+#endif
+
+#ifdef XIOS_MEMTRACK_FULL
      MemTrack::TrackListMemoryUsage() ;
      MemTrack::TrackDumpBlocks();
+#endif
+
+     CClient::closeInfoStream();
+
 #endif
   }
 
@@ -137,12 +148,11 @@ namespace xios
   void CXios::initServerSide(void)
   {
     initServer();
+    isClient = false;
+    isServer = true;
 
     // Initialize all aspects MPI
     CServer::initialize();
-    isServer = true;
-    isClient = false;
-
     if (CServer::getRank()==0) globalRegistry = new CRegistry(CServer::intraComm) ;
     
     if (printLogs2Files)
@@ -180,6 +190,19 @@ namespace xios
        delete globalRegistry ;
      }
     CServer::finalize();
+
+#ifdef XIOS_MEMTRACK
+
+#ifdef XIOS_MEMTRACK_LIGHT
+       report(10) << " Memory report : current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+       report(10) << " Memory report : maximum memory used by XIOS : "<<  MemTrack::getMaxMemorySize()*1.0/(1024*1024)<<" Mbyte" << endl ;
+#endif
+
+#ifdef XIOS_MEMTRACK_FULL
+     MemTrack::TrackListMemoryUsage() ;
+     MemTrack::TrackDumpBlocks();
+#endif
+#endif
     CServer::closeInfoStream();
   }
 

@@ -23,7 +23,7 @@ namespace xios
   {
     CTimer timer("CStoreFilter::getPacket");
     CConstDataPacketPtr packet;
-    const double timeout = 10 ; // 10 seconds timeout
+    const double timeout = CXios::recvFieldTimeout;
 
     do
     {
@@ -78,6 +78,11 @@ namespace xios
     // The packet is always destroyed by the garbage collector
     // so we register but never unregister
     gc.registerObject(this, data[0]->timestamp);
+  }
+
+  bool CStoreFilter::isDataExpected(const CDate& date) const
+  {
+    return true;
   }
 
   void CStoreFilter::invalidate(Time timestamp)

@@ -36,6 +36,155 @@ int neighbour_idx(const Elt& a, const Elt& b)
 	return NOT_FOUND;
 }
 
+/** New methods to find an insert a neighbour in a cell of the source mesh.
+ *  return true/false if cell b is a neighbour of a. if "insert" is true, then b will be inserted as a neighbour
+ * in cell a . This is needed for 2 order interpolation that need neighboround for gradient computing.
+ * A cell is a neighbour if :
+ *  - it shares 2 countiguous vertex (ie an edge) with a
+ *  - A vertex of b is located on one of an edge of a.
+ **/
+bool insertNeighbour( Elt& a, const Elt& b, bool insert )
+{
+  // for now suppose pole -> Oz
+  Coord pole(0,0,1) ;
+  Coord O, Oa1, Oa2,Ob1,Ob2,V1,V2 ;
+  double da,db,alpha,alpha1,alpha2,delta ;
+  
+    
+  for (int i = 0; i < a.n; i++)
+  {
+    for (int j = 0; j < b.n; j++)
+    {
+// share a full edge ? be carefull at the orientation
+      assert(squaredist(a.vertex[ i       ], b.vertex[ j       ]) > 1e-10*1e-10 ||
+             squaredist(a.vertex[(i+1)%a.n], b.vertex[(j+1)%b.n]) > 1e-10*1e-10);
+      if (   squaredist(a.vertex[ i       ], b.vertex[ j           ]) < 1e-10*1e-10 &&
+             squaredist(a.vertex[(i+1)%a.n], b.vertex[(j+b.n-1)%b.n]) < 1e-10*1e-10)
+      {
+        if (insert) a.neighbour[i] = b.id.ind ;
+        return true;
+      }
+      
+
+// 1 or 2 vertices of b is located on an edge of a
+       da=a.d[i] ;
+       if (scalarprod(a.edge[i], pole) < 0) da=-da ;
+       db=b.d[(j+b.n-1)%b.n] ;
+       if (scalarprod(b.edge[(j+b.n-1)%b.n], pole) < 0) db=-db ;
+      
+      if ( fabs(da-db)<1e-10 ) 
+      {
+        O=pole*da ;
+        Oa1=a.vertex[i]-O ;
+        Oa2=a.vertex[(i+1)%a.n]-O ; 
+        Ob1=b.vertex[j]-O ;
+        Ob2=b.vertex[(j+b.n-1)%b.n]-O ;
+        V1=crossprod(Oa1,Oa2) ;
+        V2=crossprod(Ob1,Ob2) ;
+        if (norm(crossprod(V1,V2))/(norm(V1)*norm(V2)) < 1e-10)
+        {
+          alpha = vectAngle(Oa1,Oa2,V1) ;
+          alpha1= vectAngle(Oa1,Ob1,V1) ;
+          alpha2= vectAngle(Oa1,Ob2,V1) ;
+          delta= alpha2-alpha1 ;
+          if (delta >= M_PI) delta=2*M_PI-delta ;
+          else if (delta <= -M_PI) delta=2*M_PI+delta ;
+          
+          if (alpha >= 0)
+          {
+            if (alpha1 > 1e-10 && alpha1 < alpha-1e-10)
+            {
+              if (alpha2 > 1e-10 && alpha2 < alpha-1e-10)
+              {
+                assert(delta > 0) ;
+                if (insert)
+                {
+                // insert both
+                  a.insert_vertex(i,b.vertex[(j+b.n-1)%b.n]);
+                  a.insert_vertex(i,b.vertex[j]);
+                  a.neighbour[i+1] = b.id.ind ;
+                }
+                return true ;
+              }
+              else
+              {
+                assert( delta > 0 ) ;
+                if (insert)
+                {
+                //insert alpha1
+                  a.insert_vertex(i,b.vertex[j]);
+                  a.neighbour[i+1] = b.id.ind ;
+                }
+                return true ;
+              }
+            }
+            else if (alpha2 > 1e-10 && alpha2 < alpha-1e-10)
+            {
+              assert( delta > 0 ) ;
+              if (insert)
+              {
+              // insert alpha2
+                a.insert_vertex(i,b.vertex[(j+b.n-1)%b.n]);
+                a.neighbour[i] = b.id.ind ;
+              }
+              return true ;
+            }
+            else
+            {
+              // nothing to do
+            } 
+
+          }
+          else  // alpha < 0
+          {
+            if (alpha1 < -1e-10 && alpha1 > alpha+1e-10)
+            {
+              if (alpha2 < -1e-10 && alpha2 > alpha+1e-10)
+              {
+                assert(delta < 0) ;
+                if (insert)
+                {
+                // insert both
+                  a.insert_vertex(i,b.vertex[(j+b.n-1)%b.n]);
+                  a.insert_vertex(i,b.vertex[j]);
+                  a.neighbour[i+1] = b.id.ind ;
+                }
+                return true ;
+              }
+              else
+              {
+                assert(delta < 0) ;
+                if (insert)
+                {
+                //insert alpha1
+                  a.insert_vertex(i,b.vertex[j]);
+                  a.neighbour[i+1] = b.id.ind ;
+                }
+                return true ;
+              }
+            }
+            else if (alpha2 < -1e-10 && alpha2 > alpha+1e-10)
+            {
+              assert(delta < 0) ;
+              if (insert)
+              {
+              // insert alpha2
+                a.insert_vertex(i,b.vertex[(j+b.n-1)%b.n]);
+                a.neighbour[i] = b.id.ind ;
+              }
+              return true ;
+            }
+            else
+            {
+               // nothing to do
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
 
 /**
 If `a` and `b` are neighbours (in the sense that they share an edge)
@@ -43,16 +192,20 @@ then this information will be stored in `a` (but not in `b`)
 */
 void set_neighbour(Elt& a, const Elt& b)
 {
-	if (b.id.ind == a.id.ind) return;
-	int idx = neighbour_idx(a, b);
-	if (idx != NOT_FOUND)
-		a.neighbour[idx] = b.id.ind;
+  if (b.id.ind == a.id.ind) return;
+/*
+  int idx = neighbour_idx(a, b);
+  if (idx != NOT_FOUND)
+  a.neighbour[idx] = b.id.ind;
+*/
+  insertNeighbour(a,b,true) ; 
 }
 
 /** return true if `a` and `b` share an edge */
-bool isNeighbour(const Elt& a, const Elt& b)
+bool isNeighbour(Elt& a, const Elt& b)
 {
-	return neighbour_idx(a, b) != NOT_FOUND;
+	// return neighbour_idx(a, b) != NOT_FOUND;
+  return insertNeighbour(a,b,false) ;
 }
 
 /* computes intersection between elements a and b */

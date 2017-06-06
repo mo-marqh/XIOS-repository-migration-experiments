@@ -58,6 +58,7 @@ private:
     int addDimensionWrite(const StdString& name, const StdSize size = UNLIMITED_DIM);
     int addVariableWrite(const StdString& name, nc_type type,
                          const std::vector<StdString>& dim);
+    void endDefinition();
     void writeDataIndex(const CArray<int,1>& data, const StdString& name,
                         bool collective, StdSize record,
                         const std::vector<StdSize>* start = NULL,

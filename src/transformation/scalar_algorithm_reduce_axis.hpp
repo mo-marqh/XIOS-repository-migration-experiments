@@ -32,7 +32,7 @@ public:
                      const double* dataInput,
                      CArray<double,1>& dataOut,
                      std::vector<bool>& flagInitial,
-                     const double& defaultValue);
+                     bool ignoreMissingValue);
 
   virtual void updateData(CArray<double,1>& dataOut);
   

@@ -75,10 +75,10 @@ extern "C"
 // ------------------------- Other functions
 // -----------------------------------------------------------------------------------------------------   
 
-  void cxios_field_is_active (XFieldPtr field_hdl, bool* ret)
+  void cxios_field_is_active (XFieldPtr field_hdl, bool at_current_timestep, bool* ret)
   {
     CTimer::get("XIOS").resume() ;
-    *ret = field_hdl->isActive();
+    *ret = field_hdl->isActive(at_current_timestep);
     CTimer::get("XIOS").suspend() ;
   }
 
