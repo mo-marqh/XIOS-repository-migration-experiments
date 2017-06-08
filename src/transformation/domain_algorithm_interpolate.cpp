@@ -387,9 +387,9 @@ void CDomainAlgorithmInterpolate::computeRemap()
      }
   }
 
-  if (writeToFile_ && !readFromFile_)
-     writeRemapInfo(interpMapValue);
-  exchangeRemapInfo(interpMapValue);
+  if (writeToFile_ && !readFromFile_) writeRemapInfo(interpMapValue);
+//  exchangeRemapInfo(interpMapValue);
+  convertRemapInfo(interpMapValue) ;
 
   delete [] globalSrc;
   delete [] globalSrcUnmasked;
@@ -493,6 +493,31 @@ void CDomainAlgorithmInterpolate::readRemapInfo()
   exchangeRemapInfo(interpMapValue);
 }
 
+void CDomainAlgorithmInterpolate::convertRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue)
+{
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+
+  std::map<int,std::vector<std::pair<int,double> > >::const_iterator itb = interpMapValue.begin(), it,
+                                                                     ite = interpMapValue.end();
+  
+  for (it = itb; it != ite; ++it)
+  {    
+    const std::vector<std::pair<int,double> >& tmp = it->second;
+    for (int i = 0; i < tmp.size(); ++i)
+    {
+      transMap[it->first].push_back(tmp[i].first);
+      transWeight[it->first].push_back(tmp[i].second);
+    }      
+  }      
+}
 
 /*!
   Read remap information from file then distribute it among clients
