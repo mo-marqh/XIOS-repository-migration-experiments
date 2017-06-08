@@ -630,7 +630,7 @@ namespace xios {
           {
             int rank = it->first;
             CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
-            outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));            
+            outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
             CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient[rank];
             size_t nbIndex = 0;
             
