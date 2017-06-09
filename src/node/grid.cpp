@@ -705,7 +705,7 @@ namespace xios {
                                                                   client->clientRank,
                                                                   client->clientSize,
                                                                   axis_domain_order,
-                                                                  positionDimensionDistributed_);
+                                                                  getDistributedDimension());
        computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
 
        const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();

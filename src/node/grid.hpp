@@ -292,8 +292,7 @@ namespace xios {
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
         std::vector<std::map<int,size_t> > connectedDataSize_;
         std::vector<std::vector<int> > connectedServerRank_;
-        bool isDataDistributed_;
-        int positionDimensionDistributed_;
+        bool isDataDistributed_;        
          //! True if and only if the data defined on the grid can be outputted in a compressed way
         bool isCompressible_;
         std::set<std::string> relFilesCompressed;
