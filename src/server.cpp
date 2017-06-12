@@ -218,7 +218,10 @@ namespace xios
 
         // Create server intraComm
         if (!CXios::usingServer2)
+        {
           MPI_Comm_dup(localComm, &intraComm);
+          MPI_Comm_rank(localComm,&rank_) ;
+        }
         else
         {
           MPI_Comm_rank(localComm,&rank_) ;
@@ -658,7 +661,9 @@ namespace xios
      //! Get rank of the current process in the intraComm
      int CServer::getRank()
      {
-       return rank_;
+       int rank;
+       MPI_Comm_rank(intraComm,&rank);
+       return rank;
      }
 
     /*!
@@ -681,7 +686,7 @@ namespace xios
         size /= 10;
         ++numDigit;
       }
-      id = getRank();
+      id = rank_; //getRank();
 
       fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
       fb->open(fileNameClient.str().c_str(), std::ios::out);
