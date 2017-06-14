@@ -48,6 +48,9 @@ namespace xios
         //! Get rank of the current process
         static int getRank();
 
+        //!< Get global ranks of processes dedicated to the secondary server
+        static vector<int>& getSecondaryServerGlobalRanks();
+
         //! Open a file stream to write the info logs
         static void openInfoStream(const StdString& fileName);
         //! Write the info logs to standard output

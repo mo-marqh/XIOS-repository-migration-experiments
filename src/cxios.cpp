@@ -183,12 +183,65 @@ namespace xios
     CServer::eventLoop();
 
     // Finalize
-     if (CServer::getRank()==0)
-     {
-       info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
-       globalRegistry->toFile("xios_registry.bin") ;
-       delete globalRegistry ;
-     }
+    if (!usingServer2)
+    {
+      if (CServer::getRank()==0)
+      {
+        info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
+        globalRegistry->toFile("xios_registry.bin") ;
+        delete globalRegistry ;
+      }
+    }
+    else
+    {
+      // If using two server levels, first merge globalRegistry of each server pool into one registry on the first pool
+      if (CServer::serverLevel == 2)
+      {
+        vector<int>& secondaryServerGlobalRanks = CServer::getSecondaryServerGlobalRanks();
+        int firstPoolGlobalRank = secondaryServerGlobalRanks[0];
+        int rankGlobal;
+        MPI_Comm_rank(globalComm, &rankGlobal);
+
+        // All pools (except the first): send globalRegistry to the first pool
+        if (rankGlobal != firstPoolGlobalRank)
+        {
+          int registrySize = globalRegistry->size();
+          MPI_Send(&registrySize,1,MPI_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
+          CBufferOut buffer(registrySize) ;
+          globalRegistry->toBuffer(buffer) ;
+          MPI_Send(buffer.start(),registrySize,MPI_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
+        }
+
+        // First pool: receive globalRegistry of all secondary server pools, merge and write the resultant registry
+        else
+        {
+          MPI_Status status;
+          char* recvBuff;
+
+          CRegistry globalRegistrySndServers (CServer::intraComm);
+          globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
+
+          for (int i=1; i< secondaryServerGlobalRanks.size(); i++)
+          {
+            int rank = secondaryServerGlobalRanks[i];
+            int registrySize = 0;
+            MPI_Recv(&registrySize, 1, MPI_LONG, rank, 15, CXios::globalComm, &status);
+            recvBuff = new char[registrySize];
+            MPI_Recv(recvBuff, registrySize, MPI_CHAR, rank, 15, CXios::globalComm, &status);
+            CBufferIn buffer(recvBuff, registrySize) ;
+            CRegistry recvRegistry;
+            recvRegistry.fromBuffer(buffer) ;
+            globalRegistrySndServers.mergeRegistry(recvRegistry) ;
+            delete[] recvBuff;
+          }
+
+          info(80)<<"Write data base Registry"<<endl<<globalRegistrySndServers.toString()<<endl ;
+          globalRegistrySndServers.toFile("xios_registry.bin") ;
+
+        }
+      }
+      delete globalRegistry;
+    }
     CServer::finalize();
 
 #ifdef XIOS_MEMTRACK

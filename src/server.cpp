@@ -83,7 +83,6 @@ namespace xios
         map<unsigned long, int> leaders ;
         map<unsigned long, int>::iterator it ;
 
-        int nbSrv = 0;
         int srvNodeSize = 1, srvNodeLeader = 0;
 
         // (1) Establish client leaders, distribute processes between two server levels
@@ -133,6 +132,7 @@ namespace xios
         if (CXios::usingServer2)
         {
           MPI_Allgather(&serverLevel, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
+
           for (i=0; i<size; i++)
             if (hashAll[i] == 2)
               sndServerGlobalRanks.push_back(i);
@@ -187,7 +187,7 @@ namespace xios
             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, sndServerGlobalRanks[i], 1, &newComm) ;
             interCommRight.push_back(newComm) ;
           }
-        } // primary server
+        }
         else
         {
           int clientLeader;
@@ -200,7 +200,7 @@ namespace xios
 
           MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 1, &newComm) ;
           interCommLeft.push_back(newComm) ;
-        } // secondary server
+        }
 
         delete [] hashAll ;
 
@@ -664,6 +664,11 @@ namespace xios
        int rank;
        MPI_Comm_rank(intraComm,&rank);
        return rank;
+     }
+
+     vector<int>& CServer::getSecondaryServerGlobalRanks()
+     {
+       return sndServerGlobalRanks;
      }
 
     /*!
