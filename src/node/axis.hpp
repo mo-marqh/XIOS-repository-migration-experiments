@@ -121,9 +121,11 @@ namespace xios {
       public:
         int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
         int ni_srv, begin_srv, end_srv;
+        int global_zoom_begin_srv, global_zoom_end_srv, global_zoom_size_srv;
         CArray<double,1> value_srv;
         CArray<double,2> bound_srv;
         CArray<StdString,1> label_srv;
+        CArray<int,1> zoom_index_srv;
         bool hasValue;
 
       private:
@@ -137,6 +139,7 @@ namespace xios {
                                      CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributedValue();
          void sendNonDistributedValue();
+         bool zoomByIndex();
 
          static void recvIndex(CEventServer& event);
          static void recvDistributedValue(CEventServer& event);

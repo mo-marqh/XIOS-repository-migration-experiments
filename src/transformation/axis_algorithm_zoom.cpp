@@ -43,7 +43,7 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
   zoomAxis->checkValid(axisSource);
   zoomBegin_ = zoomAxis->begin.getValue();
   zoomSize_  = zoomAxis->n.getValue();
-  zoomEnd_   = zoomBegin_ + zoomSize_ - 1;
+  zoomEnd_   = zoomBegin_ + zoomSize_ - 1;  
 
   if (zoomSize_ > axisSource->n_glo.getValue())
   {
@@ -52,6 +52,16 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
            << "Global size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Zoom size is " << zoomSize_ );
   }
+
+  if (!zoomAxis->index.isEmpty())
+  {
+    int sz = zoomAxis->index.numElements();
+    zoomIndex_.resize(sz);
+    for (int i = 0; i < sz; ++i)
+      zoomIndex_[i] = zoomAxis->index(i);
+
+    std::sort(zoomIndex_.begin(), zoomIndex_.end());
+  }
 }
 
 /*!
@@ -59,6 +69,12 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 */
 void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+
   StdSize niSource = axisSrc_->n.getValue();
   StdSize ibeginSource = axisSrc_->begin.getValue();
   StdSize iendSource = ibeginSource + niSource - 1;
@@ -68,16 +84,24 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   StdSize ni = iend + 1 - ibegin;
   if (iend < ibegin) ni = 0;
 
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  for (StdSize idx = 0; idx < ni; ++idx)
+  if (!zoomIndex_.empty())
   {
-    transMap[ibegin+idx].push_back(ibegin+idx);
-    transWeight[ibegin+idx].push_back(1.0);
+    std::vector<int>::iterator itZoomBegin, itZoomEnd;
+    itZoomBegin = std::lower_bound(zoomIndex_.begin(), zoomIndex_.end(), ibeginSource);
+    itZoomEnd   = std::upper_bound(zoomIndex_.begin(), zoomIndex_.end(), iendSource);            
+    for (; itZoomBegin != itZoomEnd; ++itZoomBegin)
+    {
+      transMap[*itZoomBegin].push_back(*itZoomBegin);
+      transWeight[*itZoomBegin].push_back(1.0);
+    }
+  }
+  else
+  {
+    for (StdSize idx = 0; idx < ni; ++idx)
+    {
+      transMap[ibegin+idx].push_back(ibegin+idx);
+      transWeight[ibegin+idx].push_back(1.0);
+    }
   }
 
   updateZoom();
@@ -91,6 +115,11 @@ void CAxisAlgorithmZoom::updateZoom()
 {
   axisDest_->global_zoom_begin = zoomBegin_;
   axisDest_->global_zoom_n  = zoomSize_;
+  if (!zoomIndex_.empty())
+  {
+    axisDest_->global_zoom_index.resize(zoomIndex_.size());
+    std::copy(zoomIndex_.begin(), zoomIndex_.end(), axisDest_->global_zoom_index.begin());
+  }
 }
 
 /*!

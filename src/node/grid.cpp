@@ -1252,6 +1252,7 @@ namespace xios {
         std::vector<CDomain*> domainList = getDomains();
         std::vector<CAxis*> axisList = getAxis();
         std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize);
+        std::vector<CArray<int,1> > globalZoomIndex(numElement);
         for (int i = 0; i < numElement; ++i)
         {
           if (2 == axis_domain_order(i)) //domain
@@ -1265,14 +1266,36 @@ namespace xios {
             nZoomSize[indexMap[i] + 1] = domainList[domainId]->zoom_nj_srv;
             nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->global_zoom_jbegin;
             nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
+
+            {
+              int count = 0;
+              globalZoomIndex[i].resize(nZoomSize[indexMap[i]]*nZoomSize[indexMap[i]+1]);
+              for (int jdx = 0; jdx < nZoomSize[indexMap[i]+1]; ++jdx)
+                for (int idx = 0; idx < nZoomSize[indexMap[i]]; ++idx)                
+                {
+                  globalZoomIndex[i](count) = (nZoomBegin[indexMap[i]] + idx) + (nZoomBegin[indexMap[i]+1] + jdx) * nGlob[indexMap[i]];
+                  ++count;
+                }
+            }
             ++domainId;
           }
           else if (1 == axis_domain_order(i)) // axis
           {
             nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin_srv;
             nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_size_srv;
-            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;
+            nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin_srv;
             nGlob[indexMap[i]] = axisList[axisId]->n_glo;
+            if (!axisList[axisId]->global_zoom_index.isEmpty())
+            {
+              globalZoomIndex[i].reference(axisList[axisId]->zoom_index_srv);                
+            }
+            else
+            {
+              globalZoomIndex[i].resize(nZoomSize[indexMap[i]]);
+              for (int idx = 0; idx < nZoomSize[indexMap[i]]; ++idx)
+                globalZoomIndex[i](idx) = nZoomBegin[indexMap[i]] + idx;
+            }
+            
             ++axisId;
           }
           else // scalar
@@ -1281,6 +1304,8 @@ namespace xios {
             nZoomSize[indexMap[i]]  = 1;
             nZoomBeginGlobal[indexMap[i]] = 0;
             nGlob[indexMap[i]] = 1;
+            globalZoomIndex[i].resize(1);
+            globalZoomIndex[i](0) = 0;
             ++scalarId;
           }
         }
@@ -1288,8 +1313,11 @@ namespace xios {
         for (int i = 0; i < nZoomSize.size(); ++i)
           dataSize *= nZoomSize[i];
 
-        serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
-                                                      nZoomBeginGlobal, nGlob);
+/*        serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
+                                                      nZoomBeginGlobal, nGlob);*/
+        serverDistribution_ = new CDistributionServer(server->intraCommRank, 
+                                                      globalZoomIndex, axis_domain_order,
+                                                      nZoomBegin, nZoomSize, nZoomBeginGlobal, nGlob);
       }
 
       CArray<size_t,1> outIndex;

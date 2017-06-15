@@ -1043,9 +1043,7 @@ namespace xios
         int zoom_size_srv  = axis->zoom_size_srv;
         int zoom_begin_srv = axis->zoom_begin_srv;
         int zoom_size  = (MULTI_FILE == SuperClass::type) ? zoom_size_srv
-                                                              : axis->global_zoom_n;
-        int zoom_begin = (MULTI_FILE == SuperClass::type) ? zoom_begin_srv
-                                                              : axis->global_zoom_begin;
+                                                          : axis->global_zoom_size_srv;
 
         if ((0 == zoom_size_srv) && (MULTI_FILE == SuperClass::type)) return;
 
@@ -1124,7 +1122,7 @@ namespace xios
 
                 std::vector<StdSize> start(1), startBounds(2) ;
                 std::vector<StdSize> count(1), countBounds(2) ;
-                start[0] = startBounds[0] = zoom_begin_srv-axis->global_zoom_begin;
+                start[0] = startBounds[0] = zoom_begin_srv-axis->global_zoom_begin_srv;
                 count[0] = countBounds[0] = zoom_size_srv;
                 startBounds[1] = 0;
                 countBounds[1] = 2;

@@ -30,6 +30,14 @@ class CDistributionServer : public CDistribution
                         const std::vector<int>& nZoomBeginGlobal,
                         const std::vector<int>& nGlobal);
 
+    CDistributionServer(int rank, 
+                        const std::vector<CArray<int,1> >& globalIndexElements,
+                        const CArray<int,1>& elementOrder,
+                        const std::vector<int>& nZoomBeginServer,
+                        const std::vector<int>& nZoomSizeServer,
+                        const std::vector<int>& nZoomBeginGlobal,
+                        const std::vector<int>& nGlobal);
+
     /** Default destructor */
     virtual ~CDistributionServer();
 
@@ -43,6 +51,8 @@ class CDistributionServer : public CDistribution
 
   protected:
     virtual void createGlobalIndex();
+    void createGlobalIndex(const std::vector<CArray<int,1> >& globalIndexElements,
+                           const CArray<int,1>& elementOrder);
 
   protected:
     GlobalLocalMap globalLocalIndexMap_;
