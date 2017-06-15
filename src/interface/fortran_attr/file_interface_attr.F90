@@ -68,6 +68,27 @@ MODULE file_interface_attr
     END FUNCTION cxios_is_defined_file_convention
 
 
+    SUBROUTINE cxios_set_file_convention_str(file_hdl, convention_str, convention_str_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: convention_str
+      INTEGER  (kind = C_INT)     , VALUE        :: convention_str_size
+    END SUBROUTINE cxios_set_file_convention_str
+
+    SUBROUTINE cxios_get_file_convention_str(file_hdl, convention_str, convention_str_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: convention_str
+      INTEGER  (kind = C_INT)     , VALUE        :: convention_str_size
+    END SUBROUTINE cxios_get_file_convention_str
+
+    FUNCTION cxios_is_defined_file_convention_str(file_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_file_convention_str
+      INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl
+    END FUNCTION cxios_is_defined_file_convention_str
+
+
     SUBROUTINE cxios_set_file_cyclic(file_hdl, cyclic) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: file_hdl

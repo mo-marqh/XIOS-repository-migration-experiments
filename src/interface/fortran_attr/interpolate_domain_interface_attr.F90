@@ -49,6 +49,25 @@ MODULE interpolate_domain_interface_attr
     END FUNCTION cxios_is_defined_interpolate_domain_order
 
 
+    SUBROUTINE cxios_set_interpolate_domain_quantity(interpolate_domain_hdl, quantity) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: quantity
+    END SUBROUTINE cxios_set_interpolate_domain_quantity
+
+    SUBROUTINE cxios_get_interpolate_domain_quantity(interpolate_domain_hdl, quantity) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)             :: quantity
+    END SUBROUTINE cxios_get_interpolate_domain_quantity
+
+    FUNCTION cxios_is_defined_interpolate_domain_quantity(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_quantity
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_quantity
+
+
     SUBROUTINE cxios_set_interpolate_domain_renormalize(interpolate_domain_hdl, renormalize) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl

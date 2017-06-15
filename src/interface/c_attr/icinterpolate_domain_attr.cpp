@@ -66,6 +66,29 @@ extern "C"
   }
 
 
+  void cxios_set_interpolate_domain_quantity(interpolate_domain_Ptr interpolate_domain_hdl, bool quantity)
+  {
+    CTimer::get("XIOS").resume();
+    interpolate_domain_hdl->quantity.setValue(quantity);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_domain_quantity(interpolate_domain_Ptr interpolate_domain_hdl, bool* quantity)
+  {
+    CTimer::get("XIOS").resume();
+    *quantity = interpolate_domain_hdl->quantity.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_domain_quantity(interpolate_domain_Ptr interpolate_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_domain_hdl->quantity.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_interpolate_domain_renormalize(interpolate_domain_Ptr interpolate_domain_hdl, bool renormalize)
   {
     CTimer::get("XIOS").resume();
