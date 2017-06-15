@@ -294,7 +294,7 @@ status collapsed
 status collapsed
 
 \begin_layout Plain Layout
-ni_glo-1
+n_glo-1
 \end_layout
 
 \end_inset
@@ -353,7 +353,7 @@ and
 status collapsed
 
 \begin_layout Plain Layout
-nj_glo
+n_glo
 \end_layout
 
 \end_inset
@@ -364,12 +364,65 @@ nj_glo
 status collapsed
 
 \begin_layout Plain Layout
-nj_glo
+n_glo
 \end_layout
 
 \end_inset
 
  of the associated axis.
+\end_layout
+
+\begin_layout Subsection*
+index: 
+\emph on
+1D-array of
+\emph default
+ 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: index(:)
+\end_layout
+
+\begin_layout Standard
+Array contains the zoomed point on the global axis.
+ This attribute is optional.
+ This must contain only integer values between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+n_glo-1
+\end_layout
+
+\end_inset
+
+ of the associated axis.
+ If not specified, begin and n are used for zoom of the associated axis.
 \end_layout
 
 \begin_layout Subsection
