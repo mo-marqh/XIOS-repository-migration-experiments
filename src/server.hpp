@@ -24,8 +24,8 @@ namespace xios
         static void registerContext(void* buff,int count, int leaderRank=0);
 
         static MPI_Comm intraComm;
-        static list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
-        static list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
+        static std::list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
+        static std::list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
         static std::list<MPI_Comm> contextInterComms;  // list of context intercomms
         static std::list<MPI_Comm> contextIntraComms;  // list of context intercomms (needed only in case of secondary servers)
         static CEventScheduler* eventScheduler;
@@ -48,7 +48,7 @@ namespace xios
         //! Get rank of the current process
         static int getRank();
 
-        //!< Get global ranks of processes dedicated to the secondary server
+        //!< Get global ranks of secondary server processes
         static vector<int>& getSecondaryServerGlobalRanks();
 
         //! Open a file stream to write the info logs
@@ -67,8 +67,8 @@ namespace xios
 
       private:
         static vector<int> sndServerGlobalRanks;  //!< Global ranks of secondary server processes
-        static int rank_;             //!< If (!oasis) global rank, else rank in the intraComm returned by oasis
-        static int nbContexts;        //!< Number of contexts registered by server
+        static int rank_;                   //!< If (!oasis) global rank, else rank in the intraComm returned by oasis
+        static int nbContexts;              //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

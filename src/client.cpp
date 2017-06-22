@@ -99,9 +99,6 @@ namespace xios
           myColor=leaders[hashClient] ;
           MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
 
-          if (CXios::usingServer2)
-            MPI_Allgather(&hashClient, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
-
           if (CXios::usingServer)
           {
             int clientLeader=leaders[hashClient] ;

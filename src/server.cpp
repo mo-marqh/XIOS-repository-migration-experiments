@@ -17,8 +17,8 @@
 namespace xios
 {
     MPI_Comm CServer::intraComm ;
-    list<MPI_Comm> CServer::interCommLeft ;
-    list<MPI_Comm> CServer::interCommRight ;
+    std::list<MPI_Comm> CServer::interCommLeft ;
+    std::list<MPI_Comm> CServer::interCommRight ;
     std::list<MPI_Comm> CServer::contextInterComms;
     std::list<MPI_Comm> CServer::contextIntraComms;
     int CServer::serverLevel = 0 ;
@@ -83,9 +83,8 @@ namespace xios
         map<unsigned long, int> leaders ;
         map<unsigned long, int>::iterator it ;
 
-        int srvNodeSize = 1, srvNodeLeader = 0;
-
         // (1) Establish client leaders, distribute processes between two server levels
+        vector<int> srvRanks;
         for(i=0,c=0;i<size;i++)
         {
           if (colors.find(hashAll[i])==colors.end())
@@ -95,32 +94,19 @@ namespace xios
             c++ ;
           }
           if (CXios::usingServer2)
-          {
             if (hashAll[i] == hashServer)
-            {
-              if (hashAll[i-1] != hashServer || i == 0)
-              {
-                srvNodeLeader = i;
-              }
-              if (hashAll[i+1] == hashServer)
-              {
-                ++srvNodeSize;
-              }
-              else
-              {
-                if ( (rank_-srvNodeLeader) >= 0 &&
-                     (rank_-srvNodeLeader) < (1.- CXios::ratioServer2/100.)*srvNodeSize )
-                {
-                  serverLevel = 1;
-                }
-                if ( (rank_-srvNodeLeader) >= (1.- CXios::ratioServer2/100.)*srvNodeSize &&
-                     (rank_ - srvNodeLeader) < srvNodeSize )
-                {
-                  serverLevel = 2;
-                }
-                srvNodeSize = 1;
-              }
-            }
+              srvRanks.push_back(i);
+        }
+        for (i=0; i<srvRanks.size(); i++)
+        {
+          if (i >= srvRanks.size()*CXios::ratioServer2/100)
+          {
+            sndServerGlobalRanks.push_back(srvRanks[i]);
+            if (rank_ == srvRanks[i]) serverLevel=2;
+          }
+          else
+          {
+            if (rank_ == srvRanks[i]) serverLevel=1;
           }
         }
 
@@ -129,15 +115,6 @@ namespace xios
         MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
 
         // (3) Create interComm
-        if (CXios::usingServer2)
-        {
-          MPI_Allgather(&serverLevel, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
-
-          for (i=0; i<size; i++)
-            if (hashAll[i] == 2)
-              sndServerGlobalRanks.push_back(i);
-        }
-
         if (serverLevel == 0)
         {
           int clientLeader;
@@ -153,7 +130,7 @@ namespace xios
                        <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
               MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
-               interCommLeft.push_back(newComm) ;
+              interCommLeft.push_back(newComm) ;
             }
           }
         }
@@ -210,6 +187,7 @@ namespace xios
       {
         int size;
         int myColor;
+        unsigned long* srvGlobalRanks;
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
         CTimer::get("XIOS").resume() ;
@@ -224,11 +202,15 @@ namespace xios
         }
         else
         {
+          int globalRank;
           MPI_Comm_rank(localComm,&rank_) ;
           MPI_Comm_size(localComm,&size) ;
+          MPI_Comm_rank(CXios::globalComm,&globalRank) ;
+          srvGlobalRanks = new unsigned long[size] ;
+          MPI_Allgather(&globalRank, 1, MPI_LONG, srvGlobalRanks, 1, MPI_LONG, localComm) ;
 
           for (int i=size*CXios::ratioServer2/100; i<size; i++)
-            sndServerGlobalRanks.push_back(i);
+            sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
 
           if ( rank_ < (size - sndServerGlobalRanks.size()) )
           {
@@ -254,40 +236,38 @@ namespace xios
         int globalRank ;
         MPI_Comm_rank(CXios::globalComm,&globalRank);
 
+//      (1) Create interComms with models
         for(it=splitted.begin();it!=splitted.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
-//        interComm.push_back(newComm) ;
-          if ( !CXios::usingServer2)
+          if ( !CXios::usingServer2 || serverLevel == 1)
           {
             interCommLeft.push_back(newComm) ;
             if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
           }
-          else
-          {
-            if (serverLevel == 1)
-            {
-              interCommLeft.push_back(newComm) ;
-              if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
-              for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
-              {
-                int srvSndLeader = sndServerGlobalRanks[i];
-                info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<size
-                    <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvSndLeader<<endl ;
-                MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
-                interCommRight.push_back(newComm) ;
-              }
-            }
-            else if (serverLevel == 2)
-            {
-              info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<size
-                       <<" intraCommRank :"<<rank_<<"  clientLeader "<< 0<<endl ;
-              MPI_Intercomm_create(intraComm, 0, localComm, 0, 0, &newComm) ;
-              interCommLeft.push_back(newComm) ;
-            }
-          }
-//          MPI_Comm_remote_size(newComm,&size);
         }
+
+//      (2) Create interComms between primary and secondary servers
+        if (serverLevel == 1)
+        {
+          for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
+          {
+            int srvSndLeader = sndServerGlobalRanks[i];
+            info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<size
+                <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvSndLeader<<endl ;
+            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
+            interCommRight.push_back(newComm) ;
+          }
+        }
+        else if (serverLevel == 2)
+        {
+          info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<size
+                   <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvGlobalRanks[0] <<endl ;
+          MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvGlobalRanks[0], 0, &newComm) ;
+          interCommLeft.push_back(newComm) ;
+        }
+        delete [] srvGlobalRanks ;
+
 	      oasis_enddef() ;
       }
 

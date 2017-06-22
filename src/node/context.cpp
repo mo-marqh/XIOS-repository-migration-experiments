@@ -490,7 +490,7 @@ namespace xios {
 
      info(20)<<"Context <"<<getId()<<"> is finalized."<<endl;
 
-     //     if (hasServer && !hasClient)
+     if (hasServer && !hasClient)
      {
        closeAllFile();
        registryOut->hierarchicalGatherRegistry() ;
