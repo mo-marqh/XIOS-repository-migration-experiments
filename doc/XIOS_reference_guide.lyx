@@ -3436,6 +3436,38 @@ true
 \end_layout
 
 \begin_layout Subsection*
+check_if_active: 
+\emph on
+bool
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+LOGICAL :: check_if_active
+\end_layout
+
+\begin_layout Standard
+Define whether XIOS will automatically check if the field is active at current
+ timestep when sending data from the model.
+ Enabling this behavior can sometimes improve the performances by avoiding
+ unneeded data processing.
+ This attribute is optional, the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+false
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
 field_ref: 
 \emph on
 string

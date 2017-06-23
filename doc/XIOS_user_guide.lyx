@@ -187,7 +187,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization ommited, see the corresponding section of this
+! Context initialization omitted, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -292,7 +292,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization ommited, see the corresponding section of this
+! Context initialization omitted, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -475,7 +475,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization ommited, see the corresponding section of this
+! Context initialization omitted, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -523,7 +523,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization ommited, see the corresponding section of this
+! Context initialization omitted, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -787,7 +787,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization ommited, see the corresponding section of this
+! Context initialization omitted, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -1329,7 +1329,7 @@ status open
 
 \begin_layout Plain Layout
 
-        		<!-- Content of the file ommited for now -->
+        		<!-- Content of the file omitted for now -->
 \end_layout
 
 \begin_layout Plain Layout
@@ -1427,7 +1427,7 @@ TYPE(xios_filegroup) :: filegroup_hdl
 
 \begin_layout Plain Layout
 
-! Context and calendar initializations ommited, see the corresponding section
+! Context and calendar initializations omitted, see the corresponding section
  of this user manual and of the reference manual
 \end_layout
 
@@ -1952,7 +1952,7 @@ status open
 
 \begin_layout Plain Layout
 
-        		<!-- Content of the file ommited for now -->
+        		<!-- Content of the file omitted for now -->
 \end_layout
 
 \begin_layout Plain Layout
@@ -2194,7 +2194,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -2456,7 +2456,7 @@ TYPE(xios_field) 	:: field_hdl
 
 \begin_layout Plain Layout
 
-! Context, calendar and grid initializations ommited, see the corresponding
+! Context, calendar and grid initializations omitted, see the corresponding
  section of this user manual and of the reference manual
 \end_layout
 
@@ -2735,7 +2735,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3198,7 +3198,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3308,7 +3308,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3459,7 +3459,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3608,7 +3608,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3800,7 +3800,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3941,7 +3941,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4081,7 +4081,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4277,7 +4277,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4456,7 +4456,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4566,6 +4566,472 @@ field_A
 \end_layout
 
 \begin_layout Section
+How to check whether a field is active or not
+\end_layout
+
+\begin_layout Standard
+Since XIOS allows modifying the output and input files at runtime, it is
+ sometimes useful to be able to dynamically query whether a field is active
+ or not from the model (for example to avoid computing a field that would
+ not be used anyway for the current run).
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+This can be done using the 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_field_is_active
+\end_layout
+
+\end_inset
+
+ function.
+ The following code sample shows how this function could be used in a model:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=Fortran,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+IF (xios_field_is_active("field_A")) THEN
+\end_layout
+
+\begin_layout Plain Layout
+
+	! Computation of field_A
+\end_layout
+
+\begin_layout Plain Layout
+
+	! ...
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	CALL xios_send_field("field_A", field_A)
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDIF
+\end_layout
+
+\end_inset
+
+Note that this function takes into account the possible data dependencies
+ that can exist between fields.
+ That is, a field will be considered active if it used to compute another
+ active field even if it is not directly used in any files.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+The 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_field_is_active
+\end_layout
+
+\end_inset
+
+ function accepts an optional boolean argument 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+at_current_timestep
+\end_layout
+
+\end_inset
+
+ which defaults to 
+\series bold
+false
+\series default
+ if omitted.
+ Setting it to 
+\series bold
+true
+\series default
+ allows checking if an input field is active at the current timestep, taking
+ into account the data sampling and temporal operations.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Considering the following configuration file:
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<?xml version="1.0"?>
+\end_layout
+
+\begin_layout Plain Layout
+
+<simulation>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<context id="test">
+\end_layout
+
+\begin_layout Plain Layout
+
+		<calendar type="Gregorian" timestep="1h" />
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		<grid_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+			<grid id="grid_A"><!-- Definition omitted --></grid>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</grid_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		<field_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+        	<field id="field_A" grid_ref="grid_A" operation="instant" />
+\end_layout
+
+\begin_layout Plain Layout
+
+        	<field id="field_B" grid_ref="grid_A" operation="instant" />
+\end_layout
+
+\begin_layout Plain Layout
+
+        	<field id="field_C" grid_ref="grid_A" operation="instant">field_A
+ + field_B</field>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</field_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		<file_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+			<file name="output" output_freq="10ts">
+\end_layout
+
+\begin_layout Plain Layout
+
+        		<field field_ref="field_C" />
+\end_layout
+
+\begin_layout Plain Layout
+
+			</file>
+\end_layout
+
+\begin_layout Plain Layout
+
+		</file_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+	</context>
+\end_layout
+
+\begin_layout Plain Layout
+
+</simulation>
+\end_layout
+
+\end_inset
+
+With this configuration file, calling 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_field_is_active(
+\begin_inset Quotes eld
+\end_inset
+
+field_A
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+
+ or
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_field_is_active(
+\begin_inset Quotes eld
+\end_inset
+
+field_B
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+
+ always returns 
+\series bold
+true
+\series default
+ because 
+\begin_inset Quotes eld
+\end_inset
+
+field_A
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+field_B
+\begin_inset Quotes erd
+\end_inset
+
+ are needed to compute 
+\begin_inset Quotes eld
+\end_inset
+
+field_C
+\begin_inset Quotes erd
+\end_inset
+
+ which is outputted.
+ Since 
+\begin_inset Quotes eld
+\end_inset
+
+field_C
+\begin_inset Quotes erd
+\end_inset
+
+ is outputted every 10 timesteps, setting the 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+at_current_timestep
+\end_layout
+
+\end_inset
+
+ argument to 
+\series bold
+true
+\series default
+ would make a difference.
+ Calling 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_field_is_active(
+\begin_inset Quotes eld
+\end_inset
+
+field_A
+\begin_inset Quotes erd
+\end_inset
+
+, .true.)
+\end_layout
+
+\end_inset
+
+ would return 
+\series bold
+true
+\series default
+ only every 10 timesteps as there is no need to provide 
+\begin_inset Quotes eld
+\end_inset
+
+field_A
+\begin_inset Quotes erd
+\end_inset
+
+ (respectively 
+\begin_inset Quotes eld
+\end_inset
+
+field_B
+\begin_inset Quotes erd
+\end_inset
+
+) at timesteps for which 
+\begin_inset Quotes eld
+\end_inset
+
+field_C
+\begin_inset Quotes erd
+\end_inset
+
+ is not written to file.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Additionally, it possible to set the field attribute 
+\series bold
+check_if_active
+\series default
+ to 
+\begin_inset Quotes eld
+\end_inset
+
+
+\series bold
+\emph on
+true
+\series default
+\emph default
+
+\begin_inset Quotes erd
+\end_inset
+
+ so that XIOS internally check if a field is active before sending any data.
+ For example, defining the following field:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<field_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<field id="field_A" grid_ref="grid_A" operation="instant" check_if_active
+\series bold
+="true"
+\series default
+ />
+\end_layout
+
+\begin_layout Plain Layout
+
+</field_definition>
+\end_layout
+
+\end_inset
+
+has the same effect as if all calls to 
+\begin_inset Flex Code
+status open
+
+\begin_layout Plain Layout
+xios_send_field("field_A", field_A)
+\end_layout
+
+\end_inset
+
+ were replaced by:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+IF (xios_field_is_active("field_A"), .true.) THEN
+\end_layout
+
+\begin_layout Plain Layout
+
+	CALL xios_send_field("field_A", field_A)
+\end_layout
+
+\begin_layout Plain Layout
+
+ENDIF
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
 How to reduce the size of an output file
 \end_layout
 
@@ -4660,7 +5126,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition ommited --></grid>
+			<grid id="grid_A"><!-- Definition omitted --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4875,7 +5341,7 @@ status open
 
 \begin_layout Plain Layout
 
-	<!-- Actual context(s) used by the simulation ommited -->
+	<!-- Actual context(s) used by the simulation omitted -->
 \end_layout
 
 \begin_layout Plain Layout
