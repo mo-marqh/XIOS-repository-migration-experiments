@@ -118,6 +118,29 @@ extern "C"
   }
 
 
+  void cxios_set_field_check_if_active(field_Ptr field_hdl, bool check_if_active)
+  {
+    CTimer::get("XIOS").resume();
+    field_hdl->check_if_active.setValue(check_if_active);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_field_check_if_active(field_Ptr field_hdl, bool* check_if_active)
+  {
+    CTimer::get("XIOS").resume();
+    *check_if_active = field_hdl->check_if_active.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_field_check_if_active(field_Ptr field_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = field_hdl->check_if_active.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_field_compression_level(field_Ptr field_hdl, int compression_level)
   {
     CTimer::get("XIOS").resume();

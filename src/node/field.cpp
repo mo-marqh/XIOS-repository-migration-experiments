@@ -824,6 +824,7 @@ namespace xios{
                                                                                                      true));
        else // The data might be passed from the model
        {
+          if (check_if_active.isEmpty()) check_if_active = false;
           bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
           double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
           instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
@@ -915,6 +916,7 @@ namespace xios{
        {
          if (!clientSourceFilter)
          {
+           if (check_if_active.isEmpty()) check_if_active = false;
            bool ignoreMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
            double defaultValue  = ignoreMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0); 
            clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
