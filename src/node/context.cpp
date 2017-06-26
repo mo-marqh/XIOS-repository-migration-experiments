@@ -288,7 +288,7 @@ namespace xios {
      }
    }
 
-   void CContext::setClientServerBuffer()
+   void CContext::setClientServerBuffer(CContextClient* contextClient)
    {
      size_t minBufferSize = CXios::minBufferSize;
 #define DECLARE_NODE(Name_, name_)    \
@@ -299,8 +299,8 @@ namespace xios {
 #undef DECLARE_NODE_PAR
 
      std::map<int, StdSize> maxEventSize;
-     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize);
-     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize);
+     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize, contextClient);
+     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize, contextClient);
 
      std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
      for (it = dataBufferSize.begin(); it != ite; ++it)
@@ -318,28 +318,14 @@ namespace xios {
      for (it = maxEventSize.begin(); it != ite; ++it)
        if (it->second < minBufferSize) it->second = minBufferSize;
 
-     if (client->isServerLeader())
+     if (contextClient->isServerLeader())
      {
-       const std::list<int>& ranks = client->getRanksServerLeader();
+       const std::list<int>& ranks = contextClient->getRanksServerLeader();
        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
          if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
      }
-     client->setBufferSize(bufferSize, maxEventSize);
+     contextClient->setBufferSize(bufferSize, maxEventSize);
 
-     // If it is primary server pool, also set buffer for clientPrimServer.
-     if (hasClient && hasServer)
-     {
-       for (int i = 0; i < clientPrimServer.size(); ++i)
-       {
-         if (clientPrimServer[i]->isServerLeader())
-         {
-           const std::list<int>& ranks = clientPrimServer[i]->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
-         }
-         clientPrimServer[i]->setBufferSize(bufferSize, maxEventSize);
-       }
-     }
    }
 
    //! Verify whether a context is initialized
@@ -535,7 +521,11 @@ namespace xios {
      // Check grid and calculate its distribution
      checkGridEnabledFields();    
 
-     setClientServerBuffer();
+     setClientServerBuffer(client);
+     if (hasServer)
+       for (int i = 0; i < clientPrimServer.size(); ++i)
+         setClientServerBuffer(clientPrimServer[i]);
+
 
      if (hasClient)
      {
@@ -1196,7 +1186,7 @@ namespace xios {
     *
     * \param maxEventSize [in/out] the size of the bigger event for each connected server
     */
-   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize)
+   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient)
    {
      std::map<int, StdSize> attributesSize;
 
@@ -1206,22 +1196,24 @@ namespace xios {
        for (size_t i = 0; i < numEnabledFiles; ++i)
        {
          CFile* file = this->enabledFiles[i];
-
-         std::vector<CField*> enabledFields = file->getEnabledFields();
-         size_t numEnabledFields = enabledFields.size();
-         for (size_t j = 0; j < numEnabledFields; ++j)
+         if (file->getContextClient() == contextClient)
          {
-           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
-           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-           for (; it != itE; ++it)
+           std::vector<CField*> enabledFields = file->getEnabledFields();
+           size_t numEnabledFields = enabledFields.size();
+           for (size_t j = 0; j < numEnabledFields; ++j)
            {
-             // If attributesSize[it->first] does not exist, it will be zero-initialized
-             // so we can use it safely without checking for its existance
-             if (attributesSize[it->first] < it->second)
-               attributesSize[it->first] = it->second;
+             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+             std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+             for (; it != itE; ++it)
+             {
+               // If attributesSize[it->first] does not exist, it will be zero-initialized
+               // so we can use it safely without checking for its existance
+               if (attributesSize[it->first] < it->second)
+                 attributesSize[it->first] = it->second;
 
-             if (maxEventSize[it->first] < it->second)
-               maxEventSize[it->first] = it->second;
+               if (maxEventSize[it->first] < it->second)
+                 maxEventSize[it->first] = it->second;
+             }
            }
          }
        }
@@ -1235,7 +1227,7 @@ namespace xios {
     *
     * \param maxEventSize [in/out] the size of the bigger event for each connected server
     */
-   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize)
+   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient)
    {
      CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
@@ -1246,29 +1238,32 @@ namespace xios {
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
        CFile* file = this->enabledFiles[i];
-       CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
-
-       if (fileMode == mode)
+       if (file->getContextClient() == contextClient)
        {
-         std::vector<CField*> enabledFields = file->getEnabledFields();
-         size_t numEnabledFields = enabledFields.size();
-         for (size_t j = 0; j < numEnabledFields; ++j)
-         {
-           const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
-           for (size_t c = 0; c < mapSize.size(); ++c)
-           {
-             std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
-             for (; it != itE; ++it)
-             {
-               // If dataSize[it->first] does not exist, it will be zero-initialized
-               // so we can use it safely without checking for its existance
-               if (CXios::isOptPerformance)
-                 dataSize[it->first] += it->second;
-               else if (dataSize[it->first] < it->second)
-                 dataSize[it->first] = it->second;
+         CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
 
-               if (maxEventSize[it->first] < it->second)
-                 maxEventSize[it->first] = it->second;
+         if (fileMode == mode)
+         {
+           std::vector<CField*> enabledFields = file->getEnabledFields();
+           size_t numEnabledFields = enabledFields.size();
+           for (size_t j = 0; j < numEnabledFields; ++j)
+           {
+             const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
+             for (size_t c = 0; c < mapSize.size(); ++c)
+             {
+               std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
+               for (; it != itE; ++it)
+               {
+                 // If dataSize[it->first] does not exist, it will be zero-initialized
+                 // so we can use it safely without checking for its existance
+                 if (CXios::isOptPerformance)
+                   dataSize[it->first] += it->second;
+                 else if (dataSize[it->first] < it->second)
+                   dataSize[it->first] = it->second;
+
+                 if (maxEventSize[it->first] < it->second)
+                   maxEventSize[it->first] = it->second;
+               }
              }
            }
          }

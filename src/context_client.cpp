@@ -93,7 +93,7 @@ namespace xios
         // We force the getBuffers call to be non-blocking on classical servers
         list<CBufferOut*> buffList;
         bool couldBuffer = getBuffers(ranks, sizes, buffList, (!CXios::isClient && (CServer::serverLevel == 0) ));
-        //bool couldBuffer = getBuffers(ranks, sizes, buffList, false );
+//        bool couldBuffer = getBuffers(ranks, sizes, buffList, CXios::isServer );
 
         if (couldBuffer)
         {

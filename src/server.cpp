@@ -266,10 +266,10 @@ namespace xios
           MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvGlobalRanks[0], 0, &newComm) ;
           interCommLeft.push_back(newComm) ;
         }
-        delete [] srvGlobalRanks ;
-
-	      oasis_enddef() ;
+        if (CXios::usingServer2) delete [] srvGlobalRanks ;
+        oasis_enddef() ;
       }
+
 
       MPI_Comm_rank(intraComm, &rank) ;
       if (rank==0) isRoot=true;

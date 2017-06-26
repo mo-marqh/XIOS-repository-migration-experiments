@@ -130,9 +130,12 @@ namespace xios {
          void checkGridEnabledFields();
          void sendGridEnabledFields();
 
-         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
-         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
-         void setClientServerBuffer();
+//         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
+//         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
+//         void setClientServerBuffer();
+         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
+         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
+         void setClientServerBuffer(CContextClient* contextClient);
 
          // Send context close definition
          void sendCloseDefinition(void);
