@@ -36,8 +36,8 @@ namespace xios
     // Convert missing values to NaN
     if (hasMissingValue)
     {
-      double nanValue = std::numeric_limits<double>::quiet_NaN();
-      size_t nbData = packet->data.numElements();
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
+      const size_t nbData = packet->data.numElements();
       for (size_t idx = 0; idx < nbData; ++idx)
       {
         if (defaultValue == packet->data(idx))
@@ -79,6 +79,18 @@ namespace xios
       CArray<int,1>& index = grid->storeIndex_fromSrv[it->first];
       for (int n = 0; n < index.numElements(); n++)
         packet->data(index(n)) = it->second(n);
+    }
+
+    // Convert missing values to NaN
+    if (hasMissingValue)
+    {
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
+      const size_t nbData = packet->data.numElements();
+      for (size_t idx = 0; idx < nbData; ++idx)
+      {
+        if (defaultValue == packet->data(idx))
+          packet->data(idx) = nanValue;
+      }
     }
 
     onOutputReady(packet);

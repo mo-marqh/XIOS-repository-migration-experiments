@@ -5,11 +5,14 @@
 
 namespace xios
 {
-  CStoreFilter::CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid)
+  CStoreFilter::CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid,
+                             bool detectMissingValues /*= false*/, double missingValue /*= 0.0*/)
     : CInputPin(gc, 1)
     , gc(gc)
     , context(context)
     , grid(grid)
+    , detectMissingValues(detectMissingValues)
+    , missingValue(missingValue)
   {
     if (!context)
       ERROR("CStoreFilter::CStoreFilter(CContext* context, CGrid* grid)",
@@ -74,10 +77,22 @@ namespace xios
 
   void CStoreFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
-    packets.insert(std::make_pair(data[0]->timestamp, data[0]));
+    CDataPacketPtr packet = data[0];
+
+    packets.insert(std::make_pair(packet->timestamp, packet));
     // The packet is always destroyed by the garbage collector
     // so we register but never unregister
-    gc.registerObject(this, data[0]->timestamp);
+    gc.registerObject(this, packet->timestamp);
+
+    if (detectMissingValues)
+    {
+      const size_t nbData = packet->data.numElements();
+      for (size_t idx = 0; idx < nbData; ++idx)
+      {
+        if (NumTraits<double>::isnan(packet->data(idx)))
+          packet->data(idx) = missingValue;
+      }
+    }
   }
 
   bool CStoreFilter::isDataExpected(const CDate& date) const

@@ -16,21 +16,23 @@ namespace xios
 
   void CFileWriterFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
-    bool ignoreMissingValue = (!field->detect_missing_value.isEmpty() && 
-                               !field->default_value.isEmpty() && 
-                               field->detect_missing_value == true);
-    if (ignoreMissingValue)
+    CDataPacketPtr packet = data[0];
+
+    const bool detectMissingValue = (!field->detect_missing_value.isEmpty()
+                                      && !field->default_value.isEmpty()
+                                      && field->detect_missing_value == true);
+    if (detectMissingValue)
     {
-      double missingValue = field->default_value;
-      size_t nbData = data[0]->data.numElements();
+      const double missingValue = field->default_value;
+      const size_t nbData = packet->data.numElements();
       for (size_t idx = 0; idx < nbData; ++idx)
       {
-        if (NumTraits<double>::isnan(data[0]->data(idx)))
-          data[0]->data(idx) = missingValue;
+        if (NumTraits<double>::isnan(packet->data(idx)))
+          packet->data(idx) = missingValue;
       }
-    }    
+    }
 
-    field->sendUpdateData(data[0]->data);
+    field->sendUpdateData(packet->data);
   }
 
   bool CFileWriterFilter::isDataExpected(const CDate& date) const
