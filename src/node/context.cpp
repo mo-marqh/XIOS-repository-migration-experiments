@@ -1196,7 +1196,7 @@ namespace xios {
        for (size_t i = 0; i < numEnabledFiles; ++i)
        {
          CFile* file = this->enabledFiles[i];
-         if (file->getContextClient() == contextClient)
+//         if (file->getContextClient() == contextClient)
          {
            std::vector<CField*> enabledFields = file->getEnabledFields();
            size_t numEnabledFields = enabledFields.size();
@@ -1238,7 +1238,7 @@ namespace xios {
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
        CFile* file = this->enabledFiles[i];
-       if (file->getContextClient() == contextClient)
+//       if (file->getContextClient() == contextClient)
        {
          CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
 
