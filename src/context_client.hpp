@@ -75,6 +75,8 @@ namespace xios
     private:
       //! Mapping of server and buffer size for each connection to server
       std::map<int,StdSize> mapBufferSize_;
+      //! Maximum event sizes estimated for each connection to server
+      std::map<int,StdSize> maxEventSizes;
       //! Maximum number of events that can be buffered
       StdSize maxBufferedEvents;
 

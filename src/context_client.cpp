@@ -233,8 +233,9 @@ namespace xios
       {
         error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
         mapBufferSize_[rank] = CXios::minBufferSize;
+        maxEventSizes[rank] = CXios::minBufferSize;
       }
-      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxBufferedEvents);
+      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxEventSizes[rank], maxBufferedEvents);
       // Notify the server
       CBufferOut* bufOut = buffer->getBuffer(sizeof(StdSize));
       bufOut->put(mapBufferSize_[rank]); // Stupid C++
@@ -282,6 +283,7 @@ namespace xios
    void CContextClient::setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize)
    {
      mapBufferSize_ = mapSize;
+     maxEventSizes = maxEventSize;
 
      // Compute the maximum number of events that can be safely buffered.
      double minBufferSizeEventSizeRatio = std::numeric_limits<double>::max();

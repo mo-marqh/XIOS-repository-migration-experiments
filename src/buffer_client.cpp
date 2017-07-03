@@ -11,10 +11,12 @@ namespace xios
 {
   size_t CClientBuffer::maxRequestSize = 0;
 
-  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize maxBufferedEvents)
+  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize, StdSize maxBufferedEvents)
     : interComm(interComm)
     , serverRank(serverRank)
     , bufferSize(bufferSize)
+    , estimatedMaxEventSize(estimatedMaxEventSize)
+    , maxEventSize(0)
     , current(0)
     , count(0)
     , bufferedEvents(0)
@@ -41,11 +43,21 @@ namespace xios
 
   bool CClientBuffer::isBufferFree(int size)
   {
-    if (size > maxRequestSize) maxRequestSize = size;
-
     if (size > bufferSize)
       ERROR("bool CClientBuffer::isBufferFree(int size)",
             << "The requested size (" << size << " bytes) is too big to fit the buffer (" << bufferSize << " bytes), please increase the client buffer size." << endl);
+
+    if (size > maxEventSize)
+    {
+      maxEventSize = size;
+
+      if (size > estimatedMaxEventSize)
+        error(0) << "WARNING: Unexpected event of size " << size << " for server " << serverRank
+                 << " (estimated max event size = " << estimatedMaxEventSize << ")" << std::endl;
+
+      if (size > maxRequestSize) maxRequestSize = size;
+    }
+
 
     return (size <= remain() && bufferedEvents < maxBufferedEvents);
   }
