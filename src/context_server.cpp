@@ -236,7 +236,7 @@ namespace xios
     }
     else if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_POST_FINALIZE)
     {
-      info(20)<<"Server side context <"<<context->getId()<<"> finalized."<<endl;
+      info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
       context->postFinalize();
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);

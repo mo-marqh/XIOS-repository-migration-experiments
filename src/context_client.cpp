@@ -450,13 +450,13 @@ namespace xios
    else sendEvent(event);
 
    CTimer::get("Blocking time").resume();
-//    while (!stop)
+//   while (!stop)
    {
      checkBuffers();
      if (hasTemporarilyBufferedEvent())
        sendTemporarilyBufferedEvent();
-
      stop = true;
+//     for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
    }
    CTimer::get("Blocking time").suspend();
 

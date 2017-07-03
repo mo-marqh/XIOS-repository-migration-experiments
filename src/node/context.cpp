@@ -443,7 +443,6 @@ namespace xios {
            clientPrimServer[i]->finalize();
 
        // (Last) context finalized message received
-       // Close files, gather registries, send context finalize to its parent context
        if (countChildCtx_ == clientPrimServer.size())
          client->finalize();
 
@@ -454,7 +453,7 @@ namespace xios {
    /*!
    * \fn void CContext::postFinalize(void)
    * Close files, gather registries, and make deallocations.
-   * Function is called when a context is finalized (it has nothing to receive and nothing to send).
+   * Function is called when a context is finalized.
    */
    void CContext::postFinalize(void)
    {
@@ -474,7 +473,14 @@ namespace xios {
        }
      } while (!buffersReleased);
 
-     info(20)<<"Context <"<<getId()<<"> is finalized."<<endl;
+     // Primary or classical server: block until all messages are sent to model
+     // Client (model): block until all messages are sent to server
+     if ( CServer::serverLevel==0 || CServer::serverLevel==1 || !hasServer)
+     do
+     {
+       client->checkBuffers();
+       buffersReleased = !client->havePendingRequests();
+     } while (!buffersReleased);
 
      if (hasServer && !hasClient)
      {
@@ -492,6 +498,8 @@ namespace xios {
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
        MPI_Comm_free(&(*it));
      comms.clear();
+
+     info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
 
    }
 
@@ -1238,7 +1246,7 @@ namespace xios {
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
        CFile* file = this->enabledFiles[i];
-//       if (file->getContextClient() == contextClient)
+       if (file->getContextClient() == contextClient)
        {
          CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
 
