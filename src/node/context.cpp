@@ -290,11 +290,6 @@ namespace xios {
        if (it->second < minBufferSize) it->second = minBufferSize;
      }
 
-     // We consider that the minimum buffer size is also the minimum event size
-     ite = maxEventSize.end();
-     for (it = maxEventSize.begin(); it != ite; ++it)
-       if (it->second < minBufferSize) it->second = minBufferSize;
-
      client->setBufferSize(bufferSize, maxEventSize);
    }
 
