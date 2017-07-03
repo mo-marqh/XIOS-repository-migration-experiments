@@ -295,13 +295,6 @@ namespace xios {
      for (it = maxEventSize.begin(); it != ite; ++it)
        if (it->second < minBufferSize) it->second = minBufferSize;
 
-     if (client->isServerLeader())
-     {
-       const std::list<int>& ranks = client->getRanksServerLeader();
-       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-         if (!bufferSize.count(*itRank)) bufferSize[*itRank] = maxEventSize[*itRank] = minBufferSize;
-     }
-
      client->setBufferSize(bufferSize, maxEventSize);
    }
 
