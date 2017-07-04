@@ -433,7 +433,7 @@ namespace xios {
            oss << lastPart ;
 
            StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
-           context->registryOut->setKey(keySuffix+"splitStart", split_start);
+           context->registryOut->setKey(keySuffix+"splitStart", lastSplit);
            context->registryOut->setKey(keySuffix+"splitEnd",   splitEnd);
          }
          else oss<<firstPart<<lastPart ;
