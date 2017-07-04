@@ -50,7 +50,6 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_CONTEXT_POST_FINALIZE,
            EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
            EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
            EVENT_ID_PROCESS_GRID_ENABLED_FIELDS
@@ -99,7 +98,6 @@ namespace xios {
 
          // Finalize a context
          void finalize(void);
-         void postFinalize(void);
          bool isFinalized(void);
 
          void closeDefinition(void);

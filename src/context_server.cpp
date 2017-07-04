@@ -222,6 +222,8 @@ namespace xios
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       finished=true;
+      info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
+      context->finalize();
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
                            iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
@@ -231,13 +233,7 @@ namespace xios
             << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
         totalBuf += itMap->second;
       }
-      context->finalize();
       report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
-    }
-    else if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_POST_FINALIZE)
-    {
-      info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
-      context->postFinalize();
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);

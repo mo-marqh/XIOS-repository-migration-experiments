@@ -247,7 +247,7 @@ namespace xios
    {
      if (!mapBufferSize_.count(rank))
      {
-       error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
+//       error(0) << "WARNING: Unexpected request for buffer to communicate with server " << rank << std::endl;
        mapBufferSize_[rank] = CXios::minBufferSize;
      }
      CClientBuffer* buffer = buffers[rank] = new CClientBuffer(interComm, rank, mapBufferSize_[rank], maxBufferedEvents);
@@ -422,45 +422,6 @@ namespace xios
     //releaseBuffers(); // moved to CContext::finalize()
   }
 
-  /*!
-  * Finalize context client and do some reports. Function is non-blocking.
-  */
- void CContextClient::postFinalize(void)
- {
-   map<int,CClientBuffer*>::iterator itBuff;
-   bool stop = false;
-
-   CTimer::get("Blocking time").resume();
-   while (hasTemporarilyBufferedEvent())
-   {
-     checkBuffers();
-     sendTemporarilyBufferedEvent();
-   }
-   CTimer::get("Blocking time").suspend();
-
-   CEventClient event(CContext::GetType(), CContext::EVENT_ID_CONTEXT_POST_FINALIZE);
-   if (isServerLeader())
-   {
-     CMessage msg;
-     const std::list<int>& ranks = getRanksServerLeader();
-     for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-       event.push(*itRank, 1, msg);
-     sendEvent(event);
-   }
-   else sendEvent(event);
-
-   CTimer::get("Blocking time").resume();
-//   while (!stop)
-   {
-     checkBuffers();
-     if (hasTemporarilyBufferedEvent())
-       sendTemporarilyBufferedEvent();
-     stop = true;
-//     for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++) stop &= !itBuff->second->hasPendingRequest();
-   }
-   CTimer::get("Blocking time").suspend();
-
- }
 
   /*!
   */

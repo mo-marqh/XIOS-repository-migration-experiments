@@ -412,7 +412,7 @@ namespace xios {
      // Client:
      // (1) blocking send context finalize to its server
      // (2) blocking receive context finalize from its server
-     // (3) send post finalize to its server
+     // (3) some memory deallocations
      if (CXios::isClient)
      {
        // Make sure that client (model) enters the loop only once
@@ -427,80 +427,67 @@ namespace xios {
          while (!server->hasFinished())
            server->eventLoop();
 
-         if (CXios::isServer) // Mode attache
-           postFinalize();
-         else                  // Mode server
-           client->postFinalize();
+         if (hasServer) // Mode attache
+         {
+           closeAllFile();
+           registryOut->hierarchicalGatherRegistry() ;
+           if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
+         }
 
+         //! Deallocate client buffers
+         client->releaseBuffers();
+
+         //! Free internally allocated communicators
+         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+           MPI_Comm_free(&(*it));
+         comms.clear();
+
+         info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
        }
      }
-     // Server: non-blocking send context finalize
      else if (CXios::isServer)
      {
-       // First context finalize message received from a model => send context finalize to its child contexts (if any)
+       // First context finalize message received from a model
+       // Send context finalize to its child contexts (if any)
        if (countChildCtx_ == 0)
          for (int i = 0; i < clientPrimServer.size(); ++i)
            clientPrimServer[i]->finalize();
 
        // (Last) context finalized message received
        if (countChildCtx_ == clientPrimServer.size())
+       {
+         // Blocking send of context finalize message to its client (e.g. primary server or model)
          client->finalize();
+         bool bufferReleased;
+         do
+         {
+           client->checkBuffers();
+           bufferReleased = !client->havePendingRequests();
+         } while (!bufferReleased);
+         finalized = true;
+
+         if (hasServer && !hasClient)
+         {
+           closeAllFile();
+           registryOut->hierarchicalGatherRegistry() ;
+           if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
+         }
+
+         //! Deallocate client buffers
+         client->releaseBuffers();
+         for (int i = 0; i < clientPrimServer.size(); ++i)
+           clientPrimServer[i]->releaseBuffers();
+
+         //! Free internally allocated communicators
+         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+           MPI_Comm_free(&(*it));
+         comms.clear();
+
+         info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
+       }
 
        ++countChildCtx_;
      }
-   }
-
-   /*!
-   * \fn void CContext::postFinalize(void)
-   * Close files, gather registries, and make deallocations.
-   * Function is called when a context is finalized.
-   */
-   void CContext::postFinalize(void)
-   {
-     finalized = true;
-
-     // Primary server: blocking send post finalize to secondary servers
-     for (int i = 0; i < clientPrimServer.size(); ++i)
-       clientPrimServer[i]->postFinalize();
-     bool buffersReleased;
-     do
-     {
-       buffersReleased = true;
-       for (int i = 0; i < clientPrimServer.size(); ++i)
-       {
-         clientPrimServer[i]->checkBuffers();
-         buffersReleased *= !clientPrimServer[i]->havePendingRequests();
-       }
-     } while (!buffersReleased);
-
-     // Primary or classical server: block until all messages are sent to model
-     // Client (model): block until all messages are sent to server
-     if ( CServer::serverLevel==0 || CServer::serverLevel==1 || !hasServer)
-     do
-     {
-       client->checkBuffers();
-       buffersReleased = !client->havePendingRequests();
-     } while (!buffersReleased);
-
-     if (hasServer && !hasClient)
-     {
-       closeAllFile();
-       registryOut->hierarchicalGatherRegistry() ;
-       if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
-     }
-
-     //! Deallocate client buffers
-     client->releaseBuffers();
-     for (int i = 0; i < clientPrimServer.size(); ++i)
-       clientPrimServer[i]->releaseBuffers();
-
-     //! Free internally allocated communicators
-     for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-       MPI_Comm_free(&(*it));
-     comms.clear();
-
-     info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
-
    }
 
    //! Free internally allocated communicators
@@ -529,7 +516,9 @@ namespace xios {
      // Check grid and calculate its distribution
      checkGridEnabledFields();    
 
-     setClientServerBuffer(client);
+     // Buffer for primary server for connection to client will be allocated by default (to min size)
+     if (CServer::serverLevel != 1)
+       setClientServerBuffer(client);
      if (hasServer)
        for (int i = 0; i < clientPrimServer.size(); ++i)
          setClientServerBuffer(clientPrimServer[i]);
