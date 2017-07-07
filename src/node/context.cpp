@@ -267,7 +267,10 @@ namespace xios {
 
    void CContext::setClientServerBuffer()
    {
-     size_t minBufferSize = CXios::minBufferSize;
+     // Estimated minimum event size for small events (10 is an arbitrary constant just for safety)
+     const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
+     // Ensure there is at least some room for 20 of such events in the buffers
+     size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
 #define DECLARE_NODE(Name_, name_)    \
      if (minBufferSize < sizeof(C##Name_##Definition)) minBufferSize = sizeof(C##Name_##Definition);
 #define DECLARE_NODE_PAR(Name_, name_)
@@ -275,6 +278,7 @@ namespace xios {
 #undef DECLARE_NODE
 #undef DECLARE_NODE_PAR
 
+     // Compute the buffer sizes needed to send the attributes and data corresponding to fields
      std::map<int, StdSize> maxEventSize;
      std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize);
      std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize);
@@ -283,11 +287,26 @@ namespace xios {
      for (it = dataBufferSize.begin(); it != ite; ++it)
        if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
 
+     // Apply the buffer size factor and check that we are above the minimum buffer size
      ite = bufferSize.end();
      for (it = bufferSize.begin(); it != ite; ++it)
      {
        it->second *= CXios::bufferSizeFactor;
        if (it->second < minBufferSize) it->second = minBufferSize;
+     }
+
+     // Leaders will have to send some control events so ensure there is some room for those in the buffers
+     if (client->isServerLeader())
+     {
+       const std::list<int>& ranks = client->getRanksServerLeader();
+       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+       {
+         if (!bufferSize.count(*itRank))
+         {
+           bufferSize[*itRank] = minBufferSize;
+           maxEventSize[*itRank] = minEventSize;
+         }
+       }
      }
 
      client->setBufferSize(bufferSize, maxEventSize);
