@@ -317,6 +317,7 @@ namespace xios
 
       if (SuperClassWriter::hasVariable(boundsLatName) || SuperClassWriter::hasVariable(boundsLonName)) 
         domain->nvertex.setValue(nbVertex);
+
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
       nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->nj_glo.getValue();
       nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = domain->nj_glo.getValue();

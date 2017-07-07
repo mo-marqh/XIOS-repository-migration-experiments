@@ -483,13 +483,6 @@ namespace xios
            MPI_Isend(sendBuff,count,MPI_CHAR,i,2,intraComm,&requests[i]) ;
          }
 
-//         for(int i=1;i<size;i++)
-//         {
-//            MPI_Isend(buff,count,MPI_CHAR,i,2,intraComm,&requests[i-1]) ;
-//         }
-//         MPI_Waitall(size-1,requests,status) ;
-//         registerContext(buff,count,it->second.leaderRank) ;
-
          recvContextId.erase(it) ;
          delete [] requests ;
          delete [] status ;

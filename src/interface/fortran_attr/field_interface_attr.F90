@@ -91,6 +91,25 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_cell_methods_mode
 
 
+    SUBROUTINE cxios_set_field_check_if_active(field_hdl, check_if_active) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: check_if_active
+    END SUBROUTINE cxios_set_field_check_if_active
+
+    SUBROUTINE cxios_get_field_check_if_active(field_hdl, check_if_active) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      LOGICAL (KIND=C_BOOL)             :: check_if_active
+    END SUBROUTINE cxios_get_field_check_if_active
+
+    FUNCTION cxios_is_defined_field_check_if_active(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_check_if_active
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_check_if_active
+
+
     SUBROUTINE cxios_set_field_compression_level(field_hdl, compression_level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

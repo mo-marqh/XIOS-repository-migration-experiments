@@ -277,8 +277,6 @@ namespace xios {
 
         void computeClientIndex();
         void computeConnectedClients();
-        void computeClientIndexScalarGrid();
-        void computeConnectedClientsScalarGrid();        
 
       private:
         CDomainGroup* vDomainGroup_;

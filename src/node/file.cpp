@@ -424,7 +424,20 @@ namespace xios {
 
          if (!split_freq.isEmpty())
          {
-           CDate splitEnd = lastSplit + split_freq - 1 * Second;
+           CDate split_start ;
+           CDate splitEnd ;
+           if (!split_start_offset.isEmpty()) split_start=lastSplit + split_start_offset ;
+           else split_start=lastSplit ;
+
+           splitEnd = lastSplit + split_freq ;
+           if (!split_last_date.isEmpty())
+           {
+             CDate splitLastDate=CDate::FromString(split_last_date,*CContext::getCurrent()->getCalendar()) ;
+             if( splitLastDate < splitEnd)  splitEnd=splitLastDate ;
+           }
+            
+           if (!split_end_offset.isEmpty()) splitEnd = splitEnd + split_end_offset;
+           else splitEnd = splitEnd - 1 * Second;
 
            string splitFormat;
            if (split_freq_format.isEmpty())
@@ -439,7 +452,7 @@ namespace xios {
            else splitFormat = split_freq_format;
 
            oss << firstPart ;
-           if (hasStartDate) oss << lastSplit.getStr(splitFormat) ;
+           if (hasStartDate) oss << split_start.getStr(splitFormat) ;
            oss << middlePart ;
            if (hasEndDate) oss << splitEnd.getStr(splitFormat);
            oss << lastPart ;

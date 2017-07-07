@@ -11,10 +11,10 @@ MODULE ifile_attr
 CONTAINS
 
   SUBROUTINE xios(set_file_attr)  &
-    ( file_id, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_id, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file))  :: file_hdl
@@ -23,6 +23,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append_tmp
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention_str
       LOGICAL  , OPTIONAL, INTENT(IN) :: cyclic
       LOGICAL (KIND=C_BOOL) :: cyclic_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
@@ -54,18 +55,18 @@ CONTAINS
       CALL xios(get_file_handle) &
       (file_id,file_hdl)
       CALL xios(set_file_attr_hdl_)   &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(set_file_attr)
 
   SUBROUTINE xios(set_file_attr_hdl)  &
-    ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -73,6 +74,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append_tmp
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention_str
       LOGICAL  , OPTIONAL, INTENT(IN) :: cyclic
       LOGICAL (KIND=C_BOOL) :: cyclic_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
@@ -102,18 +104,19 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: uuid_name
 
       CALL xios(set_file_attr_hdl_)  &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(set_file_attr_hdl)
 
   SUBROUTINE xios(set_file_attr_hdl_)   &
-    ( file_hdl, append_, compression_level_, convention_, cyclic_, description_, enabled_, format_  &
-    , min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, record_offset_  &
-    , split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_  &
-    , time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_, uuid_name_ )
+    ( file_hdl, append_, compression_level_, convention_, convention_str_, cyclic_, description_  &
+    , enabled_, format_, min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_  &
+    , record_offset_, split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_  &
+    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
+    , uuid_name_ )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -121,6 +124,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append__tmp
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention_
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: convention_str_
       LOGICAL  , OPTIONAL, INTENT(IN) :: cyclic_
       LOGICAL (KIND=C_BOOL) :: cyclic__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description_
@@ -163,6 +167,11 @@ CONTAINS
       IF (PRESENT(convention_)) THEN
         CALL cxios_set_file_convention &
       (file_hdl%daddr, convention_, len(convention_))
+      ENDIF
+
+      IF (PRESENT(convention_str_)) THEN
+        CALL cxios_set_file_convention_str &
+      (file_hdl%daddr, convention_str_, len(convention_str_))
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN
@@ -295,10 +304,10 @@ CONTAINS
   END SUBROUTINE xios(set_file_attr_hdl_)
 
   SUBROUTINE xios(get_file_attr)  &
-    ( file_id, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_id, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file))  :: file_hdl
@@ -307,6 +316,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append_tmp
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention_str
       LOGICAL  , OPTIONAL, INTENT(OUT) :: cyclic
       LOGICAL (KIND=C_BOOL) :: cyclic_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
@@ -338,18 +348,18 @@ CONTAINS
       CALL xios(get_file_handle) &
       (file_id,file_hdl)
       CALL xios(get_file_attr_hdl_)   &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(get_file_attr)
 
   SUBROUTINE xios(get_file_attr_hdl)  &
-    ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -357,6 +367,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append_tmp
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention_str
       LOGICAL  , OPTIONAL, INTENT(OUT) :: cyclic
       LOGICAL (KIND=C_BOOL) :: cyclic_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
@@ -386,18 +397,19 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: uuid_name
 
       CALL xios(get_file_attr_hdl_)  &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(get_file_attr_hdl)
 
   SUBROUTINE xios(get_file_attr_hdl_)   &
-    ( file_hdl, append_, compression_level_, convention_, cyclic_, description_, enabled_, format_  &
-    , min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, record_offset_  &
-    , split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_  &
-    , time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_, uuid_name_ )
+    ( file_hdl, append_, compression_level_, convention_, convention_str_, cyclic_, description_  &
+    , enabled_, format_, min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_  &
+    , record_offset_, split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_  &
+    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
+    , uuid_name_ )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -405,6 +417,7 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: append__tmp
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention_
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: convention_str_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: cyclic_
       LOGICAL (KIND=C_BOOL) :: cyclic__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description_
@@ -447,6 +460,11 @@ CONTAINS
       IF (PRESENT(convention_)) THEN
         CALL cxios_get_file_convention &
       (file_hdl%daddr, convention_, len(convention_))
+      ENDIF
+
+      IF (PRESENT(convention_str_)) THEN
+        CALL cxios_get_file_convention_str &
+      (file_hdl%daddr, convention_str_, len(convention_str_))
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN
@@ -579,10 +597,10 @@ CONTAINS
   END SUBROUTINE xios(get_file_attr_hdl_)
 
   SUBROUTINE xios(is_defined_file_attr)  &
-    ( file_id, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_id, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file))  :: file_hdl
@@ -593,6 +611,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: convention
       LOGICAL(KIND=C_BOOL) :: convention_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convention_str
+      LOGICAL(KIND=C_BOOL) :: convention_str_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cyclic
       LOGICAL(KIND=C_BOOL) :: cyclic_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
@@ -647,18 +667,18 @@ CONTAINS
       CALL xios(get_file_handle) &
       (file_id,file_hdl)
       CALL xios(is_defined_file_attr_hdl_)   &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(is_defined_file_attr)
 
   SUBROUTINE xios(is_defined_file_attr_hdl)  &
-    ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-    , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-    , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-    , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+    ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+    , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+    , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+    , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -668,6 +688,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: convention
       LOGICAL(KIND=C_BOOL) :: convention_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convention_str
+      LOGICAL(KIND=C_BOOL) :: convention_str_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cyclic
       LOGICAL(KIND=C_BOOL) :: cyclic_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
@@ -720,18 +742,19 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: uuid_name_tmp
 
       CALL xios(is_defined_file_attr_hdl_)  &
-      ( file_hdl, append, compression_level, convention, cyclic, description, enabled, format, min_digits  &
-      , mode, name, name_suffix, output_freq, output_level, par_access, record_offset, split_freq  &
-      , split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format, time_stamp_name  &
-      , time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
+      ( file_hdl, append, compression_level, convention, convention_str, cyclic, description, enabled  &
+      , format, min_digits, mode, name, name_suffix, output_freq, output_level, par_access, record_offset  &
+      , split_freq, split_freq_format, sync_freq, time_counter, time_counter_name, time_stamp_format  &
+      , time_stamp_name, time_units, timeseries, ts_prefix, type, uuid_format, uuid_name )
 
   END SUBROUTINE xios(is_defined_file_attr_hdl)
 
   SUBROUTINE xios(is_defined_file_attr_hdl_)   &
-    ( file_hdl, append_, compression_level_, convention_, cyclic_, description_, enabled_, format_  &
-    , min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_, record_offset_  &
-    , split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_, time_stamp_format_  &
-    , time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_, uuid_name_ )
+    ( file_hdl, append_, compression_level_, convention_, convention_str_, cyclic_, description_  &
+    , enabled_, format_, min_digits_, mode_, name_, name_suffix_, output_freq_, output_level_, par_access_  &
+    , record_offset_, split_freq_, split_freq_format_, sync_freq_, time_counter_, time_counter_name_  &
+    , time_stamp_format_, time_stamp_name_, time_units_, timeseries_, ts_prefix_, type_, uuid_format_  &
+    , uuid_name_ )
 
     IMPLICIT NONE
       TYPE(txios(file)) , INTENT(IN) :: file_hdl
@@ -741,6 +764,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: compression_level__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: convention_
       LOGICAL(KIND=C_BOOL) :: convention__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: convention_str_
+      LOGICAL(KIND=C_BOOL) :: convention_str__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: cyclic_
       LOGICAL(KIND=C_BOOL) :: cyclic__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description_
@@ -808,6 +833,12 @@ CONTAINS
         convention__tmp = cxios_is_defined_file_convention &
       (file_hdl%daddr)
         convention_ = convention__tmp
+      ENDIF
+
+      IF (PRESENT(convention_str_)) THEN
+        convention_str__tmp = cxios_is_defined_file_convention_str &
+      (file_hdl%daddr)
+        convention_str_ = convention_str__tmp
       ENDIF
 
       IF (PRESENT(cyclic_)) THEN

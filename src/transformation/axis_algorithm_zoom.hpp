@@ -47,6 +47,8 @@ private:
   //! Global zoom size on axis
   StdSize zoomSize_;
 
+  std::vector<int> zoomIndex_;
+
 private:
 
   static CGenericAlgorithmTransformation* create(CGrid* gridDst, CGrid* gridSrc,

@@ -535,6 +535,7 @@ namespace xios
       }
       
       template <>
+
       void CONetCDF4::writeData_(int grpid, int varid,
                                  const std::vector<StdSize>& sstart,
                                  const std::vector<StdSize>& scount, const int* data)

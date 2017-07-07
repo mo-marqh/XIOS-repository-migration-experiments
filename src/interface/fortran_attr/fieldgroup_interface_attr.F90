@@ -91,6 +91,25 @@ MODULE fieldgroup_interface_attr
     END FUNCTION cxios_is_defined_fieldgroup_cell_methods_mode
 
 
+    SUBROUTINE cxios_set_fieldgroup_check_if_active(fieldgroup_hdl, check_if_active) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: check_if_active
+    END SUBROUTINE cxios_set_fieldgroup_check_if_active
+
+    SUBROUTINE cxios_get_fieldgroup_check_if_active(fieldgroup_hdl, check_if_active) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: check_if_active
+    END SUBROUTINE cxios_get_fieldgroup_check_if_active
+
+    FUNCTION cxios_is_defined_fieldgroup_check_if_active(fieldgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_fieldgroup_check_if_active
+      INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl
+    END FUNCTION cxios_is_defined_fieldgroup_check_if_active
+
+
     SUBROUTINE cxios_set_fieldgroup_compression_level(fieldgroup_hdl, compression_level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: fieldgroup_hdl

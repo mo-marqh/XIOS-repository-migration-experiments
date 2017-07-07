@@ -286,20 +286,29 @@ namespace xios {
      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;   
      nbSrvPools = 1;  
      for (int p = 0; p < nbSrvPools; ++p)
-     {    
-       if (context->hasClient && this->isChecked && doSendingIndex && !isIndexSent) 
-       { 
-         if (isScalarGrid())
-           sendIndexScalarGrid();
-         else
-           sendIndex();
-         this->isIndexSent = true; 
+     {       
+       if (isScalarGrid())
+       {  
+          if (context->hasClient)
+            if (this->isChecked && doSendingIndex && !isIndexSent) { sendIndexScalarGrid(); this->isIndexSent = true; }
+
+          if (this->isChecked) continue;
+  
+          if (context->hasClient)
+          {
+            this->computeIndexScalarGrid();
+          }
+  
+         if (!(this->hasTransform() && !this->isTransformed()))
+          this->isChecked = true;
+         continue;
        }
 
-       // Not sure about this
-       //if (!(this->hasTransform() && !this->isTransformed()))
-       // this->isChecked = true;
-       //return;
+       if (context->hasClient)
+       {
+         if (this->isChecked && doSendingIndex && !isIndexSent)
+            {sendIndex(); this->isIndexSent = true;}
+       }
      }
     
      if (this->isChecked) return;
@@ -537,19 +546,6 @@ namespace xios {
       if (computedWrittenIndex_) return;
       computedWrittenIndex_ = true;
 
-      if (isScalarGrid())
-      {
-        size_t nbWritten = 1;
-        int writtenIndex = 0;
-
-        localIndexToWriteOnClient.resize(nbWritten);  
-        localIndexToWriteOnServer.resize(nbWritten);
-        localIndexToWriteOnServer(0) = writtenIndex;
-        localIndexToWriteOnClient(0) = writtenIndex;
-        
-        return;
-      }
-
       size_t nbWritten = 0, indGlo;
       CDistributionClient::GlobalLocalDataMap& globalDataIndex = clientDistribution_->getGlobalDataIndexOnClient();
       CDistributionClient::GlobalLocalDataMap::const_iterator itb = globalDataIndex.begin(),
@@ -749,21 +745,10 @@ namespace xios {
    void CGrid::computeIndex(void)
    {
      CContext* context = CContext::getCurrent();
-     if (isScalarGrid())
+     computeClientIndex();
+     if (context->hasClient)
      {
-       computeClientIndexScalarGrid();
-       if (context->hasClient)
-       {
-         computeConnectedClientsScalarGrid();
-       }
-     }
-     else
-     {
-       computeClientIndex();
-       if (context->hasClient)
-       {
-         computeConnectedClients();
-       }
+       computeConnectedClients();
      }
    }
 
@@ -1185,41 +1170,7 @@ namespace xios {
       for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
    }
 
-  void CGrid::computeClientIndexScalarGrid()
-  {
-    CContext* context = CContext::getCurrent();    
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1; // This should be changed soon
-    for (int p = 0; p < nbSrvPools; ++p)
-    {
-      CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client) 
-                                                    : context->client;
-
-      storeIndex_client.resize(1);
-      storeIndex_client(0) = 0;      
-
-      if (0 != serverDistribution_)
-      {
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
-                                               ite = outGlobalIndexFromClient.end(), it;
-        for (it = itb; it != ite; ++it)
-        {
-          int rank = it->first;
-          CArray<size_t,1>& globalIndex = outGlobalIndexFromClient[rank];
-          outLocalIndexStoreOnClient.insert(make_pair(rank, CArray<size_t,1>(globalIndex.numElements())));
-          CArray<size_t,1>& localIndex = outLocalIndexStoreOnClient[rank];
-          if (1 != globalIndex.numElements())
-            ERROR("void CGrid::computeClientIndexScalarGrid()",
-              << "Something wrong happened. "
-              << "Number of received global index on scalar grid should equal to 1" 
-              << "Number of received global index " << globalIndex.numElements() << ".");
-
-          localIndex(0) = globalIndex(0);
-        }
-      }
-    }
-  }
-
-  void CGrid::computeConnectedClientsScalarGrid()
+  void CGrid::computeIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();    
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
@@ -1229,36 +1180,22 @@ namespace xios {
 
     for (int p = 0; p < nbSrvPools; ++p)
     {
-      CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client) 
-                                                    : context->client;
+      CContextClient* client = context->hasServer ? context->clientPrimServer[p] : context->client;
+
+      storeIndex_client.resize(1);
+      storeIndex_client(0) = 0;
 
       connectedServerRank_[p].clear();
 
-      if (client->isServerLeader())
+      if (0 == client->clientRank)
       {
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        for (int rank = 0; rank < client->serverSize; ++rank)
         {
-          int rank = *itRank;
-          int nb = 1;
           connectedServerRank_[p].push_back(rank);
-          connectedDataSize_[p][rank] = nb;
-          nbSenders[p][rank] = nb;
+          connectedDataSize_[p][rank] = 1;
+          nbSenders[p][rank] = 1;
         }
       }
-      else
-      {
-        const std::list<int>& ranks = client->getRanksServerNotLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        {
-          int rank = *itRank;
-          int nb = 1;
-          connectedServerRank_[p].push_back(rank);
-          connectedDataSize_[p][rank] = nb;
-          nbSenders[p][rank] = nb;
-        }        
-      }
-
       isDataDistributed_ = false;
     }
   }

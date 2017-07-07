@@ -21,8 +21,11 @@ namespace xios
        * \param gc the garbage collector associated with this input pin
        * \param context the context to which the data belongs
        * \param grid the grid to which the data is attached
+       * \param detectMissingValues whether missing values should be detected
+       * \param missingValue the value to use to replace missing values
        */
-      CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid);
+      CStoreFilter(CGarbageCollector& gc, CContext* context, CGrid* grid,
+                   bool detectMissingValues = false, double missingValue = 0.0);
 
       /*!
        * Accesses the filter storage and retuns the packet corresponding
@@ -74,6 +77,8 @@ namespace xios
       CGarbageCollector& gc; //!< The garbage collector associated to the filter
       CContext* context; //!< The context to which the data belongs
       CGrid* grid; //!< The grid attached to the data the filter can accept
+      const bool detectMissingValues; //!< Whether missing values should be detected
+      const double missingValue; //!< The value to use to replace missing values
       std::map<Time, CDataPacketPtr> packets; //<! The stored packets
   }; // class CStoreFilter
 } // namespace xios

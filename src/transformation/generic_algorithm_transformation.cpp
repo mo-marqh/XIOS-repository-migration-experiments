@@ -48,6 +48,7 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
       }
     }
 
+    // If all data source are nan then data destination must be nan
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
       if (!flagInitial[localIndex[idx].first])

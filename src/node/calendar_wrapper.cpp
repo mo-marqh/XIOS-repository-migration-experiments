@@ -6,7 +6,7 @@
 
 namespace xios {
 
-  /// ////////////////////// Dfinitions ////////////////////// ///
+  /// ////////////////////// Définitions ////////////////////// ///
 
   CCalendarWrapper::CCalendarWrapper(void)
     : CObjectTemplate<CCalendarWrapper>(), CCalendarWrapperAttributes()

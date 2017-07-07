@@ -61,8 +61,8 @@ namespace xios
     private:
       CGrid* grid; //!< The grid attached to the data the filter can accept
       const CDuration offset; //!< The offset applied to the timestamp of all packets
-      bool hasMissingValue;
-      double defaultValue;
+      const bool hasMissingValue;
+      const double defaultValue;
   }; // class CSourceFilter
 } // namespace xios
 
