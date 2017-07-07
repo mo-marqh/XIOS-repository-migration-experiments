@@ -147,7 +147,7 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
       itsecond = it = itLowerBound; ++itsecond;
       while (it < iteRange)
       {
-        while (((*itsecond -*it) < precision) && itsecond < ite)
+        while (itsecond < ite && ((*itsecond -*it) < precision))
         { ++itsecond; ++it; }
         int index = std::distance(itb, it);
         interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
