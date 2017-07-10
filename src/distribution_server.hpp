@@ -52,7 +52,9 @@ class CDistributionServer : public CDistribution
 
   protected:
     virtual void createGlobalIndex();
-
+    void createGlobalIndex(const std::vector<CArray<int,1> >& globalIndexElements,
+                           const CArray<int,1>& elementOrder);
+    
   protected:
     GlobalLocalMap globalLocalIndexMap_;
 

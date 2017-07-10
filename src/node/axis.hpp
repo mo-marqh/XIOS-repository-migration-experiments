@@ -118,15 +118,10 @@ namespace xios {
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
+         bool zoomByIndex();
 
-      public:
-        int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
-        int ni_srv, begin_srv, end_srv;
-        int global_zoom_begin_srv, global_zoom_end_srv, global_zoom_size_srv;
-        CArray<double,1> value_srv;
-        CArray<double,2> bound_srv;
+      public:                
         CArray<StdString,1> label_srv;
-        CArray<int,1> zoom_index_srv;
         bool hasValue;
         CArray<int,1> globalDimGrid;
         int orderPosInGrid;
@@ -145,7 +140,6 @@ namespace xios {
                                         CServerDistributionDescription::ServerDistributionType distType);
          void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
-	 bool zoomByIndex();
 
          void sendNonDistributedAttributes(void);
          void sendDistributedAttributes(void);
@@ -174,8 +168,7 @@ namespace xios {
          std::vector<int> connectedServerRank_;
          std::map<int, CArray<int,1> > indiSrv_;
          bool hasBounds_;
-         bool hasLabel;
-         bool doZoomByIndex_;
+         bool hasLabel;         
          bool computedWrittenIndex_;
 
        private:

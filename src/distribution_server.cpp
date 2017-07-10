@@ -21,6 +21,19 @@ CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoom
   createGlobalIndex();
 }
 
+CDistributionServer::CDistributionServer(int rank, 
+                                        const std::vector<CArray<int,1> >& globalIndexElements,
+                                        const CArray<int,1>& elementOrder,
+                                        const std::vector<int>& nZoomBegin,
+                                        const std::vector<int>& nZoomSize,
+                                        const std::vector<int>& nZoomBeginGlobal,
+                                        const std::vector<int>& nGlobal)
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
+    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
+{
+  createGlobalIndex(globalIndexElements, elementOrder);
+}
+
 CDistributionServer::~CDistributionServer()
 {
 }
@@ -69,6 +82,87 @@ void CDistributionServer::createGlobalIndex()
       globalLocalIndexMap_[globalIndex] = idx;
       this->globalIndex_(idx) = globalIndex;
 
+      ++idx;
+    }
+    idxLoop[0] += innerLoopSize;
+  }
+}
+
+/*!
+  Create global index on server side
+  Like the similar function on client side, this function serves on creating global index
+for data written by the server. The global index is used to calculating local index of data
+written on each server
+  \param[in] globalIndexElement global index on server side of each element of grid (scalar, axis, domain)
+  \param[in] elementOrder the order of elements of grid (e.x: domain->axis or domain->scalar)
+*/
+void CDistributionServer::createGlobalIndex(const std::vector<CArray<int,1> >& globalIndexElements,
+                                            const CArray<int,1>& elementOrder)
+{
+  int numElement = elementOrder.numElements(), elementIdx = 0;  
+  std::vector<int> indexMap(numElement);
+  for (int i = 0; i < numElement; ++i)
+  {
+    indexMap[i] = elementIdx;
+    if (2 == elementOrder(i))
+    {      
+      elementIdx += 2;
+    }
+    else
+      ++elementIdx;
+  }
+
+  std::vector<size_t> elementGlobalSize(numElement);
+  size_t globalSize = 1;
+  for (int i = 0; i < numElement; ++i)
+  {
+    int elementType = elementOrder(i);
+    elementGlobalSize[i] = globalSize;
+    if (2 == elementType) // domain
+    {
+      globalSize *= nGlobal_[indexMap[i]+1] * nGlobal_[indexMap[i]];
+    }
+    else // axis or scalar
+    {
+      globalSize *= nGlobal_[indexMap[i]];
+    }
+  } 
+
+  size_t ssize = 1;
+  for (int i = 0; i < globalIndexElements.size(); ++i) ssize *= globalIndexElements[i].numElements();
+  this->globalIndex_.resize(ssize);
+  globalLocalIndexMap_.rehash(std::ceil(ssize/globalLocalIndexMap_.max_load_factor()));
+
+  std::vector<int> idxLoop(numElement,0);
+  std::vector<int> currentIndex(numElement);
+  int innerLoopSize = globalIndexElements[0].numElements();
+
+  size_t idx = 0;
+  while (idx<ssize)
+  {
+    for (int i = 0; i < numElement-1; ++i)
+    {
+      if (idxLoop[i] == globalIndexElements[i].numElements())
+      {
+        idxLoop[i] = 0;
+        ++idxLoop[i+1];
+      }
+    }
+
+    for (int i = 1; i < numElement; ++i)  currentIndex[i] = globalIndexElements[i](idxLoop[i]);
+
+    size_t mulDim, globalIndex;
+    for (int i = 0; i < innerLoopSize; ++i)
+    {      
+      globalIndex = 0;
+      currentIndex[0] = globalIndexElements[0](i);
+
+      for (int k = 0; k < numElement; ++k)
+      {     
+        globalIndex += (currentIndex[k])*elementGlobalSize[k];
+      }
+      globalLocalIndexMap_[globalIndex] = idx;
+      this->globalIndex_(idx) = globalIndex;
       ++idx;
     }
     idxLoop[0] += innerLoopSize;

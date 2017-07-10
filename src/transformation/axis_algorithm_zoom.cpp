@@ -52,6 +52,17 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
            << "Global size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
            << "Zoom size is " << zoomSize_ );
   }
+
+  if (!zoomAxis->index.isEmpty())
+  {
+    int sz = zoomAxis->index.numElements();
+    zoomIndex_.resize(sz);
+    for (int i = 0; i < sz; ++i)
+      zoomIndex_[i] = zoomAxis->index(i);
+
+    std::sort(zoomIndex_.begin(), zoomIndex_.end());
+  }
+
 }
 
 /*!
@@ -68,8 +79,6 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
 
   StdSize ibegin = std::max(ibeginSource, zoomBegin_);
   StdSize iend = std::min(iendSource, zoomEnd_);
-  // StdSize ibegin = ibeginSource;
-  // StdSize iend = iendSource;
   StdSize ni = iend + 1 - ibegin;
   if (iend < ibegin) ni = 0;
 
@@ -79,10 +88,24 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-  for (StdSize idx = 0; idx < ni; ++idx)
+  if (!zoomIndex_.empty())
   {
-    transMap[ibegin+idx].push_back(ibegin+idx);
-    transWeight[ibegin+idx].push_back(1.0);
+    std::vector<int>::iterator itZoomBegin, itZoomEnd;
+    itZoomBegin = std::lower_bound(zoomIndex_.begin(), zoomIndex_.end(), ibeginSource);
+    itZoomEnd   = std::upper_bound(zoomIndex_.begin(), zoomIndex_.end(), iendSource);            
+    for (; itZoomBegin != itZoomEnd; ++itZoomBegin)
+    {
+      transMap[*itZoomBegin].push_back(*itZoomBegin);
+      transWeight[*itZoomBegin].push_back(1.0);
+    }
+  }
+  else
+  {
+    for (StdSize idx = 0; idx < ni; ++idx)
+    {
+      transMap[ibegin+idx].push_back(ibegin+idx);
+      transWeight[ibegin+idx].push_back(1.0);
+    }
   }
 
   updateZoom();
@@ -96,6 +119,11 @@ void CAxisAlgorithmZoom::updateZoom()
 {
   axisDest_->global_zoom_begin = zoomBegin_;
   axisDest_->global_zoom_n  = zoomSize_;
+  if (!zoomIndex_.empty())
+  {
+    axisDest_->global_zoom_index.resize(zoomIndex_.size());
+    std::copy(zoomIndex_.begin(), zoomIndex_.end(), axisDest_->global_zoom_index.begin());
+  }
 }
 
 /*!

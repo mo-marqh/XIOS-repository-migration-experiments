@@ -26,7 +26,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false), doZoomByIndex_(false), hasLabel(false)
+      , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
    }
@@ -37,7 +37,7 @@ namespace xios {
       , isClientAfterTransformationChecked(false)
       , hasBounds_(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , transformationMap_(), hasValue(false), doZoomByIndex_(false), hasLabel(false)
+      , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
    }
@@ -364,10 +364,16 @@ namespace xios {
     }
     else hasLabel = false;
   }
+
   void CAxis::checkEligibilityForCompressedOutput()
   {
     // We don't check if the mask is valid here, just if a mask has been defined at this point.
     isCompressible_ = !mask.isEmpty();
+  }
+
+  bool CAxis::zoomByIndex()
+  {
+    return (!global_zoom_index.isEmpty() && (0 != global_zoom_index.numElements()));
   }
 
    bool CAxis::dispatchEvent(CEventServer& event)
@@ -476,51 +482,10 @@ namespace xios {
       size_t nZoomCount = 0;
       size_t nbIndex = index.numElements();
 
-      if (doZoomByIndex_) 
+      for (size_t idx = 0; idx < nbIndex; ++idx)
       {
-        nZoomCount = zoom_index.numElements();
+        globalLocalIndexMap_[index(idx)] = idx;
       }
-      else
-      {
-        for (size_t idx = 0; idx < nbIndex; ++idx)
-        {
-          globalLocalIndexMap_[index(idx)] = idx;
-          size_t globalIndex = index(idx);
-          if (globalIndex >= global_zoom_begin && globalIndex <= global_zoom_end) ++nZoomCount;
-        }
-      }
-
-
-      CArray<size_t,1> globalIndexAxis(nbIndex);
-      std::vector<size_t> globalAxisZoom(nZoomCount);
-      nZoomCount = 0;
-      if (doZoomByIndex_) 
-      {
-        int nbIndexZoom = zoom_index.numElements();        
-        for (int i = 0; i < nbIndexZoom; ++i)
-        {   
-          globalIndexAxis(i) = zoom_index(i);
-        }
-      }
-      else 
-      {
-        for (size_t idx = 0; idx < nbIndex; ++idx)
-        {
-          size_t globalIndex = index(idx);
-          globalIndexAxis(idx) = globalIndex;
-          if (globalIndex >= global_zoom_begin && globalIndex <= global_zoom_end)
-          {
-            globalAxisZoom[nZoomCount] = globalIndex;
-            ++nZoomCount;
-          }
-        }
-
-        int end       = begin + n -1;        
-        zoom_begin    = global_zoom_begin > begin ? global_zoom_begin : begin;
-        int zoom_end  = global_zoom_end < end ? zoom_end : end;
-        zoom_n        = zoom_end-zoom_begin+1;
-      }
-
       std::set<int> writtenInd;
       if (isCompressible_)
       {
@@ -592,7 +557,7 @@ namespace xios {
 
       indSrv_.swap(globalIndexAxisOnServer);
 
-      CClientServerMapping::GlobalIndexMap::const_iterator it = indSrv_.begin(),
+      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_.begin(),
                                                            ite = indSrv_.end();
 
       connectedServerRank_.clear();
@@ -624,28 +589,53 @@ namespace xios {
       boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;          
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
-                                       itSrve = writtenGlobalIndex.end(), itSrv;      
-
-      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-      {
-        indGlo = *itSrv;
-        if (ite != globalLocalIndexMap_.find(indGlo))
-        {          
-          ++nbWritten;
-        }                 
-      }
-
-      localIndexToWriteOnServer.resize(nbWritten);
-
-      nbWritten = 0;
-      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-      {
-        indGlo = *itSrv;
-        if (ite != globalLocalIndexMap_.find(indGlo))
+                                       itSrve = writtenGlobalIndex.end(), itSrv;  
+      if (!zoomByIndex())
+      {   
+        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
         {
-          localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
-          ++nbWritten;
-        }                 
+          indGlo = *itSrv;
+          if (ite != globalLocalIndexMap_.find(indGlo))
+          {          
+            ++nbWritten;
+          }                 
+        }
+
+        localIndexToWriteOnServer.resize(nbWritten);
+
+        nbWritten = 0;
+        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+        {
+          indGlo = *itSrv;
+          if (ite != globalLocalIndexMap_.find(indGlo))
+          {
+            localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
+            ++nbWritten;
+          }                 
+        }
+      }
+      else
+      {
+        nbWritten = 0;
+        boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+                                                            ite = globalLocalIndexMap_.end(), it;
+        for (int i = 0; i < zoom_index.numElements(); ++i)
+        {
+           if (ite != globalLocalIndexMap_.find(zoom_index(i)))
+            ++nbWritten;
+        }
+
+        localIndexToWriteOnServer.resize(nbWritten);
+
+        nbWritten = 0;
+        for (int i = 0; i < zoom_index.numElements(); ++i)
+        {
+           if (ite != globalLocalIndexMap_.find(zoom_index(i)))
+           {
+             localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[zoom_index(i)];
+             ++nbWritten;
+           }
+        }
       }
 
       if (isCompressible())
@@ -730,13 +720,13 @@ namespace xios {
           // Use const int to ensure CMessage holds a copy of the value instead of just a reference
           const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
           const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
-          const int end   = begin + ni - 1;
+          const int end   = begin + ni - 1;          
 
           msgs.push_back(CMessage());
           CMessage& msg = msgs.back();
           msg << this->getId();
           msg << ni << begin << end;
-          msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
+          // msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
           msg << isCompressible_;
           msg << orderPositionInGrid;
           msg << globalDimGrid;
@@ -791,9 +781,6 @@ namespace xios {
           CMessage& msg = msgs.back();
           msg << this->getId();
           msg << index.getValue() << dataIndex << mask.getValue();
-
-          msg << doZoomByIndex_;
-          if (doZoomByIndex_) msg << zoom_index.getValue();
           msg << hasValue;
           if (hasValue) msg << value.getValue();
           msg << hasBounds_;
@@ -833,13 +820,6 @@ namespace xios {
     buffer >> tmp_mask;
     mask.reference(tmp_mask);
 
-    buffer >> doZoomByIndex_;
-    if (doZoomByIndex_)
-    {
-      buffer >> tmp_zoom_index;
-      zoom_index.reference(tmp_zoom_index);
-    }
-
     buffer >> hasValue;
     if (hasValue)
     {
@@ -863,8 +843,7 @@ namespace xios {
   {
     int ns, n, i, j, ind, nv, idx;
     CContext* context = CContext::getCurrent();
-
-    //int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     for (int p = 0; p < nbSrvPools; ++p)
     {
@@ -902,9 +881,6 @@ namespace xios {
         list_dataInd.push_back(CArray<int,1>(nbData));        
         list_mask.push_back(CArray<bool,1>(nbData));
 
-        if (doZoomByIndex_)
-          list_zoomInd.push_back(CArray<int,1>(nbData));
-
         if (hasValue)
           list_val.push_back(CArray<double,1>(nbData));
 
@@ -926,12 +902,6 @@ namespace xios {
           dataIndi(n) = dataIndex(ind);
           maskIndi(n) = mask(ind);
 
-          if (doZoomByIndex_)
-          {
-            CArray<int,1>& zoomIndi = list_zoomInd.back();
-            zoomIndi(n) = zoom_index(ind);
-          }
-
           if (hasValue)
           {
             CArray<double,1>& val = list_val.back();
@@ -949,10 +919,6 @@ namespace xios {
         listData.push_back(CMessage());
         listData.back() << this->getId()
                         << list_indi.back() << list_dataInd.back() << list_mask.back();
-
-        listData.back() << doZoomByIndex_;           
-        if (doZoomByIndex_)
-          listData.back() << list_zoomInd.back();
 
         listData.back() << hasValue;
         if (hasValue)
@@ -1001,10 +967,6 @@ namespace xios {
       buffer >> vec_indi[idx];
       buffer >> vec_dataInd[idx];      
       buffer >> vec_mask[idx];
-
-      buffer >> doZoomByIndex_;
-      if (doZoomByIndex_)
-        buffer >> vec_zoomInd[idx];
 
       buffer >> hasValue;
       if (hasValue)
@@ -1074,27 +1036,6 @@ namespace xios {
     }
     data_begin.setValue(0);
 
-    if (doZoomByIndex_)
-    {
-      int nbZoomIndex = 0;
-      for (int idx = 0; idx < nbReceived; ++idx)
-      {
-        nbZoomIndex += vec_zoomInd[idx].numElements();
-      }
-
-      zoom_index.resize(nbZoomIndex);
-      nbZoomIndex = 0;      
-      for (int idx = 0; idx < nbReceived; ++idx)
-      {      
-        CArray<int,1>& tmp = vec_zoomInd[idx];
-        for (int i = 0; i < tmp.size(); ++i)
-        {
-          zoom_index(nbZoomIndex) = tmp(i);
-          ++nbZoomIndex;
-        }       
-      }
-    }
-
     if (hasLabel)
     {
       //label_srv(ind_srv) = labelVal( ind);
@@ -1111,34 +1052,60 @@ namespace xios {
 
   void CAxis::recvDistributionAttribute(CBufferIn& buffer)
   {
-    int ni_srv, begin_srv, end_srv, global_zoom_begin_tmp, global_zoom_n_tmp;
+    int ni_srv, begin_srv, end_srv;
+    int global_zoom_end, zoom_end;
+    bool zoomIndex = zoomByIndex();
+    
+    std::vector<int> zoom_index_tmp;
+    std::vector<int>::iterator itZoomBegin, itZoomEnd, itZoom;
 
     buffer >> ni_srv >> begin_srv >> end_srv;
-    buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;
+    // buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;   
     buffer >> isCompressible_;
     buffer >> orderPosInGrid;
-    buffer >> globalDimGrid;
+    buffer >> globalDimGrid;    
 
+    // Set up new local size of axis on the receiving clients
     n.setValue(ni_srv);
     begin.setValue(begin_srv);
-    global_zoom_begin = global_zoom_begin_tmp;
-    global_zoom_n  = global_zoom_n_tmp;
-    int global_zoom_end = global_zoom_begin + global_zoom_n - 1;
 
-    zoom_begin = global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
-    zoom_end_srv   = global_zoom_end < end_srv ? global_zoom_end : end_srv ;
-    zoom_n  = zoom_end_srv - zoom_begin_srv + 1;
+    // If we have zoom by index then process it
+    if (zoomIndex)
+    {
+      zoom_index_tmp.resize(global_zoom_index.numElements());
+      std::copy(global_zoom_index.begin(), global_zoom_index.end(), zoom_index_tmp.begin());
+      std::sort(zoom_index_tmp.begin(), zoom_index_tmp.end());
+      itZoomBegin = std::lower_bound(zoom_index_tmp.begin(), zoom_index_tmp.end(), begin_srv);
+      itZoomEnd   = std::upper_bound(zoom_index_tmp.begin(), zoom_index_tmp.end(), end_srv);      
+      int sz = std::distance(itZoomBegin, itZoomEnd);
+      zoom_index.resize(sz);
+      itZoom = itZoomBegin;
+      for (int i = 0; i < sz; ++i, ++itZoom)
+      {
+        zoom_index(i) = *(itZoom);
+      }
+    }
+
+    global_zoom_begin = zoomIndex ? 0 : global_zoom_begin ;
+    global_zoom_n     = zoomIndex ? zoom_index_tmp.size() : global_zoom_n;
+    global_zoom_end   = global_zoom_begin + global_zoom_n - 1;
+
+    zoom_begin = zoomIndex ? std::distance(itZoomBegin, zoom_index_tmp.begin())
+                           : global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
+    zoom_end   = zoomIndex ? std::distance(zoom_index_tmp.begin(), itZoomEnd) - 1 
+                           : global_zoom_end < end_srv ? global_zoom_end : end_srv ;
+    zoom_n     = zoom_end - zoom_begin + 1;
 
     if (zoom_n<=0)
     {
-      zoom_begin = 0; zoom_end_srv = 0; zoom_n = 0;
+      zoom_begin = 0; zoom_n = 0;
     }
 
     if (n_glo == n)
     {
-      zoom_begin = global_zoom_begin;
-      zoom_end_srv   = global_zoom_end; //zoom_end;
-      zoom_n     = zoom_end_srv - zoom_begin + 1;
+      zoom_begin = zoomIndex ? std::distance(itZoomBegin, zoom_index_tmp.begin())
+                             : global_zoom_begin;      
+      zoom_n     = zoomIndex ? zoom_index_tmp.size() : global_zoom_n;
     }
   }
 

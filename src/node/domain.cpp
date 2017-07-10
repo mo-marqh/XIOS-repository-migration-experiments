@@ -2462,10 +2462,9 @@ namespace xios {
       nbIndGlob += indGlob_[recvClientRanks_[i]].numElements();
     }
     
-    i_index.resize(nbIndGlob);
-    j_index.resize(nbIndGlob);
-
     globalLocalIndexMap_.rehash(std::ceil(nbIndGlob/globalLocalIndexMap_.max_load_factor()));
+    i_index.resize(nbIndGlob);
+    j_index.resize(nbIndGlob);    
     nbIndGlob = 0;
     for (i = 0; i < nbReceived; ++i)
     {
@@ -2473,12 +2472,18 @@ namespace xios {
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
          index = tmp(ind);
-         i_index(nbIndGlob) = index % ni_glo;
-         j_index(nbIndGlob) = index / ni_glo;
-         globalLocalIndexMap_[index] = nbIndGlob;  
-         ++nbIndGlob;
+         if (0 == globalLocalIndexMap_.count(index))
+         {
+           i_index(nbIndGlob) = index % ni_glo;
+           j_index(nbIndGlob) = index / ni_glo;
+           globalLocalIndexMap_[index] = nbIndGlob;  
+           ++nbIndGlob;
+         } 
       } 
     } 
+
+    i_index.resizeAndPreserve(nbIndGlob);
+    j_index.resizeAndPreserve(nbIndGlob);
   }
 
   /*!
@@ -2629,9 +2634,9 @@ namespace xios {
   */
   void CDomain::recvMask(std::map<int, CBufferIn*>& rankBuffers)
   {
-    int nbReceived = rankBuffers.size(), i, ind, index;
+    int nbReceived = rankBuffers.size(), i, ind, index, lInd;
     if (nbReceived != recvClientRanks_.size())
-      ERROR("void CDomain::recvArea(std::map<int, CBufferIn*>& rankBuffers)",
+      ERROR("void CDomain::recvMask(std::map<int, CBufferIn*>& rankBuffers)",
            << "The number of sending clients is not correct."
            << "Expected number: " << recvClientRanks_.size() << " but received " << nbReceived);
 
@@ -2649,15 +2654,21 @@ namespace xios {
       nbMaskInd += recvMaskValue[i].numElements();
     }
   
+    if (nbMaskInd != globalLocalIndexMap_.size())
+      info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
+               << "Something must be wrong with mask index "<< std::endl;
+
+    nbMaskInd = globalLocalIndexMap_.size();
     mask_1d.resize(nbMaskInd);
-    nbMaskInd = 0;
+    
     for (i = 0; i < nbReceived; ++i)
     {
+      CArray<int,1>& tmpInd = indGlob_[recvClientRanks_[i]];
       CArray<bool,1>& tmp = recvMaskValue[i];
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
-        mask_1d(nbMaskInd) = tmp(ind);      
-        ++nbMaskInd;
+        lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
+        mask_1d(lInd) = tmp(ind);
       }
     }    
   }
@@ -2716,8 +2727,10 @@ namespace xios {
       }
     
       if (nbLonInd != globalLocalIndexMap_.size())
-        info (0) << "Something wrong with longitude index "<< std::endl;
+        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
+                 << "Something must be wrong with longitude index "<< std::endl;
 
+      nbLonInd = globalLocalIndexMap_.size();
       lonvalue.resize(nbLonInd);
       if (hasBounds)
       {
@@ -2798,8 +2811,10 @@ namespace xios {
       }
     
       if (nbLatInd != globalLocalIndexMap_.size())
-        info (0) << "Something wrong with latitude index "<< std::endl;
+        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
+                << "Something must be wrong with latitude index "<< std::endl;
 
+      nbLatInd = globalLocalIndexMap_.size();
       latvalue.resize(nbLatInd);
       if (hasBounds)
       {
@@ -2869,17 +2884,19 @@ namespace xios {
         buffer >> recvAreaValue[i];
     }
 
-    int nbAreaInd = 0;
-    for (i = 0; i < nbReceived; ++i)
-    {      
-      nbAreaInd += recvAreaValue[i].numElements();
-    }
-  
-    if (nbAreaInd != globalLocalIndexMap_.size())
-      info (0) << "Something wrong with latitude index "<< std::endl;
-
     if (hasArea)
     {
+      int nbAreaInd = 0;
+      for (i = 0; i < nbReceived; ++i)
+      {      
+        nbAreaInd += recvAreaValue[i].numElements();
+      }
+
+      if (nbAreaInd != globalLocalIndexMap_.size())
+        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
+                 << "Something must be wrong with area index "<< std::endl;
+
+      nbAreaInd = globalLocalIndexMap_.size();
       areavalue.resize(nbAreaInd);
       nbAreaInd = 0;      
       for (i = 0; i < nbReceived; ++i)
@@ -2987,8 +3004,8 @@ namespace xios {
       for (ind = 0; ind < tmpI.numElements(); ++ind)
       {
          lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
-         dataIIndex(lInd) = tmpI(ind);
-         dataJIndex(lInd) = tmpJ(ind);         
+         dataIIndex(lInd) = (-1 == dataIIndex(lInd)) ? tmpI(ind) : dataIIndex(lInd); // Only fill in dataIndex if there is no data
+         dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);         
       } 
     }
 
