@@ -101,7 +101,7 @@ void CAxisAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CA
 
   CArray<int,1>& axisDstIndex = axisDest_->index;
   int ni_glo = domainSrc_->ni_glo, nj_glo = domainSrc_->nj_glo;
-  if (jDir == dir_)
+  if (iDir == dir_)
   {
     int nbAxisIdx = axisDstIndex.numElements();
     for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
@@ -116,7 +116,7 @@ void CAxisAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CA
       }
     }
   }
-  else if (iDir == dir_)
+  else if (jDir == dir_)
   {
     int nbAxisIdx = axisDstIndex.numElements();
     for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)

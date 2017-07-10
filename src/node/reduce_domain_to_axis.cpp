@@ -61,13 +61,6 @@ namespace xios {
              << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
              << "Domain source " <<domainSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
-
-    if (this->direction.isEmpty())
-      ERROR("CReduceDomainToAxis::checkValid(CAxis* axisDst, CDomain* domainSrc)",
-             << "A direction to apply the operation must be defined. It should be: 'iDir' or 'jDir'"
-             << "Domain source " <<domainSrc->getId() << std::endl
-             << "Axis destination " << axisDst->getId());
-
     
     switch (direction)
     {
