@@ -525,6 +525,9 @@ namespace xios {
      // Check grid and calculate its distribution
      checkGridEnabledFields();    
 
+     // Distribute files between secondary servers according to the data size
+     distributeFiles();
+
      // Buffer for primary server for connection to client will be allocated by default (to min size)
      if (CServer::serverLevel != 1)
        setClientServerBuffer(client);
@@ -814,20 +817,85 @@ namespace xios {
          DEBUG(<<"Aucun fichier ne va être sorti dans le contexte nommé \""
                << getId() << "\" !");
 
-      // Assigning contextClient to each enabled file
-      if (hasClient)
-      {
-        for (int i = 0; i < enabledFiles.size(); ++i)
-        {
-          if (hasServer)
-          {
-            int srvId = i % clientPrimServer.size();
-            enabledFiles[i]->setContextClient(clientPrimServer[srvId]);
-          }
-          else
-            enabledFiles[i]->setContextClient(client);
-        }
-      }
+   }
+
+   void CContext::distributeFiles(void)
+   {
+     // If primary server
+     if (hasServer && hasClient)
+     {
+       // (1) Find all enabled files in write mode
+       for (int i = 0; i < this->enabledFiles.size(); ++i)
+       {
+         if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
+          enabledWriteModeFiles.push_back(enabledFiles[i]);
+       }
+
+       // (2) Estimate the data volume for each file
+       int size = this->enabledWriteModeFiles.size();
+       std::vector<std::pair<StdSize, CFile*> > dataSizeMap;
+       for (size_t i = 0; i < size; ++i)
+       {
+         CFile* file = this->enabledWriteModeFiles[i];
+         StdSize dataSize;
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         size_t numEnabledFields = enabledFields.size();
+         for (size_t j = 0; j < numEnabledFields; ++j)
+         {
+           const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
+           for (size_t c = 0; c < mapSize.size(); ++c)
+           {
+             std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
+             for (; it != itE; ++it)
+             {
+               dataSize += it->second;
+             }
+           }
+         }
+         CDuration outFreq = file->output_freq.getValue();
+         if (outFreq.timestep != 0.0)
+         {
+           outFreq = calendar->getTimeStep();
+         }
+         double outFreqSec = outFreq.second + 60.*(outFreq.minute + 60.*(outFreq.hour + 24.*(outFreq.day + outFreq.year*365.25) ) );
+         dataSize /= outFreqSec;
+         dataSizeMap.push_back(make_pair(dataSize,file));
+       }
+
+       // (3) Sort enabledWriteModeFiles
+       std::sort(dataSizeMap.begin(), dataSizeMap.end());
+       for (int i = 0; i < size; ++i)
+       {
+         enabledWriteModeFiles[i] = dataSizeMap[i].second;
+       }
+
+       // (4) Assign contextClient to each enabled file
+       int i,j;
+       for (i = 0, j=0; i < enabledFiles.size(); ++i)
+       {
+         if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
+         {
+           int n = j / clientPrimServer.size();
+           int mod = j % clientPrimServer.size();
+           int poolId;
+           if (n % 2 == 0)
+             poolId =mod;
+           else
+             poolId = clientPrimServer.size()-1-mod;
+            enabledWriteModeFiles[j]->setContextClient(clientPrimServer[poolId]);
+           ++j;
+         }
+         else
+         {
+           enabledFiles[i]->setContextClient(client);
+         }
+       }
+     }
+     else
+     {
+       for (int i = 0; i < this->enabledFiles.size(); ++i)
+         enabledFiles[i]->setContextClient(client);
+     }
    }
 
    void CContext::findEnabledReadModeFiles(void)

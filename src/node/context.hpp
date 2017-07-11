@@ -135,6 +135,9 @@ namespace xios {
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
          void setClientServerBuffer(CContextClient* contextClient);
 
+         // Estimate data size for each enabled file in write mode
+         void distributeFiles(void);
+
          // Send context close definition
          void sendCloseDefinition(void);
          // There are something to send on closing context defintion
@@ -222,6 +225,8 @@ namespace xios {
          std::vector<CFile*> enabledFiles;
          // List of all enabled files in read mode (files on which fields are read)
          std::vector<CFile*> enabledReadModeFiles;
+         // List of all enabled files in write mode
+         std::vector<CFile*> enabledWriteModeFiles;
 
          // List of all enabled fields whose instant data is accessible from the public API
          // but which are not part of a file
