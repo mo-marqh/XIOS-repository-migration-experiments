@@ -98,6 +98,8 @@ namespace xios
 
   void CSourceFilter::signalEndOfStream(CDate date)
   {
+    date = date + offset; // this is a temporary solution, it should be part of a proper temporal filter
+
     CDataPacketPtr packet(new CDataPacket);
     packet->date = date;
     packet->timestamp = date;
