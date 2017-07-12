@@ -135,7 +135,7 @@ namespace xios {
          std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
          void setClientServerBuffer(CContextClient* contextClient);
 
-         // Estimate data size for each enabled file in write mode
+         // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(void);
 
          // Send context close definition

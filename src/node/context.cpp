@@ -824,6 +824,8 @@ namespace xios {
      // If primary server
      if (hasServer && hasClient)
      {
+       int nbPools = clientPrimServer.size();
+
        // (1) Find all enabled files in write mode
        for (int i = 0; i < this->enabledFiles.size(); ++i)
        {
@@ -834,6 +836,7 @@ namespace xios {
        // (2) Estimate the data volume for each file
        int size = this->enabledWriteModeFiles.size();
        std::vector<std::pair<StdSize, CFile*> > dataSizeMap;
+       StdSize dataPerPool = 0;
        for (size_t i = 0; i < size; ++i)
        {
          CFile* file = this->enabledWriteModeFiles[i];
@@ -860,36 +863,40 @@ namespace xios {
          double outFreqSec = outFreq.second + 60.*(outFreq.minute + 60.*(outFreq.hour + 24.*(outFreq.day + outFreq.year*365.25) ) );
          dataSize /= outFreqSec;
          dataSizeMap.push_back(make_pair(dataSize,file));
+         dataPerPool += dataSize;
        }
-
-       // (3) Sort enabledWriteModeFiles
+       dataPerPool /= nbPools;
        std::sort(dataSizeMap.begin(), dataSizeMap.end());
-       for (int i = 0; i < size; ++i)
+
+       // (3) Assign contextClient to each enabled file
+       std::vector<StdSize> poolData(nbPools);
+       int lazyPool = 0;
+       for (int i = dataSizeMap.size()-1; i >= 0; --i)
        {
-         enabledWriteModeFiles[i] = dataSizeMap[i].second;
+         bool contextSet = false;
+         for (int j = 0; j < nbPools; ++j)
+         {
+           if (!contextSet)
+           {
+             if (dataSizeMap[i].first + poolData[j] < dataPerPool)
+             {
+               dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
+               poolData[j] += dataSizeMap[i].first;
+               contextSet = true;
+             }
+           }
+           if (poolData[j] < poolData[lazyPool])
+             lazyPool = j;
+         }
+         if (!contextSet)
+         {
+           dataSizeMap[i].second->setContextClient(clientPrimServer[lazyPool]);
+           poolData[lazyPool] += dataSizeMap[i].first;
+         }
        }
 
-       // (4) Assign contextClient to each enabled file
-       int i,j;
-       for (i = 0, j=0; i < enabledFiles.size(); ++i)
-       {
-         if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
-         {
-           int n = j / clientPrimServer.size();
-           int mod = j % clientPrimServer.size();
-           int poolId;
-           if (n % 2 == 0)
-             poolId =mod;
-           else
-             poolId = clientPrimServer.size()-1-mod;
-            enabledWriteModeFiles[j]->setContextClient(clientPrimServer[poolId]);
-           ++j;
-         }
-         else
-         {
-           enabledFiles[i]->setContextClient(client);
-         }
-       }
+       for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
+         enabledReadModeFiles[i]->setContextClient(client);
      }
      else
      {
