@@ -99,7 +99,7 @@ namespace xios
         }
         for (i=0; i<srvRanks.size(); i++)
         {
-          if (i > srvRanks.size()*(100-CXios::ratioServer2)/100)
+          if (i >= srvRanks.size()*(100.-CXios::ratioServer2)/100.)
           {
             sndServerGlobalRanks.push_back(srvRanks[i]);
             if (rank_ == srvRanks[i]) serverLevel=2;
