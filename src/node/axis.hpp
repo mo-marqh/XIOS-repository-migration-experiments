@@ -110,6 +110,7 @@ namespace xios {
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
          void checkEligibilityForCompressedOutput();
+         size_t getGlobalWrittenSize(void) ;
 
          void computeWrittenIndex();
          bool hasTransformation();

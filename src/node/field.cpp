@@ -795,6 +795,11 @@ namespace xios{
      return grid->getDataBufferSize(getId());
    }
 
+   size_t CField::getGlobalWrittenSize()
+   {
+     return grid->getGlobalWrittenSize();
+   }
+
    //----------------------------------------------------------------
 
    void CField::solveServerOperation(void)

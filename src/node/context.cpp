@@ -15,7 +15,7 @@
 #include "xios_spl.hpp"
 #include "timer.hpp"
 #include "memtrack.hpp"
-
+#include <limits>
 #include "server.hpp"
 
 namespace xios {
@@ -821,6 +821,8 @@ namespace xios {
 
    void CContext::distributeFiles(void)
    {
+     double eps=std::numeric_limits<double>::epsilon()*10 ;
+     
      // If primary server
      if (hasServer && hasClient)
      {
@@ -835,66 +837,48 @@ namespace xios {
 
        // (2) Estimate the data volume for each file
        int size = this->enabledWriteModeFiles.size();
-       std::vector<std::pair<StdSize, CFile*> > dataSizeMap;
-       StdSize dataPerPool = 0;
+       std::vector<std::pair<double, CFile*> > dataSizeMap;
+       double dataPerPool = 0;
+       int nfield=0 ;
        for (size_t i = 0; i < size; ++i)
        {
          CFile* file = this->enabledWriteModeFiles[i];
-         StdSize dataSize;
+         StdSize dataSize=0;
          std::vector<CField*> enabledFields = file->getEnabledFields();
          size_t numEnabledFields = enabledFields.size();
-         for (size_t j = 0; j < numEnabledFields; ++j)
-         {
-           const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
-           for (size_t c = 0; c < mapSize.size(); ++c)
-           {
-             std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
-             for (; it != itE; ++it)
-             {
-               dataSize += it->second;
-             }
-           }
-         }
-         CDuration outFreq = file->output_freq.getValue();
-         if (outFreq.timestep != 0.0)
-         {
-           outFreq = calendar->getTimeStep();
-         }
-         double outFreqSec = outFreq.second + 60.*(outFreq.minute + 60.*(outFreq.hour + 24.*(outFreq.day + outFreq.year*365.25) ) );
-         dataSize /= outFreqSec;
-         dataSizeMap.push_back(make_pair(dataSize,file));
-         dataPerPool += dataSize;
+         for (size_t j = 0; j < numEnabledFields; ++j) dataSize += enabledFields[j]->getGlobalWrittenSize() ;
+
+         double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
+         double dataSizeSec= dataSize/ outFreqSec;
+         nfield++ ;
+// add epsilon*nField to dataSizeSec in order to  preserve reproductive ordering when sorting
+         dataSizeMap.push_back(make_pair(dataSizeSec + dataSizeSec * eps * nfield , file));
+         dataPerPool += dataSizeSec;
        }
        dataPerPool /= nbPools;
        std::sort(dataSizeMap.begin(), dataSizeMap.end());
 
        // (3) Assign contextClient to each enabled file
-       std::vector<StdSize> poolData(nbPools);
-       int lazyPool = 0;
+
+       std::multimap<double,int> poolDataSize ;
+// multimap is not garanty to preserve stable sorting in c++98 but it seems it does for c++11
+
+       int j;
+       double dataSize ;
+       for (j = 0 ; j < nbPools ; ++j) poolDataSize.insert(std::pair<double,int>(0.,j)) ;  
+              
        for (int i = dataSizeMap.size()-1; i >= 0; --i)
        {
-         bool contextSet = false;
-         for (int j = 0; j < nbPools; ++j)
-         {
-           if (!contextSet)
-           {
-             if (dataSizeMap[i].first + poolData[j] < dataPerPool)
-             {
-               dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
-               poolData[j] += dataSizeMap[i].first;
-               contextSet = true;
-             }
-           }
-           if (poolData[j] < poolData[lazyPool])
-             lazyPool = j;
-         }
-         if (!contextSet)
-         {
-           dataSizeMap[i].second->setContextClient(clientPrimServer[lazyPool]);
-           poolData[lazyPool] += dataSizeMap[i].first;
-         }
+         dataSize=(*poolDataSize.begin()).first ;
+         j=(*poolDataSize.begin()).second ;
+         dataSizeMap[i].second->setContextClient(clientPrimServer[j]);
+         dataSize+=dataSizeMap[i].first;
+         poolDataSize.erase(poolDataSize.begin()) ;
+         poolDataSize.insert(std::pair<double,int>(dataSize,j)) ; 
        }
 
+       for (std::multimap<double,int>:: iterator it=poolDataSize.begin() ; it!=poolDataSize.end(); ++it) info(30)<<"Load Balancing for servers (perfect=1) : "<<it->second<<" :  ratio "<<it->first*1./dataPerPool<<endl ;
+ 
        for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
          enabledReadModeFiles[i]->setContextClient(client);
      }

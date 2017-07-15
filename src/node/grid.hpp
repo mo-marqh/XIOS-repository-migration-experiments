@@ -198,7 +198,7 @@ namespace xios {
          void addTransGridSource(CGrid* gridSrc);
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
-
+         size_t getGlobalWrittenSize(void) ;
       public:
 
          /// Propriétés privées ///

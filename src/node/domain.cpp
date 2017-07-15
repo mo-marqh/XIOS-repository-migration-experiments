@@ -875,6 +875,10 @@ namespace xios {
     if (zoom_nj.isEmpty()) zoom_nj.setValue(nj);
    }
 
+   size_t CDomain::getGlobalWrittenSize(void)
+   {
+      return global_zoom_ni*global_zoom_nj ;
+   }
    //----------------------------------------------------------------
 
    // Check validity of local domain on using the combination of 3 parameters: ibegin, ni and i_index

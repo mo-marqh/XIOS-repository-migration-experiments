@@ -169,11 +169,24 @@ namespace xios {
 
          dataSizes[p].insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
        }
+       
      }
 
      return dataSizes;
    }
 
+   size_t CGrid::getGlobalWrittenSize(void)
+   {
+	 std::vector<CDomain*> domainP = this->getDomains();
+     std::vector<CAxis*> axisP = this->getAxis();
+     
+     size_t globalGridSize=1 ;
+     for (std::vector<CDomain*>::iterator it=domainP.begin(); it!=domainP.end();++it) globalGridSize*=(*it)->getGlobalWrittenSize() ;
+     for (std::vector<CAxis*>::iterator it=axisP.begin(); it!=axisP.end();++it) globalGridSize*=(*it)->getGlobalWrittenSize() ;
+     return globalGridSize ;
+   }
+   
+   
    void CGrid::checkAttributesAfterTransformation()
    {
       setAxisList();

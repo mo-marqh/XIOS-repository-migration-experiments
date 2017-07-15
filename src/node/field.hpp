@@ -126,6 +126,9 @@ namespace xios {
          void sendGridOfEnabledFields();
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+         size_t getGlobalWrittenSize(void) ;
+         
+         
          boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);

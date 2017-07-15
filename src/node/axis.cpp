@@ -310,6 +310,12 @@ namespace xios {
      if (zoom_begin.isEmpty()) zoom_begin.setValue(begin);
    }
 
+    size_t CAxis::getGlobalWrittenSize(void)
+    {
+      if (zoomByIndex()) return  zoom_index.numElements();
+      else return global_zoom_n ;
+    }
+
    /*!
      Check validity of mask info and fill in values if any.
    */

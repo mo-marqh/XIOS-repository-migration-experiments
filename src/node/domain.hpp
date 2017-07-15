@@ -152,7 +152,7 @@ namespace xios {
          void recvLat(std::map<int, CBufferIn*>& rankBuffers);
          void recvArea(std::map<int, CBufferIn*>& rankBuffers);         
          void recvDataIndex(std::map<int, CBufferIn*>& rankBuffers);
-
+         size_t getGlobalWrittenSize() ;
          /// Destructeur ///
          virtual ~CDomain(void);
 
