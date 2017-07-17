@@ -136,6 +136,16 @@ protected:
   std::vector<StdString> idAuxInputs_;
   AlgoTransType type_;
 
+  std::set<StdSize> indexElementSrc_;
+
+  std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc_;
+
+  std::vector<int> procContainSrcElementIdx_;  // List of processes containing source index of transformed elements
+  std::set<int> procOfNonTransformedElements_; // Processes contain the source index of non-transformed elements
+
+
+  bool computedProcSrcNonTransformedElement_; // Flag to indicate whether we computed proc containing non transformed elements
+
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
 };

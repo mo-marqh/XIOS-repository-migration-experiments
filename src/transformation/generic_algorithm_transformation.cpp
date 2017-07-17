@@ -11,12 +11,14 @@
 #include "context_client.hpp"
 #include "client_client_dht_template.hpp"
 #include "utils.hpp"
+#include "timer.hpp"
 
 namespace xios {
 
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
  : transformationMapping_(), transformationWeight_(), transformationPosition_(),
-   idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA)
+   idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA), indexElementSrc_(),
+   computedProcSrcNonTransformedElement_(false)
 {
 }
 
@@ -129,50 +131,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   int nbClient = client->clientSize;
 
   typedef boost::unordered_map<int, std::vector<std::pair<int,double> > > SrcToDstMap;
-
-  size_t indexSrcSize = 0;
-  for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
-  {
-    TransformationIndexMap::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
-                                           iteTransMap = transformationMapping_[idxTrans].end();
-    TransformationWeightMap::const_iterator itbTransWeight = transformationWeight_[idxTrans].begin(), itTransWeight;
-
-    itTransWeight = itbTransWeight;
-    for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
-    {
-       indexSrcSize += (itTransMap->second).size();
-    }
-  }
-
-  bool isTransPosEmpty = transformationPosition_.empty();
-  CArray<size_t,1> transPos;
-  if (!isTransPosEmpty) transPos.resize(transformationMapping_.size());
-  CArray<size_t,1> indexSrc(indexSrcSize);
-  indexSrcSize = 0;
-  for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
-  {
-    TransformationIndexMap::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
-                                           iteTransMap = transformationMapping_[idxTrans].end();
-    TransformationWeightMap::const_iterator itbTransWeight = transformationWeight_[idxTrans].begin(), itTransWeight;
-
-    // Build mapping between global source element index and global destination element index.
-    itTransWeight = itbTransWeight;
-    for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
-    {
-      const std::vector<int>& srcIndex = itTransMap->second;
-      for (int idx = 0; idx < srcIndex.size(); ++idx)
-      {
-        indexSrc(indexSrcSize) = srcIndex[idx];
-        ++indexSrcSize;
-      }
-    }
-
-    if (!isTransPosEmpty)
-    {
-      TransformationPositionMap::const_iterator itPosMap = transformationPosition_[idxTrans].begin();
-      transPos(idxTrans) = itPosMap->second[0];
-    }
-  }
+  int idx;
 
   // compute position of elements on grids
   computePositionElements(gridDst, gridSrc);
@@ -183,56 +142,159 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
-  CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
-
-  // Find out global index source of transformed element on corresponding process.
-  std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc(axisDomainDstOrder.numElements());
-  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;  
-  for (int idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
+  CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;  
+  
+  bool isTransPosEmpty = transformationPosition_.empty();
+  CArray<size_t,1> transPos;
+  if (!isTransPosEmpty) transPos.resize(transformationMapping_.size());
+  std::set<size_t> allIndexSrc;
+  
+  for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
-    if (idx == elementPositionInGrid)
-      computeExchangeGlobalIndex(indexSrc, axisDomainSrcOrder(idx), globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
-    if (2 == axisDomainDstOrder(idx)) // It's domain
-    {
-      if (idx != elementPositionInGrid)
-        computeExchangeDomainIndex(domainListDestP[elementPositionInGridDst2DomainPosition_[idx]],
-                                   domainListSrcP[elementPositionInGridSrc2DomainPosition_[idx]],
-                                   transPos,
-                                   globalElementIndexOnProc[idx]);      
+    TransformationIndexMap::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
+                                           iteTransMap = transformationMapping_[idxTrans].end();
+    TransformationWeightMap::const_iterator itbTransWeight = transformationWeight_[idxTrans].begin(), itTransWeight;
 
-    }
-    else if (1 == axisDomainDstOrder(idx))//it's an axis
+    // Build mapping between global source element index and global destination element index.
+    itTransWeight = itbTransWeight;
+    for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
     {
-      if (idx != elementPositionInGrid)
-        computeExchangeAxisIndex(axisListDestP[elementPositionInGridDst2AxisPosition_[idx]],
-                                 axisListSrcP[elementPositionInGridSrc2AxisPosition_[idx]],
-                                 transPos,
-                                 globalElementIndexOnProc[idx]);
+      const std::vector<int>& srcIndex = itTransMap->second;
+      for (idx = 0; idx < srcIndex.size(); ++idx)
+        allIndexSrc.insert(srcIndex[idx]);
     }
-    else //it's a scalar
-    {
-      if (idx != elementPositionInGrid)
-        computeExchangeScalarIndex(scalarListDestP[elementPositionInGridDst2ScalarPosition_[idx]],
-                                   scalarListSrcP[elementPositionInGridSrc2ScalarPosition_[idx]],
-                                   transPos,
-                                   globalElementIndexOnProc[idx]);
 
+    if (!isTransPosEmpty)
+    {
+      TransformationPositionMap::const_iterator itPosMap = transformationPosition_[idxTrans].begin();
+      transPos(idxTrans) = itPosMap->second[0];
     }
   }
 
-  if (!isTransPosEmpty)
+  size_t indexSrcSize = 0;
+  CArray<size_t,1> indexSrc(allIndexSrc.size());
+  for (std::set<size_t>::iterator it = allIndexSrc.begin(); it != allIndexSrc.end(); ++it, ++indexSrcSize)
+    indexSrc(indexSrcSize) = *it;
+
+  // Flag to indicate whether we will recompute distribution of source global index  on processes
+  bool computeGlobalIndexOnProc = false; 
+  if (indexElementSrc_.size() != allIndexSrc.size())
+    computeGlobalIndexOnProc = true;  
+  else
   {
-    for (int idx = 0; idx < globalElementIndexOnProc.size(); ++idx)
-    {
-      if (idx != elementPositionInGrid)
+    for (std::set<size_t>::iterator it = allIndexSrc.begin(); it != allIndexSrc.end(); ++it)
+      if (0 == indexElementSrc_.count(*it))
       {
-        boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc[idx].begin(), it,
-                                                                 ite = globalElementIndexOnProc[idx].end();
-        for (it = itb; it != ite; ++it) it->second.resize(1);
+        computeGlobalIndexOnProc = true;
+        break;        
+      }
+  }
+
+  if (computeGlobalIndexOnProc)
+    indexElementSrc_.swap(allIndexSrc);
+      
+  int sendValue = (computeGlobalIndexOnProc) ? 1 : 0;
+  int recvValue = 0;
+  MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
+  computeGlobalIndexOnProc = (1 == recvValue);
+
+  if (computeGlobalIndexOnProc)
+  {    
+    // Find out global index source of transformed element on corresponding process.    
+    if (globalElementIndexOnProc_.empty())
+      globalElementIndexOnProc_.resize(axisDomainDstOrder.numElements());
+    CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;  
+    for (idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
+    {
+      if (idx == elementPositionInGrid)
+        computeExchangeGlobalIndex(indexSrc, axisDomainSrcOrder(idx), globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
+      if (!computedProcSrcNonTransformedElement_)
+      {
+        if (2 == axisDomainDstOrder(idx)) // It's domain
+        {
+          if (idx != elementPositionInGrid)
+            computeExchangeDomainIndex(domainListDestP[elementPositionInGridDst2DomainPosition_[idx]],
+                                       domainListSrcP[elementPositionInGridSrc2DomainPosition_[idx]],
+                                       transPos,
+                                       globalElementIndexOnProc_[idx]);      
+
+        }
+        else if (1 == axisDomainDstOrder(idx))//it's an axis
+        {
+          if (idx != elementPositionInGrid)
+            computeExchangeAxisIndex(axisListDestP[elementPositionInGridDst2AxisPosition_[idx]],
+                                     axisListSrcP[elementPositionInGridSrc2AxisPosition_[idx]],
+                                     transPos,
+                                     globalElementIndexOnProc_[idx]);
+        }
+        else //it's a scalar
+        {
+          if (idx != elementPositionInGrid)
+            computeExchangeScalarIndex(scalarListDestP[elementPositionInGridDst2ScalarPosition_[idx]],
+                                       scalarListSrcP[elementPositionInGridSrc2ScalarPosition_[idx]],
+                                       transPos,
+                                       globalElementIndexOnProc_[idx]);
+
+        }
       }
     }
-  }
 
+    if (!isTransPosEmpty && !computedProcSrcNonTransformedElement_)
+    {
+      for (idx = 0; idx < globalElementIndexOnProc_.size(); ++idx)
+      {
+        if (idx != elementPositionInGrid)
+        {
+          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+                                                                   ite = globalElementIndexOnProc_[idx].end();
+          for (it = itb; it != ite; ++it) it->second.resize(1);
+        }
+      }
+    }
+      
+    if (!computedProcSrcNonTransformedElement_)
+    {
+      for (idx = 0; idx < globalElementIndexOnProc_.size(); ++idx)
+      {
+        if (idx != elementPositionInGrid)
+        {
+          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+                                                                   ite = globalElementIndexOnProc_[idx].end();
+          for (it = itb; it != ite; ++it) procOfNonTransformedElements_.insert(it->first);
+          if (procOfNonTransformedElements_.size() == nbClient)
+            break;
+        }
+      }
+    }
+   
+    // Processes contain the source index of transformed element
+    std::set<int> procOfTransformedElement; 
+    CClientClientDHTInt::Index2VectorInfoTypeMap::iterator itIdxb = globalIndexOfTransformedElementOnProc.begin(),
+                                                           itIdxe = globalIndexOfTransformedElementOnProc.end(), itIdx;
+    for (itIdx = itIdxb; itIdx != itIdxe; ++itIdx)
+    {
+      std::vector<int>& tmp = itIdx->second;
+      for (int i = 0; i < tmp.size(); ++i)
+        procOfTransformedElement.insert(tmp[i]);
+      if (tmp.size() == nbClient)
+        break;
+    }                                                           
+    
+    std::set<int>& commonProc = (procOfTransformedElement.size() < procOfNonTransformedElements_.size()) ? procOfTransformedElement 
+                              : (!procOfNonTransformedElements_.empty() ? procOfNonTransformedElements_ : procOfTransformedElement);
+    
+    std::vector<int> procContainSrcElementIdx(commonProc.size());
+    int count = 0;
+    for (std::set<int>::iterator it = commonProc.begin(); it != commonProc.end(); ++it)
+      procContainSrcElementIdx[count++] = *it;
+
+    procContainSrcElementIdx_.swap(procContainSrcElementIdx);    
+
+        // For the first time, surely we calculate proc containing non transformed elements
+    if (!computedProcSrcNonTransformedElement_)
+      computedProcSrcNonTransformedElement_ = true;
+  }
+  
   for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
     TransformationIndexMap::const_iterator itbTransMap = transformationMapping_[idxTrans].begin(), itTransMap,
@@ -242,72 +304,47 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     src2DstMap.rehash(std::ceil(transformationMapping_[idxTrans].size()/src2DstMap.max_load_factor()));
 
     // Build mapping between global source element index and global destination element index.
-    boost::unordered_map<int,std::vector<size_t> >().swap(globalElementIndexOnProc[elementPositionInGrid]);
-    boost::unordered_map<int,int> tmpCounter;
+    boost::unordered_map<int,std::vector<size_t> >().swap(globalElementIndexOnProc_[elementPositionInGrid]);
+    std::set<int> tmpCounter;
     itTransWeight = itbTransWeight;
     for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
     {
       const std::vector<int>& srcIndex = itTransMap->second;
       const std::vector<double>& weight = itTransWeight->second;
-      for (int idx = 0; idx < srcIndex.size(); ++idx)
+      for (idx = 0; idx < srcIndex.size(); ++idx)
       {
         src2DstMap[srcIndex[idx]].push_back(make_pair(itTransMap->first, weight[idx]));
-        if (1 == globalIndexOfTransformedElementOnProc.count(srcIndex[idx]) && (0 == tmpCounter.count(srcIndex[idx])))
-        {
-          tmpCounter[srcIndex[idx]] = 1;
-          std::vector<int>& srcProc = globalIndexOfTransformedElementOnProc[srcIndex[idx]];
-          for (int j = 0; j < srcProc.size(); ++j)
-            globalElementIndexOnProc[elementPositionInGrid][srcProc[j]].push_back(srcIndex[idx]);
+        if (0 == tmpCounter.count(srcIndex[idx]))
+        {          
+          tmpCounter.insert(srcIndex[idx]);
+          for (int j = 0; j < procContainSrcElementIdx_.size(); ++j)
+            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);
         }
       }
     }
-
+  
     if (!isTransPosEmpty)
     {
-      for (int idx = 0; idx < globalElementIndexOnProc.size(); ++idx)
+      for (idx = 0; idx < globalElementIndexOnProc_.size(); ++idx)
       {
         if (idx != elementPositionInGrid)
         {
-          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc[idx].begin(), it,
-                                                                   ite = globalElementIndexOnProc[idx].end();
+          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+                                                                   ite = globalElementIndexOnProc_[idx].end();
           for (it = itb; it != ite; ++it) it->second[0] = transPos(idxTrans);
         }
       }
     }
 
-    std::vector<std::vector<bool> > elementOnProc(axisDomainDstOrder.numElements(), std::vector<bool>(nbClient, false));
-    boost::unordered_map<int,std::vector<size_t> >::const_iterator it, itb, ite;
-    for (int idx = 0; idx < globalElementIndexOnProc.size(); ++idx)
-    {
-      itb = globalElementIndexOnProc[idx].begin();
-      ite = globalElementIndexOnProc[idx].end();
-      for (it = itb; it != ite; ++it) elementOnProc[idx][it->first] = true;
-    }
-
-    // Determine procs which contain global source index
-    std::vector<bool> intersectedProc(nbClient, true);
-    for (int idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
-    {
-      std::transform(elementOnProc[idx].begin(), elementOnProc[idx].end(),
-                     intersectedProc.begin(), intersectedProc.begin(),
-                     std::logical_and<bool>());
-    }
-
-    std::vector<int> srcRank;
-    for (int idx = 0; idx < nbClient; ++idx)
-    {
-      if (intersectedProc[idx]) srcRank.push_back(idx);
-    }
-
     // Ok, now compute global index of grid source and ones of grid destination
     computeGlobalGridIndexMapping(elementPositionInGrid,
-                                  srcRank,
+                                  procContainSrcElementIdx_, //srcRank,
                                   src2DstMap,
                                   gridSrc,
                                   gridDst,
-                                  globalElementIndexOnProc,
+                                  globalElementIndexOnProc_,
                                   globaIndexWeightFromSrcToDst);
-  }
+  }  
  }
 
 /*!
