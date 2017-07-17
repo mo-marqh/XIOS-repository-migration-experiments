@@ -196,7 +196,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   int sendValue = (computeGlobalIndexOnProc) ? 1 : 0;
   int recvValue = 0;
   MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
-  computeGlobalIndexOnProc = (1 == recvValue);
+  computeGlobalIndexOnProc = (0 < recvValue);
 
   if (computeGlobalIndexOnProc)
   {    
