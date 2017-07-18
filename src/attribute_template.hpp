@@ -56,8 +56,7 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             T getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
-
-            bool isEqual_(const CAttributeTemplate& attr );
+            
             bool isEqual(const CAttribute& attr );
 
             /// Destructeur ///
@@ -94,6 +93,7 @@ namespace xios
             /// Constructeurs ///
 //            CAttributeTemplate(void); // Not implemented.
          private :
+          bool isEqual_(const CAttributeTemplate& attr);
           StdString _toString(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;

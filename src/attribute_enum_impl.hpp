@@ -113,13 +113,19 @@ namespace xios
   template <class T>
   bool CAttributeEnum<T>::isEqual(const CAttribute& attr)
   {
-    return (this->isEqual(dynamic_cast<const CAttributeEnum<T>& >(attr)));
+    const CAttributeEnum<T>& tmp = dynamic_cast<const CAttributeEnum<T>& >(attr);
+    return this->isEqual_(tmp);
   }
 
   template <class T>
-  bool CAttributeEnum<T>::isEqual(const CAttributeEnum& attr)
+  bool CAttributeEnum<T>::isEqual_(const CAttributeEnum& attr)
   {
-    return ((dynamic_cast<const CEnum<T>& >(*this)) == (dynamic_cast<const CEnum<T>& >(attr)));
+    if ((!this->hasInheritedValue() && !attr.hasInheritedValue()))
+        return true;
+    if (this->hasInheritedValue() && attr.hasInheritedValue())
+        return (this->getInheritedValue() == attr.getInheritedValue());
+    else 
+      return false;    
   }
 
   //---------------------------------------------------------------

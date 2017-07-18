@@ -48,9 +48,8 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             T_enum getInheritedValue(void)  const;
             string getInheritedStringValue(void) const;
-            bool hasInheritedValue(void) const;          
-          
-            bool isEqual(const CAttributeEnum& attr );
+            bool hasInheritedValue(void) const;                    
+            
             bool isEqual(const CAttribute& attr );
 
             /// Destructeur ///
@@ -73,9 +72,10 @@ namespace xios
             virtual void generateFortranInterfaceDeclaration(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetDeclaration_(ostream& oss,const string& className) ;
             virtual void generateFortranInterfaceGetBody_(ostream& oss,const string& className) ;
-            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
+            virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;      
 
          private :
+          bool isEqual_(const CAttributeEnum& attr );
           StdString _toString(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
