@@ -147,7 +147,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   bool isTransPosEmpty = transformationPosition_.empty();
   CArray<size_t,1> transPos;
   if (!isTransPosEmpty) transPos.resize(transformationMapping_.size());
-  std::set<size_t> allIndexSrc;
+  std::set<size_t> allIndexSrc; // All index of source, which can be scattered among processes, need for doing transformation 
   
   for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
   {
@@ -198,7 +198,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
   computeGlobalIndexOnProc = (0 < recvValue);
 
-  if (computeGlobalIndexOnProc)
+  if (computeGlobalIndexOnProc || !computedProcSrcNonTransformedElement_)
   {    
     // Find out global index source of transformed element on corresponding process.    
     if (globalElementIndexOnProc_.empty())
