@@ -2672,7 +2672,8 @@ namespace xios {
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
         lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
-        mask_1d(lInd) = tmp(ind);
+        if (!mask_1d(lInd))
+         mask_1d(lInd) = tmp(ind);
       }
     }    
   }
