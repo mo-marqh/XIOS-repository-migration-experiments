@@ -1801,9 +1801,6 @@ namespace xios
           // write child variables as attributes
 
 
-           vector<CVariable*> listVars = field->getAllVariables() ;
-           for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
-
            bool alreadyAddCellMethod = false;
            StdString cellMethodsPrefix(""), cellMethodsSuffix("");
            if (!field->cell_methods.isEmpty())
@@ -1895,6 +1892,10 @@ namespace xios
               SuperClassWriter::addAttribute("coordinates", coordstr, &fieldid);
 
            }
+
+           vector<CVariable*> listVars = field->getAllVariables() ;
+           for (vector<CVariable*>::iterator it = listVars.begin() ;it != listVars.end(); it++) writeAttribute_(*it, fieldid) ;
+
          }
          catch (CNetCdfException& e)
          {
