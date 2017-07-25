@@ -209,7 +209,7 @@ namespace xios
           srvGlobalRanks = new unsigned long[size] ;
           MPI_Allgather(&globalRank, 1, MPI_LONG, srvGlobalRanks, 1, MPI_LONG, localComm) ;
 
-          for (int i=size*CXios::ratioServer2/100; i<size; i++)
+          for (int i=size*(100.-CXios::ratioServer2)/100.; i<size; i++)
             sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
 
           if ( rank_ < (size - sndServerGlobalRanks.size()) )
