@@ -78,37 +78,59 @@ namespace xios
     MPI_Status status;
     map<int,CServerBuffer*>::iterator it;
 
-    for(rank=0;rank<commSize;rank++)
+    traceOff();
+    MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm,&flag,&status);
+    traceOn();
+
+    if (flag==true)
     {
-      if (pendingRequest.find(rank)==pendingRequest.end())
+      rank=status.MPI_SOURCE ;
+
+      if (pendingRequest.find(rank)==pendingRequest.end()) listenPendingRequest(status) ;
+      else
       {
-        traceOff();
-        MPI_Iprobe(rank,20,interComm,&flag,&status);
-        traceOn();
-        if (flag==true)
+        for(rank=0;rank<commSize;rank++)
         {
-          it=buffers.find(rank);
-          if (it==buffers.end()) // Receive the buffer size and allocate the buffer
+          if (pendingRequest.find(rank)==pendingRequest.end())
           {
-            StdSize buffSize = 0;
-            MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
-            mapBufferSize_.insert(std::make_pair(rank, buffSize));
-            it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first;
-          }
-          else
-          {
-            MPI_Get_count(&status,MPI_CHAR,&count);
-            if (it->second->isBufferFree(count))
-            {
-              addr=(char*)it->second->getBuffer(count);
-              MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
-              bufferRequest[rank]=addr;
-            }
+
+            traceOff();
+            MPI_Iprobe(rank, 20,interComm,&flag,&status);
+            traceOn();
+            if (flag==true) listenPendingRequest(status) ;
           }
         }
       }
     }
   }
+
+  void CContextServer::listenPendingRequest(MPI_Status& status)
+  {
+    int count;
+    char * addr;
+    map<int,CServerBuffer*>::iterator it;
+    int rank=status.MPI_SOURCE ;
+
+    it=buffers.find(rank);
+    if (it==buffers.end()) // Receive the buffer size and allocate the buffer
+    {
+       StdSize buffSize = 0;
+       MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
+       mapBufferSize_.insert(std::make_pair(rank, buffSize));
+       it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first;
+    }
+    else
+    {
+      MPI_Get_count(&status,MPI_CHAR,&count);
+      if (it->second->isBufferFree(count))
+      {
+         addr=(char*)it->second->getBuffer(count);
+         MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
+         bufferRequest[rank]=addr;
+       }
+    }
+  }
+
 
   void CContextServer::checkPendingRequest(void)
   {
@@ -150,6 +172,7 @@ namespace xios
     size_t timeLine;
     map<size_t,CEventServer*>::iterator it;
 
+    CTimer::get("Process request").resume();
     while(count>0)
     {
       char* startBuffer=(char*)buffer.ptr();
@@ -163,6 +186,7 @@ namespace xios
       buffer.advance(size);
       count=buffer.remain();
     }
+    CTimer::get("Process request").suspend();
   }
 
   void CContextServer::processEvents(void)
