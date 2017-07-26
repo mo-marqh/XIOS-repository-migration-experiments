@@ -312,12 +312,13 @@ namespace xios {
      for (it = dataBufferSize.begin(); it != ite; ++it)
        if (it->second > bufferSize[it->first]) bufferSize[it->first] = it->second;
 
-     // Apply the buffer size factor and check that we are above the minimum buffer size
+     // Apply the buffer size factor, check that we are above the minimum buffer size and below the maximum size
      ite = bufferSize.end();
      for (it = bufferSize.begin(); it != ite; ++it)
      {
        it->second *= CXios::bufferSizeFactor;
        if (it->second < minBufferSize) it->second = minBufferSize;
+       if (it->second > CXios::maxBufferSize) it->second = CXios::maxBufferSize;
      }
 
      // Leaders will have to send some control events so ensure there is some room for those in the buffers

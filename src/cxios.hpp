@@ -46,6 +46,7 @@ namespace xios
      static double bufferSizeFactor; //!< Factor used to tune the buffer size
      static const double defaultBufferSizeFactor; //!< Default factor value
      static StdSize minBufferSize; //!< Minimum buffer size
+     static StdSize maxBufferSize; //!< Maximum buffer size
      static bool isOptPerformance; //!< Check if buffer size is for performance (as large as possible)
      static CRegistry* globalRegistry ; //!< global registry which is wrote by the root process of the servers
      static double recvFieldTimeout; //!< Time to wait for data before issuing an error when receiving a field

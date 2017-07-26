@@ -16,22 +16,25 @@ namespace xios
       CClientBuffer(MPI_Comm intercomm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize, StdSize maxBufferedEvents);
       ~CClientBuffer();
 
-      bool isBufferFree(int size);
-      CBufferOut* getBuffer(int size);
+      bool isBufferFree(StdSize size);
+      CBufferOut* getBuffer(StdSize size);
       bool checkBuffer(void);
       bool hasPendingRequest(void);
-      int remain(void);
+      StdSize remain(void);
 
     private:
       char* buffer[2];
 
       int current;
-      int count;
-      int bufferedEvents;
-      int maxEventSize;
-      const int maxBufferedEvents;
-      const int bufferSize;
-      const int estimatedMaxEventSize;
+
+      StdSize count;
+      StdSize bufferedEvents;
+      StdSize maxEventSize;
+      const StdSize maxBufferedEvents;
+      const StdSize bufferSize;
+      const StdSize estimatedMaxEventSize;
+
+
       const int serverRank;
       bool pending;
 
