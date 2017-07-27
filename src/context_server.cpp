@@ -85,9 +85,10 @@ namespace xios
     if (flag==true)
     {
       rank=status.MPI_SOURCE ;
-
-      if (pendingRequest.find(rank)==pendingRequest.end()) listenPendingRequest(status) ;
-      else
+      bool okLoop;
+      if (pendingRequest.find(rank)==pendingRequest.end())
+        okLoop = !listenPendingRequest(status) ;
+      if (okLoop)
       {
         for(rank=0;rank<commSize;rank++)
         {
@@ -104,7 +105,7 @@ namespace xios
     }
   }
 
-  void CContextServer::listenPendingRequest(MPI_Status& status)
+  bool CContextServer::listenPendingRequest(MPI_Status& status)
   {
     int count;
     char * addr;
@@ -118,6 +119,7 @@ namespace xios
        MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
        it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first;
+       return true;
     }
     else
     {
@@ -127,7 +129,10 @@ namespace xios
          addr=(char*)it->second->getBuffer(count);
          MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
          bufferRequest[rank]=addr;
+         return true;
        }
+      else
+        return false;
     }
   }
 

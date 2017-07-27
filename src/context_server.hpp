@@ -16,7 +16,7 @@ namespace xios
     CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     bool eventLoop(bool enableEventsProcessing = true);
     void listen(void) ;
-    void listenPendingRequest(MPI_Status& status) ;
+    bool listenPendingRequest(MPI_Status& status) ;
     void checkPendingRequest(void) ;
     void processRequest(int rank, char* buff,int count) ;
     void processEvents(void) ;
