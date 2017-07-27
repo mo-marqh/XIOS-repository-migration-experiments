@@ -12,7 +12,7 @@
          { /* Ne rien faire de plus */ }                          \
          type operator=(const type & value)                       \
          { return (CAttributeTemplate<type>::operator=(value)); } \
-         virtual bool doSend() const { return helper(## __VA_ARGS__); }   \
+         virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
          virtual ~name##_attr(void)                               \
          { /* Ne rien faire de plus */ }                          \
@@ -30,7 +30,7 @@
          { return (CAttributeTemplate<type>::operator=(value)); } \
          virtual bool isPublic() const                            \
          { return false; }                                        \
-         virtual bool doSend() const { return helper(## __VA_ARGS__); }   \
+         virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
          virtual ~name##_attr(void)                               \
          { /* Ne rien faire de plus */ }                          \
@@ -42,7 +42,7 @@
       public :                                                    \
          using CAttributeArray<T_num, T_rank>::operator = ;       \
          name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
-         virtual bool doSend() const { return helper(## __VA_ARGS__); }   \
+         virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
          virtual ~name##_attr(void) {}                            \
    } name;
@@ -55,7 +55,7 @@
          name##_attr(void) : CAttributeArray<T_num, T_rank> (#name, *CAttributeMap::Current) {} \
          virtual bool isPublic() const                            \
          { return false; }                                        \
-         virtual bool doSend() const { return helper(## __VA_ARGS__); }   \
+         virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
          virtual ~name##_attr(void) {}                            \
    } name;
@@ -65,7 +65,7 @@
    {                                                              \
       public :                                                    \
          name##_attr(void) : CAttributeEnum<Enum_##name>(#name, *CAttributeMap::Current) { } \
-         virtual bool doSend() const { return helper(## __VA_ARGS__); }   \
+         virtual bool doSend() const { return helper(__VA_ARGS__); }   \
          bool helper(bool returnTrue=true) const { return returnTrue; }   \
          virtual ~name##_attr(void) {}                            \
    } name;
