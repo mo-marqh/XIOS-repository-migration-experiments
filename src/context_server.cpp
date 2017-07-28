@@ -77,6 +77,7 @@ namespace xios
     char * addr;
     MPI_Status status;
     map<int,CServerBuffer*>::iterator it;
+    bool okLoop;
 
     traceOff();
     MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm,&flag,&status);
@@ -85,7 +86,7 @@ namespace xios
     if (flag==true)
     {
       rank=status.MPI_SOURCE ;
-      bool okLoop;
+      okLoop = true;
       if (pendingRequest.find(rank)==pendingRequest.end())
         okLoop = !listenPendingRequest(status) ;
       if (okLoop)
