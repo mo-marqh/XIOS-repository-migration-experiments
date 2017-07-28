@@ -148,10 +148,10 @@ namespace xios
         if (CXios::usingServer)
         {
           MPI_Status status ;
-          MPI_Comm_rank(intraComm,&rank) ;
+          MPI_Comm_rank(intraComm,&rank_) ;
 
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
-          if (rank==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
+          if (rank_==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
 
         }
