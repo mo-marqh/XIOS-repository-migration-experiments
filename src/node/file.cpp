@@ -24,7 +24,7 @@ namespace xios {
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , allDomainEmpty(false), isOpen(false)
+      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
    {
      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
      setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -33,7 +33,7 @@ namespace xios {
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , allDomainEmpty(false), isOpen(false)
+      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
     {
       setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
       setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -206,7 +206,7 @@ namespace xios {
     }
 
    //! Initialize a file in order to write into it
-   void CFile::initFile(void)
+   void CFile::initWrite(void)
    {
       CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->calendar->getCurrentDate();
@@ -227,9 +227,7 @@ namespace xios {
             lastSplit = savedSplitStart;
         }
       }
-      isOpen = false;
-
-      allDomainEmpty = true;
+      isOpen = false;      
 
 //      if (!record_offset.isEmpty() && record_offset < 0)
 //        ERROR("void CFile::initFile(void)",
@@ -242,16 +240,13 @@ namespace xios {
       std::vector<CField*>::iterator it, end = this->enabledFields.end();
       for (it = this->enabledFields.begin(); it != end; it++)
       {
-         CField* field = *it;
-         allDomainEmpty &= !field->grid->doGridHaveDataToWrite();
+         CField* field = *it;         
          std::vector<CAxis*> vecAxis = field->grid->getAxis();
          for (size_t i = 0; i < vecAxis.size(); ++i)
            setAxis.insert(vecAxis[i]->getAxisOutputName());
-//            setAxis.insert(vecAxis[i]);
          std::vector<CDomain*> vecDomains = field->grid->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
            setDomains.insert(vecDomains[i]->getDomainOutputName());
-//            setDomains.insert(vecDomains[i]);
 
          field->resetNStep(recordOffset);
       }
@@ -259,12 +254,41 @@ namespace xios {
       nbDomains = setDomains.size();
 
       // create sub communicator for file
-      int color = allDomainEmpty ? 0 : 1;
-      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
-      if (allDomainEmpty) MPI_Comm_free(&fileComm);
+      createSubComFile();
 
       // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
+    }
+
+    //! Initialize a file in order to write into it
+    void CFile::initRead(void)
+    {
+      if (checkRead) return;
+      createSubComFile();
+      checkRead = true;
+    }
+
+    /*!
+      Create a sub communicator in which processes participate in reading/opening file
+    */
+    void CFile::createSubComFile()
+    {
+      CContext* context = CContext::getCurrent();
+      CContextServer* server = context->server;
+
+      // create sub communicator for file
+      allZoneEmpty = true;      
+      std::vector<CField*>::iterator it, end = this->enabledFields.end();
+      for (it = this->enabledFields.begin(); it != end; it++)
+      {
+         CField* field = *it;
+         bool nullGrid = (0 == field->grid);
+         allZoneEmpty &= nullGrid ? false : !field->grid->doGridHaveDataToWrite();
+      }
+
+      int color = allZoneEmpty ? 0 : 1;
+      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
+      if (allZoneEmpty) MPI_Comm_free(&fileComm);
     }
 
     /*
@@ -306,11 +330,22 @@ namespace xios {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
           CTimer::get("Files : open headers").resume();
-          if (!isOpen) openInReadMode(&(context->server->intraComm));
+          
+          if (!isOpen) openInReadMode();
+
           CTimer::get("Files : open headers").suspend();
         }
         //checkSplit(); // Really need for reading?
       }
+    }
+
+    /*!
+      Verify if a process participates in an opening-file communicator 
+      \return true if the process doesn't participate in opening file
+    */
+    bool CFile::isEmptyZone()
+    {
+      return allZoneEmpty;
     }
 
     /*!
@@ -375,7 +410,7 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       CContextServer* server = context->server;
 
-      if (!allDomainEmpty)
+      if (!allZoneEmpty)
       {
          StdString filename = getFileOutputName();
 
@@ -557,13 +592,13 @@ namespace xios {
   /*!
   \brief Open an existing NetCDF file in read-only mode
   */
-  void CFile::openInReadMode(MPI_Comm* comm)
+  void CFile::openInReadMode()
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
-    MPI_Comm readComm = *comm;
+    MPI_Comm readComm = this->fileComm;
 
-    if (!allDomainEmpty)
+    if (!allZoneEmpty)
     {
       StdString filename = getFileOutputName();
       StdOStringStream oss;
@@ -631,13 +666,14 @@ namespace xios {
    //! Close file
    void CFile::close(void)
    {
-     if (!allDomainEmpty)
+     if (!allZoneEmpty)
        if (isOpen)
        {
          if (mode.isEmpty() || mode.getValue() == mode_attr::write)
           this->data_out->closeFile();
          else
           this->data_in->closeFile();
+        isOpen = false;
        }
       if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
    }
@@ -902,6 +938,16 @@ namespace xios {
    CContextClient* CFile::getContextClient()
    {
      return client;
+   }
+
+   void CFile::setReadContextClient(CContextClient* readContextclient)
+   {
+     read_client = readContextclient;
+   }
+
+   CContextClient* CFile::getReadContextClient()
+   {
+     return read_client;
    }
 
    /*!

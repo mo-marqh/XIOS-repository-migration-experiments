@@ -57,6 +57,11 @@ namespace xios {
          typedef CObjectTemplate<CField>   SuperClass;
          typedef CFieldAttributes SuperClassAttribute;
 
+         enum EReadField
+         {
+           RF_NODATA, RF_EOF, RF_DATA
+         };
+         
       public:
 
          typedef CFieldAttributes RelAttributes;
@@ -156,7 +161,7 @@ namespace xios {
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
-        bool readField(void);
+        EReadField readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void outputField(CArray<double,3>& fieldOut);
@@ -229,6 +234,7 @@ namespace xios {
          bool areAllReferenceSolved;
          bool isReferenceSolved;
          bool isReferenceSolvedAndTransformed;
+         bool nstepMaxRead;
 
       private:
          //! The type of operation attached to the field

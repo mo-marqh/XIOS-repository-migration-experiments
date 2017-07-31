@@ -40,7 +40,7 @@ namespace xios{
       , hasTimeInstant(false)
       , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
-      , isEOF(false)
+      , isEOF(false), nstepMaxRead(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::CField(const StdString& id)
@@ -55,7 +55,7 @@ namespace xios{
       , hasTimeInstant(false)
       , hasTimeCentered(false)
       , wasDataAlreadyReceivedFromServer(false)
-      , isEOF(false)
+      , isEOF(false), nstepMaxRead(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
    CField::~CField(void)
@@ -261,7 +261,7 @@ namespace xios{
 
   void CField::writeField(void)
   {
-    if (!getRelFile()->allDomainEmpty)
+    if (!getRelFile()->isEmptyZone())
     {
       if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
       {
@@ -272,10 +272,19 @@ namespace xios{
     }
   }
 
+  /*
+    Send a request for reading data.
+    Client sends a request to server for demanding server to read data and send back to it.
+    For now, this function is called only by client
+    In the future, it can be called by level-1 servers
+    \param [in] tsDataRequested timestamp when the call is made
+  */
   bool CField::sendReadDataRequest(const CDate& tsDataRequested)
   {
     CContext* context = CContext::getCurrent();
-//    CContextClient* client = context->client;
+    // CContextClient* client = context->client;
+
+    // This code is for future: If we want to read file with level-2 servers
     CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
     lastDataRequestedFromServer = tsDataRequested;
@@ -331,16 +340,21 @@ namespace xios{
     get(fieldId)->recvReadDataRequest();
   }
 
+  /*!
+    Receive data request sent from client and process it
+    Every time server receives this request, it will try to read data and sent read data back to client
+    At the moment, this function is called by server level 1
+    In the future, this should (only) be done by the last level servers.
+  */
   void CField::recvReadDataRequest(void)
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
-//    CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
 
     CEventClient event(getType(), EVENT_ID_READ_DATA_READY);
     std::list<CMessage> msgs;
 
-    bool hasData = readField();
+    EReadField hasData = readField();
 
     map<int, CArray<double,1> >::iterator it;
     if (!grid->doGridHaveDataDistributed())
@@ -355,10 +369,20 @@ namespace xios{
               msgs.push_back(CMessage());
               CMessage& msg = msgs.back();
               msg << getId();
-              if (hasData)
-                msg << getNStep() - 1 << recvDataSrv;
-              else
-                msg << int(-1);
+              switch (hasData)
+              {
+                case RF_DATA:
+                  msg << getNStep() - 1 << recvDataSrv;
+                  break;
+                case RF_NODATA:
+                  msg << int(-2);
+                  break;
+                case RF_EOF:                  
+                default:
+                  msg << int(-1);
+                  break;
+              }
+
               event.push(*itRank, 1, msg);
             }
           }
@@ -384,30 +408,50 @@ namespace xios{
         msgs.push_back(CMessage());
         CMessage& msg = msgs.back();
         msg << getId();
-        if (hasData)
-          msg << getNStep() - 1 << tmp;
-        else
-          msg << int(-1);
+        switch (hasData)
+        {
+          case RF_DATA:
+            msg << getNStep() - 1 << tmp;
+            break;
+          case RF_NODATA:
+            msg << int(-2) << tmp;
+            break;
+          case RF_EOF:                  
+          default:
+            msg << int(-1);
+            break;
+        }
+
         event.push(it->first, grid->nbReadSenders[0][it->first], msg);
       }
       client->sendEvent(event);
     }
   }
 
-  bool CField::readField(void)
+  /*!
+    Read field from a file.
+    A field is read with the distribution of data on the server side
+    \return State of field can be read from a file
+  */
+  CField::EReadField CField::readField(void)
   {
+    CContext* context = CContext::getCurrent();
     grid->computeWrittenIndex();
-    if (!getRelFile()->allDomainEmpty)
-    {
-      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)
+    getRelFile()->initRead();
+    EReadField readState = RF_DATA;
+
+    if (!getRelFile()->isEmptyZone())
+    {      
+      if (grid->doGridHaveDataToWrite() || getRelFile()->type == CFile::type_attr::one_file)      
       {
         if (0 == recvDataSrv.numElements())
         {            
           CArray<int,1>& storeClient = grid->storeIndex_client;          
           recvDataSrv.resize(storeClient.numElements());          
         }
-
+        
         getRelFile()->checkReadFile();
+
         if (!nstepMax)
         {
           nstepMax = getRelFile()->getDataInput()->getFieldNbRecords(CField::get(this));
@@ -416,15 +460,39 @@ namespace xios{
         this->incrementNStep();
 
         if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
-          return false;
+          readState = RF_EOF;
 
-        getRelFile()->getDataInput()->readFieldData(CField::get(this));
+        if (RF_EOF != readState)
+          getRelFile()->getDataInput()->readFieldData(CField::get(this));
       }
     }
+    else
+    {
+      this->incrementNStep();
+      if (getNStep() > nstepMax && (getRelFile()->cyclic.isEmpty() || !getRelFile()->cyclic) )
+        readState = RF_EOF;
+      else
+        readState = RF_NODATA;
 
-    return true;
+      if (!nstepMaxRead) // This can be a bug if we try to read field from zero time record
+        readState = RF_NODATA;
+    }
+
+    if (!nstepMaxRead)
+    {
+       MPI_Allreduce(&nstepMax, &nstepMax, 1, MPI_INT, MPI_MAX, context->server->intraComm);
+       nstepMaxRead = true;
+    }
+
+    return readState;
   }
 
+  /*
+    Receive read data from server.
+    At the moment, this function is called in the client side.
+    In the future, this function can be called hiearachically (server n-1, server n -2, ..., client)
+    \param event event containing read data
+  */
   void CField::recvReadDataReady(CEventServer& event)
   {
     string fieldId;
@@ -442,6 +510,11 @@ namespace xios{
     get(fieldId)->recvReadDataReady(ranks, buffers);
   }
 
+  /*!
+    Receive read data from server
+    \param [in] ranks Ranks of sending processes
+    \param [in] buffers buffers containing read data
+  */
   void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
@@ -527,6 +600,7 @@ namespace xios{
    void CField::resetNStepMax(void)
    {
       this->nstepMax = 0;
+      nstepMaxRead = false;
    }
 
    //----------------------------------------------------------------

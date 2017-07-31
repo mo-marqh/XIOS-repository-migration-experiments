@@ -154,17 +154,19 @@ namespace xios {
    {     
      // The record index is sometimes sent along with the data but we always
      // include it in the size calculation for the sake of simplicity
-     const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() + 2 * sizeof(size_t);
+     const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() 
+                                                       + 2 * sizeof(size_t) 
+                                                       + sizeof(size_t);
      CContext* context = CContext::getCurrent();
      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
      std::vector<std::map<int, StdSize> > dataSizes(nbSrvPools);
      for (int p = 0; p < nbSrvPools; ++p) 
      {
        std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[p].end();
-       for (size_t k = 0; k < connectedServerRank_[p].size(); ++k) // TODO: Should change connectedServerRank_[0] to something more general
+       for (size_t k = 0; k < connectedServerRank_[p].size(); ++k)
        {
          int rank = connectedServerRank_[p][k];
-         std::map<int, size_t>::const_iterator it = connectedDataSize_[0].find(rank);
+         std::map<int, size_t>::const_iterator it = connectedDataSize_[p].find(rank);
          size_t count = (it != itEnd) ? it->second : 0;
 
          dataSizes[p].insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
@@ -713,20 +715,29 @@ namespace xios {
        // Compute mapping between client and server
        std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
        CServerDistributionDescription serverDistributionDescription(getGlobalDimension(), client->serverSize);
-       serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
-                                                                  client->clientRank,
-                                                                  client->clientSize,
-                                                                  axis_domain_order,
-                                                                  getDistributedDimension());
+       std::vector<int> serverZeroIndex = serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
+                                                                                                  client->clientRank,
+                                                                                                  client->clientSize,
+                                                                                                  axis_domain_order,
+                                                                                                  getDistributedDimension());
+
+       // Even if servers have no index, they must received something from client
+       // We only use several client to send "empty" message to these servers
+       std::list<int> serverZeroIndexLeader;
+       std::list<int> serverZeroIndexNotLeader; 
+       CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+       for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+         *it = serverZeroIndex[*it];
+
        computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
 
        const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
        CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-       itGlobalMap  = itbGlobalMap = globalIndexOnServer_.begin();
+       itbGlobalMap = globalIndexOnServer_.begin();
        iteGlobalMap = globalIndexOnServer_.end();
 
-       for (; itGlobalMap != iteGlobalMap; ++itGlobalMap)
+       for (itGlobalMap  = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
        {
          int serverRank = itGlobalMap->first;
          int indexSize = itGlobalMap->second.size();
@@ -744,10 +755,20 @@ namespace xios {
          }
        }
 
+       // Connected servers which really have index
        for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
          connectedServerRank_[p].push_back(itGlobalMap->first);
        }
 
+       // Connected servers which have no index at all
+       for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+         connectedServerRank_[p].push_back(*it);
+
+       // Even if a client has no index, it must connect to at least one server and 
+       // send an "empty" data to this server
+       if (connectedServerRank_[p].empty())
+        connectedServerRank_[p].push_back(client->clientRank % client->serverSize);
+      
        nbSenders[p] = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[p]);
      }
    }

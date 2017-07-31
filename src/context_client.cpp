@@ -34,6 +34,17 @@ namespace xios
       if (flag) MPI_Comm_remote_size(interComm, &serverSize);
       else  MPI_Comm_size(interComm, &serverSize);
 
+      computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
+
+      timeLine = 0;
+    }
+
+    void CContextClient::computeLeader(int clientRank, int clientSize, int serverSize,
+                                       std::list<int>& rankRecvLeader,
+                                       std::list<int>& rankRecvNotLeader)
+    {
+      if ((0 == clientSize) || (0 == serverSize)) return;
+
       if (clientSize < serverSize)
       {
         int serverByClient = serverSize / clientSize;
@@ -49,9 +60,9 @@ namespace xios
           rankStart += remain;
 
         for (int i = 0; i < serverByClient; i++)
-          ranksServerLeader.push_back(rankStart + i);
+          rankRecvLeader.push_back(rankStart + i);
 
-        ranksServerNotLeader.resize(0);
+        rankRecvNotLeader.resize(0);
       }
       else
       {
@@ -61,21 +72,19 @@ namespace xios
         if (clientRank < (clientByServer + 1) * remain)
         {
           if (clientRank % (clientByServer + 1) == 0)
-            ranksServerLeader.push_back(clientRank / (clientByServer + 1));
+            rankRecvLeader.push_back(clientRank / (clientByServer + 1));
           else
-            ranksServerNotLeader.push_back(clientRank / (clientByServer + 1));
+            rankRecvNotLeader.push_back(clientRank / (clientByServer + 1));
         }
         else
         {
           int rank = clientRank - (clientByServer + 1) * remain;
           if (rank % clientByServer == 0)
-            ranksServerLeader.push_back(remain + rank / clientByServer);
+            rankRecvLeader.push_back(remain + rank / clientByServer);
           else
-            ranksServerNotLeader.push_back(remain + rank / clientByServer);
+            rankRecvNotLeader.push_back(remain + rank / clientByServer);
         }
       }
-
-      timeLine = 0;
     }
 
     /*!

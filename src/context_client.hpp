@@ -49,6 +49,10 @@ namespace xios
       bool isAttachedModeEnabled() const;
       bool hasTemporarilyBufferedEvent() const { return !tmpBufferedEvent.isEmpty(); };
 
+      static void computeLeader(int clientRank, int clientSize, int serverSize,
+                                std::list<int>& rankRecvLeader,
+                                std::list<int>& rankRecvNotLeader);
+
       // Close and finalize context client
 //      void closeContext(void);  Never been implemented.
       void finalize(void);

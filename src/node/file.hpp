@@ -88,7 +88,9 @@ namespace xios {
          bool checkSync(void);
          void checkWriteFile(void);
          void checkReadFile(void);
-         void initFile(void);
+         void initWrite(void);
+         void initRead(void);
+         bool isEmptyZone();
 
          /// Mutateurs ///
          // Set some root definitions in a file
@@ -96,7 +98,7 @@ namespace xios {
          void setVirtualVariableGroup(CVariableGroup* newVVariableGroup);
 
          void createHeader(void);
-         void openInReadMode(MPI_Comm* readComm = NULL);
+         void openInReadMode(void);
          void close(void);
          void readAttributesOfEnabledFieldsInReadMode();
 
@@ -121,6 +123,9 @@ namespace xios {
          CVariableGroup* addVariableGroup(const string& id = "");
          void setContextClient(CContextClient* newContextClient);
          CContextClient* getContextClient();
+
+         void setReadContextClient(CContextClient* newContextClient);
+         CContextClient* getReadContextClient();
 
          // Send info to server         
          void sendEnabledFields(CContextClient* client);         
@@ -161,18 +166,24 @@ namespace xios {
          CDate lastSync;
          CDate lastSplit;
          int nbAxis, nbDomains;
-         bool isOpen;
-         bool allDomainEmpty;
+         bool isOpen;         
          MPI_Comm fileComm;
 
+      private:
+         void createSubComFile();
+         bool checkRead;
+         bool allZoneEmpty;
+         
       private :
          /// Propriétés privées ///
          CContextClient* client;
+         CContextClient* read_client; // Context client for reading (channel between server 1 and client)
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup;
          boost::shared_ptr<CDataOutput> data_out;
          boost::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
+
 
       public:
         //         virtual void toBinary  (StdOStream& os) const;

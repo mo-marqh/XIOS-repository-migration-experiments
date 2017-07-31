@@ -103,15 +103,18 @@ namespace xios {
          void closeDefinition(void);
 
          // Some functions to process context
-         void findAllEnabledFields(void);
-         void findAllEnabledFieldsInReadModeFiles(void);
+         void findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         // void findAllEnabledFields(void);
+         // void findAllEnabledFieldsInReadModeFiles(void);
          void readAttributesOfEnabledFieldsInReadModeFiles();
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
+         void findEnabledWriteModeFiles(void);
          void findEnabledReadModeFiles(void);
          void closeAllFile(void);
          void updateCalendar(int step);
-         void createFileHeader(void );
+         void createFileHeader(void);
+         void initReadFiles(void);
          void checkAxisDomainsGridsEligibilityForCompressedOutput();
          void prepareTimeseries(void);
          void solveOnlyRefOfEnabledFields(bool sendToServer);         
@@ -126,7 +129,8 @@ namespace xios {
 
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
          void checkGridEnabledFields();
-         void sendGridEnabledFields();
+         void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);         
 
 //         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
 //         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
@@ -143,10 +147,10 @@ namespace xios {
          // There are something to send on closing context defintion
          void sendUpdateCalendar(int step);
          void sendCreateFileHeader(void);
-         void sendEnabledFiles();
-         void sendEnabledFields();
-         void sendRefDomainsAxis();
-         void sendRefGrid();
+         void sendEnabledFiles(const std::vector<CFile*>& activeFiles);
+         void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
+         void sendRefGrid(const std::vector<CFile*>& activeFiles);
          void sendPostProcessing();
          void sendPostProcessingGlobalAttributes();
          void sendProcessingGridOfEnabledFields();

@@ -476,9 +476,9 @@ namespace xios {
          } while (!bufferReleased);
          finalized = true;
 
+         closeAllFile(); // Just move to here to make sure that server-level 1 can close files
          if (hasServer && !hasClient)
-         {
-           closeAllFile();
+         {           
            registryOut->hierarchicalGatherRegistry() ;
            if (server->intraCommRank==0) CXios::globalRegistry->mergeRegistry(*registryOut) ;
          }
@@ -524,8 +524,8 @@ namespace xios {
      postProcessing();
 
      // Check grid and calculate its distribution
-     checkGridEnabledFields();    
-
+     checkGridEnabledFields();
+ 
      // Distribute files between secondary servers according to the data size
      distributeFiles();
 
@@ -547,21 +547,32 @@ namespace xios {
 
       // We have enough information to send to server
       // First of all, send all enabled files
-      sendEnabledFiles();
+      sendEnabledFiles(this->enabledWriteModeFiles);
+      // We only use server-level 1 (for now) to read data
+      if (!hasServer)
+        sendEnabledFiles(this->enabledReadModeFiles);
 
-      // Then, send all enabled fields
-      sendEnabledFields();
+      // Then, send all enabled fields      
+      sendEnabledFieldsInFiles(this->enabledWriteModeFiles);
+      if (!hasServer)
+        sendEnabledFieldsInFiles(this->enabledReadModeFiles);
 
       // At last, we have all info of domain and axis, then send them
-       sendRefDomainsAxis();
+       sendRefDomainsAxisScalars(this->enabledWriteModeFiles);
+      if (!hasServer)
+        sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
 
        // After that, send all grid (if any)
-       sendRefGrid();
+      sendRefGrid(this->enabledWriteModeFiles);
+      if (!hasServer)
+        sendRefGrid(this->enabledReadModeFiles);
 
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
-
-       sendGridEnabledFields();       
+       
+       sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
+       if (!hasServer)
+        sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
      }
      allProcessed = true;
    }
@@ -629,7 +640,7 @@ namespace xios {
       buildFilterGraphOfFieldsWithReadAccess();
     }
     
-    checkGridEnabledFields();    
+    checkGridEnabledFields();   
 
     if (hasClient) this->sendProcessingGridOfEnabledFields();
     if (hasClient) this->sendCloseDefinition();
@@ -645,16 +656,10 @@ namespace xios {
     CTimer::get("Context : close definition").suspend() ;
    }
 
-   void CContext::findAllEnabledFields(void)
+   void CContext::findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
    {
-     for (unsigned int i = 0; i < this->enabledFiles.size(); i++)
-     (void)this->enabledFiles[i]->getEnabledFields();
-   }
-
-   void CContext::findAllEnabledFieldsInReadModeFiles(void)
-   {
-     for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
-     (void)this->enabledReadModeFiles[i]->getEnabledFields();
+     for (unsigned int i = 0; i < activeFiles.size(); i++)
+     (void)activeFiles[i]->getEnabledFields();
    }
 
    void CContext::readAttributesOfEnabledFieldsInReadModeFiles()
@@ -663,24 +668,46 @@ namespace xios {
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
    }
 
-   void CContext::sendGridEnabledFields()
+   /*!
+      Send active (enabled) fields in file from a client to others
+      \param [in] activeFiles files contains enabled fields to send
+   */
+   void CContext::sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
    {
-     int size = this->enabledFiles.size();
+     int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
      {       
-       this->enabledFiles[i]->sendGridOfEnabledFields();
+       activeFiles[i]->sendGridOfEnabledFields();
      }
    }
 
    void CContext::checkGridEnabledFields()
    {
-     int size = this->enabledFiles.size();
+     int size = enabledFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->checkGridOfEnabledFields();       
+       enabledFiles[i]->checkGridOfEnabledFields();       
      }
    }
 
+   /*!
+      Check grid of active (enabled) fields in file 
+      \param [in] activeFiles files contains enabled fields whose grid needs checking
+   */
+   void CContext::checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   {
+     int size = activeFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       activeFiles[i]->checkGridOfEnabledFields();       
+     }
+   }
+
+    /*!
+      Go up the hierachical tree via field_ref and do check of attributes of fields
+      This can be done in a client then all computed information will be sent from this client to others
+      \param [in] sendToServer Flag to indicate whether calculated information will be sent
+   */
    void CContext::solveOnlyRefOfEnabledFields(bool sendToServer)
    {
      int size = this->enabledFiles.size();
@@ -695,6 +722,12 @@ namespace xios {
      }
    }
 
+    /*!
+      Go up the hierachical tree via field_ref and do check of attributes of fields.
+      The transformation can be done in this step.
+      All computed information will be sent from this client to others.
+      \param [in] sendToServer Flag to indicate whether calculated information will be sent
+   */
    void CContext::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
    {
      int size = this->enabledFiles.size();
@@ -830,11 +863,11 @@ namespace xios {
        int nbPools = clientPrimServer.size();
 
        // (1) Find all enabled files in write mode
-       for (int i = 0; i < this->enabledFiles.size(); ++i)
-       {
-         if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
-          enabledWriteModeFiles.push_back(enabledFiles[i]);
-       }
+       // for (int i = 0; i < this->enabledFiles.size(); ++i)
+       // {
+       //   if (enabledFiles[i]->mode.isEmpty() || (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
+       //    enabledWriteModeFiles.push_back(enabledFiles[i]);
+       // }
 
        // (2) Estimate the data volume for each file
        int size = this->enabledWriteModeFiles.size();
@@ -881,7 +914,9 @@ namespace xios {
        for (std::multimap<double,int>:: iterator it=poolDataSize.begin() ; it!=poolDataSize.end(); ++it) info(30)<<"Load Balancing for servers (perfect=1) : "<<it->second<<" :  ratio "<<it->first*1./dataPerPool<<endl ;
  
        for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
-         enabledReadModeFiles[i]->setContextClient(client);
+       {
+         enabledReadModeFiles[i]->setContextClient(client);          
+       }
      }
      else
      {
@@ -890,6 +925,23 @@ namespace xios {
      }
    }
 
+   /*!
+      Find all files in write mode
+   */
+   void CContext::findEnabledWriteModeFiles(void)
+   {
+     int size = this->enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+       if (enabledFiles[i]->mode.isEmpty() || 
+          (!enabledFiles[i]->mode.isEmpty() && enabledFiles[i]->mode.getValue() == CFile::mode_attr::write ))
+        enabledWriteModeFiles.push_back(enabledFiles[i]);
+     }
+   }
+
+   /*!
+      Find all files in read mode
+   */
    void CContext::findEnabledReadModeFiles(void)
    {
      int size = this->enabledFiles.size();
@@ -1216,21 +1268,26 @@ namespace xios {
       if (hasClient && !hasServer) prepareTimeseries();
 
       //Initialisation du vecteur 'enabledFiles' contenant la liste des fichiers à sortir.
-      this->findEnabledFiles();
-      
-      // For now, only read files with client and only one level server
-      if (hasClient && !hasServer) this->findEnabledReadModeFiles();
+      findEnabledFiles();
+      findEnabledWriteModeFiles();
+      findEnabledReadModeFiles();
 
-      // Find all enabled fields of each file
-      this->findAllEnabledFields();
       // For now, only read files with client and only one level server
-      if (hasClient && !hasServer) this->findAllEnabledFieldsInReadModeFiles();
+      // if (hasClient && !hasServer) findEnabledReadModeFiles();      
 
+      // Find all enabled fields of each file      
+      findAllEnabledFieldsInFiles(this->enabledWriteModeFiles);
+      findAllEnabledFieldsInFiles(this->enabledReadModeFiles);
+
+      // For now, only read files with client and only one level server
+      // if (hasClient && !hasServer) 
+      //   findAllEnabledFieldsInFiles(this->enabledReadModeFiles);      
 
       if (hasClient && !hasServer)
       {
-       // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
-       this->readAttributesOfEnabledFieldsInReadModeFiles();
+        initReadFiles();
+        // Try to read attributes of fields in file then fill in corresponding grid (or domain, axis)
+        this->readAttributesOfEnabledFieldsInReadModeFiles();
       }
 
       // Only search and rebuild all reference objects of enable fields, don't transform
@@ -1258,10 +1315,10 @@ namespace xios {
 
      if (hasClient)
      {
-       size_t numEnabledFiles = this->enabledFiles.size();
+       size_t numEnabledFiles = this->enabledWriteModeFiles.size();
        for (size_t i = 0; i < numEnabledFiles; ++i)
        {
-         CFile* file = this->enabledFiles[i];
+         CFile* file = this->enabledWriteModeFiles[i];
 //         if (file->getContextClient() == contextClient)
          {
            std::vector<CField*> enabledFields = file->getEnabledFields();
@@ -1279,6 +1336,35 @@ namespace xios {
 
                if (maxEventSize[it->first] < it->second)
                  maxEventSize[it->first] = it->second;
+             }
+           }
+         }
+       }
+
+      // Not a good approach here, duplicate code
+       if (!hasServer)
+       {
+         size_t numEnabledFiles = this->enabledReadModeFiles.size();
+         for (size_t i = 0; i < numEnabledFiles; ++i)
+         {
+           CFile* file = this->enabledReadModeFiles[i];  
+           {
+             std::vector<CField*> enabledFields = file->getEnabledFields();
+             size_t numEnabledFields = enabledFields.size();
+             for (size_t j = 0; j < numEnabledFields; ++j)
+             {
+               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+               for (; it != itE; ++it)
+               {
+                 // If attributesSize[it->first] does not exist, it will be zero-initialized
+                 // so we can use it safely without checking for its existance
+                 if (attributesSize[it->first] < it->second)
+                   attributesSize[it->first] = it->second;
+
+                 if (maxEventSize[it->first] < it->second)
+                   maxEventSize[it->first] = it->second;
+               }
              }
            }
          }
@@ -1340,9 +1426,9 @@ namespace xios {
    }
 
    //! Client side: Send infomation of active files (files are enabled to write out)
-   void CContext::sendEnabledFiles()
+   void CContext::sendEnabledFiles(const std::vector<CFile*>& activeFiles)
    {
-     int size = this->enabledFiles.size();
+     int size = activeFiles.size();
 
      // In a context, each type has a root definition, e.g: axis, domain, field.
      // Every object must be a child of one of these root definition. In this case
@@ -1352,19 +1438,20 @@ namespace xios {
 
      for (int i = 0; i < size; ++i)
      {
-       cfgrpPtr->sendCreateChild(this->enabledFiles[i]->getId(),enabledFiles[i]->getContextClient());
-       this->enabledFiles[i]->sendAllAttributesToServer(enabledFiles[i]->getContextClient());
-       this->enabledFiles[i]->sendAddAllVariables(enabledFiles[i]->getContextClient());
+       CFile* f = activeFiles[i];
+       cfgrpPtr->sendCreateChild(f->getId(),f->getContextClient());
+       f->sendAllAttributesToServer(f->getContextClient());
+       f->sendAddAllVariables(f->getContextClient());
      }
    }
 
    //! Client side: Send information of active fields (ones are written onto files)
-   void CContext::sendEnabledFields()
+   void CContext::sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
    {
-     int size = this->enabledFiles.size();
+     int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
      {
-       this->enabledFiles[i]->sendEnabledFields(enabledFiles[i]->getContextClient());
+       activeFiles[i]->sendEnabledFields(activeFiles[i]->getContextClient());
      }
    }
 
@@ -1487,16 +1574,16 @@ namespace xios {
    }
 
    //! Client side: Send information of reference grid of active fields
-   void CContext::sendRefGrid()
+   void CContext::sendRefGrid(const std::vector<CFile*>& activeFiles)
    {
      std::set<StdString> gridIds;
-     int sizeFile = this->enabledFiles.size();
+     int sizeFile = activeFiles.size();
      CFile* filePtr(NULL);
 
      // Firstly, find all reference grids of all active fields
      for (int i = 0; i < sizeFile; ++i)
      {
-       filePtr = this->enabledFiles[i];
+       filePtr = activeFiles[i];
        std::vector<CField*> enabledFields = filePtr->getEnabledFields();
        int sizeField = enabledFields.size();
        for (int numField = 0; numField < sizeField; ++numField)
@@ -1520,17 +1607,16 @@ namespace xios {
      }
    }
 
-
-   //! Client side: Send information of reference domain and axis of active fields
-   void CContext::sendRefDomainsAxis()
+   //! Client side: Send information of reference domain, axis and scalar of active fields
+   void CContext::sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles)
    {
      std::set<StdString> domainIds, axisIds, scalarIds;
 
      // Find all reference domain and axis of all active fields
-     int numEnabledFiles = this->enabledFiles.size();
+     int numEnabledFiles = activeFiles.size();
      for (int i = 0; i < numEnabledFiles; ++i)
      {
-       std::vector<CField*> enabledFields = this->enabledFiles[i]->getEnabledFields();
+       std::vector<CField*> enabledFields = activeFiles[i]->getEnabledFields();
        int numEnabledFields = enabledFields.size();
        for (int j = 0; j < numEnabledFields; ++j)
        {
@@ -1591,21 +1677,33 @@ namespace xios {
 #ifdef XIOS_MEMTRACK_LIGHT
       info(50) << " Current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte, at timestep "<<step<<" of context "<<this->getId()<<endl ;
 #endif
-      if (hasClient)
+      //if (hasClient) 
+      if (hasClient && !hasServer) // For now we only use server level 1 to read data
       {
         checkPrefetchingOfEnabledReadModeFiles();
         garbageCollector.invalidate(calendar->getCurrentDate());
       }
    }
 
+   void CContext::initReadFiles(void)
+   {
+      vector<CFile*>::const_iterator it;
+
+      for (it=enabledReadModeFiles.begin(); it != enabledReadModeFiles.end(); it++)
+      {
+         (*it)->initRead();
+      }
+   }
+
    //! Server side: Create header of netcdf file
-   void CContext::createFileHeader(void )
+   void CContext::createFileHeader(void)
    {
       vector<CFile*>::const_iterator it;
 
       for (it=enabledFiles.begin(); it != enabledFiles.end(); it++)
+      // for (it=enabledWriteModeFiles.begin(); it != enabledWriteModeFiles.end(); it++)
       {
-         (*it)->initFile();
+         (*it)->initWrite();
       }
    }
 
