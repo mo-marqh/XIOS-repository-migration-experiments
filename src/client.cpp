@@ -153,7 +153,6 @@ namespace xios
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
           if (rank_==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
           MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
-
         }
         else MPI_Comm_dup(intraComm,&interComm) ;
       }
@@ -295,6 +294,7 @@ namespace xios
       StdStringStream fileNameClient;
       int numDigit = 0;
       int size = 0;
+      int rank;
       MPI_Comm_size(CXios::globalComm, &size);
       while (size)
       {
@@ -302,7 +302,15 @@ namespace xios
         ++numDigit;
       }
 
-      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ext;
+      if (CXios::usingOasis)
+      {
+        MPI_Comm_rank(CXios::globalComm,&rank);
+        fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << rank << ext;
+      }
+      else
+        fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ext;
+
+
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())
         ERROR("void CClient::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",
