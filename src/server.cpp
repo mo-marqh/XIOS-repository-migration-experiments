@@ -37,12 +37,12 @@ namespace xios
 /*!
  * \fn void CServer::initialize(void)
  * Creates intraComm for each possible type of servers (classical, primary or secondary).
- * In case of secondary servers intraComm is created for each secondary server pool.
- * (For now the assumption is that there is one proc per pool.)
+ * (For now the assumption is that there is one proc per secondary server pool.)
  * Creates interComm and stores them into the following lists:
  *   classical server -- interCommLeft
  *   primary server -- interCommLeft and interCommRight
  *   secondary server -- interCommLeft for each pool.
+ *   IMPORTANT: CXios::usingServer2 should NOT be used beyond this function. Use CServer::serverLevel instead.
  */
     void CServer::initialize(void)
     {
@@ -84,7 +84,7 @@ namespace xios
         map<unsigned long, int>::iterator it ;
 
         // (1) Establish client leaders, distribute processes between two server levels
-        vector<int> srvRanks;
+        std::vector<int> srvRanks;
         for(i=0,c=0;i<size;i++)
         {
           if (colors.find(hashAll[i])==colors.end())
@@ -97,19 +97,32 @@ namespace xios
             if (hashAll[i] == hashServer)
               srvRanks.push_back(i);
         }
-        for (i=0; i<srvRanks.size(); i++)
+
+        if (CXios::usingServer2)
         {
-          if (i >= srvRanks.size()*(100.-CXios::ratioServer2)/100.)
+          int reqNbProc = srvRanks.size()*CXios::ratioServer2/100.;
+          if (reqNbProc<1 || reqNbProc==srvRanks.size())
           {
-            sndServerGlobalRanks.push_back(srvRanks[i]);
-            if (rank_ == srvRanks[i]) serverLevel=2;
+            error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                << "It is impossible to dedicate the requested number of processes = "<<reqNbProc
+                <<" to secondary server. XIOS will run in the classical server mode."<<endl;
           }
           else
           {
-            if (rank_ == srvRanks[i]) serverLevel=1;
+            for (i=0; i<srvRanks.size(); i++)
+            {
+              if (i >= srvRanks.size()*(100.-CXios::ratioServer2)/100.)
+              {
+                sndServerGlobalRanks.push_back(srvRanks[i]);
+                if (rank_ == srvRanks[i]) serverLevel=2;
+              }
+              else
+              {
+                if (rank_ == srvRanks[i]) serverLevel=1;
+              }
+            }
           }
         }
-
         // (2) Create intraComm
         myColor = (serverLevel == 2) ? rank_ : colors[hashServer];
         MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
@@ -187,47 +200,55 @@ namespace xios
       {
         int size;
         int myColor;
-        unsigned long* srvGlobalRanks;
+        int* srvGlobalRanks;
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
         CTimer::get("XIOS").resume() ;
         MPI_Comm localComm;
         oasis_get_localcomm(localComm);
+        MPI_Comm_rank(localComm,&rank_) ;
 
-        // Create server intraComm
+//      (1) Create server intraComm
         if (!CXios::usingServer2)
         {
           MPI_Comm_dup(localComm, &intraComm);
-          MPI_Comm_rank(localComm,&rank_) ;
         }
         else
         {
           int globalRank;
-          MPI_Comm_rank(localComm,&rank_) ;
           MPI_Comm_size(localComm,&size) ;
           MPI_Comm_rank(CXios::globalComm,&globalRank) ;
-          srvGlobalRanks = new unsigned long[size] ;
-          MPI_Allgather(&globalRank, 1, MPI_LONG, srvGlobalRanks, 1, MPI_LONG, localComm) ;
+          srvGlobalRanks = new int[size] ;
+          MPI_Allgather(&globalRank, 1, MPI_INT, srvGlobalRanks, 1, MPI_INT, localComm) ;
 
-          for (int i=size*(100.-CXios::ratioServer2)/100.; i<size; i++)
-            sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
-
-          if ( rank_ < (size - sndServerGlobalRanks.size()) )
+          int reqNbProc = size*CXios::ratioServer2/100.;
+          if (reqNbProc < 1 || reqNbProc == size)
           {
-            serverLevel = 1;
-            myColor = 0;
+            error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                << "It is impossible to dedicate the requested number of processes = "<<reqNbProc
+                <<" to secondary server. XIOS will run in the classical server mode."<<endl;
+            MPI_Comm_dup(localComm, &intraComm);
           }
           else
           {
-            serverLevel = 2;
-            myColor = rank_;
+            for (int i=0; i<size; i++)
+            {
+              if (i >= size*(100.-CXios::ratioServer2)/100.)
+              {
+                sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
+                if (globalRank == srvGlobalRanks[i]) serverLevel=2;
+              }
+              else
+              {
+                if (globalRank == srvGlobalRanks[i]) serverLevel=1;
+              }
+            }
+            myColor = (serverLevel == 2) ? globalRank : 0;
+            MPI_Comm_split(localComm, myColor, rank_, &intraComm) ;
           }
-          MPI_Comm_split(localComm, myColor, rank_, &intraComm) ;
-
         }
-        MPI_Comm_size(intraComm,&size) ;
-        string codesId=CXios::getin<string>("oasis_codes_id") ;
 
+        string codesId=CXios::getin<string>("oasis_codes_id") ;
         vector<string> splitted ;
         boost::split( splitted, codesId, boost::is_any_of(","), boost::token_compress_on ) ;
         vector<string>::iterator it ;
@@ -236,18 +257,19 @@ namespace xios
         int globalRank ;
         MPI_Comm_rank(CXios::globalComm,&globalRank);
 
-//      (1) Create interComms with models
+//      (2) Create interComms with models
         for(it=splitted.begin();it!=splitted.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
-          if ( !CXios::usingServer2 || serverLevel == 1)
+          if ( serverLevel == 0 || serverLevel == 1)
           {
             interCommLeft.push_back(newComm) ;
             if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
           }
         }
 
-//      (2) Create interComms between primary and secondary servers
+//      (3) Create interComms between primary and secondary servers
+        MPI_Comm_size(intraComm,&size) ;
         if (serverLevel == 1)
         {
           for (int i = 0; i < sndServerGlobalRanks.size(); ++i)

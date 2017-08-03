@@ -185,7 +185,7 @@ namespace xios
     CServer::eventLoop();
 
     // Finalize
-    if (!usingServer2)
+    if (CServer::serverLevel == 0)
     {
       if (CServer::getRank()==0)
       {

@@ -41,7 +41,7 @@ namespace xios
      static bool printLogs2Files; //!< Printing out logs into files
      static bool usingOasis ; //!< Using Oasis
      static bool usingServer ; //!< Using server (server mode)
-     static bool usingServer2 ; //!< Using secondary server (server mode)
+     static bool usingServer2 ; //!< Using secondary server (server mode). IMPORTANT: Use this variable ONLY in CServer::initialize().
      static int ratioServer2 ;  //!< Percentage of server processors dedicated to secondary server
      static double bufferSizeFactor; //!< Factor used to tune the buffer size
      static const double defaultBufferSizeFactor; //!< Default factor value

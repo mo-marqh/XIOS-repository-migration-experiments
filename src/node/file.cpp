@@ -16,6 +16,7 @@
 #include "context_client.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
+#include "server.hpp"
 
 namespace xios {
 
@@ -301,7 +302,7 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
       // This condition should be changed soon
-      if (!CXios::usingServer2 || (CXios::usingServer2 && !context->hasClient))          
+      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
       {
         if (mode.isEmpty() || mode.getValue() == mode_attr::write)
         {
@@ -325,7 +326,7 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
       // TODO: This condition should be changed soon. It only works with maximum number of level as 2
-      if (!CXios::usingServer2 || (CXios::usingServer2 && context->hasClient))
+      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
       {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
