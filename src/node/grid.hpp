@@ -178,7 +178,7 @@ namespace xios {
          std::vector<int> getAxisPositionInGrid() const;
 
          bool doGridHaveDataToWrite();
-         bool doGridHaveDataDistributed();
+         bool doGridHaveDataDistributed(CContextClient* client = 0);
          size_t getWrittenDataSize() const;
          int getNumberWrittenIndexes() const;
          int getTotalNumberWrittenIndexes() const;

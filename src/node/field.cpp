@@ -138,7 +138,7 @@ namespace xios{
     list<CMessage> list_msg;
     list<CArray<double,1> > list_data;
 
-    if (!grid->doGridHaveDataDistributed())
+    if (!grid->doGridHaveDataDistributed(client))
     {
        if (client->isServerLeader())
        {
@@ -357,7 +357,7 @@ namespace xios{
     EReadField hasData = readField();
 
     map<int, CArray<double,1> >::iterator it;
-    if (!grid->doGridHaveDataDistributed())
+    if (!grid->doGridHaveDataDistributed(client))
     {
        if (client->isServerLeader())
        {

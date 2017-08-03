@@ -28,6 +28,19 @@ CServerDistributionDescription::CServerDistributionDescription(const std::vector
 CServerDistributionDescription::~CServerDistributionDescription()
 { /* Nothing to do */ }
 
+int CServerDistributionDescription::defaultDistributedDimension(int gridDimension,                                   
+                                                                ServerDistributionType serType)
+{  
+  switch (serType) 
+  {
+    case BAND_DISTRIBUTION:       
+       return ((1 == gridDimension) ? 0 : 1);
+      break;
+    default:
+      break;
+  } 
+}
+
 /*!
   Compute pre-defined global index distribution of server(s).
   \param [in] doComputeGlobalIndex flag to compute global index on each server. By default, false

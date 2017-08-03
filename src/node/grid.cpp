@@ -658,7 +658,7 @@ namespace xios {
             }
 
             
-            if (nbIndex != localIndex.numElements())
+            if (doGridHaveDataDistributed(client) && (nbIndex != localIndex.numElements()))
                  ERROR("void CGrid::computeClientIndex()",
                     << "Number of local index on client is different from number of received global index" 
                     << "Rank of sent client " << rank <<"."
@@ -697,7 +697,7 @@ namespace xios {
 
        connectedServerRank_[p].clear();
 
-       if (!doGridHaveDataDistributed())
+       if (!doGridHaveDataDistributed(client))
        {
           if (client->isServerLeader())
           {
@@ -768,7 +768,7 @@ namespace xios {
        // send an "empty" data to this server
        if (connectedServerRank_[p].empty())
         connectedServerRank_[p].push_back(client->clientRank % client->serverSize);
-      
+
        nbSenders[p] = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[p]);
      }
    }
@@ -1372,7 +1372,7 @@ namespace xios {
                                                               iteIndex = globalLocalIndexSendToServer.end();
       itIndex = itbIndex;                                                              
 
-      if (!doGridHaveDataDistributed())
+      if (!doGridHaveDataDistributed(client))
       {
         if (client->isServerLeader())
         {
@@ -1592,8 +1592,6 @@ namespace xios {
 
           for (int i = 0; i < nZoomSize.size(); ++i)
             dataSize *= nZoomSize[i];
-          // serverDistribution_ = new CDistributionServer(server->intraCommRank, nZoomBegin, nZoomSize,
-          //                                               nZoomBeginGlobal, nGlob);
           serverDistribution_ = new CDistributionServer(server->intraCommRank, 
                                                         globalZoomIndex, axis_domain_order,
                                                         nZoomBegin, nZoomSize, nZoomBeginGlobal, nGlob);
@@ -1603,7 +1601,7 @@ namespace xios {
         buffer >> outIndex;
         outGlobalIndexFromClient.insert(std::make_pair(rank, outIndex));        
 
-        if (isDataDistributed_)
+        if (doGridHaveDataDistributed(client))
         {}
         else
         {
@@ -1826,11 +1824,15 @@ namespace xios {
     return clientDistribution_;
   }
 
-  bool CGrid::doGridHaveDataDistributed()
+  bool CGrid::doGridHaveDataDistributed(CContextClient* client)
   {
     if (isScalarGrid()) return false;
+    else if (0 != client)
+    {
+      return  (isDataDistributed_ ||  (1 != client->clientSize) || (1 != client->serverSize));
+    }
     else
-      return isDataDistributed_;
+      return isDataDistributed_;    
   }
 
    /*!

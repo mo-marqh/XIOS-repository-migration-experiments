@@ -41,7 +41,7 @@ namespace xios {
          typedef CObjectTemplate<CAxis>   SuperClass;
          typedef CAxisAttributes SuperClassAttribute;
          
-      public :
+      public:
          enum EEventId
          {
            EVENT_ID_DISTRIBUTION_ATTRIBUTE,           
@@ -51,10 +51,7 @@ namespace xios {
            EVENT_ID_DISTRIBUTED_ATTRIBUTES
          } ;
 
-
-
-      public :
-
+      public:
          typedef CAxisAttributes RelAttributes;
          typedef CAxisGroup      RelGroup;
          typedef CTransformation<CAxis>::TransformationMapTypes TransMapTypes;
@@ -100,9 +97,8 @@ namespace xios {
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         static bool dispatchEvent(CEventServer& event);
-         static void recvDistributionAttribute(CEventServer& event);
-         void recvDistributionAttribute(CBufferIn& buffer) ;
+         static bool dispatchEvent(CEventServer& event);         
+         
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                          CServerDistributionDescription::ServerDistributionType distType = CServerDistributionDescription::BAND_DISTRIBUTION);
@@ -121,11 +117,8 @@ namespace xios {
          bool isEqual(CAxis* axis);
          bool zoomByIndex();
 
-      public:                
-        CArray<StdString,1> label_srv;
-        bool hasValue;
-        CArray<int,1> globalDimGrid;
-        int orderPosInGrid;
+      public: 
+        bool hasValue;        
         CArray<size_t,1> localIndexToWriteOnServer;
         CArray<int, 1> compressedIndexToWriteOnServer;
 
@@ -139,7 +132,7 @@ namespace xios {
                              CServerDistributionDescription::ServerDistributionType distType);
          void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType);
-         void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
+         void computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
 
          void sendNonDistributedAttributes(void);
@@ -147,8 +140,10 @@ namespace xios {
 
          static void recvNonDistributedAttributes(CEventServer& event);
          static void recvDistributedAttributes(CEventServer& event);
+         static void recvDistributionAttribute(CEventServer& event);
          void recvNonDistributedAttributes(int rank, CBufferIn& buffer);
          void recvDistributedAttributes(vector<int>& rank, vector<CBufferIn*> buffers);
+         void recvDistributionAttribute(CBufferIn& buffer);
 
          void setTransformations(const TransMapTypes&);
 
@@ -166,11 +161,10 @@ namespace xios {
          boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
          int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_;
-         std::map<int, CArray<int,1> > indiSrv_;
-         bool hasBounds_;
+         std::vector<int> connectedServerRank_;         
+         bool hasBounds;
          bool hasLabel;         
-         bool computedWrittenIndex_;
+         bool computedWrittenIndex_;                  
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

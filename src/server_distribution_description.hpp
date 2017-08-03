@@ -50,6 +50,9 @@ class CServerDistributionDescription
     const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
     int getDimensionDistributed();
 
+    static int defaultDistributedDimension(int gridDimension,                                   
+                                           ServerDistributionType serType=BAND_DISTRIBUTION);
+
   protected:
     int computeBandDistribution(int nServer, int positionDimensionDistributed = 1);
     void computePlanDistribution(int nServer);

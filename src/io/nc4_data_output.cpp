@@ -1135,8 +1135,11 @@ namespace xios
        
         int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n
                                                           : axis->global_zoom_n;
-        int zoom_begin = (MULTI_FILE == SuperClass::type) ? axis->zoom_begin
-                                                          : axis->global_zoom_begin;
+
+        int zoom_count = axis->zoom_n;                                                 
+        int zoom_begin = axis->zoom_begin;
+        // int zoom_begin = (MULTI_FILE == SuperClass::type) ? axis->global_zoom_begin 
+        //                                                   : axis->zoom_begin;
 
         if ((0 == axis->zoom_n) && (MULTI_FILE == SuperClass::type)) return;
 
@@ -1147,7 +1150,7 @@ namespace xios
 
         nc_type typePrec ;
         if (axis->prec.isEmpty()) typePrec =  NC_FLOAT ;
-        else if (axis->prec==4)  typePrec =  NC_FLOAT ;
+        else if (axis->prec==4)   typePrec =  NC_FLOAT ;
         else if (axis->prec==8)   typePrec =  NC_DOUBLE ;
          
         if (!axis->label.isEmpty()) typePrec = NC_CHAR ;
@@ -1197,18 +1200,26 @@ namespace xios
             CArray<double,1> axis_value(indexToWrite.numElements());
             for (int i = 0; i < nbWritten; i++) axis_value(i) = axis->value(indexToWrite(i));
             CArray<double,2> axis_bounds;
+            CArray<string,1> axis_label;
+            if (!axis->label.isEmpty())
+            {
+              axis_label.resize(indexToWrite.numElements());
+              for (int i = 0; i < nbWritten; i++) axis_label(i) = axis->label(indexToWrite(i));
+            }
 
             switch (SuperClass::type)
             {
               case MULTI_FILE:
               {
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+                if (axis->label.isEmpty())
+                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
                 if (!axis->bounds.isEmpty() && axis->label.isEmpty())
                   SuperClassWriter::writeData(axis->bounds, axisBoundsId, isCollective, 0);
 
                 // Need to check after
-                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
+                if (!axis->label.isEmpty()) 
+                  SuperClassWriter::writeData(axis_label, axisid, isCollective, 0);
  
                 SuperClassWriter::definition_start();
                 break;
@@ -1218,12 +1229,14 @@ namespace xios
                 std::vector<StdSize> start(1), startBounds(2) ;
                 std::vector<StdSize> count(1), countBounds(2) ;
                 start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
-                count[0] = countBounds[0] = zoom_size;
+                count[0] = countBounds[0] = zoom_count; // zoom_size
                 startBounds[1] = 0;
                 countBounds[1] = 2;
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
-                if (!axis->bounds.isEmpty()&& axis->label.isEmpty())
+                if (axis->label.isEmpty())
+                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+
+                if (!axis->bounds.isEmpty() && axis->label.isEmpty())
                 {
                   axis_bounds.resize(2, indexToWrite.numElements());
                   for (int i = 0; i < nbWritten; ++i)
@@ -1235,7 +1248,13 @@ namespace xios
                 }
 
                 // Need to check after
-                if (! axis->label.isEmpty())  SuperClassWriter::writeData(axis->label_srv, axisid, isCollective, 0);
+                if (!axis->label.isEmpty())
+                {
+                  std::vector<StdSize> startLabel(2), countLabel(2);
+                  startLabel[0] = start[0]; startLabel[1] = 0;
+                  countLabel[0] = count[0]; countLabel[1] = stringArrayLen;
+                  SuperClassWriter::writeData(axis_label, axisid, isCollective, 0, &startLabel, &countLabel);
+                }
 
                 SuperClassWriter::definition_start();
 

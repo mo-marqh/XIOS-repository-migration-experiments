@@ -9,9 +9,6 @@
 #include "context_client.hpp"
 #include "context_server.hpp"
 #include "xios_spl.hpp"
-#include "inverse_axis.hpp"
-#include "zoom_axis.hpp"
-#include "interpolate_axis.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
 #include "distribution_client.hpp"
@@ -24,7 +21,7 @@ namespace xios {
       : CObjectTemplate<CAxis>()
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
-      , hasBounds_(false), isCompressible_(false)
+      , hasBounds(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
@@ -35,7 +32,7 @@ namespace xios {
       : CObjectTemplate<CAxis>(id)
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
-      , hasBounds_(false), isCompressible_(false)
+      , hasBounds(false), isCompressible_(false)
       , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
@@ -178,7 +175,7 @@ namespace xios {
            sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
 
          size_t sizeValEvent = CArray<double,1>::size(it->second.size());
-         if (hasBounds_)
+         if (hasBounds)
            sizeValEvent += CArray<double,2>::size(2 * it->second.size());
  
          if (hasLabel)
@@ -352,9 +349,9 @@ namespace xios {
                << "The bounds array of the axis [ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] must be of dimension 2 x axis size." << std::endl
                << "Axis size is " << n.getValue() << "." << std::endl
                << "Bounds size is "<< bounds.extent(0) << " x " << bounds.extent(1) << ".");
-       hasBounds_ = true;
+       hasBounds = true;
      }
-     else hasBounds_ = false;
+     else hasBounds = false;
    }
 
   void CAxis::checkLabel()
@@ -371,43 +368,53 @@ namespace xios {
     else hasLabel = false;
   }
 
+  /*!
+    Check whether we can do compressed output
+  */
   void CAxis::checkEligibilityForCompressedOutput()
   {
     // We don't check if the mask is valid here, just if a mask has been defined at this point.
     isCompressible_ = !mask.isEmpty();
   }
 
+  /*
+    Check whether we do zooming by indexing
+    return true if do zooming by index
+  */
   bool CAxis::zoomByIndex()
   {
     return (!global_zoom_index.isEmpty() && (0 != global_zoom_index.numElements()));
   }
 
-   bool CAxis::dispatchEvent(CEventServer& event)
-   {
-      if (SuperClass::dispatchEvent(event)) return true;
-      else
-      {
-        switch(event.type)
-        {
-           case EVENT_ID_DISTRIBUTION_ATTRIBUTE :
-             recvDistributionAttribute(event);
-             return true;
-             break;
-          case EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES:
-            recvNonDistributedAttributes(event);
+  /*!
+    Dispatch event from the lower communication layer then process event according to its type
+  */
+  bool CAxis::dispatchEvent(CEventServer& event)
+  {
+     if (SuperClass::dispatchEvent(event)) return true;
+     else
+     {
+       switch(event.type)
+       {
+          case EVENT_ID_DISTRIBUTION_ATTRIBUTE :
+            recvDistributionAttribute(event);
             return true;
             break;
-          case EVENT_ID_DISTRIBUTED_ATTRIBUTES:
-            recvDistributedAttributes(event);
-            return true;
-            break;
-           default :
-             ERROR("bool CAxis::dispatchEvent(CEventServer& event)",
-                    << "Unknown Event");
-           return false;
-         }
-      }
-   }
+         case EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES:
+           recvNonDistributedAttributes(event);
+           return true;
+           break;
+         case EVENT_ID_DISTRIBUTED_ATTRIBUTES:
+           recvDistributedAttributes(event);
+           return true;
+           break;
+          default :
+            ERROR("bool CAxis::dispatchEvent(CEventServer& event)",
+                   << "Unknown Event");
+          return false;
+        }
+     }
+  }
 
    /*!
      Check attributes on client side (This name is still adequate???)
@@ -422,7 +429,8 @@ namespace xios {
    }
 
    /*
-     The (spatial) transformation sometimes can change attributes of an axis. Therefore, we should recheck them.
+     The (spatial) transformation sometimes can change attributes of an axis (e.g zoom can change mask or generate can change whole attributes)
+     Therefore, we should recheck them.
    */
    void CAxis::checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                           CServerDistributionDescription::ServerDistributionType distType)
@@ -431,14 +439,22 @@ namespace xios {
 
      if (this->isClientAfterTransformationChecked) return;
      if (context->hasClient)
-     {
-       if (index.numElements() != n_glo.getValue()) computeConnectedServer(globalDim, orderPositionInGrid, distType);
+     {        
+       if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
+         || (index.numElements() != n_glo))
+          computeConnectedClients(globalDim, orderPositionInGrid, distType);
      }
 
      this->isClientAfterTransformationChecked = true;
    }
 
-   // Send all checked attributes to server
+   /*
+     Send all checked attributes to server? (We dont have notion of server any more so client==server)
+     \param [in] globalDim global dimension of grid containing this axis
+     \param [in] orderPositionInGrid the relative order of this axis in the grid (e.g grid composed of domain+axis -> orderPositionInGrid is 2)
+     \param [in] distType distribution type of the server. For now, we only have band distribution.
+
+   */
    void CAxis::sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
    {
@@ -460,16 +476,29 @@ namespace xios {
   void CAxis::sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType)
   {
-     if (index.numElements() == n_glo.getValue())
-       sendNonDistributedAttributes();
-     else
+     sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
+
+     // if (index.numElements() == n_glo.getValue())
+     if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
+         || (index.numElements() != n_glo))
      {
        sendDistributedAttributes();       
      }
-     sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
+     else
+     {
+       sendNonDistributedAttributes();    
+     }     
   }
 
-  void CAxis::computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
+  /*
+    Compute the connection between group of clients (or clients/servers).
+    (E.g: Suppose we have 2 group of clients in two model: A (client role) connect to B (server role),
+    this function calculate number of clients B connect to one client of A)
+     \param [in] globalDim global dimension of grid containing this axis
+     \param [in] orderPositionInGrid the relative order of this axis in the grid (e.g grid composed of domain+axis -> orderPositionInGrid is 2)
+     \param [in] distType distribution type of the server. For now, we only have band distribution.
+  */
+  void CAxis::computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
   {
     CContext* context = CContext::getCurrent();
@@ -488,10 +517,16 @@ namespace xios {
       size_t nZoomCount = 0;
       size_t nbIndex = index.numElements();
 
-      for (size_t idx = 0; idx < nbIndex; ++idx)
+      // First of all, we should compute the mapping of the global index and local index of the current client
+      if (globalLocalIndexMap_.empty())
       {
-        globalLocalIndexMap_[index(idx)] = idx;
+        for (size_t idx = 0; idx < nbIndex; ++idx)
+        {
+          globalLocalIndexMap_[index(idx)] = idx;
+        }
       }
+
+      // Calculate the compressed index if any
       std::set<int> writtenInd;
       if (isCompressible_)
       {
@@ -508,192 +543,205 @@ namespace xios {
         }
       }
 
-      CServerDistributionDescription serverDescriptionGlobal(globalDim, nbServer, distType);
-      int distributedDimensionOnServer = serverDescriptionGlobal.getDimensionDistributed();
-      CClientServerMapping::GlobalIndexMap globalIndexAxisOnServer;
-      if (distributedDimensionOnServer == orderPositionInGrid) // So we have distributed axis on client side and also on server side*
+      // Compute the global index of the current client (process) hold
+      std::vector<int> nGlobAxis(1);
+      nGlobAxis[0] = n_glo.getValue();
+
+      size_t globalSizeIndex = 1, indexBegin, indexEnd;
+      for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
+      indexBegin = 0;
+      if (globalSizeIndex <= clientSize)
       {
-        std::vector<int> nGlobAxis(1);
-        nGlobAxis[0] = n_glo.getValue();
-
-        size_t globalSizeIndex = 1, indexBegin, indexEnd;
-        for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
-        indexBegin = 0;
-        if (globalSizeIndex <= clientSize)
-        {
-          indexBegin = rank%globalSizeIndex;
-          indexEnd = indexBegin;
-        }
-        else
-        {
-          for (int i = 0; i < clientSize; ++i)
-          {
-            range = globalSizeIndex / clientSize;
-            if (i < (globalSizeIndex%clientSize)) ++range;
-            if (i == client->clientRank) break;
-            indexBegin += range;
-          }
-          indexEnd = indexBegin + range - 1;
-        }
-
-        CArray<size_t,1> globalIndex(index.numElements());
-        for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
-          globalIndex(idx) = index(idx);
-
-        CServerDistributionDescription serverDescription(nGlobAxis, nbServer);
-        serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd));
-        CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-        clientServerMap->computeServerIndexMapping(globalIndex);
-        globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();
-        delete clientServerMap;
+        indexBegin = rank%globalSizeIndex;
+        indexEnd = indexBegin;
       }
       else
       {
-        std::vector<size_t> globalIndexServer(n_glo.getValue());
-        for (size_t idx = 0; idx < n_glo.getValue(); ++idx)
+        for (int i = 0; i < clientSize; ++i)
         {
-          globalIndexServer[idx] = idx;
+          range = globalSizeIndex / clientSize;
+          if (i < (globalSizeIndex%clientSize)) ++range;
+          if (i == client->clientRank) break;
+          indexBegin += range;
         }
-
-        for (int idx = 0; idx < nbServer; ++idx)
-        {
-          globalIndexAxisOnServer[idx] = globalIndexServer;
-        }
+        indexEnd = indexBegin + range - 1;
       }
 
-      indSrv_.swap(globalIndexAxisOnServer);
+      CArray<size_t,1> globalIndex(index.numElements());
+      for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+        globalIndex(idx) = index(idx);
 
+      // Describe the distribution of server side
+      CServerDistributionDescription serverDescription(nGlobAxis, nbServer);
+      std::vector<int> serverZeroIndex;
+      serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);      
+
+      std::list<int> serverZeroIndexLeader;
+      std::list<int> serverZeroIndexNotLeader; 
+      CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+      for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+        *it = serverZeroIndex[*it];
+
+      // Find out the connection between client and server side
+      CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+      clientServerMap->computeServerIndexMapping(globalIndex);
+      CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
+
+
+      indSrv_.swap(globalIndexAxisOnServer);
       CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_.begin(),
                                                            ite = indSrv_.end();
-
       connectedServerRank_.clear();
       for (it = indSrv_.begin(); it != ite; ++it) {
         connectedServerRank_.push_back(it->first);
       }
 
+      for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+        connectedServerRank_.push_back(*it);
+
+       // Even if a client has no index, it must connect to at least one server and 
+       // send an "empty" data to this server
+       if (connectedServerRank_.empty())
+        connectedServerRank_.push_back(client->clientRank % client->serverSize);
+
       nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
+
+      delete clientServerMap;
     }
   }
 
-   void CAxis::computeWrittenIndex()
-   {  
-      if (computedWrittenIndex_) return;
-      computedWrittenIndex_ = true;
+  /*
+    Compute the index of data to write into file
+    (Different from the previous version, this version of XIOS allows data be written into file (classical role),
+    or transfered to another clients)
+  */
+  void CAxis::computeWrittenIndex()
+  {  
+    if (computedWrittenIndex_) return;
+    computedWrittenIndex_ = true;
 
-      CContext* context=CContext::getCurrent();      
-      CContextServer* server = context->server; 
+    CContext* context=CContext::getCurrent();      
+    CContextServer* server = context->server; 
 
-      std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
-      nBegin[0]       = zoom_begin;
-      nSize[0]        = zoom_n;   
-      nBeginGlobal[0] = 0; 
-      nGlob[0]        = n_glo;
-      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
-      const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
+    // We describe the distribution of client (server) on which data are written
+    std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
+    nBegin[0]       = zoom_begin;
+    nSize[0]        = zoom_n;   
+    nBeginGlobal[0] = 0; 
+    nGlob[0]        = n_glo;
+    CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+    const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
-      size_t nbWritten = 0, indGlo;      
+    // Because all written data are local on a client, 
+    // we need to compute the local index on the server from its corresponding global index
+    size_t nbWritten = 0, indGlo;      
+    boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+                                                        ite = globalLocalIndexMap_.end(), it;          
+    CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
+                                     itSrve = writtenGlobalIndex.end(), itSrv;  
+    if (!zoomByIndex())
+    {   
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
+        {          
+          ++nbWritten;
+        }                 
+      }
+
+      localIndexToWriteOnServer.resize(nbWritten);
+
+      nbWritten = 0;
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
+        {
+          localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
+          ++nbWritten;
+        }                 
+      }
+    }
+    else
+    {
+      nbWritten = 0;
       boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
-                                                          ite = globalLocalIndexMap_.end(), it;          
-      CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
-                                       itSrve = writtenGlobalIndex.end(), itSrv;  
-      if (!zoomByIndex())
-      {   
-        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-        {
-          indGlo = *itSrv;
-          if (ite != globalLocalIndexMap_.find(indGlo))
-          {          
-            ++nbWritten;
-          }                 
-        }
+                                                          ite = globalLocalIndexMap_.end(), it;
+      for (int i = 0; i < zoom_index.numElements(); ++i)
+      {
+         if (ite != globalLocalIndexMap_.find(zoom_index(i)))
+          ++nbWritten;
+      }
 
-        localIndexToWriteOnServer.resize(nbWritten);
+      localIndexToWriteOnServer.resize(nbWritten);
 
-        nbWritten = 0;
-        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      nbWritten = 0;
+      for (int i = 0; i < zoom_index.numElements(); ++i)
+      {
+         if (ite != globalLocalIndexMap_.find(zoom_index(i)))
+         {
+           localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[zoom_index(i)];
+           ++nbWritten;
+         }
+      }
+    }
+
+    if (isCompressible())
+    {
+      nbWritten = 0;
+      boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
         {
-          indGlo = *itSrv;
-          if (ite != globalLocalIndexMap_.find(indGlo))
-          {
-            localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
-            ++nbWritten;
-          }                 
+          localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
+          ++nbWritten;
+        }                 
+      }
+
+      nbWritten = 0;
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+        {
+          ++nbWritten;
         }
+      }
+
+      compressedIndexToWriteOnServer.resize(nbWritten);
+      nbWritten = 0;
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+        {
+          compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_index(idx)];
+          ++nbWritten;
+        }
+      }
+
+      numberWrittenIndexes_ = nbWritten;
+      if (isDistributed())
+      {
+             
+        MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+        MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+        offsetWrittenIndexes_ -= numberWrittenIndexes_;
       }
       else
-      {
-        nbWritten = 0;
-        boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
-                                                            ite = globalLocalIndexMap_.end(), it;
-        for (int i = 0; i < zoom_index.numElements(); ++i)
-        {
-           if (ite != globalLocalIndexMap_.find(zoom_index(i)))
-            ++nbWritten;
-        }
-
-        localIndexToWriteOnServer.resize(nbWritten);
-
-        nbWritten = 0;
-        for (int i = 0; i < zoom_index.numElements(); ++i)
-        {
-           if (ite != globalLocalIndexMap_.find(zoom_index(i)))
-           {
-             localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[zoom_index(i)];
-             ++nbWritten;
-           }
-        }
-      }
-
-      if (isCompressible())
-      {
-        nbWritten = 0;
-        boost::unordered_map<size_t,size_t> localGlobalIndexMap;
-        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-        {
-          indGlo = *itSrv;
-          if (ite != globalLocalIndexMap_.find(indGlo))
-          {
-            localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
-            ++nbWritten;
-          }                 
-        }
-
-        nbWritten = 0;
-        for (int idx = 0; idx < data_index.numElements(); ++idx)
-        {
-          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
-          {
-            ++nbWritten;
-          }
-        }
-
-        compressedIndexToWriteOnServer.resize(nbWritten);
-        nbWritten = 0;
-        for (int idx = 0; idx < data_index.numElements(); ++idx)
-        {
-          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
-          {
-            compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_index(idx)];
-            ++nbWritten;
-          }
-        }
-
-        numberWrittenIndexes_ = nbWritten;
-        if (isDistributed())
-        {
-               
-          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-          offsetWrittenIndexes_ -= numberWrittenIndexes_;
-        }
-        else
-          totalNumberWrittenIndexes_ = numberWrittenIndexes_;
-      }
-
-   }
+        totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+    }
+  }
 
 
-
+  /*!
+    Send distribution information from a group of client (client role) to another group of client (server role)
+    The distribution of a group of client (server role) is imposed by the group of client (client role)
+    \param [in] globalDim global dimension of grid containing this axis
+    \param [in] orderPositionInGrid the relative order of this axis in the grid (e.g grid composed of domain+axis -> orderPositionInGrid is 2)
+    \param [in] distType distribution type of the server. For now, we only have band distribution.
+  */
   void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType)
   {
@@ -712,9 +760,6 @@ namespace xios {
       std::vector<std::vector<int> > serverIndexBegin = serverDescription.getServerIndexBegin();
       std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
-      globalDimGrid.resize(globalDim.size());
-      for (int idx = 0; idx < globalDim.size(); ++idx) globalDimGrid(idx) = globalDim[idx];
-
       CEventClient event(getType(),EVENT_ID_DISTRIBUTION_ATTRIBUTE);
       if (contextClientTmp->isServerLeader())
       {
@@ -731,11 +776,8 @@ namespace xios {
           msgs.push_back(CMessage());
           CMessage& msg = msgs.back();
           msg << this->getId();
-          msg << ni << begin << end;
-          // msg << global_zoom_begin.getValue() << global_zoom_n.getValue();
-          msg << isCompressible_;
-          msg << orderPositionInGrid;
-          msg << globalDimGrid;
+          msg << ni << begin << end;          
+          msg << isCompressible_;                    
 
           event.push(*itRank,1,msg);
         }
@@ -745,309 +787,10 @@ namespace xios {
     }
   }
 
-  void CAxis::sendNonDistributedAttributes()
-  {
-    CContext* context = CContext::getCurrent();
-
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
-    {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
-
-      CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
-      size_t nbIndex = index.numElements();
-      size_t nbDataIndex = 0;
-
-      for (int idx = 0; idx < data_index.numElements(); ++idx)
-      {
-        int ind = data_index(idx);
-        if (ind >= 0 && ind < nbIndex) ++nbDataIndex;
-      }
-
-      CArray<int,1> dataIndex(nbDataIndex);
-      nbDataIndex = 0;
-      for (int idx = 0; idx < data_index.numElements(); ++idx)
-      {
-        int ind = data_index(idx);
-        if (ind >= 0 && ind < nbIndex)
-        {
-          dataIndex(nbDataIndex) = ind;
-          ++nbDataIndex;
-        }
-      }
-
-      if (client->isServerLeader())
-      {
-        std::list<CMessage> msgs;
-
-        const std::list<int>& ranks = client->getRanksServerLeader();
-        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-        {
-          msgs.push_back(CMessage());
-          CMessage& msg = msgs.back();
-          msg << this->getId();
-          msg << index.getValue() << dataIndex << mask.getValue();
-          msg << hasValue;
-          if (hasValue) msg << value.getValue();
-          msg << hasBounds_;
-          if (hasBounds_) msg << bounds.getValue();
-
-          event.push(*itRank, 1, msg);
-        }
-        client->sendEvent(event);
-      }
-      else client->sendEvent(event);
-    }
-  }
-
-  void CAxis::recvNonDistributedAttributes(CEventServer& event)
-  {
-    list<CEventServer::SSubEvent>::iterator it;
-    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
-    {
-      CBufferIn* buffer = it->buffer;
-      string axisId;
-      *buffer >> axisId;
-      get(axisId)->recvNonDistributedAttributes(it->rank, *buffer);
-    }
-  }
-
-  void CAxis::recvNonDistributedAttributes(int rank, CBufferIn& buffer)
-  { 
-    CArray<int,1> tmp_index, tmp_data_index, tmp_zoom_index;
-    CArray<bool,1> tmp_mask;
-    CArray<double,1> tmp_val;
-    CArray<double,2> tmp_bnds;
-
-    buffer >> tmp_index;
-    index.reference(tmp_index);
-    buffer >> tmp_data_index;
-    data_index.reference(tmp_data_index);
-    buffer >> tmp_mask;
-    mask.reference(tmp_mask);
-
-    buffer >> hasValue;
-    if (hasValue)
-    {
-      buffer >> tmp_val;
-      value.reference(tmp_val);
-    }
-
-    buffer >> hasBounds_;
-    if (hasBounds_)
-    {
-      buffer >> tmp_bnds;
-      bounds.reference(tmp_bnds);
-    }
-
-    data_begin.setValue(0);
-    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
-    for (int idx = 0; idx < index.numElements(); ++idx) globalLocalIndexMap_[idx] = index(idx);
-  }
-
-  void CAxis::sendDistributedAttributes(void)
-  {
-    int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-    
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
-    {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
-
-      CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
-
-      list<CMessage> listData;
-      list<CArray<int,1> > list_indi, list_dataInd, list_zoomInd;
-      list<CArray<bool,1> > list_mask;
-      list<CArray<double,1> > list_val;
-      list<CArray<double,2> > list_bounds;
-
-      int nbIndex = index.numElements();
-      CArray<int,1> dataIndex(nbIndex);
-      dataIndex = -1;
-      for (int inx = 0; inx < data_index.numElements(); ++inx)
-      {
-        if (0 <= data_index(inx) && data_index(inx) < nbIndex)
-          dataIndex(inx) = data_index(inx);
-      }
-
-      boost::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
-      {
-        int nbData = 0;
-        int rank = connectedServerRank_[k];
-        int nbSendingClient = nbConnectedClients_[rank];
-        it = indSrv_.find(rank);
-        if (iteMap != it)
-          nbData = it->second.size();
-
-        list_indi.push_back(CArray<int,1>(nbData));
-        list_dataInd.push_back(CArray<int,1>(nbData));        
-        list_mask.push_back(CArray<bool,1>(nbData));
-
-        if (hasValue)
-          list_val.push_back(CArray<double,1>(nbData));
-
-        if (hasBounds_)
-        {
-          list_bounds.push_back(CArray<double,2>(2,nbData));
-        }
-
-        CArray<int,1>& indi = list_indi.back();
-        CArray<int,1>& dataIndi = list_dataInd.back();        
-        CArray<bool,1>& maskIndi = list_mask.back();
-
-        for (n = 0; n < nbData; ++n)
-        {
-          idx = static_cast<int>(it->second[n]);
-          indi(n) = idx;
-
-          ind = globalLocalIndexMap_[idx];
-          dataIndi(n) = dataIndex(ind);
-          maskIndi(n) = mask(ind);
-
-          if (hasValue)
-          {
-            CArray<double,1>& val = list_val.back();
-            val(n) = value(ind);
-          }
-
-          if (hasBounds_)
-          {
-            CArray<double,2>& boundsVal = list_bounds.back();
-            boundsVal(0, n) = bounds(0,n);
-            boundsVal(1, n) = bounds(1,n);
-          }
-        }
-
-        listData.push_back(CMessage());
-        listData.back() << this->getId()
-                        << list_indi.back() << list_dataInd.back() << list_mask.back();
-
-        listData.back() << hasValue;
-        if (hasValue)
-          listData.back() << list_val.back();
-
-        listData.back() << hasBounds_;
-        if (hasBounds_)
-          listData.back() << list_bounds.back();
-
-        eventData.push(rank, nbConnectedClients_[rank], listData.back());
-      }
-
-      client->sendEvent(eventData);
-    }
-  }
-
-  void CAxis::recvDistributedAttributes(CEventServer& event)
-  {
-    string axisId;
-    vector<int> ranks;
-    vector<CBufferIn*> buffers;
-
-    list<CEventServer::SSubEvent>::iterator it;
-    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
-    {
-      ranks.push_back(it->rank);
-      CBufferIn* buffer = it->buffer;
-      *buffer >> axisId;
-      buffers.push_back(buffer);
-    }
-    get(axisId)->recvDistributedAttributes(ranks, buffers);
-  }
-
-
-  void CAxis::recvDistributedAttributes(vector<int>& ranks, vector<CBufferIn*> buffers)
-  {
-    int nbReceived = ranks.size();
-    vector<CArray<int,1> > vec_indi(nbReceived), vec_dataInd(nbReceived), vec_zoomInd(nbReceived);    
-    vector<CArray<bool,1> > vec_mask(nbReceived);
-    vector<CArray<double,1> > vec_val(nbReceived);
-    vector<CArray<double,2> > vec_bounds(nbReceived);
-    
-    for (int idx = 0; idx < nbReceived; ++idx)
-    {      
-      CBufferIn& buffer = *buffers[idx];
-      buffer >> vec_indi[idx];
-      buffer >> vec_dataInd[idx];      
-      buffer >> vec_mask[idx];
-
-      buffer >> hasValue;
-      if (hasValue)
-        buffer >> vec_val[idx];
-
-      buffer >> hasBounds_;
-      if (hasBounds_)
-        buffer >> vec_bounds[idx];
-    }
-
-    int nbData = 0;
-    for (int idx = 0; idx < nbReceived; ++idx)
-    {
-      nbData += vec_indi[idx].numElements();
-    }
-
-    index.resize(nbData);
-    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
-    CArray<int,1> nonCompressedData(nbData);    
-    mask.resize(nbData);
-    if (hasValue)
-      value.resize(nbData);
-    if (hasBounds_)
-      bounds.resize(2,nbData);
-
-    nbData = 0;
-    for (int idx = 0; idx < nbReceived; ++idx)
-    {
-      CArray<int,1>& indi = vec_indi[idx];
-      CArray<int,1>& dataIndi = vec_dataInd[idx];
-      CArray<bool,1>& maskIndi = vec_mask[idx];
-      int nb = indi.numElements();
-      for (int n = 0; n < nb; ++n)
-      {
-        index(nbData) = indi(n);
-        globalLocalIndexMap_[indi(n)] = nbData;
-        nonCompressedData(nbData) = (0 <= dataIndi(n)) ? nbData : -1;
-        mask(nbData) = maskIndi(n);
-        if (hasValue)
-          value(nbData) = vec_val[idx](n);
-        if (hasBounds_)
-        {
-          bounds(0,nbData) = vec_bounds[idx](0,n);
-          bounds(1,nbData) = vec_bounds[idx](1,n);
-        }
-        ++nbData;
-      }
-    }
-
-    int nbIndex = index.numElements();
-    int nbCompressedData = 0; 
-    for (int idx = 0; idx < nonCompressedData.numElements(); ++idx)
-    {
-      if (0 <= nonCompressedData(idx) && nonCompressedData(idx) < nbIndex)
-        ++nbCompressedData;        
-    }
-
-    data_index.resize(nbCompressedData);
-    nbCompressedData = 0;
-    for (int idx = 0; idx < nonCompressedData.numElements(); ++idx)
-    {
-      if (0 <= nonCompressedData(idx) && nonCompressedData(idx) < nbIndex)
-      {
-        data_index(nbCompressedData) = nonCompressedData(idx);
-        ++nbCompressedData;        
-      }
-    }
-    data_begin.setValue(0);
-
-    if (hasLabel)
-    {
-      //label_srv(ind_srv) = labelVal( ind);
-    }
-  }
-
+  /*
+    Receive distribution attribute from another client
+    \param [in] event event containing data of these attributes
+  */
   void CAxis::recvDistributionAttribute(CEventServer& event)
   {
     CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1056,6 +799,10 @@ namespace xios {
     get(axisId)->recvDistributionAttribute(*buffer);
   }
 
+  /*
+    Receive distribution attribute from another client
+    \param [in] buffer buffer containing data of these attributes
+  */
   void CAxis::recvDistributionAttribute(CBufferIn& buffer)
   {
     int ni_srv, begin_srv, end_srv;
@@ -1065,11 +812,8 @@ namespace xios {
     std::vector<int> zoom_index_tmp;
     std::vector<int>::iterator itZoomBegin, itZoomEnd, itZoom;
 
-    buffer >> ni_srv >> begin_srv >> end_srv;
-    // buffer >> global_zoom_begin_tmp >> global_zoom_n_tmp;   
-    buffer >> isCompressible_;
-    buffer >> orderPosInGrid;
-    buffer >> globalDimGrid;    
+    buffer >> ni_srv >> begin_srv >> end_srv;    
+    buffer >> isCompressible_;            
 
     // Set up new local size of axis on the receiving clients
     n.setValue(ni_srv);
@@ -1115,6 +859,391 @@ namespace xios {
     }
   }
 
+  /*
+    Send attributes of axis from a group of client to other group of clients/servers 
+    on supposing that these attributes are not distributed among the sending group
+    In the future, if new attributes are added, they should also be processed in this function
+  */
+  void CAxis::sendNonDistributedAttributes()
+  {
+    CContext* context = CContext::getCurrent();
+
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    for (int p = 0; p < nbSrvPools; ++p)
+    {
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+
+      CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
+      size_t nbIndex = index.numElements();
+      size_t nbDataIndex = 0;
+
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        int ind = data_index(idx);
+        if (ind >= 0 && ind < nbIndex) ++nbDataIndex;
+      }
+
+      CArray<int,1> dataIndex(nbDataIndex);
+      nbDataIndex = 0;
+      for (int idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        int ind = data_index(idx);
+        if (ind >= 0 && ind < nbIndex)
+        {
+          dataIndex(nbDataIndex) = ind;
+          ++nbDataIndex;
+        }
+      }
+
+      if (client->isServerLeader())
+      {
+        std::list<CMessage> msgs;
+
+        const std::list<int>& ranks = client->getRanksServerLeader();
+        for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+        {
+          msgs.push_back(CMessage());
+          CMessage& msg = msgs.back();
+          msg << this->getId();
+          msg << index.getValue() << dataIndex << mask.getValue();
+          msg << hasValue;
+          if (hasValue) msg << value.getValue();
+          msg << hasBounds;
+          if (hasBounds) msg << bounds.getValue();
+          msg << hasLabel;
+          if (hasLabel) msg << label.getValue();
+
+          event.push(*itRank, 1, msg);
+        }
+        client->sendEvent(event);
+      }
+      else client->sendEvent(event);
+    }
+  }
+
+  /*
+    Receive the non-distributed attributes from another group of clients
+    \param [in] event event containing data of these attributes
+  */
+  void CAxis::recvNonDistributedAttributes(CEventServer& event)
+  {
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
+    {
+      CBufferIn* buffer = it->buffer;
+      string axisId;
+      *buffer >> axisId;
+      get(axisId)->recvNonDistributedAttributes(it->rank, *buffer);
+    }
+  }
+
+  /*
+    Receive the non-distributed attributes from another group of clients
+    \param [in] rank rank of the sender
+    \param [in] buffer buffer containing data sent from the sender
+  */
+  void CAxis::recvNonDistributedAttributes(int rank, CBufferIn& buffer)
+  { 
+    CArray<int,1> tmp_index, tmp_data_index, tmp_zoom_index;
+    CArray<bool,1> tmp_mask;
+    CArray<double,1> tmp_val;
+    CArray<double,2> tmp_bnds;
+    CArray<string,1> tmp_label;
+
+    buffer >> tmp_index;
+    index.reference(tmp_index);
+    buffer >> tmp_data_index;
+    data_index.reference(tmp_data_index);
+    buffer >> tmp_mask;
+    mask.reference(tmp_mask);
+
+    buffer >> hasValue;
+    if (hasValue)
+    {
+      buffer >> tmp_val;
+      value.reference(tmp_val);
+    }
+
+    buffer >> hasBounds;
+    if (hasBounds)
+    {
+      buffer >> tmp_bnds;
+      bounds.reference(tmp_bnds);
+    }
+
+    buffer >> hasLabel;
+    if (hasLabel)
+    {
+      buffer >> tmp_label;
+      label.reference(tmp_label);
+    }
+
+    // Some value should be reset here
+    data_begin.setValue(0);
+    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
+    for (int idx = 0; idx < index.numElements(); ++idx) globalLocalIndexMap_[idx] = index(idx);
+  }
+
+  /*
+    Send attributes of axis from a group of client to other group of clients/servers 
+    on supposing that these attributes are distributed among the clients of the sending group
+    In the future, if new attributes are added, they should also be processed in this function
+  */
+  void CAxis::sendDistributedAttributes(void)
+  {
+    int ns, n, i, j, ind, nv, idx;
+    CContext* context = CContext::getCurrent();
+    
+    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    for (int p = 0; p < nbSrvPools; ++p)
+    {
+      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+
+      CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
+
+      list<CMessage> listData;
+      list<CArray<int,1> > list_indi, list_dataInd, list_zoomInd;
+      list<CArray<bool,1> > list_mask;
+      list<CArray<double,1> > list_val;
+      list<CArray<double,2> > list_bounds;
+      list<CArray<string,1> > list_label;
+
+      int nbIndex = index.numElements();
+      CArray<int,1> dataIndex(nbIndex);
+      dataIndex = -1;
+      for (idx = 0; idx < data_index.numElements(); ++idx)
+      {
+        if (0 <= data_index(idx) && data_index(idx) < nbIndex)
+          dataIndex(idx) = 1;
+      }
+
+      boost::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
+      iteMap = indSrv_.end();
+      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      {
+        int nbData = 0;
+        int rank = connectedServerRank_[k];        
+        it = indSrv_.find(rank);
+        if (iteMap != it)
+          nbData = it->second.size();
+
+        list_indi.push_back(CArray<int,1>(nbData));
+        list_dataInd.push_back(CArray<int,1>(nbData));        
+        list_mask.push_back(CArray<bool,1>(nbData));
+
+        if (hasValue)
+          list_val.push_back(CArray<double,1>(nbData));
+
+        if (hasBounds)        
+          list_bounds.push_back(CArray<double,2>(2,nbData));
+
+        if (hasLabel)
+          list_label.push_back(CArray<string,1>(nbData));
+
+        CArray<int,1>& indi = list_indi.back();
+        CArray<int,1>& dataIndi = list_dataInd.back();        
+        CArray<bool,1>& maskIndi = list_mask.back();
+
+        for (n = 0; n < nbData; ++n)
+        {
+          idx = static_cast<int>(it->second[n]);
+          indi(n) = idx;
+
+          ind = globalLocalIndexMap_[idx];
+          dataIndi(n) = dataIndex(ind);
+          maskIndi(n) = mask(ind);
+
+          if (hasValue)
+          {
+            CArray<double,1>& val = list_val.back();
+            val(n) = value(ind);
+          }
+
+          if (hasBounds)
+          {
+            CArray<double,2>& boundsVal = list_bounds.back();
+            boundsVal(0, n) = bounds(0,n);
+            boundsVal(1, n) = bounds(1,n);
+          }
+
+          if (hasLabel)
+          {
+            CArray<string,1>& labelVal = list_label.back();
+            labelVal(n) = label(ind); 
+          }
+        }
+
+        listData.push_back(CMessage());
+        listData.back() << this->getId()
+                        << list_indi.back() << list_dataInd.back() << list_mask.back();
+
+        listData.back() << hasValue;
+        if (hasValue)
+          listData.back() << list_val.back();
+
+        listData.back() << hasBounds;
+        if (hasBounds)
+          listData.back() << list_bounds.back();
+
+        listData.back() << hasLabel;
+        if (hasLabel)
+          listData.back() << list_label.back();
+
+        eventData.push(rank, nbConnectedClients_[rank], listData.back());
+      }
+
+      client->sendEvent(eventData);
+    }
+  }
+
+  /*
+    Receive the distributed attributes from another group of clients
+    \param [in] event event containing data of these attributes
+  */
+  void CAxis::recvDistributedAttributes(CEventServer& event)
+  {
+    string axisId;
+    vector<int> ranks;
+    vector<CBufferIn*> buffers;
+
+    list<CEventServer::SSubEvent>::iterator it;
+    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
+    {
+      ranks.push_back(it->rank);
+      CBufferIn* buffer = it->buffer;
+      *buffer >> axisId;
+      buffers.push_back(buffer);
+    }
+    get(axisId)->recvDistributedAttributes(ranks, buffers);
+  }
+
+  /*
+    Receive the non-distributed attributes from another group of clients
+    \param [in] ranks rank of the sender
+    \param [in] buffers buffer containing data sent from the sender
+  */
+  void CAxis::recvDistributedAttributes(vector<int>& ranks, vector<CBufferIn*> buffers)
+  {
+    int nbReceived = ranks.size(), idx, ind, gloInd, locInd;
+    vector<CArray<int,1> > vec_indi(nbReceived), vec_dataInd(nbReceived), vec_zoomInd(nbReceived);    
+    vector<CArray<bool,1> > vec_mask(nbReceived);
+    vector<CArray<double,1> > vec_val(nbReceived);
+    vector<CArray<double,2> > vec_bounds(nbReceived);
+    vector<CArray<string,1> > vec_label(nbReceived);
+    
+    for (idx = 0; idx < nbReceived; ++idx)
+    {      
+      CBufferIn& buffer = *buffers[idx];
+      buffer >> vec_indi[idx];
+      buffer >> vec_dataInd[idx];      
+      buffer >> vec_mask[idx];
+
+      buffer >> hasValue;
+      if (hasValue)
+        buffer >> vec_val[idx];
+
+      buffer >> hasBounds;
+      if (hasBounds)
+        buffer >> vec_bounds[idx];
+
+      buffer >> hasLabel;
+      if (hasLabel)
+        buffer >> vec_label[idx]; 
+    }
+
+    // Estimate size of index array
+    int nbIndexGlob = 0;
+    for (idx = 0; idx < nbReceived; ++idx)
+    {
+      nbIndexGlob += vec_indi[idx].numElements();
+    }
+
+    // Recompute global index
+    // Take account of the overlapped index 
+    index.resize(nbIndexGlob);
+    globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
+    nbIndexGlob = 0;
+    for (idx = 0; idx < nbReceived; ++idx)
+    {
+      CArray<int,1>& tmp = vec_indi[idx];
+      for (ind = 0; ind < tmp.numElements(); ++ind)
+      {
+         gloInd = tmp(ind);
+         if (0 == globalLocalIndexMap_.count(gloInd))
+         {
+           index(nbIndexGlob) = gloInd % n_glo;           
+           globalLocalIndexMap_[gloInd] = nbIndexGlob;  
+           ++nbIndexGlob;
+         } 
+      } 
+    }
+
+    // Resize index to its real size
+    index.resizeAndPreserve(nbIndexGlob);
+
+    int nbData = nbIndexGlob;
+    CArray<int,1> nonCompressedData(nbData);
+    nonCompressedData = -1;   
+    mask.resize(nbData);
+    if (hasValue)
+      value.resize(nbData);
+    if (hasBounds)
+      bounds.resize(2,nbData);
+    if (hasLabel)
+      label.resize(nbData);
+
+    nbData = 0;
+    for (idx = 0; idx < nbReceived; ++idx)
+    {
+      CArray<int,1>& indi = vec_indi[idx];
+      CArray<int,1>& dataIndi = vec_dataInd[idx];
+      CArray<bool,1>& maskIndi = vec_mask[idx];
+      int nb = indi.numElements();
+      for (int n = 0; n < nb; ++n)
+      { 
+        locInd = globalLocalIndexMap_[size_t(indi(n))];
+
+        nonCompressedData(locInd) = (-1 == nonCompressedData(locInd)) ? dataIndi(n) : nonCompressedData(locInd);
+
+        if (!mask(locInd)) // Only rewrite mask if it's not true
+          mask(locInd) = maskIndi(n);
+        
+        if (hasValue)
+          value(locInd) = vec_val[idx](n);
+
+        if (hasBounds)
+        {
+          bounds(0,locInd) = vec_bounds[idx](0,n);
+          bounds(1,locInd) = vec_bounds[idx](1,n);
+        }
+
+        if (hasLabel)
+          label(locInd) = vec_label[idx](n);
+      }
+    }
+    
+    int nbCompressedData = 0; 
+    for (idx = 0; idx < nonCompressedData.numElements(); ++idx)
+    {
+      if (0 <= nonCompressedData(idx))
+        ++nbCompressedData;        
+    }
+
+    data_index.resize(nbCompressedData);
+    nbCompressedData = 0;
+    for (idx = 0; idx < nonCompressedData.numElements(); ++idx)
+    {
+      if (0 <= nonCompressedData(idx))
+      {
+        data_index(nbCompressedData) = idx % n;
+        ++nbCompressedData;        
+      }
+    }
+
+    data_begin.setValue(0);
+  }
+
+
   /*!
     Compare two axis objects. 
     They are equal if only if they have identical attributes as well as their values.
@@ -1147,27 +1276,47 @@ namespace xios {
     return objEqual;
   }
 
+  /*
+    Add transformation into axis. This function only servers for Fortran interface
+    \param [in] transType transformation type
+    \param [in] id identifier of the transformation object
+  */
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType,id)));
     return transformationMap_.back().second;
   }
 
+  /*
+    Check whether an axis has (spatial) transformation
+  */
   bool CAxis::hasTransformation()
   {
     return (!transformationMap_.empty());
   }
 
+  /*
+    Set transformation
+    \param [in] axisTrans transformation to set
+  */
   void CAxis::setTransformations(const TransMapTypes& axisTrans)
   {
     transformationMap_ = axisTrans;
   }
 
+  /*
+    Return all transformation held by the axis
+    \return transformation the axis has
+  */
   CAxis::TransMapTypes CAxis::getAllTransformations(void)
   {
     return transformationMap_;
   }
 
+  /*
+    Duplicate transformation of another axis
+    \param [in] src axis whose transformations are copied
+  */
   void CAxis::duplicateTransformation(CAxis* src)
   {
     if (src->hasTransformation())
