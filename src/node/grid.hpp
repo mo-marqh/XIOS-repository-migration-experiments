@@ -161,8 +161,8 @@ namespace xios {
 
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
-         std::map<int, StdSize> getAttributesBufferSize();
-         std::vector<std::map<int, StdSize> > getDataBufferSize(const std::string& id = "");
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
+         std::map<int, StdSize> getDataBufferSize(CContextClient* client, const std::string& id = "");
          std::vector<StdString> getDomainList();
          std::vector<StdString> getAxisList();
          std::vector<StdString> getScalarList();
@@ -174,8 +174,7 @@ namespace xios {
          CScalar* getScalar(int scalarIndex);
          std::vector<int> getAxisOrder();
          std::vector<int> getGlobalDimension();
-         bool isScalarGrid() const;
-         std::vector<int> getAxisPositionInGrid() const;
+         bool isScalarGrid() const;         
 
          bool doGridHaveDataToWrite();
          bool doGridHaveDataDistributed(CContextClient* client = 0);
@@ -199,18 +198,13 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
+
       public:
-
-         /// Propriétés privées ///
-         bool isChecked;
-         bool isDomainAxisChecked;
-         bool isIndexSent;
-
          CArray<int, 1> storeIndex_client;
 
-         map<int, CArray<int, 1> > storeIndex_toSrv;
-         map<int, CArray<int, 1> > storeIndex_fromSrv;
-         std::vector<map<int,int> > nbSenders, nbReadSenders;
+         std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv; // Same grid but can be sent to several pools
+         map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
+         std::map<CContextClient*, std::map<int,int> > nbSenders, nbReadSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
 
@@ -281,6 +275,10 @@ namespace xios {
         void computeConnectedClientsScalarGrid(); 
 
       private:
+         bool isChecked;
+         bool isDomainAxisChecked;
+         bool isIndexSent;
+
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
         CScalarGroup* vScalarGroup_;
@@ -292,8 +290,8 @@ namespace xios {
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-        std::vector<std::map<int,size_t> > connectedDataSize_;
-        std::vector<std::vector<int> > connectedServerRank_;
+        std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
+        std::map<CContextClient*, std::vector<int> > connectedServerRank_;
         bool isDataDistributed_;        
          //! True if and only if the data defined on the grid can be outputted in a compressed way
         bool isCompressible_;
@@ -306,7 +304,7 @@ namespace xios {
         bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
-        CClientServerMapping::GlobalIndexMap globalIndexOnServer_;
+        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
             // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
         std::vector<int> order_;
    }; // class CGrid

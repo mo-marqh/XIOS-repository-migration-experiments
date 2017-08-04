@@ -99,8 +99,8 @@ namespace xios {
          void resetNStep(int nstep = 0);
          void resetNStepMax();
 
-         std::map<int, StdSize> getGridAttributesBufferSize();
-         std::vector<std::map<int, StdSize> > getGridDataBufferSize(); // Grid data buffer size for each connection of contextclient
+         std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client);
+         std::map<int, StdSize> getGridDataBufferSize(CContextClient* client); // Grid data buffer size for each connection of contextclient
 
        public:
          bool isActive(bool atCurrentTimestep = false) const;

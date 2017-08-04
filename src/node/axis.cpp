@@ -136,16 +136,16 @@ namespace xios {
     *
     * \return A map associating the server rank with its minimum buffer size.
     */
-   std::map<int, StdSize> CAxis::getAttributesBufferSize()
+   std::map<int, StdSize> CAxis::getAttributesBufferSize(CContextClient* client)
    {
      // For now the assumption is that secondary server pools consist of the same number of procs.
      // CHANGE the line below if the assumption changes.
-     CContext* context = CContext::getCurrent();
-     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
+     // CContext* context = CContext::getCurrent();
+     // CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
-     bool isNonDistributed = (n == n_glo);
+     bool isNonDistributed = (n = n_glo);     
 
      if (client->isServerLeader())
      {
@@ -167,12 +167,12 @@ namespace xios {
      if (!isNonDistributed)
      {
        // size estimation for sendDistributedValue
-       boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_.end();
-       for (it = indSrv_.begin(); it != ite; ++it)
+       boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client].end();
+       for (it = indSrv_[client].begin(); it != ite; ++it)
        {
          size_t sizeIndexEvent = CArray<int,1>::size(it->second.size());
-         if (isCompressible_)
-           sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
+         // if (isCompressible_)
+         //   sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
 
          size_t sizeValEvent = CArray<double,1>::size(it->second.size());
          if (hasBounds)
@@ -504,6 +504,10 @@ namespace xios {
     CContext* context = CContext::getCurrent();
 
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+
+    connectedServerRank_.clear();
+    nbSenders.clear();
+
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
@@ -588,23 +592,23 @@ namespace xios {
       CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
 
 
-      indSrv_.swap(globalIndexAxisOnServer);
-      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_.begin(),
-                                                           ite = indSrv_.end();
-      connectedServerRank_.clear();
-      for (it = indSrv_.begin(); it != ite; ++it) {
-        connectedServerRank_.push_back(it->first);
+      indSrv_[client].swap(globalIndexAxisOnServer);
+      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[client].begin(),
+                                                           ite = indSrv_[client].end();
+      
+      for (it = indSrv_[client].begin(); it != ite; ++it) {
+        connectedServerRank_[client].push_back(it->first);
       }
 
       for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-        connectedServerRank_.push_back(*it);
+        connectedServerRank_[client].push_back(*it);
 
        // Even if a client has no index, it must connect to at least one server and 
        // send an "empty" data to this server
-       if (connectedServerRank_.empty())
-        connectedServerRank_.push_back(client->clientRank % client->serverSize);
+       if (connectedServerRank_[client].empty())
+        connectedServerRank_[client].push_back(client->clientRank % client->serverSize);
 
-      nbConnectedClients_ = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
+      nbSenders[client] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
 
       delete clientServerMap;
     }
@@ -1018,12 +1022,12 @@ namespace xios {
       }
 
       boost::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteMap = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[k];        
-        it = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];        
+        it = indSrv_[client].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
 
@@ -1089,7 +1093,7 @@ namespace xios {
         if (hasLabel)
           listData.back() << list_label.back();
 
-        eventData.push(rank, nbConnectedClients_[rank], listData.back());
+        eventData.push(rank, nbSenders[client][rank], listData.back());
       }
 
       client->sendEvent(eventData);

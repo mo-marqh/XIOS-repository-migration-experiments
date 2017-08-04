@@ -49,11 +49,8 @@ namespace xios {
          {
            EVENT_ID_INDEX, EVENT_ID_LON, EVENT_ID_LAT, 
            EVENT_ID_AREA, EVENT_ID_MASK,
-           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT,
-           EVENT_ID_INDEX_ZOOM
+           EVENT_ID_DATA_INDEX, EVENT_ID_SERVER_ATTRIBUT
          } ;
-
-
 
       public:
 
@@ -98,31 +95,22 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
-         std::map<int, StdSize> getAttributesBufferSize();
-         CArray<size_t,1> localIndexToWriteOnServer;
-         CArray<int, 1> compressedIndexToWriteOnServer;
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
 
          bool isEmpty(void) const;
          bool isDistributed(void) const;
          bool isCompressible(void) const; 
  
-         CArray<double, 1> lonvalue, latvalue;
-         CArray<double, 2> bounds_lonvalue, bounds_latvalue;
-         CArray<double, 1> areavalue;
-
-         vector<int> connectedServer ; // list of connected server
-         vector<int> nbSenders ; // for each communication with a server, number of communicating client
-         vector<int> nbDataSrv ; // size of data to send to each server
-         vector< vector<int> > i_indSrv ; // for each server, i global index to send
-         vector< vector<int> > j_indSrv ; // for each server, j global index to send
          std::vector<int> getNbGlob();
          bool isEqual(CDomain* domain);
+
+         static bool dispatchEvent(CEventServer& event);
+
       public:
          /// Mutateur ///
          void addRelFile(const StdString & filename);
-         void addRelFileCompressed(const StdString& filename);
-         void completeLonLatClient(void);         
-         void computeConnectedClients();
+         void addRelFileCompressed(const StdString& filename);            
+         
          void computeWrittenIndex();
 
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
@@ -134,24 +122,6 @@ namespace xios {
          void fillInLonLat();
          bool distributionAttributesHaveValue() const;
 
-         static bool dispatchEvent(CEventServer& event);
-         static void recvDistributionAttributes(CEventServer& event);
-         static void recvIndex(CEventServer& event);
-         static void recvIndexZoom(CEventServer& event);
-         static void recvMask(CEventServer& event);
-         static void recvZoom(CEventServer& event);
-         static void recvLon(CEventServer& event);
-         static void recvLat(CEventServer& event);
-         static void recvArea(CEventServer& event);
-         static void recvDataIndex(CEventServer& event);
-         void recvDistributionAttributes(CBufferIn& buffer);                  
-         void recvIndex(std::map<int, CBufferIn*>& rankBuffers);
-         void recvIndexZoom(std::map<int, CBufferIn*>& rankBuffers);
-         void recvMask(std::map<int, CBufferIn*>& rankBuffers);
-         void recvLon(std::map<int, CBufferIn*>& rankBuffers);
-         void recvLat(std::map<int, CBufferIn*>& rankBuffers);
-         void recvArea(std::map<int, CBufferIn*>& rankBuffers);         
-         void recvDataIndex(std::map<int, CBufferIn*>& rankBuffers);
          size_t getGlobalWrittenSize() ;
          /// Destructeur ///
          virtual ~CDomain(void);
@@ -160,8 +130,16 @@ namespace xios {
          static StdString GetName(void);
          static StdString GetDefName(void);
 
-         static ENodeType GetType(void);
-         const std::map<int, vector<size_t> >& getIndexServer() const;
+         static ENodeType GetType(void);        
+
+      public:
+         CArray<double, 1> lonvalue, latvalue;
+         CArray<double, 2> bounds_lonvalue, bounds_latvalue;
+         CArray<double, 1> areavalue;
+
+         CArray<size_t,1> localIndexToWriteOnServer;
+         CArray<int, 1> compressedIndexToWriteOnServer;
+
          CArray<bool, 1> localMask;
          bool isCurvilinear ;
          bool hasBounds ;
@@ -191,35 +169,55 @@ namespace xios {
          void sendDistributionAttributes();
          void sendMask();
          void sendArea();
-         void sendLonLat();
-         void sendIndexZoom();
+         void sendLonLat();         
          void sendDataIndex();
          void convertLonLatValue();
          void fillInRectilinearLonLat();
          void fillInCurvilinearLonLat();
          void fillInUnstructuredLonLat();
+         
+         static void recvDistributionAttributes(CEventServer& event);
+         static void recvIndex(CEventServer& event);
+         static void recvIndexZoom(CEventServer& event);
+         static void recvMask(CEventServer& event);         
+         static void recvLon(CEventServer& event);
+         static void recvLat(CEventServer& event);
+         static void recvArea(CEventServer& event);
+         static void recvDataIndex(CEventServer& event);
+         void recvDistributionAttributes(CBufferIn& buffer);                  
+         void recvIndex(std::map<int, CBufferIn*>& rankBuffers);         
+         void recvMask(std::map<int, CBufferIn*>& rankBuffers);
+         void recvLon(std::map<int, CBufferIn*>& rankBuffers);
+         void recvLat(std::map<int, CBufferIn*>& rankBuffers);
+         void recvArea(std::map<int, CBufferIn*>& rankBuffers);         
+         void recvDataIndex(std::map<int, CBufferIn*>& rankBuffers);
+
+         void completeLonLatClient(void);  
+         void computeConnectedClients();    
+
        private:         
          bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
-         std::map<int, CArray<int,1> > indiSrv, indjSrv, indGlob_, indGlobZoom_;
-         std::map<int,int> nbConnectedClients_, nbConnectedClientsZoom_; // Mapping of number of communicating client to a server
+         std::map<int, CArray<int,1> > indGlob_;
+         std::map<CContextClient*, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
 
-         boost::unordered_map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
-         boost::unordered_map<int, vector<size_t> > indZoomSrv_; // Global index of each client sent to server
-         std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         std::map<CContextClient*, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server         
+         // std::map<CContextClient*, std::map<int, vector<int> > > indWrittenSrv_; // Global written index of each client sent to server
          std::vector<int> indexesToWrite;
-         std::vector<int> recvClientRanks_, recvClientZoomRanks_;
-         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_, connectedServerZoomRank_;         
+         std::vector<int> recvClientRanks_;
+         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;         
+         std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
+         std::map<CContextClient*, std::vector<int> > connectedServerRank_;
+
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
-         boost::unordered_map<size_t,size_t> globalLocalIndexMap_, globalLocalIndexZoomMap_;
+         boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
        
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

@@ -99,29 +99,29 @@ namespace xios {
     * \return A map associating the server rank with its minimum buffer size.
     * TODO: Refactor code
     */
-   std::map<int, StdSize> CGrid::getAttributesBufferSize()
+   std::map<int, StdSize> CGrid::getAttributesBufferSize(CContextClient* client)
    {
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
      // The grid indexes require a similar size as the actual data
-     std::vector<std::map<int, StdSize> > dataSizes = getDataBufferSize();
-     for (size_t i = 0; i < dataSizes.size(); ++i)
-     {
-       std::map<int, StdSize>::iterator it, itE = dataSizes[i].end();
-       for (it = dataSizes[i].begin(); it != itE; ++it)
+     std::map<int, StdSize> dataSizes = getDataBufferSize(client);
+     // for (size_t i = 0; i < dataSizes.size(); ++i)
+     // {
+       std::map<int, StdSize>::iterator it, itE = dataSizes.end();
+       for (it = dataSizes.begin(); it != itE; ++it)
        {
          it->second += 2 * sizeof(bool);
          if (it->second > attributesSizes[it->first])
            attributesSizes[it->first] = it->second;
        }
-     }
+     // }
 
-     std::map<int, StdSize>::iterator it, itE;
+     
      // Account for the axis attributes
      std::vector<CAxis*> axisList = getAxis();
      for (size_t i = 0; i < axisList.size(); ++i)
      {
-       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize();       
+       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize(client);       
        for (it = axisAttBuffSize.begin(), itE = axisAttBuffSize.end(); it != itE; ++it)
        {
          if (it->second > attributesSizes[it->first])
@@ -133,7 +133,7 @@ namespace xios {
      std::vector<CDomain*> domList = getDomains();
      for (size_t i = 0; i < domList.size(); ++i)
      {
-       std::map<int, StdSize> domAttBuffSize = domList[i]->getAttributesBufferSize();
+       std::map<int, StdSize> domAttBuffSize = domList[i]->getAttributesBufferSize(client);
        for (it = domAttBuffSize.begin(), itE = domAttBuffSize.end(); it != itE; ++it)
        {
          if (it->second > attributesSizes[it->first])
@@ -142,7 +142,7 @@ namespace xios {
      }
 
      return attributesSizes;
-   }
+  }
 
    /*!
     * Compute the minimum buffer size required to send the data to the server(s).
@@ -150,28 +150,39 @@ namespace xios {
     * \param id the id used to tag the data
     * \return A map associating the server rank with its minimum buffer size.
     */
-   std::vector<std::map<int, StdSize> > CGrid::getDataBufferSize(const std::string& id /*= ""*/)
+   std::map<int, StdSize> CGrid::getDataBufferSize(CContextClient* client, const std::string& id /*= ""*/)
    {     
      // The record index is sometimes sent along with the data but we always
      // include it in the size calculation for the sake of simplicity
      const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() 
                                                        + 2 * sizeof(size_t) 
                                                        + sizeof(size_t);
-     CContext* context = CContext::getCurrent();
-     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-     std::vector<std::map<int, StdSize> > dataSizes(nbSrvPools);
-     for (int p = 0; p < nbSrvPools; ++p) 
-     {
-       std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[p].end();
-       for (size_t k = 0; k < connectedServerRank_[p].size(); ++k)
-       {
-         int rank = connectedServerRank_[p][k];
-         std::map<int, size_t>::const_iterator it = connectedDataSize_[p].find(rank);
-         size_t count = (it != itEnd) ? it->second : 0;
+     // CContext* context = CContext::getCurrent();
+     // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+     // std::vector<std::map<int, StdSize> > dataSizes(nbSrvPools);
+     // for (int p = 0; p < nbSrvPools; ++p) 
+     // {
+     //   std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[client].end();
+     //   for (size_t k = 0; k < connectedServerRank_[p].size(); ++k)
+     //   {
+     //     int rank = connectedServerRank_[p][k];
+     //     std::map<int, size_t>::const_iterator it = connectedDataSize_[client].find(rank);
+     //     size_t count = (it != itEnd) ? it->second : 0;
 
-         dataSizes[p].insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
-       }
+     //     dataSizes[p].insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
+     //   }
        
+     // }
+
+     std::map<int, StdSize> dataSizes;
+     std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[client].end();
+     for (size_t k = 0; k < connectedServerRank_[client].size(); ++k)
+     {
+       int rank = connectedServerRank_[client][k];
+       std::map<int, size_t>::const_iterator it = connectedDataSize_[client].find(rank);
+       size_t count = (it != itEnd) ? it->second : 0;
+
+       dataSizes.insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
      }
 
      return dataSizes;
@@ -250,7 +261,9 @@ namespace xios {
    }
 
    //---------------------------------------------------------------
-
+   /*
+     Find all reference of grid's components and inherite attributes if necessary
+   */
    void CGrid::solveDomainAxisRef(bool areAttributesChecked)
    {
      if (this->isDomainAxisChecked) return;
@@ -261,6 +274,10 @@ namespace xios {
      this->isDomainAxisChecked = areAttributesChecked;
    }
 
+   /*
+     Go up hierachy reference and fill in the base reference with attributes of the children
+     This function should be only used after reading component's attributes from file
+   */
    void CGrid::solveDomainAxisBaseRef()
    {
      if (this->hasDomainAxisBaseRef_) return;
@@ -331,6 +348,9 @@ namespace xios {
       this->isChecked = true;
    }
 
+   /*
+     Create mask of grid from mask of its components
+   */
    void CGrid::createMask(void)
    {
       using namespace std;
@@ -370,6 +390,9 @@ namespace xios {
       }
    }
 
+   /*
+     Check validity of grid's mask by using the masks of its components
+   */
    void CGrid::checkMask(void)
    {
       using namespace std;
@@ -409,6 +432,12 @@ namespace xios {
       }
    }
 
+   /*
+     Modify value of mask in a certain index
+     This function can be used to correct the mask of grid after being constructed with createMask
+     \param [in] indexToModify
+     \param [in] modifyValue
+   */
    void CGrid::modifyMask(const CArray<int,1>& indexToModify, bool modifyValue)
    {
       using namespace std;
@@ -443,6 +472,11 @@ namespace xios {
       }
    }
 
+   /*
+     Change the mask size. This function is used on reconstructing mask in server side
+     \param [in] newDimensionSize
+     \param [in] newValue 
+   */
    void CGrid::modifyMaskSize(const std::vector<int>& newDimensionSize, bool newValue)
    {      
       std::vector<CDomain*> domainP = this->getDomains();
@@ -539,10 +573,6 @@ namespace xios {
         }
       }
    }
-   std::vector<int> CGrid::getAxisPositionInGrid() const
-   {
-     return axisPositionInGrid_;
-   }
 
    /*!
       Compute the index to for write data into a file
@@ -611,14 +641,17 @@ namespace xios {
 
    //---------------------------------------------------------------
 
+   /*
+     Compute the global index and its local index on taking account of mask, data index.
+     These global index then will be used to compute the connection of this client to other clients in the different group
+     (via function computeConnectedClient)
+     These global index also corresponding to data sent to other clients (if any)
+   */
    void CGrid::computeClientIndex()
    {
      CContext* context = CContext::getCurrent();
 
-     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-     // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
      // This needs to change one day
-     // It works only for the same number of procs on secondary pools
      int nbSrvPools = 1; 
      for (int p = 0; p < nbSrvPools; ++p)
      {
@@ -681,21 +714,21 @@ namespace xios {
    /*!
      Compute the connected clients and index to send to these clients.
      Each client can connect to a pool of other clients, each of which can have a piece of information of a grid
-
    */
    void CGrid::computeConnectedClients()
    {
      CContext* context = CContext::getCurrent();
      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-     connectedServerRank_.resize(nbSrvPools);
-     connectedDataSize_.resize(nbSrvPools);
-     nbSenders.resize(nbSrvPools);
+     connectedServerRank_.clear();
+     connectedDataSize_.clear();
+     globalIndexOnServer_.clear();
+     nbSenders.clear();
 
      for (int p = 0; p < nbSrvPools; ++p)
      {
        CContextClient* client = (context->hasServer) ? context->clientPrimServer[p] : context->client;
 
-       connectedServerRank_[p].clear();
+       connectedServerRank_[client].clear();
 
        if (!doGridHaveDataDistributed(client))
        {
@@ -705,8 +738,8 @@ namespace xios {
             const std::list<int>& ranks = client->getRanksServerLeader();
             for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
             {
-              connectedServerRank_[p].push_back(*itRank);
-              connectedDataSize_[p][*itRank] = ssize;
+              connectedServerRank_[client].push_back(*itRank);
+              connectedDataSize_[client][*itRank] = ssize;
             }
           }
           return;
@@ -729,13 +762,13 @@ namespace xios {
        for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
          *it = serverZeroIndex[*it];
 
-       computeIndexByElement(indexServerOnElement, globalIndexOnServer_);
+       computeIndexByElement(indexServerOnElement, globalIndexOnServer_[client]);
 
        const CDistributionClient::GlobalLocalDataMap& globalLocalIndexSendToServer = clientDistribution_->getGlobalLocalDataSendToServer();
        CDistributionClient::GlobalLocalDataMap::const_iterator iteGlobalLocalIndexMap = globalLocalIndexSendToServer.end(), itGlobalLocalIndexMap;
        CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itbGlobalMap, itGlobalMap;
-       itbGlobalMap = globalIndexOnServer_.begin();
-       iteGlobalMap = globalIndexOnServer_.end();
+       itbGlobalMap = globalIndexOnServer_[client].begin();
+       iteGlobalMap = globalIndexOnServer_[client].end();
 
        for (itGlobalMap  = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap)
        {
@@ -747,29 +780,29 @@ namespace xios {
             itGlobalLocalIndexMap = globalLocalIndexSendToServer.find(indexVec[idx]);
             if (iteGlobalLocalIndexMap != itGlobalLocalIndexMap)
             {
-               if (connectedDataSize_[p].end() == connectedDataSize_[p].find(serverRank))
-                 connectedDataSize_[p][serverRank] = 1;
+               if (connectedDataSize_[client].end() == connectedDataSize_[client].find(serverRank))
+                 connectedDataSize_[client][serverRank] = 1;
                else
-                 ++connectedDataSize_[p][serverRank];
+                 ++connectedDataSize_[client][serverRank];
             }
          }
        }
 
        // Connected servers which really have index
        for (itGlobalMap = itbGlobalMap; itGlobalMap != iteGlobalMap; ++itGlobalMap) {
-         connectedServerRank_[p].push_back(itGlobalMap->first);
+         connectedServerRank_[client].push_back(itGlobalMap->first);
        }
 
        // Connected servers which have no index at all
        for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-         connectedServerRank_[p].push_back(*it);
+         connectedServerRank_[client].push_back(*it);
 
        // Even if a client has no index, it must connect to at least one server and 
        // send an "empty" data to this server
-       if (connectedServerRank_[p].empty())
-        connectedServerRank_[p].push_back(client->clientRank % client->serverSize);
+       if (connectedServerRank_[client].empty())
+        connectedServerRank_[client].push_back(client->clientRank % client->serverSize);
 
-       nbSenders[p] = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[p]);
+       nbSenders[client] = clientServerMap_->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
      }
    }
 
@@ -1257,16 +1290,16 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();    
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    connectedServerRank_.resize(nbSrvPools);
-    connectedDataSize_.resize(nbSrvPools);
-    nbSenders.resize(nbSrvPools);
+    connectedServerRank_.clear();
+    connectedDataSize_.clear();
+    nbSenders.clear();
 
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client) 
                                                     : context->client;
 
-      connectedServerRank_[p].clear();
+      connectedServerRank_[client].clear();
 
       if (client->isServerLeader())
       {
@@ -1275,9 +1308,9 @@ namespace xios {
         {
           int rank = *itRank;
           int nb = 1;
-          connectedServerRank_[p].push_back(rank);
-          connectedDataSize_[p][rank] = nb;
-          nbSenders[p][rank] = nb;
+          connectedServerRank_[client].push_back(rank);
+          connectedDataSize_[client][rank] = nb;
+          nbSenders[client][rank] = nb;
         }
       }
       else
@@ -1287,9 +1320,9 @@ namespace xios {
         {
           int rank = *itRank;
           int nb = 1;
-          connectedServerRank_[p].push_back(rank);
-          connectedDataSize_[p][rank] = nb;
-          nbSenders[p][rank] = nb;
+          connectedServerRank_[client].push_back(rank);
+          connectedDataSize_[client][rank] = nb;
+          nbSenders[client][rank] = nb;
         }        
       }
 
@@ -1301,6 +1334,8 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+    storeIndex_toSrv.clear();
+
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = context->hasServer ? context->clientPrimServer[p] : context->client;
@@ -1316,10 +1351,10 @@ namespace xios {
         {
           int rank = *itRank;
           int nb = 1;
-          storeIndex_toSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
+          storeIndex_toSrv[client].insert(std::make_pair(rank, CArray<int,1>(nb)));
           listOutIndex.push_back(CArray<size_t,1>(nb));
 
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[client][rank];
           CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
 
           for (int k = 0; k < nb; ++k)
@@ -1328,7 +1363,9 @@ namespace xios {
             outLocalIndexToServer(k)  = 0;
           }
 
-          storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+          if (context->hasClient && !context->hasServer)
+            storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
+
           listMsg.push_back(CMessage());
           listMsg.back() << getId( )<< isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
@@ -1342,13 +1379,15 @@ namespace xios {
         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
           int rank = *itRank;
-          int nb = 1;
-          storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(nb)));
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_fromSrv[rank];
+          int nb = 1;          
+          CArray<int, 1> outLocalIndexToServer;
           for (int k = 0; k < nb; ++k)
           {
             outLocalIndexToServer(k)  = 0;
           }
+
+          if (context->hasClient && !context->hasServer)
+            storeIndex_fromSrv.insert(std::make_pair(rank, CArray<int,1>(outLocalIndexToServer)));
         }
         client->sendEvent(event);
       }
@@ -1359,6 +1398,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
+    storeIndex_toSrv.clear();
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = context->hasServer ? context->clientPrimServer[p] : context->client ;
@@ -1388,8 +1428,10 @@ namespace xios {
           const std::list<int>& ranks = client->getRanksServerLeader();
           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
           {
-            storeIndex_toSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
-            storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            storeIndex_toSrv[client].insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            if (context->hasClient && !context->hasServer)
+              storeIndex_fromSrv.insert(std::make_pair(*itRank, CArray<int,1>(outLocalIndexToServer)));
+            
             listOutIndex.push_back(CArray<size_t,1>(outGlobalIndexOnServer));
 
             listMsg.push_back(CMessage());
@@ -1419,8 +1461,8 @@ namespace xios {
       else
       {
         CClientServerMapping::GlobalIndexMap::const_iterator iteGlobalMap, itGlobalMap;
-        itGlobalMap = globalIndexOnServer_.begin();
-        iteGlobalMap = globalIndexOnServer_.end();
+        itGlobalMap = globalIndexOnServer_[client].begin();
+        iteGlobalMap = globalIndexOnServer_[client].end();
 
         std::map<int,std::vector<int> >localIndexTmp;
         std::map<int,std::vector<size_t> > globalIndexTmp;
@@ -1440,17 +1482,17 @@ namespace xios {
           }
         }
 
-        for (int ns = 0; ns < connectedServerRank_[p].size(); ++ns)
+        for (int ns = 0; ns < connectedServerRank_[client].size(); ++ns)
         {
-          rank = connectedServerRank_[p][ns];
+          rank = connectedServerRank_[client][ns];
           int nb = 0;
           if (globalIndexTmp.end() != globalIndexTmp.find(rank))
             nb = globalIndexTmp[rank].size();
 
-          storeIndex_toSrv.insert(make_pair(rank, CArray<int,1>(nb)));
+          storeIndex_toSrv[client].insert(make_pair(rank, CArray<int,1>(nb)));
           listOutIndex.push_back(CArray<size_t,1>(nb));
 
-          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[rank];
+          CArray<int, 1>& outLocalIndexToServer = storeIndex_toSrv[client][rank];
           CArray<size_t, 1>& outGlobalIndexOnServer = listOutIndex.back();
 
           for (int k = 0; k < nb; ++k)
@@ -1463,7 +1505,7 @@ namespace xios {
           listMsg.push_back(CMessage());
           listMsg.back() << getId() << isDataDistributed_ << isCompressible_ << listOutIndex.back();
 
-          event.push(rank, nbSenders[p][rank], listMsg.back());
+          event.push(rank, nbSenders[client][rank], listMsg.back());
         }
 
         client->sendEvent(event);
@@ -1494,7 +1536,7 @@ namespace xios {
 
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     nbSrvPools = 1;    
-    nbReadSenders.resize(nbSrvPools);
+    nbReadSenders.clear();
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
@@ -1687,7 +1729,7 @@ namespace xios {
 
       if (isScalarGrid()) return;
 
-      nbReadSenders[p] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
+      nbReadSenders[client] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
     }
   }
 

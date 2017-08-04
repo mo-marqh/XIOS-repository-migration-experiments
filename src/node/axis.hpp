@@ -72,7 +72,7 @@ namespace xios {
          int getTotalNumberWrittenIndexes() const;
          int getOffsetWrittenIndexes() const;
 
-         std::map<int, StdSize> getAttributesBufferSize();
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
@@ -155,13 +155,13 @@ namespace xios {
          TransMapTypes transformationMap_;         
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
-         std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
-         boost::unordered_map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
-         std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         std::map<CContextClient*, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
+         std::map<CContextClient*, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
+         // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
          boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
          int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_;         
+         std::map<CContextClient*, std::vector<int> > connectedServerRank_;         
          bool hasBounds;
          bool hasLabel;         
          bool computedWrittenIndex_;                  

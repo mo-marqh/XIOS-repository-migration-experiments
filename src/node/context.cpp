@@ -1319,13 +1319,13 @@ namespace xios {
        for (size_t i = 0; i < numEnabledFiles; ++i)
        {
          CFile* file = this->enabledWriteModeFiles[i];
-//         if (file->getContextClient() == contextClient)
+         // if (file->getContextClient() == contextClient)
          {
            std::vector<CField*> enabledFields = file->getEnabledFields();
            size_t numEnabledFields = enabledFields.size();
            for (size_t j = 0; j < numEnabledFields; ++j)
            {
-             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
              std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
              for (; it != itE; ++it)
              {
@@ -1353,7 +1353,7 @@ namespace xios {
              size_t numEnabledFields = enabledFields.size();
              for (size_t j = 0; j < numEnabledFields; ++j)
              {
-               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize();
+               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
                std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
                for (; it != itE; ++it)
                {
@@ -1400,10 +1400,11 @@ namespace xios {
            size_t numEnabledFields = enabledFields.size();
            for (size_t j = 0; j < numEnabledFields; ++j)
            {
-             const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize();
-             for (size_t c = 0; c < mapSize.size(); ++c)
-             {
-               std::map<int, StdSize>::const_iterator it = mapSize[c].begin(), itE = mapSize[c].end();
+             // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
+            const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
+             // for (size_t c = 0; c < mapSize.size(); ++c)
+             // {
+               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
                for (; it != itE; ++it)
                {
                  // If dataSize[it->first] does not exist, it will be zero-initialized
@@ -1416,7 +1417,7 @@ namespace xios {
                  if (maxEventSize[it->first] < it->second)
                    maxEventSize[it->first] = it->second;
                }
-             }
+             // }
            }
          }
        }

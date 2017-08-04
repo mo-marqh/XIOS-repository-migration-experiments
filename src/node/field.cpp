@@ -142,7 +142,7 @@ namespace xios{
     {
        if (client->isServerLeader())
        {
-          for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+          for (it = grid->storeIndex_toSrv[client].begin(); it != grid->storeIndex_toSrv[client].end(); it++)
           {
             int rank = it->first;
             CArray<int,1>& index = it->second;
@@ -162,7 +162,7 @@ namespace xios{
     }
     else
     {
-      for (it = grid->storeIndex_toSrv.begin(); it != grid->storeIndex_toSrv.end(); it++)
+      for (it = grid->storeIndex_toSrv[client].begin(); it != grid->storeIndex_toSrv[client].end(); it++)
       {
         int rank = it->first;
         CArray<int,1>& index = it->second;
@@ -174,7 +174,7 @@ namespace xios{
         for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
         list_msg.back() << getId() << data_tmp;
-        event.push(rank, grid->nbSenders[0][rank], list_msg.back());
+        event.push(rank, grid->nbSenders[client][rank], list_msg.back());
       }
       client->sendEvent(event);
     }
@@ -422,7 +422,7 @@ namespace xios{
             break;
         }
 
-        event.push(it->first, grid->nbReadSenders[0][it->first], msg);
+        event.push(it->first, grid->nbReadSenders[client][it->first], msg);
       }
       client->sendEvent(event);
     }
@@ -859,14 +859,14 @@ namespace xios{
      solveCheckMaskIndex(doSending2Server);
    }
 
-   std::map<int, StdSize> CField::getGridAttributesBufferSize()
+   std::map<int, StdSize> CField::getGridAttributesBufferSize(CContextClient* client)
    {
-     return grid->getAttributesBufferSize();
+     return grid->getAttributesBufferSize(client);
    }
 
-   std::vector<std::map<int, StdSize> > CField::getGridDataBufferSize()
+   std::map<int, StdSize> CField::getGridDataBufferSize(CContextClient* client)
    {
-     return grid->getDataBufferSize(getId());
+     return grid->getDataBufferSize(client, getId());
    }
 
    size_t CField::getGlobalWrittenSize()

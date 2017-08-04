@@ -17,9 +17,6 @@
 #include "distribution_client.hpp"
 #include "server_distribution_description.hpp"
 #include "client_server_mapping_distributed.hpp"
-#include "zoom_domain.hpp"
-#include "interpolate_domain.hpp"
-#include "generate_rectilinear_domain.hpp"
 
 #include <algorithm>
 
@@ -29,7 +26,7 @@ namespace xios {
 
    CDomain::CDomain(void)
       : CObjectTemplate<CDomain>(), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_(), connectedServerZoomRank_()
+      , isChecked(false), relFiles(), isClientChecked(false), nbSenders(), indSrv_(), connectedServerRank_()
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
@@ -40,7 +37,7 @@ namespace xios {
 
    CDomain::CDomain(const StdString & id)
       : CObjectTemplate<CDomain>(id), CDomainAttributes()
-      , isChecked(false), relFiles(), isClientChecked(false), nbConnectedClients_(), indSrv_(), connectedServerRank_(), connectedServerZoomRank_()
+      , isChecked(false), relFiles(), isClientChecked(false), nbSenders(), indSrv_(), connectedServerRank_() 
       , hasBounds(false), hasArea(false), isCompressible_(false), isUnstructed_(false)
       , isClientAfterTransformationChecked(false), hasLonLat(false)
       , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
@@ -118,12 +115,12 @@ namespace xios {
     *
     * \return A map associating the server rank with its minimum buffer size.
     */
-   std::map<int, StdSize> CDomain::getAttributesBufferSize()
+   std::map<int, StdSize> CDomain::getAttributesBufferSize(CContextClient* client)
    {
      CContext* context = CContext::getCurrent();
      // For now the assumption is that secondary server pools consist of the same number of procs.
      // CHANGE the line below if the assumption changes.
-     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
+     // CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
 
@@ -140,22 +137,22 @@ namespace xios {
        }
      }
 
-     boost::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_.end();
-     std::map<int, std::vector<int> >::const_iterator itWrittenIndexEnd = indWrittenSrv_.end();
-     for (size_t k = 0; k < connectedServerRank_.size(); ++k)
+     boost::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_[client].end();
+     // std::map<int, std::vector<int> >::const_iterator itWrittenIndexEnd = indWrittenSrv_.end();
+     for (size_t k = 0; k < connectedServerRank_[client].size(); ++k)
      {
-       int rank = connectedServerRank_[k];
-       boost::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_.find(rank);
+       int rank = connectedServerRank_[client][k];
+       boost::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_[client].find(rank);
        size_t idxCount = (it != itIndexEnd) ? it->second.size() : 0;
 
        // size estimation for sendIndex (and sendArea which is always smaller or equal)
        size_t sizeIndexEvent = 2 * sizeof(size_t) + 2 * CArray<int,1>::size(idxCount);
-       if (isCompressible_)
-       {
-         std::map<int, std::vector<int> >::const_iterator itWritten = indWrittenSrv_.find(rank);
-         size_t writtenIdxCount = (itWritten != itWrittenIndexEnd) ? itWritten->second.size() : 0;
-         sizeIndexEvent += CArray<int,1>::size(writtenIdxCount);
-       }
+       // if (isCompressible_)
+       // {
+       //   std::map<int, std::vector<int> >::const_iterator itWritten = indWrittenSrv_.find(rank);
+       //   size_t writtenIdxCount = (itWritten != itWrittenIndexEnd) ? itWritten->second.size() : 0;
+       //   sizeIndexEvent += CArray<int,1>::size(writtenIdxCount);
+       // }
 
        // size estimation for sendLonLat
        size_t sizeLonLatEvent = CArray<double,1>::size(idxCount);
@@ -760,6 +757,9 @@ namespace xios {
       }
    }
 
+   /*
+     General check of the domain to verify its mandatory attributes
+   */
    void CDomain::checkDomain(void)
    {
      if (type.isEmpty())
@@ -1685,9 +1685,13 @@ namespace xios {
   void CDomain::computeConnectedClients()
   {
     CContext* context=CContext::getCurrent() ;
-
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
+    
+    // This line should be changed soon.
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
+
+    nbSenders.clear();
+    connectedServerRank_.clear();
+
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
@@ -1829,29 +1833,20 @@ namespace xios {
 
       CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),
                                                            ite = globalIndexDomainOnServer.end();
-      indSrv_.swap(globalIndexDomainOnServer);
-      connectedServerRank_.clear();
-      for (it = indSrv_.begin(); it != ite; ++it) 
-        connectedServerRank_.push_back(it->first);
+      indSrv_[client].swap(globalIndexDomainOnServer);
+      connectedServerRank_[client].clear();
+      for (it = indSrv_[client].begin(); it != ite; ++it) 
+        connectedServerRank_[client].push_back(it->first);
 
       for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-        connectedServerRank_.push_back(*it);
+        connectedServerRank_[client].push_back(*it);
 
        // Even if a client has no index, it must connect to at least one server and 
        // send an "empty" data to this server
-       if (connectedServerRank_.empty())
-        connectedServerRank_.push_back(client->clientRank % client->serverSize);
+       if (connectedServerRank_[client].empty())
+        connectedServerRank_[client].push_back(client->clientRank % client->serverSize);
 
-      nbConnectedClients_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_);
-
-     //  clientServerMap->computeServerIndexMapping(globalIndexDomainZoom);
-     //  CClientServerMapping::GlobalIndexMap& globalIndexDomainZoomOnServer = clientServerMap->getGlobalIndexOnServer();
-     //  indZoomSrv_.swap(globalIndexDomainZoomOnServer);
-      
-     // for (it = indZoomSrv_.begin(); it != indZoomSrv_.end(); ++it)
-     //   connectedServerZoomRank_.push_back(it->first);
-
-     //  nbConnectedClientsZoom_ = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerZoomRank_);
+      nbSenders[client] = clientServerMap->computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
 
       delete clientServerMap;
     }
@@ -1959,8 +1954,7 @@ namespace xios {
   void CDomain::sendAttributes()
   {
     sendDistributionAttributes();
-    sendIndex();   
-    // sendIndexZoom(); 
+    sendIndex();       
     sendMask();
     sendLonLat();
     sendArea();    
@@ -1988,12 +1982,12 @@ namespace xios {
       list<CArray<int,1> > list_indZoom, list_writtenInd, list_indGlob;
 
       boost::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
-      iteIndex = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteIndex = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbIndGlob = 0;
-        int rank = connectedServerRank_[k];
-        itIndex = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];
+        itIndex = indSrv_[client].find(rank);
         if (iteIndex != itIndex)
           nbIndGlob = itIndex->second.size();
 
@@ -2010,61 +2004,12 @@ namespace xios {
         list_msgsIndex.back() << isCurvilinear;
         list_msgsIndex.back() << list_indGlob.back(); //list_indi.back() << list_indj.back();
        
-        eventIndex.push(rank, nbConnectedClients_[rank], list_msgsIndex.back());
+        eventIndex.push(rank, nbSenders[client][rank], list_msgsIndex.back());
       }
 
       client->sendEvent(eventIndex);
     }
   }
-
-  /*!
-    Send global index and zoom index from client to connected client(s)
-    zoom index can be smaller than global index.
-    This function can be used in the future???
-  */
-  // void CDomain::sendIndexZoom()
-  // {
-  //   int ns, n, i, j, ind, nv, idx;
-  //   CContext* context = CContext::getCurrent();
-
-  //   // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-  //   int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-  //   for (int p = 0; p < nbSrvPools; ++p)
-  //   {
-  //     CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
-  //     CEventClient eventIndexZoom(getType(), EVENT_ID_INDEX_ZOOM);
-
-  //     list<CMessage> list_msgsIndex;
-  //     list<CArray<int,1> > list_indZoom;
-
-  //     boost::unordered_map<int, vector<size_t> >::const_iterator itZoom, iteZoom;
-  //     iteZoom = indZoomSrv_.end();
-  //     for (int k = 0; k < connectedServerZoomRank_.size(); ++k)
-  //     {
-  //       int nbIndGlob = 0;
-  //       int rank = connectedServerZoomRank_[k];
-  //       int nbIndZoom = 0;
-  //       itZoom = indZoomSrv_.find(rank);
-  //       if (iteZoom != itZoom)
-  //         nbIndZoom = itZoom->second.size();
-        
-  //       list_indZoom.push_back(CArray<int,1>(nbIndZoom));
-  //       CArray<int,1>& indZoom = list_indZoom.back();
-  //       for (n = 0; n < nbIndZoom; ++n)
-  //       {
-  //         indZoom(n) = static_cast<int>(itZoom->second[n]);
-  //       }
-
-  //       list_msgsIndex.push_back(CMessage());
-  //       list_msgsIndex.back() << this->getId(); // enum ne fonctionne pour les message => ToFix        
-  //       list_msgsIndex.back() << list_indZoom.back() << doZoomByIndex_; //list_indi.back() << list_indj.back      
-
-  //       eventIndexZoom.push(rank, nbConnectedClientsZoom_[rank], list_msgsIndex.back());
-  //     }
-
-  //     client->sendEvent(eventIndexZoom);
-  //   }
-  // }
 
   /*!
     Send distribution from client to other clients
@@ -2143,12 +2088,12 @@ namespace xios {
       list<CArray<bool,1> > list_mask;
 
       boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteMap = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[k];
-        it = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];
+        it = indSrv_[client].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
         list_mask.push_back(CArray<bool,1>(nbData));
@@ -2162,7 +2107,7 @@ namespace xios {
 
         list_msgsMask.push_back(CMessage());
         list_msgsMask.back() << this->getId() << list_mask.back();
-        eventMask.push(rank, nbConnectedClients_[rank], list_msgsMask.back());
+        eventMask.push(rank, nbSenders[client][rank], list_msgsMask.back());
       }
       client->sendEvent(eventMask);
     }
@@ -2191,12 +2136,12 @@ namespace xios {
       list<CArray<double,1> > list_area;
 
       boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteMap = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[k];
-        it = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];
+        it = indSrv_[client].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
         list_area.push_back(CArray<double,1>(nbData));
@@ -2211,7 +2156,7 @@ namespace xios {
         list_msgsArea.push_back(CMessage());
         list_msgsArea.back() << this->getId() << hasArea;
         list_msgsArea.back() << list_area.back();
-        eventArea.push(rank, nbConnectedClients_[rank], list_msgsArea.back());
+        eventArea.push(rank, nbSenders[client][rank], list_msgsArea.back());
       }
       client->sendEvent(eventArea);
     }
@@ -2244,12 +2189,12 @@ namespace xios {
       list<CArray<double,2> > list_boundslon, list_boundslat;
 
       boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteMap = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[k];
-        it = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];
+        it = indSrv_[client].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
 
@@ -2306,8 +2251,8 @@ namespace xios {
           list_msgsLat.back() << list_boundslat.back();
         }
 
-        eventLon.push(rank, nbConnectedClients_[rank], list_msgsLon.back());
-        eventLat.push(rank, nbConnectedClients_[rank], list_msgsLat.back());
+        eventLon.push(rank, nbSenders[client][rank], list_msgsLon.back());
+        eventLat.push(rank, nbSenders[client][rank], list_msgsLat.back());
       }
       client->sendEvent(eventLon);
       client->sendEvent(eventLat);
@@ -2362,12 +2307,12 @@ namespace xios {
       }
 
       boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_.end();
-      for (int k = 0; k < connectedServerRank_.size(); ++k)
+      iteMap = indSrv_[client].end();
+      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[k];
-        it = indSrv_.find(rank);
+        int rank = connectedServerRank_[client][k];
+        it = indSrv_[client].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
         list_data_i_index.push_back(CArray<int,1>(nbData));
@@ -2385,7 +2330,7 @@ namespace xios {
         list_msgsDataIndex.push_back(CMessage());
         list_msgsDataIndex.back() << this->getId();
         list_msgsDataIndex.back() << list_data_i_index.back() << list_data_j_index.back();
-        eventDataIndex.push(rank, nbConnectedClients_[rank], list_msgsDataIndex.back());
+        eventDataIndex.push(rank, nbSenders[client][rank], list_msgsDataIndex.back());
       }
       client->sendEvent(eventDataIndex);
     }
@@ -2404,10 +2349,6 @@ namespace xios {
           break;
         case EVENT_ID_INDEX:
           recvIndex(event);
-          return true;
-          break;
-        case EVENT_ID_INDEX_ZOOM:
-          recvIndexZoom(event);
           return true;
           break;
         case EVENT_ID_MASK:
@@ -2504,73 +2445,6 @@ namespace xios {
 
     i_index.resizeAndPreserve(nbIndGlob);
     j_index.resizeAndPreserve(nbIndGlob);
-  }
-
-  /*!
-    Receive index event from clients(s)
-    \param[in] event event contain info about rank and associated index
-  */
-  void CDomain::recvIndexZoom(CEventServer& event)
-  {
-    string domainId;
-    std::map<int, CBufferIn*> rankBuffers;
-
-    list<CEventServer::SSubEvent>::iterator it;
-    for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
-    {      
-      CBufferIn* buffer = it->buffer;
-      *buffer >> domainId;
-      rankBuffers[it->rank] = buffer;        
-    }
-    get(domainId)->recvIndexZoom(rankBuffers);
-  }
-
-  /*!
-    Receive index information from client(s)
-    \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
-  */
-  void CDomain::recvIndexZoom(std::map<int, CBufferIn*>& rankBuffers)
-  {
-    int nbReceived = rankBuffers.size(), i, ind, index, type_int;
-    recvClientZoomRanks_.resize(nbReceived);    
-    int ni_zoom_tmp, ibegin_zoom_tmp, nj_zoom_tmp, jbegin_zoom_tmp;
-
-    std::map<int, CBufferIn*>::iterator it = rankBuffers.begin(), ite = rankBuffers.end();
-    ind = 0;
-    for (ind = 0; it != ite; ++it, ++ind)
-    {       
-       recvClientZoomRanks_[ind] = it->first;
-       CBufferIn& buffer = *(it->second);
-       buffer >> indGlobZoom_[it->first] >> doZoomByIndex_;        
-    }
-
-    int nbZoomInd = 0;
-    for (i = 0; i < nbReceived; ++i)
-    {
-      nbZoomInd += indGlobZoom_[recvClientZoomRanks_[i]].numElements();
-    }
-
-    if (doZoomByIndex_)
-    {
-      zoom_i_index.resize(nbZoomInd);
-      zoom_j_index.resize(nbZoomInd);
-      
-      nbZoomInd = 0;
-      for (i = 0; i < nbReceived; ++i)
-      {
-        CArray<int,1>& tmp = indGlobZoom_[recvClientRanks_[i]];
-        for (ind = 0; ind < tmp.numElements(); ++ind)
-        {
-           index = tmp(ind);
-           zoom_i_index(nbZoomInd) = index % ni_glo;
-           zoom_j_index(nbZoomInd) = index / ni_glo;
-           ++nbZoomInd;
-        } 
-      }      
-    }
-    else 
-    {
-    }
   }
 
   /*!
