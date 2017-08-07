@@ -557,15 +557,17 @@ namespace xios {
       if (!hasServer)
         sendEnabledFieldsInFiles(this->enabledReadModeFiles);
 
-      // At last, we have all info of domain and axis, then send them
+      // We have all info of domain, axis and scalar, so send them
        sendRefDomainsAxisScalars(this->enabledWriteModeFiles);
       if (!hasServer)
         sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
 
        // After that, send all grid (if any)
-      sendRefGrid(this->enabledWriteModeFiles);
-      if (!hasServer)
-        sendRefGrid(this->enabledReadModeFiles);
+      sendRefGrid(this->enabledFiles);
+      // This code may be useful in the future when we want to seperate completely read and write
+      // sendRefGrid(this->enabledWriteModeFiles);
+      // if (!hasServer)
+      //   sendRefGrid(this->enabledReadModeFiles);
 
        // We have a xml tree on the server side and now, it should be also processed
        sendPostProcessing();
