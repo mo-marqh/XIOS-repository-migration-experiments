@@ -1380,7 +1380,7 @@ namespace xios {
         {
           int rank = *itRank;
           int nb = 1;          
-          CArray<int, 1> outLocalIndexToServer;
+          CArray<int, 1> outLocalIndexToServer(nb);
           for (int k = 0; k < nb; ++k)
           {
             outLocalIndexToServer(k)  = 0;
