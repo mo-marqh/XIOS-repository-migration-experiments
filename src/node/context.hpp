@@ -130,7 +130,8 @@ namespace xios {
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
          void checkGridEnabledFields();
          void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
-         void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);         
+         void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);  
+         void sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)       ;
 
 //         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
 //         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);

@@ -326,7 +326,7 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       // Done by classical server or secondary server
       // TODO: This condition should be changed soon. It only works with maximum number of level as 2
-      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
+      if (CServer::serverLevel == 0 || CServer::serverLevel == 1)
       {
         if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
         {
@@ -791,6 +791,15 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFields[i]->checkGridOfEnabledFields();
+     }
+   }
+
+   void CFile::sendGridComponentOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->sendGridComponentOfEnabledFields();
      }
    }
 

@@ -557,23 +557,29 @@ namespace xios {
       if (!hasServer)
         sendEnabledFieldsInFiles(this->enabledReadModeFiles);
 
-      // We have all info of domain, axis and scalar, so send them
+      // Then, check whether we have domain_ref, axis_ref or scalar_ref attached to the enabled fields
+      // If any, so send them to server
        sendRefDomainsAxisScalars(this->enabledWriteModeFiles);
       if (!hasServer)
         sendRefDomainsAxisScalars(this->enabledReadModeFiles);        
 
-       // After that, send all grid (if any)
+       // Check whether enabled fields have grid_ref, if any, send this info to server
       sendRefGrid(this->enabledFiles);
       // This code may be useful in the future when we want to seperate completely read and write
       // sendRefGrid(this->enabledWriteModeFiles);
       // if (!hasServer)
       //   sendRefGrid(this->enabledReadModeFiles);
+      
+      // A grid of enabled fields composed of several components which must be checked then their
+      // checked attributes should be sent to server
+      sendGridComponentEnabledFieldsInFiles(this->enabledFiles); // This code can be seperated in two (one for reading, another for writing)
 
        // We have a xml tree on the server side and now, it should be also processed
-       sendPostProcessing();
+      sendPostProcessing();
        
-       sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
-       if (!hasServer)
+      // Finally, we send information of grid itself to server 
+      sendGridEnabledFieldsInFiles(this->enabledWriteModeFiles);       
+      if (!hasServer)
         sendGridEnabledFieldsInFiles(this->enabledReadModeFiles);       
      }
      allProcessed = true;
@@ -668,6 +674,15 @@ namespace xios {
    {
       for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
+   }
+
+   void CContext::sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   {
+     int size = activeFiles.size();
+     for (int i = 0; i < size; ++i)
+     {       
+       activeFiles[i]->sendGridComponentOfEnabledFields();
+     }
    }
 
    /*!

@@ -375,7 +375,7 @@ namespace xios{
                   msg << getNStep() - 1 << recvDataSrv;
                   break;
                 case RF_NODATA:
-                  msg << int(-2);
+                  msg << int(-2) << recvDataSrv;
                   break;
                 case RF_EOF:                  
                 default:
@@ -796,14 +796,19 @@ namespace xios{
       solveCheckMaskIndex(false);
    }
 
-   void CField::sendGridOfEnabledFields()
+   void CField::sendGridComponentOfEnabledFields()
    {
       solveGridDomainAxisRef(true);
-      solveCheckMaskIndex(true);
+      // solveCheckMaskIndex(true);
    }
 
+   void CField::sendGridOfEnabledFields()
+   {
+      // solveGridDomainAxisRef(true);
+      solveCheckMaskIndex(true);
+   }   
 
-    void CField::solveOnlyReferenceEnabledField(bool doSending2Server)
+   void CField::solveOnlyReferenceEnabledField(bool doSending2Server)
    {
      CContext* context = CContext::getCurrent();
      if (!isReferenceSolved)

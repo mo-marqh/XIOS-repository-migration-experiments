@@ -129,6 +129,7 @@ namespace xios {
          void solveAllEnabledFieldsAndTransform();
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
+         void sendGridComponentOfEnabledFields();   
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
          size_t getGlobalWrittenSize(void) ;

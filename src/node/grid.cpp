@@ -1540,7 +1540,7 @@ namespace xios {
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextServer* server = (!context->hasClient) ? context->server : context->serverPrimServer[p];
-      CContextClient* client = (!context->hasClient) ? context->client : context->clientPrimServer[p];
+      CContextClient* client = context->client;   //(!context->hasClient) ? context->client : context->clientPrimServer[p];
       
       int idx = 0, numElement = axis_domain_order.numElements();
       int ssize = numElement;
