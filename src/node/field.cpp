@@ -480,7 +480,7 @@ namespace xios{
 
     if (!nstepMaxRead)
     {
-       MPI_Allreduce(&nstepMax, &nstepMax, 1, MPI_INT, MPI_MAX, context->server->intraComm);
+       MPI_Allreduce(MPI_IN_PLACE, &nstepMax, 1, MPI_INT, MPI_MAX, context->server->intraComm);
        nstepMaxRead = true;
     }
 
