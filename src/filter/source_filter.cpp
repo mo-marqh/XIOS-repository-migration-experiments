@@ -6,12 +6,13 @@
 
 namespace xios
 {
-  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid, bool compression, 
                                const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/,
                                bool hasMissingValue /*= false*/,
                                double defaultValue /*= 0.0*/)
     : COutputPin(gc, manualTrigger)
     , grid(grid)
+    , compression(compression)
     , offset(offset)
     , hasMissingValue(hasMissingValue), defaultValue(defaultValue)
   {
@@ -31,8 +32,13 @@ namespace xios
     packet->status = CDataPacket::NO_ERROR;
 
     packet->data.resize(grid->storeIndex_client.numElements());
-    grid->inputField(data, packet->data);
-
+    if (compression) grid->inputField(data, packet->data) ;
+    else
+    {
+      // just make a flat copy
+      CArray<double,1> dataTmp(data.copy().dataFirst(),shape(data.numElements())) ;
+      packet->data.reference(dataTmp) ;
+    }
     // Convert missing values to NaN
     if (hasMissingValue)
     {

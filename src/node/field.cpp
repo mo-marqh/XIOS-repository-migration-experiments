@@ -949,7 +949,7 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
-          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
+          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,false));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
@@ -964,7 +964,7 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid));
+         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
@@ -1008,14 +1008,14 @@ namespace xios{
            instantDataFilter = getFieldReference(gc);
          // Check if the data is to be read from a file
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-           instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+           instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true,
                                                                                                        freq_offset.isEmpty() ? NoneDu : freq_offset,
                                                                                                        true,
                                                                                                        detectMissingValues, defaultValue));
          else // The data might be passed from the model
          {
             if (check_if_active.isEmpty()) check_if_active = false; 
-            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
                                                                                                         detectMissingValues, defaultValue));
          }
        }
@@ -1091,7 +1091,7 @@ namespace xios{
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true,
                                                                                    freq_offset.isEmpty() ? NoneDu : freq_offset,
                                                                                    true,
                                                                                    detectMissingValues, defaultValue));
@@ -1109,7 +1109,7 @@ namespace xios{
          if (!clientSourceFilter)
          {
            if (check_if_active.isEmpty()) check_if_active = false;
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, NoneDu, false,
+           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
                                                                                    detectMissingValues, defaultValue));
          }
 
