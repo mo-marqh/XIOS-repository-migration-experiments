@@ -36,8 +36,9 @@ namespace xios
     else
     {
       // just make a flat copy
-      CArray<double,1> dataTmp(data.copy().dataFirst(),shape(data.numElements())) ;
-      packet->data.reference(dataTmp) ;
+      CArray<double, N> data_tmp(data.copy()) ; // supress const attribute
+      CArray<double,1> dataTmp2(data_tmp.dataFirst(),shape(data.numElements()),neverDeleteData) ;
+      packet->data = dataTmp2 ;
     }
     // Convert missing values to NaN
     if (hasMissingValue)
