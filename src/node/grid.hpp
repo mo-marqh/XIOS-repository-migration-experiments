@@ -202,8 +202,12 @@ namespace xios {
       public:
          CArray<int, 1> storeIndex_client;
 
-         std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv; // Same grid but can be sent to several pools
+/** Map containing indexes that will be sent in sendIndex(). In future: change the key to pair<distrType, serverSize> (?) */
+         std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv;
+
          map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
+
+
          std::map<CContextClient*, std::map<int,int> > nbSenders, nbReadSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
@@ -214,10 +218,12 @@ namespace xios {
          // Maybe we need a flag to determine whether a client wants to write. TODO
          map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient; 
 
-         // If a client wants to write out data, it'll use this index.
-         // A client receives global index of data from other clients (via recvIndex),
-         // then does remapping these index into local index to WRITE into a file
-         CArray<size_t,1> localIndexToWriteOnClient, localIndexToWriteOnServer;
+/** Indexes calculated based on server distribution (serverDistribution_). They are used for writing data into a file. */
+         CArray<size_t,1> localIndexToWriteOnServer;
+
+/** Indexes calculated based on client distribution (clientDistribution_). They are not used at all.
+    They should be the same as localIndexToWriteOnServer and potentially can be used as an additional check.*/
+         CArray<size_t,1> localIndexToWriteOnClient;
 
          CArray<size_t,1> indexFromClients;
          void checkMask(void);
@@ -285,13 +291,22 @@ namespace xios {
         std::vector<std::string> axisList_, domList_, scalarList_;
         bool isAxisListSet, isDomListSet, isScalarListSet;
 
+/** Distribution calculated in computeClientIndex() based on the knowledge of the entire grid */
         CDistributionClient* clientDistribution_;
+
+/** Distribution calculated upon receiving indexes */
         CDistributionServer* serverDistribution_;
+
         CClientServerMapping* clientServerMap_;
         size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-        std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
+
+/** Map storing ranks of connected servers. In future: change the key to the server size (?) */
         std::map<CContextClient*, std::vector<int> > connectedServerRank_;
+
+/** Map storing data size that will be sent to connected servers. In future: change the key to the server size (?) */
+        std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
+
         bool isDataDistributed_;        
          //! True if and only if the data defined on the grid can be outputted in a compressed way
         bool isCompressible_;
@@ -304,9 +319,13 @@ namespace xios {
         bool hasDomainAxisBaseRef_;        
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
+
+/** Map storing data size that will be sent to connected servers. In future: change the key to the server size (?) */
         std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
-            // List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false)
+
+/** List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false) */
         std::vector<int> order_;
+
    }; // class CGrid
 
    ///--------------------------------------------------------------

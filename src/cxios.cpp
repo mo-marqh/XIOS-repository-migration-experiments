@@ -27,6 +27,7 @@ namespace xios
   bool CXios::usingServer = false;
   bool CXios::usingServer2 = false;
   int CXios::ratioServer2 = 50;
+  int CXios::nbPoolsServer2 = 1;
   double CXios::bufferSizeFactor = 1.0;
   const double CXios::defaultBufferSizeFactor = 1.0;
   StdSize CXios::minBufferSize = 1024 * sizeof(double);
@@ -54,6 +55,7 @@ namespace xios
     usingServer=getin<bool>("using_server",false) ;
     usingServer2=getin<bool>("using_server2",false) ;
     ratioServer2=getin<int>("ratio_server2",50);
+    nbPoolsServer2=getin<int>("number_pools_server2",1);
     info.setLevel(getin<int>("info_level",0)) ;
     report.setLevel(getin<int>("info_level",50));
     printLogs2Files=getin<bool>("print_file",false);
@@ -196,7 +198,10 @@ namespace xios
     }
     else
     {
-      // If using two server levels, first merge globalRegistry of each server pool into one registry on the first pool
+      // If using two server levels:
+      // (1) merge registries on each pool
+      // (2) send merged registries to the first pool
+      // (3) merge received registries on the first pool
       if (CServer::serverLevel == 2)
       {
         vector<int>& secondaryServerGlobalRanks = CServer::getSecondaryServerGlobalRanks();
@@ -204,23 +209,29 @@ namespace xios
         int rankGlobal;
         MPI_Comm_rank(globalComm, &rankGlobal);
 
+        // Merge registries defined on each pools
+        CRegistry globalRegistrySndServers (CServer::intraComm);
+
         // All pools (except the first): send globalRegistry to the first pool
-        if (rankGlobal != firstPoolGlobalRank)
+        for (int i=1; i<secondaryServerGlobalRanks.size(); i++)
         {
-          int registrySize = globalRegistry->size();
-          MPI_Send(&registrySize,1,MPI_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
-          CBufferOut buffer(registrySize) ;
-          globalRegistry->toBuffer(buffer) ;
-          MPI_Send(buffer.start(),registrySize,MPI_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
+          if (rankGlobal == secondaryServerGlobalRanks[i])
+          {
+            globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
+            int registrySize = globalRegistrySndServers.size();
+            MPI_Send(&registrySize,1,MPI_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
+            CBufferOut buffer(registrySize) ;
+            globalRegistrySndServers.toBuffer(buffer) ;
+            MPI_Send(buffer.start(),registrySize,MPI_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
+          }
         }
 
         // First pool: receive globalRegistry of all secondary server pools, merge and write the resultant registry
-        else
+        if (rankGlobal == firstPoolGlobalRank)
         {
           MPI_Status status;
           char* recvBuff;
 
-          CRegistry globalRegistrySndServers (CServer::intraComm);
           globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
 
           for (int i=1; i< secondaryServerGlobalRanks.size(); i++)

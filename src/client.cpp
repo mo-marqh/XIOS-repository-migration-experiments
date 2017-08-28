@@ -95,8 +95,7 @@ namespace xios
             }
           }
 
-//          myColor=colors[hashClient];
-          myColor=leaders[hashClient] ;
+          myColor=colors[hashClient];
           MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
 
           if (CXios::usingServer)
@@ -274,7 +273,7 @@ namespace xios
    }
 
     /*!
-    * Return rank in model intraComm
+    * Return global rank without oasis and current rank in model intraComm in case of oasis
     */
    int CClient::getRank()
    {

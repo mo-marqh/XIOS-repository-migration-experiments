@@ -109,22 +109,69 @@ namespace xios
           }
           else
           {
+            int firstSndSrvRank = srvRanks.size()*(100.-CXios::ratioServer2)/100. ;
+            int poolLeader = firstSndSrvRank;
+//*********** (1) Comment out the line below to set one process per pool
+//            sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+            int nbPools = CXios::nbPoolsServer2;
+            if ( nbPools > reqNbProc || nbPools < 1)
+            {
+              error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                  << "It is impossible to allocate the requested number of pools = "<<nbPools
+                  <<" on the secondary server. It will be set so that there is one process per pool."<<endl;
+              nbPools = reqNbProc;
+            }
+            int remainder = ((int) (srvRanks.size()*CXios::ratioServer2/100.)) % nbPools;
+            int procsPerPool = ((int) (srvRanks.size()*CXios::ratioServer2/100.)) / nbPools;
             for (i=0; i<srvRanks.size(); i++)
             {
-              if (i >= srvRanks.size()*(100.-CXios::ratioServer2)/100.)
+              if (i >= firstSndSrvRank)
               {
+                if (rank_ == srvRanks[i])
+                {
+                  serverLevel=2;
+                }
+                poolLeader += procsPerPool;
+                if (remainder != 0)
+                {
+                  ++poolLeader;
+                  --remainder;
+                }
+//*********** (2) Comment out the two lines below to set one process per pool
+//                if (poolLeader < srvRanks.size())
+//                  sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+//*********** (3) Uncomment the line below to set one process per pool
                 sndServerGlobalRanks.push_back(srvRanks[i]);
-                if (rank_ == srvRanks[i]) serverLevel=2;
               }
               else
               {
                 if (rank_ == srvRanks[i]) serverLevel=1;
               }
             }
+            if (serverLevel==2)
+            {
+              info(50)<<"The number of secondary server pools is "<< sndServerGlobalRanks.size() <<endl ;
+              for (i=0; i<sndServerGlobalRanks.size(); i++)
+              {
+                if (rank_>= sndServerGlobalRanks[i])
+                {
+                  if ( i == sndServerGlobalRanks.size()-1)
+                  {
+                    myColor = colors.size() + sndServerGlobalRanks[i];
+                  }
+                  else if (rank_< sndServerGlobalRanks[i+1])
+                  {
+                    myColor = colors.size() + sndServerGlobalRanks[i];
+                    break;
+                  }
+                }
+              }
+            }
           }
         }
+
         // (2) Create intraComm
-        myColor = (serverLevel == 2) ? rank_ : colors[hashServer];
+        if (serverLevel != 2) myColor=colors[hashServer];
         MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
 
         // (3) Create interComm
@@ -231,19 +278,65 @@ namespace xios
           }
           else
           {
+            int firstSndSrvRank = size*(100.-CXios::ratioServer2)/100. ;
+            int poolLeader = firstSndSrvRank;
+//*********** (1) Comment out the line below to set one process per pool
+//            sndServerGlobalRanks.push_back(srvGlobalRanks[poolLeader]);
+            int nbPools = CXios::nbPoolsServer2;
+            if ( nbPools > reqNbProc || nbPools < 1)
+            {
+              error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                  << "It is impossible to allocate the requested number of pools = "<<nbPools
+                  <<" on the secondary server. It will be set so that there is one process per pool."<<endl;
+              nbPools = reqNbProc;
+            }
+            int remainder = ((int) (size*CXios::ratioServer2/100.)) % nbPools;
+            int procsPerPool = ((int) (size*CXios::ratioServer2/100.)) / nbPools;
             for (int i=0; i<size; i++)
             {
-              if (i >= size*(100.-CXios::ratioServer2)/100.)
+              if (i >= firstSndSrvRank)
               {
+                if (globalRank == srvGlobalRanks[i])
+                {
+                  serverLevel=2;
+                }
+                poolLeader += procsPerPool;
+                if (remainder != 0)
+                {
+                  ++poolLeader;
+                  --remainder;
+                }
+//*********** (2) Comment out the two lines below to set one process per pool
+//                if (poolLeader < size)
+//                  sndServerGlobalRanks.push_back(srvGlobalRanks[poolLeader]);
+//*********** (3) Uncomment the line below to set one process per pool
                 sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
-                if (globalRank == srvGlobalRanks[i]) serverLevel=2;
               }
               else
               {
                 if (globalRank == srvGlobalRanks[i]) serverLevel=1;
               }
             }
-            myColor = (serverLevel == 2) ? globalRank : 0;
+            if (serverLevel==2)
+            {
+              info(50)<<"The number of secondary server pools is "<< sndServerGlobalRanks.size() <<endl ;
+              for (int i=0; i<sndServerGlobalRanks.size(); i++)
+              {
+                if (globalRank>= sndServerGlobalRanks[i])
+                {
+                  if (i == sndServerGlobalRanks.size()-1)
+                  {
+                    myColor = sndServerGlobalRanks[i];
+                  }
+                  else if (globalRank< sndServerGlobalRanks[i+1])
+                  {
+                    myColor = sndServerGlobalRanks[i];
+                    break;
+                  }
+                }
+              }
+            }
+            if (serverLevel != 2) myColor=0;
             MPI_Comm_split(localComm, myColor, rank_, &intraComm) ;
           }
         }
@@ -269,22 +362,25 @@ namespace xios
         }
 
 //      (3) Create interComms between primary and secondary servers
-        MPI_Comm_size(intraComm,&size) ;
+        int intraCommSize, intraCommRank ;
+        MPI_Comm_size(intraComm,&intraCommSize) ;
+        MPI_Comm_rank(intraComm, &intraCommRank) ;
+
         if (serverLevel == 1)
         {
           for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
           {
             int srvSndLeader = sndServerGlobalRanks[i];
-            info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<size
-                <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvSndLeader<<endl ;
+            info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<intraCommSize
+                <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
             interCommRight.push_back(newComm) ;
           }
         }
         else if (serverLevel == 2)
         {
-          info(50)<<"intercommCreate::server "<<rank_<<" intraCommSize : "<<size
-                   <<" intraCommRank :"<<rank_<<"  clientLeader "<< srvGlobalRanks[0] <<endl ;
+          info(50)<<"intercommCreate::server "<<globalRank<<" intraCommSize : "<<intraCommSize
+                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvGlobalRanks[0] <<endl ;
           MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvGlobalRanks[0], 0, &newComm) ;
           interCommLeft.push_back(newComm) ;
         }

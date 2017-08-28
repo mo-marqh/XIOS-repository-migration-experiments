@@ -45,7 +45,7 @@ namespace xios
         static bool is_MPI_Initialized;
 
       public:
-        //! Get rank of the current process
+        //! Get rank of the current process in the intraComm
         static int getRank();
 
         //!< Get global ranks of secondary server processes
@@ -66,9 +66,9 @@ namespace xios
         static void closeErrorStream();
 
       private:
-        static vector<int> sndServerGlobalRanks;  //!< Global ranks of secondary server processes
-        static int rank_;                   //!< If (!oasis) global rank, else rank in the intraComm returned by oasis
-        static int nbContexts;              //!< Number of contexts registered by server
+        static vector<int> sndServerGlobalRanks;  //!< Global ranks of pool leaders on the secondary server
+        static int rank_;                         //!< If (!oasis) global rank, else rank in the intraComm returned by oasis
+        static int nbContexts;                    //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

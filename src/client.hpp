@@ -21,7 +21,7 @@ namespace xios
 
         static MPI_Comm& getInterComm();
 
-        //! Get rank of the current process
+        //! Get global rank without oasis and current rank in model intraComm in case of oasis
         static int getRank();
 
         //! Open a file stream to write the info logs
