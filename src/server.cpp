@@ -379,7 +379,7 @@ namespace xios
         }
         else if (serverLevel == 2)
         {
-          info(50)<<"intercommCreate::server "<<globalRank<<" intraCommSize : "<<intraCommSize
+          info(50)<<"intercommCreate::server (server level 2)"<<globalRank<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvGlobalRanks[0] <<endl ;
           MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvGlobalRanks[0], 0, &newComm) ;
           interCommLeft.push_back(newComm) ;
