@@ -1023,15 +1023,18 @@ namespace xios{
        // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
        {
-         storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid,
-                                                                        detectMissingValues, defaultValue));
-         instantDataFilter->connectOutput(storeFilter, 0);
-       }
+         if (!read_access.isEmpty() && read_access)
+         {
+           storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid,
+                                                                          detectMissingValues, defaultValue));
+           instantDataFilter->connectOutput(storeFilter, 0);
+         }
 
-       if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
-       {
-         fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
-         getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+         if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
+         {
+           fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+           getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+         }
        }
      }
    }
