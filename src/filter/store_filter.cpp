@@ -86,11 +86,12 @@ namespace xios
 
     if (detectMissingValues)
     {
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
       const size_t nbData = packet->data.numElements();
       for (size_t idx = 0; idx < nbData; ++idx)
       {
-        if (NumTraits<double>::isnan(packet->data(idx)))
-          packet->data(idx) = missingValue;
+        if (packet->data(idx)==missingValue)
+          packet->data(idx) = nanValue;
       }
     }
   }
