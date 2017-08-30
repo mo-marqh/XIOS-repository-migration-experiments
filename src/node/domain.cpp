@@ -85,27 +85,40 @@ namespace xios {
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
-   int CDomain::getNumberWrittenIndexes() const
+   int CDomain::getNumberWrittenIndexes(MPI_Comm writtenCom)
    {
-     return numberWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return numberWrittenIndexes_[writtenSize];
    }
 
    /*!
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
-   int CDomain::getTotalNumberWrittenIndexes() const
+   int CDomain::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
    {
-     return totalNumberWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return totalNumberWrittenIndexes_[writtenSize];
    }
 
    /*!
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
-   int CDomain::getOffsetWrittenIndexes() const
+   int CDomain::getOffsetWrittenIndexes(MPI_Comm writtenCom)
    {
-     return offsetWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return offsetWrittenIndexes_[writtenSize];
+   }
+
+   CArray<int, 1>& CDomain::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   {
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return compressedIndexToWriteOnServer[writtenSize];
    }
 
    //----------------------------------------------------------------
@@ -1496,9 +1509,9 @@ namespace xios {
 
    void CDomain::checkArea(void)
    {
-     bool hasAreaValue = (0 != areavalue.numElements());
-     hasArea = !area.isEmpty() || !areavalue.isEmpty();
-     if (hasArea)
+     bool hasAreaValue = (!areavalue.isEmpty() && 0 != areavalue.numElements());
+     hasArea = !area.isEmpty();
+     if (hasArea && !hasAreaValue)
      {
        if (area.extent(0) != ni || area.extent(1) != nj)
        {
@@ -1901,51 +1914,120 @@ namespace xios {
         }                 
       }
       
-      if (isCompressible())
-      {
-        nbWritten = 0;
-        boost::unordered_map<size_t,size_t> localGlobalIndexMap;
-        for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-        {
-          indGlo = *itSrv;
-          if (ite != globalLocalIndexMap_.find(indGlo))
-          {
-            localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
-            ++nbWritten;
-          }                 
-        }
+      // if (isCompressible())
+      // {
+      //   nbWritten = 0;
+      //   boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      //   for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      //   {
+      //     indGlo = *itSrv;
+      //     if (ite != globalLocalIndexMap_.find(indGlo))
+      //     {
+      //       localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
+      //       ++nbWritten;
+      //     }                 
+      //   }
 
-        nbWritten = 0;
-        for (int idx = 0; idx < data_i_index.numElements(); ++idx)
-        {
-          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
-          {
-            ++nbWritten;
-          }
-        }
+      //   nbWritten = 0;
+      //   for (int idx = 0; idx < data_i_index.numElements(); ++idx)
+      //   {
+      //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
+      //     {
+      //       ++nbWritten;
+      //     }
+      //   }
 
-        compressedIndexToWriteOnServer.resize(nbWritten);
-        nbWritten = 0;
-        for (int idx = 0; idx < data_i_index.numElements(); ++idx)
-        {
-          if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
-          {
-            compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_i_index(idx)];
-            ++nbWritten;
-          }
-        }
+      //   compressedIndexToWriteOnServer.resize(nbWritten);
+      //   nbWritten = 0;
+      //   for (int idx = 0; idx < data_i_index.numElements(); ++idx)
+      //   {
+      //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
+      //     {
+      //       compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_i_index(idx)];
+      //       ++nbWritten;
+      //     }
+      //   }
 
-        numberWrittenIndexes_ = nbWritten;
-        if (isDistributed())
-        {            
-          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-          offsetWrittenIndexes_ -= numberWrittenIndexes_;
-        }
-        else
-          totalNumberWrittenIndexes_ = numberWrittenIndexes_;
-      }      
+      //   numberWrittenIndexes_ = nbWritten;
+      //   if (isDistributed())
+      //   {            
+      //     MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      //     MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+      //     offsetWrittenIndexes_ -= numberWrittenIndexes_;
+      //   }
+      //   else
+      //     totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+      // }      
    }
+
+  void CDomain::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  {
+    int writtenCommSize;
+    MPI_Comm_size(writtenComm, &writtenCommSize);
+    if (compressedIndexToWriteOnServer.find(writtenCommSize) != compressedIndexToWriteOnServer.end())
+      return;
+
+    if (isCompressible())
+    {
+      size_t nbWritten = 0, indGlo;
+      CContext* context=CContext::getCurrent();      
+      CContextServer* server = context->server;  
+
+      std::vector<int> nBegin(2), nSize(2), nBeginGlobal(2), nGlob(2);
+      nBegin[0]       = zoom_ibegin;  nBegin[1] = zoom_jbegin;
+      nSize[0]        = zoom_ni;      nSize[1]  = zoom_nj;
+      nBeginGlobal[0] = 0; nBeginGlobal[1] = 0;
+      nGlob[0]        = ni_glo;   nGlob[1] = nj_glo;
+      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
+
+      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+                                                          ite = globalLocalIndexMap_.end(), it;   
+      CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
+                                       itSrve = writtenGlobalIndex.end(), itSrv;
+      boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+      {
+        indGlo = *itSrv;
+        if (ite != globalLocalIndexMap_.find(indGlo))
+        {
+          localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
+          ++nbWritten;
+        }                 
+      }
+
+      nbWritten = 0;
+      for (int idx = 0; idx < data_i_index.numElements(); ++idx)
+      {
+        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
+        {
+          ++nbWritten;
+        }
+      }
+
+      compressedIndexToWriteOnServer[writtenCommSize].resize(nbWritten);
+      nbWritten = 0;
+      for (int idx = 0; idx < data_i_index.numElements(); ++idx)
+      {
+        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_i_index(idx)))
+        {
+          compressedIndexToWriteOnServer[writtenCommSize](nbWritten) = localGlobalIndexMap[data_i_index(idx)];
+          ++nbWritten;
+        }
+      }
+
+      numberWrittenIndexes_[writtenCommSize] = nbWritten;
+      if (isDistributed())
+      {
+             
+        MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        offsetWrittenIndexes_[writtenCommSize] -= numberWrittenIndexes_[writtenCommSize];
+      }
+      else
+        totalNumberWrittenIndexes_[writtenCommSize] = numberWrittenIndexes_[writtenCommSize];
+      }
+  }
 
   /*!
     Send all attributes from client to connected clients
@@ -2405,7 +2487,7 @@ namespace xios {
   */
   void CDomain::recvIndex(std::map<int, CBufferIn*>& rankBuffers)
   {
-    int nbReceived = rankBuffers.size(), i, ind, index, type_int;
+    int nbReceived = rankBuffers.size(), i, ind, index, type_int, iIndex, jIndex;
     recvClientRanks_.resize(nbReceived);        
 
     std::map<int, CBufferIn*>::iterator it = rankBuffers.begin(), ite = rankBuffers.end();
@@ -2425,7 +2507,9 @@ namespace xios {
     
     globalLocalIndexMap_.rehash(std::ceil(nbIndGlob/globalLocalIndexMap_.max_load_factor()));
     i_index.resize(nbIndGlob);
-    j_index.resize(nbIndGlob);    
+    j_index.resize(nbIndGlob);   
+    int nbIndexGlobMax = nbIndGlob, nbIndLoc;
+
     nbIndGlob = 0;
     for (i = 0; i < nbReceived; ++i)
     {
@@ -2435,10 +2519,22 @@ namespace xios {
          index = tmp(ind);
          if (0 == globalLocalIndexMap_.count(index))
          {
-           i_index(nbIndGlob) = index % ni_glo;
-           j_index(nbIndGlob) = index / ni_glo;
-           globalLocalIndexMap_[index] = nbIndGlob;  
-           ++nbIndGlob;
+           iIndex = (index%ni_glo)-ibegin;
+           iIndex = (iIndex < 0) ? 0 : iIndex;
+           jIndex = (index/ni_glo)-jbegin;
+           jIndex = (jIndex < 0) ? 0 : jIndex;
+           nbIndLoc = iIndex + ni * jIndex;
+           if (nbIndLoc < nbIndexGlobMax)
+           {
+             i_index(nbIndLoc) = index % ni_glo;
+             j_index(nbIndLoc) = index / ni_glo;
+             globalLocalIndexMap_[index] = nbIndLoc;  
+             ++nbIndGlob;
+           }
+           // i_index(nbIndGlob) = index % ni_glo;
+           // j_index(nbIndGlob) = index / ni_glo;
+           // globalLocalIndexMap_[index] = nbIndGlob;  
+           // ++nbIndGlob;
          } 
       } 
     } 
@@ -2496,8 +2592,8 @@ namespace xios {
 
     if (zoom_ni<=0 || zoom_nj<=0)
     {
-      zoom_ibegin=0 ; zoom_iend=0 ; zoom_ni=0 ;
-      zoom_jbegin=0 ; zoom_jend=0 ; zoom_nj=0 ;
+      zoom_ni=0 ; zoom_ibegin=global_zoom_ibegin ; //=0; zoom_iend=0 ; 
+      zoom_nj=0 ; zoom_jbegin=global_zoom_jbegin ; //=0; zoom_jend=0 ;
     }
 
   }
@@ -2554,6 +2650,7 @@ namespace xios {
 
     nbMaskInd = globalLocalIndexMap_.size();
     mask_1d.resize(nbMaskInd);
+    mask_1d = false;
     
     for (i = 0; i < nbReceived; ++i)
     {
@@ -2861,7 +2958,10 @@ namespace xios {
   /*!
     Receive data index information from client(s)
     A client receives data index from different clients to rebuild its own data index.
+    Because we use global index + mask info to calculate the sending data to client(s), 
+    this data index must be updated with mask info (maybe it will change in the future)
     Because the data index is local, to rebuild data index of received client, we should use global index along with. 
+
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
   */
   void CDomain::recvDataIndex(std::map<int, CBufferIn*>& rankBuffers)
@@ -2900,7 +3000,12 @@ namespace xios {
       {
          lInd = globalLocalIndexMap_[size_t(tmpInd(ind))];
          dataIIndex(lInd) = (-1 == dataIIndex(lInd)) ? tmpI(ind) : dataIIndex(lInd); // Only fill in dataIndex if there is no data
-         dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);         
+         dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);  
+
+         if (!mask_1d(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes    
+         {
+           dataIIndex(lInd) = dataJIndex(lInd) = -1;
+         }
       } 
     }
 

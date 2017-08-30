@@ -91,9 +91,10 @@ namespace xios {
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
          
-         int getNumberWrittenIndexes() const;
-         int getTotalNumberWrittenIndexes() const;
-         int getOffsetWrittenIndexes() const;
+         int getNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
+         CArray<int,1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
 
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
 
@@ -112,6 +113,7 @@ namespace xios {
          void addRelFileCompressed(const StdString& filename);            
          
          void computeWrittenIndex();
+         void computeWrittenCompressedIndex(MPI_Comm);
 
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);
@@ -137,8 +139,7 @@ namespace xios {
          CArray<double, 2> bounds_lonvalue, bounds_latvalue;
          CArray<double, 1> areavalue;
 
-         CArray<size_t,1> localIndexToWriteOnServer;
-         CArray<int, 1> compressedIndexToWriteOnServer;
+         CArray<size_t,1> localIndexToWriteOnServer;         
 
          CArray<bool, 1> localMask;
          bool isCurvilinear ;
@@ -208,7 +209,8 @@ namespace xios {
          // std::map<CContextClient*, std::map<int, vector<int> > > indWrittenSrv_; // Global written index of each client sent to server
          std::vector<int> indexesToWrite;
          std::vector<int> recvClientRanks_;
-         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;         
+         std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
+         std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;     
          std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
          std::map<CContextClient*, std::vector<int> > connectedServerRank_;
 

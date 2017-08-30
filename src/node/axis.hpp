@@ -68,9 +68,10 @@ namespace xios {
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
 
-         int getNumberWrittenIndexes() const;
-         int getTotalNumberWrittenIndexes() const;
-         int getOffsetWrittenIndexes() const;
+         int getNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
+         CArray<int, 1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
 
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
 
@@ -109,6 +110,7 @@ namespace xios {
          size_t getGlobalWrittenSize(void) ;
 
          void computeWrittenIndex();
+         void computeWrittenCompressedIndex(MPI_Comm);
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();         
@@ -119,8 +121,7 @@ namespace xios {
 
       public: 
         bool hasValue;        
-        CArray<size_t,1> localIndexToWriteOnServer;
-        CArray<int, 1> compressedIndexToWriteOnServer;
+        CArray<size_t,1> localIndexToWriteOnServer;        
 
       private:
          void checkData();
@@ -160,7 +161,8 @@ namespace xios {
          // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
          boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
-         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
+         std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
+         std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
          std::map<CContextClient*, std::vector<int> > connectedServerRank_;         
          bool hasBounds;
          bool hasLabel;         

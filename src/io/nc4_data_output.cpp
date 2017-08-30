@@ -53,6 +53,8 @@ namespace xios
       void CNc4DataOutput::writeDomain_(CDomain* domain)
       {
         domain->computeWrittenIndex();
+        domain->computeWrittenCompressedIndex(comm_file);
+
         if (domain->type == CDomain::type_attr::unstructured)
         {
           if (SuperClassWriter::useCFConvention)
@@ -1132,6 +1134,7 @@ namespace xios
         axis->checkAttributes();
 
         axis->computeWrittenIndex();
+        axis->computeWrittenCompressedIndex(comm_file);
        
         int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n
                                                           : axis->global_zoom_n;
@@ -1186,7 +1189,7 @@ namespace xios
             }
 
             StdString axisBoundsId = axisid + "_bounds";
-            if (!axis->bounds.isEmpty())
+            if (!axis->bounds.isEmpty() && axis->label.isEmpty())
             {
               dims.push_back("axis_nbounds");
               SuperClassWriter::addVariable(axisBoundsId, typePrec, dims);
@@ -1487,13 +1490,15 @@ namespace xios
                    break;
                }
 
-               indexes.resize(domain->compressedIndexToWriteOnServer.numElements());
-               indexes = domain->compressedIndexToWriteOnServer;
+               // indexes.resize(domain->compressedIndexToWriteOnServer[comm_file].numElements());
+               // indexes = domain->compressedIndexToWriteOnServer[com_file];
+               indexes.resize(domain->getCompressedIndexToWriteOnServer(comm_file).numElements());
+               indexes = domain->getCompressedIndexToWriteOnServer(comm_file);
 
                isDistributed = domain->isDistributed();
-               nbIndexes = domain->getNumberWrittenIndexes();
-               totalNbIndexes = domain->getTotalNumberWrittenIndexes();
-               offset = domain->getOffsetWrittenIndexes();
+               nbIndexes = domain->getNumberWrittenIndexes(comm_file);
+               totalNbIndexes = domain->getTotalNumberWrittenIndexes(comm_file);
+               offset = domain->getOffsetWrittenIndexes(comm_file);
                firstGlobalIndex = domain->ibegin + domain->jbegin * domain->ni_glo;
 
                domain->addRelFileCompressed(this->filename);
@@ -1513,13 +1518,16 @@ namespace xios
                varId = axisId + "_points";
                compress = axisId;
 
-               indexes.resize(axis->compressedIndexToWriteOnServer.numElements());
-               indexes = axis->compressedIndexToWriteOnServer;
+               // indexes.resize(axis->compressedIndexToWriteOnServer.numElements());
+               // indexes = axis->compressedIndexToWriteOnServer;
+
+               indexes.resize(axis->getCompressedIndexToWriteOnServer(comm_file).numElements());
+               indexes = axis->getCompressedIndexToWriteOnServer(comm_file);
 
                isDistributed = axis->isDistributed();
-               nbIndexes = axis->getNumberWrittenIndexes();
-               totalNbIndexes = axis->getTotalNumberWrittenIndexes();
-               offset = axis->getOffsetWrittenIndexes();
+               nbIndexes = axis->getNumberWrittenIndexes(comm_file);
+               totalNbIndexes = axis->getTotalNumberWrittenIndexes(comm_file);
+               offset = axis->getOffsetWrittenIndexes(comm_file);
                firstGlobalIndex = axis->begin;
 
                axis->addRelFileCompressed(this->filename);
@@ -2290,8 +2298,8 @@ namespace xios
 
                         if (domain->isCompressible())
                         {
-                          start.push_back(domain->getOffsetWrittenIndexes());
-                          count.push_back(domain->getNumberWrittenIndexes());
+                          start.push_back(domain->getOffsetWrittenIndexes(comm_file));
+                          count.push_back(domain->getNumberWrittenIndexes(comm_file));
                           idx -= 2;
                         }
                         else
@@ -2314,8 +2322,8 @@ namespace xios
 
                         if (axis->isCompressible())
                         {
-                          start.push_back(axis->getOffsetWrittenIndexes());
-                          count.push_back(axis->getNumberWrittenIndexes());
+                          start.push_back(axis->getOffsetWrittenIndexes(comm_file));
+                          count.push_back(axis->getNumberWrittenIndexes(comm_file));
                         }
                         else
                         {

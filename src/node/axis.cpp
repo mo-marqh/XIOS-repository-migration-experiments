@@ -22,7 +22,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
       , hasBounds(false), isCompressible_(false)
-      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , numberWrittenIndexes_(), totalNumberWrittenIndexes_(), offsetWrittenIndexes_()
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
@@ -33,7 +33,7 @@ namespace xios {
       , CAxisAttributes(), isChecked(false), relFiles(), areClientAttributesChecked_(false)
       , isClientAfterTransformationChecked(false)
       , hasBounds(false), isCompressible_(false)
-      , numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
+      , numberWrittenIndexes_(), totalNumberWrittenIndexes_(), offsetWrittenIndexes_()
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
    {
@@ -106,29 +106,41 @@ namespace xios {
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
-   int CAxis::getNumberWrittenIndexes() const
+   int CAxis::getNumberWrittenIndexes(MPI_Comm writtenCom)
    {
-     return numberWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return numberWrittenIndexes_[writtenSize];
    }
 
    /*!
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
-   int CAxis::getTotalNumberWrittenIndexes() const
+   int CAxis::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
    {
-     return totalNumberWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return totalNumberWrittenIndexes_[writtenSize];
    }
 
    /*!
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
-   int CAxis::getOffsetWrittenIndexes() const
+   int CAxis::getOffsetWrittenIndexes(MPI_Comm writtenCom)
    {
-     return offsetWrittenIndexes_;
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return offsetWrittenIndexes_[writtenSize];
    }
 
+   CArray<int, 1>& CAxis::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   {
+     int writtenSize;
+     MPI_Comm_size(writtenCom, &writtenSize);
+     return compressedIndexToWriteOnServer[writtenSize];
+   }
    //----------------------------------------------------------------
 
    /*!
@@ -691,9 +703,79 @@ namespace xios {
       }
     }
 
+    // if (isCompressible())
+    // {
+    //   nbWritten = 0;
+    //   boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+    //   for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+    //   {
+    //     indGlo = *itSrv;
+    //     if (ite != globalLocalIndexMap_.find(indGlo))
+    //     {
+    //       localGlobalIndexMap[localIndexToWriteOnServer(nbWritten)] = indGlo;
+    //       ++nbWritten;
+    //     }                 
+    //   }
+
+    //   nbWritten = 0;
+    //   for (int idx = 0; idx < data_index.numElements(); ++idx)
+    //   {
+    //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+    //     {
+    //       ++nbWritten;
+    //     }
+    //   }
+
+    //   compressedIndexToWriteOnServer.resize(nbWritten);
+    //   nbWritten = 0;
+    //   for (int idx = 0; idx < data_index.numElements(); ++idx)
+    //   {
+    //     if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+    //     {
+    //       compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_index(idx)];
+    //       ++nbWritten;
+    //     }
+    //   }
+
+    //   numberWrittenIndexes_ = nbWritten;
+    //   if (isDistributed())
+    //   {
+             
+    //     MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+    //     MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+    //     offsetWrittenIndexes_ -= numberWrittenIndexes_;
+    //   }
+    //   else
+    //     totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+    // }
+  }
+
+  void CAxis::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  {
+    int writtenCommSize;
+    MPI_Comm_size(writtenComm, &writtenCommSize);
+    if (compressedIndexToWriteOnServer.find(writtenCommSize) != compressedIndexToWriteOnServer.end())
+      return;
+
     if (isCompressible())
     {
-      nbWritten = 0;
+      size_t nbWritten = 0, indGlo;
+      CContext* context=CContext::getCurrent();      
+      CContextServer* server = context->server; 
+
+      // We describe the distribution of client (server) on which data are written
+      std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
+      nBegin[0]       = zoom_begin;
+      nSize[0]        = zoom_n;   
+      nBeginGlobal[0] = 0; 
+      nGlob[0]        = n_glo;
+      CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
+      const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
+      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+                                                          ite = globalLocalIndexMap_.end(), it;   
+
+      CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
+                                       itSrve = writtenGlobalIndex.end(), itSrv;
       boost::unordered_map<size_t,size_t> localGlobalIndexMap;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       {
@@ -714,30 +796,29 @@ namespace xios {
         }
       }
 
-      compressedIndexToWriteOnServer.resize(nbWritten);
+      compressedIndexToWriteOnServer[writtenCommSize].resize(nbWritten);
       nbWritten = 0;
       for (int idx = 0; idx < data_index.numElements(); ++idx)
       {
         if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
         {
-          compressedIndexToWriteOnServer(nbWritten) = localGlobalIndexMap[data_index(idx)];
+          compressedIndexToWriteOnServer[writtenCommSize](nbWritten) = localGlobalIndexMap[data_index(idx)];
           ++nbWritten;
         }
       }
 
-      numberWrittenIndexes_ = nbWritten;
+      numberWrittenIndexes_[writtenCommSize] = nbWritten;
       if (isDistributed())
       {
              
-        MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-        MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
-        offsetWrittenIndexes_ -= numberWrittenIndexes_;
+        MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        offsetWrittenIndexes_[writtenCommSize] -= numberWrittenIndexes_[writtenCommSize];
       }
       else
-        totalNumberWrittenIndexes_ = numberWrittenIndexes_;
+        totalNumberWrittenIndexes_[writtenCommSize] = numberWrittenIndexes_[writtenCommSize];
     }
   }
-
 
   /*!
     Send distribution information from a group of client (client role) to another group of client (server role)
@@ -852,7 +933,7 @@ namespace xios {
 
     if (zoom_n<=0)
     {
-      zoom_begin = 0; zoom_n = 0;
+      zoom_n = 0; zoom_begin=global_zoom_begin; //0; zoom_begin = 0; 
     }
 
     if (n_glo == n)
