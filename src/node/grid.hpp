@@ -94,7 +94,9 @@ namespace xios {
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
-         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;      
+         void outputField(const CArray<double,1>& stored, CArray<double,n>& field) const;  
+         template <int n>
+         void uncompressField(const CArray<double,n>& data, CArray<double,1>& outData) const; 
 
          virtual void parse(xml::CXMLNode& node);
 
@@ -251,6 +253,7 @@ namespace xios {
 
         void storeField_arr(const double* const data, CArray<double, 1>& stored) const;
         void restoreField_arr(const CArray<double, 1>& stored, double* const data) const;
+        void uncompressField_arr(const double* const data, CArray<double, 1>& outData) const;
 
         void setVirtualDomainGroup(CDomainGroup* newVDomainGroup);
         void setVirtualAxisGroup(CAxisGroup* newVAxisGroup);
@@ -352,6 +355,18 @@ namespace xios {
                 << "The ouput array does not have the right size! "
                 << "Grid = " << this->GetName())
       this->restoreField_arr(stored, field.dataFirst());
+   }
+
+   /*!
+     This function removes the effect of mask on received data on the server.
+     This function only serve for the checking purpose. TODO: Something must be done to seperate mask and data_index from each other in received data
+     \data data received data with masking effect on the server
+     \outData data without masking effect
+   */
+   template <int N>
+   void CGrid::uncompressField(const CArray<double,N>& data, CArray<double,1>& outData) const
+   {      
+     uncompressField_arr(data.dataFirst(), outData);
    }
 
    template<int N>

@@ -477,6 +477,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   // Now allocate these arrays
   localDataIndex_.resize(indexLocalDataOnClientCount);
   localMaskIndex_.resize(indexSend2ServerCount);
+  localMaskedDataIndex_.resize(indexSend2ServerCount);
   globalDataIndex_.rehash(std::ceil(indexLocalDataOnClientCount/globalDataIndex_.max_load_factor())); //globalLocalDataSendToServerMap_.reserve(indexSend2ServerCount);
   globalLocalDataSendToServerMap_.rehash(std::ceil(indexSend2ServerCount/globalLocalDataSendToServerMap_.max_load_factor())); //globalLocalDataSendToServerMap_.reserve(indexSend2ServerCount);
 
@@ -560,6 +561,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
             {
               globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
               localMaskIndex_[indexSend2ServerCount] = gridMaskIndex;
+              localMaskedDataIndex_[indexSend2ServerCount] = indexLocalDataOnClientCount;
               ++indexSend2ServerCount;
             }
             ++indexLocalDataOnClientCount;
@@ -650,6 +652,15 @@ const std::vector<int>& CDistributionClient::getLocalMaskIndexOnClient()
 {
   if (!isComputed_) createGlobalIndexSendToServer();
   return localMaskIndex_;
+}
+
+/*!
+  Return local mask index of client
+*/
+const std::vector<int>& CDistributionClient::getLocalMaskedDataIndexOnClient()
+{
+  if (!isComputed_) createGlobalIndexSendToServer();
+  return localMaskedDataIndex_;
 }
 
 } // namespace xios

@@ -31,8 +31,18 @@ namespace xios
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
-    packet->data.resize(grid->storeIndex_client.numElements());
-    grid->inputField(data, packet->data) ;
+    packet->data.resize(grid->storeIndex_client.numElements());    
+    
+    if (compression)
+    {
+      packet->data = defaultValue;
+      grid->uncompressField(data, packet->data);    
+    }
+    else
+      grid->inputField(data, packet->data);
+
+    
+    
     // if (compression) grid->inputField(data, packet->data) ;
     // else
     // {

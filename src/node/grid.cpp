@@ -88,7 +88,7 @@ namespace xios {
      if (!isScalarGrid())
      {
        std::vector<int> dataNindex = clientDistribution_->getDataNIndex();
-       for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];
+       for (int i = 0; i < dataNindex.size(); ++i) retvalue *= dataNindex[i];       
      }
      return retvalue;
    }
@@ -338,7 +338,7 @@ namespace xios {
      this->checkAttributesAfterTransformation();
 
      // TODO: Transfer grid attributes
-     if (!context->hasClient && context->hasServer) this->createMask();
+     //if (!context->hasClient && context->hasServer) this->createMask();
      this->computeIndex();
 
      if (!(this->hasTransform() && !this->isTransformed()))
@@ -446,6 +446,9 @@ namespace xios {
       int dim = domainP.size() * 2 + axisP.size();
 
       switch (dim) {
+        case 0:
+          modifyGridMask(mask_0d, indexToModify, modifyValue);
+          break;
         case 1:
           modifyGridMask(mask_1d, indexToModify, modifyValue);
           break;
@@ -484,6 +487,9 @@ namespace xios {
       int dim = domainP.size() * 2 + axisP.size();
 
       switch (dim) {
+        case 0:
+          modifyGridMaskSize(mask_0d, newDimensionSize, newValue);
+          break;
         case 1:
           modifyGridMaskSize(mask_1d, newDimensionSize, newValue);
           break;
@@ -1252,6 +1258,14 @@ namespace xios {
       for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
    }
 
+   void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
+   {
+      const std::vector<int>& localMaskedDataIndex = clientDistribution_->getLocalMaskedDataIndexOnClient();
+      const int size = localMaskedDataIndex.size();
+      
+      for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
+   }
+
   void CGrid::computeClientIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();    
@@ -1260,6 +1274,10 @@ namespace xios {
     {
       CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client) 
                                                     : context->client;
+
+      int rank = client->clientRank;
+
+      clientDistribution_ = new CDistributionClient(rank, this);
 
       storeIndex_client.resize(1);
       storeIndex_client(0) = 0;      
@@ -1687,44 +1705,53 @@ namespace xios {
             ++axisId;
           }
           else // scalar
-          { 
+          {  
           }
         }
         
-        modifyMaskSize(nSize, true);
-        // These below codes are reserved for future
-        // CDistributionServer srvDist(server->intraCommRank, nBegin, nSize, nBeginGlobal, nGlob); 
-        // map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
-        //                                        ite = outGlobalIndexFromClient.end(), it;  
-        // const CDistributionServer::GlobalLocalMap&  globalLocalMask = srvDist.getGlobalLocalIndex();
-        // CDistributionServer::GlobalLocalMap::const_iterator itSrv;
-        // size_t nb = 0;
-        // for (it = itb; it != ite; ++it)
-        // {
-        //   CArray<size_t,1>& globalInd = it->second;
-        //   for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
-        //   {
-        //     if (globalLocalMask.end() != globalLocalMask.find(globalInd(idx))) ++nb;
-        //   }
-        // }
-        
-        // CArray<int,1> indexToModify(nb);
-        // nb = 0;    
-        // for (it = itb; it != ite; ++it)
-        // {
-        //   CArray<size_t,1>& globalInd = it->second;
-        //   for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
-        //   {
-        //     itSrv = globalLocalMask.find(globalInd(idx));
-        //     if (globalLocalMask.end() != itSrv) 
-        //     {
-        //       indexToModify(nb) = itSrv->second;
-        //       ++nb;
-        //     }
-        //   }
-        // }
+        if (nSize.empty()) // Scalar grid
+        {
+          nBegin.push_back(0);
+          nSize.push_back(1);
+          nBeginGlobal.push_back(0);              
+          nGlob.push_back(1);  
+        }
 
-        // modifyMask(indexToModify, true);
+        modifyMaskSize(nSize, false);
+
+        // These below codes are reserved for future
+        CDistributionServer srvDist(server->intraCommRank, nBegin, nSize, nBeginGlobal, nGlob); 
+        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
+                                               ite = outGlobalIndexFromClient.end(), it;  
+        const CDistributionServer::GlobalLocalMap&  globalLocalMask = srvDist.getGlobalLocalIndex();
+        CDistributionServer::GlobalLocalMap::const_iterator itSrv;
+        size_t nb = 0;
+        for (it = itb; it != ite; ++it)
+        {
+          CArray<size_t,1>& globalInd = it->second;
+          for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
+          {
+            if (globalLocalMask.end() != globalLocalMask.find(globalInd(idx))) ++nb;
+          }
+        }
+        
+        CArray<int,1> indexToModify(nb);
+        nb = 0;    
+        for (it = itb; it != ite; ++it)
+        {
+          CArray<size_t,1>& globalInd = it->second;
+          for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
+          {
+            itSrv = globalLocalMask.find(globalInd(idx));
+            if (globalLocalMask.end() != itSrv) 
+            {
+              indexToModify(nb) = itSrv->second;
+              ++nb;
+            }
+          }
+        }
+
+        modifyMask(indexToModify, true);
       }
 
       if (isScalarGrid()) return;

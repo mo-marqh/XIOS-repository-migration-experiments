@@ -44,6 +44,7 @@ public:
     GlobalLocalDataMap& getGlobalLocalDataSendToServer();
     GlobalLocalDataMap& getGlobalDataIndexOnClient();
     const std::vector<int>& getLocalMaskIndexOnClient();
+    const std::vector<int>& getLocalMaskedDataIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
@@ -81,6 +82,7 @@ public:
     GlobalLocalDataMap globalDataIndex_;
     std::vector<int> localDataIndex_;
     std::vector<int> localMaskIndex_;
+    std::vector<int> localMaskedDataIndex_;
 
   private:
     /*! Domains and axis are considered elements.

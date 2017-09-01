@@ -949,7 +949,7 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
-          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,false));
+          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
@@ -964,7 +964,7 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false));
+         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
@@ -1015,7 +1015,7 @@ namespace xios{
          else // The data might be passed from the model
          {
             if (check_if_active.isEmpty()) check_if_active = false; 
-            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
+            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
                                                                                                         detectMissingValues, defaultValue));
          }
        }
