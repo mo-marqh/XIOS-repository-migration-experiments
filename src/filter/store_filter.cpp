@@ -81,21 +81,21 @@ namespace xios
     CDataPacketPtr packet;
     if (detectMissingValues)
     {
-      CArray<double, 1> dataArray = data[0]->data.copy();
-
-      const size_t nbData = dataArray.numElements();
-      for (size_t idx = 0; idx < nbData; ++idx)
-      {
-        if (NumTraits<double>::isnan(dataArray(idx)))
-          dataArray(idx) = missingValue;
-      }
+      const size_t nbData = data[0]->data.numElements();
 
       packet = CDataPacketPtr(new CDataPacket);
       packet->date = data[0]->date;
       packet->timestamp = data[0]->timestamp;
       packet->status = data[0]->status;
-      packet->data.resize(dataArray.numElements());
-      packet->data = dataArray;
+      packet->data.resize(nbData);
+      packet->data = data[0]->data;
+
+      for (size_t idx = 0; idx < nbData; ++idx)
+      {
+        if (NumTraits<double>::isnan(packet->data(idx)))
+          packet->data(idx) = missingValue;
+      }
+
     }
 
     else
