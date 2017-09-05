@@ -77,22 +77,37 @@ namespace xios
 
   void CStoreFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
-    CDataPacketPtr packet = data[0];
+
+    CDataPacketPtr packet;
+    if (detectMissingValues)
+    {
+      CArray<double, 1> dataArray = data[0]->data.copy();
+
+      const size_t nbData = dataArray.numElements();
+      for (size_t idx = 0; idx < nbData; ++idx)
+      {
+        if (NumTraits<double>::isnan(dataArray(idx)))
+          dataArray(idx) = missingValue;
+      }
+
+      packet = CDataPacketPtr(new CDataPacket);
+      packet->date = data[0]->date;
+      packet->timestamp = data[0]->timestamp;
+      packet->status = data[0]->status;
+      packet->data.resize(dataArray.numElements());
+      packet->data = dataArray;
+    }
+
+    else
+    {
+      packet = data[0];
+    }
 
     packets.insert(std::make_pair(packet->timestamp, packet));
     // The packet is always destroyed by the garbage collector
     // so we register but never unregister
     gc.registerObject(this, packet->timestamp);
 
-    if (detectMissingValues)
-    {
-      const size_t nbData = packet->data.numElements();
-      for (size_t idx = 0; idx < nbData; ++idx)
-      {
-        if (NumTraits<double>::isnan(packet->data(idx)))
-          packet->data(idx) = missingValue;
-      }
-    }
   }
 
   bool CStoreFilter::isDataExpected(const CDate& date) const
