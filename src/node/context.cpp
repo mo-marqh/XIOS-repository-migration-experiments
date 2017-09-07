@@ -529,13 +529,9 @@ namespace xios {
      // Distribute files between secondary servers according to the data size
      distributeFiles();
 
-     // Buffer for primary server for connection to client will be allocated by default (to min size)
-     if (CServer::serverLevel != 1)
-       setClientServerBuffer(client);
-     if (hasServer)
-       for (int i = 0; i < clientPrimServer.size(); ++i)
+     setClientServerBuffer(client);
+     for (int i = 0; i < clientPrimServer.size(); ++i)
          setClientServerBuffer(clientPrimServer[i]);
-
 
      if (hasClient)
      {
