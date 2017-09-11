@@ -25,7 +25,7 @@ class CServerDistributionDescription
   public:
     enum ServerDistributionType
     {
-      BAND_DISTRIBUTION, PLAN_DISTRIBUTION
+      BAND_DISTRIBUTION, PLAN_DISTRIBUTION, ROOT_DISTRIBUTION
     };
 
     /** Default constructor */
@@ -55,6 +55,7 @@ class CServerDistributionDescription
 
   protected:
     int computeBandDistribution(int nServer, int positionDimensionDistributed = 1);
+    int computeRootDistribution(int nServer, int positionDimensionDistributed = 1);
     void computePlanDistribution(int nServer);
     void computeRangeProcIndex(int clientRank,
                                int clientSize,

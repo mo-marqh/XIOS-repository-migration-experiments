@@ -452,9 +452,9 @@ namespace xios {
      if (this->isClientAfterTransformationChecked) return;
      if (context->hasClient)
      {        
-       if ((orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
-         || (index.numElements() != n_glo))
-          computeConnectedClients(globalDim, orderPositionInGrid, distType);
+       if (orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
+         computeConnectedClients(globalDim, orderPositionInGrid, distType);
+       else if (index.numElements() != n_glo) computeConnectedClients(globalDim, orderPositionInGrid,  CServerDistributionDescription::ROOT_DISTRIBUTION);
      }
 
      this->isClientAfterTransformationChecked = true;
@@ -588,7 +588,9 @@ namespace xios {
         globalIndex(idx) = index(idx);
 
       // Describe the distribution of server side
-      CServerDistributionDescription serverDescription(nGlobAxis, nbServer);
+
+      CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
+      
       std::vector<int> serverZeroIndex;
       serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);      
 
@@ -605,12 +607,17 @@ namespace xios {
 
 
       indSrv_[client].swap(globalIndexAxisOnServer);
+
+      if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
+      {
+        for(int i=1; i<nbServer; ++i) indSrv_[client].insert(pair<int, vector<size_t> >(i,indSrv_[client][0]) ) ;
+        serverZeroIndexLeader.clear() ;
+      }
+         
       CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[client].begin(),
                                                            ite = indSrv_[client].end();
-      
-      for (it = indSrv_[client].begin(); it != ite; ++it) {
-        connectedServerRank_[client].push_back(it->first);
-      }
+
+      for (it = indSrv_[client].begin(); it != ite; ++it) connectedServerRank_[client].push_back(it->first);
 
       for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
         connectedServerRank_[client].push_back(*it);

@@ -116,10 +116,13 @@ std::vector<int> CServerDistributionDescription::computeServerGlobalIndexInRange
                                                                      int positionDimensionDistributed)
 {
   int nBand  = 0;
-  switch (serverType_) {
+  switch (serverType_)
+  {
     case BAND_DISTRIBUTION:
       nBand = computeBandDistribution(nServer_, positionDimensionDistributed);
       break;
+    case ROOT_DISTRIBUTION:
+      nBand = computeRootDistribution(nServer_);
     default:
       break;
   }
@@ -395,6 +398,85 @@ int CServerDistributionDescription::computeBandDistribution(int nServer, int pos
 
   return nbBand;
 }
+
+
+/*!
+  Compute global index of servers with root distribution : only root server will received data
+  \param [in] nServer number of server
+*/
+int CServerDistributionDescription::computeRootDistribution(int nServer, int positionDimensionDistributed)
+{
+  int dim = nGlobal_.size();
+  positionDimensionDistributed_ = positionDimensionDistributed;
+  if (1 == dim) positionDimensionDistributed_ = 0;
+  if (positionDimensionDistributed_ > dim)
+    ERROR("CServerDistributionDescription::computeBandDistribution(int nServer, int positionDimensionDistributed)",
+          << "Position of distributed dimension is invalid" << std::endl
+          << "Position of distributed dimension is " << positionDimensionDistributed_
+          << "Dimension " << dim)
+
+  indexBegin_.resize(nServer);
+  dimensionSizes_.resize(nServer);
+
+  for (int i = 0; i< nServer; ++i)
+  {
+    indexBegin_[i].resize(dim);
+    dimensionSizes_[i].resize(dim);
+  }
+
+  int nGlobTemp = 0;
+
+  int positionDistributed = (1<dim) ? positionDimensionDistributed_ : 0;
+  nGlobTemp = nGlobal_[positionDistributed];
+  int nbBand = 1 ;
+
+
+  for (int i = 0; i < nServer; ++i)
+  {
+    for (int j = 0; j < dim; ++j)
+    {
+      if (positionDistributed != j) // bad coding, need to be rewrite
+      {
+        if (1 == dim)
+        {
+          if (i==0)
+          {
+            indexBegin_[i][j] = 0;
+            dimensionSizes_[i][j] = nGlobTemp;
+          }
+          else
+          {
+            indexBegin_[i][j] = nGlobTemp-1;
+            dimensionSizes_[i][j] = 0;
+          }
+        }
+        else
+        {
+          indexBegin_[i][j] = 0;
+          dimensionSizes_[i][j] = nGlobal_[j];
+        }
+      }
+      else
+      {
+        if (i==0)
+        {
+          indexBegin_[i][j] = 0;
+          dimensionSizes_[i][j] = nGlobTemp;
+        }
+        else
+        {
+          indexBegin_[i][j] = nGlobTemp-1;
+          dimensionSizes_[i][j] = 0;
+        }
+      }
+    }
+  }
+
+  return nbBand;
+}
+
+
+
 
 /*!
   Get size of each dimension on distributed server
