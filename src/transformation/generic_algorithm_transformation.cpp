@@ -31,7 +31,7 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
                                             const double* dataInput,
                                             CArray<double,1>& dataOut,
                                             std::vector<bool>& flagInitial,
-                                            bool ignoreMissingValue)
+                                            bool ignoreMissingValue, bool firstPass  )
 {
   int nbLocalIndex = localIndex.size();   
   double defaultValue = std::numeric_limits<double>::quiet_NaN();

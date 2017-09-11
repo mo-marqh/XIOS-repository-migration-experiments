@@ -33,7 +33,7 @@ public:
                      const double* dataInput,
                      CArray<double,1>& dataOut,
                      std::vector<bool>& flagInitial,                     
-                     bool ignoreMissingValue);
+                     bool ignoreMissingValue, bool firstPass);
 
   virtual ~CAxisAlgorithmExtractDomain();
 

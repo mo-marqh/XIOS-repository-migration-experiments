@@ -195,6 +195,7 @@ namespace xios
 
       std::vector<bool> localInitFlag(dataCurrentDest.numElements(), true);
       currentBuff = 0;
+      bool firstPass=true; 
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
         int countSize = itRecv->second.size();
@@ -203,9 +204,10 @@ namespace xios
                          recvBuff+currentBuff,
                          dataCurrentDest,
                          localInitFlag,
-                         ignoreMissingValue);
+                         ignoreMissingValue,firstPass);
 
         currentBuff += countSize;
+        firstPass=false ;
       }
 
       (*itAlgo)->updateData(dataCurrentDest);

@@ -160,6 +160,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   if (domainDstRef.empty()) domainDestination->domain_ref.reset();
   else domainDestination->domain_ref.setValue(domainDstRef);
 
+  
   // Here are attributes of source need tranfering
   int niGloSrc = domainSource->ni_glo;
   int njGloSrc = domainSource->nj_glo;
