@@ -447,6 +447,7 @@ namespace xios {
       default:
       break;
      }
+     completeLonLatClient() ;
 
    }
 
