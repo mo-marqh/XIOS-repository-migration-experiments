@@ -30,12 +30,13 @@ void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
                                    const double* dataInput,
                                    CArray<double,1>& dataOut,
                                    std::vector<bool>& flagInitial,
-                                   bool ignoreMissingValue)
+                                   bool ignoreMissingValue, bool firstPass)
 {
   if (ignoreMissingValue)
   {
     int nbLocalIndex = localIndex.size();
-    int currentlocalIndex = 0;    
+    int currentlocalIndex = 0;
+    if (firstPass) dataOut=std::numeric_limits<double>::quiet_NaN();
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
       currentlocalIndex = localIndex[idx].first;
@@ -50,11 +51,6 @@ void CMinReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
         {
           dataOut(currentlocalIndex) = std::min(*(dataInput + idx), dataOut(currentlocalIndex));
         }
-      }
-      else
-      {
-        if (flagInitial[currentlocalIndex]) 
-          dataOut(currentlocalIndex) = std::numeric_limits<double>::quiet_NaN();
       }
     }
   }

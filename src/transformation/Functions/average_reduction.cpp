@@ -30,7 +30,7 @@ void CAverageReductionAlgorithm::apply(const std::vector<std::pair<int,double> >
                                        const double* dataInput,
                                        CArray<double,1>& dataOut,
                                        std::vector<bool>& flagInitial,                     
-                                       bool ignoreMissingValue)
+                                       bool ignoreMissingValue, bool firstPass)
 {
   if (resetWeight_) { weights_.resize(flagInitial.size()); weights_ = 1.0; resetWeight_ = false; }  
 
@@ -38,7 +38,9 @@ void CAverageReductionAlgorithm::apply(const std::vector<std::pair<int,double> >
   {
     int nbLocalIndex = localIndex.size();
     int currentlocalIndex = 0;
-    double currentWeight  = 0.0;    
+    double currentWeight  = 0.0;
+
+    if (firstPass) dataOut=std::numeric_limits<double>::quiet_NaN();
 
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
@@ -56,11 +58,6 @@ void CAverageReductionAlgorithm::apply(const std::vector<std::pair<int,double> >
           dataOut(currentlocalIndex)  += *(dataInput + idx);
           weights_(currentlocalIndex) += 1.0;
         }
-      }
-      else
-      {
-        if (flagInitial[currentlocalIndex]) 
-          dataOut(currentlocalIndex) = std::numeric_limits<double>::quiet_NaN();
       }
     }
   }

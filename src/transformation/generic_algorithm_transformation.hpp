@@ -63,12 +63,13 @@ public:
     \param [in/out] dataOut Array contains local data
     \param [in/out] flagInitial vector of boolean to mark the local index already initialized. True means there is a need for initalization
     \param [in] ignoreMissingValue don't count missing value in operation if this flag is true
+    \param [in] firstPass indicate if it is the first time the apply funtion is called for a same transformation, in order to make a clean initialization 
   */
   virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
                      const double* dataInput,
                      CArray<double,1>& dataOut,
                      std::vector<bool>& flagInitial,                     
-                     bool ignoreMissingValue);
+                     bool ignoreMissingValue, bool firstPass);
 
   /*!
    * Update whole dataOut (on necessary).

@@ -83,13 +83,10 @@ CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestinatio
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
 
-void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex,
-                                         const double* dataInput,
-                                         CArray<double,1>& dataOut,
-                                         std::vector<bool>& flagInitial,
-				       bool ignoreMissingValue)
+void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex, const double* dataInput, CArray<double,1>& dataOut,
+                                         std::vector<bool>& flagInitial, bool ignoreMissingValue, bool firstPass)
 {
-  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue);
+  reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
 
 void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
