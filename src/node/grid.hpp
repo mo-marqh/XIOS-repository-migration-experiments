@@ -204,13 +204,16 @@ namespace xios {
       public:
          CArray<int, 1> storeIndex_client;
 
-/** Map containing indexes that will be sent in sendIndex(). In future: change the key to pair<distrType, serverSize> (?) */
+/** Map containing indexes that will be sent in sendIndex(). */
          std::map<CContextClient*, map<int, CArray<int, 1> > > storeIndex_toSrv;
+
+/** Map storing the number of senders. Key = size of receiver's intracomm */
+         std::map<int, std::map<int,int> > nbSenders;
+
+         std::map<CContextClient*, std::map<int,int> > nbReadSenders;
 
          map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
 
-
-         std::map<CContextClient*, std::map<int,int> > nbSenders, nbReadSenders;
 
          map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
 
@@ -270,6 +273,7 @@ namespace xios {
         void checkAttributesAfterTransformation();
         void setTransformationAlgorithms();
         void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+                                   const CContextClient* client,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
         int computeGridGlobalDimension(std::vector<int>& globalDim,
                                        const std::vector<CDomain*> domains,
@@ -304,11 +308,11 @@ namespace xios {
         size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
 
-/** Map storing ranks of connected servers. In future: change the key to the server size (?) */
-        std::map<CContextClient*, std::vector<int> > connectedServerRank_;
+/** Map storing local ranks of connected receivers. Key = size of receiver's intracomm */
+        std::map<int, std::vector<int> > connectedServerRank_;
 
-/** Map storing data size that will be sent to connected servers. In future: change the key to the server size (?) */
-        std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
+/** Map storing the size of data to be send. Key = size of receiver's intracomm */
+        std::map<int, std::map<int,size_t> > connectedDataSize_;
 
         bool isDataDistributed_;        
          //! True if and only if the data defined on the grid can be outputted in a compressed way
@@ -323,8 +327,12 @@ namespace xios {
         std::map<CGrid*, std::pair<bool,StdString> > gridSrc_;
         bool hasTransform_;
 
-/** Map storing data size that will be sent to connected servers. In future: change the key to the server size (?) */
-        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
+/** Map storing global indexes of server-like (band-wise) distribution for sending to receivers.
+  * Key = size of receiver's intracomm.
+  */
+//        std::map<CContextClient*, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
+        std::map<int, CClientServerMapping::GlobalIndexMap> globalIndexOnServer_;
+
 
 /** List order of axis and domain in a grid, if there is a domain, it will take value 1 (true), axis 0 (false) */
         std::vector<int> order_;

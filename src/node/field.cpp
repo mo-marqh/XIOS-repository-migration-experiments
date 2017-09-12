@@ -131,6 +131,7 @@ namespace xios{
 
     CContext* context = CContext::getCurrent();
     CContextClient* client = (!context->hasServer) ? context->client : this->file->getContextClient();
+    int receiverSize = client->serverSize;
 
     CEventClient event(getType(), EVENT_ID_UPDATE_DATA);
 
@@ -174,7 +175,7 @@ namespace xios{
         for (int n = 0; n < data_tmp.numElements(); n++) data_tmp(n) = data(index(n));
 
         list_msg.back() << getId() << data_tmp;
-        event.push(rank, grid->nbSenders[client][rank], list_msg.back());
+        event.push(rank, grid->nbSenders[receiverSize][rank], list_msg.back());
       }
       client->sendEvent(event);
     }
