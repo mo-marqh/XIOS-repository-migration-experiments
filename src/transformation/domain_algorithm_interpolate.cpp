@@ -51,6 +51,11 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
 {
   CContext* context = CContext::getCurrent();
   interpDomain_->checkValid(domainSource);
+
+  detectMissingValue = interpDomain_->detect_missing_value ;
+  renormalize = interpDomain_->renormalize ;
+  quantity = interpDomain_->quantity ;
+  
   fileToReadWrite_ = "xios_interpolation_weights_";
 
   if (interpDomain_->weight_filename.isEmpty())
@@ -98,14 +103,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();
-  bool renormalize ;
-  bool quantity ;
 
-  if (interpDomain_->renormalize.isEmpty()) renormalize=true;
-  else renormalize = interpDomain_->renormalize;
-
-  if (interpDomain_->quantity.isEmpty()) quantity=false;
-  else quantity = interpDomain_->quantity;
 
   const double poleValue = 90.0;
   const int constNVertex = 4; // Value by default number of vertex for rectangular domain
@@ -878,6 +876,58 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
 
   for(size_t ind=0; ind<nbWeight;++ind)
     interpMapValue[dstIndex[ind]-1].push_back(make_pair(srcIndex[ind]-1,weight[ind]));
+}
+
+void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> >& localIndex,
+                                            const double* dataInput,
+                                            CArray<double,1>& dataOut,
+                                            std::vector<bool>& flagInitial,
+                                            bool ignoreMissingValue, bool firstPass  )
+{
+  int nbLocalIndex = localIndex.size();   
+  double defaultValue = std::numeric_limits<double>::quiet_NaN();
+   
+  if (detectMissingValue)
+  {
+     if (firstPass && renormalize)
+     {
+       renormalizationFactor.resize(dataOut.numElements()) ;
+       renormalizationFactor=1 ;
+     }
+
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (NumTraits<double>::isnan(*(dataInput + idx)))
+      {
+        flagInitial[localIndex[idx].first] = false;
+        if (renormalize) renormalizationFactor(localIndex[idx].first)-=localIndex[idx].second ;
+      }
+      else
+      {
+        dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+        flagInitial[localIndex[idx].first] = true; // Reset flag to indicate not all data source are nan
+      }
+    }
+
+    // If all data source are nan then data destination must be nan
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (!flagInitial[localIndex[idx].first])
+        dataOut(localIndex[idx].first) = defaultValue;
+    }
+  }
+  else
+  {
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+    }
+  }
+}
+
+void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
+{
+  if (detectMissingValue && renormalize) dataOut/=renormalizationFactor ;
 }
 
 }

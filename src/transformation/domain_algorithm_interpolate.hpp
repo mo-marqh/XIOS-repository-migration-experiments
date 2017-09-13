@@ -30,6 +30,13 @@ public:
 
   virtual ~CDomainAlgorithmInterpolate() {}
 
+  virtual void apply(const std::vector<std::pair<int,double> >& localIndex,
+                     const double* dataInput,
+                     CArray<double,1>& dataOut,
+                     std::vector<bool>& flagInitial,                     
+                     bool ignoreMissingValue, bool firstPass);
+  virtual void updateData(CArray<double,1>& dataOut);
+
   static bool registerTrans();
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
@@ -46,6 +53,11 @@ private:
   void convertRemapInfo(std::map<int,std::vector<std::pair<int,double> > >& interpMapValue);
 
 private:
+  CArray<double,1> renormalizationFactor ;
+  bool detectMissingValue ;
+  bool renormalize ;
+  bool quantity ;
+  
   CInterpolateDomain* interpDomain_;
   bool writeToFile_;
   bool readFromFile_;
