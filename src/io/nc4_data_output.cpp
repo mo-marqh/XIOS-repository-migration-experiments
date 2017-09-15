@@ -1188,14 +1188,26 @@ namespace xios
                                              &axisid);
             }
 
+            if (!axis->formula.isEmpty())
+              SuperClassWriter::addAttribute("formula", axis->formula.getValue(), &axisid);
+
+            if (!axis->formula_term.isEmpty())
+              SuperClassWriter::addAttribute("formula_term", axis->formula_term.getValue(), &axisid);
+              
             StdString axisBoundsId = axisid + "_bounds";
             if (!axis->bounds.isEmpty() && axis->label.isEmpty())
             {
               dims.push_back("axis_nbounds");
               SuperClassWriter::addVariable(axisBoundsId, typePrec, dims);
               SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
+              if (!axis->formula_bounds.isEmpty())
+                SuperClassWriter::addAttribute("formula", axis->formula_bounds.getValue(), &axisid);
+
+              if (!axis->formula_term_bounds.isEmpty())
+                SuperClassWriter::addAttribute("formula_term", axis->formula_bounds.getValue(), &axisid);
             }
 
+              
             SuperClassWriter::definition_end();
 
             CArray<size_t, 1>& indexToWrite = axis->localIndexToWriteOnServer;
