@@ -470,7 +470,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 */
 void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  if (readFromFile_ && !writeToFile_)  
+  if (readFromFile_)  
     readRemapInfo();
   else
   {
