@@ -835,11 +835,20 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
   int weightDimId ;
   size_t nbWeightGlo ;
 
+
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
 
+
+  {
+    ifstream f(filename.c_str());
+    if (!f.good()) ERROR("void CDomainAlgorithmInterpolate::readInterpolationInfo",
+                      << "Attempt to read file weight :"  << filename << " which doesn't seem to exist." << std::endl
+                      << "Please check this file ");
+  }
+                  
   nc_open(filename.c_str(),NC_NOWRITE, &ncid) ;
   nc_inq_dimid(ncid,"n_weight",&weightDimId) ;
   nc_inq_dimlen(ncid,weightDimId,&nbWeightGlo) ;
