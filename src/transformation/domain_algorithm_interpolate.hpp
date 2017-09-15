@@ -62,6 +62,7 @@ private:
   bool writeToFile_;
   bool readFromFile_;
   StdString fileToReadWrite_;
+  bool fortranConvention ;
 
   // class WriteNetCdf;
   class WriteNetCdf : public CNc4DataOutput

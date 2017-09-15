@@ -55,6 +55,9 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
   detectMissingValue = interpDomain_->detect_missing_value ;
   renormalize = interpDomain_->renormalize ;
   quantity = interpDomain_->quantity ;
+
+  if (interpDomain_->read_write_convention == CInterpolateDomain::read_write_convention_attr::fortran) fortranConvention=true ;
+  else fortranConvention=false ;
   
   fileToReadWrite_ = "xios_interpolation_weights_";
 
@@ -767,13 +770,15 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
   CArray<double,1> weights(localNbWeight);
 
   int index = 0;
+  int indexOffset=0 ;
+  if (fortranConvention) indexOffset=1 ;
   for (it = itb; it !=ite; ++it)
   {
     std::vector<std::pair<int,double> >& tmp = it->second;
     for (int idx = 0; idx < tmp.size(); ++idx)
     {
-      dst_idx(index) = it->first + 1;
-      src_idx(index) = tmp[idx].first + 1;
+      dst_idx(index) = it->first + indexOffset;
+      src_idx(index) = tmp[idx].first + indexOffset;
       weights(index) = tmp[idx].second;
       ++index;
     }    
@@ -883,9 +888,11 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
   nc_inq_varid (ncid, "dst_idx", &dstIndexId) ;
   nc_get_vara_long(ncid, dstIndexId, &start, &nbWeight, dstIndex) ;
 
-  for(size_t ind=0; ind<nbWeight;++ind)
-    interpMapValue[dstIndex[ind]-1].push_back(make_pair(srcIndex[ind]-1,weight[ind]));
-}
+  int indexOffset=0 ;
+  if (fortranConvention) indexOffset=1 ;
+    for(size_t ind=0; ind<nbWeight;++ind)
+      interpMapValue[dstIndex[ind]-indexOffset].push_back(make_pair(srcIndex[ind]-indexOffset,weight[ind]));
+ }
 
 void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> >& localIndex,
                                             const double* dataInput,
