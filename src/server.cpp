@@ -612,49 +612,54 @@ namespace xios
      {
        MPI_Status status ;
        int flag ;
-       static void* buffer ;
-       static MPI_Request request ;
-       static bool recept=false ;
+       static std::vector<void*> buffers;
+       static std::vector<MPI_Request> requests ;
+       static std::vector<bool> recept;
+       static std::vector<int> counts ;
+       MPI_Request request;
+
+//       void* buffer ;
+//       static MPI_Request request ;
+//       static bool recept=false ;
+//       static int count ;
        int rank ;
-//       int count ;
-       static int count ;
        const int root=0 ;
        boost::hash<string> hashString;
        size_t hashId = hashString("RegisterContext");
 
-       // (1) Receive context id from the root
-       if (recept==false)
+       // (1) Receive context id from the root, save it into a buffer
+       if (recept.size() == nbContexts) recept.push_back(false);
+       if (recept[nbContexts]==false)
        {
          traceOff() ;
          MPI_Iprobe(root,2,intraComm, &flag, &status) ;
          traceOn() ;
          if (flag==true)
          {
-           MPI_Get_count(&status,MPI_CHAR,&count) ;
-           buffer=new char[count] ;
-           MPI_Irecv((void*)buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
-           recept=true ;
+           counts.push_back(0);
+           MPI_Get_count(&status,MPI_CHAR,&counts[nbContexts]) ;
+           requests.push_back(request);
+           buffers.push_back(new char[counts[nbContexts]]) ;
+           MPI_Irecv((void*)(buffers.back()),counts.back(),MPI_CHAR,root,2,intraComm,&(requests.back())) ;
+           recept[nbContexts]=true ;
          }
        }
-       // (2) If context id is received, save it into a buffer and register an event
+       // (2) If context id is received, register an event
        else
        {
-         MPI_Test(&request,&flag,&status) ;
+         MPI_Test(&requests[nbContexts],&flag,&status) ;
          if (flag==true)
          {
-           MPI_Get_count(&status,MPI_CHAR,&count) ;
            eventScheduler->registerEvent(nbContexts,hashId);
-//           registerContext((void*)buffer,count) ;
-//           delete [] buffer ;
-           recept=false ;
+           recept[nbContexts]=false ;
          }
        }
        // (3) If event has been scheduled, call register context
        if (eventScheduler->queryEvent(nbContexts,hashId))
        {
-         registerContext(buffer,count) ;
+         registerContext(buffers[nbContexts],counts[nbContexts]) ;
+         delete [] buffers[nbContexts] ;
          ++nbContexts;
-         delete [] buffer ;
        }
      }
 
