@@ -614,53 +614,47 @@ namespace xios
        int flag ;
        static std::vector<void*> buffers;
        static std::vector<MPI_Request> requests ;
-       static std::vector<bool> recept;
        static std::vector<int> counts ;
+       static std::vector<bool> isEventRegistered ;
        MPI_Request request;
 
-//       void* buffer ;
-//       static MPI_Request request ;
-//       static bool recept=false ;
-//       static int count ;
        int rank ;
        const int root=0 ;
        boost::hash<string> hashString;
        size_t hashId = hashString("RegisterContext");
 
        // (1) Receive context id from the root, save it into a buffer
-       if (recept.size() == nbContexts) recept.push_back(false);
-       if (recept[nbContexts]==false)
+       traceOff() ;
+       MPI_Iprobe(root,2,intraComm, &flag, &status) ;
+       traceOn() ;
+       if (flag==true)
        {
-         traceOff() ;
-         MPI_Iprobe(root,2,intraComm, &flag, &status) ;
-         traceOn() ;
-         if (flag==true)
+         counts.push_back(0);
+         MPI_Get_count(&status,MPI_CHAR,&(counts.back())) ;
+         buffers.push_back(new char[counts.back()]) ;
+         requests.push_back(request);
+         MPI_Irecv((void*)(buffers.back()),counts.back(),MPI_CHAR,root,2,intraComm,&(requests.back())) ;
+         isEventRegistered.push_back(false);
+         nbContexts++;
+       }
+
+       for (int ctxNb = 0; ctxNb < nbContexts; ctxNb++ )
+       {
+         // (2) If context id is received, register an event
+         MPI_Test(&requests[ctxNb],&flag,&status) ;
+         if (flag==true && !isEventRegistered[ctxNb])
          {
-           counts.push_back(0);
-           MPI_Get_count(&status,MPI_CHAR,&counts[nbContexts]) ;
-           requests.push_back(request);
-           buffers.push_back(new char[counts[nbContexts]]) ;
-           MPI_Irecv((void*)(buffers.back()),counts.back(),MPI_CHAR,root,2,intraComm,&(requests.back())) ;
-           recept[nbContexts]=true ;
+           eventScheduler->registerEvent(ctxNb,hashId);
+           isEventRegistered[ctxNb] = true;
+         }
+         // (3) If event has been scheduled, call register context
+         if (eventScheduler->queryEvent(ctxNb,hashId))
+         {
+           registerContext(buffers[ctxNb],counts[ctxNb]) ;
+           delete [] buffers[ctxNb] ;
          }
        }
-       // (2) If context id is received, register an event
-       else
-       {
-         MPI_Test(&requests[nbContexts],&flag,&status) ;
-         if (flag==true)
-         {
-           eventScheduler->registerEvent(nbContexts,hashId);
-           recept[nbContexts]=false ;
-         }
-       }
-       // (3) If event has been scheduled, call register context
-       if (eventScheduler->queryEvent(nbContexts,hashId))
-       {
-         registerContext(buffers[nbContexts],counts[nbContexts]) ;
-         delete [] buffers[nbContexts] ;
-         ++nbContexts;
-       }
+
      }
 
      void CServer::registerContext(void* buff, int count, int leaderRank)
