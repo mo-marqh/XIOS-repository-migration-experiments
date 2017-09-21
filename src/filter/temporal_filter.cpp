@@ -14,8 +14,8 @@ namespace xios
     , isOnceOperation(functor->timeType() == func::CFunctor::once)
     , isInstantOperation(functor->timeType() == func::CFunctor::instant)
     // If we can optimize the sampling when dealing with an instant functor we do it
-    , samplingFreq((isInstantOperation && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq : samplingFreq)
-    , samplingOffset((isInstantOperation && samplingFreq == TimeStep && samplingOffset == NoneDu) ? opFreq - initDate.getRelCalendar().getTimeStep() : samplingOffset)
+    , samplingOffset((isInstantOperation && samplingFreq == NoneDu && samplingOffset == NoneDu) ? opFreq - initDate.getRelCalendar().getTimeStep() : samplingOffset)
+    , samplingFreq((samplingFreq == NoneDu ? (isInstantOperation ? opFreq : initDate.getRelCalendar().getTimeStep()) : samplingFreq))
     , opFreq(opFreq)
     , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
     , nextOperationDate(initDate + this->samplingOffset + opFreq)

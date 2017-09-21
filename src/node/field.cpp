@@ -1144,7 +1144,8 @@ namespace xios{
                << "An operation must be defined for field \"" << getId() << "\".");
 
        if (freq_op.isEmpty())
-         freq_op.setValue(TimeStep);
+//         freq_op.setValue(TimeStep);
+         freq_op.setValue(NoneDu);
        if (freq_offset.isEmpty())
          freq_offset.setValue(NoneDu);
 
