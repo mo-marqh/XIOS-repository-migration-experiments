@@ -1143,18 +1143,13 @@ namespace xios{
          ERROR("void CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
-       if (freq_op.isEmpty())
-//         freq_op.setValue(TimeStep);
-         freq_op.setValue(NoneDu);
-       if (freq_offset.isEmpty())
-         freq_offset.setValue(NoneDu);
-
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
                                                                              detectMissingValues, detectMissingValues ? default_value : 0.0));
+
        instantDataFilter->connectOutput(temporalFilter, 0);
 
        it = temporalDataFilters.insert(std::make_pair(outFreq, temporalFilter)).first;
@@ -1186,15 +1181,13 @@ namespace xios{
          ERROR("void CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
-       if (freq_op.isEmpty()) freq_op.setValue(TimeStep);
-       if (freq_offset.isEmpty()) freq_offset.setValue(NoneDu);
-
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
 
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
                                                                              detectMissingValues, detectMissingValues ? default_value : 0.0));
+
        selfReferenceFilter->connectOutput(temporalFilter, 0);
        return temporalFilter ;
      }
@@ -1562,6 +1555,40 @@ namespace xios{
       string id;
       buffer >> id;
       addVariableGroup(id);
+   }
+
+   /*!
+    * Check on freq_off and freq_op attributes.
+    */
+   void CField::checkAttributes(void)
+   {
+     if (freq_op.isEmpty())
+     {
+       if (!freq_offset.isEmpty())
+         ERROR("CField::checkAttributes(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Attribute freq_offset cannot be defined if attribute freq_op is not defined. "
+               << "Please define freq_op.")
+       else
+       {
+         CContext* context = CContext::getCurrent();
+         if (operation.getValue()=="instant")
+         {
+           freq_op.setValue(file->output_freq.getValue());
+           freq_offset.setValue(file->output_freq.getValue() - TimeStep);
+         }
+         else
+         {
+           freq_op.setValue(TimeStep);
+           freq_op.setValue(NoneDu);
+         }
+       }
+     }
+     else
+     {
+       if (freq_offset.isEmpty())
+         freq_op.setValue(NoneDu);
+     }
    }
 
    /*!
