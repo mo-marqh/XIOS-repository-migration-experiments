@@ -352,10 +352,10 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   \param [in] elementPositionInGrid position of element in grid. E.x: grid composed of domain and axis, domain has position 0 and axis 1.
   \param [in] srcRank rank of client from which we demand global index of element source
   \param [in] src2DstMap mapping of global index of element source and global index of element destination
-  \param[in] gridSrc Grid source
-  \param[in] gridDst Grid destination
-  \param[in] globalElementIndexOnProc Global index of element source on different client rank
-  \param[out] globaIndexWeightFromSrcToDst Mapping of global index of grid source and grid destination
+  \param [in] gridSrc Grid source
+  \param [in] gridDst Grid destination
+  \param [in] globalElementIndexOnProc Global index of element source on different client rank
+  \param [out] globaIndexWeightFromSrcToDst Mapping of global index of grid source and grid destination
 */
 void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementPositionInGrid,
                                                                    const std::vector<int>& srcRank,
@@ -365,6 +365,12 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
                                                                    std::vector<boost::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
                                                                    SourceDestinationIndexMap& globaIndexWeightFromSrcToDst)
 {
+  SourceDestinationIndexMap globaIndexWeightFromSrcToDst_tmp ;
+  
+  CContext* context = CContext::getCurrent();
+  CContextClient* client=context->client;
+  int clientRank = client->clientRank;
+  
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
   std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
   std::vector<CScalar*> scalarListSrcP = gridSrc->getScalars();
@@ -405,6 +411,8 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
   std::vector<size_t> nGlobDst(nbElement);
   size_t globalDstSize = 1;
   domainIndex = axisIndex = scalarIndex = 0;
+  set<size_t>  globalSrcStoreIndex ;
+  
   for (int idx = 0; idx < nbElement; ++idx)
   {
     nGlobDst[idx] = globalDstSize;
@@ -428,6 +436,9 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
     }
   }
 
+  std::map< std::pair<size_t,size_t>, int > rankMap ;
+  std::map< std::pair<size_t,size_t>, int >:: iterator rankMapIt ;
+  
   for (int i = 0; i < srcRank.size(); ++i)
   {
     size_t ssize = 1;
@@ -487,13 +498,50 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
 
         for (int k = 0; k < globalElementDstIndexSize; ++k)
         {
-          globaIndexWeightFromSrcToDst[rankSrc][globalSrcIndex].push_back(make_pair(globalDstVecIndex[k],src2DstMap[currentIndexSrc[elementPositionInGrid]][k].second ));
+          
+          globaIndexWeightFromSrcToDst_tmp[rankSrc][globalSrcIndex].push_back(make_pair(globalDstVecIndex[k],src2DstMap[currentIndexSrc[elementPositionInGrid]][k].second ));
+          rankMapIt=rankMap.find(make_pair(globalSrcIndex,globalDstVecIndex[k])) ;
+          if (rankMapIt==rankMap.end()) rankMap[make_pair(globalSrcIndex,globalDstVecIndex[k])] = rankSrc ;
+          else if (rankSrc==clientRank) rankMapIt->second = rankSrc ;
         }
         ++idxLoop[0];
       }
       idx += innnerLoopSize;
     }
   }
+
+  // eliminate redondant global src point owned by differrent processes.
+  // Avoid as possible to tranfer data from an other process if the src point is also owned by current process 
+
+   int rankSrc ;
+   size_t globalSrcIndex ;
+   size_t globalDstIndex ;
+   double weight ;
+ 
+   SourceDestinationIndexMap::iterator rankIt,rankIte ;
+   boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > >::iterator globalSrcIndexIt, globalSrcIndexIte ;
+   std::vector<std::pair<size_t,double> >::iterator vectIt,vectIte ;
+   
+   rankIt=globaIndexWeightFromSrcToDst_tmp.begin() ; rankIte=globaIndexWeightFromSrcToDst_tmp.end() ;
+   for(;rankIt!=rankIte;++rankIt)
+   {
+     rankSrc = rankIt->first ;
+     globalSrcIndexIt = rankIt->second.begin() ; globalSrcIndexIte = rankIte->second.end() ;
+     for(;globalSrcIndexIt!=globalSrcIndexIte;++globalSrcIndexIt)
+     {
+       globalSrcIndex = globalSrcIndexIt->first ;
+       vectIt = globalSrcIndexIt->second.begin() ; vectIte = globalSrcIndexIt->second.end() ;
+       for(vectIt; vectIt!=vectIte; vectIt++)
+       {
+         globalDstIndex = vectIt->first ;
+         weight = vectIt->second ;
+         if (rankMap[make_pair(globalSrcIndex,globalDstIndex)] == rankSrc)  
+           globaIndexWeightFromSrcToDst[rankSrc][globalSrcIndex].push_back(make_pair(globalDstIndex,weight)) ;
+       }
+     }
+   }
+
+
 }
 
 /*!
