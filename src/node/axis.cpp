@@ -51,6 +51,7 @@ namespace xios {
      m["inverse_axis"] = TRANS_INVERSE_AXIS;
      m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_AXIS;
      m["extract_domain"] = TRANS_EXTRACT_DOMAIN_TO_AXIS;
+     m["temporal_splitting"] = TRANS_TEMPORAL_SPLITTING;
    }
 
    ///---------------------------------------------------------------

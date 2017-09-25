@@ -40,11 +40,12 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CInverseAxis inverseAxis;
   CReduceDomainToAxis reduceDomainToAxis;
   CExtractDomainToAxis extractDomainToAxis;
+  CTemporalSplitting temporalSplitting;
 
   CReduceAxisToScalar reduceAxisToScalar;
   CExtractAxisToScalar extractAxisToScalar;
   CReduceDomainToScalar reduceDomainToScalar;
-
+  
   ostringstream oss;
   ofstream file;
 
@@ -353,12 +354,24 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   extractDomainToAxis.generateFortran2003Interface(file);
   file.close();
 
+  file.open((path+"temporal_splitting_interface_attr.F90").c_str());
+  temporalSplitting.generateFortran2003Interface(file);
+  file.close();
+
   file.open((path+"icextract_domain_to_axis_attr.cpp").c_str());
   extractDomainToAxis.generateCInterface(file);
   file.close();
 
+  file.open((path+"ictemporal_splitting_attr.cpp").c_str());
+  temporalSplitting.generateCInterface(file);
+  file.close();
+
   file.open((path+"iextract_domain_to_axis_attr.F90").c_str());
   extractDomainToAxis.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"itemporal_splitting_attr.F90").c_str());
+  temporalSplitting.generateFortranInterface(file);
   file.close();
 
 
@@ -391,6 +404,10 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"reduce_domain_to_scalar_interface_attr.F90").c_str());
   reduceDomainToScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"temporal_splitting_interface_attr.F90").c_str());
+  temporalSplitting.generateFortran2003Interface(file);
   file.close();
 
   file.open((path+"icreduce_domain_to_scalar_attr.cpp").c_str());

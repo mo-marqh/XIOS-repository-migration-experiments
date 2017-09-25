@@ -28,6 +28,7 @@ void CGridTransformationSelector::registerTransformations()
   CAxisAlgorithmInterpolate::registerTrans();
   CAxisAlgorithmInverse::registerTrans();
   CAxisAlgorithmReduceDomain::registerTrans();
+  CAxisAlgorithmTemporalSplitting::registerTrans();
 
   //! Domain
   CDomainAlgorithmComputeConnectivity::registerTrans();

@@ -39,6 +39,7 @@ namespace xios
   macro(CExpandDomain)
   macro(CExtractAxisToScalar)
   macro(CReduceDomainToScalar)
+  macro(CTemporalSplitting)
 
   macro(CFieldGroup)
   macro(CFileGroup)
@@ -61,4 +62,5 @@ namespace xios
   macro(CExpandDomainGroup)
   macro(CExtractAxisToScalarGroup)
   macro(CReduceDomainToScalarGroup)
+  macro(CTemporalSplittingGroup)
 }

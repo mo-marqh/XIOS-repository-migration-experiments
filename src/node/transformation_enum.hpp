@@ -19,6 +19,7 @@ namespace xios
         TRANS_EXPAND_DOMAIN = 10,
         TRANS_EXTRACT_AXIS_TO_SCALAR = 11,
         TRANS_REDUCE_DOMAIN_TO_SCALAR = 12,
+        TRANS_TEMPORAL_SPLITTING = 13,
       } ETranformationType;
 
 } // namespace xios

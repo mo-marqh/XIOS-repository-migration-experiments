@@ -19,6 +19,7 @@
 #include "axis_algorithm_reduce_domain.hpp"
 #include "axis_algorithm_transformation.hpp"
 #include "axis_algorithm_extract_domain.hpp"
+#include "axis_algorithm_temporal_splitting.hpp"
 
 #include "domain_algorithm_zoom.hpp"
 #include "domain_algorithm_interpolate.hpp"

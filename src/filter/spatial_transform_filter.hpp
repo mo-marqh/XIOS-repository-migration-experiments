@@ -49,6 +49,43 @@ namespace xios
       double outputDefaultValue;
   }; // class CSpatialTransformFilter
 
+
+ /*!
+   * A specific spatial filter for the temporal_splitting transformation scalar -> axis. An incoming flux will be stored in an aditional dimension given by the destination axis.
+   * At each flux received, the storing index (record) is increased. When it reach the size of the axis (nrecords) a new flux is generated and the record is reset to 0
+   */
+
+ class CSpatialTemporalFilter : public CSpatialTransformFilter
+  {
+    public:
+      /*!
+       * Constructs a filter wrapping the specified spatial transformation.
+       *
+       * \param gc the associated garbage collector
+       * \param engine the engine defining the spatial transformation
+       * \param [in] gridTransformation the associated transformations
+       * \param outputValue default value of output pin
+       * \param [in] inputSlotsCount number of input, by default there is only one for field src
+       */
+      CSpatialTemporalFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, CGridTransformation* gridTransformation, double outputValue, size_t inputSlotsCount = 1);
+
+
+    protected:
+      /*!
+        Overriding this function to process transformations with auxillary inputs
+      */
+      void virtual onInputReady(std::vector<CDataPacketPtr> data);
+      //! Current record in the filter
+      int record ;
+      //! Maximum number of records
+      int nrecords;
+      //! Temporary storage for output flux
+      CArray<double, 1> tmpData; 
+
+
+  }; // class CSpatialTemporalFilter
+
+
   /*!
    * A generic filter engine wrapping a grid transformation.
    */

@@ -26,6 +26,7 @@ namespace xios
   template class CObjectTemplate<CExpandDomain>;
   template class CObjectTemplate<CExtractAxisToScalar>;
   template class CObjectTemplate<CReduceDomainToScalar>;
+  template class CObjectTemplate<CTemporalSplitting>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -48,4 +49,5 @@ namespace xios
   template class CObjectTemplate<CExpandDomainGroup>;
   template class CObjectTemplate<CExtractAxisToScalarGroup>;
   template class CObjectTemplate<CReduceDomainToScalarGroup>;
+  template class CObjectTemplate<CTemporalSplittingGroup>;
 }

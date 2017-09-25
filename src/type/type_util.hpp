@@ -47,7 +47,9 @@ namespace xios
     class CExtractAxisToScalarGroup;
     class CReduceDomainToScalar;
     class CReduceDomainToScalarGroup;
-
+    class CTemporalSplitting;
+    class CTemporalSplittingGroup;
+    
   template <typename T> inline string getStrType(void);
 
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
@@ -111,6 +113,8 @@ namespace xios
   macro(CExtractAxisToScalarGroup)
   macro(CReduceDomainToScalar)
   macro(CReduceDomainToScalarGroup)
+  macro(CTemporalSplitting)
+  macro(CTemporalSplittingGroup)
   
 #undef macro
 }

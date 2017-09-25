@@ -16,7 +16,7 @@ namespace xios {
 
 class CAxis;
 class CDomain;
-
+class CScalar;
 /*!
   \class CAxisAlgorithmTransformation
   Algorithms for axis.
@@ -26,6 +26,7 @@ class CAxisAlgorithmTransformation : public virtual CGenericAlgorithmTransformat
 public:
   CAxisAlgorithmTransformation(CAxis* axisDestination, CAxis* axisSource);
   CAxisAlgorithmTransformation(CAxis* axisDestination, CDomain* domainSource);
+  CAxisAlgorithmTransformation(CAxis* axisDestination, CScalar* scalarSource);
 
   virtual ~CAxisAlgorithmTransformation();
 
@@ -51,6 +52,10 @@ protected:
 
   //! Domain on grid source
   CDomain* domainSrc_;
+
+  //! Scalar on grid source
+
+  CScalar* scalarSrc_;
 };
 
 }

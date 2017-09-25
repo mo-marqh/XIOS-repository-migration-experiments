@@ -50,6 +50,13 @@ public:
   int getNbAlgo() { return nbNormalAlgos_; }
   const std::vector<StdString>& getAuxInputs() const { return auxInputs_; }
   const std::vector<CGenericAlgorithmTransformation*>& getAlgos() const { return algoTransformation_; }
+  const std::map<int, int> getElementPositionInGridSrc2AxisPosition() const { return elementPositionInGridSrc2AxisPosition_ ;}
+  const std::map<int, int> getElementPositionInGridSrc2DomainPosition() const { return elementPositionInGridSrc2DomainPosition_ ;}
+  const std::map<int, int> getElementPositionInGridSrc2ScalarPosition() const { return elementPositionInGridSrc2ScalarPosition_ ;}
+  const std::map<int, int> getElementPositionInGridDst2AxisPosition() const { return elementPositionInGridDst2AxisPosition_ ;}
+  const std::map<int, int> getElementPositionInGridDst2DomainPosition() const { return elementPositionInGridDst2DomainPosition_ ;}
+  const std::map<int, int> getElementPositionInGridDst2ScalarPosition() const { return elementPositionInGridDst2ScalarPosition_ ;}
+
 
 protected:
   void updateElementPosition();
