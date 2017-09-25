@@ -943,7 +943,11 @@ void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> 
 
 void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
 {
-  if (detectMissingValue && renormalize) dataOut/=renormalizationFactor ;
+  if (detectMissingValue && renormalize)
+  {
+    if (renormalizationFactor.numElements()>0) dataOut/=renormalizationFactor ; // In some case, process doesn't received any data for interpolation (mask)
+                                                                                // so renormalizationFactor is not initialized
+  }
 }
 
 }
