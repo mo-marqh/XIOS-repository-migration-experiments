@@ -1587,7 +1587,7 @@ namespace xios{
      else
      {
        if (freq_offset.isEmpty())
-         freq_op.setValue(NoneDu);
+         freq_offset.setValue(NoneDu);
      }
    }
 
