@@ -1571,23 +1571,22 @@ namespace xios{
                << "Please define freq_op.")
        else
        {
-         CContext* context = CContext::getCurrent();
          if (operation.getValue()=="instant")
          {
            freq_op.setValue(file->output_freq.getValue());
-           freq_offset.setValue(file->output_freq.getValue() - TimeStep);
+           freq_offset.setValue(file->output_freq.getValue()-TimeStep);
          }
          else
          {
            freq_op.setValue(TimeStep);
-           freq_op.setValue(NoneDu);
+           freq_offset.setValue(freq_op.getValue()-TimeStep);
          }
        }
      }
      else
      {
        if (freq_offset.isEmpty())
-         freq_offset.setValue(NoneDu);
+         freq_offset.setValue(freq_op.getValue()-TimeStep);
      }
    }
 
