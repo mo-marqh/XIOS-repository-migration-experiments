@@ -16,10 +16,23 @@ namespace xios
     , samplingFreq(samplingFreq)
     , samplingOffset(samplingOffset)
     , opFreq(opFreq)
-    , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
-    , nextOperationDate(initDate + this->samplingOffset + opFreq)
+    , offsetMonth({0, this->samplingOffset.month, 0, 0, 0, 0, 0})
+    , offsetAllButMonth({this->samplingOffset.year, 0 , this->samplingOffset.day,
+                         this->samplingOffset.hour, this->samplingOffset.minute,
+                         this->samplingOffset.second, this->samplingOffset.timestep})
+    , initDate(initDate)
     , isFirstOperation(true)
+    , nextSamplingDate(initDate + initDate.getRelCalendar().getTimeStep() + this->samplingOffset)
+    , nextOperationDate(initDate + opFreq + this->samplingOffset)
+//    , nextOperationDate(initDate + opFreq + this->offsetMonth + this->offsetAllButMonth)
+    , nbSamplingDates(0)
   {
+    if (offsetMonth != NoneDu && offsetAllButMonth != NoneDu)
+    {
+      nextOperationDate = initDate + opFreq + this->offsetMonth;
+//      nextSamplingDate = initDate + initDate.getRelCalendar().getTimeStep() + this->samplingOffset;
+      nextSamplingDate = initDate + this->offsetMonth + this->offsetAllButMonth;
+    }
   }
 
   CDataPacketPtr CTemporalFilter::apply(std::vector<CDataPacketPtr> data)
@@ -34,7 +47,10 @@ namespace xios
       else
       {
         usePacket = (data[0]->date >= nextSamplingDate);
-        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
+        outputResult = ((offsetMonth != NoneDu && offsetAllButMonth != NoneDu)
+                       ? (data[0]->date - offsetAllButMonth > nextOperationDate - samplingFreq)
+                       : (data[0]->date + samplingFreq > nextOperationDate));
+//        outputResult = (data[0]->date  > nextOperationDate - samplingFreq);
         copyLess = (isInstantOperation && usePacket && outputResult);
       }
 
@@ -48,7 +64,20 @@ namespace xios
           (*functor)(data[0]->data);
         }
 
-        nextSamplingDate = nextSamplingDate + samplingFreq;
+        if (offsetMonth != NoneDu && offsetAllButMonth != NoneDu)
+        {
+          nextSamplingDate = initDate + samplingFreq;
+          for (int i=0; i<(nbSamplingDates+1); i++)
+          {
+            nextSamplingDate = nextSamplingDate + samplingFreq;
+          }
+          nextSamplingDate = nextSamplingDate + offsetAllButMonth;
+        }
+        else
+          nextSamplingDate = nextSamplingDate + samplingFreq;
+
+        nbSamplingDates++;
+
       }
 
       if (outputResult)
@@ -67,8 +96,8 @@ namespace xios
         else
           packet = data[0];
 
-        isFirstOperation = false;
         nextOperationDate = nextOperationDate + samplingFreq + opFreq - samplingFreq;
+        isFirstOperation = false;
       }
     }
 
