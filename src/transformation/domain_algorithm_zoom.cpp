@@ -73,23 +73,6 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 */
 void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  int niSource = domainSrc_->ni.getValue();
-  int ibeginSource = domainSrc_->ibegin.getValue();
-  int iendSource = ibeginSource + niSource - 1;
-
-  int ibegin = std::max(ibeginSource, zoomIBegin_);
-  int iend = std::min(iendSource, zoomIEnd_);
-  int ni = iend + 1 - ibegin;
-  if (iend < ibegin) ni = 0;
-
-  int njSource = domainSrc_->nj.getValue();
-  int jbeginSource = domainSrc_->jbegin.getValue();
-  int jendSource = jbeginSource + njSource - 1;
-
-  int jbegin = std::max(jbeginSource, zoomJBegin_);
-  int jend = std::min(jendSource, zoomJEnd_);
-  int nj = jend + 1 - jbegin;
-  if (jend < jbegin) nj = 0;
 
   int niGlob = domainSrc_->ni_glo.getValue();
   int njGlob = domainSrc_->nj_glo.getValue();
@@ -101,18 +84,23 @@ void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<d
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
   int domainGlobalIndex;
-  for (int j = 0; j < nj; ++j)
+  int iglob ;
+  int jglob ;
+  const CArray<int,1>& i_index = domainSrc_->i_index.getValue() ;
+  const CArray<int,1>& j_index = domainSrc_->j_index.getValue() ;
+
+  int nglo = i_index.numElements() ;
+  for (size_t i = 0; i < nglo ; ++i)
   {
-    for (int i = 0; i < ni; ++i)
+    iglob=i_index(i) ; jglob=j_index(i) ;
+    if (iglob>=zoomIBegin_ && iglob<=zoomIEnd_ && jglob>=zoomJBegin_ && jglob<=zoomJEnd_)
     {
-      domainGlobalIndex = (j+jbegin) * niGlob + (i+ibegin);
+      domainGlobalIndex = jglob*niGlob + iglob;
       transMap[domainGlobalIndex].push_back(domainGlobalIndex);
       transWeight[domainGlobalIndex].push_back(1.0);
     }
   }
-
   updateZoom();
-  // updateDomainDestinationMask();
 }
 
 /*!
