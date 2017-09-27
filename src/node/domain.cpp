@@ -1539,8 +1539,8 @@ namespace xios {
 
    void CDomain::checkLonLat()
    {
-     hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
-                 (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
+     if (!hasLonLat) hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
+                                 (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
      bool hasLonLatValue = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      if (hasLonLat && !hasLonLatValue)
      {
@@ -2540,8 +2540,16 @@ namespace xios {
       } 
     } 
 
-    i_index.resizeAndPreserve(nbIndGlob);
-    j_index.resizeAndPreserve(nbIndGlob);
+    if (nbIndGlob==0)
+    {
+      i_index.resize(nbIndGlob);
+      j_index.resize(nbIndGlob);
+    }
+    else
+    {
+      i_index.resizeAndPreserve(nbIndGlob);
+      j_index.resizeAndPreserve(nbIndGlob);
+    }
   }
 
   /*!
