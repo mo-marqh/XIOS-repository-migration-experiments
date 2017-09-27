@@ -228,7 +228,7 @@ namespace xios
      CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
      for (; it != itE; ++it)
      {
-       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second));
+       if (it->second->doSend() && !(it->second)->isEmpty()) sendAttributToServer(*(it->second));
      }
    }
 
@@ -239,7 +239,7 @@ namespace xios
      CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
      for (; it != itE; ++it)
      {
-       if (!(it->second)->isEmpty()) sendAttributToServer(*(it->second), client);
+       if (it->second->doSend() && !(it->second)->isEmpty()) sendAttributToServer(*(it->second), client);
      }
    }
 
