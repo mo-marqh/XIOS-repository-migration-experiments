@@ -175,6 +175,8 @@ namespace xios {
         void recvAddVariableGroup(CBufferIn& buffer);
         void sendAddAllVariables();
 
+        /// Vérifications ///
+        void checkAttributes(void);
 
         const std::vector<StdString>& getRefDomainAxisIds();
 

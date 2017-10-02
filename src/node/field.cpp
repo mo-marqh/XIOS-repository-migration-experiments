@@ -1445,6 +1445,39 @@ namespace xios{
    }
 
    /*!
+    * Check on freq_off and freq_op attributes.
+    */
+   void CField::checkAttributes(void)
+   {
+     if (freq_op.isEmpty())
+     {
+       if (!freq_offset.isEmpty())
+         ERROR("CField::checkAttributes(void)",
+               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+               << "Attribute freq_offset cannot be defined if attribute freq_op is not defined. "
+               << "Please define freq_op.")
+       else
+       {
+         if (operation.getValue()=="instant")
+         {
+           freq_op.setValue(file->output_freq.getValue());
+           freq_offset.setValue(file->output_freq.getValue()-TimeStep);
+         }
+         else
+         {
+           freq_op.setValue(TimeStep);
+           freq_offset.setValue(freq_op.getValue()-TimeStep);
+         }
+       }
+     }
+     else
+     {
+       if (freq_offset.isEmpty())
+         freq_offset.setValue(freq_op.getValue()-TimeStep);
+     }
+   }
+
+   /*!
     * Returns string arithmetic expression associated to the field.
     * \return if content is defined return content string, otherwise, if "expr" attribute is defined, return expr string.
     */
