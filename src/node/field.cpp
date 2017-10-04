@@ -1144,7 +1144,7 @@ namespace xios{
                << "An operation must be defined for field \"" << getId() << "\".");
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-       
+       checkAttributes() ;   
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
@@ -1182,7 +1182,7 @@ namespace xios{
                << "An operation must be defined for field \"" << getId() << "\".");
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-
+       checkAttributes() ;   
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
@@ -1564,23 +1564,21 @@ namespace xios{
    {
      if (freq_op.isEmpty())
      {
+/*
        if (!freq_offset.isEmpty())
          ERROR("CField::checkAttributes(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "Attribute freq_offset cannot be defined if attribute freq_op is not defined. "
-               << "Please define freq_op.")
+               << "Please define freq_op.") */
+       if (operation.getValue()=="instant")
+       {
+         freq_op.setValue(file->output_freq.getValue());
+         if (freq_offset.isEmpty()) freq_offset.setValue(file->output_freq.getValue()-TimeStep);
+       }
        else
        {
-         if (operation.getValue()=="instant")
-         {
-           freq_op.setValue(file->output_freq.getValue());
-           freq_offset.setValue(file->output_freq.getValue()-TimeStep);
-         }
-         else
-         {
-           freq_op.setValue(TimeStep);
-           freq_offset.setValue(freq_op.getValue()-TimeStep);
-         }
+         freq_op.setValue(TimeStep);
+         if (freq_offset.isEmpty()) freq_offset.setValue(freq_op.getValue()-TimeStep);
        }
      }
      else
