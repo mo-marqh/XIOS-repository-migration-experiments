@@ -452,7 +452,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
      domainDestination->latvalue_1d.resize(lat_dst.numElements());
      domainDestination->latvalue_1d = (lat_dst);
   }
-
+   domainDestination->computeLocalMask() ;
 }
 
 /*!

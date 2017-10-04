@@ -148,6 +148,7 @@ namespace xios {
          bool hasLonLat;
          bool hasPole ;
 
+         void computeLocalMask(void) ;
       private:
          void checkDomain(void);
          void checkLocalIDomain(void);
@@ -161,7 +162,6 @@ namespace xios {
          void checkArea(void);
          void checkLonLat();
          void checkZoom(void);
-         void computeLocalMask(void) ;
 
          void setTransformations(const TransMapTypes&);         
          void computeNGlobDomain();
