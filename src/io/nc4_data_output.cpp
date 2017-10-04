@@ -1200,11 +1200,18 @@ namespace xios
               dims.push_back("axis_nbounds");
               SuperClassWriter::addVariable(axisBoundsId, typePrec, dims);
               SuperClassWriter::addAttribute("bounds", axisBoundsId, &axisid);
+
+              if (!axis->standard_name.isEmpty())
+                SuperClassWriter::addAttribute("standard_name", axis->standard_name.getValue(), &axisBoundsId);
+
+              if (!axis->unit.isEmpty())
+                SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisBoundsId);
+
               if (!axis->formula_bounds.isEmpty())
-                SuperClassWriter::addAttribute("formula", axis->formula_bounds.getValue(), &axisid);
+                SuperClassWriter::addAttribute("formula", axis->formula_bounds.getValue(), &axisBoundsId);
 
               if (!axis->formula_term_bounds.isEmpty())
-                SuperClassWriter::addAttribute("formula_term", axis->formula_bounds.getValue(), &axisid);
+                SuperClassWriter::addAttribute("formula_term", axis->formula_term_bounds.getValue(), &axisBoundsId);
             }
 
               
