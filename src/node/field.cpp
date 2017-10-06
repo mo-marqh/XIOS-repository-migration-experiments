@@ -950,9 +950,12 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
+//          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
+//                                                                                                      detectMissingValues, defaultValue));
           instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
 
-             // If the field data is to be read by the client or/and written to a file
+
+       // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
        {
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
@@ -965,6 +968,8 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
+//         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
+//                                                                                                     detectMissingValues, defaultValue));
          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
 
              // If the field data is to be read by the client or/and written to a file
@@ -1499,6 +1504,17 @@ namespace xios{
    CVariableGroup* CField::addVariableGroup(const string& id)
    {
      return vVariableGroup->createChildGroup(id);
+   }
+
+   void CField::setContextClient(CContextClient* contextClient)
+   {
+     client = contextClient;
+     grid->setContextClient(contextClient);
+   }
+
+   CContextClient* CField::getContextClient()
+   {
+     return client;
    }
 
    void CField::sendAddAllVariables(CContextClient* client)

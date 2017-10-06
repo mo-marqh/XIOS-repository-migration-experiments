@@ -35,6 +35,7 @@ namespace xios {
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
+      , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -54,6 +55,7 @@ namespace xios {
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
       , computedWrittenIndex_(false)
+      , clients()
    {
      setVirtualDomainGroup(CDomainGroup::create(getId() + "_virtual_domain_group"));
      setVirtualAxisGroup(CAxisGroup::create(getId() + "_virtual_axis_group"));
@@ -642,16 +644,15 @@ namespace xios {
           ++nbWritten;                
         } 
       }
-
    }
 
    //---------------------------------------------------------------
 
    /*
-     Compute the global index and its local index on taking account of mask, data index.
-     These global index then will be used to compute the connection of this client to other clients in the different group
+     Compute the global index and its local index taking account mask and data index.
+     These global indexes will be used to compute the connection of this client (sender) to its servers (receivers)
      (via function computeConnectedClient)
-     These global index also corresponding to data sent to other clients (if any)
+     These global indexes also correspond to data sent to servers (if any)
    */
    void CGrid::computeClientIndex()
    {
@@ -1346,12 +1347,12 @@ namespace xios {
   void CGrid::sendIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
     storeIndex_toSrv.clear();
+    std::set<CContextClient*>::iterator it;
 
-    for (int p = 0; p < nbSrvPools; ++p)
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = context->hasServer ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
       int receiverSize = client->serverSize;
 
       CEventClient event(getType(), EVENT_ID_INDEX);
@@ -1411,11 +1412,12 @@ namespace xios {
   void CGrid::sendIndex(void)
   {
     CContext* context = CContext::getCurrent();
-    int nbSrvPools = (context->clientPrimServer.size() == 0) ? 1 : context->clientPrimServer.size();
     storeIndex_toSrv.clear();
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (context->clientPrimServer.size() == 0) ? context->client : context->clientPrimServer[p];
+      CContextClient* client = *it;
       int receiverSize = client->serverSize;
 
       CEventClient event(getType(), EVENT_ID_INDEX);
@@ -2499,6 +2501,11 @@ namespace xios {
       sendAddScalar(sList[i]->getId());
       sList[i]->sendAllAttributesToServer();
     }
+  }
+
+  void CGrid::setContextClient(CContextClient* contextClient)
+  {
+    clients.insert(contextClient);
   }
 
   /*!

@@ -102,6 +102,9 @@ namespace xios {
          std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client);
          std::map<int, StdSize> getGridDataBufferSize(CContextClient* client); // Grid data buffer size for each connection of contextclient
 
+         void setContextClient(CContextClient* newContextClient);
+         CContextClient* getContextClient();
+
        public:
          bool isActive(bool atCurrentTimestep = false) const;
          bool hasOutputFile;
@@ -235,6 +238,8 @@ namespace xios {
          DECLARE_REF_FUNC(Field,field)
 
       private:
+         CContextClient* client;
+
          bool areAllReferenceSolved;
          bool isReferenceSolved;
          bool isReferenceSolvedAndTransformed;

@@ -943,6 +943,11 @@ namespace xios {
    void CFile::setContextClient(CContextClient* newContextClient)
    {
      client = newContextClient;
+     size_t size = this->enabledFields.size();
+     for (size_t i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->setContextClient(newContextClient);
+     }
    }
 
    CContextClient* CFile::getContextClient()

@@ -161,6 +161,8 @@ namespace xios {
          void sendIndex(void);
          void sendIndexScalarGrid();
 
+         void setContextClient(CContextClient* contextClient);
+
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
@@ -214,23 +216,34 @@ namespace xios {
 
          map<int, CArray<int, 1> > storeIndex_fromSrv; // Support, for now, reading with level-1 server
 
+         map<int, CArray<size_t, 1> > outIndexFromClient;  // Deprecated
 
-         map<int, CArray<size_t, 1> > outIndexFromClient, compressedOutIndexFromClient, outGlobalIndexFromClient;
+         map<int, CArray<size_t, 1> > compressedOutIndexFromClient;
 
-         // A client receives global index from other clients (via recvIndex)
-         // then does mapping these index into local index of STORE_CLIENTINDEX
-         // In this way, store_clientIndex can be used as an input of a source filter
-         // Maybe we need a flag to determine whether a client wants to write. TODO
+/** Map storing received indexes. Key = sender rank, value = index array. */
+         map<int, CArray<size_t, 1> > outGlobalIndexFromClient;
+
+// Manh Ha's comment: " A client receives global index from other clients (via recvIndex)
+// then does mapping these index into local index of STORE_CLIENTINDEX
+// In this way, store_clientIndex can be used as an input of a source filter
+// Maybe we need a flag to determine whether a client wants to write. TODO "
+
+/** Map storing received data. Key = sender rank, value = data array.
+ *  The map is created in CGrid::computeClientIndex and filled upon receiving data in CField::recvUpdateData() */
          map<int, CArray<size_t, 1> > outLocalIndexStoreOnClient; 
 
-/** Indexes calculated based on server distribution (serverDistribution_). They are used for writing data into a file. */
+/** Indexes calculated based on server-like distribution.
+ *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
+ *  Along with localIndexToWriteOnClient, these indexes are used to correctly place incoming data. */
          CArray<size_t,1> localIndexToWriteOnServer;
 
-/** Indexes calculated based on client distribution (clientDistribution_). They are not used at all.
-    They should be the same as localIndexToWriteOnServer and potentially can be used as an additional check.*/
+/** Indexes calculated based on client-like distribution.
+ *  They are used for writing/reading data and only calculated for server level that does the writing/reading.
+ *  Along with localIndexToWriteOnServer, these indexes are used to correctly place incoming data. */
          CArray<size_t,1> localIndexToWriteOnClient;
 
          CArray<size_t,1> indexFromClients;
+
          void checkMask(void);
          void createMask(void);
          void modifyMask(const CArray<int,1>& indexToModify, bool valueToModify = false);
@@ -288,9 +301,13 @@ namespace xios {
         void computeConnectedClientsScalarGrid(); 
 
       private:
-         bool isChecked;
-         bool isDomainAxisChecked;
-         bool isIndexSent;
+
+/** Clients that have to send a grid. There can be multiple clients in case of secondary server, otherwise only one client. */
+        std::set<CContextClient*> clients;
+
+        bool isChecked;
+        bool isDomainAxisChecked;
+        bool isIndexSent;
 
         CDomainGroup* vDomainGroup_;
         CAxisGroup* vAxisGroup_;
@@ -298,10 +315,10 @@ namespace xios {
         std::vector<std::string> axisList_, domList_, scalarList_;
         bool isAxisListSet, isDomListSet, isScalarListSet;
 
-/** Distribution calculated in computeClientIndex() based on the knowledge of the entire grid */
+/** Client-like distribution calculated based on the knowledge of the entire grid */
         CDistributionClient* clientDistribution_;
 
-/** Distribution calculated upon receiving indexes */
+/** Server-like distribution calculated upon receiving indexes */
         CDistributionServer* serverDistribution_;
 
         CClientServerMapping* clientServerMap_;
@@ -344,24 +361,28 @@ namespace xios {
    template <int n>
    void CGrid::inputField(const CArray<double,n>& field, CArray<double,1>& stored) const
    {
+//#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
          ERROR("void CGrid::inputField(const  CArray<double,n>& field, CArray<double,1>& stored) const",
                 << "[ Awaiting data of size = " << this->getDataSize() << ", "
                 << "Received data size = "      << field.numElements() << " ] "
                 << "The data array does not have the right size! "
                 << "Grid = " << this->GetName())
+//#endif
       this->storeField_arr(field.dataFirst(), stored);
    }
 
    template <int n>
    void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const
    {
+//#ifdef __XIOS_DEBUG
       if (this->getDataSize() != field.numElements())
          ERROR("void CGrid::outputField(const CArray<double,1>& stored, CArray<double,n>& field) const",
                 << "[ Size of the data = " << this->getDataSize() << ", "
                 << "Output data size = "   << field.numElements() << " ] "
                 << "The ouput array does not have the right size! "
                 << "Grid = " << this->GetName())
+//#endif
       this->restoreField_arr(stored, field.dataFirst());
    }
 
