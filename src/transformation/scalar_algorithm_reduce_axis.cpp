@@ -107,12 +107,11 @@ void CScalarAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CA
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-  CArray<int,1>& axisSrcIndex = axisSrc_->index;
-  int globalIndexSize = axisSrcIndex.numElements();
+  int globalIndexSize = axisSrc_-> n_glo;
 
   for (int idx = 0; idx < globalIndexSize; ++idx)
   {
-    transMap[0].push_back(axisSrcIndex(idx));
+    transMap[0].push_back(idx);
     transWeight[0].push_back(1.0);
   }
 }
