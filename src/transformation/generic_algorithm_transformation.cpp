@@ -18,7 +18,7 @@ namespace xios {
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
  : transformationMapping_(), transformationWeight_(), transformationPosition_(),
    idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA), indexElementSrc_(),
-   computedProcSrcNonTransformedElement_(false)
+   computedProcSrcNonTransformedElement_(false), eliminateRedondantSrc_(true)
 {
 }
 
@@ -198,12 +198,14 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
   computeGlobalIndexOnProc = (0 < recvValue);
 
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
+  
   if (computeGlobalIndexOnProc || !computedProcSrcNonTransformedElement_)
   {    
     // Find out global index source of transformed element on corresponding process.    
     if (globalElementIndexOnProc_.empty())
       globalElementIndexOnProc_.resize(axisDomainDstOrder.numElements());
-    CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;  
+    
     for (idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
     {
       if (idx == elementPositionInGrid)
@@ -317,8 +319,13 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         if (0 == tmpCounter.count(srcIndex[idx]))
         {          
           tmpCounter.insert(srcIndex[idx]);
+
+           std::vector<int>& srcProc = globalIndexOfTransformedElementOnProc[srcIndex[idx]];
+           for (int j = 0; j < srcProc.size(); ++j)
+              globalElementIndexOnProc_[elementPositionInGrid][srcProc[j]].push_back(srcIndex[idx]);
+/*          
           for (int j = 0; j < procContainSrcElementIdx_.size(); ++j)
-            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);
+            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);*/
         }
       }
     }
@@ -512,35 +519,37 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
 
   // eliminate redondant global src point owned by differrent processes.
   // Avoid as possible to tranfer data from an other process if the src point is also owned by current process 
-
-   int rankSrc ;
-   size_t globalSrcIndex ;
-   size_t globalDstIndex ;
-   double weight ;
+      int rankSrc ;
+      size_t globalSrcIndex ;
+      size_t globalDstIndex ;
+      double weight ;
  
-   SourceDestinationIndexMap::iterator rankIt,rankIte ;
-   boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > >::iterator globalSrcIndexIt, globalSrcIndexIte ;
-   std::vector<std::pair<size_t,double> >::iterator vectIt,vectIte ;
+      SourceDestinationIndexMap::iterator rankIt,rankIte ;
+      boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > >::iterator globalSrcIndexIt, globalSrcIndexIte ;
+      std::vector<std::pair<size_t,double> >::iterator vectIt,vectIte ;
    
-   rankIt=globaIndexWeightFromSrcToDst_tmp.begin() ; rankIte=globaIndexWeightFromSrcToDst_tmp.end() ;
-   for(;rankIt!=rankIte;++rankIt)
-   {
-     rankSrc = rankIt->first ;
-     globalSrcIndexIt = rankIt->second.begin() ; globalSrcIndexIte = rankIte->second.end() ;
-     for(;globalSrcIndexIt!=globalSrcIndexIte;++globalSrcIndexIt)
-     {
-       globalSrcIndex = globalSrcIndexIt->first ;
-       vectIt = globalSrcIndexIt->second.begin() ; vectIte = globalSrcIndexIt->second.end() ;
-       for(vectIt; vectIt!=vectIte; vectIt++)
-       {
-         globalDstIndex = vectIt->first ;
-         weight = vectIt->second ;
-         if (rankMap[make_pair(globalSrcIndex,globalDstIndex)] == rankSrc)  
-           globaIndexWeightFromSrcToDst[rankSrc][globalSrcIndex].push_back(make_pair(globalDstIndex,weight)) ;
+      rankIt=globaIndexWeightFromSrcToDst_tmp.begin() ; rankIte=globaIndexWeightFromSrcToDst_tmp.end() ;
+      for(;rankIt!=rankIte;++rankIt)
+      {
+        rankSrc = rankIt->first ;
+        globalSrcIndexIt = rankIt->second.begin() ; globalSrcIndexIte = rankIt->second.end() ;
+        for(;globalSrcIndexIt!=globalSrcIndexIte;++globalSrcIndexIt)
+        { 
+          globalSrcIndex = globalSrcIndexIt->first ;
+          vectIt = globalSrcIndexIt->second.begin() ; vectIte = globalSrcIndexIt->second.end() ;
+          for(vectIt; vectIt!=vectIte; vectIt++)
+          {
+            globalDstIndex = vectIt->first ;
+            weight = vectIt->second ;
+            if (eliminateRedondantSrc_)
+            {
+              if (rankMap[make_pair(globalSrcIndex,globalDstIndex)] == rankSrc)  
+                globaIndexWeightFromSrcToDst[rankSrc][globalSrcIndex].push_back(make_pair(globalDstIndex,weight)) ;
+            }
+            else globaIndexWeightFromSrcToDst[rankSrc][globalSrcIndex].push_back(make_pair(globalDstIndex,weight)) ;
+         }
        }
      }
-   }
-
 
 }
 

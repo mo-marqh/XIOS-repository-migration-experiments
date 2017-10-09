@@ -149,6 +149,9 @@ protected:
 
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
+
+  bool eliminateRedondantSrc_ ; // flag to indicate if the transformation must select only one global source point for all proc.
+                               // In this case it will choose preferentially the current process 
 };
 
 }
