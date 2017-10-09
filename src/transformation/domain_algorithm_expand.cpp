@@ -664,6 +664,7 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
 
   // Update ni
   domainDestination->ni.setValue(newNbLocalDst);
+  domainDestination->computeLocalMask() ;
 }
 
 
