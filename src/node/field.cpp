@@ -950,8 +950,6 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
-//          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
-//                                                                                                      detectMissingValues, defaultValue));
           instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
 
 
@@ -968,8 +966,6 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
-//         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
-//                                                                                                     detectMissingValues, defaultValue));
          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
 
              // If the field data is to be read by the client or/and written to a file

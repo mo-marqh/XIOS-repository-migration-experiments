@@ -16,8 +16,14 @@ namespace xios
     , samplingFreq(samplingFreq)
     , samplingOffset(samplingOffset)
     , opFreq(opFreq)
+    , offsetMonth({0, this->samplingOffset.month, 0, 0, 0, 0, 0})
+    , offsetAllButMonth({this->samplingOffset.year, 0 , this->samplingOffset.day,
+                       this->samplingOffset.hour, this->samplingOffset.minute,
+                       this->samplingOffset.second, this->samplingOffset.timestep})
+    , initDate(initDate)
     , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
-    , nextOperationDate(initDate + opFreq + this->samplingOffset)
+    , nbOperationDates(1)
+//    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
   {
   }
@@ -34,7 +40,8 @@ namespace xios
       else
       {
         usePacket = (data[0]->date >= nextSamplingDate);
-        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
+//        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
+        outputResult = (data[0]->date  > initDate + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth);
         copyLess = (isInstantOperation && usePacket && outputResult);
       }
 
@@ -53,6 +60,7 @@ namespace xios
 
       if (outputResult)
       {
+        nbOperationDates ++;
         if (!copyLess)
         {
           functor->final();
@@ -68,7 +76,7 @@ namespace xios
           packet = data[0];
 
         isFirstOperation = false;
-        nextOperationDate = nextOperationDate + samplingFreq + opFreq - samplingFreq;
+//        nextOperationDate = initDate + samplingFreq + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth;
       }
     }
 
@@ -77,7 +85,8 @@ namespace xios
 
   bool CTemporalFilter::isDataExpected(const CDate& date) const
   {
-    return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date + samplingFreq > nextOperationDate);
+//    return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date + samplingFreq > nextOperationDate);
+    return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date > initDate + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth);
   }
 
   static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, double missingValue, CArray<double, 1>& tmpData)

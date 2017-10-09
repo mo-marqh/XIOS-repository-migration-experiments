@@ -55,8 +55,12 @@ namespace xios
       const CDuration samplingFreq; //!< The sampling frequency, i.e. the frequency at which the input data will be used
       const CDuration samplingOffset; //!< The sampling offset, i.e. the offset after which the input data will be used
       const CDuration opFreq; //!< The operation frequency, i.e. the frequency at which the output data will be computed
+      const CDuration offsetMonth; //!< The month duration of samplingOffset
+      CDuration offsetAllButMonth; //!< All but the month duration of samplingOffset
+      const CDate initDate;
       CDate nextSamplingDate; //!< The date of the next sampling
-      CDate nextOperationDate; //!< The date of the next operation
+      int nbOperationDates; //!< The number of times an operation is performed
+//      CDate nextOperationDate; //!< The date of the next operation
       bool isFirstOperation; //!< True before the first operation was been computed
   }; // class CTemporalFilter
 } // namespace xios
