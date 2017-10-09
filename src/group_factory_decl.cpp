@@ -33,6 +33,7 @@ namespace xios
   macro(CScalarGroup)
   macro(CReduceAxisToScalarGroup)
   macro(CReduceDomainToAxisGroup)
+  macro(CReduceAxisToAxisGroup)
   macro(CExtractDomainToAxisGroup)
   macro(CComputeConnectivityDomainGroup)
   macro(CExpandDomainGroup)

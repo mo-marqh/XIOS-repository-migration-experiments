@@ -28,6 +28,7 @@ namespace xios
          eScalar,
          eReduceAxisToScalar,
          eReduceDomainToAxis,
+         eReduceAxisToAxis,
          eExtractDomainToAxis,
          eComputeConnectivityDomain,
          eExpandDomain,

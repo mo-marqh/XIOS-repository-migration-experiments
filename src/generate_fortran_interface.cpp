@@ -39,6 +39,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CZoomAxis zoomAxis;
   CInverseAxis inverseAxis;
   CReduceDomainToAxis reduceDomainToAxis;
+  CReduceAxisToAxis reduceAxisToAxis;
   CExtractDomainToAxis extractDomainToAxis;
   CTemporalSplitting temporalSplitting;
 
@@ -341,6 +342,10 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"reduce_domain_to_axis_interface_attr.F90").c_str());
   reduceDomainToAxis.generateFortran2003Interface(file);
   file.close();
+ 
+  file.open((path+"reduce_domain_to_axis_interface_attr.F90").c_str());
+  reduceDomainToAxis.generateFortran2003Interface(file);
+  file.close();
 
   file.open((path+"icreduce_domain_to_axis_attr.cpp").c_str());
   reduceDomainToAxis.generateCInterface(file);
@@ -348,6 +353,22 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"ireduce_domain_to_axis_attr.F90").c_str());
   reduceDomainToAxis.generateFortranInterface(file);
+  file.close();
+
+  file.open((path+"reduce_axis_to_axis_interface_attr.F90").c_str());
+  reduceAxisToAxis.generateFortran2003Interface(file);
+  file.close();
+ 
+  file.open((path+"reduce_axis_to_axis_interface_attr.F90").c_str());
+  reduceAxisToAxis.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreduce_axis_to_axis_attr.cpp").c_str());
+  reduceAxisToAxis.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireduce_axis_to_axis_attr.F90").c_str());
+  reduceAxisToAxis.generateFortranInterface(file);
   file.close();
   
   file.open((path+"extract_domain_to_axis_interface_attr.F90").c_str());

@@ -50,6 +50,7 @@ namespace xios {
      m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
      m["inverse_axis"] = TRANS_INVERSE_AXIS;
      m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_AXIS;
+     m["reduce_axis"] = TRANS_REDUCE_AXIS_TO_AXIS;
      m["extract_domain"] = TRANS_EXTRACT_DOMAIN_TO_AXIS;
      m["temporal_splitting"] = TRANS_TEMPORAL_SPLITTING;
    }
@@ -1272,7 +1273,8 @@ namespace xios {
     }
 
     // Resize index to its real size
-    index.resizeAndPreserve(nbIndexGlob);
+    if (nbIndexGlob==0) index.resize(nbIndexGlob) ;
+    else index.resizeAndPreserve(nbIndexGlob);
 
     int nbData = nbIndexGlob;
     CArray<int,1> nonCompressedData(nbData);

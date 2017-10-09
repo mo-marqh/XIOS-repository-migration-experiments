@@ -37,6 +37,8 @@ namespace xios
     class CReduceAxisToScalarGroup;
     class CReduceDomainToAxis;
     class CReduceDomainToAxisGroup;
+    class CReduceAxisToAxis;
+    class CReduceAxisToAxisGroup;
     class CExtractDomainToAxis;
     class CExtractDomainToAxisGroup;
     class CComputeConnectivityDomain;
@@ -103,6 +105,8 @@ namespace xios
   macro(CReduceAxisToScalarGroup)
   macro(CReduceDomainToAxis)
   macro(CReduceDomainToAxisGroup)
+  macro(CReduceAxisToAxis)
+  macro(CReduceAxisToAxisGroup)
   macro(CExtractDomainToAxis)
   macro(CExtractDomainToAxisGroup)
   macro(CComputeConnectivityDomain)
