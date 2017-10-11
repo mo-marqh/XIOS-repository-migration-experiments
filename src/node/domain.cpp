@@ -447,7 +447,7 @@ namespace xios {
       default:
       break;
      }
-//     completeLonLatClient() ;
+     completeLonLatClient() ;
 
    }
 
@@ -1216,6 +1216,7 @@ namespace xios {
    void CDomain::completeLonLatClient(void)
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
+     checkBounds() ;
      if (!lonvalue_2d.isEmpty() && !lonlatValueExisted)
      {
        lonvalue.resize(ni * nj);
@@ -1504,7 +1505,6 @@ namespace xios {
      else
      {
        hasBounds = false;
-       nvertex = 0;
      }
    }
 
