@@ -826,7 +826,6 @@ namespace xios{
           solveServerOperation();
 
         solveGridReference();
-        grid->solveDomainAxisRefInheritance(true); // make it again to solve grid reading from file
 
         if (context->hasClient && !context->hasServer)
        {
@@ -1577,28 +1576,13 @@ namespace xios{
    {
      if (freq_op.isEmpty())
      {
-/*
-       if (!freq_offset.isEmpty())
-         ERROR("CField::checkAttributes(void)",
-               << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-               << "Attribute freq_offset cannot be defined if attribute freq_op is not defined. "
-               << "Please define freq_op.") */
        if (operation.getValue()=="instant")
-       {
          freq_op.setValue(file->output_freq.getValue());
-         if (freq_offset.isEmpty()) freq_offset.setValue(file->output_freq.getValue()-TimeStep);
-       }
        else
-       {
          freq_op.setValue(TimeStep);
-         if (freq_offset.isEmpty()) freq_offset.setValue(freq_op.getValue()-TimeStep);
-       }
      }
-     else
-     {
-       if (freq_offset.isEmpty())
-         freq_offset.setValue(freq_op.getValue()-TimeStep);
-     }
+     if (freq_offset.isEmpty())
+       freq_offset.setValue(freq_op.getValue()-TimeStep);
    }
 
    /*!
