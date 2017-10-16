@@ -826,6 +826,7 @@ namespace xios{
           solveServerOperation();
 
         solveGridReference();
+        grid->solveDomainAxisRefInheritance(true); // make it again to solve grid reading from file
 
         if (context->hasClient && !context->hasServer)
        {
