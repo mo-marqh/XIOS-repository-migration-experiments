@@ -1975,10 +1975,10 @@ namespace xios
            
          try
          {
-           this->writeFileAttributes(filename, description,
-                                      conv_str,
-                                      StdString("An IPSL model"),
-                                      this->getTimeStamp());
+           if (!appendMode) this->writeFileAttributes(filename, description,
+                                                      conv_str,
+                                                      StdString("An IPSL model"),
+                                                      this->getTimeStamp());
 
            if (!appendMode)
              SuperClassWriter::addDimension("axis_nbounds", 2);
