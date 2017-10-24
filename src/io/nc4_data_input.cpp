@@ -491,14 +491,18 @@ namespace xios
     for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
 
     { // Read axis value
-      std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
-      CArray<double,1> readAxisValue(itMapN->second);
-      readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
-      int begin = 0, n = itMapN->second;
-      if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
-      if (!axis->n.isEmpty()) n = axis->n.getValue();
-      axis->value.resize(n);
-      for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+      bool hasValue = SuperClassWriter::hasVariable(itMapN->first);
+      if (hasValue)
+      {
+        std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
+        CArray<double,1> readAxisValue(itMapN->second);
+        readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
+        int begin = 0, n = itMapN->second;
+        if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
+        if (!axis->n.isEmpty()) n = axis->n.getValue();
+        axis->value.resize(n);
+        for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+      }
     }
   }
 
