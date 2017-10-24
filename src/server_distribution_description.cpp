@@ -218,7 +218,8 @@ std::vector<int> CServerDistributionDescription::computeServerGlobalByElement(st
   {
     idxMap[i] = idx;
     if (2 == axisDomainOrder(i)) idx += 2;
-    else ++idx;
+    else if (1 == axisDomainOrder(i)) idx += 1;
+    // nothing for scalar
   }
 
   for (int idxServer = 0; idxServer < nBand; ++idxServer)
