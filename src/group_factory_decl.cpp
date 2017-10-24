@@ -40,5 +40,7 @@ namespace xios
   macro(CExtractAxisToScalarGroup)
   macro(CReduceDomainToScalarGroup)
   macro(CTemporalSplittingGroup)
+  macro(CDuplicateScalarToAxisGroup)
+  macro(CReduceScalarToScalarGroup)
 
 }

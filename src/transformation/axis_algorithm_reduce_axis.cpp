@@ -69,7 +69,6 @@ CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(CAxis* axisDestination, CAxis
   }
 
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
-  local = algo->local ;
 }
 
 void CAxisAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex,

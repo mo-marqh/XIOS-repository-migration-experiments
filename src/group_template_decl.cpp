@@ -29,4 +29,6 @@ namespace xios
   macro(ExtractAxisToScalar)
   macro(ReduceDomainToScalar)
   macro(TemporalSplitting)
+  macro(DuplicateScalarToAxis)
+  macro(ReduceScalarToScalar)
 }

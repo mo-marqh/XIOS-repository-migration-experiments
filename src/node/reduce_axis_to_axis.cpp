@@ -46,7 +46,6 @@ namespace xios {
              << "Axis source " <<axisSrc->getId() << std::endl
              << "Axis destination " << axisDst->getId());
 
-    if (this->local.isEmpty()) local=false ;
 
     if (axisDst->n_glo != axisSrc->n_glo)
        ERROR("CReduceAxisToAxis::checkValid(CAxis* axisDst, CAxis* axisSrc)",

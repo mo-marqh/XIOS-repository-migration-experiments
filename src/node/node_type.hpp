@@ -25,6 +25,8 @@
 #include "extract_axis_to_scalar.hpp"
 #include "reduce_domain_to_scalar.hpp"
 #include "temporal_splitting.hpp"
+#include "duplicate_scalar_to_axis.hpp"
+#include "reduce_scalar_to_scalar.hpp"
 
 
 

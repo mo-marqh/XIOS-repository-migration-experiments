@@ -21,6 +21,8 @@ namespace xios
         TRANS_REDUCE_DOMAIN_TO_SCALAR = 12,
         TRANS_TEMPORAL_SPLITTING = 13,
         TRANS_REDUCE_AXIS_TO_AXIS = 14,
+        TRANS_DUPLICATE_SCALAR_TO_AXIS = 15,
+        TRANS_REDUCE_SCALAR_TO_SCALAR = 16,
       } ETranformationType;
 
 } // namespace xios

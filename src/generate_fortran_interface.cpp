@@ -46,6 +46,8 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CReduceAxisToScalar reduceAxisToScalar;
   CExtractAxisToScalar extractAxisToScalar;
   CReduceDomainToScalar reduceDomainToScalar;
+  CDuplicateScalarToAxis duplicateScalarToAxis;
+  CReduceScalarToScalar reduceScalarToScalar;
   
   ostringstream oss;
   ofstream file;
@@ -343,10 +345,6 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   reduceDomainToAxis.generateFortran2003Interface(file);
   file.close();
  
-  file.open((path+"reduce_domain_to_axis_interface_attr.F90").c_str());
-  reduceDomainToAxis.generateFortran2003Interface(file);
-  file.close();
-
   file.open((path+"icreduce_domain_to_axis_attr.cpp").c_str());
   reduceDomainToAxis.generateCInterface(file);
   file.close();
@@ -359,10 +357,6 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   reduceAxisToAxis.generateFortran2003Interface(file);
   file.close();
  
-  file.open((path+"reduce_axis_to_axis_interface_attr.F90").c_str());
-  reduceAxisToAxis.generateFortran2003Interface(file);
-  file.close();
-
   file.open((path+"icreduce_axis_to_axis_attr.cpp").c_str());
   reduceAxisToAxis.generateCInterface(file);
   file.close();
@@ -375,20 +369,21 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   extractDomainToAxis.generateFortran2003Interface(file);
   file.close();
 
-  file.open((path+"temporal_splitting_interface_attr.F90").c_str());
-  temporalSplitting.generateFortran2003Interface(file);
-  file.close();
-
   file.open((path+"icextract_domain_to_axis_attr.cpp").c_str());
   extractDomainToAxis.generateCInterface(file);
   file.close();
 
-  file.open((path+"ictemporal_splitting_attr.cpp").c_str());
-  temporalSplitting.generateCInterface(file);
-  file.close();
-
   file.open((path+"iextract_domain_to_axis_attr.F90").c_str());
   extractDomainToAxis.generateFortranInterface(file);
+  file.close();
+
+
+  file.open((path+"temporal_splitting_interface_attr.F90").c_str());
+  temporalSplitting.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"ictemporal_splitting_attr.cpp").c_str());
+  temporalSplitting.generateCInterface(file);
   file.close();
 
   file.open((path+"itemporal_splitting_attr.F90").c_str());
@@ -396,6 +391,17 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.close();
 
 
+  file.open((path+"duplicate_scalar_to_axis_interface_attr.F90").c_str());
+  duplicateScalarToAxis.generateFortran2003Interface(file);
+  file.close();
+  
+  file.open((path+"icduplicate_scalar_to_axis_attr.cpp").c_str());
+  duplicateScalarToAxis.generateCInterface(file);
+  file.close();
+  
+  file.open((path+"iduplicate_scalar_to_axis_attr.F90").c_str());
+  duplicateScalarToAxis.generateFortranInterface(file);
+  file.close();
   /*!
     Scalar transformations
   */
@@ -423,12 +429,9 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   extractAxisToScalar.generateFortranInterface(file);
   file.close();
 
+
   file.open((path+"reduce_domain_to_scalar_interface_attr.F90").c_str());
   reduceDomainToScalar.generateFortran2003Interface(file);
-  file.close();
-
-  file.open((path+"temporal_splitting_interface_attr.F90").c_str());
-  temporalSplitting.generateFortran2003Interface(file);
   file.close();
 
   file.open((path+"icreduce_domain_to_scalar_attr.cpp").c_str());
@@ -438,6 +441,23 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   file.open((path+"ireduce_domain_to_scalar_attr.F90").c_str());
   reduceDomainToScalar.generateFortranInterface(file);
   file.close();
+
+
+  file.open((path+"reduce_scalar_to_scalar_interface_attr.F90").c_str());
+  reduceScalarToScalar.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreduce_scalar_to_scalar_attr.cpp").c_str());
+  reduceScalarToScalar.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireduce_scalar_to_scalar_attr.F90").c_str());
+  reduceScalarToScalar.generateFortranInterface(file);
+  file.close();
+
+
+
+
 
   file.open((path+"context_interface_attr.F90").c_str());
   context->generateFortran2003Interface(file);

@@ -28,6 +28,8 @@ namespace xios
   template class CObjectTemplate<CExtractAxisToScalar>;
   template class CObjectTemplate<CReduceDomainToScalar>;
   template class CObjectTemplate<CTemporalSplitting>;
+  template class CObjectTemplate<CDuplicateScalarToAxis>;
+  template class CObjectTemplate<CReduceScalarToScalar>;
 
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
@@ -52,4 +54,7 @@ namespace xios
   template class CObjectTemplate<CExtractAxisToScalarGroup>;
   template class CObjectTemplate<CReduceDomainToScalarGroup>;
   template class CObjectTemplate<CTemporalSplittingGroup>;
+  template class CObjectTemplate<CDuplicateScalarToAxisGroup>;
+  template class CObjectTemplate<CReduceScalarToScalarGroup>;
+
 }

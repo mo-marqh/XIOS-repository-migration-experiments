@@ -21,6 +21,7 @@ void CGridTransformationSelector::registerTransformations()
   CScalarAlgorithmReduceAxis::registerTrans();
   CScalarAlgorithmExtractAxis::registerTrans();
   CScalarAlgorithmReduceDomain::registerTrans();
+  CScalarAlgorithmReduceScalar::registerTrans();
 
   //! Axis
   CAxisAlgorithmZoom::registerTrans();
@@ -30,6 +31,7 @@ void CGridTransformationSelector::registerTransformations()
   CAxisAlgorithmReduceDomain::registerTrans();
   CAxisAlgorithmReduceAxis::registerTrans();
   CAxisAlgorithmTemporalSplitting::registerTrans();
+  CAxisAlgorithmDuplicateScalar::registerTrans();
 
   //! Domain
   CDomainAlgorithmComputeConnectivity::registerTrans();
