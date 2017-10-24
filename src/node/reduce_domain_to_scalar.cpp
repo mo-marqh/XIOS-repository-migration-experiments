@@ -38,6 +38,7 @@ namespace xios {
 
   void CReduceDomainToScalar::checkValid(CScalar* scalarDst, CDomain* domainSrc)
   {
+    if (this->local.isEmpty()) local=false ;
   }
 
 }

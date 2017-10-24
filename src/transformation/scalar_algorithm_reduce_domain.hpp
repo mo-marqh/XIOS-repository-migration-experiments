@@ -40,6 +40,7 @@ public:
 
   static bool registerTrans();
 protected:
+  bool local ;
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 
 protected:
