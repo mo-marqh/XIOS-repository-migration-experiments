@@ -141,7 +141,8 @@ namespace xios {
 
          CArray<size_t,1> localIndexToWriteOnServer;         
 
-         CArray<bool, 1> localMask;
+         CArray<bool, 1> domainMask; // mask_1d, mask_2d -> domainMask
+         CArray<bool, 1> localMask; // domainMask + indexing
          bool isCurvilinear ;
          bool hasBounds ;
          bool hasArea;

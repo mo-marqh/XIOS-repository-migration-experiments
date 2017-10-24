@@ -167,7 +167,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   int niSrc = domainSource->ni, ibegin = domainSource->ibegin;
   int njSrc = domainSource->nj, jbegin = domainSource->jbegin;
   int dataDimSrc = domainSource->data_dim;
-  CArray<bool,1>& mask_1d_src = domainSource->mask_1d;
+  CArray<bool,1>& mask_1d_src = domainSource->domainMask;
   CArray<int,1>& i_index_src = domainSource->i_index;
   CArray<int,1>& j_index_src = domainSource->j_index;
   CArray<int,1>& data_i_index_src = domainSource->data_i_index;
@@ -230,7 +230,7 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   domainDestination->global_zoom_ni.setValue(domainSource->global_zoom_ni+2);
   domainDestination->global_zoom_nj.setValue(domainSource->global_zoom_nj+2);
 
-  CArray<bool,1>& mask_1d_dst = domainDestination->mask_1d;
+  CArray<bool,1>& mask_1d_dst = domainDestination->domainMask;
   CArray<int,1>& i_index_dst  = domainDestination->i_index;
   CArray<int,1>& j_index_dst  = domainDestination->j_index;  
   CArray<int,1>& data_i_index_dst  = domainDestination->data_i_index;
@@ -452,6 +452,8 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
      domainDestination->latvalue_1d.resize(lat_dst.numElements());
      domainDestination->latvalue_1d = (lat_dst);
   }
+   domainDestination->mask_1d.resize(domainDestination->domainMask.numElements()) ;
+   domainDestination->mask_1d=domainDestination->domainMask ;
    domainDestination->computeLocalMask() ;
 }
 
@@ -484,7 +486,7 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
 
   // Now extend domain destination
   int niGlob = domainSource->ni_glo;
-  CArray<bool,1>& mask_1d_src = domainSource->mask_1d;
+  CArray<bool,1>& mask_1d_src = domainSource->domainMask;
   CArray<int,1>& i_index_src = domainSource->i_index;
   CArray<double,1>& lon_src = domainSource->lonvalue_1d;
   CArray<double,1>& lat_src = domainSource->latvalue_1d;
@@ -507,7 +509,7 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
     }
   }
 
-  CArray<bool,1>& mask_1d_dst = domainDestination->mask_1d;
+  CArray<bool,1>& mask_1d_dst = domainDestination->domainMask;
   CArray<int,1>& i_index_dst = domainDestination->i_index;
   CArray<int,1>& j_index_dst = domainDestination->j_index;
   CArray<double,1>& lon_dst = domainDestination->lonvalue_1d;
@@ -664,6 +666,8 @@ void CDomainAlgorithmExpand::updateUnstructuredDomainAttributes(CDomain* domainD
 
   // Update ni
   domainDestination->ni.setValue(newNbLocalDst);
+  domainDestination->mask_1d.resize(domainDestination->domainMask.numElements()) ;
+  domainDestination->mask_1d=domainDestination->domainMask ;
   domainDestination->computeLocalMask() ;
 }
 

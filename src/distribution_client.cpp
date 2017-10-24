@@ -107,8 +107,8 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
   domainMasks_.resize(domainNum_);
   for (int i = 0; i < domainNum_;++i)
   {
-    domainMasks_[i].resize(domList[i]->mask_1d.numElements());
-    domainMasks_[i] = domList[i]->mask_1d;
+    domainMasks_[i].resize(domList[i]->domainMask.numElements());
+    domainMasks_[i] = domList[i]->domainMask;
   }
 
   axisMasks_.resize(axisNum_);

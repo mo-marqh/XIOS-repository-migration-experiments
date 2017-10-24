@@ -1039,15 +1039,15 @@ namespace xios {
 
       if (!mask_2d.isEmpty())
       {
-        mask_1d.resize(mask_2d.extent(0) * mask_2d.extent(1));
+        domainMask.resize(mask_2d.extent(0) * mask_2d.extent(1));
         for (int j = 0; j < nj; ++j)
-          for (int i = 0; i < ni; ++i) mask_1d(i+j*ni) = mask_2d(i,j);
-        mask_2d.reset();
+          for (int i = 0; i < ni; ++i) domainMask(i+j*ni) = mask_2d(i,j);
+//        mask_2d.reset();
       }
       else if (mask_1d.isEmpty())
       {
-        mask_1d.resize(i_index.numElements());
-        for (int i = 0; i < i_index.numElements(); ++i) mask_1d(i) = true;
+        domainMask.resize(i_index.numElements());
+        for (int i = 0; i < i_index.numElements(); ++i) domainMask(i) = true;
       }
    }
 
@@ -1196,7 +1196,7 @@ namespace xios {
          if (i+ibegin>=zoom_ibegin && i+ibegin<=zoom_iend && j+jbegin>=zoom_jbegin && j+jbegin<=zoom_jend)
          {
            ind=i+ni*j ;
-           localMask(ind)=mask_1d(ind) ;
+           localMask(ind)=domainMask(ind) ;
          }
      }
    }
@@ -2185,7 +2185,7 @@ namespace xios {
         for (n = 0; n < nbData; ++n)
         {
           idx = static_cast<int>(it->second[n]);
-          list_mask.back()(n) = mask_1d(globalLocalIndexMap_[idx]);
+          list_mask.back()(n) = domainMask(globalLocalIndexMap_[idx]);
         }
 
         list_msgsMask.push_back(CMessage());
@@ -2659,6 +2659,7 @@ namespace xios {
 
     nbMaskInd = globalLocalIndexMap_.size();
     mask_1d.resize(nbMaskInd);
+    domainMask.resize(nbMaskInd);
     mask_1d = false;
     
     for (i = 0; i < nbReceived; ++i)
@@ -2671,7 +2672,8 @@ namespace xios {
         if (!mask_1d(lInd)) // Only rewrite mask_1d if it's not true
           mask_1d(lInd) = tmp(ind);
       }
-    }    
+    }
+    domainMask=mask_1d ;
   }
 
   /*!
@@ -3011,7 +3013,7 @@ namespace xios {
          dataIIndex(lInd) = (-1 == dataIIndex(lInd)) ? tmpI(ind) : dataIIndex(lInd); // Only fill in dataIndex if there is no data
          dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);  
 
-         if (!mask_1d(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes    
+         if (!domainMask(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes    
          {
            dataIIndex(lInd) = dataJIndex(lInd) = -1;
          }

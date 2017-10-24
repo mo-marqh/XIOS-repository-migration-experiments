@@ -361,7 +361,7 @@ namespace xios {
       int dim = domainP.size() * 2 + axisP.size();
 
       std::vector<CArray<bool,1>* > domainMasks(domainP.size());
-      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask_1d);
+      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->domainMask);
       std::vector<CArray<bool,1>* > axisMasks(axisP.size());
       for (int i = 0; i < axisMasks.size(); ++i) axisMasks[i] = &(axisP[i]->mask);
 
@@ -403,7 +403,7 @@ namespace xios {
       int dim = domainP.size() * 2 + axisP.size();
 
       std::vector<CArray<bool,1>* > domainMasks(domainP.size());
-      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->mask_1d);
+      for (int i = 0; i < domainMasks.size(); ++i) domainMasks[i] = &(domainP[i]->domainMask);
       std::vector<CArray<bool,1>* > axisMasks(axisP.size());
       for (int i = 0; i < axisMasks.size(); ++i) axisMasks[i] = &(axisP[i]->mask);
 
@@ -1774,7 +1774,8 @@ namespace xios {
                                         const std::vector<CScalar*> scalars,
                                         const CArray<int,1>& axisDomainOrder)
   {
-    globalDim.resize(domains.size()*2+axis.size()+scalars.size());
+ //   globalDim.resize(domains.size()*2+axis.size()+scalars.size());
+    globalDim.resize(domains.size()*2+axis.size());
     int positionDimensionDistributed = 1;
     int idx = 0, idxDomain = 0, idxAxis = 0, idxScalar = 0;
     for (int i = 0; i < axisDomainOrder.numElements(); ++i)
@@ -1804,9 +1805,9 @@ namespace xios {
       }
       else
       {
-        globalDim[idx] = 1;
+//        globalDim[idx] = 1;
         ++idxScalar;
-        ++idx;
+//        ++idx;
       }
     }
 

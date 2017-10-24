@@ -312,7 +312,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     size_t vecAxisValueSizeWithMask = 0;
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
-      if (dom->mask_1d(idx)) ++vecAxisValueSizeWithMask;
+      if (dom->domainMask(idx)) ++vecAxisValueSizeWithMask;
     }
 
     int niGlobDom = dom->ni_glo.getValue();
@@ -323,7 +323,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
       transPosition_.resize(vecAxisValueSizeWithMask);
       for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
       {
-        if (dom->mask_1d(idx))
+        if (dom->domainMask(idx))
         {
           transPosition_[indexMask].resize(1);
           transPosition_[indexMask][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
@@ -344,7 +344,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     size_t indexMask = 0;
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
-      if (dom->mask_1d(idx))
+      if (dom->domainMask(idx))
       {
         size_t axisValueSize = 0;
         for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)
