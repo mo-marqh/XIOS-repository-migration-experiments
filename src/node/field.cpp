@@ -787,6 +787,8 @@ namespace xios{
    {
      if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
 
+     checkAttributes();
+
      const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
@@ -820,9 +822,7 @@ namespace xios{
          instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
-         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
-                                                                                                     freq_offset.isEmpty() ? NoneDu : freq_offset,
-                                                                                                     true,
+         instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, freq_offset, true,
                                                                                                      detectMissingValues, defaultValue));
        else // The data might be passed from the model
        {
@@ -899,15 +899,15 @@ namespace xios{
 
      if (!selfReferenceFilter)
      {
+       checkAttributes();
+
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,
-                                                                                   freq_offset.isEmpty() ? NoneDu : freq_offset,
-                                                                                   true,
+           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, freq_offset, true,
                                                                                    detectMissingValues, defaultValue));
 
          selfReferenceFilter = serverSourceFilter;
@@ -953,8 +953,9 @@ namespace xios{
          ERROR("void CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
+       checkAttributes();
+
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
-       checkAttributes() ;
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
@@ -990,8 +991,9 @@ namespace xios{
          ERROR("void CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
-       const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        checkAttributes();
+
+       const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq,
@@ -1441,15 +1443,21 @@ namespace xios{
     */
    void CField::checkAttributes(void)
    {
+     bool isFieldRead = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
+     if (isFieldRead && operation.getValue() != "instant")
+       ERROR("void CField::checkAttributes(void)",
+             << "Unsupported operation for field '" << getFieldOutputName() << "'." << std::endl
+             << "Currently only \"instant\" is supported for fields read from file.")
+
      if (freq_op.isEmpty())
      {
-       if (operation.getValue()=="instant")
+       if (operation.getValue() == "instant")
          freq_op.setValue(file->output_freq.getValue());
        else
          freq_op.setValue(TimeStep);
      }
      if (freq_offset.isEmpty())
-       freq_offset.setValue(freq_op.getValue()-TimeStep);
+       freq_offset.setValue(isFieldRead ? NoneDu : (freq_op.getValue() - TimeStep));
    }
 
    /*!
