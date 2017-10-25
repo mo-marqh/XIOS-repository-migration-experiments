@@ -453,7 +453,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
       if (recvTemp.end() != recvTemp.find(recvSourceIndexBuff[idx]))
         recvTemp[recvSourceIndexBuff[idx]] += recvSourceWeightBuff[idx]/nbGlobalPointOnPole;
       else
-        recvTemp[recvSourceIndexBuff[idx]] = 0.0;
+        recvTemp[recvSourceIndexBuff[idx]] = recvSourceWeightBuff[idx]/nbGlobalPointOnPole;
     }
 
     std::map<int,double>::const_iterator itRecvTemp, itbRecvTemp = recvTemp.begin(), iteRecvTemp = recvTemp.end();
