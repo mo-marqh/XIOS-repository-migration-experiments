@@ -217,7 +217,7 @@ namespace xios {
       lastSplit = currentDate;
       if (!split_freq.isEmpty())
       {
-        StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+        StdString keySuffix("CFile::"+getFileOutputName()+"::") ; 
         if (context->registryIn->foundKey(keySuffix+"splitStart") && context->registryIn->foundKey(keySuffix+"splitEnd"))
         {
           CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
@@ -493,7 +493,7 @@ namespace xios {
            if (hasEndDate) oss << splitEnd.getStr(splitFormat);
            oss << lastPart ;
 
-           StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+           StdString keySuffix("CFile::"+getFileOutputName()+"::") ; 
            context->registryOut->setKey(keySuffix+"splitStart", lastSplit);
            context->registryOut->setKey(keySuffix+"splitEnd",   splitEnd);
          }

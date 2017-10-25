@@ -250,6 +250,7 @@ namespace xios {
 
      hasClient = true;
      MPI_Comm intraCommServer, interCommServer;
+     
 
      if (CServer::serverLevel != 1)
       // initClient is called by client
@@ -267,12 +268,19 @@ namespace xios {
          MPI_Comm_dup(interComm, &interCommServer);
          comms.push_back(interCommServer);
        }
+/* for registry take the id of client context */
+/* for servers, supress the _server_ from id  */
+       string contextRegistryId=getId() ;
+       size_t pos=contextRegistryId.find("_server_") ;
+       if (pos!=std::string::npos)  contextRegistryId=contextRegistryId.substr(0,pos) ;
+
        registryIn=new CRegistry(intraComm);
-       registryIn->setPath(getId()) ;
+       registryIn->setPath(contextRegistryId) ;
        if (client->clientRank==0) registryIn->fromFile("xios_registry.bin") ;
        registryIn->bcastRegistry() ;
        registryOut=new CRegistry(intraComm) ;
-       registryOut->setPath(getId()) ;
+       
+       registryOut->setPath(contextRegistryId) ;
 
        server = new CContextServer(this, intraCommServer, interCommServer);
      }
@@ -349,12 +357,18 @@ namespace xios {
      hasServer=true;
      server = new CContextServer(this,intraComm,interComm);
 
+/* for registry take the id of client context */
+/* for servers, supress the _server_ from id  */
+     string contextRegistryId=getId() ;
+     size_t pos=contextRegistryId.find("_server_") ;
+     if (pos!=std::string::npos)  contextRegistryId=contextRegistryId.substr(0,pos) ;
+       
      registryIn=new CRegistry(intraComm);
-     registryIn->setPath(getId()) ;
+     registryIn->setPath(contextRegistryId) ;
      if (server->intraCommRank==0) registryIn->fromFile("xios_registry.bin") ;
      registryIn->bcastRegistry() ;
      registryOut=new CRegistry(intraComm) ;
-     registryOut->setPath(getId()) ;
+     registryOut->setPath(contextRegistryId) ;
 
      MPI_Comm intraCommClient, interCommClient;
      if (cxtClient) // Attached mode
