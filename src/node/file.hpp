@@ -106,7 +106,7 @@ namespace xios {
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void prefetchEnabledReadModeFields();
-         void prefetchEnabledReadModeFieldsIfNeeded();
+         void doPostTimestepOperationsForEnabledReadModeFields();
 
          // Add component into file
          CField* addField(const string& id = "");

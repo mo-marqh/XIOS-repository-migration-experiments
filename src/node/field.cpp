@@ -37,6 +37,7 @@ namespace xios{
       , useCompressedOutput(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
+      , wasDataRequestedFromServer(false)
       , wasDataAlreadyReceivedFromServer(false)
       , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
@@ -51,6 +52,7 @@ namespace xios{
       , useCompressedOutput(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
+      , wasDataRequestedFromServer(false)
       , wasDataAlreadyReceivedFromServer(false)
       , isEOF(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
@@ -260,7 +262,8 @@ namespace xios{
 
     lastDataRequestedFromServer = tsDataRequested;
 
-    if (!isEOF) // No need to send the request if we already know we are at EOF
+    // No need to send the request if we are sure that we are already at EOF
+    if (!isEOF || context->getCalendar()->getCurrentDate() <= dateEOF)
     {
       CEventClient event(getType(), EVENT_ID_READ_DATA);
       if (client->isServerLeader())
@@ -276,6 +279,8 @@ namespace xios{
     }
     else
       serverSourceFilter->signalEndOfStream(tsDataRequested);
+
+    wasDataRequestedFromServer = true;
 
     return !isEOF;
   }
@@ -432,12 +437,13 @@ namespace xios{
   void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
-    int record;
     std::map<int, CArray<double,1> > data;
+    const bool wasEOF = isEOF;
 
     for (int i = 0; i < ranks.size(); i++)
     {
       int rank = ranks[i];
+      int record;
       *buffers[i] >> record;
       isEOF = (record == int(-1));
 
@@ -456,9 +462,42 @@ namespace xios{
     }
 
     if (isEOF)
+    {
+      if (!wasEOF)
+        dateEOF = lastDataReceivedFromServer;
+
       serverSourceFilter->signalEndOfStream(lastDataReceivedFromServer);
+    }
     else
       serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
+  }
+
+  void CField::checkForLateDataFromServer(void)
+  {
+    CContext* context = CContext::getCurrent();
+    const CDate& currentDate = context->getCalendar()->getCurrentDate();
+
+    // Check if data previously requested has been received as expected
+    if (wasDataRequestedFromServer && (!isEOF || context->getCalendar()->getCurrentDate() <= dateEOF))
+    {
+      CTimer timer("CField::checkForLateDataFromServer");
+
+      bool isDataLate = !wasDataAlreadyReceivedFromServer || lastDataReceivedFromServer + file->output_freq < currentDate;
+      while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout)
+      {
+        timer.resume();
+
+        context->checkBuffersAndListen();
+
+        timer.suspend();
+
+        isDataLate = !wasDataAlreadyReceivedFromServer || lastDataReceivedFromServer + file->output_freq < currentDate;
+      }
+
+      if (isDataLate)
+        ERROR("void CField::checkForLateDataFromServer(void)",
+              << "Late data at timestep = " << currentDate);
+    }
   }
 
    //----------------------------------------------------------------

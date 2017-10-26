@@ -513,12 +513,12 @@ namespace xios {
      }
    }
 
-   void CContext::checkPrefetchingOfEnabledReadModeFiles()
+   void CContext::doPostTimestepOperationsForEnabledReadModeFiles()
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
      {
-        enabledReadModeFiles[i]->prefetchEnabledReadModeFieldsIfNeeded();
+        enabledReadModeFiles[i]->doPostTimestepOperationsForEnabledReadModeFields();
      }
    }
 
@@ -1209,7 +1209,7 @@ namespace xios {
 #endif
       if (hasClient)
       {
-        checkPrefetchingOfEnabledReadModeFiles();
+        doPostTimestepOperationsForEnabledReadModeFiles();
         garbageCollector.invalidate(calendar->getCurrentDate());
       }
    }
