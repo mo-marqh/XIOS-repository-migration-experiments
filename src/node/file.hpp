@@ -110,7 +110,7 @@ namespace xios {
          
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void prefetchEnabledReadModeFields();
-         void prefetchEnabledReadModeFieldsIfNeeded();
+         void doPostTimestepOperationsForEnabledReadModeFields();
 
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
          void checkGridOfEnabledFields();

@@ -782,12 +782,12 @@ namespace xios {
      }
    }
 
-   void CContext::checkPrefetchingOfEnabledReadModeFiles()
+   void CContext::doPostTimestepOperationsForEnabledReadModeFiles()
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
      {
-        enabledReadModeFiles[i]->prefetchEnabledReadModeFieldsIfNeeded();
+        enabledReadModeFiles[i]->doPostTimestepOperationsForEnabledReadModeFields();
      }
    }
 
@@ -1708,7 +1708,7 @@ namespace xios {
       //if (hasClient) 
       if (hasClient && !hasServer) // For now we only use server level 1 to read data
       {
-        checkPrefetchingOfEnabledReadModeFiles();
+        doPostTimestepOperationsForEnabledReadModeFiles();
         garbageCollector.invalidate(calendar->getCurrentDate());
       }
    }

@@ -171,6 +171,7 @@ namespace xios {
         EReadField readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
+        void checkForLateDataFromServer(void);
         void outputField(CArray<double,3>& fieldOut);
         void outputField(CArray<double,2>& fieldOut);
         void outputField(CArray<double,1>& fieldOut);
@@ -216,8 +217,8 @@ namespace xios {
          int nstep, nstepMax;
          bool isEOF;
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
-         CDate lastDataRequestedFromServer, lastDataReceivedFromServer;
-         bool wasDataAlreadyReceivedFromServer;
+         CDate lastDataRequestedFromServer, lastDataReceivedFromServer, dateEOF;
+         bool wasDataRequestedFromServer, wasDataAlreadyReceivedFromServer;
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
