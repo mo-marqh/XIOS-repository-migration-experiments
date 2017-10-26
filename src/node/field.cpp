@@ -826,8 +826,6 @@ namespace xios{
    {
      if (!areAllReferenceSolved) solveAllReferenceEnabledField(false);
 
-     checkAttributes();
-
      const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
@@ -861,8 +859,11 @@ namespace xios{
          instantDataFilter = getFieldReference(gc);
        // Check if the data is to be read from a file
        else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
+       {
+         checkAttributes();
          instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, freq_offset, true,
                                                                                                      detectMissingValues, defaultValue));
+       }
        else // The data might be passed from the model
        {
           if (check_if_active.isEmpty()) check_if_active = false;
@@ -938,16 +939,17 @@ namespace xios{
 
      if (!selfReferenceFilter)
      {
-       checkAttributes();
-
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
        if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
        {
          if (!serverSourceFilter)
+         {
+           checkAttributes();
            serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, freq_offset, true,
                                                                                    detectMissingValues, defaultValue));
+         }
 
          selfReferenceFilter = serverSourceFilter;
        }
