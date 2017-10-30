@@ -568,19 +568,23 @@ namespace xios{
     if (wasDataRequestedFromServer && (!isEOF || currentDate <= dateEOF))
     {
       CTimer timer("CField::checkForLateDataFromServer");
-      const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + file->output_freq) : context->getCalendar()->getInitDate();
 
-      bool isDataLate = nextDataDue < currentDate;
-      while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout)
+      bool isDataLate;
+      do
       {
-        timer.resume();
-
-        context->checkBuffersAndListen();
-
-        timer.suspend();
-
+        const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + file->output_freq) : context->getCalendar()->getInitDate();
         isDataLate = nextDataDue < currentDate;
+
+        if (isDataLate)
+        {
+          timer.resume();
+
+          context->checkBuffersAndListen();
+
+          timer.suspend();
+        }
       }
+      while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout);
 
       if (isDataLate)
         ERROR("void CField::checkForLateDataFromServer(void)",
