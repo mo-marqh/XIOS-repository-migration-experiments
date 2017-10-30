@@ -565,11 +565,12 @@ namespace xios{
     const CDate& currentDate = context->getCalendar()->getCurrentDate();
 
     // Check if data previously requested has been received as expected
-    if (wasDataRequestedFromServer && (!isEOF || context->getCalendar()->getCurrentDate() <= dateEOF))
+    if (wasDataRequestedFromServer && (!isEOF || currentDate <= dateEOF))
     {
       CTimer timer("CField::checkForLateDataFromServer");
+      const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + file->output_freq) : context->getCalendar()->getInitDate();
 
-      bool isDataLate = !wasDataAlreadyReceivedFromServer || lastDataReceivedFromServer + file->output_freq < currentDate;
+      bool isDataLate = nextDataDue < currentDate;
       while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout)
       {
         timer.resume();
@@ -578,7 +579,7 @@ namespace xios{
 
         timer.suspend();
 
-        isDataLate = !wasDataAlreadyReceivedFromServer || lastDataReceivedFromServer + file->output_freq < currentDate;
+        isDataLate = nextDataDue < currentDate;
       }
 
       if (isDataLate)
