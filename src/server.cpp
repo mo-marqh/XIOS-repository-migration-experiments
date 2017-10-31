@@ -616,6 +616,7 @@ namespace xios
        static std::vector<MPI_Request> requests ;
        static std::vector<int> counts ;
        static std::vector<bool> isEventRegistered ;
+       static std::vector<bool> isEventQueued ;
        MPI_Request request;
 
        int rank ;
@@ -635,6 +636,7 @@ namespace xios
          requests.push_back(request);
          MPI_Irecv((void*)(buffers.back()),counts.back(),MPI_CHAR,root,2,intraComm,&(requests.back())) ;
          isEventRegistered.push_back(false);
+         isEventQueued.push_back(false);
          nbContexts++;
        }
 
@@ -648,9 +650,10 @@ namespace xios
            isEventRegistered[ctxNb] = true;
          }
          // (3) If event has been scheduled, call register context
-         if (eventScheduler->queryEvent(ctxNb,hashId))
+         if (eventScheduler->queryEvent(ctxNb,hashId) && !isEventQueued[ctxNb])
          {
            registerContext(buffers[ctxNb],counts[ctxNb]) ;
+           isEventQueued[ctxNb] = true;
            delete [] buffers[ctxNb] ;
          }
        }
