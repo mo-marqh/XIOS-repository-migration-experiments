@@ -1049,6 +1049,11 @@ namespace xios {
         domainMask.resize(i_index.numElements());
         for (int i = 0; i < i_index.numElements(); ++i) domainMask(i) = true;
       }
+      else
+      {
+		domainMask.resize(mask_1d.numElements());
+		domainMask=mask_1d ;
+	  }  
    }
 
    //----------------------------------------------------------------
