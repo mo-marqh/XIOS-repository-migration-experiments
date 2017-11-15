@@ -157,7 +157,7 @@ namespace xios
 
     // Initialize all aspects MPI
     CServer::initialize();
-    if (CServer::getRank()==0) globalRegistry = new CRegistry(CServer::intraComm) ;
+    if (CServer::getRank()==0 && CServer::serverLevel != 1) globalRegistry = new CRegistry(CServer::intraComm) ;
     
     if (printLogs2Files)
     {

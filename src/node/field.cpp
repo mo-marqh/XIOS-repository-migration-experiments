@@ -910,14 +910,14 @@ namespace xios{
      solveCheckMaskIndex(doSending2Server);
    }
 
-   std::map<int, StdSize> CField::getGridAttributesBufferSize(CContextClient* client)
+   std::map<int, StdSize> CField::getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
    {
-     return grid->getAttributesBufferSize(client);
+     return grid->getAttributesBufferSize(client, bufferForWriting);
    }
 
-   std::map<int, StdSize> CField::getGridDataBufferSize(CContextClient* client)
+   std::map<int, StdSize> CField::getGridDataBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
    {
-     return grid->getDataBufferSize(client, getId());
+     return grid->getDataBufferSize(client, getId(), bufferForWriting);
    }
 
    size_t CField::getGlobalWrittenSize()

@@ -128,14 +128,10 @@ namespace xios {
     *
     * \return A map associating the server rank with its minimum buffer size.
     */
-   std::map<int, StdSize> CDomain::getAttributesBufferSize(CContextClient* client)
+   std::map<int, StdSize> CDomain::getAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= false*/)
    {
-     CContext* context = CContext::getCurrent();
-     // For now the assumption is that secondary server pools consist of the same number of procs.
-     // CHANGE the line below if the assumption changes.
-     // CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
 
-     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
+     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
 
      if (client->isServerLeader())
      {

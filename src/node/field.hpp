@@ -99,8 +99,9 @@ namespace xios {
          void resetNStep(int nstep = 0);
          void resetNStepMax();
 
-         std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client);
-         std::map<int, StdSize> getGridDataBufferSize(CContextClient* client); // Grid data buffer size for each connection of contextclient
+         std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
+         // Grid data buffer size for each connection of contextclient
+         std::map<int, StdSize> getGridDataBufferSize(CContextClient* client, bool bufferForWriting = false);
 
          void setContextClient(CContextClient* newContextClient);
          CContextClient* getContextClient();

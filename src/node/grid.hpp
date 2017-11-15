@@ -165,8 +165,8 @@ namespace xios {
 
          void computeDomConServer();
          std::map<int, int> getDomConServerSide();
-         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
-         std::map<int, StdSize> getDataBufferSize(CContextClient* client, const std::string& id = "");
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
+         std::map<int, StdSize> getDataBufferSize(CContextClient* client, const std::string& id = "", bool bufferForWriting = false);
          std::vector<StdString> getDomainList();
          std::vector<StdString> getAxisList();
          std::vector<StdString> getScalarList();
@@ -325,11 +325,19 @@ namespace xios {
         size_t writtenDataSize_;
         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
 
-/** Map storing local ranks of connected receivers. Key = size of receiver's intracomm */
+/** Map storing local ranks of connected receivers. Key = size of receiver's intracomm.
+  * It is calculated in computeConnectedClients(). */
         std::map<int, std::vector<int> > connectedServerRank_;
 
-/** Map storing the size of data to be send. Key = size of receiver's intracomm */
+/** Map storing the size of data to be send. Key = size of receiver's intracomm
+  * It is calculated in computeConnectedClients(). */
         std::map<int, std::map<int,size_t> > connectedDataSize_;
+
+/** Ranks of connected receivers in case of reading. It is calculated in recvIndex(). */
+        std::vector<int> connectedServerRankRead_;
+
+/** Size of data to be send in case of reading. It is calculated in recvIndex(). */
+        std::map<int,size_t> connectedDataSizeRead_;
 
         bool isDataDistributed_;        
          //! True if and only if the data defined on the grid can be outputted in a compressed way

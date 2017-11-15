@@ -133,12 +133,9 @@ namespace xios {
          void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);  
          void sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)       ;
 
-//         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
-//         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
-//         void setClientServerBuffer();
-         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
-         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient);
-         void setClientServerBuffer(CContextClient* contextClient);
+         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
+         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
+         void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false);
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(void);

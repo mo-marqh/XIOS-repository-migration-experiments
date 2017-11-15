@@ -73,7 +73,7 @@ namespace xios {
          int getOffsetWrittenIndexes(MPI_Comm writtenCom);
          CArray<int, 1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
 
-         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client);
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;

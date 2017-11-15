@@ -180,46 +180,38 @@ namespace xios
    }
 
    template<typename T>
-   std::map<int, size_t> CObjectTemplate<T>::getMinimumBufferSizeForAttributes()
+   std::map<int, size_t> CObjectTemplate<T>::getMinimumBufferSizeForAttributes(CContextClient* client)
    {
-     // Use correct context client to send message
-     CContext* context = CContext::getCurrent();
-     // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-     for (int i = 0; i < nbSrvPools; ++i)
+     std::map<int, size_t> minimumSizes;
+
+     if (client->isServerLeader())
      {
-       CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i] : context->client;
-
-       std::map<int, size_t> minimumSizes;
-
-       if (contextClientTmp->isServerLeader())
+       size_t minimumSize = 0;
+       CAttributeMap& attrMap = *this;
+       CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
+       for (; it != itE; ++it)
        {
-         size_t minimumSize = 0;
-         CAttributeMap& attrMap = *this;
-         CAttributeMap::const_iterator it = attrMap.begin(), itE = attrMap.end();
-         for (; it != itE; ++it)
+         if (!it->second->isEmpty())
          {
-           if (!it->second->isEmpty())
-           {
-             size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
-             if (size > minimumSize)
-               minimumSize = size;
-           }
-         }
-
-         if (minimumSize)
-         {
-           // Account for extra header info
-           minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
-
-           const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
-           for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-             minimumSizes.insert(std::make_pair(*itRank, minimumSize));
+           size_t size = it->second->getName().size() + sizeof(size_t) + it->second->size();
+           if (size > minimumSize)
+             minimumSize = size;
          }
        }
-       return minimumSizes;
+
+       if (minimumSize)
+       {
+         // Account for extra header info
+         minimumSize += CEventClient::headerSize + getIdServer().size() + sizeof(size_t);
+
+         const std::list<int>& ranks = client->getRanksServerLeader();
+         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+           minimumSizes.insert(std::make_pair(*itRank, minimumSize));
+       }
      }
+     return minimumSizes;
    }
+
 
    template<typename T>
    void CObjectTemplate<T>::sendAllAttributesToServer()

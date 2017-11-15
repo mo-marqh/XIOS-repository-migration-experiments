@@ -296,7 +296,13 @@ namespace xios {
      }
    }
 
-   void CContext::setClientServerBuffer(CContextClient* contextClient)
+   /*!
+    Sets client buffers.
+    \param [in] contextClient
+    \param [in] bufferForWriting True if buffers are used for sending data for writing
+    This flag is only true for client and server-1 for communication with server-2
+  */
+   void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
    {
       // Estimated minimum event size for small events (10 is an arbitrary constant just for safety)
       const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
@@ -313,8 +319,8 @@ namespace xios {
 
      // Compute the buffer sizes needed to send the attributes and data corresponding to fields
      std::map<int, StdSize> maxEventSize;
-     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize, contextClient);
-     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize, contextClient);
+     std::map<int, StdSize> bufferSize = getAttributesBufferSize(maxEventSize, contextClient, bufferForWriting);
+     std::map<int, StdSize> dataBufferSize = getDataBufferSize(maxEventSize, contextClient, bufferForWriting);
 
      std::map<int, StdSize>::iterator it, ite = dataBufferSize.end();
      for (it = dataBufferSize.begin(); it != ite; ++it)
@@ -543,9 +549,9 @@ namespace xios {
      // Distribute files between secondary servers according to the data size
      distributeFiles();
 
-     setClientServerBuffer(client);
+     setClientServerBuffer(client, (hasClient && !hasServer));
      for (int i = 0; i < clientPrimServer.size(); ++i)
-         setClientServerBuffer(clientPrimServer[i]);
+         setClientServerBuffer(clientPrimServer[i], true);
 
      if (hasClient)
      {
@@ -1333,31 +1339,37 @@ namespace xios {
 
    /*!
     * Compute the required buffer size to send the attributes (mostly those grid related).
-    *
     * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    * \param [in] contextClient
+    * \param [in] bufferForWriting True if buffers are used for sending data for writing
+      This flag is only true for client and server-1 for communication with server-2
     */
-   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient)
+   std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize,
+                                                           CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
    {
      std::map<int, StdSize> attributesSize;
 
-     if (hasClient)
+//     if (hasClient)
      {
-       size_t numEnabledFiles = this->enabledWriteModeFiles.size();
+       std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
+//       size_t numEnabledFiles = this->enabledWriteModeFiles.size();
+       size_t numEnabledFiles = fileList.size();
        for (size_t i = 0; i < numEnabledFiles; ++i)
        {
-         CFile* file = this->enabledWriteModeFiles[i];
-         // if (file->getContextClient() == contextClient)
+//           CFile* file = this->enabledWriteModeFiles[i];
+         CFile* file = fileList[i];
+//         if (file->getContextClient() == contextClient)
          {
            std::vector<CField*> enabledFields = file->getEnabledFields();
            size_t numEnabledFields = enabledFields.size();
            for (size_t j = 0; j < numEnabledFields; ++j)
            {
-             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
+             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient, bufferForWriting);
              std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
              for (; it != itE; ++it)
              {
                // If attributesSize[it->first] does not exist, it will be zero-initialized
-               // so we can use it safely without checking for its existance
+               // so we can use it safely without checking for its existence
                if (attributesSize[it->first] < it->second)
                  attributesSize[it->first] = it->second;
 
@@ -1368,34 +1380,34 @@ namespace xios {
          }
        }
 
-      // Not a good approach here, duplicate code
-       if (!hasServer)
-       {
-         size_t numEnabledFiles = this->enabledReadModeFiles.size();
-         for (size_t i = 0; i < numEnabledFiles; ++i)
-         {
-           CFile* file = this->enabledReadModeFiles[i];  
-           {
-             std::vector<CField*> enabledFields = file->getEnabledFields();
-             size_t numEnabledFields = enabledFields.size();
-             for (size_t j = 0; j < numEnabledFields; ++j)
-             {
-               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
-               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-               for (; it != itE; ++it)
-               {
-                 // If attributesSize[it->first] does not exist, it will be zero-initialized
-                 // so we can use it safely without checking for its existance
-                 if (attributesSize[it->first] < it->second)
-                   attributesSize[it->first] = it->second;
-
-                 if (maxEventSize[it->first] < it->second)
-                   maxEventSize[it->first] = it->second;
-               }
-             }
-           }
-         }
-       }
+//      // Not a good approach here, duplicate code
+//       if (!hasServer)
+//       {
+//         size_t numEnabledFiles = this->enabledReadModeFiles.size();
+//         for (size_t i = 0; i < numEnabledFiles; ++i)
+//         {
+//           CFile* file = this->enabledReadModeFiles[i];
+//           {
+//             std::vector<CField*> enabledFields = file->getEnabledFields();
+//             size_t numEnabledFields = enabledFields.size();
+//             for (size_t j = 0; j < numEnabledFields; ++j)
+//             {
+//               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
+//               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+//               for (; it != itE; ++it)
+//               {
+//                 // If attributesSize[it->first] does not exist, it will be zero-initialized
+//                 // so we can use it safely without checking for its existance
+//                 if (attributesSize[it->first] < it->second)
+//                   attributesSize[it->first] = it->second;
+//
+//                 if (maxEventSize[it->first] < it->second)
+//                   maxEventSize[it->first] = it->second;
+//               }
+//             }
+//           }
+//         }
+//       }
      }
 
      return attributesSize;
@@ -1403,32 +1415,38 @@ namespace xios {
 
    /*!
     * Compute the required buffer size to send the fields data.
-    *
     * \param maxEventSize [in/out] the size of the bigger event for each connected server
+    * \param [in] contextClient
+    * \param [in] bufferForWriting True if buffers are used for sending data for writing
+      This flag is only true for client and server-1 for communication with server-2
     */
-   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient)
+   std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize,
+                                                      CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
    {
-     CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
+//     CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
 
      std::map<int, StdSize> dataSize;
 
      // Find all reference domain and axis of all active fields
-     size_t numEnabledFiles = this->enabledFiles.size();
+     std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
+     size_t numEnabledFiles = fileList.size();
+//     size_t numEnabledFiles = this->enabledFiles.size();
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
-       CFile* file = this->enabledFiles[i];
+//       CFile* file = this->enabledFiles[i];
+       CFile* file = fileList[i];
        if (file->getContextClient() == contextClient)
        {
-         CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
+//         CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
+//         if (fileMode == mode)
 
-         if (fileMode == mode)
          {
            std::vector<CField*> enabledFields = file->getEnabledFields();
            size_t numEnabledFields = enabledFields.size();
            for (size_t j = 0; j < numEnabledFields; ++j)
            {
              // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
-            const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
+            const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient,bufferForWriting);
              // for (size_t c = 0; c < mapSize.size(); ++c)
              // {
                std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();

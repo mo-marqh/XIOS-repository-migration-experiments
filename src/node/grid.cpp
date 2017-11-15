@@ -30,7 +30,8 @@ namespace xios {
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
+	  , isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
@@ -50,7 +51,8 @@ namespace xios {
       , vScalarGroup_(), scalarList_(), isScalarListSet(false)
       , clientDistribution_(0), isIndexSent(false) , serverDistribution_(0), clientServerMap_(0)
       , writtenDataSize_(0), numberWrittenIndexes_(0), totalNumberWrittenIndexes_(0), offsetWrittenIndexes_(0)
-      , connectedDataSize_(), connectedServerRank_(), isDataDistributed_(true), isCompressible_(false)
+      , connectedDataSize_(), connectedServerRank_(), connectedServerRankRead_(), connectedDataSizeRead_()
+	  , isDataDistributed_(true), isCompressible_(false)
       , transformations_(0), isTransformed_(false)
       , axisPositionInGrid_(), hasDomainAxisBaseRef_(false)
       , gridSrc_(), hasTransform_(false), isGenerated_(false), order_(), globalIndexOnServer_()
@@ -101,12 +103,12 @@ namespace xios {
     * \return A map associating the server rank with its minimum buffer size.
     * TODO: Refactor code
     */
-   std::map<int, StdSize> CGrid::getAttributesBufferSize(CContextClient* client)
+   std::map<int, StdSize> CGrid::getAttributesBufferSize(CContextClient* client, bool bufferForWriting)
    {
-     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes();
+     std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
 
      // The grid indexes require a similar size as the actual data
-     std::map<int, StdSize> dataSizes = getDataBufferSize(client);
+     std::map<int, StdSize> dataSizes = getDataBufferSize(client, "", bufferForWriting);
      // for (size_t i = 0; i < dataSizes.size(); ++i)
      // {
        std::map<int, StdSize>::iterator it, itE = dataSizes.end();
@@ -150,39 +152,27 @@ namespace xios {
     * Compute the minimum buffer size required to send the data.
     * \param client contextClient used to determine the size of connected receivers
     * \param id the id used to tag the data
+    * \param bufferForWriting flag indicating if a buffer is used to send data for writing
     * \return A map associating the sender rank with its minimum buffer size.
     */
-   std::map<int, StdSize> CGrid::getDataBufferSize(CContextClient* client, const std::string& id /*= ""*/)
+   std::map<int, StdSize> CGrid::getDataBufferSize(CContextClient* client, const std::string& id /*= ""*/, bool bufferForWriting /*= "false"*/)
    {     
      // The record index is sometimes sent along with the data but we always
      // include it in the size calculation for the sake of simplicity
      const size_t extraSize = CEventClient::headerSize + (id.empty() ? getId() : id).size() 
                                                        + 2 * sizeof(size_t) 
                                                        + sizeof(size_t);
-     // CContext* context = CContext::getCurrent();
-     // int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-     // std::vector<std::map<int, StdSize> > dataSizes(nbSrvPools);
-     // for (int p = 0; p < nbSrvPools; ++p) 
-     // {
-     //   std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[client].end();
-     //   for (size_t k = 0; k < connectedServerRank_[p].size(); ++k)
-     //   {
-     //     int rank = connectedServerRank_[p][k];
-     //     std::map<int, size_t>::const_iterator it = connectedDataSize_[client].find(rank);
-     //     size_t count = (it != itEnd) ? it->second : 0;
-
-     //     dataSizes[p].insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
-     //   }
-       
-     // }
 
      std::map<int, StdSize> dataSizes;
      int receiverSize = client->serverSize;
-     std::map<int, size_t>::const_iterator itEnd = connectedDataSize_[receiverSize].end();
-     for (size_t k = 0; k < connectedServerRank_[receiverSize].size(); ++k)
+     std::map<int,size_t>& dataSizeMap = bufferForWriting ? connectedDataSize_[receiverSize]: connectedDataSizeRead_;
+     std::vector<int>& connectedServerRanks = bufferForWriting ? connectedServerRank_[receiverSize] : connectedServerRankRead_;
+
+     std::map<int, size_t>::const_iterator itEnd = dataSizeMap.end();
+     for (size_t k = 0; k < connectedServerRanks.size(); ++k)
      {
-       int rank = connectedServerRank_[receiverSize][k];
-       std::map<int, size_t>::const_iterator it = connectedDataSize_[receiverSize].find(rank);
+       int rank = connectedServerRanks[k];
+       std::map<int, size_t>::const_iterator it = dataSizeMap.find(rank);
        size_t count = (it != itEnd) ? it->second : 0;
 
        dataSizes.insert(std::make_pair(rank, extraSize + CArray<double,1>::size(count)));
@@ -1550,6 +1540,7 @@ namespace xios {
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
   {
     CContext* context = CContext::getCurrent();
+    connectedServerRankRead_ = ranks;
 
     int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
     nbSrvPools = 1;    
@@ -1658,7 +1649,8 @@ namespace xios {
 
         CArray<size_t,1> outIndex;
         buffer >> outIndex;
-        outGlobalIndexFromClient.insert(std::make_pair(rank, outIndex));        
+        outGlobalIndexFromClient.insert(std::make_pair(rank, outIndex));
+        connectedDataSizeRead_[rank] = outIndex.numElements();
 
         if (doGridHaveDataDistributed(client))
         {}

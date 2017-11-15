@@ -54,7 +54,7 @@ namespace xios
 
          /// Traitement statique ///
          static void ClearAllAttributes(void);
-         std::map<int, size_t> getMinimumBufferSizeForAttributes();
+         std::map<int, size_t> getMinimumBufferSizeForAttributes(CContextClient* client);
          void sendAttributToServer(const string& id);
          void sendAttributToServer(const string& id, CContextClient* client);
          void sendAttributToServer(CAttribute& attr) ;
