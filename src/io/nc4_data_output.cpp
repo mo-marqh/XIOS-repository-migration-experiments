@@ -1236,16 +1236,17 @@ namespace xios
                 if (axis->label.isEmpty())
                   SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
 
-                axis_bounds.resize(2, indexToWrite.numElements());
-                for (int i = 0; i < nbWritten; ++i)
-                {
-                  axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                  axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
-                }
-
-
                 if (!axis->bounds.isEmpty() && axis->label.isEmpty())
-                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
+                {
+                    axis_bounds.resize(2, indexToWrite.numElements());
+                    for (int i = 0; i < nbWritten; ++i)
+                    {
+                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
+                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                    }
+
+                	SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
+                }
 
                 // Need to check after
                 if (!axis->label.isEmpty()) 
