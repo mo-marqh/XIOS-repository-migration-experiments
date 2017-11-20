@@ -34,15 +34,10 @@ CClientServerMappingDistributed::~CClientServerMappingDistributed()
 /*!
    Compute mapping global index of server which client sends to.
    \param [in] globalIndexOnClient global index client has
+   \param [in] nbServer size of server's intracomm
 */
-void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient)
+void CClientServerMappingDistributed::computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient, int nbServer)
 {
-  CContext* context=CContext::getCurrent() ;
-//  CContextClient* client=context->client ;
-  // For now the assumption is that secondary server pools consist of the same number of procs.
-  // CHANGE the line below if the assumption changes.
-  CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[0] : context->client;
-  int nbServer=client->serverSize;
 
   ccDHT_->computeIndexInfoMapping(globalIndexOnClient);
   const CClientClientDHTInt::Index2VectorInfoTypeMap& infoIndexMap = (ccDHT_->getInfoIndexMap());

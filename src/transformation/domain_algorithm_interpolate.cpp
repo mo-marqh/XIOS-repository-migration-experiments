@@ -563,7 +563,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
     ++globalIndexCount;
   }
 
-  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp);
+  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, client->serverSize);
   const CClientServerMapping::GlobalIndexMap& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
 
   //Inform each client number of index they will receive

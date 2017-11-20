@@ -1843,7 +1843,7 @@ namespace xios {
 
       CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(),
                                                                                   client->intraComm);
-      clientServerMap->computeServerIndexMapping(globalIndexDomain);
+      clientServerMap->computeServerIndexMapping(globalIndexDomain, nbServer);
       CClientServerMapping::GlobalIndexMap& globalIndexDomainOnServer = clientServerMap->getGlobalIndexOnServer();
 
       CClientServerMapping::GlobalIndexMap::const_iterator it  = globalIndexDomainOnServer.begin(),

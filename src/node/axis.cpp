@@ -602,7 +602,7 @@ namespace xios {
 
       // Find out the connection between client and server side
       CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-      clientServerMap->computeServerIndexMapping(globalIndex);
+      clientServerMap->computeServerIndexMapping(globalIndex, nbServer);
       CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
 
 
