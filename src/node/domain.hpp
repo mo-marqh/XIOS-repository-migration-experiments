@@ -204,16 +204,17 @@ namespace xios {
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good
          bool isClientAfterTransformationChecked;
          std::map<int, CArray<int,1> > indGlob_;
-         std::map<CContextClient*, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
+         std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
 
-         std::map<CContextClient*, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server         
+/** Global index of each client sent to server: map<serverSize, map<serverRank, indexes>> */
+         std::map<int, boost::unordered_map<int, vector<size_t> > > indSrv_;
          // std::map<CContextClient*, std::map<int, vector<int> > > indWrittenSrv_; // Global written index of each client sent to server
          std::vector<int> indexesToWrite;
          std::vector<int> recvClientRanks_;
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;     
-         std::map<CContextClient*, std::map<int,size_t> > connectedDataSize_;
-         std::map<CContextClient*, std::vector<int> > connectedServerRank_;
+         std::map<int, std::map<int,size_t> > connectedDataSize_;
+         std::map<int, std::vector<int> > connectedServerRank_;
 
          //! True if and only if the data defined on the domain can be outputted in a compressed way
          bool isCompressible_;

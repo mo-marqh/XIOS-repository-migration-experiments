@@ -156,14 +156,14 @@ namespace xios {
          TransMapTypes transformationMap_;         
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
-         std::map<CContextClient*, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
-         std::map<CContextClient*, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
+         std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
+         std::map<int, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
          // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
          boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
-         std::map<CContextClient*, std::vector<int> > connectedServerRank_;         
+         std::map<int, std::vector<int> > connectedServerRank_;
          bool hasBounds;
          bool hasLabel;         
          bool computedWrittenIndex_;                  

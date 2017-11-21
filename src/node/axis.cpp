@@ -179,8 +179,8 @@ namespace xios {
      if (!isNonDistributed)
      {
        // size estimation for sendDistributedValue
-       boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client].end();
-       for (it = indSrv_[client].begin(); it != ite; ++it)
+       boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->serverSize].end();
+       for (it = indSrv_[client->serverSize].begin(); it != ite; ++it)
        {
          size_t sizeIndexEvent = CArray<int,1>::size(it->second.size());
          // if (isCompressible_)
@@ -606,28 +606,29 @@ namespace xios {
       CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
 
 
-      indSrv_[client].swap(globalIndexAxisOnServer);
+      indSrv_[nbServer].swap(globalIndexAxisOnServer);
 
       if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
       {
-        for(int i=1; i<nbServer; ++i) indSrv_[client].insert(pair<int, vector<size_t> >(i,indSrv_[client][0]) ) ;
+        for(int i=1; i<nbServer; ++i) indSrv_[nbServer].insert(pair<int, vector<size_t> >(i,indSrv_[nbServer][0]) ) ;
         serverZeroIndexLeader.clear() ;
       }
          
-      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[client].begin(),
-                                                           ite = indSrv_[client].end();
+      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[nbServer].begin(),
+                                                           ite = indSrv_[nbServer].end();
 
-      for (it = indSrv_[client].begin(); it != ite; ++it) connectedServerRank_[client].push_back(it->first);
+      for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
 
       for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-        connectedServerRank_[client].push_back(*it);
+        connectedServerRank_[nbServer].push_back(*it);
 
        // Even if a client has no index, it must connect to at least one server and 
        // send an "empty" data to this server
-       if (connectedServerRank_[client].empty())
-        connectedServerRank_[client].push_back(client->clientRank % client->serverSize);
+       if (connectedServerRank_[nbServer].empty())
+        connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
 
-      nbSenders[client] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
+//       nbSenders[client] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
+       nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
 
       delete clientServerMap;
     }
@@ -1090,6 +1091,7 @@ namespace xios {
     for (int p = 0; p < nbSrvPools; ++p)
     {
       CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      int nbServer = client->serverSize;
 
       CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
 
@@ -1110,12 +1112,12 @@ namespace xios {
       }
 
       boost::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
-      iteMap = indSrv_[client].end();
-      for (int k = 0; k < connectedServerRank_[client].size(); ++k)
+      iteMap = indSrv_[nbServer].end();
+      for (int k = 0; k < connectedServerRank_[nbServer].size(); ++k)
       {
         int nbData = 0;
-        int rank = connectedServerRank_[client][k];        
-        it = indSrv_[client].find(rank);
+        int rank = connectedServerRank_[nbServer][k];
+        it = indSrv_[nbServer].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
 
@@ -1181,7 +1183,7 @@ namespace xios {
         if (hasLabel)
           listData.back() << list_label.back();
 
-        eventData.push(rank, nbSenders[client][rank], listData.back());
+        eventData.push(rank, nbSenders[nbServer][rank], listData.back());
       }
 
       client->sendEvent(eventData);
