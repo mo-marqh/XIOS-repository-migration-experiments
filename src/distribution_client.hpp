@@ -56,6 +56,8 @@ public:
                                      const int& dataDim, const int& ni, int& j);
     static int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
 
+    void partialClear(void) ;  //! clear heavy sized attibutes
+
   protected:
     void createGlobalIndex();
     void readDistributionInfo(CGrid* grid);

@@ -30,6 +30,19 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
 CDistributionClient::~CDistributionClient()
 { /* Nothing to do */ }
 
+void CDistributionClient::partialClear()
+{
+  GlobalLocalMap void1 ;
+  GlobalLocalMap void2 ;
+  std::vector<int> void3 ;
+  std::vector<int> void4 ;
+
+  globalLocalDataSendToServerMap_.swap(void1) ;
+  globalDataIndex_.swap(void2) ;
+  localDataIndex_.swap(void3);
+  localMaskIndex_.swap(void4) ;
+}
+
 /*!
   Read information of a grid to generate distribution.
   Every grid is composed of several axis or/and domain(s). Their information are processed

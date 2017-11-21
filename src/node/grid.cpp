@@ -17,6 +17,7 @@
 #include "distribution_client.hpp"
 #include "grid_transformation.hpp"
 #include "grid_generate.hpp"
+#include "server.hpp"
 
 namespace xios {
 
@@ -826,6 +827,13 @@ namespace xios {
          computeConnectedClients();
        }
      }
+     if (CServer::serverLevel==2)
+     {
+       computeWrittenIndex() ;
+       if (serverDistribution_!=0) serverDistribution_->partialClear() ;
+       if (clientDistribution_!=0) clientDistribution_->partialClear() ;
+       outGlobalIndexFromClient.clear() ;
+     }
    }
 
    /*!
@@ -1248,6 +1256,7 @@ namespace xios {
       
       for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
    }
+
 
   void CGrid::computeClientIndexScalarGrid()
   {

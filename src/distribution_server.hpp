@@ -49,6 +49,7 @@ class CDistributionServer : public CDistribution
     
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
     virtual void computeGlobalIndex(CArray<int,1>& indexes) const;
+    virtual void partialClear(void); //! clear heavy sized attibutes
 
   protected:
     virtual void createGlobalIndex();

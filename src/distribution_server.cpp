@@ -228,4 +228,11 @@ const std::vector<int>& CDistributionServer::getZoomSizeServer() const
 {
   return nZoomSize_;
 }
+
+void CDistributionServer::partialClear(void)
+{
+  GlobalLocalMap void1 ;
+  globalLocalIndexMap_.swap(void1) ;
+}
+  
 } // namespace xios

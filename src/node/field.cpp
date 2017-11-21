@@ -236,6 +236,9 @@ namespace xios{
     }
 
     this->setData(recv_data_tmp);
+    // delete incomming flux for server only
+    recvFoperationSrv.reset() ;
+    recvDataSrv.reset() ;
   }
 
   void CField::writeUpdateData(const CArray<double,1>& data)
