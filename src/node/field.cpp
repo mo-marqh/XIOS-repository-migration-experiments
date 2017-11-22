@@ -1556,9 +1556,19 @@ namespace xios{
 
    void CField::setContextClient(CContextClient* contextClient)
    {
+     CContext* context = CContext::getCurrent();
      client = contextClient;
-     if (file->mode.isEmpty() || (!file->mode.isEmpty() && file->mode == CFile::mode_attr::write))
-       grid->setContextClient(contextClient);
+     if (context->hasClient)
+     {
+       // A grid is sent by a client (both for read or write) or by primary server (write only)
+       if (context->hasServer)
+       {
+         if (file->mode.isEmpty() || (!file->mode.isEmpty() && file->mode == CFile::mode_attr::write))
+           grid->setContextClient(contextClient);
+       }
+       else
+           grid->setContextClient(contextClient);
+     }
    }
 
    CContextClient* CField::getContextClient()
