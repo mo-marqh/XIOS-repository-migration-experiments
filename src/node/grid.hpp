@@ -375,7 +375,7 @@ namespace xios {
                 << "[ Awaiting data of size = " << this->getDataSize() << ", "
                 << "Received data size = "      << field.numElements() << " ] "
                 << "The data array does not have the right size! "
-                << "Grid = " << this->GetName())
+                << "Grid = " << this->getId())
 //#endif
       this->storeField_arr(field.dataFirst(), stored);
    }
@@ -389,7 +389,7 @@ namespace xios {
                 << "[ Size of the data = " << this->getDataSize() << ", "
                 << "Output data size = "   << field.numElements() << " ] "
                 << "The ouput array does not have the right size! "
-                << "Grid = " << this->GetName())
+                << "Grid = " << this->getId())
 //#endif
       this->restoreField_arr(stored, field.dataFirst());
    }
@@ -445,7 +445,7 @@ namespace xios {
                 << "The mask has one dimension whose size is different from the one of the local grid." << std::endl
                 << "Local size of dimension " << i << " is " << eachDimSize[i] << "." << std::endl
                 << "Mask size for dimension " << i << " is " << gridMask.extent(i) << "." << std::endl
-                << "Grid = " << this->GetName())
+                << "Grid = " << this->getId())
       }
     }
     else {
@@ -511,7 +511,7 @@ namespace xios {
         //       << "Dimension size of the mask is different from input dimension size." << std::endl
         //       << "Mask dimension is " << N << "." << std::endl
         //       << "Input dimension is " << eachDimSize.size() << "." << std::endl
-        //       << "Grid = " << this->GetName())
+        //       << "Grid = " << this->getId())
       }
       CArrayBoolTraits<CArray<bool,N> >::resizeArray(gridMask,eachDimSize);
       gridMask = newValue;
