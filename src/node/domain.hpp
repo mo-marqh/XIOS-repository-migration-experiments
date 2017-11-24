@@ -71,6 +71,8 @@ namespace xios {
         
          virtual void parse(xml::CXMLNode & node);
 
+         void setContextClient(CContextClient* contextClient);
+
          /// Vérifications ///
          void checkAttributes(void);
          void checkAttributesOnClient();
@@ -198,6 +200,10 @@ namespace xios {
          void computeConnectedClients();    
 
        private:         
+
+/** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
+         std::set<CContextClient*> clients;
+
          bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;

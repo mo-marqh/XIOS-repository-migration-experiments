@@ -2508,6 +2508,10 @@ namespace xios {
   void CGrid::setContextClient(CContextClient* contextClient)
   {
     clients.insert(contextClient);
+    for (int i=0; i<this->getDomains().size(); i++)
+    	this->getDomains()[i]->setContextClient(contextClient);
+    for (int i=0; i<this->getAxis().size(); i++)
+    	this->getAxis()[i]->setContextClient(contextClient);
   }
 
   /*!

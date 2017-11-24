@@ -25,6 +25,7 @@ namespace xios {
       , numberWrittenIndexes_(), totalNumberWrittenIndexes_(), offsetWrittenIndexes_()
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
+	  , clients()
    {
    }
 
@@ -36,6 +37,7 @@ namespace xios {
       , numberWrittenIndexes_(), totalNumberWrittenIndexes_(), offsetWrittenIndexes_()
       , transformationMap_(), hasValue(false), hasLabel(false)
       , computedWrittenIndex_(false)
+	  , clients()
    {
    }
 
@@ -838,14 +840,11 @@ namespace xios {
   void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType)
   {
-    CContext* context = CContext::getCurrent();
-
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
-                                                                         : context->client;
-      int nbServer = contextClientTmp->serverSize;
+      CContextClient* client = *it;
+      int nbServer = client->serverSize;
 
       CServerDistributionDescription serverDescription(globalDim, nbServer);
       serverDescription.computeServerDistribution();
@@ -854,11 +853,11 @@ namespace xios {
       std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
       CEventClient event(getType(),EVENT_ID_DISTRIBUTION_ATTRIBUTE);
-      if (contextClientTmp->isServerLeader())
+      if (client->isServerLeader())
       {
         std::list<CMessage> msgs;
 
-        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        const std::list<int>& ranks = client->getRanksServerLeader();
         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
           // Use const int to ensure CMessage holds a copy of the value instead of just a reference
@@ -874,9 +873,9 @@ namespace xios {
 
           event.push(*itRank,1,msg);
         }
-        contextClientTmp->sendEvent(event);
+        client->sendEvent(event);
       }
-      else contextClientTmp->sendEvent(event);
+      else client->sendEvent(event);
     }
   }
 
@@ -959,12 +958,10 @@ namespace xios {
   */
   void CAxis::sendNonDistributedAttributes()
   {
-    CContext* context = CContext::getCurrent();
-
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
-    {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
+	{
+	  CContextClient* client = *it;
 
       CEventClient event(getType(), EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES);
       size_t nbIndex = index.numElements();
@@ -1085,12 +1082,11 @@ namespace xios {
   void CAxis::sendDistributedAttributes(void)
   {
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-    
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
       int nbServer = client->serverSize;
 
       CEventClient eventData(getType(), EVENT_ID_DISTRIBUTED_ATTRIBUTES);
@@ -1439,6 +1435,11 @@ namespace xios {
     if (axis->hasTransformation())
       for (size_t i = 0; i < refAxis.size(); ++i)
         refAxis[i]->setTransformations(axis->getAllTransformations());
+  }
+
+  void CAxis::setContextClient(CContextClient* contextClient)
+  {
+    clients.insert(contextClient);
   }
 
   void CAxis::parse(xml::CXMLNode & node)

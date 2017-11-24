@@ -93,6 +93,8 @@ namespace xios {
 
          virtual void parse(xml::CXMLNode & node);
 
+         void setContextClient(CContextClient* contextClient);
+
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
@@ -149,6 +151,10 @@ namespace xios {
          void setTransformations(const TransMapTypes&);
 
       private:
+
+/** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
+         std::set<CContextClient*> clients;
+
          bool isChecked;
          bool areClientAttributesChecked_;
          bool isClientAfterTransformationChecked;

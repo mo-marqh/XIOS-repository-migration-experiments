@@ -32,6 +32,7 @@ namespace xios {
       , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
+	  , clients()
    {
    }
 
@@ -43,6 +44,7 @@ namespace xios {
       , isRedistributed_(false), hasPole(false), doZoomByIndex_(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
+	  , clients()
    {
     }
 
@@ -2064,13 +2066,11 @@ namespace xios {
   void CDomain::sendIndex()
   {
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
+
       int serverSize = client->serverSize;
       CEventClient eventIndex(getType(), EVENT_ID_INDEX);
 
@@ -2114,15 +2114,11 @@ namespace xios {
   */
   void CDomain::sendDistributionAttributes(void)
   {
-    CContext* context = CContext::getCurrent();
-     // Use correct context client to send message
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int i = 0; i < nbSrvPools; ++i)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* contextClientTmp = (context->hasServer) ? context->clientPrimServer[i]
-                                                                         : context->client;    
-      int nbServer = contextClientTmp->serverSize;
+      CContextClient* client = *it;
+      int nbServer = client->serverSize;
       std::vector<int> nGlobDomain(2);
       nGlobDomain[0] = this->ni_glo;
       nGlobDomain[1] = this->nj_glo;
@@ -2135,11 +2131,11 @@ namespace xios {
       std::vector<std::vector<int> > serverDimensionSizes = serverDescription.getServerDimensionSizes();
 
       CEventClient event(getType(),EVENT_ID_SERVER_ATTRIBUT);
-      if (contextClientTmp->isServerLeader())
+      if (client->isServerLeader())
       {
         std::list<CMessage> msgs;
 
-        const std::list<int>& ranks = contextClientTmp->getRanksServerLeader();
+        const std::list<int>& ranks = client->getRanksServerLeader();
         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
         {
           // Use const int to ensure CMessage holds a copy of the value instead of just a reference
@@ -2157,9 +2153,9 @@ namespace xios {
 
           event.push(*itRank,1,msg);
         }
-        contextClientTmp->sendEvent(event);
+        client->sendEvent(event);
       }
-      else contextClientTmp->sendEvent(event);
+      else client->sendEvent(event);
     }
   }
 
@@ -2169,13 +2165,10 @@ namespace xios {
   void CDomain::sendMask()
   {
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
       int serverSize = client->serverSize;
 
       // send area for each connected server
@@ -2218,13 +2211,11 @@ namespace xios {
     if (!hasArea) return;
 
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
+    std::set<CContextClient*>::iterator it;
 
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
       int serverSize = client->serverSize;
 
       // send area for each connected server
@@ -2270,13 +2261,10 @@ namespace xios {
     if (!hasLonLat) return;
 
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
       int serverSize = client->serverSize;
 
       // send lon lat for each connected server
@@ -2367,13 +2355,11 @@ namespace xios {
   void CDomain::sendDataIndex()
   {
     int ns, n, i, j, ind, nv, idx;
-    CContext* context = CContext::getCurrent();
-
-    // int nbSrvPools = (context->hasServer) ? context->clientPrimServer.size() : 1;
-    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;
-    for (int p = 0; p < nbSrvPools; ++p)
+    std::set<CContextClient*>::iterator it;
+    for (it=clients.begin(); it!=clients.end(); ++it)
     {
-      CContextClient* client = (0 != context->clientPrimServer.size()) ? context->clientPrimServer[p] : context->client;
+      CContextClient* client = *it;
+
       int serverSize = client->serverSize;
 
       // send area for each connected server
@@ -3125,6 +3111,11 @@ namespace xios {
     if (domain->hasTransformation())
       for (size_t i = 0; i < refDomains.size(); ++i)
         refDomains[i]->setTransformations(domain->getAllTransformations());
+  }
+
+  void CDomain::setContextClient(CContextClient* contextClient)
+  {
+    clients.insert(contextClient);
   }
 
   /*!
