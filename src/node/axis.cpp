@@ -529,110 +529,111 @@ namespace xios {
       int range, clientSize = client->clientSize;
       int rank = client->clientRank;
 
-      size_t ni = this->n.getValue();
-      size_t ibegin = this->begin.getValue();
-      size_t global_zoom_end = global_zoom_begin+global_zoom_n-1;
-      size_t nZoomCount = 0;
-      size_t nbIndex = index.numElements();
-
-      // First of all, we should compute the mapping of the global index and local index of the current client
-      if (globalLocalIndexMap_.empty())
+      if (connectedServerRank_.find(nbServer) == connectedServerRank_.end())
       {
-        for (size_t idx = 0; idx < nbIndex; ++idx)
-        {
-          globalLocalIndexMap_[index(idx)] = idx;
-        }
-      }
+        size_t ni = this->n.getValue();
+        size_t ibegin = this->begin.getValue();
+        size_t global_zoom_end = global_zoom_begin+global_zoom_n-1;
+        size_t nZoomCount = 0;
+        size_t nbIndex = index.numElements();
 
-      // Calculate the compressed index if any
-      std::set<int> writtenInd;
-      if (isCompressible_)
-      {
-        for (int idx = 0; idx < data_index.numElements(); ++idx)
+        // First of all, we should compute the mapping of the global index and local index of the current client
+        if (globalLocalIndexMap_.empty())
         {
-          int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
-
-          if (ind >= 0 && ind < ni && mask(ind))
+          for (size_t idx = 0; idx < nbIndex; ++idx)
           {
-            ind += ibegin;
-            if (ind >= global_zoom_begin && ind <= global_zoom_end)
-              writtenInd.insert(ind);
+            globalLocalIndexMap_[index(idx)] = idx;
           }
         }
-      }
 
-      // Compute the global index of the current client (process) hold
-      std::vector<int> nGlobAxis(1);
-      nGlobAxis[0] = n_glo.getValue();
-
-      size_t globalSizeIndex = 1, indexBegin, indexEnd;
-      for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
-      indexBegin = 0;
-      if (globalSizeIndex <= clientSize)
-      {
-        indexBegin = rank%globalSizeIndex;
-        indexEnd = indexBegin;
-      }
-      else
-      {
-        for (int i = 0; i < clientSize; ++i)
+        // Calculate the compressed index if any
+        std::set<int> writtenInd;
+        if (isCompressible_)
         {
-          range = globalSizeIndex / clientSize;
-          if (i < (globalSizeIndex%clientSize)) ++range;
-          if (i == client->clientRank) break;
-          indexBegin += range;
+          for (int idx = 0; idx < data_index.numElements(); ++idx)
+          {
+            int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
+
+            if (ind >= 0 && ind < ni && mask(ind))
+            {
+              ind += ibegin;
+              if (ind >= global_zoom_begin && ind <= global_zoom_end)
+                writtenInd.insert(ind);
+            }
+          }
         }
-        indexEnd = indexBegin + range - 1;
-      }
 
-      CArray<size_t,1> globalIndex(index.numElements());
-      for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
-        globalIndex(idx) = index(idx);
+        // Compute the global index of the current client (process) hold
+        std::vector<int> nGlobAxis(1);
+        nGlobAxis[0] = n_glo.getValue();
 
-      // Describe the distribution of server side
+        size_t globalSizeIndex = 1, indexBegin, indexEnd;
+        for (int i = 0; i < nGlobAxis.size(); ++i) globalSizeIndex *= nGlobAxis[i];
+        indexBegin = 0;
+        if (globalSizeIndex <= clientSize)
+        {
+          indexBegin = rank%globalSizeIndex;
+          indexEnd = indexBegin;
+        }
+        else
+        {
+          for (int i = 0; i < clientSize; ++i)
+          {
+            range = globalSizeIndex / clientSize;
+            if (i < (globalSizeIndex%clientSize)) ++range;
+            if (i == client->clientRank) break;
+            indexBegin += range;
+          }
+          indexEnd = indexBegin + range - 1;
+        }
 
-      CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
+        CArray<size_t,1> globalIndex(index.numElements());
+        for (size_t idx = 0; idx < globalIndex.numElements(); ++idx)
+          globalIndex(idx) = index(idx);
+
+        // Describe the distribution of server side
+
+        CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
       
-      std::vector<int> serverZeroIndex;
-      serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);      
+        std::vector<int> serverZeroIndex;
+        serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);      
 
-      std::list<int> serverZeroIndexLeader;
-      std::list<int> serverZeroIndexNotLeader; 
-      CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
-      for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-        *it = serverZeroIndex[*it];
+        std::list<int> serverZeroIndexLeader;
+        std::list<int> serverZeroIndexNotLeader; 
+        CContextClient::computeLeader(client->clientRank, client->clientSize, serverZeroIndex.size(), serverZeroIndexLeader, serverZeroIndexNotLeader);
+        for (std::list<int>::iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+          *it = serverZeroIndex[*it];
 
-      // Find out the connection between client and server side
-      CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
-      clientServerMap->computeServerIndexMapping(globalIndex, nbServer);
-      CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
+        // Find out the connection between client and server side
+        CClientServerMapping* clientServerMap = new CClientServerMappingDistributed(serverDescription.getGlobalIndexRange(), client->intraComm);
+        clientServerMap->computeServerIndexMapping(globalIndex, nbServer);
+        CClientServerMapping::GlobalIndexMap& globalIndexAxisOnServer = clientServerMap->getGlobalIndexOnServer();      
 
+        indSrv_[nbServer].swap(globalIndexAxisOnServer);
 
-      indSrv_[nbServer].swap(globalIndexAxisOnServer);
-
-      if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
-      {
-        for(int i=1; i<nbServer; ++i) indSrv_[nbServer].insert(pair<int, vector<size_t> >(i,indSrv_[nbServer][0]) ) ;
-        serverZeroIndexLeader.clear() ;
-      }
+        if (distType==CServerDistributionDescription::ROOT_DISTRIBUTION)
+        {
+          for(int i=1; i<nbServer; ++i) indSrv_[nbServer].insert(pair<int, vector<size_t> >(i,indSrv_[nbServer][0]) ) ;
+          serverZeroIndexLeader.clear() ;
+        }
          
-      CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[nbServer].begin(),
-                                                           ite = indSrv_[nbServer].end();
+        CClientServerMapping::GlobalIndexMap::const_iterator it  = indSrv_[nbServer].begin(),
+                                                             ite = indSrv_[nbServer].end();
 
-      for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
+        for (it = indSrv_[nbServer].begin(); it != ite; ++it) connectedServerRank_[nbServer].push_back(it->first);
 
-      for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
-        connectedServerRank_[nbServer].push_back(*it);
+        for (std::list<int>::const_iterator it = serverZeroIndexLeader.begin(); it != serverZeroIndexLeader.end(); ++it)
+          connectedServerRank_[nbServer].push_back(*it);
 
-       // Even if a client has no index, it must connect to at least one server and 
-       // send an "empty" data to this server
-       if (connectedServerRank_[nbServer].empty())
-        connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
+         // Even if a client has no index, it must connect to at least one server and 
+         // send an "empty" data to this server
+         if (connectedServerRank_[nbServer].empty())
+          connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
 
-//       nbSenders[client] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[client]);
-       nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
+         nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
 
-      delete clientServerMap;
+        delete clientServerMap;
+      }
     }
   }
 
