@@ -16,7 +16,9 @@
 #include "timer.hpp"
 #include "memtrack.hpp"
 #include <limits>
+#include <fstream>
 #include "server.hpp"
+#include "distribute_file_server2.hpp"
 
 namespace xios {
 
@@ -888,11 +890,22 @@ namespace xios {
 
    void CContext::distributeFiles(void)
    {
+     bool distFileMemory=false ;
+     distFileMemory=CXios::getin<bool>("server2_dist_file_memory", distFileMemory);
+
+     if (distFileMemory) distributeFileOverMemoryBandwith() ;
+     else distributeFileOverBandwith() ;
+   }
+
+
+   void CContext::distributeFileOverBandwith(void)
+   {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
      // If primary server
      if (hasServer && hasClient)
      {
+       std::ofstream ofs(("distribute_file_"+getId()+".dat").c_str(), std::ofstream::out);
        int nbPools = clientPrimServer.size();
 
        // (1) Find all enabled files in write mode
@@ -907,16 +920,24 @@ namespace xios {
        std::vector<std::pair<double, CFile*> > dataSizeMap;
        double dataPerPool = 0;
        int nfield=0 ;
+       ofs<<size<<endl ;
        for (size_t i = 0; i < size; ++i)
        {
          CFile* file = this->enabledWriteModeFiles[i];
+         ofs<<file->getId()<<endl ;
          StdSize dataSize=0;
          std::vector<CField*> enabledFields = file->getEnabledFields();
          size_t numEnabledFields = enabledFields.size();
-         for (size_t j = 0; j < numEnabledFields; ++j) dataSize += enabledFields[j]->getGlobalWrittenSize() ;
-
+         ofs<<numEnabledFields<<endl ;
+         for (size_t j = 0; j < numEnabledFields; ++j)
+         {
+           dataSize += enabledFields[j]->getGlobalWrittenSize() ;
+           ofs<<enabledFields[j]->grid->getId()<<endl ;
+           ofs<<enabledFields[j]->getGlobalWrittenSize()<<endl ;
+         }
          double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
          double dataSizeSec= dataSize/ outFreqSec;
+         ofs<<dataSizeSec<<endl ;
          nfield++ ;
 // add epsilon*nField to dataSizeSec in order to  preserve reproductive ordering when sorting
          dataSizeMap.push_back(make_pair(dataSizeSec + dataSizeSec * eps * nfield , file));
@@ -957,6 +978,100 @@ namespace xios {
          enabledFiles[i]->setContextClient(client);
      }
    }
+
+   void CContext::distributeFileOverMemoryBandwith(void)
+   {
+     // If primary server
+     if (hasServer && hasClient)
+     {
+       int nbPools = clientPrimServer.size();
+       double ratio=0.5 ;
+       ratio=CXios::getin<double>("server2_dist_file_memory_ratio", ratio);
+
+       int nFiles = this->enabledWriteModeFiles.size();
+       vector<SDistFile> files(nFiles);
+       vector<SDistGrid> grids;
+       map<string,int> gridMap ;
+       string gridId; 
+       int gridIndex=0 ;
+
+       for (size_t i = 0; i < nFiles; ++i)
+       {
+         StdSize dataSize=0;
+         CFile* file = this->enabledWriteModeFiles[i];
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         size_t numEnabledFields = enabledFields.size();
+
+         files[i].id_=file->getId() ;
+         files[i].nbGrids_=numEnabledFields;
+         files[i].assignedGrid_ = new int[files[i].nbGrids_] ;
+         
+         for (size_t j = 0; j < numEnabledFields; ++j)
+         {
+           gridId=enabledFields[j]->grid->getId() ;
+           if (gridMap.find(gridId)==gridMap.end())
+           {
+              gridMap[gridId]=gridIndex  ;
+              SDistGrid newGrid; 
+              grids.push_back(newGrid) ;
+              gridIndex++ ;
+           }
+           files[i].assignedGrid_[j]=gridMap[gridId] ;
+           grids[files[i].assignedGrid_[j]].size_=enabledFields[j]->getGlobalWrittenSize() ;
+           dataSize += enabledFields[j]->getGlobalWrittenSize() ; // usefull
+         }
+         double outFreqSec = (Time)(calendar->getCurrentDate()+file->output_freq)-(Time)(calendar->getCurrentDate()) ;
+         files[i].bandwith_= dataSize/ outFreqSec ;
+       }
+
+       double bandwith=0 ;
+       double memory=0 ;
+   
+       for(int i=0; i<nFiles; i++)  bandwith+=files[i].bandwith_ ;
+       for(int i=0; i<nFiles; i++)  files[i].bandwith_ = files[i].bandwith_/bandwith * ratio ;
+
+       for(int i=0; i<grids.size(); i++)  memory+=grids[i].size_ ;
+       for(int i=0; i<grids.size(); i++)  grids[i].size_ = grids[i].size_ / memory * (1.0-ratio) ;
+       
+       distributeFileOverServer2(nbPools, grids.size(), &grids[0], nFiles, &files[0]) ;
+
+       vector<double> memorySize(nbPools,0.) ;
+       vector< set<int> > serverGrids(nbPools) ;
+       vector<double> bandwithSize(nbPools,0.) ;
+       
+       for (size_t i = 0; i < nFiles; ++i)
+       {
+         bandwithSize[files[i].assignedServer_] += files[i].bandwith_* bandwith /ratio ;
+         for(int j=0 ; j<files[i].nbGrids_;j++)
+         {
+           if (serverGrids[files[i].assignedServer_].find(files[i].assignedGrid_[j]) == serverGrids[files[i].assignedServer_].end())
+           {
+             memorySize[files[i].assignedServer_]+= grids[files[i].assignedGrid_[j]].size_ * memory / (1.0-ratio);
+             serverGrids[files[i].assignedServer_].insert(files[i].assignedGrid_[j]) ;
+           }
+         }
+         enabledWriteModeFiles[i]->setContextClient(clientPrimServer[files[i].assignedServer_]) ;
+         delete [] files[i].assignedGrid_ ;
+       }
+
+       for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned file bandwith "<<bandwithSize[i]*86400.*4./1024/1024.<<" Mb / days"<<endl ;
+       for (int i = 0; i < nbPools; ++i) info(100)<<"Pool server level2 "<<i<<"   assigned grid memory "<<memorySize[i]*100/1024./1024.<<" Mb"<<endl ;
+
+
+       for (int i = 0; i < this->enabledReadModeFiles.size(); ++i)
+       {
+         enabledReadModeFiles[i]->setContextClient(client);          
+       }
+
+   }
+   else
+   {
+     for (int i = 0; i < this->enabledFiles.size(); ++i)
+        enabledFiles[i]->setContextClient(client);
+   }
+}
+
+
 
    /*!
       Find all files in write mode

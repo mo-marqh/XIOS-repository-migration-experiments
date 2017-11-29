@@ -139,6 +139,9 @@ namespace xios {
 
          // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
          void distributeFiles(void);
+         void distributeFileOverBandwith() ;
+         void distributeFileOverMemoryBandwith() ;
+         
 
          // Send context close definition
          void sendCloseDefinition(void);
