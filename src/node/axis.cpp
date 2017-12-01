@@ -1153,8 +1153,8 @@ namespace xios {
           if (hasBounds)
           {
             CArray<double,2>& boundsVal = list_bounds.back();
-            boundsVal(0, n) = bounds(0,n);
-            boundsVal(1, n) = bounds(1,n);
+            boundsVal(0, n) = bounds(0,ind);
+            boundsVal(1, n) = bounds(1,ind);
           }
 
           if (hasLabel)
