@@ -598,7 +598,7 @@ namespace xios
          // Include root itself in order not to have a divergence
          for(int i=0; i<size; i++)
          {
-           MPI_Isend(sendBuff,count,MPI_CHAR,i,2,intraComm,&requests[i]) ;
+           MPI_Isend(sendBuff,sendBuffer.count(),MPI_CHAR,i,2,intraComm,&requests[i]) ;
          }
 
          recvContextId.erase(it) ;
@@ -711,12 +711,12 @@ namespace xios
        if (serverLevel == 1)
        {
          int i = 0, size;
-         CMessage msg;
-         int messageSize;
          MPI_Comm_size(intraComm, &size) ;
          for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++, ++i)
          {
            StdString str = contextId +"_server_" + boost::lexical_cast<string>(i);
+           CMessage msg;
+           int messageSize;
            msg<<str<<size<<rank_ ;
            messageSize = msg.size() ;
            buff = new char[messageSize] ;
