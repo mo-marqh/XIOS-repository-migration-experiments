@@ -841,7 +841,7 @@ namespace xios {
   void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType)
   {
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -959,7 +959,7 @@ namespace xios {
   */
   void CAxis::sendNonDistributedAttributes()
   {
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
 	{
 	  CContextClient* client = *it;
@@ -1083,7 +1083,7 @@ namespace xios {
   void CAxis::sendDistributedAttributes(void)
   {
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
@@ -1440,8 +1440,12 @@ namespace xios {
 
   void CAxis::setContextClient(CContextClient* contextClient)
   {
-    clients.insert(contextClient);
-  }
+    if (clientsSet.find(contextClient)==clientsSet.end())
+    {
+      clients.push_back(contextClient) ;
+      clientsSet.insert(contextClient);
+    }
+}
 
   void CAxis::parse(xml::CXMLNode & node)
   {

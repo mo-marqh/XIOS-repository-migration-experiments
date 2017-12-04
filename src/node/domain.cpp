@@ -2059,7 +2059,7 @@ namespace xios {
   void CDomain::sendIndex()
   {
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -2107,7 +2107,7 @@ namespace xios {
   */
   void CDomain::sendDistributionAttributes(void)
   {
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -2158,7 +2158,7 @@ namespace xios {
   void CDomain::sendMask()
   {
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -2204,7 +2204,7 @@ namespace xios {
     if (!hasArea) return;
 
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
@@ -2254,7 +2254,7 @@ namespace xios {
     if (!hasLonLat) return;
 
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -2348,7 +2348,7 @@ namespace xios {
   void CDomain::sendDataIndex()
   {
     int ns, n, i, j, ind, nv, idx;
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
       CContextClient* client = *it;
@@ -3108,7 +3108,11 @@ namespace xios {
 
   void CDomain::setContextClient(CContextClient* contextClient)
   {
-    clients.insert(contextClient);
+    if (clientsSet.find(contextClient)==clientsSet.end())
+    {
+      clients.push_back(contextClient) ;
+      clientsSet.insert(contextClient);
+    }
   }
 
   /*!

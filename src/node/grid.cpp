@@ -1347,7 +1347,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     storeIndex_toSrv.clear();
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
@@ -1412,7 +1412,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     storeIndex_toSrv.clear();
-    std::set<CContextClient*>::iterator it;
+    std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
     {
@@ -2507,7 +2507,11 @@ namespace xios {
 
   void CGrid::setContextClient(CContextClient* contextClient)
   {
-    clients.insert(contextClient);
+    if (clientsSet.find(contextClient)==clientsSet.end())
+    {
+      clients.push_back(contextClient) ;
+      clientsSet.insert(contextClient);
+    }
     for (int i=0; i<this->getDomains().size(); i++)
     	this->getDomains()[i]->setContextClient(contextClient);
     for (int i=0; i<this->getAxis().size(); i++)

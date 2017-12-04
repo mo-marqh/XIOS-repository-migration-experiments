@@ -153,7 +153,8 @@ namespace xios {
       private:
 
 /** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
-         std::set<CContextClient*> clients;
+         std::list<CContextClient*> clients;
+         std::set<CContextClient*> clientsSet;
 
          bool isChecked;
          bool areClientAttributesChecked_;
