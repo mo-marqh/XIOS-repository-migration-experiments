@@ -105,7 +105,9 @@ namespace xios {
          void generateNewTransformationGridDest();
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
+         void postProcessFilterGraph();
          void prefetchEnabledReadModeFields();
+         void doPreTimestepOperationsForEnabledReadModeFields();
          void doPostTimestepOperationsForEnabledReadModeFields();
 
          // Add component into file

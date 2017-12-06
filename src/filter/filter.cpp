@@ -40,6 +40,11 @@ namespace xios
     return (CInputPin::canBeTriggered() || COutputPin::canBeTriggered());
   }
 
+  bool CFilter::mustAutoTrigger() const
+  {
+    return COutputPin::mustAutoTrigger();
+  }
+
   bool CFilter::isDataExpected(const CDate& date) const
   {
     return COutputPin::isDataExpected(date);

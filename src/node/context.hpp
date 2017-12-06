@@ -113,7 +113,9 @@ namespace xios {
          void solveOnlyRefOfEnabledFields(bool sendToServer);
          void solveAllRefOfEnabledFields(bool sendToServer);
          void buildFilterGraphOfEnabledFields();
+         void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
+         void doPreTimestepOperationsForEnabledReadModeFiles();
          void doPostTimestepOperationsForEnabledReadModeFiles();
          void findFieldsWithReadAccess(void);
          void solveAllRefOfFieldsWithReadAccess();

@@ -150,6 +150,8 @@ namespace xios {
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void checkForLateDataFromServer(void);
+        void checkIfMustAutoTrigger(void);
+        void autoTriggerIfNeeded(void);
         void outputField(CArray<double,3>& fieldOut);
         void outputField(CArray<double,2>& fieldOut);
         void outputField(CArray<double,1>& fieldOut);
@@ -199,6 +201,7 @@ namespace xios {
          CDate lastlast_Write_srv, last_Write_srv, last_operation_srv;
          CDate lastDataRequestedFromServer, lastDataReceivedFromServer, dateEOF;
          bool wasDataRequestedFromServer, wasDataAlreadyReceivedFromServer;
+         bool mustAutoTrigger;
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 

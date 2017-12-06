@@ -36,6 +36,11 @@ namespace xios
     field->sendUpdateData(dataArray);
   }
 
+  bool CFileWriterFilter::mustAutoTrigger() const
+  {
+    return true;
+  }
+
   bool CFileWriterFilter::isDataExpected(const CDate& date) const
   {
     return true;

@@ -52,6 +52,13 @@ namespace xios
       CDataPacket::StatusCode getData(Time timestamp, CArray<double, N>& data);
 
       /*!
+       * Tests if the filter must auto-trigger.
+       *
+       * \return true if the filter must auto-trigger
+       */
+      bool virtual mustAutoTrigger() const;
+
+      /*!
        * Tests whether data is expected for the specified date.
        *
        * \param date the date associated to the data
