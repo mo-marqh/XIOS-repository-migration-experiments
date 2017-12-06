@@ -1832,18 +1832,28 @@ namespace xios {
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
    {
-      info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
-      calendar->update(step);
-      info(50) << "updateCalendar : after : " << calendar->getCurrentDate() << endl;
-#ifdef XIOS_MEMTRACK_LIGHT
-      info(50) << " Current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte, at timestep "<<step<<" of context "<<this->getId()<<endl ;
-#endif
-      //if (hasClient) 
-      if (hasClient && !hasServer) // For now we only use server level 1 to read data
+      int prevStep = calendar->getStep();
+
+      if (prevStep < step)
       {
-        doPostTimestepOperationsForEnabledReadModeFiles();
-        garbageCollector.invalidate(calendar->getCurrentDate());
+        info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
+        calendar->update(step);
+        info(50) << "updateCalendar : after : " << calendar->getCurrentDate() << endl;
+  #ifdef XIOS_MEMTRACK_LIGHT
+        info(50) << " Current memory used by XIOS : "<<  MemTrack::getCurrentMemorySize()*1.0/(1024*1024)<<" Mbyte, at timestep "<<step<<" of context "<<this->getId()<<endl ;
+  #endif
+
+        if (hasClient && !hasServer) // For now we only use server level 1 to read data
+        {
+          doPostTimestepOperationsForEnabledReadModeFiles();
+          garbageCollector.invalidate(calendar->getCurrentDate());
+        }
       }
+      else if (prevStep == step)
+        info(50) << "updateCalendar: already at step " << step << ", no operation done." << endl;
+      else // if (prevStep > step)
+        ERROR("void CContext::updateCalendar(int step)",
+              << "Illegal calendar update: previous step was " << prevStep << ", new step " << step << "is in the past!")
    }
 
    void CContext::initReadFiles(void)

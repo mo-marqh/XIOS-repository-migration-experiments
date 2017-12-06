@@ -8,6 +8,7 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
       CCalendar::CCalendar(void)
          : CObject()
+         , step(0)
          , initDate(*this)
          , timeOrigin(*this)
          , currentDate(*this)
@@ -15,6 +16,7 @@ namespace xios
 
       CCalendar::CCalendar(const StdString& id)
                : CObject(id)
+               , step(0)
                , initDate(*this)
                , timeOrigin(*this)
                , currentDate(*this)
@@ -24,6 +26,7 @@ namespace xios
                            int yr, int mth, int d,
                            int hr /*= 0*/, int min /*= 0*/, int sec /*= 0*/)
                : CObject(id)
+               , step(0)
                , initDate(*this)
                , timeOrigin(*this)
                , currentDate(*this)
@@ -33,6 +36,7 @@ namespace xios
 
       CCalendar::CCalendar(const StdString& id, const CDate& startDate)
                : CObject(id)
+               , step(0)
                , initDate(startDate)
                , timeOrigin(startDate)
                , currentDate(startDate)
@@ -43,6 +47,7 @@ namespace xios
 
       CCalendar::CCalendar(const StdString& id, const CDate& startDate, const CDate& timeOrigin)
                : CObject(id)
+               , step(0)
                , initDate(startDate)
                , timeOrigin(timeOrigin)
                , currentDate(startDate)
@@ -114,9 +119,15 @@ namespace xios
         this->timestep = timestep;
       }
 
+      int CCalendar::getStep(void) const
+      {
+        return step;
+      }
+
       const CDate& CCalendar::update(int step)
       {
         info(20) << "update step : " << step << " timestep " << this->timestep << std::endl;
+        this->step = step;
         return (this->currentDate = this->getInitDate() + step * this->timestep);
       }
 
