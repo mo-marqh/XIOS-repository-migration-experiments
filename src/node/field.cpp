@@ -1508,18 +1508,18 @@ namespace xios{
 
    void CField::parse(xml::CXMLNode& node)
    {
+      string newContent ;
       SuperClass::parse(node);
-      if (!node.getContent(this->content))
+      if (node.goToChildElement())
       {
-        if (node.goToChildElement())
+        do
         {
-          do
-          {
-            if (node.getElementName() == "variable" || node.getElementName() == "variable_group") this->getVirtualVariableGroup()->parseChild(node);
-          } while (node.goToNextElement());
-          node.goToParentElement();
-        }
+          if (node.getElementName() == "variable" || node.getElementName() == "variable_group") this->getVirtualVariableGroup()->parseChild(node);
+          else if (node.getElementName() == "expr") if (node.getContent(newContent)) content+=newContent ;
+        } while (node.goToNextElement());
+        node.goToParentElement();
       }
+      if (node.getContent(newContent)) content=newContent ;
     }
 
    /*!
