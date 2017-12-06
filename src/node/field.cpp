@@ -41,6 +41,7 @@ namespace xios{
       , hasTimeCentered(false)
       , wasDataRequestedFromServer(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , mustAutoTrigger(false)
       , isEOF(false), nstepMaxRead(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
@@ -57,6 +58,7 @@ namespace xios{
       , hasTimeCentered(false)
       , wasDataRequestedFromServer(false)
       , wasDataAlreadyReceivedFromServer(false)
+      , mustAutoTrigger(false)
       , isEOF(false), nstepMaxRead(false)
    { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
 
@@ -568,7 +570,7 @@ namespace xios{
     const CDate& currentDate = context->getCalendar()->getCurrentDate();
 
     // Check if data previously requested has been received as expected
-    if (wasDataRequestedFromServer && (!isEOF || currentDate <= dateEOF))
+    if (wasDataRequestedFromServer && !isEOF)
     {
       CTimer timer("CField::checkForLateDataFromServer");
 
@@ -576,7 +578,7 @@ namespace xios{
       do
       {
         const CDate nextDataDue = wasDataAlreadyReceivedFromServer ? (lastDataReceivedFromServer + file->output_freq) : context->getCalendar()->getInitDate();
-        isDataLate = nextDataDue < currentDate;
+        isDataLate = (nextDataDue <= currentDate);
 
         if (isDataLate)
         {
@@ -593,6 +595,17 @@ namespace xios{
         ERROR("void CField::checkForLateDataFromServer(void)",
               << "Late data at timestep = " << currentDate);
     }
+  }
+
+  void CField::checkIfMustAutoTrigger(void)
+  {
+    mustAutoTrigger = serverSourceFilter ? serverSourceFilter->mustAutoTrigger() : false;
+  }
+
+  void CField::autoTriggerIfNeeded(void)
+  {
+    if (mustAutoTrigger)
+      serverSourceFilter->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate());
   }
 
    //----------------------------------------------------------------

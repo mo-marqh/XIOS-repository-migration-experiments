@@ -22,7 +22,20 @@ namespace xios
        */
       CFileServerWriterFilter(CGarbageCollector& gc, CField* field);
 
+      /*!
+       * Tests if the filter must auto-trigger.
+       *
+       * \return true if the filter must auto-trigger
+       */
+      bool virtual mustAutoTrigger() const;
+
+      /*!
+       * Tests whether data is expected for the specified date.
+       *
+       * \param date the date associated to the data
+       */
       bool virtual isDataExpected(const CDate& date) const;
+
     protected:
       /*!
        * Callbacks a field to write a packet to a file.

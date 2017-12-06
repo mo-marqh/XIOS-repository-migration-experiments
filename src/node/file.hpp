@@ -109,7 +109,9 @@ namespace xios {
          void generateNewTransformationGridDest();
          
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
+         void postProcessFilterGraph();
          void prefetchEnabledReadModeFields();
+         void doPreTimestepOperationsForEnabledReadModeFields();
          void doPostTimestepOperationsForEnabledReadModeFields();
 
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);

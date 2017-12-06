@@ -664,6 +664,7 @@ namespace xios {
      if (hasClient && !hasServer)
     {
       buildFilterGraphOfFieldsWithReadAccess();
+      postProcessFilterGraph();
     }
     
     checkGridEnabledFields();   
@@ -781,12 +782,30 @@ namespace xios {
      }
    }
 
+   void CContext::postProcessFilterGraph()
+   {
+     int size = enabledFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+        enabledFiles[i]->postProcessFilterGraph();
+     }
+   }
+
    void CContext::startPrefetchingOfEnabledReadModeFiles()
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
      {
         enabledReadModeFiles[i]->prefetchEnabledReadModeFields();
+     }
+   }
+
+   void CContext::doPreTimestepOperationsForEnabledReadModeFiles()
+   {
+     int size = enabledReadModeFiles.size();
+     for (int i = 0; i < size; ++i)
+     {
+        enabledReadModeFiles[i]->doPreTimestepOperationsForEnabledReadModeFields();
      }
    }
 
@@ -1836,6 +1855,11 @@ namespace xios {
 
       if (prevStep < step)
       {
+        if (hasClient && !hasServer) // For now we only use server level 1 to read data
+        {
+          doPreTimestepOperationsForEnabledReadModeFiles();
+        }
+
         info(50) << "updateCalendar : before : " << calendar->getCurrentDate() << endl;
         calendar->update(step);
         info(50) << "updateCalendar : after : " << calendar->getCurrentDate() << endl;

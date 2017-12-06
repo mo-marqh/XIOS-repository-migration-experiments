@@ -110,6 +110,11 @@ namespace xios
 
   }
 
+  bool CStoreFilter::mustAutoTrigger() const
+  {
+    return false;
+  }
+
   bool CStoreFilter::isDataExpected(const CDate& date) const
   {
     return true;

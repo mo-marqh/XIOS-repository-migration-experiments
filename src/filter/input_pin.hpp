@@ -59,6 +59,13 @@ namespace xios
       bool virtual canBeTriggered() const;
 
       /*!
+       * Tests if the pin must auto-trigger.
+       *
+       * \return true if the pin must auto-trigger
+       */
+      bool virtual mustAutoTrigger() const = 0;
+
+      /*!
        * Tests whether data is expected for the specified date.
        *
        * \param date the date associated to the data

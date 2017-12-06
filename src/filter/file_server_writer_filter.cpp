@@ -18,6 +18,11 @@ namespace xios
     field->writeUpdateData(data[0]->data);
   }
 
+  bool CFileServerWriterFilter::mustAutoTrigger() const
+  {
+    return true;
+  }
+
   bool CFileServerWriterFilter::isDataExpected(const CDate& date) const
   {
     return true;

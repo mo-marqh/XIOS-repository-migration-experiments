@@ -65,6 +65,18 @@ namespace xios
     return manualTrigger;
   }
 
+  bool COutputPin::mustAutoTrigger() const
+  {
+    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
+    for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
+    {
+      if (it->first->mustAutoTrigger())
+        return true;
+    }
+
+    return false;
+  }
+
   void COutputPin::setOutputTriggers()
   {
     std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::iterator it, itEnd;
