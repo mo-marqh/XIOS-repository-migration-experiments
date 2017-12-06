@@ -69,6 +69,8 @@ namespace xios
             //------------------------------------------------------------
             virtual StdString getType(void) const;
 
+            int getStep(void) const;
+
             virtual int getMonthLength(const CDate& date) const;
 
             virtual int getYearTotalLength(const CDate& date) const; // Retourne la durée d'une année en seconde.
@@ -111,6 +113,7 @@ namespace xios
             //------------------------------------------------------------
 
          private :
+            int step;
 
             /// Propriétés privées ///
             CDate initDate;
