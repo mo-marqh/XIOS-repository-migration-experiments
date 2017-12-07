@@ -44,7 +44,7 @@ namespace xios
          rapidxml::xml_node<char> * nextElement = this->node->first_node();
          if (nextElement != NULL)
          {
-            for(;;nextElement = this->node->next_sibling())
+            for(;;nextElement = nextElement->next_sibling())
             {
                if (nextElement == NULL) break;
                else if (nextElement->type() == rapidxml::node_element)
