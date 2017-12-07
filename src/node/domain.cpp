@@ -2140,6 +2140,7 @@ namespace xios {
           msgs.push_back(CMessage());
           CMessage& msg = msgs.back();
           msg << this->getId() ;
+          msg << isUnstructed_;
           msg << ni_srv << ibegin_srv << nj_srv << jbegin_srv;
           msg << global_zoom_ni.getValue() << global_zoom_ibegin.getValue() << global_zoom_nj.getValue() << global_zoom_jbegin.getValue();        
           msg << isCompressible_;
@@ -2569,7 +2570,7 @@ namespace xios {
   {
     int ni_tmp, ibegin_tmp, nj_tmp, jbegin_tmp;
     int global_zoom_ni_tmp, global_zoom_ibegin_tmp, global_zoom_nj_tmp, global_zoom_jbegin_tmp;
-    buffer >> ni_tmp >> ibegin_tmp >> nj_tmp >> jbegin_tmp
+    buffer >> isUnstructed_ >> ni_tmp >> ibegin_tmp >> nj_tmp >> jbegin_tmp
            >> global_zoom_ni_tmp >> global_zoom_ibegin_tmp >> global_zoom_nj_tmp >> global_zoom_jbegin_tmp           
            >> isCompressible_;
     ni.setValue(ni_tmp);
