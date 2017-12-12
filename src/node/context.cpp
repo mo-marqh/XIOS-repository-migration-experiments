@@ -307,7 +307,7 @@ namespace xios {
    void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
    {
       // Estimated minimum event size for small events (10 is an arbitrary constant just for safety)
-      const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
+     const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
 
       // Ensure there is at least some room for 20 of such events in the buffers
       size_t minBufferSize = std::max(CXios::minBufferSize, 20 * minEventSize);
@@ -1481,7 +1481,9 @@ namespace xios {
    std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize,
                                                            CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
    {
-     std::map<int, StdSize> attributesSize;
+	 // As calendar attributes are sent even if there are no active files or fields, maps are initialized according the size of calendar attributes
+     std::map<int, StdSize> attributesSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
+     maxEventSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
 
      std::vector<CFile*>& fileList = this->enabledFiles;
      size_t numEnabledFiles = fileList.size();
