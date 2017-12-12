@@ -110,25 +110,22 @@ namespace xios {
 
      // The grid indexes require a similar size as the actual data
      std::map<int, StdSize> dataSizes = getDataBufferSize(client, "", bufferForWriting);
-     // for (size_t i = 0; i < dataSizes.size(); ++i)
-     // {
-       std::map<int, StdSize>::iterator it, itE = dataSizes.end();
-       for (it = dataSizes.begin(); it != itE; ++it)
-       {
-         it->second += 2 * sizeof(bool);
-         if (it->second > attributesSizes[it->first])
-           attributesSizes[it->first] = it->second;
-       }
-     // }
-
+     std::map<int, StdSize>::iterator it, itE = dataSizes.end();
+     for (it = dataSizes.begin(); it != itE; ++it)
+     {
+       it->second += 2 * sizeof(bool);
+       if (it->second > attributesSizes[it->first])
+         attributesSizes[it->first] = it->second;
+     }
      
      // Account for the axis attributes
      std::vector<CAxis*> axisList = getAxis();
      for (size_t i = 0; i < axisList.size(); ++i)
      {
-       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize(client);       
+       std::map<int, StdSize> axisAttBuffSize = axisList[i]->getAttributesBufferSize(client, getGlobalDimension(),axisPositionInGrid_[i]);
        for (it = axisAttBuffSize.begin(), itE = axisAttBuffSize.end(); it != itE; ++it)
        {
+         it->second += 2 * sizeof(bool);
          if (it->second > attributesSizes[it->first])
            attributesSizes[it->first] = it->second;
        }
@@ -141,6 +138,7 @@ namespace xios {
        std::map<int, StdSize> domAttBuffSize = domList[i]->getAttributesBufferSize(client);
        for (it = domAttBuffSize.begin(), itE = domAttBuffSize.end(); it != itE; ++it)
        {
+         it->second += 2 * sizeof(bool);
          if (it->second > attributesSizes[it->first])
            attributesSizes[it->first] = it->second;
        }

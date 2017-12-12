@@ -154,20 +154,33 @@ namespace xios {
     *
     * \return A map associating the server rank with its minimum buffer size.
     */
-   std::map<int, StdSize> CAxis::getAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= false*/)
+   std::map<int, StdSize> CAxis::getAttributesBufferSize(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
+                                                         CServerDistributionDescription::ServerDistributionType distType)
    {
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
 
-     bool isNonDistributed = (n = n_glo);     
+//     bool isNonDistributed = (n_glo == n);
+     bool isDistributed = (orderPositionInGrid == CServerDistributionDescription::defaultDistributedDimension(globalDim.size(), distType))
+    		                 || (index.numElements() != n_glo);
 
      if (client->isServerLeader())
      {
        // size estimation for sendServerAttribut
        size_t size = 6 * sizeof(size_t);
        // size estimation for sendNonDistributedValue
-       if (isNonDistributed)
-         size = std::max(size, CArray<double,1>::size(n_glo) + (isCompressible_ ? CArray<int,1>::size(n_glo) : 0));
+       if (!isDistributed)
+       {
+//         size = std::max(size, CArray<double,1>::size(n_glo) + (isCompressible_ ? CArray<int,1>::size(n_glo) : 0));
+         size += CArray<int,1>::size(n_glo);
+         size += CArray<int,1>::size(n_glo);
+         size += CArray<bool,1>::size(n_glo);
+         size += CArray<double,1>::size(n_glo);
+         if (hasBounds)
+           size += CArray<double,2>::size(2*n_glo);
+         if (hasLabel)
+          size += CArray<StdString,1>::size(n_glo);
+       }
        size += CEventClient::headerSize + getId().size() + sizeof(size_t);
 
        const std::list<int>& ranks = client->getRanksServerLeader();
@@ -176,26 +189,32 @@ namespace xios {
          if (size > attributesSizes[*itRank])
            attributesSizes[*itRank] = size;
        }
+       const std::list<int>& ranksNonLeaders = client->getRanksServerNotLeader();
+       for (std::list<int>::const_iterator itRank = ranksNonLeaders.begin(), itRankEnd = ranksNonLeaders.end(); itRank != itRankEnd; ++itRank)
+       {
+         if (size > attributesSizes[*itRank])
+           attributesSizes[*itRank] = size;
+       }
+
      }
 
-     if (!isNonDistributed)
+     if (isDistributed)
      {
        // size estimation for sendDistributedValue
        boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->serverSize].end();
        for (it = indSrv_[client->serverSize].begin(); it != ite; ++it)
        {
-         size_t sizeIndexEvent = CArray<int,1>::size(it->second.size());
-         // if (isCompressible_)
-         //   sizeIndexEvent += CArray<int,1>::size(indWrittenSrv_[it->first].size());
-
-         size_t sizeValEvent = CArray<double,1>::size(it->second.size());
+         size_t size = 6 * sizeof(size_t);
+         size += CArray<int,1>::size(it->second.size());
+         size += CArray<int,1>::size(it->second.size());
+         size += CArray<bool,1>::size(it->second.size());
+         size += CArray<double,1>::size(it->second.size());
          if (hasBounds)
-           sizeValEvent += CArray<double,2>::size(2 * it->second.size());
- 
+           size += CArray<double,2>::size(2 * it->second.size());
          if (hasLabel)
-           sizeValEvent += CArray<StdString,1>::size(it->second.size());
+           size += CArray<StdString,1>::size(it->second.size());
 
-         size_t size = CEventClient::headerSize + getId().size() + sizeof(size_t) + std::max(sizeIndexEvent, sizeValEvent);
+         size += CEventClient::headerSize + getId().size() + sizeof(size_t);
          if (size > attributesSizes[it->first])
            attributesSizes[it->first] = size;
        }
