@@ -29,7 +29,7 @@ int CNetCdfInterface::create(const StdString& fileName, int cMode, int& ncId)
     sstr << "Error when calling function: nc_create(fileName.c_str(), cMode, &ncId) " << std::endl
          << errormsg << std::endl
          << "Unable to create file, given its name: " << fileName
-         << "and its creation mode " << creationMode2String(cMode) << std::endl;
+         << " and its creation mode " << creationMode2String(cMode) << std::endl;
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }

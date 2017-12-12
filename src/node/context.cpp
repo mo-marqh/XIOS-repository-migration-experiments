@@ -1483,67 +1483,30 @@ namespace xios {
    {
      std::map<int, StdSize> attributesSize;
 
-//     if (hasClient)
+     std::vector<CFile*>& fileList = this->enabledFiles;
+     size_t numEnabledFiles = fileList.size();
+     for (size_t i = 0; i < numEnabledFiles; ++i)
      {
-       std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
-//       size_t numEnabledFiles = this->enabledWriteModeFiles.size();
-       size_t numEnabledFiles = fileList.size();
-       for (size_t i = 0; i < numEnabledFiles; ++i)
-       {
-//           CFile* file = this->enabledWriteModeFiles[i];
-         CFile* file = fileList[i];
-//         if (file->getContextClient() == contextClient)
-         {
-           std::vector<CField*> enabledFields = file->getEnabledFields();
-           size_t numEnabledFields = enabledFields.size();
-           for (size_t j = 0; j < numEnabledFields; ++j)
-           {
-             const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient, bufferForWriting);
-             std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-             for (; it != itE; ++it)
-             {
-               // If attributesSize[it->first] does not exist, it will be zero-initialized
-               // so we can use it safely without checking for its existence
-               if (attributesSize[it->first] < it->second)
-                 attributesSize[it->first] = it->second;
+//         CFile* file = this->enabledWriteModeFiles[i];
+        CFile* file = fileList[i];
+        std::vector<CField*> enabledFields = file->getEnabledFields();
+        size_t numEnabledFields = enabledFields.size();
+        for (size_t j = 0; j < numEnabledFields; ++j)
+        {
+          const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient, bufferForWriting);
+          std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+          for (; it != itE; ++it)
+          {
+		     // If attributesSize[it->first] does not exist, it will be zero-initialized
+		     // so we can use it safely without checking for its existence
+             if (attributesSize[it->first] < it->second)
+			   attributesSize[it->first] = it->second;
 
-               if (maxEventSize[it->first] < it->second)
-                 maxEventSize[it->first] = it->second;
-             }
-           }
-         }
-       }
-
-//      // Not a good approach here, duplicate code
-//       if (!hasServer)
-//       {
-//         size_t numEnabledFiles = this->enabledReadModeFiles.size();
-//         for (size_t i = 0; i < numEnabledFiles; ++i)
-//         {
-//           CFile* file = this->enabledReadModeFiles[i];
-//           {
-//             std::vector<CField*> enabledFields = file->getEnabledFields();
-//             size_t numEnabledFields = enabledFields.size();
-//             for (size_t j = 0; j < numEnabledFields; ++j)
-//             {
-//               const std::map<int, StdSize> mapSize = enabledFields[j]->getGridAttributesBufferSize(contextClient);
-//               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-//               for (; it != itE; ++it)
-//               {
-//                 // If attributesSize[it->first] does not exist, it will be zero-initialized
-//                 // so we can use it safely without checking for its existance
-//                 if (attributesSize[it->first] < it->second)
-//                   attributesSize[it->first] = it->second;
-//
-//                 if (maxEventSize[it->first] < it->second)
-//                   maxEventSize[it->first] = it->second;
-//               }
-//             }
-//           }
-//         }
-//       }
+		     if (maxEventSize[it->first] < it->second)
+			   maxEventSize[it->first] = it->second;
+          }
+        }
      }
-
      return attributesSize;
    }
 
@@ -1557,51 +1520,39 @@ namespace xios {
    std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize,
                                                       CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
    {
-//     CFile::mode_attr::t_enum mode = hasClient ? CFile::mode_attr::write : CFile::mode_attr::read;
-
      std::map<int, StdSize> dataSize;
 
      // Find all reference domain and axis of all active fields
      std::vector<CFile*>& fileList = bufferForWriting ? this->enabledWriteModeFiles : this->enabledReadModeFiles;
      size_t numEnabledFiles = fileList.size();
-//     size_t numEnabledFiles = this->enabledFiles.size();
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
 //       CFile* file = this->enabledFiles[i];
        CFile* file = fileList[i];
        if (file->getContextClient() == contextClient)
        {
-//         CFile::mode_attr::t_enum fileMode = file->mode.isEmpty() ? CFile::mode_attr::write : file->mode.getValue();
-//         if (fileMode == mode)
-
+         std::vector<CField*> enabledFields = file->getEnabledFields();
+         size_t numEnabledFields = enabledFields.size();
+         for (size_t j = 0; j < numEnabledFields; ++j)
          {
-           std::vector<CField*> enabledFields = file->getEnabledFields();
-           size_t numEnabledFields = enabledFields.size();
-           for (size_t j = 0; j < numEnabledFields; ++j)
+           // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
+           const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient,bufferForWriting);
+           std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
+           for (; it != itE; ++it)
            {
-             // const std::vector<std::map<int, StdSize> > mapSize = enabledFields[j]->getGridDataBufferSize(contextClient);
-            const std::map<int, StdSize> mapSize = enabledFields[j]->getGridDataBufferSize(contextClient,bufferForWriting);
-             // for (size_t c = 0; c < mapSize.size(); ++c)
-             // {
-               std::map<int, StdSize>::const_iterator it = mapSize.begin(), itE = mapSize.end();
-               for (; it != itE; ++it)
-               {
-                 // If dataSize[it->first] does not exist, it will be zero-initialized
-                 // so we can use it safely without checking for its existance
-                 if (CXios::isOptPerformance)
-                   dataSize[it->first] += it->second;
-                 else if (dataSize[it->first] < it->second)
-                   dataSize[it->first] = it->second;
+             // If dataSize[it->first] does not exist, it will be zero-initialized
+             // so we can use it safely without checking for its existance
+        	 if (CXios::isOptPerformance)
+               dataSize[it->first] += it->second;
+             else if (dataSize[it->first] < it->second)
+               dataSize[it->first] = it->second;
 
-                 if (maxEventSize[it->first] < it->second)
-                   maxEventSize[it->first] = it->second;
-               }
-             // }
+        	 if (maxEventSize[it->first] < it->second)
+               maxEventSize[it->first] = it->second;
            }
          }
        }
      }
-
      return dataSize;
    }
 
