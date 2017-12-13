@@ -15,7 +15,7 @@ namespace xios
         static void initialize(void);
         static void finalize(void);
         static void eventLoop(void);
-        static void contextEventLoop(void);
+        static void contextEventLoop(bool enableEventsProcessing=true);
         static void listenContext(void);
         static void listenFinalize(void);
         static void recvContextMessage(void* buff,int count);

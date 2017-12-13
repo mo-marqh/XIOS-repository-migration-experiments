@@ -395,7 +395,7 @@ namespace xios {
    }
 
    //! Try to send the buffers and receive possible answers
-  bool CContext::checkBuffersAndListen(void)
+  bool CContext::checkBuffersAndListen(bool enableEventsProcessing /*= true*/)
   {
     bool clientReady, serverFinished;
 
@@ -407,7 +407,7 @@ namespace xios {
       if (hasTmpBufferedEvent)
         hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
       // Don't process events if there is a temporarily buffered event
-      return server->eventLoop(!hasTmpBufferedEvent);
+      return server->eventLoop(!hasTmpBufferedEvent || !enableEventsProcessing);
     }
     else if (CServer::serverLevel == 1)
     {
@@ -422,7 +422,7 @@ namespace xios {
         if (!finalized)
           clientPrimServer[i]->checkBuffers();
         if (!finalized)
-          serverPrimFinished *= serverPrimServer[i]->eventLoop();
+          serverPrimFinished *= serverPrimServer[i]->eventLoop(enableEventsProcessing);
       }
       return ( serverFinished && serverPrimFinished);
     }
@@ -430,7 +430,7 @@ namespace xios {
     else if (CServer::serverLevel == 2)
     {
       client->checkBuffers();
-      return server->eventLoop();
+      return server->eventLoop(enableEventsProcessing);
     }
   }
 
@@ -489,6 +489,7 @@ namespace xios {
        if (countChildCtx_ == clientPrimServer.size())
        {
          // Blocking send of context finalize message to its client (e.g. primary server or model)
+         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize<<"<<endl ;
          client->finalize();
          bool bufferReleased;
          do
