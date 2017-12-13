@@ -35,7 +35,7 @@ namespace xios
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
-  double CXios::recvFieldTimeout = 10.0;
+  double CXios::recvFieldTimeout = 300.0;
 
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
