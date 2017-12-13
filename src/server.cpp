@@ -733,7 +733,7 @@ namespace xios
        }
      }
 
-     void CServer::contextEventLoop(void)
+     void CServer::contextEventLoop(bool enableEventsProcessing /*= true*/)
      {
        bool isFinalized ;
        map<string,CContext*>::iterator it ;
@@ -747,7 +747,7 @@ namespace xios
            break ;
          }
          else
-           it->second->checkBuffersAndListen();
+           it->second->checkBuffersAndListen(enableEventsProcessing);
        }
      }
 

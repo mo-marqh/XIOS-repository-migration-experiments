@@ -36,6 +36,7 @@ namespace xios
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
   double CXios::recvFieldTimeout = 300.0;
+  bool CXios::checkEventSync=false ;
  
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
@@ -76,6 +77,8 @@ namespace xios
     recvFieldTimeout = getin<double>("recv_field_timeout", recvFieldTimeout);
     if (recvFieldTimeout < 0.0)
       ERROR("CXios::parseXiosConfig()", "recv_field_timeout cannot be negative.");
+
+    checkEventSync = getin<bool>("check_event_sync", checkEventSync);
 
     globalComm=MPI_COMM_WORLD ;
   }

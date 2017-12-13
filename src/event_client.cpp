@@ -4,6 +4,7 @@
 #include "message.hpp"
 #include "type.hpp"
 #include "mpi.hpp"
+#include "cxios.hpp"
 
 namespace xios
 {
@@ -48,6 +49,7 @@ namespace xios
      std::list<int>::const_iterator itSizes = sizes.begin(), itSenders = nbSenders.begin();
      std::list<CMessage*>::iterator itMsg = messages.begin();
 
+     if (CXios::checkEventSync) info(100)<<"Send event "<<timeLine<<" classId : "<<classId<<"  typeId : "<<typeId<<endl ;
      for (; itBuff != buffers.end(); ++itBuff, ++itSizes, ++itSenders, ++itMsg)
      {
        **itBuff << *itSizes << timeLine << *itSenders << classId << typeId << **itMsg;

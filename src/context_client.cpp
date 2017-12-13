@@ -95,6 +95,21 @@ namespace xios
     {
       list<int> ranks = event.getRanks();
 
+      if (CXios::checkEventSync)
+      {
+        int typeId, classId, typeId_in, classId_in, timeLine_out;
+        typeId_in=event.getTypeId() ;
+        classId_in=event.getClassId() ;
+        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm) ;
+        MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm) ;
+        MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
+        if (typeId/clientSize!=event.getTypeId() || classId/clientSize!=event.getClassId() || timeLine_out/clientSize!=timeLine)
+        {
+           ERROR("void CContextClient::sendEvent(CEventClient& event)",
+               << "Event are not coherent between client.");
+        }
+      }
+
       if (!event.isEmpty())
       {
         list<int> sizes = event.getSizes();
@@ -123,7 +138,7 @@ namespace xios
 
           for (list<int>::const_iterator it = sizes.begin(); it != sizes.end(); it++)
             tmpBufferedEvent.buffers.push_back(new CBufferOut(*it));
-
+          info(100)<<"DEBUG : temporaly event created : timeline "<<timeLine<<endl ;
           event.send(timeLine, tmpBufferedEvent.sizes, tmpBufferedEvent.buffers);
         }
       }
@@ -150,6 +165,7 @@ namespace xios
           for (it = tmpBufferedEvent.buffers.begin(), itBuffer = buffList.begin(); it != tmpBufferedEvent.buffers.end(); it++, itBuffer++)
             (*itBuffer)->put((char*)(*it)->start(), (*it)->count());
 
+          info(100)<<"DEBUG : temporaly event sent "<<endl ;
           checkBuffers(tmpBufferedEvent.ranks);
 
           tmpBufferedEvent.clear();
@@ -229,6 +245,7 @@ namespace xios
             context->server->listen();
             for (int i = 0; i < context->serverPrimServer.size(); ++i)
               context->serverPrimServer[i]->listen();
+//            CServer::contextEventLoop(false) ; // avoid dead-lock at finalize...
           }
 
           else if (CServer::serverLevel == 2)
@@ -405,7 +422,10 @@ namespace xios
       CMessage msg;
       const std::list<int>& ranks = getRanksServerLeader();
       for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
+      {
+        info(100)<<"DEBUG : Sent context Finalize event to rank "<<*itRank<<endl ;
         event.push(*itRank, 1, msg);
+      }
       sendEvent(event);
     }
     else sendEvent(event);
