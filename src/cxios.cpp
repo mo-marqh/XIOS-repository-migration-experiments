@@ -36,7 +36,7 @@ namespace xios
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
   double CXios::recvFieldTimeout = 300.0;
-
+ 
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
   {
@@ -73,7 +73,7 @@ namespace xios
     bufferSizeFactor = getin<double>("buffer_size_factor", defaultBufferSizeFactor);
     minBufferSize = getin<int>("min_buffer_size", 1024 * sizeof(double));
     maxBufferSize = getin<int>("max_buffer_size", std::numeric_limits<int>::max());
-    recvFieldTimeout = getin<double>("recv_field_timeout", 10.0);
+    recvFieldTimeout = getin<double>("recv_field_timeout", recvFieldTimeout);
     if (recvFieldTimeout < 0.0)
       ERROR("CXios::parseXiosConfig()", "recv_field_timeout cannot be negative.");
 
