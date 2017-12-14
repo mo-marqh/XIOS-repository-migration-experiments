@@ -415,7 +415,7 @@ namespace xios {
         client->checkBuffers();
       bool serverFinished = true;
       if (!finalized)
-        serverFinished = server->eventLoop();
+        serverFinished = server->eventLoop(enableEventsProcessing);
       bool serverPrimFinished = true;
       for (int i = 0; i < clientPrimServer.size(); ++i)
       {
