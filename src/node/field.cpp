@@ -1418,7 +1418,7 @@ namespace xios{
      else if (grid && grid->hasTransform() && !grid->isTransformed())
      {
        // Temporarily deactivate the self-transformation of grid
-       grid->transformGrid(grid);
+       // grid->transformGrid(grid);
      }
    }
 
