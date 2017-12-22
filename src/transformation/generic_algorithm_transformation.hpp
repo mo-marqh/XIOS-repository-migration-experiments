@@ -142,7 +142,8 @@ protected:
   std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc_;
 
   std::vector<int> procContainSrcElementIdx_;  // List of processes containing source index of transformed elements
-  std::set<int> procOfNonTransformedElements_; // Processes contain the source index of non-transformed elements
+//  std::set<int> procOfNonTransformedElements_; // Processes contain the source index of non-transformed elements
+  std::vector< set<int> > procElementList_ ; // List of processes containing source index of elements
 
 
   bool computedProcSrcNonTransformedElement_; // Flag to indicate whether we computed proc containing non transformed elements

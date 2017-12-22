@@ -253,7 +253,8 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         }
       }
     }
-      
+
+/*      
     if (!computedProcSrcNonTransformedElement_)
     {
       for (idx = 0; idx < globalElementIndexOnProc_.size(); ++idx)
@@ -291,10 +292,58 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       procContainSrcElementIdx[count++] = *it;
 
     procContainSrcElementIdx_.swap(procContainSrcElementIdx);    
+*/
+    std::set<int> commonProc ;
+    if (procElementList_.empty()) procElementList_.resize(axisDomainDstOrder.numElements()) ;
+    for (idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
+    {
+      std::set<int>& procList=procElementList_[idx] ;
+      std::set<int> commonTmp ;
+      if (idx == elementPositionInGrid)
+      {
+          set<int> tmpSet ; 
+          procList.swap(tmpSet) ;
+          CClientClientDHTInt::Index2VectorInfoTypeMap::iterator itIdxb = globalIndexOfTransformedElementOnProc.begin(),
+                                                                 itIdxe = globalIndexOfTransformedElementOnProc.end(), itIdx;
+          for (itIdx = itIdxb; itIdx != itIdxe; ++itIdx)
+          {
+             std::vector<int>& tmp = itIdx->second;
+             for (int i = 0; i < tmp.size(); ++i) procList.insert(tmp[i]);
+             if (tmp.size() == nbClient)
+             break;
+          }
+      }
+      else
+      {
+        if (!computedProcSrcNonTransformedElement_)
+        {
+          set<int> tmpSet ; 
+          procList.swap(tmpSet) ;
+          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+                                                                   ite = globalElementIndexOnProc_[idx].end();
+          for (it = itb; it != ite; ++it)
+          {
+            procList.insert(it->first);
+            if (procList.size() == nbClient)  break;
+          }
+        }
+      }
 
+      if (idx==0) commonProc.swap(procList) ;
+      else
+      {
+        for (std::set<int>::iterator it = commonProc.begin(); it != commonProc.end(); ++it)
+          if (procList.count(*it)==1) commonTmp.insert(*it) ;
+        commonProc.swap(commonTmp) ;
+      }
+    }
+    std::vector<int> procContainSrcElementIdx(commonProc.size());
+    int count = 0;
+    for (std::set<int>::iterator it = commonProc.begin(); it != commonProc.end(); ++it) procContainSrcElementIdx[count++] = *it;
+    procContainSrcElementIdx_.swap(procContainSrcElementIdx);
+    
         // For the first time, surely we calculate proc containing non transformed elements
-    if (!computedProcSrcNonTransformedElement_)
-      computedProcSrcNonTransformedElement_ = true;
+    if (!computedProcSrcNonTransformedElement_) computedProcSrcNonTransformedElement_ = true;
   }
   
   for (size_t idxTrans = 0; idxTrans < transformationMapping_.size(); ++idxTrans)
@@ -319,13 +368,9 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         if (0 == tmpCounter.count(srcIndex[idx]))
         {          
           tmpCounter.insert(srcIndex[idx]);
-
-           std::vector<int>& srcProc = globalIndexOfTransformedElementOnProc[srcIndex[idx]];
-           for (int j = 0; j < srcProc.size(); ++j)
-              globalElementIndexOnProc_[elementPositionInGrid][srcProc[j]].push_back(srcIndex[idx]);
-/*          
+       
           for (int j = 0; j < procContainSrcElementIdx_.size(); ++j)
-            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);*/
+            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);
         }
       }
     }
