@@ -1901,16 +1901,17 @@ namespace xios {
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                        itSrve = writtenGlobalIndex.end(), itSrv;
 
-      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-      {
-        indGlo = *itSrv;
-        if (ite != globalLocalIndexMap_.find(indGlo))
-        {          
-          ++nbWritten;
-        }                 
-      }
+//      for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
+//      {
+//        indGlo = *itSrv;
+//        if (ite != globalLocalIndexMap_.find(indGlo))
+//        {
+//          ++nbWritten;
+//        }
+//      }
 
-      localIndexToWriteOnServer.resize(nbWritten);
+//      localIndexToWriteOnServer.resize(nbWritten);
+      localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
 
       nbWritten = 0;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
@@ -1920,7 +1921,12 @@ namespace xios {
         {
           localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
           ++nbWritten;
-        }                 
+        }
+        else
+        {
+          localIndexToWriteOnServer(nbWritten) = 0;
+          ++nbWritten;
+        }
       }
       
       // if (isCompressible())

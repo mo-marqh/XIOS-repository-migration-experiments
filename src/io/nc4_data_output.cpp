@@ -127,8 +127,16 @@ namespace xios
            writtenLon.resize(nbWritten);
            for (int idx = 0; idx < nbWritten; ++idx)
            {
-              writtenLat(idx) = domain->latvalue(indexToWrite(idx));
-              writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+        	  if (idx < domain->latvalue.numElements())
+        	  {
+                writtenLat(idx) = domain->latvalue(indexToWrite(idx));
+                writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+        	  }
+        	  else
+        	  {
+                writtenLat(idx) = 0.;
+                writtenLon(idx) = 0.;
+        	  }
            }
          
 
@@ -142,8 +150,16 @@ namespace xios
              for (idx = 0; idx < nbWritten; ++idx)
                for (int nv = 0; nv < nvertex; ++nv)
                {
-                 writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
-                 writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
+            	 if (idx < boundslat.columns())
+            	 {
+                   writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
+                   writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
+            	 }
+            	 else
+            	 {
+                   writtenBndsLat(nv, idx) = 0.;
+                   writtenBndsLon(nv, idx) = 0.;
+            	 }
                }
            }
          }
@@ -153,7 +169,10 @@ namespace xios
            writtenArea.resize(nbWritten);           
            for (int idx = 0; idx < nbWritten; ++idx)
            {
-              writtenArea(idx) = domain->areavalue(indexToWrite(idx));                      
+        	  if (idx < domain->areavalue.numElements())
+                writtenArea(idx) = domain->areavalue(indexToWrite(idx));
+        	  else
+                writtenArea(idx) = 0.;
            }
          }
 
@@ -939,24 +958,41 @@ namespace xios
            writtenLon.resize(nbWritten);
            for (int idx = 0; idx < nbWritten; ++idx)
            {
-              writtenLat(idx) = domain->latvalue(indexToWrite(idx));
-              writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+       	     if (idx < domain->latvalue.numElements())
+     	     {
+               writtenLat(idx) = domain->latvalue(indexToWrite(idx));
+               writtenLon(idx) = domain->lonvalue(indexToWrite(idx));
+     	     }
+     	     else
+     	     {
+               writtenLat(idx) = 0.;
+               writtenLon(idx) = 0.;
+     	     }
            }
+         }
          
-
-           if (domain->hasBounds)
-           {         
-             int nvertex = domain->nvertex, idx;
-             writtenBndsLat.resize(nvertex, nbWritten);
-             writtenBndsLon.resize(nvertex, nbWritten);
-             CArray<double,2>& boundslat = domain->bounds_latvalue;
-             CArray<double,2>& boundslon = domain->bounds_lonvalue;   
-             for (idx = 0; idx < nbWritten; ++idx)
-               for (int nv = 0; nv < nvertex; ++nv)
+         if (domain->hasBounds)
+         {
+           int nvertex = domain->nvertex, idx;
+           writtenBndsLat.resize(nvertex, nbWritten);
+           writtenBndsLon.resize(nvertex, nbWritten);
+           CArray<double,2>& boundslat = domain->bounds_latvalue;
+           CArray<double,2>& boundslon = domain->bounds_lonvalue;
+           for (idx = 0; idx < nbWritten; ++idx)
+           {
+             for (int nv = 0; nv < nvertex; ++nv)
+             {
+               if (idx < boundslat.columns())
                {
                  writtenBndsLat(nv, idx) = boundslat(nv, int(indexToWrite(idx)));
                  writtenBndsLon(nv, idx) = boundslon(nv, int(indexToWrite(idx)));
                }
+               else
+               {
+                 writtenBndsLat(nv, idx) = 0.;
+                 writtenBndsLon(nv, idx) = 0.;
+                }
+             }
            }
          }
 
@@ -965,7 +1001,10 @@ namespace xios
            writtenArea.resize(nbWritten);           
            for (int idx = 0; idx < nbWritten; ++idx)
            {
-              writtenArea(idx) = domain->areavalue(indexToWrite(idx));                      
+        	  if (idx < domain->areavalue.numElements())
+                writtenArea(idx) = domain->areavalue(indexToWrite(idx));
+        	  else
+                writtenArea(idx) = 0.;
            }
          }
 

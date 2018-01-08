@@ -474,7 +474,11 @@ namespace xios {
       {
         if (2 == axisDomainOrder(i))
         {
-          maskValue = maskValue && (*domainMasks[idxDomain])(idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]]);
+          int idxTmp = idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]];
+          if (idxTmp < (*domainMasks[idxDomain]).numElements())
+            maskValue = maskValue && (*domainMasks[idxDomain])(idxTmp);
+          else
+            maskValue = false;
           ++idxDomain;
         }
         else if (1 == axisDomainOrder(i))
