@@ -1988,9 +1988,12 @@ namespace xios
            if (!field->default_value.isEmpty())
            {
               double default_value = field->default_value.getValue();
+              short sdefault_value = (short)default_value;
               float fdefault_value = (float)default_value;
               if (type == NC_DOUBLE)
                  SuperClassWriter::setDefaultValue(fieldid, &default_value);
+              else if (type == NC_SHORT)
+                  SuperClassWriter::setDefaultValue(fieldid, &sdefault_value);
               else
                  SuperClassWriter::setDefaultValue(fieldid, &fdefault_value);
            }

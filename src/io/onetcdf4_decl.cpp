@@ -16,5 +16,6 @@ namespace xios
   macro(StdString, 1)
  
   template void CONetCDF4::setDefaultValue<double>(const StdString & varname, const double* value) ;
+  template void CONetCDF4::setDefaultValue<short>(const StdString & varname, const short* value) ;
   template void CONetCDF4::setDefaultValue<float>(const StdString & varname, const float* value) ;
 }
