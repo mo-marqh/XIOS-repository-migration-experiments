@@ -52,6 +52,8 @@ namespace xios
 
       void CNc4DataOutput::writeDomain_(CDomain* domain)
       {
+        StdString lonName,latName ;
+         
         domain->computeWrittenIndex();
         domain->computeWrittenCompressedIndex(comm_file);
 
@@ -93,12 +95,27 @@ namespace xios
          switch (domain->type)
          {
            case CDomain::type_attr::curvilinear :
+
+             if (domain->lon_name.isEmpty()) lonName = "nav_lon";
+             else lonName = domain->lon_name;
+
+             if (domain->lat_name.isEmpty()) latName = "nav_lat";
+             else latName = domain->lat_name;
+
              dimXid     = StdString("x").append(appendDomid);
              dimYid     = StdString("y").append(appendDomid);
              break ;
+
            case CDomain::type_attr::rectilinear :
-             dimXid     = StdString("lon").append(appendDomid);
-             dimYid     = StdString("lat").append(appendDomid);
+
+             if (domain->lon_name.isEmpty()) lonName = "lon";
+             else lonName = domain->lon_name;
+
+             if (domain->lat_name.isEmpty()) latName = "lat";
+             else latName = domain->lat_name;
+             
+             dimXid     = lonName.append(appendDomid);
+             dimYid     = latName.append(appendDomid);
              break;
          }
 
@@ -194,19 +211,19 @@ namespace xios
                  {
                    case CDomain::type_attr::curvilinear :
                      dim0.push_back(dimYid); dim0.push_back(dimXid);
-                     lonid = StdString("nav_lon").append(appendDomid);
-                     latid = StdString("nav_lat").append(appendDomid);
+                     lonid = lonName.append(appendDomid);
+                     latid = latName.append(appendDomid);
                      break ;
                    case CDomain::type_attr::rectilinear :
-                     lonid = StdString("lon").append(appendDomid);
-                     latid = StdString("lat").append(appendDomid);
+                     lonid = lonName.append(appendDomid);
+                     latid = latName.append(appendDomid);
                      dim0.push_back(dimYid);
                      dim1.push_back(dimXid);
                      break;
                  }
 
-                 bounds_lonid = StdString("bounds_lon").append(appendDomid);
-                 bounds_latid = StdString("bounds_lat").append(appendDomid);
+                 bounds_lonid = "bounds_"+lonName+appendDomid;
+                 bounds_latid = "bounds_"+latName+appendDomid;
 
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni);
                  SuperClassWriter::addDimension(dimYid, domain->zoom_nj);
@@ -337,8 +354,8 @@ namespace xios
                    {
                      case CDomain::type_attr::curvilinear :
                        dim0.push_back(dimYid); dim0.push_back(dimXid);
-                       lonid = StdString("nav_lon").append(appendDomid);
-                       latid = StdString("nav_lat").append(appendDomid);
+                       lonid = lonName.append(appendDomid);
+                       latid = latName.append(appendDomid);
                        SuperClassWriter::addVariable(latid, typePrec, dim0);
                        SuperClassWriter::addVariable(lonid, typePrec, dim0);
                        break;
@@ -346,15 +363,15 @@ namespace xios
                      case CDomain::type_attr::rectilinear :
                        dim0.push_back(dimYid);
                        dim1.push_back(dimXid);
-                       lonid = StdString("lon").append(appendDomid);
-                       latid = StdString("lat").append(appendDomid);
+                       lonid = lonName.append(appendDomid);
+                       latid = latName.append(appendDomid);
                        SuperClassWriter::addVariable(latid, typePrec, dim0);
                        SuperClassWriter::addVariable(lonid, typePrec, dim1);
                        break;
                    }
 
-                   bounds_lonid = StdString("bounds_lon").append(appendDomid);
-                   bounds_latid = StdString("bounds_lat").append(appendDomid);
+                   bounds_lonid = "bounds_"+lonName+appendDomid;
+                   bounds_latid = "bounds_"+latName+appendDomid;
 
                    this->writeAxisAttributes
                       (lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
@@ -933,6 +950,13 @@ namespace xios
 
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
+         StdString lonName,latName ;
+         if (domain->lon_name.isEmpty()) lonName = "lon";
+         else lonName = domain->lon_name;
+
+         if (domain->lat_name.isEmpty()) latName = "lat";
+         else latName = domain->lat_name;
+
          StdString dimXid = StdString("cell").append(appendDomid);
          StdString dimVertId = StdString("nvertex").append(appendDomid);
 
@@ -1017,10 +1041,10 @@ namespace xios
                  dim0.push_back(dimXid);
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni);
 
-                 lonid = StdString("lon").append(appendDomid);
-                 latid = StdString("lat").append(appendDomid);
-                 bounds_lonid = StdString("bounds_lon").append(appendDomid);
-                 bounds_latid = StdString("bounds_lat").append(appendDomid);
+                 lonid = lonName.append(appendDomid);
+                 latid = latName.append(appendDomid);
+                 bounds_lonid = "bounds_"+lonName+appendDomid;
+                 bounds_latid = "bounds_"+latName+appendDomid;
                  if (domain->hasLonLat)
                  {
                    SuperClassWriter::addVariable(latid, typePrec, dim0);
@@ -1071,10 +1095,11 @@ namespace xios
 
               case (ONE_FILE) :
               {
-                 lonid = StdString("lon").append(appendDomid);
-                 latid = StdString("lat").append(appendDomid);
-                 bounds_lonid = StdString("bounds_lon").append(appendDomid);
-                 bounds_latid = StdString("bounds_lat").append(appendDomid);
+                 lonid = lonName.append(appendDomid);
+                 latid = latName.append(appendDomid);
+                 bounds_lonid = "bounds_"+lonName+appendDomid;
+                 bounds_latid = "bounds_"+latName+appendDomid;
+
                  dim0.push_back(dimXid);
                  SuperClassWriter::addDimension(dimXid, domain->ni_glo);
                  if (domain->hasLonLat)
@@ -1702,7 +1727,14 @@ namespace xios
             CDomain* domain = CDomain::get(domainList[idxDomain]);
             StdString domId = domain->getDomainOutputName();
             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
+            StdString lonName,latName ;
 
+            if (domain->lon_name.isEmpty()) lonName = "lon";
+            else lonName = domain->lon_name;
+
+            if (domain->lat_name.isEmpty()) latName = "lat";
+            else latName = domain->lat_name;
+        
             if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
             {
               dimIdList.push_back(domId + "_points");
@@ -1719,15 +1751,15 @@ namespace xios
                   dimYid     = StdString("y").append(appendDomId);
                   dimIdList.push_back(dimYid);
                 }
-                dimCoordList.push_back(StdString("nav_lon").append(appendDomId));
-                dimCoordList.push_back(StdString("nav_lat").append(appendDomId));
+                dimCoordList.push_back(lonName.append(appendDomId));
+                dimCoordList.push_back(latName.append(appendDomId));
               break ;
               case CDomain::type_attr::rectilinear:
                 if (!compressedOutput || !domain->isCompressible())
                 {
-                  dimXid     = StdString("lon").append(appendDomId);
+                  dimXid     = lonName.append(appendDomId);
                   dimIdList.push_back(dimXid);
-                  dimYid     = StdString("lat").append(appendDomId);
+                  dimYid     = latName.append(appendDomId);
                   dimIdList.push_back(dimYid);
                 }
               break ;
@@ -1737,8 +1769,8 @@ namespace xios
                 {
                   dimXid     = StdString("cell").append(appendDomId);
                   dimIdList.push_back(dimXid);
-                  dimCoordList.push_back(StdString("lon").append(appendDomId));
-                  dimCoordList.push_back(StdString("lat").append(appendDomId));
+                  dimCoordList.push_back(lonName.append(appendDomId));
+                  dimCoordList.push_back(latName.append(appendDomId));
                 }
                 else
                 {
