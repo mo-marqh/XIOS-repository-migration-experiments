@@ -423,6 +423,51 @@ namespace xios {
       }
    }
 
+
+/*!
+  A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
+It's not a good idea to store all multi-dimension arrays corresponding to each mask.
+One of the ways is to convert this array into 1-dimension one and every process is taken place on it.
+  \param [in] multi-dimension array grid mask
+*/
+
+  void CGrid::getLocalMask(CArray<bool,1>& localMask)
+  {
+      std::vector<CDomain*> domainP = this->getDomains();
+      std::vector<CAxis*> axisP = this->getAxis();
+      int dim = domainP.size() * 2 + axisP.size();
+
+      switch (dim)
+      {
+        case 0:
+          getLocalMask(mask_0d, localMask);
+          break;
+        case 1:
+          getLocalMask(mask_1d, localMask);
+          break;
+        case 2:
+          getLocalMask(mask_2d, localMask);
+          break;
+        case 3:
+          getLocalMask(mask_3d, localMask);
+          break;
+        case 4:
+          getLocalMask(mask_4d, localMask);
+          break;
+        case 5:
+          getLocalMask(mask_5d, localMask);
+          break;
+        case 6:
+          getLocalMask(mask_6d, localMask);
+          break;
+        case 7:
+          getLocalMask(mask_7d, localMask);
+          break;
+        default:
+          break;
+      }
+  }
+      
    /*
      Modify value of mask in a certain index
      This function can be used to correct the mask of grid after being constructed with createMask

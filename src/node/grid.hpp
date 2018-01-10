@@ -202,7 +202,9 @@ namespace xios {
          std::map<CGrid*, std::pair<bool,StdString> >& getTransGridSource();
          bool hasTransform();
          size_t getGlobalWrittenSize(void) ;
-
+         void getLocalMask(CArray<bool,1>& localMask) ;
+         template<int N>
+         void getLocalMask(const CArray<bool,N>& gridMask, CArray<bool,1>& localMask) ;
       public:
          CArray<int, 1> storeIndex_client;
 
@@ -538,6 +540,48 @@ namespace xios {
      }
    }
    ///--------------------------------------------------------------
+
+
+/*!
+  A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
+It's not a good idea to store all multi-dimension arrays corresponding to each mask.
+One of the ways is to convert this array into 1-dimension one and every process is taken place on it.
+  \param [in] multi-dimension array grid mask
+*/
+template<int N>
+void CGrid::getLocalMask(const CArray<bool,N>& gridMask, CArray<bool,1>& localMask)
+{
+  int dim = gridMask.dimensions();
+  std::vector<int> dimensionSizes(dim);
+  for (int i = 0; i < dim; ++i) dimensionSizes[i] = gridMask.extent(i);
+
+  std::vector<int> idxLoop(dim,0);
+  int ssize = gridMask.numElements(), idx = 0;
+  localMask.resize(ssize);
+  while (idx < ssize)
+  {
+    for (int i = 0; i < dim-1; ++i)
+    {
+      if (idxLoop[i] == dimensionSizes[i])
+      {
+        idxLoop[i] = 0;
+        ++idxLoop[i+1];
+      }
+    }
+
+    int maskIndex = idxLoop[0];
+    int mulDim = 1;
+    for (int k = 1; k < dim; ++k)
+    {
+      mulDim *= dimensionSizes[k-1];
+      maskIndex += idxLoop[k]*mulDim;
+    }
+    localMask(maskIndex) = *(gridMask.dataFirst()+maskIndex);
+
+    ++idxLoop[0];
+    ++idx;
+  }
+}
 
    // Declare/Define CGridGroup and CGridDefinition
    DECLARE_GROUP(CGrid);
