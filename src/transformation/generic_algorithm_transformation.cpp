@@ -12,13 +12,14 @@
 #include "client_client_dht_template.hpp"
 #include "utils.hpp"
 #include "timer.hpp"
+#include "mpi.hpp"
 
 namespace xios {
 
 CGenericAlgorithmTransformation::CGenericAlgorithmTransformation()
  : transformationMapping_(), transformationWeight_(), transformationPosition_(),
    idAuxInputs_(), type_(ELEMENT_NO_MODIFICATION_WITH_DATA), indexElementSrc_(),
-   computedProcSrcNonTransformedElement_(false), eliminateRedondantSrc_(true)
+   computedProcSrcNonTransformedElement_(false), eliminateRedondantSrc_(true), isDistributedComputed_(false)
 {
 }
 
@@ -113,6 +114,41 @@ void CGenericAlgorithmTransformation::computePositionElements(CGrid* dst, CGrid*
   }
 }
 
+bool CGenericAlgorithmTransformation::isDistributedTransformation(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst)
+{
+
+  if (!isDistributedComputed_)
+  {
+    CContext* context = CContext::getCurrent();
+    CContextClient* client = context->client;
+  
+    computePositionElements(gridSrc, gridDst);
+    std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
+    std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
+    std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
+    int distributed, distributed_glo ;
+  
+    CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
+    if (2 == axisDomainSrcOrder(elementPositionInGrid)) // It's domain
+    {
+      distributed=domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]->isDistributed() ;
+      MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+    
+    }
+    else if (1 == axisDomainSrcOrder(elementPositionInGrid))//it's an axis
+    {
+      distributed=axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]->isDistributed() ;
+      MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+    }
+    else //it's a scalar
+    {
+      distributed_glo=false ;
+    } 
+    isDistributed_=distributed_glo ;
+    isDistributedComputed_=true ;
+  }
+  return isDistributed_ ;
+}  
 /*!
   This function computes the global indexes of grid source, which the grid destination is in demand.
   \param[in] elementPositionInGrid position of an element in a grid .E.g: if grid is composed of domain and axis (in order),
@@ -199,7 +235,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   computeGlobalIndexOnProc = (0 < recvValue);
 
   CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
-  
+
   if (computeGlobalIndexOnProc || !computedProcSrcNonTransformedElement_)
   {    
     // Find out global index source of transformed element on corresponding process.    
@@ -293,7 +329,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
 
     procContainSrcElementIdx_.swap(procContainSrcElementIdx);    
 */
-    std::set<int> commonProc ;
+    
     if (procElementList_.empty()) procElementList_.resize(axisDomainDstOrder.numElements()) ;
     for (idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
     {
@@ -329,17 +365,17 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         }
       }
 
-      if (idx==0) commonProc.swap(procList) ;
+      if (idx==0) commonProc_.swap(procList) ;
       else
       {
-        for (std::set<int>::iterator it = commonProc.begin(); it != commonProc.end(); ++it)
+        for (std::set<int>::iterator it = commonProc_.begin(); it != commonProc_.end(); ++it)
           if (procList.count(*it)==1) commonTmp.insert(*it) ;
-        commonProc.swap(commonTmp) ;
+        commonProc_.swap(commonTmp) ;
       }
     }
-    std::vector<int> procContainSrcElementIdx(commonProc.size());
+    std::vector<int> procContainSrcElementIdx(commonProc_.size());
     int count = 0;
-    for (std::set<int>::iterator it = commonProc.begin(); it != commonProc.end(); ++it) procContainSrcElementIdx[count++] = *it;
+    for (std::set<int>::iterator it = commonProc_.begin(); it != commonProc_.end(); ++it) procContainSrcElementIdx[count++] = *it;
     procContainSrcElementIdx_.swap(procContainSrcElementIdx);
     
         // For the first time, surely we calculate proc containing non transformed elements
@@ -369,8 +405,13 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         {          
           tmpCounter.insert(srcIndex[idx]);
        
-          for (int j = 0; j < procContainSrcElementIdx_.size(); ++j)
-            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);
+          vector<int>& rankSrc = globalIndexOfTransformedElementOnProc[srcIndex[idx]] ;
+          for (int n=0;n<rankSrc.size();++n)
+          {
+            if (commonProc_.count(rankSrc[n])==1) globalElementIndexOnProc_[elementPositionInGrid][rankSrc[n]].push_back(srcIndex[idx]);
+          }
+//          for (int j = 0; j < procContainSrcElementIdx_.size(); ++j)
+//            globalElementIndexOnProc_[elementPositionInGrid][procContainSrcElementIdx_[j]].push_back(srcIndex[idx]);
         }
       }
     }
@@ -785,6 +826,233 @@ void CGenericAlgorithmTransformation::computeExchangeDomainIndex(CDomain* domain
     }
   }
 }
+
+
+
+
+
+
+void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst,
+                                                                                 vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, vector<bool>& localMaskOnGridDest)
+{
+
+  CContext* context = CContext::getCurrent();
+  CContextClient* client = context->client;
+  int nbClient = client->clientSize;
+
+  computePositionElements(gridDst, gridSrc);
+  std::vector<CScalar*> scalarListDstP = gridDst->getScalars();
+  std::vector<CAxis*> axisListDstP = gridDst->getAxis();
+  std::vector<CDomain*> domainListDstP = gridDst->getDomains();
+  CArray<int,1> axisDomainDstOrder = gridDst->axis_domain_order;
+  std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
+  std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
+  std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
+  CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;  
+
+  int nElement=axisDomainSrcOrder.numElements() ;
+  int indSrc=1 ;
+  int indDst=1 ;
+  vector<int> nIndexSrc(nElement) ;
+  vector<int> nIndexDst(nElement) ;
+  int nlocalIndexDest=1 ;
+  
+  for(int i=0 ; i<nElement; i++)
+  {
+    int dimElement = axisDomainSrcOrder(i);
+    if (2 == dimElement) //domain
+    {
+      CDomain* domain=domainListSrcP[elementPositionInGridSrc2DomainPosition_[i]] ;
+      nIndexSrc[i] = domain->i_index.numElements() ;
+    }
+    else if (1 == dimElement) //axis
+    {
+      CAxis* axis=axisListSrcP[elementPositionInGridSrc2DomainPosition_[i]] ;
+      nIndexSrc[i] = axis->index.numElements() ;
+    }
+    else  //scalar
+    {
+      nIndexSrc[i]=1 ;
+    }
+  }
+
+  int offset=1 ;
+  for(int i=0 ; i<nElement; i++)
+  {
+    int dimElement = axisDomainDstOrder(i);
+    if (2 == dimElement) //domain
+    {
+      CDomain* domain=domainListDstP[elementPositionInGridDst2DomainPosition_[i]] ;
+      nIndexDst[i] = domain->i_index.numElements() ;
+    }
+    else if (1 == dimElement) //axis
+    {
+      CAxis* axis = axisListDstP[elementPositionInGridDst2DomainPosition_[i]] ;
+      nIndexDst[i] = axis->index.numElements() ;
+    }
+    else  //scalar
+    {
+      nIndexDst[i]=1 ;
+    }
+    if (i<elementPositionInGrid) offset=offset*nIndexDst[i] ;
+    nlocalIndexDest=nlocalIndexDest*nIndexDst[i] ;
+  }
+
+  vector<int> dstLocalInd ;
+  int dimElement = axisDomainDstOrder(elementPositionInGrid);
+  if (2 == dimElement) //domain
+  {
+    CDomain* domain = domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]] ;
+    int ni_glo=domain->ni_glo ;
+    int nj_glo=domain->nj_glo ;
+    int nindex_glo=ni_glo*nj_glo ;
+    dstLocalInd.resize(nindex_glo,-1) ;
+    int nIndex=domain->i_index.numElements() ;
+    for(int i=0;i<nIndex;i++)
+    {
+      int globIndex=domain->j_index(i)*ni_glo+domain->i_index(i) ;
+      dstLocalInd[globIndex]=i ;
+    }
+  }
+  else if (1 == dimElement) //axis
+  {
+    CAxis* axis = axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]] ;
+    int nindex_glo=axis->n_glo ;
+    dstLocalInd.resize(nindex_glo,-1) ;
+    int nIndex=axis->index.numElements() ;
+    for(int i=0;i<nIndex;i++)
+    {
+      dstLocalInd[axis->index(i)]=i ;
+    }
+  }
+  else  //scalar
+  {
+    dstLocalInd.resize(1) ; 
+    dstLocalInd[0]=0 ; 
+  }
+
+// just get the local src mask
+  CArray<bool,1> localMaskOnSrcGrid;
+  gridSrc->getLocalMask(localMaskOnSrcGrid) ; 
+  
+
+  localMaskOnGridDest.resize(nlocalIndexDest,false) ;
+
+  vector<vector<vector<pair<int,double> > > > dstIndWeight(transformationMapping_.size()) ;
+   
+  for(int t=0;t<transformationMapping_.size();++t)
+  {
+    TransformationIndexMap::const_iterator   itTransMap = transformationMapping_[t].begin(),
+                                             iteTransMap = transformationMapping_[t].end();
+    TransformationWeightMap::const_iterator itTransWeight = transformationWeight_[t].begin();
+    dstIndWeight[t].resize(nIndexSrc[elementPositionInGrid]) ;
+    
+    for(;itTransMap!=iteTransMap;++itTransMap,++itTransWeight)
+    {
+      int dst=dstLocalInd[itTransMap->first] ;
+      if (dst!=-1)
+      {
+        const vector<int>& srcs=itTransMap->second;
+        const vector<double>& weights=itTransWeight->second;
+        for(int i=0;i<srcs.size() ;i++) dstIndWeight[t][srcs[i]].push_back(pair<int,double>(dst*offset+t,weights[i])) ;
+      }
+    }
+  }
+  int srcInd=0 ;  
+  int currentInd ;
+  int t=0 ;  
+
+  
+  nonDistributedrecursiveFunct(nElement-1,elementPositionInGrid,srcInd, nIndexSrc, t, dstIndWeight,  
+                               currentInd,localSrc,localDst,weight, localMaskOnSrcGrid, localMaskOnGridDest );
+               
+}
+
+
+void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPos, int elementPositionInGrid, int& srcInd, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
+                    vector<int>& localSrc, vector<int>& localDst, vector<double>& weight,  CArray<bool,1>& localMaskOnGridSrc, vector<bool>& localMaskOnGridDest )
+{
+  if (currentPos!=elementPositionInGrid)
+  {
+    if (currentPos!=0)
+    {
+      for(int i=0;i<nIndexSrc[currentPos];i++)
+      {
+        nonDistributedrecursiveFunct(currentPos-1, elementPositionInGrid, srcInd, nIndexSrc, t, dstIndWeight, currentInd, localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
+      }
+    }
+    else
+    {
+      for(int i=0;i<nIndexSrc[currentPos];i++)
+      {
+        if (dstIndWeight[t][currentInd].size()>0)
+        {
+          for(vector<pair<int,double> >::iterator it = dstIndWeight[t][currentInd].begin(); it!=dstIndWeight[t][currentInd].end(); ++it)
+          {
+            if (localMaskOnGridSrc(srcInd))
+            {
+              localSrc.push_back(srcInd) ;
+              localDst.push_back(it->first) ;
+              weight.push_back(it->second) ;
+              localMaskOnGridDest[it->first]=true ;
+            }
+            (it->first)++ ;
+          }
+        }
+        srcInd++ ;
+        if (t < dstIndWeight.size()-1) t++ ;
+      }
+    }
+  }
+  else
+  {
+ 
+    if (currentPos!=0)
+    {
+
+
+      for(int i=0;i<nIndexSrc[currentPos];i++)
+      {
+        t=0 ;
+        nonDistributedrecursiveFunct(currentPos-1, elementPositionInGrid, srcInd, nIndexSrc, t, dstIndWeight , i,  localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
+      }
+    }
+    else
+    {
+      for(int i=0;i<nIndexSrc[currentPos];i++)
+      {
+        t=0 ;        
+        if (dstIndWeight[t][i].size()>0)
+        {
+          for(vector<pair<int,double> >::iterator it = dstIndWeight[t][i].begin(); it!=dstIndWeight[t][i].end(); ++it)
+          {
+            if (localMaskOnGridSrc(srcInd))
+            {
+              localSrc.push_back(srcInd) ;
+              localDst.push_back(it->first) ;
+              weight.push_back(it->second) ;
+              localMaskOnGridDest[it->first]=true ;
+            }
+            (it->first)++ ;
+          }
+        }
+        srcInd++ ;
+        if (t < dstIndWeight.size()-1) t++ ;
+      }
+    }
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
 
 /*!
   Compute index mapping between element source and element destination with an auxiliary inputs which determine
