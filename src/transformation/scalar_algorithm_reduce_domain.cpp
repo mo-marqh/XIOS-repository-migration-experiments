@@ -45,6 +45,8 @@ CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestin
  : CScalarAlgorithmTransformation(scalarDestination, domainSource),
    reduction_(0)
 {
+  algo->checkValid(scalarDestination, domainSource);
+  
   StdString op;
   switch (algo->operation)
   {
