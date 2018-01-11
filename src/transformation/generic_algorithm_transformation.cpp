@@ -119,33 +119,37 @@ bool CGenericAlgorithmTransformation::isDistributedTransformation(int elementPos
 
   if (!isDistributedComputed_)
   {
-    CContext* context = CContext::getCurrent();
-    CContextClient* client = context->client;
-  
-    computePositionElements(gridSrc, gridDst);
-    std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
-    std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
-    std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
-    int distributed, distributed_glo ;
-  
-    CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
-    if (2 == axisDomainSrcOrder(elementPositionInGrid)) // It's domain
-    {
-      distributed=domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]->isDistributed() ;
-      MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
-    
-    }
-    else if (1 == axisDomainSrcOrder(elementPositionInGrid))//it's an axis
-    {
-      distributed=axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]->isDistributed() ;
-      MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
-    }
-    else //it's a scalar
-    {
-      distributed_glo=false ;
-    } 
-    isDistributed_=distributed_glo ;
     isDistributedComputed_=true ;
+    if (!eliminateRedondantSrc_) isDistributed_=true ;
+    else
+    {
+      CContext* context = CContext::getCurrent();
+      CContextClient* client = context->client;
+  
+      computePositionElements(gridSrc, gridDst);
+      std::vector<CScalar*> scalarListSrcP  = gridSrc->getScalars();
+      std::vector<CAxis*> axisListSrcP = gridSrc->getAxis();
+      std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
+      int distributed, distributed_glo ;
+  
+      CArray<int,1> axisDomainSrcOrder = gridSrc->axis_domain_order;
+      if (2 == axisDomainSrcOrder(elementPositionInGrid)) // It's domain
+      {
+        distributed=domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]->isDistributed() ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+    
+      }
+      else if (1 == axisDomainSrcOrder(elementPositionInGrid))//it's an axis
+      {
+        distributed=axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]->isDistributed() ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
+      }
+      else //it's a scalar
+      {
+        distributed_glo=false ;
+      } 
+      isDistributed_=distributed_glo ;
+    }
   }
   return isDistributed_ ;
 }  
@@ -234,18 +238,23 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
   computeGlobalIndexOnProc = (0 < recvValue);
 
-  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
+//  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;
 
   if (computeGlobalIndexOnProc || !computedProcSrcNonTransformedElement_)
   {    
+    {
+      CClientClientDHTInt::Index2VectorInfoTypeMap tmp ;
+      globalIndexOfTransformedElementOnProc_.swap(tmp) ;
+    }
     // Find out global index source of transformed element on corresponding process.    
     if (globalElementIndexOnProc_.empty())
       globalElementIndexOnProc_.resize(axisDomainDstOrder.numElements());
     
     for (idx = 0; idx < axisDomainDstOrder.numElements(); ++idx)
     {
+      
       if (idx == elementPositionInGrid)
-        computeExchangeGlobalIndex(indexSrc, axisDomainSrcOrder(idx), globalIndexOfTransformedElementOnProc); //globalElementIndexOnProc[idx]);
+        computeExchangeGlobalIndex(indexSrc, axisDomainSrcOrder(idx), globalIndexOfTransformedElementOnProc_); //globalElementIndexOnProc[idx]);
       if (!computedProcSrcNonTransformedElement_)
       {
         if (2 == axisDomainDstOrder(idx)) // It's domain
@@ -339,8 +348,8 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       {
           set<int> tmpSet ; 
           procList.swap(tmpSet) ;
-          CClientClientDHTInt::Index2VectorInfoTypeMap::iterator itIdxb = globalIndexOfTransformedElementOnProc.begin(),
-                                                                 itIdxe = globalIndexOfTransformedElementOnProc.end(), itIdx;
+          CClientClientDHTInt::Index2VectorInfoTypeMap::iterator itIdxb = globalIndexOfTransformedElementOnProc_.begin(),
+                                                                 itIdxe = globalIndexOfTransformedElementOnProc_.end(), itIdx;
           for (itIdx = itIdxb; itIdx != itIdxe; ++itIdx)
           {
              std::vector<int>& tmp = itIdx->second;
@@ -405,7 +414,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         {          
           tmpCounter.insert(srcIndex[idx]);
        
-          vector<int>& rankSrc = globalIndexOfTransformedElementOnProc[srcIndex[idx]] ;
+          vector<int>& rankSrc = globalIndexOfTransformedElementOnProc_[srcIndex[idx]] ;
           for (int n=0;n<rankSrc.size();++n)
           {
             if (commonProc_.count(rankSrc[n])==1) globalElementIndexOnProc_[elementPositionInGrid][rankSrc[n]].push_back(srcIndex[idx]);
@@ -855,6 +864,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
   int indDst=1 ;
   vector<int> nIndexSrc(nElement) ;
   vector<int> nIndexDst(nElement) ;
+  int nlocalIndexSrc=1 ;
   int nlocalIndexDest=1 ;
   
   for(int i=0 ; i<nElement; i++)
@@ -874,6 +884,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
     {
       nIndexSrc[i]=1 ;
     }
+    nlocalIndexSrc=nlocalIndexSrc*nIndexSrc[i] ;
   }
 
   int offset=1 ;
@@ -933,7 +944,10 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
 
 // just get the local src mask
   CArray<bool,1> localMaskOnSrcGrid;
-  gridSrc->getLocalMask(localMaskOnSrcGrid) ; 
+  gridSrc->getLocalMask(localMaskOnSrcGrid) ;
+// intermediate grid, mask is not initialized => set up mask to true
+  if (localMaskOnSrcGrid.isEmpty()) localMaskOnSrcGrid.resize(nlocalIndexSrc) ;
+  localMaskOnSrcGrid=true ;
   
 
   localMaskOnGridDest.resize(nlocalIndexDest,false) ;

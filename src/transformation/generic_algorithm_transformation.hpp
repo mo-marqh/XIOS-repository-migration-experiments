@@ -157,7 +157,8 @@ protected:
   std::set<int> commonProc_;
   std::vector< set<int> > procElementList_ ; // List of processes containing source index of elements
 
-
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc_;
+  
   bool computedProcSrcNonTransformedElement_; // Flag to indicate whether we computed proc containing non transformed elements
 
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
