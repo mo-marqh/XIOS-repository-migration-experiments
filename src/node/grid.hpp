@@ -551,6 +551,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
 template<int N>
 void CGrid::getLocalMask(const CArray<bool,N>& gridMask, CArray<bool,1>& localMask)
 {
+  if (gridMask.isEmpty()) return ;
   int dim = gridMask.dimensions();
   std::vector<int> dimensionSizes(dim);
   for (int i = 0; i < dim; ++i) dimensionSizes[i] = gridMask.extent(i);
