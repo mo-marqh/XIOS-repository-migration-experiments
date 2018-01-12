@@ -695,8 +695,11 @@ void CGenericAlgorithmTransformation::computeExchangeAxisIndex(CAxis* axisDst,
   globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
   for (int idx = 0; idx < nIndexSize; ++idx)
   {
-    globalIndex = axisSrc->index(idx);
-    globalIndex2ProcRank[globalIndex].push_back(clientRank);
+    if (axisSrc->mask(idx))
+    {
+      globalIndex = axisSrc->index(idx);
+      globalIndex2ProcRank[globalIndex].push_back(clientRank);
+    }
   }
 
   CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
@@ -762,6 +765,7 @@ void CGenericAlgorithmTransformation::computeExchangeDomainIndex(CDomain* domain
                                                              : destGlobalIndexPositionInGrid.numElements();
   CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
   globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+  
   if (destGlobalIndexPositionInGrid.isEmpty())
   {
     for (int idx = 0; idx < nIndexSize; ++idx)
@@ -769,16 +773,20 @@ void CGenericAlgorithmTransformation::computeExchangeDomainIndex(CDomain* domain
       i_ind=domainSrc->i_index(idx) ;
       j_ind=domainSrc->j_index(idx) ;
 
-      globalIndex = i_ind + j_ind * niGlobSrc;
-      globalIndex2ProcRank[globalIndex].resize(1);
-      globalIndex2ProcRank[globalIndex][0] = clientRank;
+      if (domainSrc->localMask(idx))
+      {
+        globalIndex = i_ind + j_ind * niGlobSrc;
+        globalIndex2ProcRank[globalIndex].resize(1);
+        globalIndex2ProcRank[globalIndex][0] = clientRank;
+      }
     }
   }
   else
   {
     for (int idx = 0; idx < nIndexSize; ++idx)
     {
-      globalIndex2ProcRank[destGlobalIndexPositionInGrid(idx)].push_back(clientRank);
+//      if (domainSrc->localMask(idx)) -> not necessairy, mask seem to be included in  destGlobalIndexPositionInGrid(idx)    (ym)
+        globalIndex2ProcRank[destGlobalIndexPositionInGrid(idx)].push_back(clientRank);
     }
   }
 
