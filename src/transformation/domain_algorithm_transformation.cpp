@@ -47,13 +47,17 @@ void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
   int nIndexSize = domainSrc_->i_index.numElements(), i_ind, j_ind;
   CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
   globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+  CArray<bool,1>& localMask=domainSrc_->localMask ;
   for (int idx = 0; idx < nIndexSize; ++idx)
   {
-    i_ind=domainSrc_->i_index(idx) ;
-    j_ind=domainSrc_->j_index(idx) ;
+    if (localMask(idx))
+    {
+      i_ind=domainSrc_->i_index(idx) ;
+      j_ind=domainSrc_->j_index(idx) ;
 
-    globalIndex = i_ind + j_ind * niGlob;
-    globalIndex2ProcRank[globalIndex].push_back(clientRank);
+      globalIndex = i_ind + j_ind * niGlob;
+      globalIndex2ProcRank[globalIndex].push_back(clientRank);
+    }
   }
 
   CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);

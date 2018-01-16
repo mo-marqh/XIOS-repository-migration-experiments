@@ -69,14 +69,17 @@ void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
     CArray<int,1>& iIndex = domainSrc_->i_index;
     CArray<int,1>& jIndex = domainSrc_->j_index;
     int niGlo = domainSrc_->ni_glo;
-
+    CArray<bool,1>& localMask = domainSrc_ -> localMask ;
     CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
     globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
     for (int idx = 0; idx < nIndexSize; ++idx)
     {
-      globalIndex = jIndex(idx) * niGlo + iIndex(idx);
-      globalIndex2ProcRank[globalIndex].resize(1);
-      globalIndex2ProcRank[globalIndex][0] = clientRank;
+      if (localMask(idx))
+      {
+        globalIndex = jIndex(idx) * niGlo + iIndex(idx);
+        globalIndex2ProcRank[globalIndex].resize(1);
+        globalIndex2ProcRank[globalIndex][0] = clientRank;
+      }
     }
 
     CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
@@ -89,11 +92,16 @@ void CScalarAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
     int nIndexSize = axisSrc_->index.numElements();
     CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
     globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
+    CArray<bool,1>& localMask = axisSrc_ -> mask ;
+   
     for (int idx = 0; idx < nIndexSize; ++idx)
     {
-      globalIndex = axisSrc_->index(idx);
-      globalIndex2ProcRank[globalIndex].resize(1);
-      globalIndex2ProcRank[globalIndex][0] = clientRank;
+      if (localMask(idx))
+      {
+        globalIndex = axisSrc_->index(idx);
+        globalIndex2ProcRank[globalIndex].resize(1);
+        globalIndex2ProcRank[globalIndex][0] = clientRank;
+      }
     }
 
     CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);

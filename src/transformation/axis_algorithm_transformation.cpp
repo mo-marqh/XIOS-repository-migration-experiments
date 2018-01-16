@@ -73,29 +73,49 @@ void CAxisAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_
 
   size_t globalIndex;
   int nIndexSize = 0;
-  if (2 == elementType) nIndexSize = domainSrc_->i_index.numElements();
-  else if (1 == elementType) nIndexSize = axisSrc_->index.numElements();
-  else nIndexSize=1  ; //  scalar
+  CArray<bool,1>* ptLocalMask ;
+  CArray<bool,1> scalarMask(1) ;
+  scalarMask=true ;
+  
+  if (2 == elementType) 
+  {
+    nIndexSize = domainSrc_->i_index.numElements();
+    ptLocalMask=&(domainSrc_->localMask) ;
+  }
+  else if (1 == elementType)
+  {
+     nIndexSize = axisSrc_->index.numElements();
+     ptLocalMask=&(axisSrc_->mask) ;
+  }
+  else
+  {
+     nIndexSize=1  ; //  scalar
+     ptLocalMask=&scalarMask ;
+  }
+  CArray<bool,1>& localMask=*ptLocalMask ;
   
   CClientClientDHTInt::Index2VectorInfoTypeMap globalIndex2ProcRank;
   globalIndex2ProcRank.rehash(std::ceil(nIndexSize/globalIndex2ProcRank.max_load_factor()));
   for (int idx = 0; idx < nIndexSize; ++idx)
   {
-    if (2 == elementType) // domain
+    if (localMask(idx))
     {
-      globalIndex = domainSrc_->i_index(idx) + domainSrc_->j_index(idx) * domainSrc_->ni_glo;
+      if (2 == elementType) // domain
+      {
+       globalIndex = domainSrc_->i_index(idx) + domainSrc_->j_index(idx) * domainSrc_->ni_glo;
+      }
+      else if (1 == elementType) // axis
+      {
+        globalIndex = axisSrc_->index(idx);
+      }
+      else // scalar
+      {
+        globalIndex = 0;
+      }
+     
+      globalIndex2ProcRank[globalIndex].resize(1);
+      globalIndex2ProcRank[globalIndex][0] = clientRank;
     }
-    else if (1 == elementType) // axis
-    {
-      globalIndex = axisSrc_->index(idx);
-    }
-    else // scalar
-    {
-      globalIndex = 0;
-    }
-
-    globalIndex2ProcRank[globalIndex].resize(1);
-    globalIndex2ProcRank[globalIndex][0] = clientRank;
   }
 
   CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
