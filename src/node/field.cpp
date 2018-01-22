@@ -1072,7 +1072,7 @@ namespace xios{
          // Check if the data is to be read from a file
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          {
-           checkAttributes();
+           checkTimeAttributes();
            instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
                                                                                                        detectMissingValues, defaultValue));
          }
@@ -1159,7 +1159,7 @@ namespace xios{
        {
          if (!serverSourceFilter)
          {
-           checkAttributes();
+           checkTimeAttributes();
            serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
                                                                                    detectMissingValues, defaultValue));
          }
@@ -1207,7 +1207,7 @@ namespace xios{
          ERROR("void CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
-       checkAttributes();
+       checkTimeAttributes(&outFreq);
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
@@ -1246,7 +1246,7 @@ namespace xios{
          ERROR("void CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)",
                << "An operation must be defined for field \"" << getId() << "\".");
 
-       checkAttributes();
+       checkTimeAttributes(&outFreq);
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
@@ -1648,18 +1648,22 @@ namespace xios{
    /*!
     * Check on freq_off and freq_op attributes.
     */
-   void CField::checkAttributes(void)
+   void CField::checkTimeAttributes(CDuration* freqOp)
    {
-     bool isFieldRead = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
+     bool isFieldRead  = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
+     bool isFieldWrite = file && ( file->mode.isEmpty() ||  file->mode == CFile::mode_attr::write);
      if (isFieldRead && operation.getValue() != "instant")
-       ERROR("void CField::checkAttributes(void)",
+       ERROR("void CField::checkTimeAttributes(void)",
              << "Unsupported operation for field '" << getFieldOutputName() << "'." << std::endl
              << "Currently only \"instant\" is supported for fields read from file.")
 
      if (freq_op.isEmpty())
      {
        if (operation.getValue() == "instant")
-         freq_op.setValue(file->output_freq.getValue());
+       {
+         if (isFieldRead || isFieldWrite) freq_op.setValue(file->output_freq.getValue());
+         else freq_op=*freqOp ;
+       }
        else
          freq_op.setValue(TimeStep);
      }

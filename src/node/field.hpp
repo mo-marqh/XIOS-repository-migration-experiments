@@ -136,7 +136,7 @@ namespace xios {
          void sendGridComponentOfEnabledFields();
 
          /// Vérifications ///
-         void checkAttributes(void);
+         void checkTimeAttributes(CDuration* freqOp=NULL);
 
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
          size_t getGlobalWrittenSize(void) ;

@@ -1166,7 +1166,7 @@ namespace xios {
      {
        CField* field = this->enabledFields[i];
        this->sendAddField(field->getId(), client);
-       field->checkAttributes();
+       field->checkTimeAttributes();
        field->sendAllAttributesToServer(client);
        field->sendAddAllVariables(client);
      }
