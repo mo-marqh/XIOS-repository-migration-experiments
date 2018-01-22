@@ -21,7 +21,7 @@ namespace xios
                        this->samplingOffset.hour, this->samplingOffset.minute,
                        this->samplingOffset.second, this->samplingOffset.timestep})
     , initDate(initDate)
-    , nextSamplingDate(initDate + this->samplingOffset + initDate.getRelCalendar().getTimeStep())
+    , nextSamplingDate(initDate + (this->samplingOffset + initDate.getRelCalendar().getTimeStep()))
     , nbOperationDates(1)
 //    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
