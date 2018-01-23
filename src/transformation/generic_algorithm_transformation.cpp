@@ -948,7 +948,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
   int dimElement = axisDomainDstOrder(elementPositionInGrid);
   if (2 == dimElement) //domain
   {
-    CDomain* domain = domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]] ;
+    CDomain* domain = domainListDstP[elementPositionInGridDst2DomainPosition_[elementPositionInGrid]] ;
     int ni_glo=domain->ni_glo ;
     int nj_glo=domain->nj_glo ;
     int nindex_glo=ni_glo*nj_glo ;
@@ -969,7 +969,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
   }
   else if (1 == dimElement) //axis
   {
-    CAxis* axis = axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]] ;
+    CAxis* axis = axisListDstP[elementPositionInGridDst2AxisPosition_[elementPositionInGrid]] ;
     int nindex_glo=axis->n_glo ;
     dstLocalInd.resize(nindex_glo,-1) ;
     int nIndex=axis->index.numElements() ;
