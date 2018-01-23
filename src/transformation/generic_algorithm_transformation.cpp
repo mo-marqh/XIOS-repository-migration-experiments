@@ -926,7 +926,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
       int nIndex=axis->index.numElements() ;
       CArray<bool,1>& localMask=axis->mask ;
       int nbInd=0 ;
-      for(int j=0;i<nIndex;j++) if (localMask(j)) nbInd++ ;
+      for(int j=0;j<nIndex;j++) if (localMask(j)) nbInd++ ;
       nIndexDst[i] = nbInd ;
       maskDst[i]=&axis->mask ;
     }
