@@ -342,7 +342,7 @@ namespace xios {
 
     size_t CAxis::getGlobalWrittenSize(void)
     {
-      if (zoomByIndex()) return  zoom_index.numElements();
+      if (zoomByIndex()) return  global_zoom_index.numElements();
       else return global_zoom_n ;
     }
 
