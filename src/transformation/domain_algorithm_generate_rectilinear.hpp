@@ -19,8 +19,8 @@ class CGenerateRectilinearDomain;
 
 /*!
   \class CDomainAlgorithmGenerateRectilinear
-  Generate a rectilinear domain and fill in necessary its attributes automatically
-  A new rectilinear domain will also be distributed automatically among the processes.
+  Generate a rectilinear or CURVILINEAR domain and fill in necessary its attributes automatically
+  A new rectilinear (or CURVILINEAR) domain will also be distributed automatically among the processes.
   The number of processes is deduced from the distribution of the grid source.
 */
 class CDomainAlgorithmGenerateRectilinear : public CDomainAlgorithmTransformation

@@ -255,7 +255,7 @@ namespace xios {
    }
 
    /*!
-     Redistribute RECTILINEAR domain with a number of local domains.
+     Redistribute RECTILINEAR or CURVILINEAR domain with a number of local domains.
    All attributes ni,nj,ibegin,jbegin (if defined) will be rewritten
    The optional attributes lonvalue, latvalue will be added. Because this function only serves (for now)
    for interpolation from unstructured domain to rectilinear one, range of latvalue is 0-360 and lonvalue is -90 - +90
@@ -530,12 +530,14 @@ namespace xios {
     */
    void CDomain::fillInCurvilinearLonLat()
    {
+
      if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty())
      {
        lonvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
         for (int idx = 0; idx < ni; ++idx)
-         lonvalue_2d(idx,jdx) = lonvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
+            lonvalue_2d(idx,jdx) = lonvalue_curvilinear_read_from_file(idx, jdx);
+//            lonvalue_2d(idx,jdx) = lonvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
 
        lonvalue_curvilinear_read_from_file.free();
      }
@@ -545,7 +547,8 @@ namespace xios {
        latvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
         for (int idx = 0; idx < ni; ++idx)
-         latvalue_2d(idx,jdx) = latvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
+            latvalue_2d(idx,jdx) = latvalue_curvilinear_read_from_file(idx, jdx);
+//            latvalue_2d(idx,jdx) = latvalue_curvilinear_read_from_file(idx+ibegin, jdx+jbegin);
 
        latvalue_curvilinear_read_from_file.free();
      }
@@ -556,7 +559,8 @@ namespace xios {
        for (int jdx = 0; jdx < nj; ++jdx)
         for (int idx = 0; idx < ni; ++idx)
           for (int ndx = 0; ndx < nvertex; ++ndx)
-         bounds_lon_2d(ndx,idx,jdx) = bounds_lonvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
+              bounds_lon_2d(ndx,idx,jdx) = bounds_lonvalue_curvilinear_read_from_file(ndx,idx, jdx);
+//              bounds_lon_2d(ndx,idx,jdx) = bounds_lonvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
 
        bounds_lonvalue_curvilinear_read_from_file.free();
      }
@@ -567,7 +571,8 @@ namespace xios {
        for (int jdx = 0; jdx < nj; ++jdx)
         for (int idx = 0; idx < ni; ++idx)
           for (int ndx = 0; ndx < nvertex; ++ndx)
-            bounds_lat_2d(ndx,idx,jdx) = bounds_latvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
+              bounds_lat_2d(ndx,idx,jdx) = bounds_latvalue_curvilinear_read_from_file(ndx,idx, jdx);
+//              bounds_lat_2d(ndx,idx,jdx) = bounds_latvalue_curvilinear_read_from_file(ndx,idx+ibegin, jdx+jbegin);
 
        bounds_latvalue_curvilinear_read_from_file.free();
      }
@@ -583,14 +588,15 @@ namespace xios {
      if (i_index.isEmpty())
      {
        i_index.resize(ni);
-       for(int idx = 0; idx < ni; ++idx) i_index(idx)=ibegin+idx;
+//       for(int idx = 0; idx < ni; ++idx) i_index(idx)=ibegin+idx;
      }
 
      if (!lonvalue_unstructured_read_from_file.isEmpty() && lonvalue_1d.isEmpty())
      {
         lonvalue_1d.resize(ni);
         for (int idx = 0; idx < ni; ++idx)
-          lonvalue_1d(idx) = lonvalue_unstructured_read_from_file(i_index(idx));
+//          lonvalue_1d(idx) = lonvalue_unstructured_read_from_file(i_index(idx));
+          lonvalue_1d(idx) = lonvalue_unstructured_read_from_file(idx);
 
         // We dont need these values anymore, so just delete them
         lonvalue_unstructured_read_from_file.free();
@@ -600,7 +606,8 @@ namespace xios {
      {
         latvalue_1d.resize(ni);
         for (int idx = 0; idx < ni; ++idx)
-          latvalue_1d(idx) =  latvalue_unstructured_read_from_file(i_index(idx));
+//          latvalue_1d(idx) =  latvalue_unstructured_read_from_file(i_index(idx));
+          latvalue_1d(idx) =  latvalue_unstructured_read_from_file(idx);
 
         // We dont need these values anymore, so just delete them
         latvalue_unstructured_read_from_file.free();
@@ -612,7 +619,8 @@ namespace xios {
         bounds_lon_1d.resize(nbVertex,ni);
         for (int idx = 0; idx < ni; ++idx)
           for (int jdx = 0; jdx < nbVertex; ++jdx)
-            bounds_lon_1d(jdx,idx) = bounds_lonvalue_unstructured_read_from_file(jdx, i_index(idx));
+//            bounds_lon_1d(jdx,idx) = bounds_lonvalue_unstructured_read_from_file(jdx, i_index(idx));
+            bounds_lon_1d(jdx,idx) = bounds_lonvalue_unstructured_read_from_file(jdx, idx);
 
         // We dont need these values anymore, so just delete them
         lonvalue_unstructured_read_from_file.free();
@@ -624,7 +632,8 @@ namespace xios {
         bounds_lat_1d.resize(nbVertex,ni);
         for (int idx = 0; idx < ni; ++idx)
           for (int jdx = 0; jdx < nbVertex; ++jdx)
-            bounds_lat_1d(jdx,idx) = bounds_latvalue_unstructured_read_from_file(jdx, i_index(idx));
+//            bounds_lat_1d(jdx,idx) = bounds_latvalue_unstructured_read_from_file(jdx, i_index(idx));
+            bounds_lat_1d(jdx,idx) = bounds_latvalue_unstructured_read_from_file(jdx, idx);
 
         // We dont need these values anymore, so just delete them
         lonvalue_unstructured_read_from_file.free();
