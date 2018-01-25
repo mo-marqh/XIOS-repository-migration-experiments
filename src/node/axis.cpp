@@ -952,7 +952,7 @@ namespace xios {
     global_zoom_n     = zoomIndex ? zoom_index_tmp.size() : global_zoom_n;
     global_zoom_end   = global_zoom_begin + global_zoom_n - 1;
 
-    zoom_begin = zoomIndex ? std::distance(itZoomBegin, zoom_index_tmp.begin())
+    zoom_begin = zoomIndex ? std::distance(zoom_index_tmp.begin(), itZoomBegin)
                            : global_zoom_begin > begin_srv ? global_zoom_begin : begin_srv ;
     zoom_end   = zoomIndex ? std::distance(zoom_index_tmp.begin(), itZoomEnd) - 1 
                            : global_zoom_end < end_srv ? global_zoom_end : end_srv ;
