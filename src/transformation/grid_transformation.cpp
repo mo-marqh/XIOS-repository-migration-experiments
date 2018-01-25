@@ -385,8 +385,10 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
         ((CGenericAlgorithmTransformation::ELEMENT_NO_MODIFICATION_WITH_DATA == algo->type()) ||
         (CGenericAlgorithmTransformation::ELEMENT_MODIFICATION_WITH_DATA == algo->type()))) // Only registered transformation can be executed
     {
+      CTimer::get("computeIndexSourceMapping").resume() ;
       algo->computeIndexSourceMapping(dataAuxInputs);
-
+      CTimer::get("computeIndexSourceMapping").suspend() ;
+      
       // ComputeTransformation of global index of each element
       int elementPosition = it->first;
       bool nonDistributedActivated = CXios::getin<bool>("activate_non_distributed_transformation",false);

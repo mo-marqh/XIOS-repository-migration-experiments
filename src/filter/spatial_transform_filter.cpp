@@ -2,6 +2,7 @@
 #include "grid_transformation.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -187,6 +188,7 @@ namespace xios
 
   void CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)
   {
+    CTimer::get("CSpatialTransformFilterEngine::apply").suspend();  ;
     CContextClient* client = CContext::getCurrent()->client;
 
     // Get default value for output data
@@ -301,5 +303,7 @@ namespace xios
           << "Received size: " << dataCurrentDest.numElements());
 
     dataDest = dataCurrentDest;
+
+    CTimer::get("CSpatialTransformFilterEngine::apply").resume() ;
   }
 } // namespace xios

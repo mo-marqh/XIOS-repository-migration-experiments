@@ -16,6 +16,7 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 #include "distribution_client.hpp"
+#include "timer.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CAxisAlgorithmInterpolate::create(CGrid* gridDst, CGrid* gridSrc,
@@ -62,6 +63,7 @@ CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAx
 */
 void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
+  CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
@@ -83,6 +85,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
     for (int i = 0; i < srcSize; ++i) valueSrc[i] = recvBuff[indexVec[i]];
     computeInterpolantPoint(valueSrc, indexVec, idx);
   }
+  CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").suspend() ;
 }
 
 /*!
