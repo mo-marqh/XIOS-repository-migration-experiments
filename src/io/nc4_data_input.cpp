@@ -263,7 +263,7 @@ namespace xios
 
     if ((CDomain::type_attr::rectilinear == domain->type))
     {
-      // Ok, try to read some attributes such as longitude and latitude
+      // Ok, try to read some f.. attributes such as longitude and latitude
       bool hasLat = SuperClassWriter::hasVariable(itMapNj->first);
       if (hasLat)
       {
@@ -282,68 +282,22 @@ namespace xios
     }
     else if ((CDomain::type_attr::curvilinear == domain->type))
     {
-      int ni, nj;
+      int ni = domain->ni;
+      int nj = domain->nj;
       std::vector<StdSize> nBeginLatLon(2), nSizeLatLon(2);
-
-      if (domain->ni.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute ni should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << " The value can be provided by a user or generated automatically by XIOS."
-          << " Functionality generate_rectilinear_domain can also be used for curvilinear domains."
-          << std::endl);
-      }
-
-      if (domain->nj.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute nj should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << " The value can be provided by a user or generated automatically by XIOS."
-          << " Functionality generate_rectilinear_domain can also be used for curvilinear domains."
-          << std::endl);
-      }
-
-      if (domain->ibegin.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute ibegin should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << " The value can be provided by a user or generated automatically by XIOS."
-          << " Functionality generate_rectilinear_domain can also be used for curvilinear domains."
-          << std::endl);
-      }
-
-      if (domain->jbegin.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute jbegin should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << " The value can be provided by a user or generated automatically by XIOS."
-          << " Functionality generate_rectilinear_domain can also be used for curvilinear domains."
-          << std::endl);
-      }
-
-      ni = domain->ni;
-      nj = domain->nj;
-      nBeginLatLon[0] = domain->jbegin; nBeginLatLon[1] = domain->ibegin;
-      nSizeLatLon[0]  = nj; nSizeLatLon[1] = ni;
-//      ni = domain->ni_glo;
-//      nj = domain->nj_glo;
-//      nBeginLatLon[0] = 0; nBeginLatLon[1] = 0;
-//      nSizeLatLon[0]  = domain->nj_glo.getValue(); nSizeLatLon[1] = domain->ni_glo.getValue();
+      nBeginLatLon[0] = 0; nBeginLatLon[1] = 0;
+      nSizeLatLon[0]  = domain->nj_glo.getValue(); nSizeLatLon[1] = domain->ni_glo.getValue();
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_curvilinear_read_from_file.resize(ni,nj);
+        domain->latvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
         readFieldVariableValue(domain->latvalue_curvilinear_read_from_file, latName, nBeginLatLon, nSizeLatLon);
       }
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName))
       {
-        domain->lonvalue_curvilinear_read_from_file.resize(ni,nj);
+        domain->lonvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
         readFieldVariableValue(domain->lonvalue_curvilinear_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
@@ -365,63 +319,40 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
-      nBeginBndsLatLon[0] = domain->jbegin; nSizeBndsLatLon[0] = domain->nj.getValue();
-      nBeginBndsLatLon[1] = domain->ibegin; nSizeBndsLatLon[1] = domain->ni.getValue();
+      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->nj_glo.getValue();
+      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = domain->ni_glo.getValue();
       nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
-//      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->nj_glo.getValue();
-//      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = domain->ni_glo.getValue();
-//      nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
 
       if (SuperClassWriter::hasVariable(boundsLatName))
       {
-        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex,ni,nj);
+        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
         readFieldVariableValue(domain->bounds_latvalue_curvilinear_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
 
       }
       if (SuperClassWriter::hasVariable(boundsLonName)) 
       {
-        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex,ni,nj);
+        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
         readFieldVariableValue(domain->bounds_lonvalue_curvilinear_read_from_file, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
       }      
     }
     else if ((CDomain::type_attr::unstructured == domain->type))// || (this->isUnstructured(fieldId)))
     {
-      if (domain->ni.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute ni should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << std::endl);
-      }
-
-      if (domain->ibegin.isEmpty())
-      {
-        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
-          << " Value of attribute ibegin should be defined for domain " << domain->getDomainOutputName()
-          << " in file " << this->filename << "."
-          << std::endl);
-      }
-
-      int ni;
       std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
-
-      ni = domain->ni;
-      nBeginLatLon[0] = domain->ibegin;
-//      ni = domain->ni_glo;
-//      nBeginLatLon[0] = 0;
-      nSizeLatLon[0] = ni;
+      nSizeLatLon[0]  = domain->ni_glo.getValue();
+      CArray<double,1> globalLonLat(domain->ni_glo.getValue());
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_unstructured_read_from_file.resize(ni);
+        domain->latvalue_unstructured_read_from_file.resize(domain->ni_glo);
         readFieldVariableValue(domain->latvalue_unstructured_read_from_file, latName, nBeginLatLon, nSizeLatLon);  
       }
 
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName)) //(0 != lonName.compare(""))
       {
-        domain->lonvalue_unstructured_read_from_file.resize(ni);
+        // readFieldVariableValue(globalLonLat, lonName, nBeginLatLon, nSizeLatLon);
+        domain->lonvalue_unstructured_read_from_file.resize(domain->ni_glo);
         readFieldVariableValue(domain->lonvalue_unstructured_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
@@ -443,13 +374,10 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(2), nSizeBndsLatLon(2);
+      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->ni_glo.getValue();
+      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
 
-      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->ni.getValue();
-      nBeginBndsLatLon[1] = domain->ibegin.getValue(); nSizeBndsLatLon[1] = nbVertex;
-//      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->ni_glo.getValue();
-//      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
-
-        if (SuperClassWriter::hasVariable(boundsLatName))
+      if (SuperClassWriter::hasVariable(boundsLatName)) 
       {
         domain->bounds_latvalue_unstructured_read_from_file.resize(nSizeBndsLatLon[1], nSizeBndsLatLon[0]);
         readFieldVariableValue(domain->bounds_latvalue_unstructured_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
