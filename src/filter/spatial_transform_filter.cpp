@@ -188,7 +188,8 @@ namespace xios
 
   void CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)
   {
-    CTimer::get("CSpatialTransformFilterEngine::apply").suspend();  ;
+    CTimer::get("CSpatialTransformFilterEngine::apply").resume(); 
+    
     CContextClient* client = CContext::getCurrent()->client;
 
     // Get default value for output data
@@ -304,6 +305,6 @@ namespace xios
 
     dataDest = dataCurrentDest;
 
-    CTimer::get("CSpatialTransformFilterEngine::apply").resume() ;
+    CTimer::get("CSpatialTransformFilterEngine::apply").suspend() ;
   }
 } // namespace xios
