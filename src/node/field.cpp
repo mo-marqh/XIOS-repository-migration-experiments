@@ -36,6 +36,7 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,""))
       , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
+      , isGridChecked(false)
       , useCompressedOutput(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
@@ -53,6 +54,7 @@ namespace xios{
       , hasOutputFile(false)
       , domAxisScalarIds_(vector<StdString>(3,""))
       , areAllReferenceSolved(false), isReferenceSolved(false), isReferenceSolvedAndTransformed(false)
+      , isGridChecked(false)
       , useCompressedOutput(false)
       , hasTimeInstant(false)
       , hasTimeCentered(false)
@@ -854,7 +856,11 @@ namespace xios{
 
    void CField::checkGridOfEnabledFields()
    {
-      solveCheckMaskIndex(false);
+     if (!isGridChecked)
+     {
+       isGridChecked = true;
+       solveCheckMaskIndex(false);
+     }
    }
 
    void CField::sendGridComponentOfEnabledFields()
@@ -1000,6 +1006,7 @@ namespace xios{
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
    {     
     if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
+    if (!isGridChecked) checkGridOfEnabledFields();
 
      const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);

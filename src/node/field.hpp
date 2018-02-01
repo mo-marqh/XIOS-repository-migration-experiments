@@ -248,6 +248,7 @@ namespace xios {
          bool areAllReferenceSolved;
          bool isReferenceSolved;
          bool isReferenceSolvedAndTransformed;
+         bool isGridChecked;
          bool nstepMaxRead;
 
       private:
