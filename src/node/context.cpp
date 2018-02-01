@@ -437,6 +437,10 @@ namespace xios {
    //! Terminate a context
    void CContext::finalize(void)
    {
+      if (hasClient && !hasServer) // For now we only use server level 1 to read data
+      {
+        doPreTimestepOperationsForEnabledReadModeFiles();
+      }
      // Send registry upon calling the function the first time
      if (countChildCtx_ == 0)
        if (hasClient) sendRegistry() ;
