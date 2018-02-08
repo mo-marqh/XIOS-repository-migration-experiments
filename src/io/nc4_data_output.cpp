@@ -1284,13 +1284,26 @@ namespace xios
             CArray<size_t, 1>& indexToWrite = axis->localIndexToWriteOnServer;
             int nbWritten = indexToWrite.numElements();
             CArray<double,1> axis_value(indexToWrite.numElements());
-            for (int i = 0; i < nbWritten; i++) axis_value(i) = axis->value(indexToWrite(i));
+            for (int i = 0; i < nbWritten; i++)
+            {
+              if (i < axis->value.numElements())
+                axis_value(i) = axis->value(indexToWrite(i));
+              else
+                axis_value(i) = 0.;
+            }
+
             CArray<double,2> axis_bounds;
             CArray<string,1> axis_label;
             if (!axis->label.isEmpty())
             {
               axis_label.resize(indexToWrite.numElements());
-              for (int i = 0; i < nbWritten; i++) axis_label(i) = axis->label(indexToWrite(i));
+              for (int i = 0; i < nbWritten; i++)
+              {
+                if (i < axis->label.numElements())
+                  axis_label(i) = axis->label(indexToWrite(i));
+                else
+                  axis_label(i) = boost::lexical_cast<string>(0);  // Write 0 as a label
+              }
             }
 
             switch (SuperClass::type)
@@ -1305,8 +1318,17 @@ namespace xios
                     axis_bounds.resize(2, indexToWrite.numElements());
                     for (int i = 0; i < nbWritten; ++i)
                     {
-                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                      if (i < axis->bounds.columns())
+                      {
+                        axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
+                        axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                      }
+                      else
+                      {
+                        axis_bounds(0, i) = 0.;
+                        axis_bounds(1, i) = 0.;
+
+                      }
                     }
 
                 	SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
@@ -1336,8 +1358,16 @@ namespace xios
                   axis_bounds.resize(2, indexToWrite.numElements());
                   for (int i = 0; i < nbWritten; ++i)
                   {
-                    axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                    axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                    if (i < axis->bounds.columns())
+                    {
+                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
+                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                    }
+                    else
+                    {
+                      axis_bounds(0, i) = 0.;
+                      axis_bounds(1, i) = 0.;
+                    }
                   }
                   SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
                 }

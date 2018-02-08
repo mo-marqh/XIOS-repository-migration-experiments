@@ -18,7 +18,7 @@
 
 namespace xios {
 
-   /// ////////////////////// Déclarations ////////////////////// ///
+   /// ////////////////////// D��clarations ////////////////////// ///
 
    class CGridGroup;
    class CGridAttributes;
@@ -90,7 +90,7 @@ namespace xios {
 
          StdSize  getDataSize(void) const;
 
-         /// Entrées-sorties de champs 
+         /// Entr��es-sorties de champs
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
@@ -420,6 +420,7 @@ namespace xios {
      int numElement = axisDomainOrder.numElements();
      int dim = domainMasks.size() * 2 + axisMasks.size();
      std::vector<CDomain*> domainP = this->getDomains();
+     std::vector<CAxis*> axisP = this->getAxis();
 
      std::vector<int> idxLoop(dim,0), indexMap(numElement), eachDimSize(dim);
      std::vector<int> currentIndex(dim);
@@ -433,7 +434,8 @@ namespace xios {
           idx += 2; ++idxDomain;
       }
       else if (1 == axisDomainOrder(i)) {
-        eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
+//        eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
+        eachDimSize[indexMap[i]] = axisP[idxAxis]->n;
         ++idx; ++idxAxis;
       }
       else {};
@@ -485,7 +487,12 @@ namespace xios {
         }
         else if (1 == axisDomainOrder(i))
         {
-          maskValue = maskValue && (*axisMasks[idxAxis])(idxLoop[indexMap[i]]);
+          int idxTmp = idxLoop[indexMap[i]];
+          if (idxTmp < (*axisMasks[idxDomain]).numElements())
+            maskValue = maskValue && (*axisMasks[idxAxis])(idxTmp);
+          else
+            maskValue = false;
+
           ++idxAxis;
         }
       }

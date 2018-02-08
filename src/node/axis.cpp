@@ -15,7 +15,7 @@
 
 namespace xios {
 
-   /// ////////////////////// Définitions ////////////////////// ///
+   /// ////////////////////// Definitions ////////////////////// ///
 
    CAxis::CAxis(void)
       : CObjectTemplate<CAxis>()
@@ -283,21 +283,27 @@ namespace xios {
         }
       }
 
+      // Remove this check because it doen't make sense in case of a hole or overlapping axes
       if (!this->value.isEmpty())
       {
-        StdSize true_size = value.numElements();
-        if (this->n.getValue() != true_size)
-          ERROR("CAxis::checkAttributes(void)",
-                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+//        StdSize true_size = value.numElements();
+//        if (this->n.getValue() != true_size)
+//          ERROR("CAxis::checkAttributes(void)",
+//                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+//                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
         this->hasValue = true;
       }
 
-      this->checkData();
-      this->checkZoom();
-      this->checkMask();
       this->checkBounds();
-      this->checkLabel();
+
+      CContext* context=CContext::getCurrent();
+      if (context->hasClient)
+      {
+        this->checkData();
+        this->checkZoom();
+        this->checkMask();
+        this->checkLabel();
+      }
    }
 
    /*!
@@ -456,7 +462,8 @@ namespace xios {
    {
      if (this->areClientAttributesChecked_) return;
 
-     this->checkAttributes();
+     CContext* context=CContext::getCurrent();
+     if (context->hasClient && !context->hasServer) this->checkAttributes();
 
      this->areClientAttributesChecked_ = true;
    }
@@ -696,7 +703,8 @@ namespace xios {
         }                 
       }
 
-      localIndexToWriteOnServer.resize(nbWritten);
+      localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
+//      localIndexToWriteOnServer.resize(nbWritten);
 
       nbWritten = 0;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
