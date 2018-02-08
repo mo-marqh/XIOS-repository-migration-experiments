@@ -994,8 +994,11 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
   CArray<bool,1> localMaskOnSrcGrid;
   gridSrc->getLocalMask(localMaskOnSrcGrid) ;
 // intermediate grid, mask is not initialized => set up mask to true
-  if (localMaskOnSrcGrid.isEmpty()) localMaskOnSrcGrid.resize(nlocalIndexSrc) ;
-  localMaskOnSrcGrid=true ;
+  if (localMaskOnSrcGrid.isEmpty())
+  {
+    localMaskOnSrcGrid.resize(nlocalIndexSrc) ;
+    localMaskOnSrcGrid=true ;
+  }
   
 
   localMaskOnGridDest.resize(nlocalIndexDest,false) ;
@@ -1023,15 +1026,15 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
   int srcInd=0 ;  
   int currentInd ;
   int t=0 ;  
-
+  int srcIndCompressed=0 ;
   
-  nonDistributedrecursiveFunct(nElement-1,elementPositionInGrid,maskSrc,maskDst, srcInd, nIndexSrc, t, dstIndWeight,  
+  nonDistributedrecursiveFunct(nElement-1,true,elementPositionInGrid,maskSrc,maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight,  
                                currentInd,localSrc,localDst,weight, localMaskOnSrcGrid, localMaskOnGridDest );
                
 }
 
 
-void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPos, int elementPositionInGrid, vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst, int& srcInd, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
+void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid, vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst, int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
                     vector<int>& localSrc, vector<int>& localDst, vector<double>& weight,  CArray<bool,1>& localMaskOnGridSrc, vector<bool>& localMaskOnGridDest )
 {
   if (currentPos!=elementPositionInGrid)
@@ -1042,10 +1045,8 @@ void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPo
      
       for(int i=0;i<nIndexSrc[currentPos];i++)
       {
-        if (mask(i))
-        {
-          nonDistributedrecursiveFunct(currentPos-1, elementPositionInGrid, maskSrc, maskDst, srcInd, nIndexSrc, t, dstIndWeight, currentInd, localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
-        }
+        if (!mask(i)) masked=false ;
+        nonDistributedrecursiveFunct(currentPos-1, masked, elementPositionInGrid, maskSrc, maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight, currentInd, localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
       }
     }
     else
@@ -1053,7 +1054,7 @@ void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPo
       CArray<bool,1>& mask = *maskSrc[currentPos] ;
       for(int i=0;i<nIndexSrc[currentPos];i++)
       {
-        if (mask(i))
+        if (masked && mask(i))
         {
           if (dstIndWeight[t][currentInd].size()>0)
           {
@@ -1061,17 +1062,18 @@ void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPo
             {
               if (localMaskOnGridSrc(srcInd))
               {
-                localSrc.push_back(srcInd) ;
+                localSrc.push_back(srcIndCompressed) ;
                 localDst.push_back(it->first) ;
                 weight.push_back(it->second) ;
                 localMaskOnGridDest[it->first]=true ;
               }
               (it->first)++ ;
             }
+            if (localMaskOnGridSrc(srcInd)) srcIndCompressed ++ ;
           }
-          srcInd++ ;
           if (t < dstIndWeight.size()-1) t++ ;
         }
+        srcInd++ ;
       }
     }
   }
@@ -1085,33 +1087,35 @@ void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPo
       for(int i=0;i<nIndexSrc[currentPos];i++)
       {
         t=0 ;
-        if (mask(i))
-        {
-          nonDistributedrecursiveFunct(currentPos-1, elementPositionInGrid, maskSrc, maskDst, srcInd, nIndexSrc, t, dstIndWeight , i,  localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
-        }
+        if (!mask(i)) masked=false ; 
+        nonDistributedrecursiveFunct(currentPos-1, masked, elementPositionInGrid, maskSrc, maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight , i,  localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
       }
     }
     else
     {
       for(int i=0;i<nIndexSrc[currentPos];i++)
       {
-        t=0 ;        
-        if (dstIndWeight[t][i].size()>0)
+        if (masked)
         {
-          for(vector<pair<int,double> >::iterator it = dstIndWeight[t][i].begin(); it!=dstIndWeight[t][i].end(); ++it)
+          t=0 ;        
+          if (dstIndWeight[t][i].size()>0)
           {
-            if (localMaskOnGridSrc(srcInd))
+            for(vector<pair<int,double> >::iterator it = dstIndWeight[t][i].begin(); it!=dstIndWeight[t][i].end(); ++it)
             {
-              localSrc.push_back(srcInd) ;
-              localDst.push_back(it->first) ;
-              weight.push_back(it->second) ;
-              localMaskOnGridDest[it->first]=true ;
+              if (localMaskOnGridSrc(srcInd))
+              {
+                localSrc.push_back(srcIndCompressed) ;
+                localDst.push_back(it->first) ;
+                weight.push_back(it->second) ;
+                localMaskOnGridDest[it->first]=true ;
+              }
+              (it->first)++ ;
             }
-            (it->first)++ ;
+            if (localMaskOnGridSrc(srcInd)) srcIndCompressed ++ ;
           }
+          if (t < dstIndWeight.size()-1) t++ ;
         }
         srcInd++ ;
-        if (t < dstIndWeight.size()-1) t++ ;
       }
     }
   }
