@@ -488,7 +488,7 @@ namespace xios {
         else if (1 == axisDomainOrder(i))
         {
           int idxTmp = idxLoop[indexMap[i]];
-          if (idxTmp < (*axisMasks[idxDomain]).numElements())
+          if (idxTmp < (*axisMasks[idxAxis]).numElements())
             maskValue = maskValue && (*axisMasks[idxAxis])(idxTmp);
           else
             maskValue = false;
