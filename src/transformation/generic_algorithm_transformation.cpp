@@ -374,7 +374,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         }
       }
 
-      if (idx==0) commonProc_.swap(procList) ;
+      if (idx==0) commonProc_= procList ;
       else
       {
         for (std::set<int>::iterator it = commonProc_.begin(); it != commonProc_.end(); ++it)
