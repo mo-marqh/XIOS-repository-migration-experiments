@@ -615,7 +615,7 @@ namespace xios {
             bounds_lon_1d(jdx,idx) = bounds_lonvalue_unstructured_read_from_file(jdx, idx);
 
         // We dont need these values anymore, so just delete them
-        lonvalue_unstructured_read_from_file.free();
+        bounds_lonvalue_unstructured_read_from_file.free();
      }
 
      if (!bounds_latvalue_unstructured_read_from_file.isEmpty() && bounds_lat_1d.isEmpty())
@@ -627,7 +627,7 @@ namespace xios {
             bounds_lat_1d(jdx,idx) = bounds_latvalue_unstructured_read_from_file(jdx, idx);
 
         // We dont need these values anymore, so just delete them
-        lonvalue_unstructured_read_from_file.free();
+        bounds_latvalue_unstructured_read_from_file.free();
      }
    }
 
