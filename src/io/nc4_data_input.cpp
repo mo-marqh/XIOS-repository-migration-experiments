@@ -282,22 +282,43 @@ namespace xios
     }
     else if ((CDomain::type_attr::curvilinear == domain->type))
     {
-      int ni = domain->ni;
-      int nj = domain->nj;
+      // Make sure that if there is no local domain defined on a process, the process still reads just one value.
+      int ni, nj, ibegin, jbegin;
+      if (domain->ni == 0)
+      {
+        ni = 1;
+        ibegin = 0;
+      }
+      else
+      {
+        ni = domain->ni;
+        ibegin = domain->ibegin;
+      }
+      if (domain->nj == 0)
+      {
+        nj = 1;
+        jbegin = 0;
+      }
+      else
+      {
+        nj = domain->nj;
+        jbegin = domain->jbegin;
+      }
+
       std::vector<StdSize> nBeginLatLon(2), nSizeLatLon(2);
-      nBeginLatLon[0] = domain->jbegin.getValue(); nBeginLatLon[1] = domain->ibegin.getValue();
-      nSizeLatLon[0]  = domain->nj.getValue(); nSizeLatLon[1] = domain->ni.getValue();
+      nBeginLatLon[0] = jbegin; nBeginLatLon[1] = ibegin;
+      nSizeLatLon[0]  = nj; nSizeLatLon[1] = ni;
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_curvilinear_read_from_file.resize(domain->ni,domain->nj);
+        domain->latvalue_curvilinear_read_from_file.resize(ni, nj);
         readFieldVariableValue(domain->latvalue_curvilinear_read_from_file, latName, nBeginLatLon, nSizeLatLon);
       }
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName))
       {
-        domain->lonvalue_curvilinear_read_from_file.resize(domain->ni,domain->nj);
+        domain->lonvalue_curvilinear_read_from_file.resize(ni, nj);
         readFieldVariableValue(domain->lonvalue_curvilinear_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
@@ -319,39 +340,52 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
-      nBeginBndsLatLon[0] = domain->jbegin.getValue(); nSizeBndsLatLon[0] = domain->nj.getValue();
-      nBeginBndsLatLon[1] = domain->ibegin.getValue(); nSizeBndsLatLon[1] = domain->ni.getValue();
+      nBeginBndsLatLon[0] = jbegin; nSizeBndsLatLon[0] = nj;
+      nBeginBndsLatLon[1] = ibegin; nSizeBndsLatLon[1] = ni;
       nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
 
       if (SuperClassWriter::hasVariable(boundsLatName))
       {
-        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni,domain->nj);
+        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex, ni, nj);
         readFieldVariableValue(domain->bounds_latvalue_curvilinear_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
 
       }
       if (SuperClassWriter::hasVariable(boundsLonName)) 
       {
-        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni,domain->nj);
+        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex, ni, nj);
         readFieldVariableValue(domain->bounds_lonvalue_curvilinear_read_from_file, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
       }      
     }
     else if ((CDomain::type_attr::unstructured == domain->type))// || (this->isUnstructured(fieldId)))
     {
+      // Make sure that if there is no local domain defined on a process, the process still reads just one value.
+      int ni, ibegin;
+      if (domain->ni == 0)
+      {
+        ni = 1;
+        ibegin = 0;
+      }
+      else
+      {
+        ni = domain->ni;
+        ibegin = domain->ibegin;
+      }
+
       std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
-      nBeginLatLon[0] = domain->ibegin;
-      nSizeLatLon[0]  = domain->ni.getValue();
+      nBeginLatLon[0] = ibegin;
+      nSizeLatLon[0]  = ni;
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_unstructured_read_from_file.resize(domain->ni);
+        domain->latvalue_unstructured_read_from_file.resize(ni);
         readFieldVariableValue(domain->latvalue_unstructured_read_from_file, latName, nBeginLatLon, nSizeLatLon);  
       }
 
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName)) //(0 != lonName.compare(""))
       {
-        domain->lonvalue_unstructured_read_from_file.resize(domain->ni);
+        domain->lonvalue_unstructured_read_from_file.resize(ni);
         readFieldVariableValue(domain->lonvalue_unstructured_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
@@ -373,7 +407,7 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(2), nSizeBndsLatLon(2);
-      nBeginBndsLatLon[0] = domain->ibegin; nSizeBndsLatLon[0] = domain->ni.getValue();
+      nBeginBndsLatLon[0] = ibegin; nSizeBndsLatLon[0] = ni;
       nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
 
       if (SuperClassWriter::hasVariable(boundsLatName)) 
