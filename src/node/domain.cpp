@@ -1170,7 +1170,7 @@ namespace xios {
    //----------------------------------------------------------------
    void CDomain::computeLocalMask(void)
    {
-     localMask.resize(ni*nj) ;
+     localMask.resize(i_index.numElements()) ;
      localMask=false ;
      size_t zoom_ibegin= global_zoom_ibegin ;
      size_t zoom_iend= global_zoom_ibegin+global_zoom_ni-1 ;
@@ -1188,19 +1188,27 @@ namespace xios {
        {
           i=data_i_index(k)+data_ibegin ;
           j=data_j_index(k)+data_jbegin ;
+          if (i>=0 && i<ni && j>=0 && j<nj)
+          {
+            ind=j*ni+i ;
+            if (i_index(ind)>=zoom_ibegin && i_index(ind)<=zoom_iend && j_index(ind)>=zoom_jbegin && j_index(ind)<=zoom_jend)
+            {
+              localMask(ind)=domainMask(ind) ;
+            }
+          }
        }
        else
        {
-          i=(data_i_index(k)+data_ibegin)%ni ;
-          j=(data_i_index(k)+data_ibegin)/ni ;
+          i=data_i_index(k)+data_ibegin ;
+          if (i>=0 && i<i_index.numElements())
+          {
+            ind=i ;
+            if (i_index(ind)>=zoom_ibegin && i_index(ind)<=zoom_iend && j_index(ind)>=zoom_jbegin && j_index(ind)<=zoom_jend)
+            {
+              localMask(ind)=domainMask(ind) ;
+            }
+          }
        }
-
-       if (i>=0 && i<ni && j>=0 && j<nj)
-         if (i+ibegin>=zoom_ibegin && i+ibegin<=zoom_iend && j+jbegin>=zoom_jbegin && j+jbegin<=zoom_jend)
-         {
-           ind=i+ni*j ;
-           localMask(ind)=domainMask(ind) ;
-         }
      }
    }
 
