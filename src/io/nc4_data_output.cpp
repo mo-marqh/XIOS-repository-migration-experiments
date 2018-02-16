@@ -102,20 +102,39 @@ namespace xios
              if (domain->lat_name.isEmpty()) latName = "nav_lat";
              else latName = domain->lat_name;
 
-             dimXid     = StdString("x").append(appendDomid);
-             dimYid     = StdString("y").append(appendDomid);
+             if (domain->dim_i_name.isEmpty()) dimXid=StdString("x").append(appendDomid);
+             else dimXid=domain->dim_i_name.getValue() + appendDomid;
+
+             if (domain->dim_j_name.isEmpty()) dimYid=StdString("y").append(appendDomid);
+             else dimYid=domain->dim_j_name.getValue() + appendDomid;
+
              break ;
 
            case CDomain::type_attr::rectilinear :
 
-             if (domain->lon_name.isEmpty()) lonName = "lon";
+             if (domain->lon_name.isEmpty())
+             {
+               if (domain->dim_i_name.isEmpty())
+                   lonName = "lon";
+               else
+                 lonName = domain->dim_i_name.getValue();
+             }
              else lonName = domain->lon_name;
 
-             if (domain->lat_name.isEmpty()) latName = "lat";
+             if (domain->lat_name.isEmpty())
+             {
+               if (domain->dim_j_name.isEmpty())
+                 latName = "lat";
+               else
+                 latName = domain->dim_j_name.getValue();
+             }
              else latName = domain->lat_name;
              
-             dimXid     = lonName+appendDomid;
-             dimYid     = latName+appendDomid;
+             if (domain->dim_i_name.isEmpty()) dimXid = lonName+appendDomid;
+             else dimXid = domain->dim_i_name.getValue()+appendDomid;
+
+             if (domain->dim_j_name.isEmpty()) dimYid = latName+appendDomid;
+             else dimYid = domain->dim_j_name.getValue()+appendDomid;
              break;
          }
 
@@ -221,9 +240,10 @@ namespace xios
                      dim1.push_back(dimXid);
                      break;
                  }
-
-                 bounds_lonid = "bounds_"+lonName+appendDomid;
-                 bounds_latid = "bounds_"+latName+appendDomid;
+                 if (!domain->bounds_lon_name.isEmpty()) bounds_lonid = domain->bounds_lon_name;
+                 else bounds_lonid = "bounds_"+lonName+appendDomid;
+                 if (!domain->bounds_lat_name.isEmpty()) bounds_latid = domain->bounds_lat_name;
+                 else bounds_latid = "bounds_"+latName+appendDomid;
 
                  SuperClassWriter::addDimension(dimXid, domain->zoom_ni);
                  SuperClassWriter::addDimension(dimYid, domain->zoom_nj);
@@ -369,9 +389,10 @@ namespace xios
                        SuperClassWriter::addVariable(lonid, typePrec, dim1);
                        break;
                    }
-
-                   bounds_lonid = "bounds_"+lonName+appendDomid;
-                   bounds_latid = "bounds_"+latName+appendDomid;
+                   if (!domain->bounds_lon_name.isEmpty()) bounds_lonid = domain->bounds_lon_name;
+                   else bounds_lonid = "bounds_"+lonName+appendDomid;
+                   if (!domain->bounds_lat_name.isEmpty()) bounds_latid = domain->bounds_lat_name;
+                   else bounds_latid = "bounds_"+latName+appendDomid;
 
                    this->writeAxisAttributes
                       (lonid, isRegularDomain ? "X" : "", "longitude", "Longitude", "degrees_east", domid);
@@ -950,14 +971,16 @@ namespace xios
 
          StdString appendDomid  = (singleDomain) ? "" : "_"+domid ;
 
-         StdString lonName,latName ;
+         StdString lonName,latName, cellName ;
          if (domain->lon_name.isEmpty()) lonName = "lon";
          else lonName = domain->lon_name;
 
          if (domain->lat_name.isEmpty()) latName = "lat";
          else latName = domain->lat_name;
 
-         StdString dimXid = StdString("cell").append(appendDomid);
+         if (!domain->dim_i_name.isEmpty()) cellName=domain->dim_i_name;
+         else cellName="cell";
+         StdString dimXid = cellName+appendDomid;
          StdString dimVertId = StdString("nvertex").append(appendDomid);
 
          string lonid,latid,bounds_lonid,bounds_latid ;
@@ -1043,8 +1066,11 @@ namespace xios
 
                  lonid = lonName+appendDomid;
                  latid = latName+appendDomid;
-                 bounds_lonid = "bounds_"+lonName+appendDomid;
-                 bounds_latid = "bounds_"+latName+appendDomid;
+                 if (!domain->bounds_lon_name.isEmpty()) bounds_lonid = domain->bounds_lon_name;
+                 else bounds_lonid = "bounds_"+lonName+appendDomid;
+                 if (!domain->bounds_lat_name.isEmpty()) bounds_latid = domain->bounds_lat_name;
+                 else bounds_latid = "bounds_"+latName+appendDomid;
+
                  if (domain->hasLonLat)
                  {
                    SuperClassWriter::addVariable(latid, typePrec, dim0);
@@ -1097,8 +1123,10 @@ namespace xios
               {
                  lonid = lonName+appendDomid;
                  latid = latName+appendDomid;
-                 bounds_lonid = "bounds_"+lonName+appendDomid;
-                 bounds_latid = "bounds_"+latName+appendDomid;
+                 if (!domain->bounds_lon_name.isEmpty()) bounds_lonid = domain->bounds_lon_name;
+                 else bounds_lonid = "bounds_"+lonName+appendDomid;
+                 if (!domain->bounds_lat_name.isEmpty()) bounds_latid = domain->bounds_lat_name;
+                 else bounds_latid = "bounds_"+latName+appendDomid;
 
                  dim0.push_back(dimXid);
                  SuperClassWriter::addDimension(dimXid, domain->ni_glo);
@@ -1212,6 +1240,7 @@ namespace xios
 
         std::vector<StdString> dims;
         StdString axisid = axis->getAxisOutputName();
+        StdString axisDim;
         if (isWrittenAxis(axisid)) return ;
         else setWrittenAxis(axisid);
 
@@ -1224,12 +1253,17 @@ namespace xios
         string strId="str_len" ;
         try
         {
-          SuperClassWriter::addDimension(axisid, zoom_size);
           if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
           if (axis->hasValue)
           {
-            dims.push_back(axisid);
+            if (axis->dim_name.isEmpty()) axisDim = axisid;
+            else axisDim=axis->dim_name.getValue();
+
+            SuperClassWriter::addDimension(axisDim, zoom_size);
+            dims.push_back(axisDim);
+
             if (!axis->label.isEmpty()) dims.push_back(strId);
+
             SuperClassWriter::addVariable(axisid, typePrec, dims);
 
             if (!axis->name.isEmpty())
@@ -1244,9 +1278,27 @@ namespace xios
             if (!axis->unit.isEmpty())
               SuperClassWriter::addAttribute("units", axis->unit.getValue(), &axisid);
 
+            if (!axis->axis_type.isEmpty())
+            {
+              switch(axis->axis_type)
+              {
+              case CAxis::axis_type_attr::X :
+                SuperClassWriter::addAttribute("axis", string("X"), &axisid);
+                break;
+              case CAxis::axis_type_attr::Y :
+                SuperClassWriter::addAttribute("axis", string("Y"), &axisid);
+                break;
+              case CAxis::axis_type_attr::Z :
+                SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
+                break;
+              case CAxis::axis_type_attr::T :
+                SuperClassWriter::addAttribute("axis", string("T"), &axisid);
+                break;
+              }
+            }
+
             if (!axis->positive.isEmpty())
             {
-              SuperClassWriter::addAttribute("axis", string("Z"), &axisid);
               SuperClassWriter::addAttribute("positive",
                                              (axis->positive == CAxis::positive_attr::up) ? string("up") : string("down"),
                                              &axisid);
@@ -1277,7 +1329,6 @@ namespace xios
               if (!axis->formula_term_bounds.isEmpty())
                 SuperClassWriter::addAttribute("formula_term", axis->formula_term_bounds.getValue(), &axisBoundsId);
             }
-
               
             SuperClassWriter::definition_end();
 
@@ -1412,6 +1463,7 @@ namespace xios
         int scalarSize = 1;
 
         StdString scalaId = scalar->getScalarOutputName();
+        StdString boundsId;
         if (isWrittenAxis(scalaId)) return ;
         else setWrittenAxis(scalaId);
 
@@ -1420,13 +1472,14 @@ namespace xios
         else if (scalar->prec==4)  typePrec =  NC_FLOAT ;
         else if (scalar->prec==8)   typePrec =  NC_DOUBLE ;
 
-        
         try
         {
           if (!scalar->value.isEmpty())
           {
-//            dims.push_back(scalaId);
             std::vector<StdString> dims;
+//            dims.push_back(scalaId);
+            StdString scalarDim = scalaId;
+
             SuperClassWriter::addVariable(scalaId, typePrec, dims);
 
             if (!scalar->name.isEmpty())
@@ -1441,6 +1494,36 @@ namespace xios
             if (!scalar->unit.isEmpty())
               SuperClassWriter::addAttribute("units", scalar->unit.getValue(), &scalaId);
 
+            if (!scalar->axis_type.isEmpty())
+            {
+              switch(scalar->axis_type)
+              {
+              case CScalar::axis_type_attr::X :
+                SuperClassWriter::addAttribute("axis", string("X"), &scalaId);
+                break;
+              case CScalar::axis_type_attr::Y :
+                SuperClassWriter::addAttribute("axis", string("Y"), &scalaId);
+                break;
+              case CScalar::axis_type_attr::Z :
+                SuperClassWriter::addAttribute("axis", string("Z"), &scalaId);
+                break;
+              case CScalar::axis_type_attr::T :
+                SuperClassWriter::addAttribute("axis", string("T"), &scalaId);
+                break;
+              }
+            }
+
+            if (!scalar->bounds_value.isEmpty())
+            {
+              if (!scalar->bounds_value_name.isEmpty())
+              {
+                boundsId = scalar->bounds_value_name.getValue();
+                SuperClassWriter::addAttribute("bounds_value_name", boundsId, &scalaId);
+              }
+              SuperClassWriter::addDimension(boundsId, 1);
+              SuperClassWriter::addVariable(boundsId, typePrec, dims);
+            }
+
             SuperClassWriter::definition_end();
 
             switch (SuperClass::type)
@@ -1450,6 +1533,11 @@ namespace xios
                 CArray<double,1> scalarValue(scalarSize);
                 scalarValue(0) = scalar->value;
                 SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0);
+                if (!scalar->bounds_value.isEmpty())
+                {
+                  scalarValue(0) = scalar->bounds_value;
+                  SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0);
+                }
                 SuperClassWriter::definition_start();
 
                 break;
@@ -1464,6 +1552,11 @@ namespace xios
                 start[0] = 0;
                 count[0] = 1;
                 SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0, &start, &count);
+                if (!scalar->bounds_value.isEmpty())
+                {
+                  scalarValue(0) = scalar->bounds_value;
+                  SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0, &start, &count);
+                }
                 SuperClassWriter::definition_start();
 
                 break;
@@ -1532,7 +1625,9 @@ namespace xios
                    compress << "lat" << appendDomId << " lon" << appendDomId;
                    break;
                  case CDomain::type_attr::unstructured:
-                   compress << "cell" << appendDomId;
+                   StdString cellName = (!domain->dim_i_name.isEmpty()) ? cellName=domain->dim_i_name : "cell";
+                   compress << cellName << appendDomId;
+//                   compress << "cell" << appendDomId;
                    break;
                }
                ++idxDomain;
@@ -1758,6 +1853,7 @@ namespace xios
             StdString domId = domain->getDomainOutputName();
             StdString appendDomId  = singleDomain ? "" : "_" + domId ;
             StdString lonName,latName ;
+            StdString dimIname,dimJname ;
 
             if (domain->lon_name.isEmpty())
             { 
@@ -1772,6 +1868,21 @@ namespace xios
               else latName = "lat";
             }
             else latName = domain->lat_name;
+
+            if (domain->dim_i_name.isEmpty())
+            {
+              if (domain->type==CDomain::type_attr::curvilinear) dimIname = "x";
+              else if (domain->type==CDomain::type_attr::unstructured) dimIname = "cell";
+              else dimIname = lonName;
+            }
+            else dimIname = domain->dim_i_name;
+
+            if (domain->dim_j_name.isEmpty())
+            {
+              if (domain->type==CDomain::type_attr::curvilinear) dimJname = "y";
+              else dimJname = latName;
+            }
+            else dimJname = domain->dim_j_name;
         
             if (compressedOutput && domain->isCompressible() && domain->type != CDomain::type_attr::unstructured)
             {
@@ -1784,9 +1895,9 @@ namespace xios
               case CDomain::type_attr::curvilinear:
                 if (!compressedOutput || !domain->isCompressible())
                 {
-                  dimXid     = StdString("x").append(appendDomId);
+                  dimXid=dimIname+appendDomId;
+                  dimYid=dimJname+appendDomId;
                   dimIdList.push_back(dimXid);
-                  dimYid     = StdString("y").append(appendDomId);
                   dimIdList.push_back(dimYid);
                 }
                 dimCoordList.push_back(lonName+appendDomId);
@@ -1795,17 +1906,20 @@ namespace xios
               case CDomain::type_attr::rectilinear:
                 if (!compressedOutput || !domain->isCompressible())
                 {
-                  dimXid     = lonName+appendDomId;
+                  dimXid     = dimIname+appendDomId;
+                  dimYid     = dimJname+appendDomId;
                   dimIdList.push_back(dimXid);
-                  dimYid     = latName+appendDomId;
                   dimIdList.push_back(dimYid);
                 }
+                if (lonName != dimIname)  dimCoordList.push_back(lonName+appendDomId);
+                if (latName != dimJname)  dimCoordList.push_back(latName+appendDomId);
+
               break ;
               case CDomain::type_attr::unstructured:
               {
                 if (SuperClassWriter::useCFConvention)
                 {
-                  dimXid     = StdString("cell").append(appendDomId);
+                  dimXid     = dimIname + appendDomId;
                   dimIdList.push_back(dimXid);
                   dimCoordList.push_back(lonName+appendDomId);
                   dimCoordList.push_back(latName+appendDomId);
@@ -1849,21 +1963,28 @@ namespace xios
           {
             CAxis* axis = CAxis::get(axisList[idxAxis]);
             StdString axisId = axis->getAxisOutputName();
+            StdString axisDim;
+
+            if (axis->dim_name.isEmpty()) axisDim = axisId;
+            else axisDim=axis->dim_name.getValue();
 
             if (compressedOutput && axis->isCompressible())
             {
-              dimIdList.push_back(axisId + "_points");
+              dimIdList.push_back(axisDim + "_points");
               field->setUseCompressedOutput();
             }
             else
-              dimIdList.push_back(axisId);
+              dimIdList.push_back(axisDim);
 
-            dimCoordList.push_back(axisId);
+            if (axisDim != axisId) dimCoordList.push_back(axisId);
             ++idxAxis;
           }
-          else // scalar
+          else
           {
-             /* Do nothing here */
+            CScalar* scalar = CScalar::get(scalarList[idxScalar]);
+            StdString scalarId = scalar->getScalarOutputName();
+            dimCoordList.push_back(scalarId);
+            ++idxScalar;
           }
         }
 

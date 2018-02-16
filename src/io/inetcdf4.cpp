@@ -501,7 +501,8 @@ namespace xios
       if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
-        if ((dimvar.size() == 1) && (dimvar.find(coord) != dimvar.end()))
+//        if ((dimvar.size() == 1) && (dimvar.find(coord) != dimvar.end()))
+        if ((dimvar.size() == 1) )
           continue;
         else
           return false;

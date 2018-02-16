@@ -184,7 +184,31 @@ namespace xios
       listDimSize.push_front(*itMap);
 */
     for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
-      listDimSize.push_front(*dimSizeMap.find(*it));
+    {
+      // It is not required any more for dimension name and lon/lat names to be the same (aka lon(lon))
+      if (SuperClassWriter::isRectilinear(fieldId))
+      {
+        StdString lonName =   SuperClassWriter::getLonCoordName(fieldId);
+        StdString latName =   SuperClassWriter::getLatCoordName(fieldId);
+        StdString dimLonName = SuperClassWriter::getDimensions(&lonName).begin()->first;
+        StdString dimLatName = SuperClassWriter::getDimensions(&latName).begin()->first;
+        if ((lonName != dimLonName) && (*it == dimLonName))
+        {
+          StdSize dimSizeTmp = dimSizeMap.find(*it)->second;
+          listDimSize.push_front(make_pair(lonName, dimSizeTmp));
+        }
+        else if ((latName != dimLatName) && (*it == dimLatName))
+        {
+          StdSize dimSizeTmp = dimSizeMap.find(*it)->second;
+          listDimSize.push_front(make_pair(latName, dimSizeTmp));
+        }
+        else
+          listDimSize.push_front(*dimSizeMap.find(*it));
+      }
+      else
+        listDimSize.push_front(*dimSizeMap.find(*it));
+
+    }
 
     // Now process domain and axis
     CArray<int,1> axisDomainOrder = grid->axis_domain_order;
