@@ -1253,15 +1253,15 @@ namespace xios
         string strId="str_len" ;
         try
         {
+          if (axis->dim_name.isEmpty()) axisDim = axisid;
+          else axisDim=axis->dim_name.getValue();
+          SuperClassWriter::addDimension(axisDim, zoom_size);
+          dims.push_back(axisDim);
+
           if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
+
           if (axis->hasValue)
           {
-            if (axis->dim_name.isEmpty()) axisDim = axisid;
-            else axisDim=axis->dim_name.getValue();
-
-            SuperClassWriter::addDimension(axisDim, zoom_size);
-            dims.push_back(axisDim);
-
             if (!axis->label.isEmpty()) dims.push_back(strId);
 
             SuperClassWriter::addVariable(axisid, typePrec, dims);
