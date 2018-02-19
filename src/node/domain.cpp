@@ -1172,11 +1172,6 @@ namespace xios {
    {
      localMask.resize(i_index.numElements()) ;
      localMask=false ;
-     size_t zoom_ibegin= global_zoom_ibegin ;
-     size_t zoom_iend= global_zoom_ibegin+global_zoom_ni-1 ;
-     size_t zoom_jbegin= global_zoom_jbegin ;
-     size_t zoom_jend= global_zoom_jbegin+global_zoom_nj-1 ;
-
 
      size_t dn=data_i_index.numElements() ;
      int i,j ;
@@ -1191,10 +1186,7 @@ namespace xios {
           if (i>=0 && i<ni && j>=0 && j<nj)
           {
             ind=j*ni+i ;
-            if (i_index(ind)>=zoom_ibegin && i_index(ind)<=zoom_iend && j_index(ind)>=zoom_jbegin && j_index(ind)<=zoom_jend)
-            {
-              localMask(ind)=domainMask(ind) ;
-            }
+            localMask(ind)=domainMask(ind) ;
           }
        }
        else
@@ -1203,10 +1195,7 @@ namespace xios {
           if (i>=0 && i<i_index.numElements())
           {
             ind=i ;
-            if (i_index(ind)>=zoom_ibegin && i_index(ind)<=zoom_iend && j_index(ind)>=zoom_jbegin && j_index(ind)<=zoom_jend)
-            {
-              localMask(ind)=domainMask(ind) ;
-            }
+            localMask(ind)=domainMask(ind) ;
           }
        }
      }
