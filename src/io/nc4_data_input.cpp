@@ -183,31 +183,31 @@ namespace xios
     for (std::map<StdString, StdSize>::const_iterator itMap = dimSizeMap.begin(); itMap != dimSizeMap.end(); ++itMap)
       listDimSize.push_front(*itMap);
 */
-    for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
-    {
-      // It is not required any more for dimension name and lon/lat names to be the same (aka lon(lon))
-      if (SuperClassWriter::isRectilinear(fieldId))
-      {
-        StdString lonName =   SuperClassWriter::getLonCoordName(fieldId);
-        StdString latName =   SuperClassWriter::getLatCoordName(fieldId);
-        StdString dimLonName = SuperClassWriter::getDimensions(&lonName).begin()->first;
-        StdString dimLatName = SuperClassWriter::getDimensions(&latName).begin()->first;
-        if ((lonName != dimLonName) && (*it == dimLonName))
-        {
-          StdSize dimSizeTmp = dimSizeMap.find(*it)->second;
-          listDimSize.push_front(make_pair(lonName, dimSizeTmp));
-        }
-        else if ((latName != dimLatName) && (*it == dimLatName))
-        {
-          StdSize dimSizeTmp = dimSizeMap.find(*it)->second;
-          listDimSize.push_front(make_pair(latName, dimSizeTmp));
-        }
-        else
-          listDimSize.push_front(*dimSizeMap.find(*it));
-      }
-      else
-        listDimSize.push_front(*dimSizeMap.find(*it));
 
+    if (!SuperClassWriter::isRectilinear(fieldId))
+    {
+      for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
+        listDimSize.push_front(*dimSizeMap.find(*it));
+    }
+    else
+    {
+       std::list<StdString> coords = SuperClassWriter::getCoordinatesIdList(fieldId);
+       std::list<StdString>::const_iterator itCoord = coords.begin();
+       for (; itCoord != coords.end(); itCoord++)
+       {
+         const StdString& coord = *itCoord;
+         if (SuperClassWriter::hasVariable(coord) && !SuperClassWriter::isTemporal(coord))
+         {
+           std::map<StdString, StdSize> dimsTmp = SuperClassWriter::getDimensions(&coord);
+           StdString dimNameTmp = dimsTmp.begin()->first;
+           StdSize dimSizeTmp = dimsTmp.begin()->second;
+           listDimSize.push_front(make_pair(coord, dimSizeTmp));
+           dimSizeMap.erase(dimNameTmp);
+           dimList.remove(dimNameTmp);
+         }
+       }
+       for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
+        listDimSize.push_front(*dimSizeMap.find(*it));
     }
 
     // Now process domain and axis
