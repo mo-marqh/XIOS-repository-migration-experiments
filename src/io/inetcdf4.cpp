@@ -495,6 +495,8 @@ namespace xios
   {
     std::list<StdString> coords = this->getCoordinatesIdList(name, path);
     std::list<StdString>::const_iterator it = coords.begin(), end = coords.end();
+    std::set<StdString> dimVarList;
+
     for (; it != end; it++)
     {
       const StdString& coord = *it;
@@ -502,13 +504,17 @@ namespace xios
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
 //        if ((dimvar.size() == 1) && (dimvar.find(coord) != dimvar.end()))
-        if ((dimvar.size() == 1) )
+        if ((dimvar.size() == 1))
+        {
+          dimVarList.insert(dimvar.begin()->first);
           continue;
+        }
         else
           return false;
       }
     }
-    return true;
+
+    return (dimVarList.size() != 1);
   }
 
   bool CINetCDF4::isCurvilinear(const StdString& name, const CVarPath* const path)
