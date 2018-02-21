@@ -62,7 +62,7 @@ namespace xios
     if (data.numElements()*stringArrayLen != array_size)
     {
       ERROR("CONetCDF4::writeData(...)",
-      << "[ input array size = "  << data.numElements()
+      << "[ input array size = "  << data.numElements()*stringArrayLen
       << ", intern array size = " << array_size
       << " ] Invalid input data !" );
     }

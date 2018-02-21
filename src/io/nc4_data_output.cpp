@@ -1240,7 +1240,7 @@ namespace xios
 
         std::vector<StdString> dims;
         StdString axisid = axis->getAxisOutputName();
-        StdString axisDim;
+        StdString axisDim, axisBoundsId;
         if (isWrittenAxis(axisid)) return ;
         else setWrittenAxis(axisid);
 
@@ -1260,7 +1260,7 @@ namespace xios
 
           if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
 
-          if (axis->hasValue)
+          if (axis->hasValue || !axis->label.isEmpty())
           {
             if (!axis->label.isEmpty()) dims.push_back(strId);
 
@@ -1310,7 +1310,7 @@ namespace xios
             if (!axis->formula_term.isEmpty())
               SuperClassWriter::addAttribute("formula_term", axis->formula_term.getValue(), &axisid);
               
-            StdString axisBoundsId = axisid + "_bounds";
+            axisBoundsId = (axis->bounds_name.isEmpty()) ? axisid + "_bounds" : axis->bounds_name;
             if (!axis->bounds.isEmpty() && axis->label.isEmpty())
             {
               dims.push_back("axis_nbounds");
@@ -1329,12 +1329,15 @@ namespace xios
               if (!axis->formula_term_bounds.isEmpty())
                 SuperClassWriter::addAttribute("formula_term", axis->formula_term_bounds.getValue(), &axisBoundsId);
             }
-              
-            SuperClassWriter::definition_end();
+          }
 
-            CArray<size_t, 1>& indexToWrite = axis->localIndexToWriteOnServer;
-            int nbWritten = indexToWrite.numElements();
-            CArray<double,1> axis_value(indexToWrite.numElements());
+          SuperClassWriter::definition_end();
+
+          CArray<size_t, 1>& indexToWrite = axis->localIndexToWriteOnServer;
+          int nbWritten = indexToWrite.numElements();
+          CArray<double,1> axis_value(indexToWrite.numElements());
+          if (!axis->value.isEmpty())
+          {
             for (int i = 0; i < nbWritten; i++)
             {
               if (i < axis->value.numElements())
@@ -1342,70 +1345,30 @@ namespace xios
               else
                 axis_value(i) = 0.;
             }
-
-            CArray<double,2> axis_bounds;
-            CArray<string,1> axis_label;
-            if (!axis->label.isEmpty())
+          }
+          CArray<double,2> axis_bounds;
+          CArray<string,1> axis_label;
+          if (!axis->label.isEmpty())
+          {
+            axis_label.resize(indexToWrite.numElements());
+            for (int i = 0; i < nbWritten; i++)
             {
-              axis_label.resize(indexToWrite.numElements());
-              for (int i = 0; i < nbWritten; i++)
-              {
-                if (i < axis->label.numElements())
-                  axis_label(i) = axis->label(indexToWrite(i));
-                else
-                  axis_label(i) = boost::lexical_cast<string>(0);  // Write 0 as a label
-              }
+              if (i < axis->label.numElements())
+                axis_label(i) = axis->label(indexToWrite(i));
+              else
+                axis_label(i) = boost::lexical_cast<string>(0);  // Write 0 as a label
             }
+          }
 
-            switch (SuperClass::type)
+          switch (SuperClass::type)
+          {
+            case MULTI_FILE:
             {
-              case MULTI_FILE:
+              if (axis->label.isEmpty())
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+
+              if (!axis->bounds.isEmpty() && axis->label.isEmpty())
               {
-                if (axis->label.isEmpty())
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
-
-                if (!axis->bounds.isEmpty() && axis->label.isEmpty())
-                {
-                    axis_bounds.resize(2, indexToWrite.numElements());
-                    for (int i = 0; i < nbWritten; ++i)
-                    {
-                      if (i < axis->bounds.columns())
-                      {
-                        axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                        axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
-                      }
-                      else
-                      {
-                        axis_bounds(0, i) = 0.;
-                        axis_bounds(1, i) = 0.;
-
-                      }
-                    }
-
-                	SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
-                }
-
-                // Need to check after
-                if (!axis->label.isEmpty()) 
-                  SuperClassWriter::writeData(axis_label, axisid, isCollective, 0);
- 
-                SuperClassWriter::definition_start();
-                break;
-              }
-              case ONE_FILE:
-              {
-                std::vector<StdSize> start(1), startBounds(2) ;
-                std::vector<StdSize> count(1), countBounds(2) ;
-                start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
-                count[0] = countBounds[0] = zoom_count; // zoom_size
-                startBounds[1] = 0;
-                countBounds[1] = 2;
-
-                if (axis->label.isEmpty())
-                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
-
-                if (!axis->bounds.isEmpty() && axis->label.isEmpty())
-                {
                   axis_bounds.resize(2, indexToWrite.numElements());
                   for (int i = 0; i < nbWritten; ++i)
                   {
@@ -1418,29 +1381,68 @@ namespace xios
                     {
                       axis_bounds(0, i) = 0.;
                       axis_bounds(1, i) = 0.;
+
                     }
                   }
-                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
-                }
 
-                // Need to check after
-                if (!axis->label.isEmpty())
-                {
-                  std::vector<StdSize> startLabel(2), countLabel(2);
-                  startLabel[0] = start[0]; startLabel[1] = 0;
-                  countLabel[0] = count[0]; countLabel[1] = stringArrayLen;
-                  SuperClassWriter::writeData(axis_label, axisid, isCollective, 0, &startLabel, &countLabel);
-                }
-
-                SuperClassWriter::definition_start();
-
-                break;
+                SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
               }
-              default :
-                ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)",
-                      << "[ type = " << SuperClass::type << "]"
-                      << " not implemented yet !");
+
+              // Need to check after
+              if (!axis->label.isEmpty())
+                SuperClassWriter::writeData(axis_label, axisid, isCollective, 0);
+
+              SuperClassWriter::definition_start();
+              break;
             }
+            case ONE_FILE:
+            {
+              std::vector<StdSize> start(1), startBounds(2) ;
+              std::vector<StdSize> count(1), countBounds(2) ;
+              start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
+              count[0] = countBounds[0] = zoom_count; // zoom_size
+              startBounds[1] = 0;
+              countBounds[1] = 2;
+
+              if (axis->label.isEmpty())
+                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
+
+              if (!axis->bounds.isEmpty() && axis->label.isEmpty())
+              {
+                axis_bounds.resize(2, indexToWrite.numElements());
+                for (int i = 0; i < nbWritten; ++i)
+                {
+                  if (i < axis->bounds.columns())
+                  {
+                    axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
+                    axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                  }
+                  else
+                  {
+                    axis_bounds(0, i) = 0.;
+                    axis_bounds(1, i) = 0.;
+                  }
+                }
+                SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+              }
+
+              // Need to check after
+              if (!axis->label.isEmpty())
+              {
+                std::vector<StdSize> startLabel(2), countLabel(2);
+                startLabel[0] = start[0]; startLabel[1] = 0;
+                countLabel[0] = count[0]; countLabel[1] = stringArrayLen;
+                SuperClassWriter::writeData(axis_label, axisid, isCollective, 0, &startLabel, &countLabel);
+              }
+
+              SuperClassWriter::definition_start();
+
+              break;
+            }
+            default :
+              ERROR("CNc4DataOutput::writeAxis_(CAxis* axis)",
+                    << "[ type = " << SuperClass::type << "]"
+                    << " not implemented yet !");
           }
         }
         catch (CNetCdfException& e)
@@ -1472,13 +1474,19 @@ namespace xios
         else if (scalar->prec==4)  typePrec =  NC_FLOAT ;
         else if (scalar->prec==8)   typePrec =  NC_DOUBLE ;
 
+        if (!scalar->label.isEmpty()) typePrec = NC_CHAR ;
+        string strId="str_len" ;
+
         try
         {
-          if (!scalar->value.isEmpty())
+          if (!scalar->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
+
+          if (!scalar->value.isEmpty() || !scalar->label.isEmpty())
           {
             std::vector<StdString> dims;
-//            dims.push_back(scalaId);
             StdString scalarDim = scalaId;
+
+            if (!scalar->label.isEmpty()) dims.push_back(strId);
 
             SuperClassWriter::addVariable(scalaId, typePrec, dims);
 
@@ -1513,13 +1521,17 @@ namespace xios
               }
             }
 
-            if (!scalar->bounds_value.isEmpty())
+            if (!scalar->positive.isEmpty())
             {
-              if (!scalar->bounds_value_name.isEmpty())
-              {
-                boundsId = scalar->bounds_value_name.getValue();
-                SuperClassWriter::addAttribute("bounds_value_name", boundsId, &scalaId);
-              }
+              SuperClassWriter::addAttribute("positive",
+                                             (scalar->positive == CScalar::positive_attr::up) ? string("up") : string("down"),
+                                             &scalaId);
+            }
+
+            if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
+            {
+              boundsId = (scalar->bounds_name.isEmpty()) ? (scalaId + "_bounds") : scalar->bounds_name.getValue();
+              SuperClassWriter::addAttribute("bounds_name", boundsId, &scalaId);
               SuperClassWriter::addDimension(boundsId, 1);
               SuperClassWriter::addVariable(boundsId, typePrec, dims);
             }
@@ -1531,13 +1543,26 @@ namespace xios
               case MULTI_FILE:
               {
                 CArray<double,1> scalarValue(scalarSize);
-                scalarValue(0) = scalar->value;
-                SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0);
-                if (!scalar->bounds_value.isEmpty())
+                CArray<string,1> scalarLabel(scalarSize);
+
+                if (!scalar->value.isEmpty() && scalar->label.isEmpty())
                 {
-                  scalarValue(0) = scalar->bounds_value;
+                  scalarValue(0) = scalar->value;
+                  SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0);
+                }
+
+                if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
+                {
+                  scalarValue(0) = scalar->bounds;
                   SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0);
                 }
+
+                if (!scalar->label.isEmpty())
+                {
+                  scalarLabel(0) = scalar->label;
+                  SuperClassWriter::writeData(scalarLabel, scalaId, isCollective, 0);
+                }
+
                 SuperClassWriter::definition_start();
 
                 break;
@@ -1545,18 +1570,29 @@ namespace xios
               case ONE_FILE:
               {
                 CArray<double,1> scalarValue(scalarSize);
-                scalarValue(0) = scalar->value;
+                CArray<string,1> scalarLabel(scalarSize);
 
                 std::vector<StdSize> start(1);
                 std::vector<StdSize> count(1);
                 start[0] = 0;
                 count[0] = 1;
-                SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0, &start, &count);
-                if (!scalar->bounds_value.isEmpty())
+                if (!scalar->value.isEmpty() && scalar->label.isEmpty())
                 {
-                  scalarValue(0) = scalar->bounds_value;
+                  scalarValue(0) = scalar->value;
+                  SuperClassWriter::writeData(scalarValue, scalaId, isCollective, 0, &start, &count);
+                }
+                if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
+                {
+                  scalarValue(0) = scalar->bounds;
                   SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0, &start, &count);
                 }
+                if (!scalar->label.isEmpty())
+                {
+                  scalarLabel(0) = scalar->label;
+                  count[0] = stringArrayLen;
+                  SuperClassWriter::writeData(scalarLabel, scalaId, isCollective, 0, &start, &count);
+                }
+
                 SuperClassWriter::definition_start();
 
                 break;
