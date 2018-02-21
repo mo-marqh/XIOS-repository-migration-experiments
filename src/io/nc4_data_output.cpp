@@ -1530,10 +1530,11 @@ namespace xios
 
             if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
             {
+              dims.clear();
+              dims.push_back("axis_nbounds");
               boundsId = (scalar->bounds_name.isEmpty()) ? (scalaId + "_bounds") : scalar->bounds_name.getValue();
-              SuperClassWriter::addAttribute("bounds_name", boundsId, &scalaId);
-              SuperClassWriter::addDimension(boundsId, 1);
               SuperClassWriter::addVariable(boundsId, typePrec, dims);
+              SuperClassWriter::addAttribute("bounds", boundsId, &scalaId);
             }
 
             SuperClassWriter::definition_end();
@@ -1544,6 +1545,7 @@ namespace xios
               {
                 CArray<double,1> scalarValue(scalarSize);
                 CArray<string,1> scalarLabel(scalarSize);
+                CArray<double,1> scalarBounds(scalarSize*2);
 
                 if (!scalar->value.isEmpty() && scalar->label.isEmpty())
                 {
@@ -1553,8 +1555,9 @@ namespace xios
 
                 if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
                 {
-                  scalarValue(0) = scalar->bounds;
-                  SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0);
+                  scalarBounds(0) = scalar->bounds(0);
+                  scalarBounds(1) = scalar->bounds(1);
+                  SuperClassWriter::writeData(scalarBounds, boundsId, isCollective, 0);
                 }
 
                 if (!scalar->label.isEmpty())
@@ -1571,6 +1574,7 @@ namespace xios
               {
                 CArray<double,1> scalarValue(scalarSize);
                 CArray<string,1> scalarLabel(scalarSize);
+                CArray<double,1> scalarBounds(scalarSize*2);
 
                 std::vector<StdSize> start(1);
                 std::vector<StdSize> count(1);
@@ -1583,8 +1587,10 @@ namespace xios
                 }
                 if (!scalar->bounds.isEmpty() && scalar->label.isEmpty())
                 {
-                  scalarValue(0) = scalar->bounds;
-                  SuperClassWriter::writeData(scalarValue, boundsId, isCollective, 0, &start, &count);
+                  scalarBounds(0) = scalar->bounds(0);
+                  scalarBounds(1) = scalar->bounds(1);
+                  count[0] = 2;
+                  SuperClassWriter::writeData(scalarBounds, boundsId, isCollective, 0, &start, &count);
                 }
                 if (!scalar->label.isEmpty())
                 {
