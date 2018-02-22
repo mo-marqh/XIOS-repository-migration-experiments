@@ -1365,10 +1365,12 @@ namespace xios
             case MULTI_FILE:
             {
               if (axis->label.isEmpty())
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
-
-              if (!axis->bounds.isEmpty() && axis->label.isEmpty())
               {
+                if (!axis->value.isEmpty())
+                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0);
+
+                if (!axis->bounds.isEmpty())
+                {
                   axis_bounds.resize(2, indexToWrite.numElements());
                   for (int i = 0; i < nbWritten; ++i)
                   {
@@ -1384,12 +1386,10 @@ namespace xios
 
                     }
                   }
-
-                SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
+                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0);
+                }
               }
-
-              // Need to check after
-              if (!axis->label.isEmpty())
+              else
                 SuperClassWriter::writeData(axis_label, axisid, isCollective, 0);
 
               SuperClassWriter::definition_start();
@@ -1405,29 +1405,30 @@ namespace xios
               countBounds[1] = 2;
 
               if (axis->label.isEmpty())
-                SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
-
-              if (!axis->bounds.isEmpty() && axis->label.isEmpty())
               {
-                axis_bounds.resize(2, indexToWrite.numElements());
-                for (int i = 0; i < nbWritten; ++i)
-                {
-                  if (i < axis->bounds.columns())
-                  {
-                    axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
-                    axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
-                  }
-                  else
-                  {
-                    axis_bounds(0, i) = 0.;
-                    axis_bounds(1, i) = 0.;
-                  }
-                }
-                SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
-              }
+                if (!axis->value.isEmpty())
+                  SuperClassWriter::writeData(axis_value, axisid, isCollective, 0, &start, &count);
 
-              // Need to check after
-              if (!axis->label.isEmpty())
+                if (!axis->bounds.isEmpty())
+                {
+                  axis_bounds.resize(2, indexToWrite.numElements());
+                  for (int i = 0; i < nbWritten; ++i)
+                  {
+                    if (i < axis->bounds.columns())
+                    {
+                      axis_bounds(0, i) = axis->bounds(0, int(indexToWrite(i)));
+                      axis_bounds(1, i) = axis->bounds(1, int(indexToWrite(i)));
+                    }
+                    else
+                    {
+                      axis_bounds(0, i) = 0.;
+                      axis_bounds(1, i) = 0.;
+                    }
+                  }
+                  SuperClassWriter::writeData(axis_bounds, axisBoundsId, isCollective, 0, &startBounds, &countBounds);
+                }
+              }
+              else
               {
                 std::vector<StdSize> startLabel(2), countLabel(2);
                 startLabel[0] = start[0]; startLabel[1] = 0;
