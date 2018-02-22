@@ -892,7 +892,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
     }
     else if (1 == dimElement) //axis
     {
-      CAxis* axis=axisListSrcP[elementPositionInGridSrc2DomainPosition_[i]] ;
+      CAxis* axis=axisListSrcP[elementPositionInGridSrc2AxisPosition_[i]] ;
       nIndexSrc[i] = axis->index.numElements() ;
       maskSrc[i]=&axis->mask ;
     }
@@ -922,7 +922,7 @@ void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed
     }
     else if (1 == dimElement) //axis
     {
-      CAxis* axis = axisListDstP[elementPositionInGridDst2DomainPosition_[i]] ;
+      CAxis* axis = axisListDstP[elementPositionInGridDst2AxisPosition_[i]] ;
       int nIndex=axis->index.numElements() ;
       CArray<bool,1>& localMask=axis->mask ;
       int nbInd=0 ;
