@@ -1258,7 +1258,7 @@ namespace xios
           SuperClassWriter::addDimension(axisDim, zoom_size);
           dims.push_back(axisDim);
 
-          if (!axis->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
+          if (!axis->label.isEmpty() && !SuperClassWriter::dimExist(strId)) SuperClassWriter::addDimension(strId, stringArrayLen);
 
           if (axis->hasValue || !axis->label.isEmpty())
           {
@@ -1480,7 +1480,7 @@ namespace xios
 
         try
         {
-          if (!scalar->label.isEmpty()) SuperClassWriter::addDimension(strId, stringArrayLen);
+          if (!scalar->label.isEmpty() && !SuperClassWriter::dimExist(strId)) SuperClassWriter::addDimension(strId, stringArrayLen);
 
           if (!scalar->value.isEmpty() || !scalar->label.isEmpty())
           {
