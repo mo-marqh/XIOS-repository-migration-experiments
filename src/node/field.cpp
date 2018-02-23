@@ -1216,11 +1216,10 @@ namespace xios{
 
        checkTimeAttributes(&outFreq);
 
-       const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+       const bool detectMissingValues = (!detect_missing_value.isEmpty()  && detect_missing_value == true);
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
-                                                                             freq_op, freq_offset, outFreq,
-                                                                             detectMissingValues, detectMissingValues ? default_value : 0.0));
+                                                                             freq_op, freq_offset, outFreq, detectMissingValues));
 
        instantDataFilter->connectOutput(temporalFilter, 0);
 
@@ -1255,11 +1254,10 @@ namespace xios{
 
        checkTimeAttributes(&outFreq);
 
-       const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+       const bool detectMissingValues = (!detect_missing_value.isEmpty() && detect_missing_value == true);
        boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
-                                                                             freq_op, freq_offset, outFreq,
-                                                                             detectMissingValues, detectMissingValues ? default_value : 0.0));
+                                                                             freq_op, freq_offset, outFreq, detectMissingValues));
 
        selfReferenceFilter->connectOutput(temporalFilter, 0);
        return temporalFilter ;

@@ -4,13 +4,13 @@
 
 namespace xios
 {
-  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, double missingValue, CArray<double, 1>& tmpData);
+  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, CArray<double, 1>& tmpData);
 
   CTemporalFilter::CTemporalFilter(CGarbageCollector& gc, const std::string& opId,
                                    const CDate& initDate, const CDuration samplingFreq, const CDuration samplingOffset, const CDuration opFreq,
-                                   bool ignoreMissingValue /*= false*/, double missingValue /*= 0.0*/)
+                                   bool ignoreMissingValue /*= false*/)
     : CFilter(gc, 1, this)
-    , functor(createFunctor(opId, ignoreMissingValue, missingValue, tmpData))
+    , functor(createFunctor(opId, ignoreMissingValue, tmpData))
     , isOnceOperation(functor->timeType() == func::CFunctor::once)
     , isInstantOperation(functor->timeType() == func::CFunctor::instant)
     , samplingFreq(samplingFreq)
@@ -94,11 +94,11 @@ namespace xios
     return isOnceOperation ? isFirstOperation : (date >= nextSamplingDate || date > initDate + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth);
   }
 
-  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, double missingValue, CArray<double, 1>& tmpData)
+  static func::CFunctor* createFunctor(const std::string& opId, bool ignoreMissingValue, CArray<double, 1>& tmpData)
   {
     func::CFunctor* functor = NULL;
 
-    double defaultValue = ignoreMissingValue ? std::numeric_limits<double>::quiet_NaN() : missingValue;
+    double defaultValue = std::numeric_limits<double>::quiet_NaN();
 
 #define DECLARE_FUNCTOR(MType, mtype) \
     if (opId.compare(#mtype) == 0) \

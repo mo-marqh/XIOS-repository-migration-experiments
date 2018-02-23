@@ -25,11 +25,10 @@ namespace xios
        * \param opFreq the operation frequency, i.e. the frequency at which the output data will be computed
        * \param ignoreMissingValue true if and only if the missing value must be ignored
                                    when doing the operation
-       * \param missingValue the missing value
        */
       CTemporalFilter(CGarbageCollector& gc, const std::string& opId,
                       const CDate& initDate, const CDuration samplingFreq, const CDuration samplingOffset, const CDuration opFreq,
-                      bool ignoreMissingValue = false, double missingValue = 0.0);
+                      bool ignoreMissingValue = false);
 
       /*!
        * Applies the temporal operation to the input data and returns the result when it is ready.
