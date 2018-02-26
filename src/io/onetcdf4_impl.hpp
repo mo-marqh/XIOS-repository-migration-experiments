@@ -74,7 +74,7 @@ namespace xios
     char *PtrArrayStr ;
     PtrArrayStr=new char[stringArrayLen] ;
     Array<StdString,1>::const_iterator it, itb=data.begin(), ite=data.end() ;
-    int lineNb;
+    int lineNb = 0;
     for(it=itb;it!=ite;++it)
     {
       it->copy(PtrArrayStr,it->size()) ;
