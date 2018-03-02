@@ -134,6 +134,8 @@ namespace xios
       bool is3Dim(const StdString& name, const CVarPath* const path = NULL);
       bool isCellGrid(const StdString& name, const CVarPath* const path = NULL);
 
+      bool isLonOrLat(const StdString& varname, const CVarPath* const path = NULL);
+
     protected:
       /// Getters ///
       int getGroup   (const CVarPath* const path = NULL);

@@ -500,24 +500,16 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if ((dimvar.size() == 1))
         {
-          // Check that the coordinate is not a scalar label
-          StdString dimTmp = dimvar.begin()->first;
-          if (dimTmp.compare("str_len") != 0)
-          {
-            dimVarList.insert(dimvar.begin()->first);
-            continue;
-          }
+          dimVarList.insert(dimvar.begin()->first);
+          continue;
         }
-        else
-          return false;
       }
     }
-
     return (dimVarList.size() != 1);
   }
 
@@ -533,7 +525,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if (2 == dimvar.size()) ++nbLonLat;
@@ -560,7 +552,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if ((dimvar.size() == 1) &&
@@ -790,4 +782,15 @@ namespace xios
     else
       return *(++(++clist.rbegin()));
   }
+
+  bool CINetCDF4::isLonOrLat(const StdString& varname, const CVarPath* const path)
+  {
+  if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &varname, path))
+  {
+    StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &varname, path);
+    return (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit)
+            || CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit));
+    }
+  }
+
 } // namespace xios
