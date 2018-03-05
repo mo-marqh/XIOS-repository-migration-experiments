@@ -1,6 +1,5 @@
 #include "nc4_data_output.hpp"
 
-#include <boost/lexical_cast.hpp>
 #include "attribute_template.hpp"
 #include "group_template.hpp"
 
@@ -2026,7 +2025,8 @@ namespace xios
           {
             CScalar* scalar = CScalar::get(scalarList[idxScalar]);
             StdString scalarId = scalar->getScalarOutputName();
-            dimCoordList.push_back(scalarId);
+            if (!scalar->value.isEmpty() || !scalar->label.isEmpty())
+              dimCoordList.push_back(scalarId);
             ++idxScalar;
           }
         }
