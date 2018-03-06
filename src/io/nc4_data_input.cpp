@@ -349,7 +349,7 @@ namespace xios
       StdString boundsLatName = this->getBoundsId(latName);
       StdString boundsLonName = this->getBoundsId(lonName);
 
-      int nbVertex = this->getNbVertex(fieldId);
+      int nbVertex = 4; //this->getNbVertex(fieldId);
       if (!domain->nvertex.isEmpty() && (domain->nvertex != nbVertex))
       {
         ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",

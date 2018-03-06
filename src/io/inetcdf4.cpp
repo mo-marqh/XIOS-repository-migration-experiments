@@ -82,7 +82,7 @@ namespace xios
   {
     std::pair<nc_type, StdSize> retvalue;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     CNetCdfInterface::inqAtt(grpid, varid, attname, retvalue.first, retvalue.second);
     return retvalue;
   }
@@ -215,10 +215,10 @@ namespace xios
   {
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::list<StdString> retvalue;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
     {
       CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
@@ -246,10 +246,10 @@ namespace xios
   {
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::map<StdString, StdSize> retvalue;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
     {
       CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
@@ -281,9 +281,9 @@ namespace xios
     int nbatt = 0;
     std::list<StdString> retvalue;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
       CNetCdfInterface::inqVarNAtts(grpid, varid, nbatt);
     else
       CNetCdfInterface::inqNAtts(grpid, nbatt);
@@ -375,7 +375,7 @@ namespace xios
                                               const CVarPath* const path)
   {
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::pair<nc_type , StdSize> attinfos = this->getAttribute(name, var, path);
     std::vector<T> retvalue(attinfos.second);
     nc_type type = CNetCdfInterface::getNcType<T>();
@@ -493,24 +493,45 @@ namespace xios
 
   bool CINetCDF4::isRectilinear(const StdString& name, const CVarPath* const path)
   {
-    std::list<StdString> coords = this->getCoordinatesIdList(name, path);
-    std::list<StdString>::const_iterator it = coords.begin(), end = coords.end();
-    std::set<StdString> dimVarList;
+    std::list<StdString> varCoords = this->getCoordinatesIdList(name, path);
+    std::list<StdString> varDims = this->getDimensionsList(&name, path);
+    std::list<StdString>::const_iterator it = varCoords.begin(), end = varCoords.end();
+    std::set<StdString> varDims1D;
 
+    // Firstly, loop over coordinate list
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) )
       {
-        std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
-        if ((dimvar.size() == 1))
+        std::map<StdString, StdSize> coordDims = this->getDimensions(&coord, path);
+        for (std::map<StdString, StdSize>::const_iterator itTmp = coordDims.begin(); itTmp != coordDims.end(); itTmp++)
         {
-          dimVarList.insert(dimvar.begin()->first);
+          varDims.remove(itTmp->first);
+        }
+        if (this->isLonOrLat(coord, path) && coordDims.size() == 1)
+        {
+          varDims1D.insert(coordDims.begin()->first);
           continue;
         }
       }
     }
-    return (dimVarList.size() != 1);
+    // Secondly, loop over remaining dimensions
+    for (it= varDims.begin(); it != varDims.end(); it++)
+    {
+      const StdString& coord = *it;
+      std::map<StdString, StdSize> coordDims = this->getDimensions(&coord, path);
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) )
+      {
+        if (this->isLonOrLat(coord, path) && coordDims.size() == 1)
+        {
+          varDims1D.insert(coordDims.begin()->first);
+          continue;
+        }
+      }
+    }
+
+    return (varDims1D.size() == 2);
   }
 
   bool CINetCDF4::isCurvilinear(const StdString& name, const CVarPath* const path)
