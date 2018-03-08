@@ -4,14 +4,12 @@ install_dir=$PWD
 compil_full="false"
 use_oasis="false"
 oasis="oasis3_mct"
+use_extern_boost="false"
 use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
-arch_path="arch"
-arch_default_path="arch"
-arch_defined="FALSE"
-arch_path_defined="FALSE"
+
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -28,6 +26,7 @@ while (($# > 0))
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
 	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
+        echo "       [--use_extern_boost : to use external boost library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
@@ -38,15 +37,15 @@ while (($# > 0))
          "--prod")  compil_mode="prod"  ; shift ;;
          "--dev")   compil_mode="dev"   ; shift ;;
          "--debug") compil_mode="debug" ; shift ;;
-         "--arch")  arch=$2     ; arch_defined="TRUE"; shift ; shift ;;
-         "--arch_path")  arch_path=$2     ; arch_path_defined="TRUE"; shift ; shift ;;
+         "--arch")  arch=$2     ; shift ; shift ;;
          "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true" oasis=$2 ; shift ; shift  ;;
+         "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
-         "--memtrack")  use_memtrack="true" memtrack=$2  ; shift ; shift ;;
+         "--memtrack")   use_memtrack="true" ; shift ;;
          *)         code="$1"           ; shift ;;
       esac
    done
@@ -74,40 +73,24 @@ echo > .void_file
 rm -rf .void_dir
 mkdir .void_dir
 
-if [[ "$arch_defined" == "TRUE" ]]
-then
-  rm -f arch.path
-  rm -f arch.fcm
-  rm -f arch.env
+if [[ !(-z $arch) ]]
+   then
+      rm -f  $install_dir/arch.path
+      rm -f  $install_dir/arch.fcm
+      rm -f  $install_dir/arch.env
+      ln -s  $install_dir/arch/arch-${arch}.path $install_dir/arch.path
+      ln -s  $install_dir/arch/arch-${arch}.fcm  $install_dir/arch.fcm
 
-  if test -f $arch_path/arch-${arch}.path
-  then
-    ln -s $arch_path/arch-${arch}.path arch.path
-  elif test -f $arch_default_path/arch-${arch}.path
-  then
-    ln -s $arch_default_path/arch-${arch}.path arch.path
-  fi
-        
-  if test -f $arch_path/arch-${arch}.fcm
-  then
-    ln -s $arch_path/arch-${arch}.fcm arch.fcm
-  elif test -f $arch_default_path/arch-${arch}.fcm
-  then
-    ln -s $arch_default_path/arch-${arch}.fcm arch.fcm
-  fi
+      if test -f $install_dir/arch/arch-${arch}.env
+      then
+        ln -s $install_dir/arch/arch-${arch}.env arch.env
+      else
+        ln -s $install_dir/.void_file arch.env
+      fi
 
-  if test -f $arch_path/arch-${arch}.env
-  then
-    ln -s $arch_path/arch-${arch}.env arch.env
-  elif test -f $arch_default_path/arch-${arch}.env
-  then
-    ln -s $arch_default_path/arch-${arch}.env arch.env
+      source $install_dir/arch.env
+      source $install_dir/arch.path
   else
-    ln -s .void_file arch.env
-  fi
-  source arch.env
-  source arch.path
-else
       echo "Please choose a target achitecture --> list all available architecture using make_xios --avail!"
       exit 1
 fi
@@ -167,27 +150,28 @@ if [[ "$use_oasis" == "true" ]]
     NETCDF_LIB="-lnetcdff -lnetcdf"
     XIOS_FINCDIR="$OASIS_INCDIR $XIOS_FINCDIR"
     XIOS_LIB="$OASIS_LIBDIR $OASIS_LIB $XIOS_LIB"
-fi 
+fi
+
+# Setting path for boost
+if [[ "$use_extern_boost" == "true" ]]
+then
+   ln -s $PWD/.void_dir $PWD/extern/boost
+else
+   ln -s $PWD/extern/boost $PWD/extern/boost
+   export BOOST_INCDIR="-I${PWD}/extern/boost"
+   export BOOST_LIBDIR=""
+   export BOOST_LIB=""
+fi
+
 
 if [[ "$use_memtrack" == "true" ]]
    then
+   XIOS_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XIOS_LIB"
    XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK"
-
-    if [[ "$memtrack" == "light" ]]
-    then
-	XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK_LIGHT"
-    elif [[ "$memtrack" == "FULL"  ]]
-    then
-      XIOS_LIB="$ADDR2LINE_LIBDIR $ADDR2LINE_LIB $XIOS_LIB"
-      XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK_FULL"
-    else
-	echo "Bad choice for --memtrack argument : choose between 'light','full'"
-	exit
-    fi
 fi 
 
-XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
-XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR"
+XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR $BOOST_INCDIR"
+XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR $BOOST_INCDIR"
 
 XIOS_LIB="$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
