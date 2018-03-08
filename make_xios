@@ -4,10 +4,12 @@ install_dir=$PWD
 compil_full="false"
 use_oasis="false"
 oasis="oasis3_mct"
+use_extern_boost="false"
 use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
+
 
 # Traitement de la ligne de commande
 while (($# > 0))
@@ -24,6 +26,7 @@ while (($# > 0))
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
 	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
+        echo "       [--use_extern_boost : to use external boost library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
@@ -38,6 +41,7 @@ while (($# > 0))
          "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true" oasis=$2 ; shift ; shift  ;;
+         "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
@@ -146,7 +150,19 @@ if [[ "$use_oasis" == "true" ]]
     NETCDF_LIB="-lnetcdff -lnetcdf"
     XIOS_FINCDIR="$OASIS_INCDIR $XIOS_FINCDIR"
     XIOS_LIB="$OASIS_LIBDIR $OASIS_LIB $XIOS_LIB"
-fi 
+fi
+
+# Setting path for boost
+if [[ "$use_extern_boost" == "true" ]]
+then
+   ln -s $PWD/.void_dir $PWD/extern/boost
+else
+   ln -s $PWD/extern/boost $PWD/extern/boost
+   export BOOST_INCDIR="-I${PWD}/extern/boost"
+   export BOOST_LIBDIR=""
+   export BOOST_LIB=""
+fi
+
 
 if [[ "$use_memtrack" == "true" ]]
    then
@@ -154,8 +170,8 @@ if [[ "$use_memtrack" == "true" ]]
    XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK"
 fi 
 
-XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR"
-XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR"
+XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR $BOOST_INCDIR"
+XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR $BOOST_INCDIR"
 
 XIOS_LIB="$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
