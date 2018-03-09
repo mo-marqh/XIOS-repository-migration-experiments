@@ -5,6 +5,7 @@ compil_full="false"
 use_oasis="false"
 oasis="oasis3_mct"
 use_extern_boost="false"
+use_extern_blitz="false"
 use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
@@ -30,6 +31,7 @@ while (($# > 0))
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
 	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"i
         echo "       [--use_extern_boost : to use external boost library"
+        echo "       [--use_extern_blitz : to use external blitz library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
 	    echo "       [--job ntasks] : to use parallel compilation with ntasks"
 	    echo "       [--netcdf_lib 'netcdf4_par'/'netcdf4_seq'/'netcdf4_internal' : default netcdf4_par] : choice of netcdf library"
@@ -46,6 +48,7 @@ while (($# > 0))
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true" oasis=$2 ; shift ; shift  ;;
          "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
+         "--use_extern_blitz")  use_extern_blitz="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
          "--job")   job=$2              ; shift ; shift ;;
          "--netcdf_lib")   netcdf_lib=$2 ; shift ; shift ;;
@@ -182,6 +185,17 @@ else
    export BOOST_LIB=""
 fi
 
+# Setting path for blitz
+if [[ "$use_extern_blitz" == "true" ]]
+then
+   ln -s $PWD/.void_dir $PWD/extern/blitz
+else
+   export BLITZ_INCDIR="-I${PWD}/extern/blitz"
+   export BLITZ_LIBDIR=""
+   export BLITZ_LIB=""
+fi
+
+
 if [[ "$use_memtrack" == "true" ]]
    then
    XIOS_CPPKEY="$XIOS_CPPKEY XIOS_MEMTRACK"
@@ -199,8 +213,8 @@ if [[ "$use_memtrack" == "true" ]]
     fi
 fi 
 
-XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR $BOOST_INCDIR"
-XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR $BOOST_INCDIR"
+XIOS_CINCDIR="$NETCDF_INCDIR $HDF5_INCDIR $MPI_INCDIR $BOOST_INCDIR $BLITZ_INCDIR"
+XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR $BOOST_INCDIR $BLITZ_INCDIR"
 
 XIOS_LIB="$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
