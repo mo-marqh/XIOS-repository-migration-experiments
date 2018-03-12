@@ -307,7 +307,7 @@ namespace xios
       //---------------------------------------------------------------
 
       int CONetCDF4::addVariable(const StdString& name, nc_type type,
-                                 const std::vector<StdString>& dim)
+                                 const std::vector<StdString>& dim, int compressionLevel)
       {
          int varid = 0;
          std::vector<int> dimids;
@@ -349,6 +349,8 @@ namespace xios
             CNetCdfInterface::defVarFill(grpid, varid, true, NULL);
          }
 
+         setCompressionLevel(name, compressionLevel) ;
+         
          return varid;
       }
 
