@@ -55,7 +55,9 @@ namespace xios
     class CDuplicateScalarToAxisGroup;
     class CReduceScalarToScalar;
     class CReduceScalarToScalarGroup;
-  
+    class CReorderDomain;
+    class CReorderDomainGroup;
+     
   template <typename T> inline string getStrType(void);
 
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
@@ -127,6 +129,8 @@ namespace xios
   macro(CDuplicateScalarToAxisGroup)
   macro(CReduceScalarToScalar)
   macro(CReduceScalarToScalarGroup)
+  macro(CReorderDomain)
+  macro(CReorderDomainGroup)
   
 #undef macro
 }

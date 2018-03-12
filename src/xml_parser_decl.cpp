@@ -36,5 +36,6 @@ namespace xios
     macro( TemporalSplitting )
     macro( DuplicateScalarToAxis )
     macro( ReduceScalarToScalar )
+    macro( ReorderDomain )
   }
 }

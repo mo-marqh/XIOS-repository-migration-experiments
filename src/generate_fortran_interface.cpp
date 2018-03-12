@@ -34,6 +34,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
   CGenerateRectilinearDomain genDomain;
   CComputeConnectivityDomain compConDomain;
   CExpandDomain expandDomain;
+  CReorderDomain reorderDomain;
 
   CInterpolateAxis interpolateAxis;
   CZoomAxis zoomAxis;
@@ -300,6 +301,18 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"iexpand_domain_attr.F90").c_str());
   expandDomain.generateFortranInterface(file);
+
+  file.open((path+"reorder_domain_interface_attr.F90").c_str());
+  reorderDomain.generateFortran2003Interface(file);
+  file.close();
+
+  file.open((path+"icreorder_domain_attr.cpp").c_str());
+  reorderDomain.generateCInterface(file);
+  file.close();
+
+  file.open((path+"ireorder_domain_attr.F90").c_str());
+  reorderDomain.generateFortranInterface(file);
+
   file.close();
   
   /*!
