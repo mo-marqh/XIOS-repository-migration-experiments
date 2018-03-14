@@ -63,6 +63,10 @@ if [ ${nb_files_gz} -ne 0 ]
 then
     echo -e "- uncompress archives ..."		
     for tarname in `ls $install_dir/tools/archive/*.tar.gz` ; do
+        if  ( [[ ${tarname} == "${install_dir}/tools/archive/boost.tar.gz" ]] && [[ "$use_extern_boost" == "true" ]] ) || ( [[ ${tarname} == "${install_dir}/tools/archive/blitz.tar.gz" ]] && [[ "$use_extern_blitz" == "true" ]] )
+        then
+                continue
+        fi
 	gunzip -f "$tarname"
 	tar -xf ${tarname%.gz}
     done
@@ -178,6 +182,7 @@ fi
 # Setting path for boost
 if [[ "$use_extern_boost" == "true" ]]
 then
+   rm -r $PWD/extern/boost
    ln -s $PWD/.void_dir $PWD/extern/boost
 else
    export BOOST_INCDIR="-I${PWD}/extern/boost"
@@ -188,6 +193,7 @@ fi
 # Setting path for blitz
 if [[ "$use_extern_blitz" == "true" ]]
 then
+   rm -r $PWD/extern/blitz
    ln -s $PWD/.void_dir $PWD/extern/blitz
 else
    export BLITZ_INCDIR="-I${PWD}/extern/blitz"
