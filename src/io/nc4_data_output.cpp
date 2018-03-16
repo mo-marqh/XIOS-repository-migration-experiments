@@ -36,7 +36,8 @@ namespace xios
             , file(file),hasTimeInstant(false),hasTimeCentered(false), timeCounterType(none)
       {
         SuperClass::type = (multifile) ? MULTI_FILE : ONE_FILE;
-        compressionLevel= file->compression_level.isEmpty() ? 0 :file->compression_level ;
+        if (file==NULL) compressionLevel = 0 ;
+        else compressionLevel= file->compression_level.isEmpty() ? 0 :file->compression_level ;
       }
 
       CNc4DataOutput::~CNc4DataOutput(void)
