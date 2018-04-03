@@ -42,7 +42,7 @@ void CSumReductionAlgorithm::apply(const std::vector<std::pair<int,double> >& lo
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
       currentlocalIndex = localIndex[idx].first;   
-      if (!NumTraits<double>::isnan(*(dataInput + idx)))
+      if (!NumTraits<double>::isNan(*(dataInput + idx)))
       {   
         if (flagInitial[currentlocalIndex])
         {

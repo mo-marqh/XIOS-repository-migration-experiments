@@ -92,7 +92,7 @@ namespace xios
 
       for (size_t idx = 0; idx < nbData; ++idx)
       {
-        if (NumTraits<double>::isnan(packet->data(idx)))
+        if (NumTraits<double>::isNan(packet->data(idx)))
           packet->data(idx) = missingValue;
       }
 

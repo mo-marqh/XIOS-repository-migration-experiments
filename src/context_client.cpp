@@ -289,7 +289,7 @@ namespace xios
      double minBufferSizeEventSizeRatio = std::numeric_limits<double>::max();
      for (std::map<int,StdSize>::const_iterator it = mapSize.begin(), ite = mapSize.end(); it != ite; ++it)
      {
-       double ratio = double(it->second) / maxEventSize.at(it->first);
+       double ratio = double(it->second) / maxEventSizes[it->first];
        if (ratio < minBufferSizeEventSizeRatio) minBufferSizeEventSizeRatio = ratio;
      }
      MPI_Allreduce(MPI_IN_PLACE, &minBufferSizeEventSizeRatio, 1, MPI_DOUBLE, MPI_MIN, intraComm);

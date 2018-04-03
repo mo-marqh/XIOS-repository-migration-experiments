@@ -33,9 +33,9 @@ namespace xios
             const double * in=_dinput.dataFirst() ;
             double* out=_doutput.dataFirst();
             for (i=0; i<n; ++i,++in,++out) 
-              if (!NumTraits<double>::isnan(*in))
+              if (!NumTraits<double>::isNan(*in))
               {
-                if(!NumTraits<double>::isnan(*out)) *out  += *in;
+                if(!NumTraits<double>::isNan(*out)) *out  += *in;
                 else *out=*in ;
               }
           }

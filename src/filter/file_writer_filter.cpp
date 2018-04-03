@@ -28,7 +28,7 @@ namespace xios
       const size_t nbData = dataArray.numElements();
       for (size_t idx = 0; idx < nbData; ++idx)
       {
-        if (NumTraits<double>::isnan(dataArray(idx)))
+        if (NumTraits<double>::isNan(dataArray(idx)))
           dataArray(idx) = missingValue;
       }
     }
