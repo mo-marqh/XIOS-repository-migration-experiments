@@ -129,9 +129,8 @@ namespace xios
     CDuration operator-(const CDate& dt0, const CDate& dt1)
     {
       // TODO :: Vérifier que les deux dates (dt0 et dt1) ont une référence vers le même calendrier.
-      CDuration dur =
-      { dt0.getYear() - dt1.getYear(), dt0.getMonth()  - dt1.getMonth() , dt0.getDay()   - dt1.getDay(),
-        dt0.getHour() - dt1.getHour(), dt0.getMinute() - dt1.getMinute(), dt0.getSecond() - dt1.getSecond() };
+      CDuration dur( dt0.getYear() - dt1.getYear(), dt0.getMonth()  - dt1.getMonth() , dt0.getDay()   - dt1.getDay(),
+      dt0.getHour() - dt1.getHour(), dt0.getMinute() - dt1.getMinute(), dt0.getSecond() - dt1.getSecond() );
       return (dur.resolve(dt0.getRelCalendar()));
     }
 

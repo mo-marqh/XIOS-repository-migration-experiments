@@ -19,6 +19,8 @@ namespace xios
             static CDuration FromString(const StdString& str);
 
          public:
+            CDuration(double year=0.0, double month=0.0, double day=0.0, double hour=0.0, double minute=0.0, double second=0.0, double timestep=0.0);
+
             /// Opérateurs ///
             CDuration& operator=(const CDuration& duration);
             bool operator==(const CDuration& duration);

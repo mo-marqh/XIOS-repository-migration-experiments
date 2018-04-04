@@ -16,10 +16,10 @@ namespace xios
     , samplingFreq(samplingFreq)
     , samplingOffset(samplingOffset)
     , opFreq(opFreq)
-    , offsetMonth({0, this->samplingOffset.month, 0, 0, 0, 0, 0})
-    , offsetAllButMonth({this->samplingOffset.year, 0 , this->samplingOffset.day,
-                       this->samplingOffset.hour, this->samplingOffset.minute,
-                       this->samplingOffset.second, this->samplingOffset.timestep})
+    , offsetMonth(0, this->samplingOffset.month, 0, 0, 0, 0, 0)
+    , offsetAllButMonth(this->samplingOffset.year, 0 , this->samplingOffset.day,
+                        this->samplingOffset.hour, this->samplingOffset.minute,
+                        this->samplingOffset.second, this->samplingOffset.timestep)
     , initDate(initDate)
     , nextSamplingDate(initDate + (this->samplingOffset + initDate.getRelCalendar().getTimeStep()))
     , nbOperationDates(1)
