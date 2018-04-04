@@ -23,6 +23,7 @@ namespace xios
     , initDate(initDate)
     , nextSamplingDate(initDate + (this->samplingOffset + initDate.getRelCalendar().getTimeStep()))
     , nbOperationDates(1)
+    , nbSamplingDates(0)
 //    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
   {
@@ -47,6 +48,7 @@ namespace xios
 
       if (usePacket)
       {
+        nbSamplingDates ++;
         if (!copyLess)
         {
           if (!tmpData.numElements())
@@ -55,7 +57,7 @@ namespace xios
           (*functor)(data[0]->data);
         }
 
-        nextSamplingDate = nextSamplingDate + samplingFreq;
+        nextSamplingDate = ((initDate + offsetMonth) + nbSamplingDates * samplingFreq) + offsetAllButMonth + initDate.getRelCalendar().getTimeStep();
       }
 
       if (outputResult)

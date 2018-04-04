@@ -223,7 +223,11 @@ namespace xios{
 
     CArray<double,1> recv_data_tmp(recvDataSrv.numElements());    
     const CDate& currDate = context->getCalendar()->getCurrentDate();
-    const CDate opeDate   = (last_operation_srv + context->getCalendar()->getTimeStep()) +freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep();
+    CDuration offsetAllButMonth (freq_offset.getValue().year, 0 , freq_offset.getValue().day,
+                                   freq_offset.getValue().hour, freq_offset.getValue().minute,
+                                   freq_offset.getValue().second, freq_offset.getValue().timestep);
+    const CDate opeDate   = (last_operation_srv - offsetAllButMonth + context->getCalendar()->getTimeStep())
+                              + freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep() + offsetAllButMonth;
 
     if (opeDate <= currDate)
     {
@@ -250,7 +254,11 @@ namespace xios{
     CContext* context = CContext::getCurrent();
 
     const CDate& currDate = context->getCalendar()->getCurrentDate();
-    const CDate opeDate = (last_operation_srv + context->getCalendar()->getTimeStep()) + freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep();
+    CDuration offsetAllButMonth (freq_offset.getValue().year, 0 , freq_offset.getValue().day,
+                                   freq_offset.getValue().hour, freq_offset.getValue().minute,
+                                   freq_offset.getValue().second, freq_offset.getValue().timestep);
+    const CDate opeDate   = (last_operation_srv - offsetAllButMonth + context->getCalendar()->getTimeStep())
+                              + freq_op + freq_operation_srv - freq_op - context->getCalendar()->getTimeStep() + offsetAllButMonth;
     const CDate writeDate = last_Write_srv + freq_write_srv;
 
     if (opeDate <= currDate)

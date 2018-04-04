@@ -66,6 +66,7 @@ namespace xios
       const CDate initDate;
       CDate nextSamplingDate; //!< The date of the next sampling
       int nbOperationDates; //!< The number of times an operation is performed
+      int nbSamplingDates;
 //      CDate nextOperationDate; //!< The date of the next operation
       bool isFirstOperation; //!< True before the first operation was been computed
   }; // class CTemporalFilter
