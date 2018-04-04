@@ -46,7 +46,7 @@ void CAverageReductionAlgorithm::apply(const std::vector<std::pair<int,double> >
     {
       currentlocalIndex = localIndex[idx].first;
       currentWeight     = localIndex[idx].second;
-      if (!NumTraits<double>::isnan(*(dataInput + idx)))
+      if (!NumTraits<double>::isNan(*(dataInput + idx)))
       {
         if (flagInitial[currentlocalIndex])
         {

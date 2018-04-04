@@ -913,7 +913,7 @@ void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> 
 
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      if (NumTraits<double>::isnan(*(dataInput + idx)))
+      if (NumTraits<double>::isNan(*(dataInput + idx)))
       {
         flagInitial[localIndex[idx].first] = false;
         if (renormalize) renormalizationFactor(localIndex[idx].first)-=localIndex[idx].second ;

@@ -35,9 +35,9 @@ namespace xios
           if (hasMissingValue) 
           { 
             for (; it1 != end1; it1++, it++) 
-              if (!NumTraits<double>::isnan(*it1))
+              if (!NumTraits<double>::isNan(*it1))
               {
-                if (!NumTraits<double>::isnan(*it)) *it = std::min(*it1, *it);
+                if (!NumTraits<double>::isNan(*it)) *it = std::min(*it1, *it);
                 else *it=*it1 ;
               }
           }
