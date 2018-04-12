@@ -121,7 +121,16 @@ namespace xios
    template <typename T>
    CType<T>::operator T&()
    {
-    checkEmpty();
+     try
+     {
+       checkEmpty();
+     }
+     catch (xios::CException & exc)
+     {
+       StdString msg("Data is not initialized\n");
+       ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << msg);
+     }
+
     return *ptrValue ;
    }
 
@@ -207,7 +216,8 @@ namespace xios
   template <typename T>
   void CType<T>::checkEmpty(void) const
   {
-    if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
+//    if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
+    if (empty) throw CException();
   }
 
   template <typename T>
