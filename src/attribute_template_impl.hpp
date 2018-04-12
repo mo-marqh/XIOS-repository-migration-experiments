@@ -70,7 +70,18 @@ namespace xios
       template <class T>
          T CAttributeTemplate<T>::getValue(void) const
       {
-        return CType<T>::get() ;
+        try {
+          return CType<T>::get() ;
+        }
+        catch (xios::CException & exc)
+        {
+          StdString msg("On checking attribute with id=");
+          msg.append(this->getId());
+          msg.append(" : ");
+          msg.append("data is not initialized\n");
+          ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << msg);
+        }
+
 /*
         if (SuperClass::isEmpty())
         {
