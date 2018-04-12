@@ -51,6 +51,8 @@ namespace xios
             void set(const CAttribute& attr) ;
             void set(const CAttributeTemplate& attr) ;
             void reset(void) ;
+            void checkEmpty(void) const;
+
 
             void setInheritedValue(const CAttributeTemplate& attr );
             void setInheritedValue(const CAttribute& attr );
