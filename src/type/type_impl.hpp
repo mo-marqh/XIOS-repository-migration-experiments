@@ -86,14 +86,14 @@ namespace xios
   template <typename T>
   T& CType<T>::get(void)
   {
-    checkEmpty();
+    this->checkEmpty();
    return *ptrValue ;
   }
 
   template <typename T>
   const T& CType<T>::get(void) const
   {
-    checkEmpty();
+    this->checkEmpty();
     return *ptrValue ;
   }
 
@@ -121,30 +121,21 @@ namespace xios
    template <typename T>
    CType<T>::operator T&()
    {
-     try
-     {
-       checkEmpty();
-     }
-     catch (xios::CException & exc)
-     {
-       StdString msg("Data is not initialized\n");
-       ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << msg);
-     }
-
-    return *ptrValue ;
+     this->checkEmpty();
+     return *ptrValue ;
    }
 
    template <typename T>
    CType<T>::operator const T&() const
    {
-    checkEmpty();
+    this->checkEmpty();
     return *ptrValue ;
    }
 
    template <typename T>
    CType<T>* CType<T>::_clone(void) const
    {
-     checkEmpty();
+     this->checkEmpty();
      return new CType(*this) ;
    }
 
@@ -173,7 +164,7 @@ namespace xios
   string CType<T>::_toString(void) const
   {
     ostringstream oss;
-    checkEmpty();
+    this->checkEmpty();
     oss<<*ptrValue ;
     return oss.str() ;
   }
@@ -181,7 +172,7 @@ namespace xios
   template <typename T>
   bool CType<T>::_toBuffer(CBufferOut& buffer) const
   {
-    checkEmpty();
+    this->checkEmpty();
     return buffer.put(*ptrValue) ;
   }
 
@@ -214,10 +205,9 @@ namespace xios
   }
 
   template <typename T>
-  void CType<T>::checkEmpty(void) const
+  void CType<T>::_checkEmpty(void) const
   {
-//    if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
-    if (empty) throw CException();
+    if (empty) ERROR("template <typename T> void CType<T>::checkEmpty(void) const", << "Data is not initialized") ;
   }
 
   template <typename T>

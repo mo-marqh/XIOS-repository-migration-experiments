@@ -46,7 +46,7 @@ namespace xios
     virtual size_t size(void) const { return _size(); }
 
     void allocate(void) ;
-    void checkEmpty(void) const;
+    virtual void checkEmpty(void) const {return _checkEmpty();};
 
     T* ptrValue ;
     bool empty ;
@@ -62,6 +62,7 @@ namespace xios
     bool _toBuffer(CBufferOut& buffer) const;
     void _reset(void) ;
     bool _isEmpty() const ;
+    void _checkEmpty(void) const;
     size_t _size(void) const ;
 
   } ;
