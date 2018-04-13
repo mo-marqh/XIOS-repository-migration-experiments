@@ -911,26 +911,26 @@ void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> 
        renormalizationFactor=1 ;
      }
 
+    if (firstPass)
+    {
+      allMissing.resize(dataOut.numElements()) ;
+      allMissing=true ;
+    }
+
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
       if (NumTraits<double>::isNan(*(dataInput + idx)))
       {
-        flagInitial[localIndex[idx].first] = false;
+        allMissing(localIndex[idx].first) = allMissing(localIndex[idx].first) && true;
         if (renormalize) renormalizationFactor(localIndex[idx].first)-=localIndex[idx].second ;
       }
       else
       {
         dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
-        flagInitial[localIndex[idx].first] = true; // Reset flag to indicate not all data source are nan
+        allMissing(localIndex[idx].first) = allMissing(localIndex[idx].first) && false; // Reset flag to indicate not all data source are nan
       }
     }
 
-    // If all data source are nan then data destination must be nan
-    for (int idx = 0; idx < nbLocalIndex; ++idx)
-    {
-      if (!flagInitial[localIndex[idx].first])
-        dataOut(localIndex[idx].first) = defaultValue;
-    }
   }
   else
   {
@@ -943,10 +943,21 @@ void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> 
 
 void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
 {
-  if (detectMissingValue && renormalize)
+  if (detectMissingValue)
   {
-    if (renormalizationFactor.numElements()>0) dataOut/=renormalizationFactor ; // In some case, process doesn't received any data for interpolation (mask)
-                                                                                // so renormalizationFactor is not initialized
+    double defaultValue = std::numeric_limits<double>::quiet_NaN();
+    size_t nbIndex=dataOut.numElements() ; 
+
+    for (int idx = 0; idx < nbIndex; ++idx)
+    {
+      if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+    }
+    
+    if (renormalize)
+    {
+      if (renormalizationFactor.numElements()>0) dataOut/=renormalizationFactor ; // In some case, process doesn't received any data for interpolation (mask)
+                                                                                 // so renormalizationFactor is not initialized
+    }
   }
 }
 

@@ -36,27 +36,21 @@ void CGenericAlgorithmTransformation::apply(const std::vector<std::pair<int,doub
 {
   int nbLocalIndex = localIndex.size();   
   double defaultValue = std::numeric_limits<double>::quiet_NaN();
+    
   if (ignoreMissingValue)
   {
+    if (firstPass) dataOut=defaultValue ;
+    
     for (int idx = 0; idx < nbLocalIndex; ++idx)
     {
-      if (NumTraits<double>::isNan(*(dataInput + idx)))
+      if (! NumTraits<double>::isNan(*(dataInput + idx)))
       {
-        flagInitial[localIndex[idx].first] = false;
-      }
-      else
-      {
-        dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
-        flagInitial[localIndex[idx].first] = true; // Reset flag to indicate not all data source are nan
+        if (flagInitial[localIndex[idx].first]) dataOut(localIndex[idx].first) = *(dataInput + idx) * localIndex[idx].second;
+        else dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+        flagInitial[localIndex[idx].first] = false; // Reset flag to indicate not all data source are nan
       }
     }
 
-    // If all data source are nan then data destination must be nan
-    for (int idx = 0; idx < nbLocalIndex; ++idx)
-    {
-      if (!flagInitial[localIndex[idx].first])
-        dataOut(localIndex[idx].first) = defaultValue;
-    }
   }
   else
   {

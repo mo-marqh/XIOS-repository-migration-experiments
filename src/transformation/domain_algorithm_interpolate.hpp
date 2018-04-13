@@ -54,6 +54,7 @@ private:
 
 private:
   CArray<double,1> renormalizationFactor ;
+  CArray<bool,1> allMissing ;
   bool detectMissingValue ;
   bool renormalize ;
   bool quantity ;
