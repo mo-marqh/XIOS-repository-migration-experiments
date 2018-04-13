@@ -184,7 +184,8 @@ namespace xios
       listDimSize.push_front(*itMap);
 */
 
-    if (!SuperClassWriter::isRectilinear(fieldId))
+//    if (!SuperClassWriter::isRectilinear(fieldId))
+    if (true)
     {
       for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
         listDimSize.push_front(*dimSizeMap.find(*it));
@@ -466,7 +467,8 @@ namespace xios
     for (int i = 0; i < elementPosition; ++i, ++itMapNi) {}
     itMapNj = itMapNi; ++itMapNj;
 
-    if (this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
+    if (CDomain::type_attr::rectilinear == domain->type || CDomain::type_attr::curvilinear == domain->type ||
+        this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
     {
       if (!domain->nj_glo.isEmpty() && (domain->nj_glo != itMapNj->second))
       {
@@ -490,7 +492,7 @@ namespace xios
       } 
       domain->ni_glo.setValue(itMapNi->second);
     }
-    else if (this->isUnstructured(fieldId))
+    else if (CDomain::type_attr::unstructured == domain->type|| this->isUnstructured(fieldId))
     {
       domain->nj_glo.setValue(1);
 
