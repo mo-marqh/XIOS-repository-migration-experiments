@@ -9,9 +9,10 @@
 
 namespace xios
 {
-  CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/, const StdString& timeCounterName /*= "time_counter"*/)
+  CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/,
+                               bool readMetaDataPar /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
     : SuperClass()
-    , SuperClassWriter(filename, &comm_file, multifile, timeCounterName)
+    , SuperClassWriter(filename, &comm_file, multifile, readMetaDataPar, timeCounterName)
     , comm_file(comm_file)
     , filename(filename)
     , isCollective(isCollective)
