@@ -23,7 +23,7 @@ namespace xios
 
     /// Constructors ///
     CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective = true,
-                  const StdString& timeCounterName = "time_counter");
+                  bool ugridConvention = false, const StdString& timeCounterName = "time_counter");
     CNc4DataInput(const CNc4DataInput& dataInput);       // Not implemented.
     CNc4DataInput(const CNc4DataInput* const dataInput); // Not implemented.
 
@@ -72,6 +72,7 @@ namespace xios
     MPI_Comm comm_file;
     const StdString filename;
     bool isCollective;
+    bool ugridConvention;
   }; // class CNc4DataInput
 
 template <typename T, int Ndim>

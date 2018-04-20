@@ -596,8 +596,9 @@ namespace xios {
       bool isCollective = par_access.isEmpty() || par_access == par_access_attr::collective;
 
       if (isOpen) data_out->closeFile();
-      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective));
-      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, time_counter_name));
+      bool ugridConvention = !convention.isEmpty() ? (convention == convention_attr::UGRID) : false;
+      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, ugridConvention));
+      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, ugridConvention, time_counter_name));
       isOpen = true;
     }
   }
