@@ -10,12 +10,13 @@
 namespace xios
 {
   CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/,
-                               bool readMetaDataPar /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
+                               bool readMetaDataPar /*= false*/, bool ugridConvention /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
     : SuperClass()
     , SuperClassWriter(filename, &comm_file, multifile, readMetaDataPar, timeCounterName)
     , comm_file(comm_file)
     , filename(filename)
     , isCollective(isCollective)
+    , ugridConvention(ugridConvention)
     , readMetaDataDomains_(), readValueDomains_()
     , readMetaDataAxis_(), readValueAxis_()
     , readMetaDataScalar_(), readValueScalar_()
@@ -418,7 +419,14 @@ namespace xios
       StdString boundsLatName = this->getBoundsId(latName);
       StdString boundsLonName = this->getBoundsId(lonName);
 
-      int nbVertex = this->getNbVertex(fieldId);
+      if (ugridConvention && domain->nvertex.isEmpty())
+      {
+        ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
+          << " Attribute nvertex must be specified for domain " << domain->getDomainOutputName()
+          << " read from UGRID file " << this->filename << " ."<< std::endl);
+      }
+//      int nbVertex = this->getNbVertex(fieldId);
+      int nbVertex = (ugridConvention) ? domain->nvertex : this->getNbVertex(fieldId);
       if (!domain->nvertex.isEmpty() && (domain->nvertex != nbVertex))
       {
         ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",

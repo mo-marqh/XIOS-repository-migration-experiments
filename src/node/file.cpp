@@ -660,8 +660,11 @@ namespace xios {
       if (!context->hasServer) readMetaDataPar = (read_metadata_par.isEmpty()) ? false : read_metadata_par;
 
       if (isOpen) data_out->closeFile();
-      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar));
-      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, time_counter_name));
+      bool ugridConvention = !convention.isEmpty() ? (convention == convention_attr::UGRID) : false;
+      if (time_counter_name.isEmpty())
+        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention));
+      else
+        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention, time_counter_name));
       isOpen = true;
     }
   }

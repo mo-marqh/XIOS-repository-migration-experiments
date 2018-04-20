@@ -1497,7 +1497,8 @@ namespace xios {
          ERROR("CDomain::checkBounds(void)",
                << "Since 'bounds_lat_2d' is defined, 'latvalue_2d' must be defined too." << std::endl);
 
-       hasBounds = true;
+       // In case of reading UGRID bounds values are not required
+       hasBounds = (!bounds_lat_1d.isEmpty() || !bounds_lat_2d.isEmpty() );
      }
      else if (hasBoundValues)
      {
