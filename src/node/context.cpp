@@ -884,7 +884,7 @@ namespace xios {
          {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
             {
-              if (!allFiles[i]->output_freq.isEmpty())
+              if (allFiles[i]->output_freq.isEmpty())
               {
                  ERROR("CContext::findEnabledFiles()",
                      << "Mandatory attribute output_freq must be defined for file \""<<allFiles[i]->getFileOutputName()
@@ -902,7 +902,7 @@ namespace xios {
          }
          else
          {
-           if (!allFiles[i]->output_freq.isEmpty())
+           if (allFiles[i]->output_freq.isEmpty())
            {
               ERROR("CContext::findEnabledFiles()",
                   << "Mandatory attribute output_freq must be defined for file \""<<allFiles[i]->getFileOutputName()
