@@ -602,6 +602,12 @@ namespace xios {
          {
             if (allFiles[i]->enabled.getValue()) // Si l'attribut 'enabled' est fixé à vrai.
             {
+              if (allFiles[i]->output_freq.isEmpty())
+              {
+                 ERROR("CContext::findEnabledFiles()",
+                     << "Mandatory attribute output_freq must be defined for file \""<<allFiles[i]->getFileOutputName()
+                     <<" \".")
+              }
               if ((initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
               {
                 error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
@@ -614,6 +620,12 @@ namespace xios {
          }
          else
          {
+           if (allFiles[i]->output_freq.isEmpty())
+           {
+              ERROR("CContext::findEnabledFiles()",
+                  << "Mandatory attribute output_freq must be defined for file \""<<allFiles[i]->getFileOutputName()
+                  <<" \".")
+           }  
            if ( (initDate + allFiles[i]->output_freq.getValue()) < (initDate + this->getCalendar()->getTimeStep()))
            {
              error(0)<<"WARNING: void CContext::findEnabledFiles()"<<endl
