@@ -301,6 +301,7 @@ int main (int argc, char ** argv, char ** UNUSED (env))
 
   file.open((path+"iexpand_domain_attr.F90").c_str());
   expandDomain.generateFortranInterface(file);
+  file.close();
 
   file.open((path+"reorder_domain_interface_attr.F90").c_str());
   reorderDomain.generateFortran2003Interface(file);

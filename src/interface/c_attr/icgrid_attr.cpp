@@ -17,6 +17,32 @@ extern "C"
 {
   typedef xios::CGrid* grid_Ptr;
 
+  void cxios_set_grid_comment(grid_Ptr grid_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    grid_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_grid_comment(grid_Ptr grid_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(grid_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_grid_comment(grid_Ptr grid_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_grid_comment(grid_Ptr grid_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = grid_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_grid_description(grid_Ptr grid_hdl, const char * description, int description_size)
   {
     std::string description_str;
@@ -38,6 +64,31 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = grid_hdl->description.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_grid_mask_0d(grid_Ptr grid_hdl, bool* mask_0d, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask_0d, shape(extent[0]), neverDeleteData);
+    grid_hdl->mask_0d.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_grid_mask_0d(grid_Ptr grid_hdl, bool* mask_0d, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<bool,1> tmp(mask_0d, shape(extent[0]), neverDeleteData);
+    tmp=grid_hdl->mask_0d.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_grid_mask_0d(grid_Ptr grid_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = grid_hdl->mask_0d.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

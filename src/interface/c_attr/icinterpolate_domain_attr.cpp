@@ -17,6 +17,29 @@ extern "C"
 {
   typedef xios::CInterpolateDomain* interpolate_domain_Ptr;
 
+  void cxios_set_interpolate_domain_detect_missing_value(interpolate_domain_Ptr interpolate_domain_hdl, bool detect_missing_value)
+  {
+    CTimer::get("XIOS").resume();
+    interpolate_domain_hdl->detect_missing_value.setValue(detect_missing_value);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_domain_detect_missing_value(interpolate_domain_Ptr interpolate_domain_hdl, bool* detect_missing_value)
+  {
+    CTimer::get("XIOS").resume();
+    *detect_missing_value = interpolate_domain_hdl->detect_missing_value.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_domain_detect_missing_value(interpolate_domain_Ptr interpolate_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_domain_hdl->detect_missing_value.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_interpolate_domain_mode(interpolate_domain_Ptr interpolate_domain_hdl, const char * mode, int mode_size)
   {
     std::string mode_str;
@@ -84,6 +107,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = interpolate_domain_hdl->quantity.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_interpolate_domain_read_write_convention(interpolate_domain_Ptr interpolate_domain_hdl, const char * read_write_convention, int read_write_convention_size)
+  {
+    std::string read_write_convention_str;
+    if (!cstr2string(read_write_convention, read_write_convention_size, read_write_convention_str)) return;
+    CTimer::get("XIOS").resume();
+    interpolate_domain_hdl->read_write_convention.fromString(read_write_convention_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_interpolate_domain_read_write_convention(interpolate_domain_Ptr interpolate_domain_hdl, char * read_write_convention, int read_write_convention_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(interpolate_domain_hdl->read_write_convention.getInheritedStringValue(), read_write_convention, read_write_convention_size))
+      ERROR("void cxios_get_interpolate_domain_read_write_convention(interpolate_domain_Ptr interpolate_domain_hdl, char * read_write_convention, int read_write_convention_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_interpolate_domain_read_write_convention(interpolate_domain_Ptr interpolate_domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = interpolate_domain_hdl->read_write_convention.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

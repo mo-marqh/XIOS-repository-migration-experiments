@@ -43,6 +43,32 @@ extern "C"
   }
 
 
+  void cxios_set_axisgroup_axis_type(axisgroup_Ptr axisgroup_hdl, const char * axis_type, int axis_type_size)
+  {
+    std::string axis_type_str;
+    if (!cstr2string(axis_type, axis_type_size, axis_type_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->axis_type.fromString(axis_type_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_axis_type(axisgroup_Ptr axisgroup_hdl, char * axis_type, int axis_type_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->axis_type.getInheritedStringValue(), axis_type, axis_type_size))
+      ERROR("void cxios_get_axisgroup_axis_type(axisgroup_Ptr axisgroup_hdl, char * axis_type, int axis_type_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_axis_type(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->axis_type.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_axisgroup_begin(axisgroup_Ptr axisgroup_hdl, int begin)
   {
     CTimer::get("XIOS").resume();
@@ -86,6 +112,58 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axisgroup_hdl->bounds.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_bounds_name(axisgroup_Ptr axisgroup_hdl, const char * bounds_name, int bounds_name_size)
+  {
+    std::string bounds_name_str;
+    if (!cstr2string(bounds_name, bounds_name_size, bounds_name_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->bounds_name.setValue(bounds_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_bounds_name(axisgroup_Ptr axisgroup_hdl, char * bounds_name, int bounds_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->bounds_name.getInheritedValue(), bounds_name, bounds_name_size))
+      ERROR("void cxios_get_axisgroup_bounds_name(axisgroup_Ptr axisgroup_hdl, char * bounds_name, int bounds_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_bounds_name(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->bounds_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_comment(axisgroup_Ptr axisgroup_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_comment(axisgroup_Ptr axisgroup_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_axisgroup_comment(axisgroup_Ptr axisgroup_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_comment(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->comment.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -157,6 +235,136 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = axisgroup_hdl->data_n.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_dim_name(axisgroup_Ptr axisgroup_hdl, const char * dim_name, int dim_name_size)
+  {
+    std::string dim_name_str;
+    if (!cstr2string(dim_name, dim_name_size, dim_name_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->dim_name.setValue(dim_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_dim_name(axisgroup_Ptr axisgroup_hdl, char * dim_name, int dim_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->dim_name.getInheritedValue(), dim_name, dim_name_size))
+      ERROR("void cxios_get_axisgroup_dim_name(axisgroup_Ptr axisgroup_hdl, char * dim_name, int dim_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_dim_name(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->dim_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_formula(axisgroup_Ptr axisgroup_hdl, const char * formula, int formula_size)
+  {
+    std::string formula_str;
+    if (!cstr2string(formula, formula_size, formula_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->formula.setValue(formula_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_formula(axisgroup_Ptr axisgroup_hdl, char * formula, int formula_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->formula.getInheritedValue(), formula, formula_size))
+      ERROR("void cxios_get_axisgroup_formula(axisgroup_Ptr axisgroup_hdl, char * formula, int formula_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_formula(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->formula.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_formula_bounds(axisgroup_Ptr axisgroup_hdl, const char * formula_bounds, int formula_bounds_size)
+  {
+    std::string formula_bounds_str;
+    if (!cstr2string(formula_bounds, formula_bounds_size, formula_bounds_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->formula_bounds.setValue(formula_bounds_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_formula_bounds(axisgroup_Ptr axisgroup_hdl, char * formula_bounds, int formula_bounds_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->formula_bounds.getInheritedValue(), formula_bounds, formula_bounds_size))
+      ERROR("void cxios_get_axisgroup_formula_bounds(axisgroup_Ptr axisgroup_hdl, char * formula_bounds, int formula_bounds_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_formula_bounds(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->formula_bounds.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_formula_term(axisgroup_Ptr axisgroup_hdl, const char * formula_term, int formula_term_size)
+  {
+    std::string formula_term_str;
+    if (!cstr2string(formula_term, formula_term_size, formula_term_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->formula_term.setValue(formula_term_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_formula_term(axisgroup_Ptr axisgroup_hdl, char * formula_term, int formula_term_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->formula_term.getInheritedValue(), formula_term, formula_term_size))
+      ERROR("void cxios_get_axisgroup_formula_term(axisgroup_Ptr axisgroup_hdl, char * formula_term, int formula_term_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_formula_term(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->formula_term.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_axisgroup_formula_term_bounds(axisgroup_Ptr axisgroup_hdl, const char * formula_term_bounds, int formula_term_bounds_size)
+  {
+    std::string formula_term_bounds_str;
+    if (!cstr2string(formula_term_bounds, formula_term_bounds_size, formula_term_bounds_str)) return;
+    CTimer::get("XIOS").resume();
+    axisgroup_hdl->formula_term_bounds.setValue(formula_term_bounds_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_axisgroup_formula_term_bounds(axisgroup_Ptr axisgroup_hdl, char * formula_term_bounds, int formula_term_bounds_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(axisgroup_hdl->formula_term_bounds.getInheritedValue(), formula_term_bounds, formula_term_bounds_size))
+      ERROR("void cxios_get_axisgroup_formula_term_bounds(axisgroup_Ptr axisgroup_hdl, char * formula_term_bounds, int formula_term_bounds_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_axisgroup_formula_term_bounds(axisgroup_Ptr axisgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = axisgroup_hdl->formula_term_bounds.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

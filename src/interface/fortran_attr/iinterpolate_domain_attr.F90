@@ -11,15 +11,19 @@ MODULE iinterpolate_domain_attr
 CONTAINS
 
   SUBROUTINE xios(set_interpolate_domain_attr)  &
-    ( interpolate_domain_id, mode, order, quantity, renormalize, weight_filename, write_weight )
+    ( interpolate_domain_id, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
       CHARACTER(LEN=*), INTENT(IN) ::interpolate_domain_id
+      LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
       INTEGER  , OPTIONAL, INTENT(IN) :: order
       LOGICAL  , OPTIONAL, INTENT(IN) :: quantity
       LOGICAL (KIND=C_BOOL) :: quantity_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: read_write_convention
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename
@@ -29,21 +33,24 @@ CONTAINS
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(set_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(set_interpolate_domain_attr)
 
   SUBROUTINE xios(set_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode
       INTEGER  , OPTIONAL, INTENT(IN) :: order
       LOGICAL  , OPTIONAL, INTENT(IN) :: quantity
       LOGICAL (KIND=C_BOOL) :: quantity_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: read_write_convention
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename
@@ -51,26 +58,35 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(set_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(set_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(set_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, mode_, order_, quantity_, renormalize_, weight_filename_, write_weight_  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value_, mode_, order_, quantity_, read_write_convention_  &
+    , renormalize_, weight_filename_, write_weight_ )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value_
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: mode_
       INTEGER  , OPTIONAL, INTENT(IN) :: order_
       LOGICAL  , OPTIONAL, INTENT(IN) :: quantity_
       LOGICAL (KIND=C_BOOL) :: quantity__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: read_write_convention_
       LOGICAL  , OPTIONAL, INTENT(IN) :: renormalize_
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: weight_filename_
       LOGICAL  , OPTIONAL, INTENT(IN) :: write_weight_
       LOGICAL (KIND=C_BOOL) :: write_weight__tmp
+
+      IF (PRESENT(detect_missing_value_)) THEN
+        detect_missing_value__tmp = detect_missing_value_
+        CALL cxios_set_interpolate_domain_detect_missing_value &
+      (interpolate_domain_hdl%daddr, detect_missing_value__tmp)
+      ENDIF
 
       IF (PRESENT(mode_)) THEN
         CALL cxios_set_interpolate_domain_mode &
@@ -86,6 +102,11 @@ CONTAINS
         quantity__tmp = quantity_
         CALL cxios_set_interpolate_domain_quantity &
       (interpolate_domain_hdl%daddr, quantity__tmp)
+      ENDIF
+
+      IF (PRESENT(read_write_convention_)) THEN
+        CALL cxios_set_interpolate_domain_read_write_convention &
+      (interpolate_domain_hdl%daddr, read_write_convention_, len(read_write_convention_))
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN
@@ -108,15 +129,19 @@ CONTAINS
   END SUBROUTINE xios(set_interpolate_domain_attr_hdl_)
 
   SUBROUTINE xios(get_interpolate_domain_attr)  &
-    ( interpolate_domain_id, mode, order, quantity, renormalize, weight_filename, write_weight )
+    ( interpolate_domain_id, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
       CHARACTER(LEN=*), INTENT(IN) ::interpolate_domain_id
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
       INTEGER  , OPTIONAL, INTENT(OUT) :: order
       LOGICAL  , OPTIONAL, INTENT(OUT) :: quantity
       LOGICAL (KIND=C_BOOL) :: quantity_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: read_write_convention
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename
@@ -126,21 +151,24 @@ CONTAINS
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(get_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(get_interpolate_domain_attr)
 
   SUBROUTINE xios(get_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode
       INTEGER  , OPTIONAL, INTENT(OUT) :: order
       LOGICAL  , OPTIONAL, INTENT(OUT) :: quantity
       LOGICAL (KIND=C_BOOL) :: quantity_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: read_write_convention
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL (KIND=C_BOOL) :: renormalize_tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename
@@ -148,26 +176,35 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(get_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(get_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(get_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, mode_, order_, quantity_, renormalize_, weight_filename_, write_weight_  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value_, mode_, order_, quantity_, read_write_convention_  &
+    , renormalize_, weight_filename_, write_weight_ )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value_
+      LOGICAL (KIND=C_BOOL) :: detect_missing_value__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: mode_
       INTEGER  , OPTIONAL, INTENT(OUT) :: order_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: quantity_
       LOGICAL (KIND=C_BOOL) :: quantity__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: read_write_convention_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: renormalize_
       LOGICAL (KIND=C_BOOL) :: renormalize__tmp
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: weight_filename_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: write_weight_
       LOGICAL (KIND=C_BOOL) :: write_weight__tmp
+
+      IF (PRESENT(detect_missing_value_)) THEN
+        CALL cxios_get_interpolate_domain_detect_missing_value &
+      (interpolate_domain_hdl%daddr, detect_missing_value__tmp)
+        detect_missing_value_ = detect_missing_value__tmp
+      ENDIF
 
       IF (PRESENT(mode_)) THEN
         CALL cxios_get_interpolate_domain_mode &
@@ -183,6 +220,11 @@ CONTAINS
         CALL cxios_get_interpolate_domain_quantity &
       (interpolate_domain_hdl%daddr, quantity__tmp)
         quantity_ = quantity__tmp
+      ENDIF
+
+      IF (PRESENT(read_write_convention_)) THEN
+        CALL cxios_get_interpolate_domain_read_write_convention &
+      (interpolate_domain_hdl%daddr, read_write_convention_, len(read_write_convention_))
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN
@@ -205,17 +247,22 @@ CONTAINS
   END SUBROUTINE xios(get_interpolate_domain_attr_hdl_)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr)  &
-    ( interpolate_domain_id, mode, order, quantity, renormalize, weight_filename, write_weight )
+    ( interpolate_domain_id, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain))  :: interpolate_domain_hdl
       CHARACTER(LEN=*), INTENT(IN) ::interpolate_domain_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value
+      LOGICAL(KIND=C_BOOL) :: detect_missing_value_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mode
       LOGICAL(KIND=C_BOOL) :: mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: order
       LOGICAL(KIND=C_BOOL) :: order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: quantity
       LOGICAL(KIND=C_BOOL) :: quantity_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: read_write_convention
+      LOGICAL(KIND=C_BOOL) :: read_write_convention_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL(KIND=C_BOOL) :: renormalize_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename
@@ -226,23 +273,27 @@ CONTAINS
       CALL xios(get_interpolate_domain_handle) &
       (interpolate_domain_id,interpolate_domain_hdl)
       CALL xios(is_defined_interpolate_domain_attr_hdl_)   &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(is_defined_interpolate_domain_attr)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl)  &
-    ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+    , renormalize, weight_filename, write_weight )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value
+      LOGICAL(KIND=C_BOOL) :: detect_missing_value_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mode
       LOGICAL(KIND=C_BOOL) :: mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: order
       LOGICAL(KIND=C_BOOL) :: order_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: quantity
       LOGICAL(KIND=C_BOOL) :: quantity_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: read_write_convention
+      LOGICAL(KIND=C_BOOL) :: read_write_convention_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize
       LOGICAL(KIND=C_BOOL) :: renormalize_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename
@@ -251,29 +302,39 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: write_weight_tmp
 
       CALL xios(is_defined_interpolate_domain_attr_hdl_)  &
-      ( interpolate_domain_hdl, mode, order, quantity, renormalize, weight_filename, write_weight  &
-       )
+      ( interpolate_domain_hdl, detect_missing_value, mode, order, quantity, read_write_convention  &
+      , renormalize, weight_filename, write_weight )
 
   END SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl)
 
   SUBROUTINE xios(is_defined_interpolate_domain_attr_hdl_)   &
-    ( interpolate_domain_hdl, mode_, order_, quantity_, renormalize_, weight_filename_, write_weight_  &
-     )
+    ( interpolate_domain_hdl, detect_missing_value_, mode_, order_, quantity_, read_write_convention_  &
+    , renormalize_, weight_filename_, write_weight_ )
 
     IMPLICIT NONE
       TYPE(txios(interpolate_domain)) , INTENT(IN) :: interpolate_domain_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: detect_missing_value_
+      LOGICAL(KIND=C_BOOL) :: detect_missing_value__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mode_
       LOGICAL(KIND=C_BOOL) :: mode__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: order_
       LOGICAL(KIND=C_BOOL) :: order__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: quantity_
       LOGICAL(KIND=C_BOOL) :: quantity__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: read_write_convention_
+      LOGICAL(KIND=C_BOOL) :: read_write_convention__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: renormalize_
       LOGICAL(KIND=C_BOOL) :: renormalize__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: weight_filename_
       LOGICAL(KIND=C_BOOL) :: weight_filename__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: write_weight_
       LOGICAL(KIND=C_BOOL) :: write_weight__tmp
+
+      IF (PRESENT(detect_missing_value_)) THEN
+        detect_missing_value__tmp = cxios_is_defined_interpolate_domain_detect_missing_value &
+      (interpolate_domain_hdl%daddr)
+        detect_missing_value_ = detect_missing_value__tmp
+      ENDIF
 
       IF (PRESENT(mode_)) THEN
         mode__tmp = cxios_is_defined_interpolate_domain_mode &
@@ -291,6 +352,12 @@ CONTAINS
         quantity__tmp = cxios_is_defined_interpolate_domain_quantity &
       (interpolate_domain_hdl%daddr)
         quantity_ = quantity__tmp
+      ENDIF
+
+      IF (PRESENT(read_write_convention_)) THEN
+        read_write_convention__tmp = cxios_is_defined_interpolate_domain_read_write_convention &
+      (interpolate_domain_hdl%daddr)
+        read_write_convention_ = read_write_convention__tmp
       ENDIF
 
       IF (PRESENT(renormalize_)) THEN

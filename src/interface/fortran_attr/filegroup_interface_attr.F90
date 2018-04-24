@@ -28,6 +28,27 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_append
 
 
+    SUBROUTINE cxios_set_filegroup_comment(filegroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_filegroup_comment
+
+    SUBROUTINE cxios_get_filegroup_comment(filegroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_filegroup_comment
+
+    FUNCTION cxios_is_defined_filegroup_comment(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_comment
+
+
     SUBROUTINE cxios_set_filegroup_compression_level(filegroup_hdl, compression_level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -333,6 +354,25 @@ MODULE filegroup_interface_attr
     END FUNCTION cxios_is_defined_filegroup_par_access
 
 
+    SUBROUTINE cxios_set_filegroup_read_metadata_par(filegroup_hdl, read_metadata_par) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: read_metadata_par
+    END SUBROUTINE cxios_set_filegroup_read_metadata_par
+
+    SUBROUTINE cxios_get_filegroup_read_metadata_par(filegroup_hdl, read_metadata_par) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      LOGICAL (KIND=C_BOOL)             :: read_metadata_par
+    END SUBROUTINE cxios_get_filegroup_read_metadata_par
+
+    FUNCTION cxios_is_defined_filegroup_read_metadata_par(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_read_metadata_par
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_read_metadata_par
+
+
     SUBROUTINE cxios_set_filegroup_record_offset(filegroup_hdl, record_offset) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
@@ -350,6 +390,27 @@ MODULE filegroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_record_offset
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
     END FUNCTION cxios_is_defined_filegroup_record_offset
+
+
+    SUBROUTINE cxios_set_filegroup_split_end_offset(filegroup_hdl, split_end_offset) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      TYPE(txios(duration)), VALUE :: split_end_offset
+    END SUBROUTINE cxios_set_filegroup_split_end_offset
+
+    SUBROUTINE cxios_get_filegroup_split_end_offset(filegroup_hdl, split_end_offset) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      TYPE(txios(duration)) :: split_end_offset
+    END SUBROUTINE cxios_get_filegroup_split_end_offset
+
+    FUNCTION cxios_is_defined_filegroup_split_end_offset(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_split_end_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_split_end_offset
 
 
     SUBROUTINE cxios_set_filegroup_split_freq(filegroup_hdl, split_freq) BIND(C)
@@ -392,6 +453,48 @@ MODULE filegroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_split_freq_format
       INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
     END FUNCTION cxios_is_defined_filegroup_split_freq_format
+
+
+    SUBROUTINE cxios_set_filegroup_split_last_date(filegroup_hdl, split_last_date, split_last_date_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_last_date
+      INTEGER  (kind = C_INT)     , VALUE        :: split_last_date_size
+    END SUBROUTINE cxios_set_filegroup_split_last_date
+
+    SUBROUTINE cxios_get_filegroup_split_last_date(filegroup_hdl, split_last_date, split_last_date_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: split_last_date
+      INTEGER  (kind = C_INT)     , VALUE        :: split_last_date_size
+    END SUBROUTINE cxios_get_filegroup_split_last_date
+
+    FUNCTION cxios_is_defined_filegroup_split_last_date(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_split_last_date
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_split_last_date
+
+
+    SUBROUTINE cxios_set_filegroup_split_start_offset(filegroup_hdl, split_start_offset) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      TYPE(txios(duration)), VALUE :: split_start_offset
+    END SUBROUTINE cxios_set_filegroup_split_start_offset
+
+    SUBROUTINE cxios_get_filegroup_split_start_offset(filegroup_hdl, split_start_offset) BIND(C)
+      USE ISO_C_BINDING
+      USE IDURATION
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+      TYPE(txios(duration)) :: split_start_offset
+    END SUBROUTINE cxios_get_filegroup_split_start_offset
+
+    FUNCTION cxios_is_defined_filegroup_split_start_offset(filegroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_filegroup_split_start_offset
+      INTEGER (kind = C_INTPTR_T), VALUE :: filegroup_hdl
+    END FUNCTION cxios_is_defined_filegroup_split_start_offset
 
 
     SUBROUTINE cxios_set_filegroup_sync_freq(filegroup_hdl, sync_freq) BIND(C)

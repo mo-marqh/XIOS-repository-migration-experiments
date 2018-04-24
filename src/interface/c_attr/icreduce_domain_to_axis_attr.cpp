@@ -43,6 +43,29 @@ extern "C"
   }
 
 
+  void cxios_set_reduce_domain_to_axis_local(reduce_domain_to_axis_Ptr reduce_domain_to_axis_hdl, bool local)
+  {
+    CTimer::get("XIOS").resume();
+    reduce_domain_to_axis_hdl->local.setValue(local);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_reduce_domain_to_axis_local(reduce_domain_to_axis_Ptr reduce_domain_to_axis_hdl, bool* local)
+  {
+    CTimer::get("XIOS").resume();
+    *local = reduce_domain_to_axis_hdl->local.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_reduce_domain_to_axis_local(reduce_domain_to_axis_Ptr reduce_domain_to_axis_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = reduce_domain_to_axis_hdl->local.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_reduce_domain_to_axis_operation(reduce_domain_to_axis_Ptr reduce_domain_to_axis_hdl, const char * operation, int operation_size)
   {
     std::string operation_str;

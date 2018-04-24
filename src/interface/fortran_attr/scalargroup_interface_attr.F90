@@ -9,6 +9,90 @@ MODULE scalargroup_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_scalargroup_axis_type(scalargroup_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_set_scalargroup_axis_type
+
+    SUBROUTINE cxios_get_scalargroup_axis_type(scalargroup_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_get_scalargroup_axis_type
+
+    FUNCTION cxios_is_defined_scalargroup_axis_type(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_axis_type
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_axis_type
+
+
+    SUBROUTINE cxios_set_scalargroup_bounds(scalargroup_hdl, bounds, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: scalargroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_scalargroup_bounds
+
+    SUBROUTINE cxios_get_scalargroup_bounds(scalargroup_hdl, bounds, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: scalargroup_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_scalargroup_bounds
+
+    FUNCTION cxios_is_defined_scalargroup_bounds(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_bounds
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_bounds
+
+
+    SUBROUTINE cxios_set_scalargroup_bounds_name(scalargroup_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_set_scalargroup_bounds_name
+
+    SUBROUTINE cxios_get_scalargroup_bounds_name(scalargroup_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_get_scalargroup_bounds_name
+
+    FUNCTION cxios_is_defined_scalargroup_bounds_name(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_bounds_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_bounds_name
+
+
+    SUBROUTINE cxios_set_scalargroup_comment(scalargroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_scalargroup_comment
+
+    SUBROUTINE cxios_get_scalargroup_comment(scalargroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_scalargroup_comment
+
+    FUNCTION cxios_is_defined_scalargroup_comment(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_comment
+
+
     SUBROUTINE cxios_set_scalargroup_group_ref(scalargroup_hdl, group_ref, group_ref_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
@@ -28,6 +112,27 @@ MODULE scalargroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_group_ref
       INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
     END FUNCTION cxios_is_defined_scalargroup_group_ref
+
+
+    SUBROUTINE cxios_set_scalargroup_label(scalargroup_hdl, label, label_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: label
+      INTEGER  (kind = C_INT)     , VALUE        :: label_size
+    END SUBROUTINE cxios_set_scalargroup_label
+
+    SUBROUTINE cxios_get_scalargroup_label(scalargroup_hdl, label, label_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: label
+      INTEGER  (kind = C_INT)     , VALUE        :: label_size
+    END SUBROUTINE cxios_get_scalargroup_label
+
+    FUNCTION cxios_is_defined_scalargroup_label(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_label
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_label
 
 
     SUBROUTINE cxios_set_scalargroup_long_name(scalargroup_hdl, long_name, long_name_size) BIND(C)
@@ -70,6 +175,27 @@ MODULE scalargroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_name
       INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
     END FUNCTION cxios_is_defined_scalargroup_name
+
+
+    SUBROUTINE cxios_set_scalargroup_positive(scalargroup_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_set_scalargroup_positive
+
+    SUBROUTINE cxios_get_scalargroup_positive(scalargroup_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_get_scalargroup_positive
+
+    FUNCTION cxios_is_defined_scalargroup_positive(scalargroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalargroup_positive
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalargroup_hdl
+    END FUNCTION cxios_is_defined_scalargroup_positive
 
 
     SUBROUTINE cxios_set_scalargroup_prec(scalargroup_hdl, prec) BIND(C)

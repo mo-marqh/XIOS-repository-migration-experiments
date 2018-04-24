@@ -11,13 +11,16 @@ MODULE igrid_attr
 CONTAINS
 
   SUBROUTINE xios(set_grid_attr)  &
-    ( grid_id, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_id, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_0d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d(:,:)
@@ -37,18 +40,21 @@ CONTAINS
       CALL xios(get_grid_handle) &
       (grid_id,grid_hdl)
       CALL xios(set_grid_attr_hdl_)   &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(set_grid_attr)
 
   SUBROUTINE xios(set_grid_attr_hdl)  &
-    ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_0d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d(:,:)
@@ -66,18 +72,21 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name
 
       CALL xios(set_grid_attr_hdl_)  &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(set_grid_attr_hdl)
 
   SUBROUTINE xios(set_grid_attr_hdl_)   &
-    ( grid_hdl, description_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_, mask_6d_, mask_7d_  &
-    , name_ )
+    ( grid_hdl, comment_, description_, mask_0d_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_  &
+    , mask_6d_, mask_7d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment_
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: description_
+      LOGICAL  , OPTIONAL, INTENT(IN) :: mask_0d_(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d__tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_1d_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d__tmp(:)
       LOGICAL  , OPTIONAL, INTENT(IN) :: mask_2d_(:,:)
@@ -94,9 +103,21 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_7d__tmp(:,:,:,:,:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: name_
 
+      IF (PRESENT(comment_)) THEN
+        CALL cxios_set_grid_comment &
+      (grid_hdl%daddr, comment_, len(comment_))
+      ENDIF
+
       IF (PRESENT(description_)) THEN
         CALL cxios_set_grid_description &
       (grid_hdl%daddr, description_, len(description_))
+      ENDIF
+
+      IF (PRESENT(mask_0d_)) THEN
+        ALLOCATE(mask_0d__tmp(SIZE(mask_0d_,1)))
+        mask_0d__tmp = mask_0d_
+        CALL cxios_set_grid_mask_0d &
+      (grid_hdl%daddr, mask_0d__tmp, SHAPE(mask_0d_))
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
@@ -161,13 +182,16 @@ CONTAINS
   END SUBROUTINE xios(set_grid_attr_hdl_)
 
   SUBROUTINE xios(get_grid_attr)  &
-    ( grid_id, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_id, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_0d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d(:,:)
@@ -187,18 +211,21 @@ CONTAINS
       CALL xios(get_grid_handle) &
       (grid_id,grid_hdl)
       CALL xios(get_grid_attr_hdl_)   &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(get_grid_attr)
 
   SUBROUTINE xios(get_grid_attr_hdl)  &
-    ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_0d(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d_tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d(:,:)
@@ -216,18 +243,21 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name
 
       CALL xios(get_grid_attr_hdl_)  &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(get_grid_attr_hdl)
 
   SUBROUTINE xios(get_grid_attr_hdl_)   &
-    ( grid_hdl, description_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_, mask_6d_, mask_7d_  &
-    , name_ )
+    ( grid_hdl, comment_, description_, mask_0d_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_  &
+    , mask_6d_, mask_7d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment_
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: description_
+      LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_0d_(:)
+      LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_0d__tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_1d_(:)
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_1d__tmp(:)
       LOGICAL  , OPTIONAL, INTENT(OUT) :: mask_2d_(:,:)
@@ -244,9 +274,21 @@ CONTAINS
       LOGICAL (KIND=C_BOOL) , ALLOCATABLE :: mask_7d__tmp(:,:,:,:,:,:,:)
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: name_
 
+      IF (PRESENT(comment_)) THEN
+        CALL cxios_get_grid_comment &
+      (grid_hdl%daddr, comment_, len(comment_))
+      ENDIF
+
       IF (PRESENT(description_)) THEN
         CALL cxios_get_grid_description &
       (grid_hdl%daddr, description_, len(description_))
+      ENDIF
+
+      IF (PRESENT(mask_0d_)) THEN
+        ALLOCATE(mask_0d__tmp(SIZE(mask_0d_,1)))
+        CALL cxios_get_grid_mask_0d &
+      (grid_hdl%daddr, mask_0d__tmp, SHAPE(mask_0d_))
+        mask_0d_ = mask_0d__tmp
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
@@ -311,14 +353,18 @@ CONTAINS
   END SUBROUTINE xios(get_grid_attr_hdl_)
 
   SUBROUTINE xios(is_defined_grid_attr)  &
-    ( grid_id, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_id, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid))  :: grid_hdl
       CHARACTER(LEN=*), INTENT(IN) ::grid_id
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment
+      LOGICAL(KIND=C_BOOL) :: comment_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
       LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_0d
+      LOGICAL(KIND=C_BOOL) :: mask_0d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d
       LOGICAL(KIND=C_BOOL) :: mask_1d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d
@@ -339,19 +385,23 @@ CONTAINS
       CALL xios(get_grid_handle) &
       (grid_id,grid_hdl)
       CALL xios(is_defined_grid_attr_hdl_)   &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(is_defined_grid_attr)
 
   SUBROUTINE xios(is_defined_grid_attr_hdl)  &
-    ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-     )
+    ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+    , mask_7d, name )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment
+      LOGICAL(KIND=C_BOOL) :: comment_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description
       LOGICAL(KIND=C_BOOL) :: description_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_0d
+      LOGICAL(KIND=C_BOOL) :: mask_0d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d
       LOGICAL(KIND=C_BOOL) :: mask_1d_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d
@@ -370,19 +420,23 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: name_tmp
 
       CALL xios(is_defined_grid_attr_hdl_)  &
-      ( grid_hdl, description, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d, mask_7d, name  &
-       )
+      ( grid_hdl, comment, description, mask_0d, mask_1d, mask_2d, mask_3d, mask_4d, mask_5d, mask_6d  &
+      , mask_7d, name )
 
   END SUBROUTINE xios(is_defined_grid_attr_hdl)
 
   SUBROUTINE xios(is_defined_grid_attr_hdl_)   &
-    ( grid_hdl, description_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_, mask_6d_, mask_7d_  &
-    , name_ )
+    ( grid_hdl, comment_, description_, mask_0d_, mask_1d_, mask_2d_, mask_3d_, mask_4d_, mask_5d_  &
+    , mask_6d_, mask_7d_, name_ )
 
     IMPLICIT NONE
       TYPE(txios(grid)) , INTENT(IN) :: grid_hdl
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment_
+      LOGICAL(KIND=C_BOOL) :: comment__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: description_
       LOGICAL(KIND=C_BOOL) :: description__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: mask_0d_
+      LOGICAL(KIND=C_BOOL) :: mask_0d__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_1d_
       LOGICAL(KIND=C_BOOL) :: mask_1d__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: mask_2d_
@@ -400,10 +454,22 @@ CONTAINS
       LOGICAL, OPTIONAL, INTENT(OUT) :: name_
       LOGICAL(KIND=C_BOOL) :: name__tmp
 
+      IF (PRESENT(comment_)) THEN
+        comment__tmp = cxios_is_defined_grid_comment &
+      (grid_hdl%daddr)
+        comment_ = comment__tmp
+      ENDIF
+
       IF (PRESENT(description_)) THEN
         description__tmp = cxios_is_defined_grid_description &
       (grid_hdl%daddr)
         description_ = description__tmp
+      ENDIF
+
+      IF (PRESENT(mask_0d_)) THEN
+        mask_0d__tmp = cxios_is_defined_grid_mask_0d &
+      (grid_hdl%daddr)
+        mask_0d_ = mask_0d__tmp
       ENDIF
 
       IF (PRESENT(mask_1d_)) THEN
