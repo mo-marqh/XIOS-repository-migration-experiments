@@ -556,6 +556,14 @@ namespace xios
       CContextServer* server=context->server ;
 
       if (domain->IsWritten(this->filename)) return;
+
+      StdString domid = domain->getDomainOutputName();
+
+      // The first domain for the same mesh that will be written is that with the highest value of nvertex.
+      // Thus the entire mesh connectivity will be generated at once.
+      if (isWrittenDomain(domid)) return ;
+      else setWrittenDomain(domid);
+
       domain->checkAttributes();
       if (domain->isEmpty())
         if (SuperClass::type==MULTI_FILE) return ;
@@ -566,7 +574,6 @@ namespace xios
      else if (domain->prec==8)   typePrec =  NC_DOUBLE ;
 
       std::vector<StdString> dim0;
-      StdString domid = domain->getDomainOutputName();
       StdString domainName = domain->name;
       domain->assignMesh(domainName, domain->nvertex);
       domain->mesh->createMeshEpsilon(server->intraComm, domain->lonvalue, domain->latvalue, domain->bounds_lonvalue, domain->bounds_latvalue);
@@ -592,15 +599,12 @@ namespace xios
       StdString dimTwo = "Two";
 
       if (!SuperClassWriter::dimExist(dimTwo)) SuperClassWriter::addDimension(dimTwo, 2);
-      if (!isWrittenDomain(domid))
-      {
-        dim0.clear();
-        SuperClassWriter::addVariable(domainName, NC_INT, dim0, compressionLevel);
-        SuperClassWriter::addAttribute("cf_role", StdString("mesh_topology"), &domainName);
-        SuperClassWriter::addAttribute("long_name", StdString("Topology data of 2D unstructured mesh"), &domainName);
-        SuperClassWriter::addAttribute("topology_dimension", 2, &domainName);
-        SuperClassWriter::addAttribute("node_coordinates", node_x + " " + node_y, &domainName);
-      }
+      dim0.clear();
+      SuperClassWriter::addVariable(domainName, NC_INT, dim0, compressionLevel);
+      SuperClassWriter::addAttribute("cf_role", StdString("mesh_topology"), &domainName);
+      SuperClassWriter::addAttribute("long_name", StdString("Topology data of 2D unstructured mesh"), &domainName);
+      SuperClassWriter::addAttribute("topology_dimension", 2, &domainName);
+      SuperClassWriter::addAttribute("node_coordinates", node_x + " " + node_y, &domainName);
 
       try
       {
@@ -772,157 +776,105 @@ namespace xios
             std::vector<StdSize> startFaceConctv(2) ;
             std::vector<StdSize> countFaceConctv(2) ;
 
-            if (!isWrittenDomain(domid))
+            if (domain->nvertex == 1)
             {
-              if (domain->nvertex == 1)
-              {
-                if (domain->isEmpty())
-                 {
-                   startNodes[0]=0 ;
-                   countNodes[0]=0 ;
-                 }
-                 else
-                 {
-                   startNodes[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                   countNodes[0] = domain->zoom_ni ;
-                 }
+              if (domain->isEmpty())
+               {
+                 startNodes[0]=0 ;
+                 countNodes[0]=0 ;
+               }
+               else
+               {
+                 startNodes[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
+                 countNodes[0] = domain->zoom_ni ;
+               }
 
-                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
-                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
-              }
-              else if (domain->nvertex == 2)
-              {
-                if (domain->isEmpty())
-                 {
-                  startEdges[0]=0 ;
-                  countEdges[0]=0 ;
-                  startNodes[0]=0 ;
-                  countNodes[0]=0 ;
-                  startEdgeNodes[0]=0;
-                  startEdgeNodes[1]=0;
-                  countEdgeNodes[0]=0;
-                  countEdgeNodes[1]=0;
+              SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
+              SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
+            }
+            else if (domain->nvertex == 2)
+            {
+              if (domain->isEmpty())
+               {
+                startEdges[0]=0 ;
+                countEdges[0]=0 ;
+                startNodes[0]=0 ;
+                countNodes[0]=0 ;
+                startEdgeNodes[0]=0;
+                startEdgeNodes[1]=0;
+                countEdgeNodes[0]=0;
+                countEdgeNodes[1]=0;
 
-                 }
-                 else
-                 {
-                   startEdges[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                   countEdges[0] = domain->zoom_ni;
-                   startNodes[0] = domain->mesh->node_start;
-                   countNodes[0] = domain->mesh->node_count;
-                   startEdgeNodes[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                   startEdgeNodes[1] = 0;
-                   countEdgeNodes[0] = domain->zoom_ni;
-                   countEdgeNodes[1] = 2;
-                 }
-                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
-                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
-                SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
-              }
-              else
-              {
-                if (domain->isEmpty())
-                 {
-                   startFaces[0] = 0 ;
-                   countFaces[0] = 0 ;
-                   startNodes[0] = 0;
-                   countNodes[0] = 0;
-                   startEdges[0] = 0;
-                   countEdges[0] = 0;
-                   startEdgeFaces[0] = 0;
-                   startEdgeFaces[1] = 0;
-                   countEdgeFaces[0] = 0;
-                   countEdgeFaces[1] = 0;
-                   startFaceConctv[0] = 0;
-                   startFaceConctv[1] = 0;
-                   countFaceConctv[0] = 0;
-                   countFaceConctv[1] = 0;
-                 }
-                 else
-                 {
-                   startFaces[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                   countFaces[0] = domain->zoom_ni ;
-                   startNodes[0] = domain->mesh->node_start;
-                   countNodes[0] = domain->mesh->node_count;
-                   startEdges[0] = domain->mesh->edge_start;
-                   countEdges[0] = domain->mesh->edge_count;
-                   startEdgeNodes[0] = domain->mesh->edge_start;
-                   startEdgeNodes[1] = 0;
-                   countEdgeNodes[0] = domain->mesh->edge_count;
-                   countEdgeNodes[1]= 2;
-                   startEdgeFaces[0] = domain->mesh->edge_start;
-                   startEdgeFaces[1]= 0;
-                   countEdgeFaces[0] = domain->mesh->edge_count;
-                   countEdgeFaces[1]= 2;
-                   startFaceConctv[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                   startFaceConctv[1] = 0; 
-                   countFaceConctv[0] = domain->zoom_ni;
-                   countFaceConctv[1] = domain->nvertex;
-                 }
-                SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
-                SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
-                SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
-                SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0, &startFaces, &countFaces);
-                SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0, &startFaces, &countFaces);
-                SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes, isCollective, 0, &startFaceConctv, &countFaceConctv);
-                SuperClassWriter::writeData(domain->mesh->face_edges, face_edges, isCollective, 0, &startFaceConctv, &countFaceConctv);
-                SuperClassWriter::writeData(domain->mesh->edge_faces, edge_faces, isCollective, 0, &startEdgeFaces, &countEdgeFaces);
-                SuperClassWriter::writeData(domain->mesh->face_faces, face_faces, isCollective, 0, &startFaceConctv, &countFaceConctv);
-              }
-              setWrittenDomain(domid);
-            } // !isWrittenDomain
+               }
+               else
+               {
+                 startEdges[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
+                 countEdges[0] = domain->zoom_ni;
+                 startNodes[0] = domain->mesh->node_start;
+                 countNodes[0] = domain->mesh->node_count;
+                 startEdgeNodes[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
+                 startEdgeNodes[1] = 0;
+                 countEdgeNodes[0] = domain->zoom_ni;
+                 countEdgeNodes[1] = 2;
+               }
+              SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
+              SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
+              SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
+              SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
+              SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
+            }
             else
             {
-              if (domain->nvertex == 2)
-              {
-                startEdges[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                countEdges[0] = domain->zoom_ni;
-                startEdgeNodes[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                startEdgeNodes[1] = 0;
-                countEdgeNodes[0] = domain->zoom_ni;
-                countEdgeNodes[1]= 2;
-                SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
-                SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
-              }  
-              if (domain->nvertex > 2)
-              {
-
-                if (!domain->mesh->edgesAreWritten)
-                {
-                  startEdges[0] = domain->mesh->edge_start;
-                  countEdges[0] = domain->mesh->edge_count;
-                  startEdgeNodes[0] = domain->mesh->edge_start;
-                  startEdgeNodes[1] = 0;
-                  countEdgeNodes[0] = domain->mesh->edge_count;
-                  countEdgeNodes[1]= 2;
-                  SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
-                  SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
-                  SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
-                }
-                startFaces[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                countFaces[0] = domain->zoom_ni;
-                startEdgeFaces[0] = domain->mesh->edge_start;
-                startEdgeFaces[1]= 0;
-                countEdgeFaces[0] = domain->mesh->edge_count;
-                countEdgeFaces[1]= 2;
-                startFaceConctv[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
-                startFaceConctv[1] = 0;
-                countFaceConctv[0] = domain->zoom_ni;
-                countFaceConctv[1] = domain->nvertex;
-                SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0, &startFaces, &countFaces);
-                SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0, &startFaces, &countFaces);
-                SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes, isCollective, 0, &startFaceConctv, &countFaceConctv);
-                SuperClassWriter::writeData(domain->mesh->face_edges, face_edges, isCollective, 0, &startFaceConctv, &countFaceConctv);
-                SuperClassWriter::writeData(domain->mesh->edge_faces, edge_faces, isCollective, 0, &startEdgeFaces, &countEdgeFaces);
-                SuperClassWriter::writeData(domain->mesh->face_faces, face_faces, isCollective, 0, &startFaceConctv, &countFaceConctv);
-              }
-            }// isWrittenDomain
-
+              if (domain->isEmpty())
+               {
+                 startFaces[0] = 0 ;
+                 countFaces[0] = 0 ;
+                 startNodes[0] = 0;
+                 countNodes[0] = 0;
+                 startEdges[0] = 0;
+                 countEdges[0] = 0;
+                 startEdgeFaces[0] = 0;
+                 startEdgeFaces[1] = 0;
+                 countEdgeFaces[0] = 0;
+                 countEdgeFaces[1] = 0;
+                 startFaceConctv[0] = 0;
+                 startFaceConctv[1] = 0;
+                 countFaceConctv[0] = 0;
+                 countFaceConctv[1] = 0;
+               }
+               else
+               {
+                 startFaces[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
+                 countFaces[0] = domain->zoom_ni ;
+                 startNodes[0] = domain->mesh->node_start;
+                 countNodes[0] = domain->mesh->node_count;
+                 startEdges[0] = domain->mesh->edge_start;
+                 countEdges[0] = domain->mesh->edge_count;
+                 startEdgeNodes[0] = domain->mesh->edge_start;
+                 startEdgeNodes[1] = 0;
+                 countEdgeNodes[0] = domain->mesh->edge_count;
+                 countEdgeNodes[1]= 2;
+                 startEdgeFaces[0] = domain->mesh->edge_start;
+                 startEdgeFaces[1]= 0;
+                 countEdgeFaces[0] = domain->mesh->edge_count;
+                 countEdgeFaces[1]= 2;
+                 startFaceConctv[0] = domain->zoom_ibegin-domain->global_zoom_ibegin;
+                 startFaceConctv[1] = 0;
+                 countFaceConctv[0] = domain->zoom_ni;
+                 countFaceConctv[1] = domain->nvertex;
+               }
+              SuperClassWriter::writeData(domain->mesh->node_lat, node_y, isCollective, 0, &startNodes, &countNodes);
+              SuperClassWriter::writeData(domain->mesh->node_lon, node_x, isCollective, 0, &startNodes, &countNodes);
+              SuperClassWriter::writeData(domain->mesh->edge_lat, edge_y, isCollective, 0, &startEdges, &countEdges);
+              SuperClassWriter::writeData(domain->mesh->edge_lon, edge_x, isCollective, 0, &startEdges, &countEdges);
+              SuperClassWriter::writeData(domain->mesh->edge_nodes, edge_nodes, isCollective, 0, &startEdgeNodes, &countEdgeNodes);
+              SuperClassWriter::writeData(domain->mesh->face_lat, face_y, isCollective, 0, &startFaces, &countFaces);
+              SuperClassWriter::writeData(domain->mesh->face_lon, face_x, isCollective, 0, &startFaces, &countFaces);
+              SuperClassWriter::writeData(domain->mesh->face_nodes, face_nodes, isCollective, 0, &startFaceConctv, &countFaceConctv);
+              SuperClassWriter::writeData(domain->mesh->face_edges, face_edges, isCollective, 0, &startFaceConctv, &countFaceConctv);
+              SuperClassWriter::writeData(domain->mesh->edge_faces, edge_faces, isCollective, 0, &startEdgeFaces, &countEdgeFaces);
+              SuperClassWriter::writeData(domain->mesh->face_faces, face_faces, isCollective, 0, &startFaceConctv, &countFaceConctv);
+            }
             SuperClassWriter::definition_start();
 
             break;

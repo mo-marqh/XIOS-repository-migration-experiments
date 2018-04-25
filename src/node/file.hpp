@@ -117,7 +117,9 @@ namespace xios {
          void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
          void checkGridOfEnabledFields();
          void sendGridOfEnabledFields();
-         void sendGridComponentOfEnabledFields();   
+         void sendGridComponentOfEnabledFields();
+
+         void sortEnabledFieldsForUgrid();
 
          // Add component into file
          CField* addField(const string& id = "");

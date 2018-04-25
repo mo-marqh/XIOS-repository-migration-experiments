@@ -548,6 +548,8 @@ namespace xios {
 
         data_out->writeFile(CFile::get(this));
 
+        if (!useCFConvention) sortEnabledFieldsForUgrid();
+
         // Do not recreate the file structure if opening an existing file
         if (!data_out->IsInAppendMode())
         {
@@ -805,6 +807,60 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFields[i]->sendGridComponentOfEnabledFields();
+     }
+   }
+
+   /*!
+   \brief Sorting domains with the same name (= describing the same mesh) in the decreasing order of nvertex for UGRID files.
+   This insures that the domain with the highest nvertex is written first and thus all known mesh connectivity is generated at once by this domain.
+   */
+   void CFile::sortEnabledFieldsForUgrid()
+   {
+     int size = this->enabledFields.size();
+     std::vector<int> domainNvertices;
+     std::vector<StdString> domainNames;
+
+     for (int i = 0; i < size; ++i)
+     {
+       std::vector<CDomain*> domain = this->enabledFields[i]->getRelGrid()->getDomains();
+       if (domain.size() != 1)
+       {
+         ERROR("void CFile::sortEnabledFieldsForUgrid()",
+               "A domain, and only one, should be defined for grid "<< this->enabledFields[i]->getRelGrid()->getId() << ".");
+       }
+       StdString domainName = domain[0]->getDomainOutputName();
+       int nvertex;
+       if (domain[0]->nvertex.isEmpty())
+       {
+         ERROR("void CFile::sortEnabledFieldsForUgrid()",
+               "Attributes nvertex must be defined for domain "<< domain[0]->getDomainOutputName() << ".");
+       }
+       else
+         nvertex = domain[0]->nvertex;
+
+       for (int j = 0; j < i; ++j)
+       {
+         if (domainName == domainNames[j] && nvertex > domainNvertices[j])
+         {
+           CField* tmpSwap = this->enabledFields[j];
+           this->enabledFields[j] = this->enabledFields[i];
+           this->enabledFields[i] = tmpSwap;
+           domainNames.push_back(domainNames[j]);
+           domainNames[j] = domainName;
+           domainNvertices.push_back(domainNvertices[j]);
+           domainNvertices[j] = nvertex;
+         }
+         else
+         {
+           domainNames.push_back(domainName);
+           domainNvertices.push_back(nvertex);
+         }
+       }
+       if (i==0)
+       {
+         domainNames.push_back(domainName);
+         domainNvertices.push_back(nvertex);
+       }
      }
    }
 
