@@ -234,9 +234,14 @@ namespace xios
 
       void CDate::addMonth(int value)
       {// Value doit être égale à 1 ou -1.
+
+        const CCalendar& c = getRelCalendar();
+        int nbMonthsPerYear = c.getYearLength();
+
         this->month += value;
-        if (this->month == 13) { year++; this->month = 1; }
-        if (this->month == 0)  { year--; this->month = 12; }
+
+        if (this->month == nbMonthsPerYear + 1) { year++; this->month = 1; }
+        if (this->month == 0)  { year--; this->month = nbMonthsPerYear; }
       }
 
       //----------------------------------------------------------------
