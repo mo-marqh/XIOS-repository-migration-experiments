@@ -33,7 +33,7 @@ while (($# > 0))
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
 	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
-        echo "       [--build_path : absolute or relative path to the build directory"
+        echo "       [--build_path : absolute path to the build directory"
         echo "       [--build_dir : name of the build directory"
         echo "       [--build_suffixed : generate automatically suffixed name of the build directory (e.g. config_X64_CURIE_prod)"
         echo "       [--use_extern_boost : to use external boost library"
@@ -81,12 +81,20 @@ then
     done
 fi
 
-# Definition of the root directory of the build 
-if [[ "$build_suffixed" == "true" ]]; then
-    install_dir=$PWD/${build_path}/config_${arch}_${compil_mode}
+# Definition of the root directory of the build
+
+if [[ "$build_path" == "./" ]]; then
+  install_dir=$PWD
 else
-    install_dir=$PWD/${build_path}/${build_dir}
+  install_dir=${build_path}
 fi
+
+if [[ "$build_suffixed" == "true" ]]; then
+    install_dir="${install_dir}/config_${arch}_${compil_mode}"
+else
+    install_dir="${install_dir}/${build_dir}"
+fi
+
 mkdir -p $install_dir
 
 rm -f ${PWD}/bld_dir.cfg
