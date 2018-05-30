@@ -226,6 +226,7 @@ then
    rm -r $PWD/extern/blitz
    ln -s $PWD/.void_dir $PWD/extern/blitz
 else
+   echo "src::blitz $PWD/extern/blitz/src" >> ${PWD}/bld_dir.cfg
    export BLITZ_INCDIR="-I${PWD}/extern/blitz"
    export BLITZ_LIBDIR=""
    export BLITZ_LIB=""
