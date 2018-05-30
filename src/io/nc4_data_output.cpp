@@ -1182,8 +1182,8 @@ namespace xios
         axis->computeWrittenIndex();
         axis->computeWrittenCompressedIndex(comm_file);
        
-        int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n
-                                                          : axis->global_zoom_n;
+        int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n.getValue()
+                                                          : axis->global_zoom_n.getValue();
 
         int zoom_count = axis->zoom_n;                                                 
         int zoom_begin = axis->zoom_begin;

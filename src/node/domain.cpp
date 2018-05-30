@@ -1800,11 +1800,11 @@ namespace xios {
 
              int iend = ibegin + ni -1;
              int jend = jbegin + nj -1;
-             zoom_ibegin = global_zoom_ibegin > ibegin ? global_zoom_ibegin : ibegin;
+             zoom_ibegin = global_zoom_ibegin > ibegin ? global_zoom_ibegin.getValue() : ibegin;
              int zoom_iend  = global_zoom_iend < iend ? zoom_iend : iend ;
              zoom_ni     = zoom_iend-zoom_ibegin+1 ;
 
-             zoom_jbegin = global_zoom_jbegin > jbegin ? global_zoom_jbegin : jbegin ;
+             zoom_jbegin = global_zoom_jbegin > jbegin ? global_zoom_jbegin.getValue() : jbegin ;
              int zoom_jend   = global_zoom_jend < jend ? zoom_jend : jend;
              zoom_nj     = zoom_jend-zoom_jbegin+1;
            }
@@ -2593,11 +2593,11 @@ namespace xios {
     int zoom_iend_glob = global_zoom_ibegin + global_zoom_ni - 1;
     int zoom_jend_glob = global_zoom_jbegin + global_zoom_nj - 1;
 
-    zoom_ibegin.setValue(global_zoom_ibegin > ibegin ? global_zoom_ibegin : ibegin);
+    zoom_ibegin.setValue(global_zoom_ibegin > ibegin ? global_zoom_ibegin.getValue() : ibegin);
     int zoom_iend = zoom_iend_glob < iend ? zoom_iend_glob : iend ;
     zoom_ni.setValue(zoom_iend-zoom_ibegin+1);
 
-    zoom_jbegin.setValue(global_zoom_jbegin > jbegin ? global_zoom_jbegin : jbegin);
+    zoom_jbegin.setValue(global_zoom_jbegin > jbegin ? global_zoom_jbegin.getValue() : jbegin);
     int zoom_jend = zoom_jend_glob < jend ? zoom_jend_glob : jend ;
     zoom_nj.setValue(zoom_jend-zoom_jbegin+1);
 
@@ -2656,8 +2656,8 @@ namespace xios {
     }
   
     if (nbMaskInd != globalLocalIndexMap_.size())
-      info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
-               << "Something must be wrong with mask index "<< std::endl;
+      info (0) << "If domain " << this->getDomainOutputName() <<" does not have overlapped regions between processes "
+               << "something must be wrong with mask index "<< std::endl;
 
     nbMaskInd = globalLocalIndexMap_.size();
     mask_1d.resize(nbMaskInd);
@@ -2732,8 +2732,8 @@ namespace xios {
       }
     
       if (nbLonInd != globalLocalIndexMap_.size())
-        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
-                 << "Something must be wrong with longitude index "<< std::endl;
+        info (0) << "If domain " << this->getDomainOutputName() <<" does not have overlapped regions between processes "
+                 << "something must be wrong with longitude index "<< std::endl;
 
       nbLonInd = globalLocalIndexMap_.size();
       lonvalue.resize(nbLonInd);
@@ -2816,8 +2816,8 @@ namespace xios {
       }
     
       if (nbLatInd != globalLocalIndexMap_.size())
-        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
-                << "Something must be wrong with latitude index "<< std::endl;
+        info (0) << "If domain " << this->getDomainOutputName() <<" does not have overlapped regions between processes "
+                << "something must be wrong with latitude index "<< std::endl;
 
       nbLatInd = globalLocalIndexMap_.size();
       latvalue.resize(nbLatInd);
@@ -2898,8 +2898,8 @@ namespace xios {
       }
 
       if (nbAreaInd != globalLocalIndexMap_.size())
-        info (0) << "If the domain " << this->getDomainOutputName() <<" does not have overlapped region between processes."
-                 << "Something must be wrong with area index "<< std::endl;
+        info (0) << "If domain " << this->getDomainOutputName() <<" does not have overlapped regions between processes "
+                 << "something must be wrong with area index "<< std::endl;
 
       nbAreaInd = globalLocalIndexMap_.size();
       areavalue.resize(nbAreaInd);
