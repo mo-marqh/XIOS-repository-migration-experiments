@@ -478,11 +478,13 @@ namespace xios {
            string splitFormat;
            if (split_freq_format.isEmpty())
            {
-             if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
-             else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
-             else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
-             else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
-             else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+             CDuration splitFreq = split_freq.getValue();
+             splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+             if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
+             else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
+             else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
+             else if (splitFreq.day != 0) splitFormat = "%y%mo%d";
+             else if (splitFreq.month != 0) splitFormat = "%y%mo";
              else splitFormat = "%y";
            }
            else splitFormat = split_freq_format;
@@ -612,11 +614,13 @@ namespace xios {
         string splitFormat;
         if (split_freq_format.isEmpty())
         {
-          if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
-          else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
-          else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
-          else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
-          else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+          CDuration splitFreq = split_freq.getValue();
+          splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+          if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
+          else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
+          else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
+          else if (splitFreq.day != 0) splitFormat = "%y%mo%d";
+          else if (splitFreq.month != 0) splitFormat = "%y%mo";
           else splitFormat = "%y";
         }
         else splitFormat = split_freq_format;
