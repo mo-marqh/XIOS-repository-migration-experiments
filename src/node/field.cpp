@@ -1665,7 +1665,7 @@ namespace xios{
    {
      bool isFieldRead  = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
      bool isFieldWrite = file && ( file->mode.isEmpty() ||  file->mode == CFile::mode_attr::write);
-     if (isFieldRead && operation.getValue() != "instant")
+     if (isFieldRead && !(operation.getValue() == "instant" || operation.getValue() == "once") )     
        ERROR("void CField::checkTimeAttributes(void)",
              << "Unsupported operation for field '" << getFieldOutputName() << "'." << std::endl
              << "Currently only \"instant\" is supported for fields read from file.")
