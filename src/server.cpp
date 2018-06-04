@@ -37,7 +37,6 @@ namespace xios
 /*!
  * \fn void CServer::initialize(void)
  * Creates intraComm for each possible type of servers (classical, primary or secondary).
- * (For now the assumption is that there is one proc per secondary server pool.)
  * Creates interComm and stores them into the following lists:
  *   classical server -- interCommLeft
  *   primary server -- interCommLeft and interCommRight
@@ -109,10 +108,11 @@ namespace xios
           }
           else
           {
+            if (CXios::nbPoolsServer2 == 0) CXios::nbPoolsServer2 = reqNbProc;
             int firstSndSrvRank = srvRanks.size()*(100.-CXios::ratioServer2)/100. ;
             int poolLeader = firstSndSrvRank;
 //*********** (1) Comment out the line below to set one process per pool
-//            sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+            sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
             int nbPools = CXios::nbPoolsServer2;
             if ( nbPools > reqNbProc || nbPools < 1)
             {
@@ -138,10 +138,10 @@ namespace xios
                   --remainder;
                 }
 //*********** (2) Comment out the two lines below to set one process per pool
-//                if (poolLeader < srvRanks.size())
-//                  sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+                if (poolLeader < srvRanks.size())
+                  sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
 //*********** (3) Uncomment the line below to set one process per pool
-                sndServerGlobalRanks.push_back(srvRanks[i]);
+//                sndServerGlobalRanks.push_back(srvRanks[i]);
               }
               else
               {

@@ -56,7 +56,7 @@ namespace xios
     usingServer=getin<bool>("using_server",false) ;
     usingServer2=getin<bool>("using_server2",false) ;
     ratioServer2=getin<int>("ratio_server2",50);
-    nbPoolsServer2=getin<int>("number_pools_server2",1);
+    nbPoolsServer2=getin<int>("number_pools_server2",0);
     info.setLevel(getin<int>("info_level",0)) ;
     report.setLevel(getin<int>("info_level",50));
     printLogs2Files=getin<bool>("print_file",false);
