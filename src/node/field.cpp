@@ -1314,6 +1314,11 @@ namespace xios{
         std::vector<CAxis*> vecAxis;
         std::vector<CScalar*> vecScalar;
         std::vector<int> axisDomainOrderTmp;
+
+        std::vector<CDomain*> vecDomRef;
+        std::vector<CAxis*> vecAxisRef;
+        std::vector<CScalar*> vecScalarRef;
+
         
         if (!domain_ref.isEmpty())
         {
@@ -1321,11 +1326,12 @@ namespace xios{
           if (CDomain::has(domain_ref))
           {
             vecDom.push_back(CDomain::get(domain_ref));
+            vecDomRef.push_back(CDomain::createDomain());
+            vecDomRef.back()->domain_ref=domain_ref;
             axisDomainOrderTmp.push_back(2);
           }
-          else
-            ERROR("CField::solveGridReference(void)",
-                  << "Invalid reference to domain '" << domain_ref.getValue() << "'.");
+          else  ERROR("CField::solveGridReference(void)",
+                      << "Invalid reference to domain '" << domain_ref.getValue() << "'.");
         }
 
         if (!axis_ref.isEmpty())
@@ -1333,11 +1339,12 @@ namespace xios{
           if (CAxis::has(axis_ref))
           {
             vecAxis.push_back(CAxis::get(axis_ref));
+            vecAxisRef.push_back(CAxis::createAxis());
+            vecAxisRef.back()->axis_ref=axis_ref;
             axisDomainOrderTmp.push_back(1);
           }
-          else
-            ERROR("CField::solveGridReference(void)",
-                  << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
+          else  ERROR("CField::solveGridReference(void)",
+                      << "Invalid reference to axis '" << axis_ref.getValue() << "'.");
         }
 
         if (!scalar_ref.isEmpty())
@@ -1345,11 +1352,12 @@ namespace xios{
           if (CScalar::has(scalar_ref))
           {
             vecScalar.push_back(CScalar::get(scalar_ref));
+            vecScalarRef.push_back(CScalar::createScalar());
+            vecScalarRef.back()->scalar_ref=scalar_ref;
             axisDomainOrderTmp.push_back(0);
           }
-          else
-            ERROR("CField::solveGridReference(void)",
-                  << "Invalid reference to scalar '" << scalar_ref.getValue() << "'.");
+          else ERROR("CField::solveGridReference(void)",
+                     << "Invalid reference to scalar '" << scalar_ref.getValue() << "'.");
         }
         
         CArray<int,1> axisDomainOrder(axisDomainOrderTmp.size());
@@ -1360,18 +1368,14 @@ namespace xios{
 
         // Warning: the gridId shouldn't be set as the grid_ref since it could be inherited
         StdString gridId = CGrid::generateId(vecDom, vecAxis, vecScalar,axisDomainOrder);
-        if (CGrid::has(gridId))
-          this->grid = CGrid::get(gridId);
-        else
-          this->grid = CGrid::createGrid(gridId, vecDom, vecAxis, vecScalar,axisDomainOrder);
+        if (CGrid::has(gridId)) this->grid = CGrid::get(gridId);
+        else  this->grid = CGrid::createGrid(gridId, vecDomRef, vecAxisRef, vecScalarRef,axisDomainOrder);
       }
       else
       {
-        if (CGrid::has(grid_ref))
-          this->grid = CGrid::get(grid_ref);
-        else
-          ERROR("CField::solveGridReference(void)",
-                << "Invalid reference to grid '" << grid_ref.getValue() << "'.");
+        if (CGrid::has(grid_ref)) this->grid = CGrid::get(grid_ref);
+        else  ERROR("CField::solveGridReference(void)",
+                     << "Invalid reference to grid '" << grid_ref.getValue() << "'.");
       }
    }
 
@@ -1616,6 +1620,23 @@ namespace xios{
      }
    }
 
+
+   /*!
+    * Send all Attributes to server. This method is overloaded, since only grid_ref attribute
+    * must be sent to server and not domain_ref/axis_ref/scalar_ref. 
+    */
+    
+   void CField::sendAllAttributesToServer(CContextClient* client)
+   {
+     if (grid_ref.isEmpty())
+     {
+       grid_ref=grid->getId() ;
+       SuperClass::sendAllAttributesToServer(client) ;
+       grid_ref.reset();
+     }
+     else SuperClass::sendAllAttributesToServer(client) ;
+   }
+    
    void CField::sendAddVariable(const string& id, CContextClient* client)
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
