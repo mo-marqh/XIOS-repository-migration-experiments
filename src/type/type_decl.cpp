@@ -2,7 +2,7 @@
 #include "type_impl.hpp"
 #include "type_ref_impl.hpp"
 #include "type_specialisation.hpp"
-#include <string> ;
+#include <string>
 #include "date.hpp"
 #include "xios_spl.hpp"
 

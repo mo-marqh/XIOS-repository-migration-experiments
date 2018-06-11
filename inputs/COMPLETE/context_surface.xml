@@ -31,8 +31,8 @@
       <variable id="my_global_attribute" type="string">file_6h</variable>
     </file>
 
-    <file type="one_file" id="output_surface_1d" name="output_surface_1d" output_freq="1d">
-      <field field_ref="field_A_srf">
+    <file type="one_file" id="output_surface_1d" name="output_surface_1d" output_freq="1d" enabled="TRUE">
+      <field field_ref="field_A_srf" indexed_output="TRUE">
         <variable id="my_attribute1" type="string">surf_att</variable>
         <variable id="my_attribute2" type="int">10</variable>
         <variable id="my_attribute3" type="float">6.8</variable>

@@ -2,6 +2,7 @@
 #include "xios_spl.hpp"
 #include "cxios.hpp"
 #include "server.hpp"
+#include "client.hpp"
 #include "type.hpp"
 #include "context.hpp"
 #include "object_template.hpp"
@@ -16,23 +17,39 @@
 namespace xios
 {
     MPI_Comm CServer::intraComm ;
-    list<MPI_Comm> CServer::interComm ;
+    std::list<MPI_Comm> CServer::interCommLeft ;
+    std::list<MPI_Comm> CServer::interCommRight ;
     std::list<MPI_Comm> CServer::contextInterComms;
-    bool CServer::isRoot ;
-    int CServer::rank = INVALID_RANK;
+    std::list<MPI_Comm> CServer::contextIntraComms;
+    int CServer::serverLevel = 0 ;
+    int CServer::nbContexts = 0;
+    bool CServer::isRoot = false ;
+    int CServer::rank_ = INVALID_RANK;
     StdOFStream CServer::m_infoStream;
     StdOFStream CServer::m_errorStream;
     map<string,CContext*> CServer::contextList ;
+    vector<int> CServer::sndServerGlobalRanks;
     bool CServer::finished=false ;
     bool CServer::is_MPI_Initialized ;
     CEventScheduler* CServer::eventScheduler = 0;
-   
+
+//---------------------------------------------------------------
+/*!
+ * \fn void CServer::initialize(void)
+ * Creates intraComm for each possible type of servers (classical, primary or secondary).
+ * Creates interComm and stores them into the following lists:
+ *   classical server -- interCommLeft
+ *   primary server -- interCommLeft and interCommRight
+ *   secondary server -- interCommLeft for each pool.
+ *   IMPORTANT: CXios::usingServer2 should NOT be used beyond this function. Use CServer::serverLevel instead.
+ */
     void CServer::initialize(void)
     {
       int initialized ;
       MPI_Initialized(&initialized) ;
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
+      int rank ;
 
       // Not using OASIS
       if (!CXios::usingOasis)
@@ -45,26 +62,28 @@ namespace xios
         CTimer::get("XIOS").resume() ;
 
         boost::hash<string> hashString ;
+        unsigned long hashServer = hashString(CXios::xiosCodeId);
 
-        unsigned long hashServer=hashString(CXios::xiosCodeId) ;
         unsigned long* hashAll ;
+        unsigned long* srvLevelAll ;
 
-//        int rank ;
         int size ;
         int myColor ;
         int i,c ;
-        MPI_Comm newComm ;
+        MPI_Comm newComm;
 
-        MPI_Comm_size(CXios::globalComm,&size) ;
-        MPI_Comm_rank(CXios::globalComm,&rank);
+        MPI_Comm_size(CXios::globalComm, &size) ;
+        MPI_Comm_rank(CXios::globalComm, &rank_);
+
         hashAll=new unsigned long[size] ;
-
-        MPI_Allgather(&hashServer,1,MPI_LONG,hashAll,1,MPI_LONG,CXios::globalComm) ;
+        MPI_Allgather(&hashServer, 1, MPI_LONG, hashAll, 1, MPI_LONG, CXios::globalComm) ;
 
         map<unsigned long, int> colors ;
         map<unsigned long, int> leaders ;
         map<unsigned long, int>::iterator it ;
 
+        // (1) Establish client leaders, distribute processes between two server levels
+        std::vector<int> srvRanks;
         for(i=0,c=0;i<size;i++)
         {
           if (colors.find(hashAll[i])==colors.end())
@@ -73,49 +92,256 @@ namespace xios
             leaders[hashAll[i]]=i ;
             c++ ;
           }
+          if (CXios::usingServer2)
+            if (hashAll[i] == hashServer)
+              srvRanks.push_back(i);
         }
 
-        myColor=colors[hashServer] ;
-        MPI_Comm_split(MPI_COMM_WORLD,myColor,rank,&intraComm) ;
+        if (CXios::usingServer2)
+        {
+          int reqNbProc = srvRanks.size()*CXios::ratioServer2/100.;
+          if (reqNbProc<1 || reqNbProc==srvRanks.size())
+          {
+            error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                << "It is impossible to dedicate the requested number of processes = "<<reqNbProc
+                <<" to secondary server. XIOS will run in the classical server mode."<<endl;
+          }
+          else
+          {
+            if (CXios::nbPoolsServer2 == 0) CXios::nbPoolsServer2 = reqNbProc;
+            int firstSndSrvRank = srvRanks.size()*(100.-CXios::ratioServer2)/100. ;
+            int poolLeader = firstSndSrvRank;
+//*********** (1) Comment out the line below to set one process per pool
+            sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+            int nbPools = CXios::nbPoolsServer2;
+            if ( nbPools > reqNbProc || nbPools < 1)
+            {
+              error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                  << "It is impossible to allocate the requested number of pools = "<<nbPools
+                  <<" on the secondary server. It will be set so that there is one process per pool."<<endl;
+              nbPools = reqNbProc;
+            }
+            int remainder = ((int) (srvRanks.size()*CXios::ratioServer2/100.)) % nbPools;
+            int procsPerPool = ((int) (srvRanks.size()*CXios::ratioServer2/100.)) / nbPools;
+            for (i=0; i<srvRanks.size(); i++)
+            {
+              if (i >= firstSndSrvRank)
+              {
+                if (rank_ == srvRanks[i])
+                {
+                  serverLevel=2;
+                }
+                poolLeader += procsPerPool;
+                if (remainder != 0)
+                {
+                  ++poolLeader;
+                  --remainder;
+                }
+//*********** (2) Comment out the two lines below to set one process per pool
+                if (poolLeader < srvRanks.size())
+                  sndServerGlobalRanks.push_back(srvRanks[poolLeader]);
+//*********** (3) Uncomment the line below to set one process per pool
+//                sndServerGlobalRanks.push_back(srvRanks[i]);
+              }
+              else
+              {
+                if (rank_ == srvRanks[i]) serverLevel=1;
+              }
+            }
+            if (serverLevel==2)
+            {
+              info(50)<<"The number of secondary server pools is "<< sndServerGlobalRanks.size() <<endl ;
+              for (i=0; i<sndServerGlobalRanks.size(); i++)
+              {
+                if (rank_>= sndServerGlobalRanks[i])
+                {
+                  if ( i == sndServerGlobalRanks.size()-1)
+                  {
+                    myColor = colors.size() + sndServerGlobalRanks[i];
+                  }
+                  else if (rank_< sndServerGlobalRanks[i+1])
+                  {
+                    myColor = colors.size() + sndServerGlobalRanks[i];
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
 
-        int serverLeader=leaders[hashServer] ;
-        int clientLeader;
+        // (2) Create intraComm
+        if (serverLevel != 2) myColor=colors[hashServer];
+        MPI_Comm_split(CXios::globalComm, myColor, rank_, &intraComm) ;
 
-         serverLeader=leaders[hashServer] ;
-         for(it=leaders.begin();it!=leaders.end();it++)
-         {
-           if (it->first!=hashServer)
-           {
-             clientLeader=it->second ;
-             int intraCommSize, intraCommRank ;
-             MPI_Comm_size(intraComm,&intraCommSize) ;
-             MPI_Comm_rank(intraComm,&intraCommRank) ;
-             info(50)<<"intercommCreate::server "<<rank<<" intraCommSize : "<<intraCommSize
-                     <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+        // (3) Create interComm
+        if (serverLevel == 0)
+        {
+          int clientLeader;
+          for(it=leaders.begin();it!=leaders.end();it++)
+          {
+            if (it->first!=hashServer)
+            {
+              clientLeader=it->second ;
+              int intraCommSize, intraCommRank ;
+              MPI_Comm_size(intraComm,&intraCommSize) ;
+              MPI_Comm_rank(intraComm,&intraCommRank) ;
+              info(50)<<"intercommCreate::server (classical mode) "<<rank_<<" intraCommSize : "<<intraCommSize
+                       <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
 
-             MPI_Intercomm_create(intraComm,0,CXios::globalComm,clientLeader,0,&newComm) ;
-             interComm.push_back(newComm) ;
-           }
-         }
+              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+              interCommLeft.push_back(newComm) ;
+            }
+          }
+        }
+        else if (serverLevel == 1)
+        {
+          int clientLeader, srvSndLeader;
+          int srvPrmLeader ;
 
-         delete [] hashAll ;
+          for (it=leaders.begin();it!=leaders.end();it++)
+          {
+            if (it->first != hashServer)
+            {
+              clientLeader=it->second ;
+              int intraCommSize, intraCommRank ;
+              MPI_Comm_size(intraComm, &intraCommSize) ;
+              MPI_Comm_rank(intraComm, &intraCommRank) ;
+              info(50)<<"intercommCreate::server (server level 1) "<<rank_<<" intraCommSize : "<<intraCommSize
+                       <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+              MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 0, &newComm) ;
+              interCommLeft.push_back(newComm) ;
+            }
+          }
+
+          for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
+          {
+            int intraCommSize, intraCommRank ;
+            MPI_Comm_size(intraComm, &intraCommSize) ;
+            MPI_Comm_rank(intraComm, &intraCommRank) ;
+            info(50)<<"intercommCreate::client (server level 1) "<<rank_<<" intraCommSize : "<<intraCommSize
+                <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< sndServerGlobalRanks[i]<<endl ;
+            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, sndServerGlobalRanks[i], 1, &newComm) ;
+            interCommRight.push_back(newComm) ;
+          }
+        }
+        else
+        {
+          int clientLeader;
+          clientLeader = leaders[hashString(CXios::xiosCodeId)];
+          int intraCommSize, intraCommRank ;
+          MPI_Comm_size(intraComm, &intraCommSize) ;
+          MPI_Comm_rank(intraComm, &intraCommRank) ;
+          info(50)<<"intercommCreate::server (server level 2) "<<rank_<<" intraCommSize : "<<intraCommSize
+                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< clientLeader<<endl ;
+
+          MPI_Intercomm_create(intraComm, 0, CXios::globalComm, clientLeader, 1, &newComm) ;
+          interCommLeft.push_back(newComm) ;
+        }
+
+        delete [] hashAll ;
+
       }
       // using OASIS
       else
       {
-//        int rank ,size;
         int size;
+        int myColor;
+        int* srvGlobalRanks;
         if (!is_MPI_Initialized) oasis_init(CXios::xiosCodeId);
 
         CTimer::get("XIOS").resume() ;
         MPI_Comm localComm;
         oasis_get_localcomm(localComm);
-        MPI_Comm_dup(localComm, &intraComm);
+        MPI_Comm_rank(localComm,&rank_) ;
 
-        MPI_Comm_rank(intraComm,&rank) ;
-        MPI_Comm_size(intraComm,&size) ;
+//      (1) Create server intraComm
+        if (!CXios::usingServer2)
+        {
+          MPI_Comm_dup(localComm, &intraComm);
+        }
+        else
+        {
+          int globalRank;
+          MPI_Comm_size(localComm,&size) ;
+          MPI_Comm_rank(CXios::globalComm,&globalRank) ;
+          srvGlobalRanks = new int[size] ;
+          MPI_Allgather(&globalRank, 1, MPI_INT, srvGlobalRanks, 1, MPI_INT, localComm) ;
+
+          int reqNbProc = size*CXios::ratioServer2/100.;
+          if (reqNbProc < 1 || reqNbProc == size)
+          {
+            error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                << "It is impossible to dedicate the requested number of processes = "<<reqNbProc
+                <<" to secondary server. XIOS will run in the classical server mode."<<endl;
+            MPI_Comm_dup(localComm, &intraComm);
+          }
+          else
+          {
+            int firstSndSrvRank = size*(100.-CXios::ratioServer2)/100. ;
+            int poolLeader = firstSndSrvRank;
+//*********** (1) Comment out the line below to set one process per pool
+//            sndServerGlobalRanks.push_back(srvGlobalRanks[poolLeader]);
+            int nbPools = CXios::nbPoolsServer2;
+            if ( nbPools > reqNbProc || nbPools < 1)
+            {
+              error(0)<<"WARNING: void CServer::initialize(void)"<<endl
+                  << "It is impossible to allocate the requested number of pools = "<<nbPools
+                  <<" on the secondary server. It will be set so that there is one process per pool."<<endl;
+              nbPools = reqNbProc;
+            }
+            int remainder = ((int) (size*CXios::ratioServer2/100.)) % nbPools;
+            int procsPerPool = ((int) (size*CXios::ratioServer2/100.)) / nbPools;
+            for (int i=0; i<size; i++)
+            {
+              if (i >= firstSndSrvRank)
+              {
+                if (globalRank == srvGlobalRanks[i])
+                {
+                  serverLevel=2;
+                }
+                poolLeader += procsPerPool;
+                if (remainder != 0)
+                {
+                  ++poolLeader;
+                  --remainder;
+                }
+//*********** (2) Comment out the two lines below to set one process per pool
+//                if (poolLeader < size)
+//                  sndServerGlobalRanks.push_back(srvGlobalRanks[poolLeader]);
+//*********** (3) Uncomment the line below to set one process per pool
+                sndServerGlobalRanks.push_back(srvGlobalRanks[i]);
+              }
+              else
+              {
+                if (globalRank == srvGlobalRanks[i]) serverLevel=1;
+              }
+            }
+            if (serverLevel==2)
+            {
+              info(50)<<"The number of secondary server pools is "<< sndServerGlobalRanks.size() <<endl ;
+              for (int i=0; i<sndServerGlobalRanks.size(); i++)
+              {
+                if (globalRank>= sndServerGlobalRanks[i])
+                {
+                  if (i == sndServerGlobalRanks.size()-1)
+                  {
+                    myColor = sndServerGlobalRanks[i];
+                  }
+                  else if (globalRank< sndServerGlobalRanks[i+1])
+                  {
+                    myColor = sndServerGlobalRanks[i];
+                    break;
+                  }
+                }
+              }
+            }
+            if (serverLevel != 2) myColor=0;
+            MPI_Comm_split(localComm, myColor, rank_, &intraComm) ;
+          }
+        }
+
         string codesId=CXios::getin<string>("oasis_codes_id") ;
-
         vector<string> splitted ;
         boost::split( splitted, codesId, boost::is_any_of(","), boost::token_compress_on ) ;
         vector<string>::iterator it ;
@@ -124,18 +350,46 @@ namespace xios
         int globalRank ;
         MPI_Comm_rank(CXios::globalComm,&globalRank);
 
+//      (2) Create interComms with models
         for(it=splitted.begin();it!=splitted.end();it++)
         {
           oasis_get_intercomm(newComm,*it) ;
-          if (rank==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
-          MPI_Comm_remote_size(newComm,&size);
-          interComm.push_back(newComm) ;
+          if ( serverLevel == 0 || serverLevel == 1)
+          {
+            interCommLeft.push_back(newComm) ;
+            if (rank_==0) MPI_Send(&globalRank,1,MPI_INT,0,0,newComm) ;
+          }
         }
-	      oasis_enddef() ;
+
+//      (3) Create interComms between primary and secondary servers
+        int intraCommSize, intraCommRank ;
+        MPI_Comm_size(intraComm,&intraCommSize) ;
+        MPI_Comm_rank(intraComm, &intraCommRank) ;
+
+        if (serverLevel == 1)
+        {
+          for (int i = 0; i < sndServerGlobalRanks.size(); ++i)
+          {
+            int srvSndLeader = sndServerGlobalRanks[i];
+            info(50)<<"intercommCreate::client (server level 1) "<<globalRank<<" intraCommSize : "<<intraCommSize
+                <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvSndLeader<<endl ;
+            MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvSndLeader, 0, &newComm) ;
+            interCommRight.push_back(newComm) ;
+          }
+        }
+        else if (serverLevel == 2)
+        {
+          info(50)<<"intercommCreate::server (server level 2)"<<globalRank<<" intraCommSize : "<<intraCommSize
+                   <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< srvGlobalRanks[0] <<endl ;
+          MPI_Intercomm_create(intraComm, 0, CXios::globalComm, srvGlobalRanks[0], 0, &newComm) ;
+          interCommLeft.push_back(newComm) ;
+        }
+        if (CXios::usingServer2) delete [] srvGlobalRanks ;
+        oasis_enddef() ;
       }
 
-//      int rank;
-      MPI_Comm_rank(intraComm,&rank) ;
+
+      MPI_Comm_rank(intraComm, &rank) ;
       if (rank==0) isRoot=true;
       else isRoot=false;
       
@@ -150,8 +404,19 @@ namespace xios
 
       for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
         MPI_Comm_free(&(*it));
-      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
+
+      for (std::list<MPI_Comm>::iterator it = contextIntraComms.begin(); it != contextIntraComms.end(); it++)
         MPI_Comm_free(&(*it));
+
+//      for (std::list<MPI_Comm>::iterator it = interComm.begin(); it != interComm.end(); it++)
+//        MPI_Comm_free(&(*it));
+
+//        for (std::list<MPI_Comm>::iterator it = interCommLeft.begin(); it != interCommLeft.end(); it++)
+//          MPI_Comm_free(&(*it));
+
+        for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++)
+          MPI_Comm_free(&(*it));
+
       MPI_Comm_free(&intraComm);
 
       if (!is_MPI_Initialized)
@@ -175,6 +440,7 @@ namespace xios
          if (isRoot)
          {
            listenContext();
+           listenRootContext();
            if (!finished) listenFinalize() ;
          }
          else
@@ -192,11 +458,11 @@ namespace xios
 
      void CServer::listenFinalize(void)
      {
-        list<MPI_Comm>::iterator it;
+        list<MPI_Comm>::iterator it, itr;
         int msg ;
         int flag ;
 
-        for(it=interComm.begin();it!=interComm.end();it++)
+        for(it=interCommLeft.begin();it!=interCommLeft.end();it++)
         {
            MPI_Status status ;
            traceOff() ;
@@ -206,13 +472,18 @@ namespace xios
            {
               MPI_Recv(&msg,1,MPI_INT,0,0,*it,&status) ;
               info(20)<<" CServer : Receive client finalize"<<endl ;
+              // Sending server finalize message to secondary servers (if any)
+              for(itr=interCommRight.begin();itr!=interCommRight.end();itr++)
+              {
+                MPI_Send(&msg,1,MPI_INT,0,0,*itr) ;
+              }
               MPI_Comm_free(&(*it));
-              interComm.erase(it) ;
+              interCommLeft.erase(it) ;
               break ;
             }
          }
 
-         if (interComm.empty())
+         if (interCommLeft.empty())
          {
            int i,size ;
            MPI_Comm_size(intraComm,&size) ;
@@ -288,9 +559,8 @@ namespace xios
 
      void CServer::recvContextMessage(void* buff,int count)
      {
-       static map<string,contextMessage> recvContextId ;
+       static map<string,contextMessage> recvContextId;
        map<string,contextMessage>::iterator it ;
-
        CBufferIn buffer(buff,count) ;
        string id ;
        int clientLeader ;
@@ -313,15 +583,23 @@ namespace xios
        {
          int size ;
          MPI_Comm_size(intraComm,&size) ;
-         MPI_Request* requests= new MPI_Request[size-1] ;
-         MPI_Status* status= new MPI_Status[size-1] ;
+//         MPI_Request* requests= new MPI_Request[size-1] ;
+//         MPI_Status* status= new MPI_Status[size-1] ;
+         MPI_Request* requests= new MPI_Request[size] ;
+         MPI_Status* status= new MPI_Status[size] ;
 
-         for(int i=1;i<size;i++)
+         CMessage msg ;
+         msg<<id<<it->second.leaderRank;
+         int messageSize=msg.size() ;
+         void * sendBuff = new char[messageSize] ;
+         CBufferOut sendBuffer(sendBuff,messageSize) ;
+         sendBuffer<<msg ;
+
+         // Include root itself in order not to have a divergence
+         for(int i=0; i<size; i++)
          {
-            MPI_Isend(buff,count,MPI_CHAR,i,2,intraComm,&requests[i-1]) ;
+           MPI_Isend(sendBuff,sendBuffer.count(),MPI_CHAR,i,2,intraComm,&requests[i]) ;
          }
-         MPI_Waitall(size-1,requests,status) ;
-         registerContext(buff,count,it->second.leaderRank) ;
 
          recvContextId.erase(it) ;
          delete [] requests ;
@@ -332,47 +610,63 @@ namespace xios
 
      void CServer::listenRootContext(void)
      {
-
        MPI_Status status ;
        int flag ;
-       static char* buffer ;
-       static MPI_Request request ;
-       static bool recept=false ;
-       int rank ;
-       int count ;
-       const int root=0 ;
+       static std::vector<void*> buffers;
+       static std::vector<MPI_Request> requests ;
+       static std::vector<int> counts ;
+       static std::vector<bool> isEventRegistered ;
+       static std::vector<bool> isEventQueued ;
+       MPI_Request request;
 
-       if (recept==false)
+       int rank ;
+       const int root=0 ;
+       boost::hash<string> hashString;
+       size_t hashId = hashString("RegisterContext");
+
+       // (1) Receive context id from the root, save it into a buffer
+       traceOff() ;
+       MPI_Iprobe(root,2,intraComm, &flag, &status) ;
+       traceOn() ;
+       if (flag==true)
        {
-         traceOff() ;
-         MPI_Iprobe(root,2,intraComm, &flag, &status) ;
-         traceOn() ;
-         if (flag==true)
+         counts.push_back(0);
+         MPI_Get_count(&status,MPI_CHAR,&(counts.back())) ;
+         buffers.push_back(new char[counts.back()]) ;
+         requests.push_back(request);
+         MPI_Irecv((void*)(buffers.back()),counts.back(),MPI_CHAR,root,2,intraComm,&(requests.back())) ;
+         isEventRegistered.push_back(false);
+         isEventQueued.push_back(false);
+         nbContexts++;
+       }
+
+       for (int ctxNb = 0; ctxNb < nbContexts; ctxNb++ )
+       {
+         // (2) If context id is received, register an event
+         MPI_Test(&requests[ctxNb],&flag,&status) ;
+         if (flag==true && !isEventRegistered[ctxNb])
          {
-           MPI_Get_count(&status,MPI_CHAR,&count) ;
-           buffer=new char[count] ;
-           MPI_Irecv((void*)buffer,count,MPI_CHAR,root,2,intraComm,&request) ;
-           recept=true ;
+           eventScheduler->registerEvent(ctxNb,hashId);
+           isEventRegistered[ctxNb] = true;
+         }
+         // (3) If event has been scheduled, call register context
+         if (eventScheduler->queryEvent(ctxNb,hashId) && !isEventQueued[ctxNb])
+         {
+           registerContext(buffers[ctxNb],counts[ctxNb]) ;
+           isEventQueued[ctxNb] = true;
+           delete [] buffers[ctxNb] ;
          }
        }
-       else
-       {
-         MPI_Test(&request,&flag,&status) ;
-         if (flag==true)
-         {
-           MPI_Get_count(&status,MPI_CHAR,&count) ;
-           registerContext((void*)buffer,count) ;
-           delete [] buffer ;
-           recept=false ;
-         }
-       }
+
      }
 
      void CServer::registerContext(void* buff, int count, int leaderRank)
      {
        string contextId;
        CBufferIn buffer(buff, count);
-       buffer >> contextId;
+//       buffer >> contextId;
+       buffer >> contextId>>leaderRank;
+       CContext* context;
 
        info(20) << "CServer : Register new Context : " << contextId << endl;
 
@@ -380,41 +674,94 @@ namespace xios
          ERROR("void CServer::registerContext(void* buff, int count, int leaderRank)",
                << "Context '" << contextId << "' has already been registred");
 
-       MPI_Comm contextIntercomm;
-       MPI_Intercomm_create(intraComm,0,CXios::globalComm,leaderRank,10+leaderRank,&contextIntercomm);
-
-       MPI_Comm inter;
-       MPI_Intercomm_merge(contextIntercomm,1,&inter);
-       MPI_Barrier(inter);
-
-       CContext* context=CContext::create(contextId);
+       context=CContext::create(contextId);
        contextList[contextId]=context;
-       context->initServer(intraComm,contextIntercomm);
 
-       contextInterComms.push_back(contextIntercomm);
-       MPI_Comm_free(&inter);
+       // Primary or classical server: create communication channel with a client
+       // (1) create interComm (with a client)
+       // (2) initialize client and server (contextClient and contextServer)
+       MPI_Comm inter;
+       if (serverLevel < 2)
+       {
+         MPI_Comm contextInterComm;
+         MPI_Intercomm_create(intraComm, 0, CXios::globalComm, leaderRank, 10+leaderRank, &contextInterComm);
+         MPI_Intercomm_merge(contextInterComm,1,&inter);
+         MPI_Barrier(inter);
+         MPI_Comm_free(&inter);
+         context->initServer(intraComm,contextInterComm);
+         contextInterComms.push_back(contextInterComm);
+
+       }
+       // Secondary server: create communication channel with a primary server
+       // (1) duplicate interComm with a primary server
+       // (2) initialize client and server (contextClient and contextServer)
+       // Remark: in the case of the secondary server there is no need to create an interComm calling MPI_Intercomm_create,
+       //         because interComm of CContext is defined on the same processes as the interComm of CServer.
+       //         So just duplicate it.
+       else if (serverLevel == 2)
+       {
+         MPI_Comm_dup(interCommLeft.front(), &inter);
+         contextInterComms.push_back(inter);
+         context->initServer(intraComm, contextInterComms.back());
+       }
+
+       // Primary server:
+       // (1) send create context message to secondary servers
+       // (2) initialize communication channels with secondary servers (create contextClient and contextServer)
+       if (serverLevel == 1)
+       {
+         int i = 0, size;
+         MPI_Comm_size(intraComm, &size) ;
+         for (std::list<MPI_Comm>::iterator it = interCommRight.begin(); it != interCommRight.end(); it++, ++i)
+         {
+           StdString str = contextId +"_server_" + boost::lexical_cast<string>(i);
+           CMessage msg;
+           int messageSize;
+           msg<<str<<size<<rank_ ;
+           messageSize = msg.size() ;
+           buff = new char[messageSize] ;
+           CBufferOut buffer(buff,messageSize) ;
+           buffer<<msg ;
+           MPI_Send(buff, buffer.count(), MPI_CHAR, sndServerGlobalRanks[i], 1, CXios::globalComm) ;
+           MPI_Comm_dup(*it, &inter);
+           contextInterComms.push_back(inter);
+           MPI_Comm_dup(intraComm, &inter);
+           contextIntraComms.push_back(inter);
+           context->initClient(contextIntraComms.back(), contextInterComms.back()) ;
+           delete [] buff ;
+         }
+       }
      }
 
-     void CServer::contextEventLoop(void)
+     void CServer::contextEventLoop(bool enableEventsProcessing /*= true*/)
      {
-       bool finished ;
+       bool isFinalized ;
        map<string,CContext*>::iterator it ;
+
        for(it=contextList.begin();it!=contextList.end();it++)
        {
-         finished=it->second->checkBuffersAndListen();
-         if (finished)
+         isFinalized=it->second->isFinalized();
+         if (isFinalized)
          {
            contextList.erase(it) ;
            break ;
          }
+         else
+           it->second->checkBuffersAndListen(enableEventsProcessing);
        }
-
      }
 
-     //! Get rank of the current process
+     //! Get rank of the current process in the intraComm
      int CServer::getRank()
      {
+       int rank;
+       MPI_Comm_rank(intraComm,&rank);
        return rank;
+     }
+
+     vector<int>& CServer::getSecondaryServerGlobalRanks()
+     {
+       return sndServerGlobalRanks;
      }
 
     /*!
@@ -430,14 +777,16 @@ namespace xios
       StdStringStream fileNameClient;
       int numDigit = 0;
       int size = 0;
+      int id;
       MPI_Comm_size(CXios::globalComm, &size);
       while (size)
       {
         size /= 10;
         ++numDigit;
       }
+      id = rank_; //getRank();
 
-      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << getRank() << ext;
+      fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << id << ext;
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())
         ERROR("void CServer::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",

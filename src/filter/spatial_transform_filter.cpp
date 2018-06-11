@@ -2,6 +2,7 @@
 #include "grid_transformation.hpp"
 #include "context.hpp"
 #include "context_client.hpp"
+#include "timer.hpp"
 
 namespace xios
 {
@@ -26,8 +27,19 @@ namespace xios
       const std::vector<StdString>& auxInputs = gridTransformation->getAuxInputs();
       size_t inputCount = 1 + (auxInputs.empty() ? 0 : auxInputs.size());
       double defaultValue  = (hasMissingValue) ? std::numeric_limits<double>::quiet_NaN() : 0.0;
-      boost::shared_ptr<CSpatialTransformFilter> filter(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
+
+      const CGridTransformationSelector::ListAlgoType& algoList = gridTransformation->getAlgoList() ;
+      CGridTransformationSelector::ListAlgoType::const_iterator it  ;
+
+      bool isSpatialTemporal=false ;
+      for (it=algoList.begin();it!=algoList.end();++it)  if (it->second.first == TRANS_TEMPORAL_SPLITTING) isSpatialTemporal=true ;
+
+      boost::shared_ptr<CSpatialTransformFilter> filter ;
+      if( isSpatialTemporal) filter = boost::shared_ptr<CSpatialTransformFilter>(new CSpatialTemporalFilter(gc, engine, gridTransformation, defaultValue, inputCount));
+      else filter = boost::shared_ptr<CSpatialTransformFilter>(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
+
+      
       if (!lastFilter)
         lastFilter = filter;
       else
@@ -55,6 +67,69 @@ namespace xios
     if (outputPacket)
       onOutputReady(outputPacket);
   }
+
+
+
+
+
+  CSpatialTemporalFilter::CSpatialTemporalFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, CGridTransformation* gridTransformation, double outputValue, size_t inputSlotsCount)
+    : CSpatialTransformFilter(gc, engine, outputValue, inputSlotsCount), record(0)
+  {
+      const CGridTransformationSelector::ListAlgoType& algoList = gridTransformation->getAlgoList() ;
+      CGridTransformationSelector::ListAlgoType::const_iterator it  ;
+
+      int pos ;
+      for (it=algoList.begin();it!=algoList.end();++it) 
+        if (it->second.first == TRANS_TEMPORAL_SPLITTING)
+        {
+          pos=it->first ;
+          if (pos < algoList.size()-1)
+            ERROR("SpatialTemporalFilter::CSpatialTemporalFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, CGridTransformation* gridTransformation, double outputValue, size_t inputSlotsCount))",
+                  "temporal splitting operation must be the last of whole transformation on same grid") ;
+        }
+          
+      CGrid* grid=gridTransformation->getGridDestination() ;
+
+      CAxis* axis = grid->getAxis(gridTransformation->getElementPositionInGridDst2AxisPosition().find(pos)->second) ;
+
+      nrecords = axis->index.numElements() ;
+  }
+
+
+  void CSpatialTemporalFilter::onInputReady(std::vector<CDataPacketPtr> data)
+  {
+    CSpatialTransformFilterEngine* spaceFilter = static_cast<CSpatialTransformFilterEngine*>(engine);
+    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue);
+
+    if (outputPacket)
+    {
+      size_t nelements=outputPacket->data.numElements() ;
+      if (!tmpData.numElements())
+      {
+        tmpData.resize(nelements);
+        tmpData=outputDefaultValue ;
+      }
+
+      nelements/=nrecords ;
+      size_t offset=nelements*record ;
+      for(size_t i=0;i<nelements;++i)  tmpData(i+offset) = outputPacket->data(i) ;
+    
+      record ++ ;
+      if (record==nrecords)
+      {
+        record=0 ;
+        CDataPacketPtr packet = CDataPacketPtr(new CDataPacket);
+        packet->date = data[0]->date;
+        packet->timestamp = data[0]->timestamp;
+        packet->status = data[0]->status;
+        packet->data.resize(tmpData.numElements());
+        packet->data = tmpData;
+        onOutputReady(packet);
+        tmpData.resize(0) ;
+      }
+    }
+  }
+
 
   CSpatialTransformFilterEngine::CSpatialTransformFilterEngine(CGridTransformation* gridTransformation)
     : gridTransformation(gridTransformation)
@@ -113,6 +188,8 @@ namespace xios
 
   void CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)
   {
+    CTimer::get("CSpatialTransformFilterEngine::apply").resume(); 
+    
     CContextClient* client = CContext::getCurrent()->client;
 
     // Get default value for output data
@@ -227,5 +304,7 @@ namespace xios
           << "Received size: " << dataCurrentDest.numElements());
 
     dataDest = dataCurrentDest;
+
+    CTimer::get("CSpatialTransformFilterEngine::apply").suspend() ;
   }
 } // namespace xios

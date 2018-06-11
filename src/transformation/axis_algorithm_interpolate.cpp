@@ -16,6 +16,7 @@
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
 #include "distribution_client.hpp"
+#include "timer.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CAxisAlgorithmInterpolate::create(CGrid* gridDst, CGrid* gridSrc,
@@ -62,6 +63,7 @@ CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAx
 */
 void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
+  CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int nbClient = client->clientSize;
@@ -83,6 +85,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
     for (int i = 0; i < srcSize; ++i) valueSrc[i] = recvBuff[indexVec[i]];
     computeInterpolantPoint(valueSrc, indexVec, idx);
   }
+  CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").suspend() ;
 }
 
 /*!
@@ -147,7 +150,7 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
       itsecond = it = itLowerBound; ++itsecond;
       while (it < iteRange)
       {
-        while (itsecond < ite && ((*itsecond -*it) < precision))
+        while ( (itsecond < ite) && ((*itsecond -*it) < precision) )
         { ++itsecond; ++it; }
         int index = std::distance(itb, it);
         interpolatingIndexValues[idx+ibegin].push_back(make_pair(indexVec[index],*it));
@@ -312,7 +315,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     size_t vecAxisValueSizeWithMask = 0;
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
-      if (dom->mask_1d(idx)) ++vecAxisValueSizeWithMask;
+      if (dom->domainMask(idx)) ++vecAxisValueSizeWithMask;
     }
 
     int niGlobDom = dom->ni_glo.getValue();
@@ -323,7 +326,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
       transPosition_.resize(vecAxisValueSizeWithMask);
       for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
       {
-        if (dom->mask_1d(idx))
+        if (dom->domainMask(idx))
         {
           transPosition_[indexMask].resize(1);
           transPosition_[indexMask][0] = (dom->i_index)(idx) + niGlobDom * (dom->j_index)(idx);
@@ -344,7 +347,7 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     size_t indexMask = 0;
     for (size_t idx = 0; idx < vecAxisValueSize; ++idx)
     {
-      if (dom->mask_1d(idx))
+      if (dom->domainMask(idx))
       {
         size_t axisValueSize = 0;
         for (size_t jdx = 0; jdx < axisSrcSize; ++jdx)

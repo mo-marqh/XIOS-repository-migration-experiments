@@ -92,6 +92,32 @@ extern "C"
   }
 
 
+  void cxios_set_domain_bounds_lat_name(domain_Ptr domain_hdl, const char * bounds_lat_name, int bounds_lat_name_size)
+  {
+    std::string bounds_lat_name_str;
+    if (!cstr2string(bounds_lat_name, bounds_lat_name_size, bounds_lat_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->bounds_lat_name.setValue(bounds_lat_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_bounds_lat_name(domain_Ptr domain_hdl, char * bounds_lat_name, int bounds_lat_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->bounds_lat_name.getInheritedValue(), bounds_lat_name, bounds_lat_name_size))
+      ERROR("void cxios_get_domain_bounds_lat_name(domain_Ptr domain_hdl, char * bounds_lat_name, int bounds_lat_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_bounds_lat_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->bounds_lat_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domain_bounds_lon_1d(domain_Ptr domain_hdl, double* bounds_lon_1d, int* extent)
   {
     CTimer::get("XIOS").resume();
@@ -137,6 +163,58 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domain_hdl->bounds_lon_2d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domain_bounds_lon_name(domain_Ptr domain_hdl, const char * bounds_lon_name, int bounds_lon_name_size)
+  {
+    std::string bounds_lon_name_str;
+    if (!cstr2string(bounds_lon_name, bounds_lon_name_size, bounds_lon_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->bounds_lon_name.setValue(bounds_lon_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_bounds_lon_name(domain_Ptr domain_hdl, char * bounds_lon_name, int bounds_lon_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->bounds_lon_name.getInheritedValue(), bounds_lon_name, bounds_lon_name_size))
+      ERROR("void cxios_get_domain_bounds_lon_name(domain_Ptr domain_hdl, char * bounds_lon_name, int bounds_lon_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_bounds_lon_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->bounds_lon_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domain_comment(domain_Ptr domain_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_comment(domain_Ptr domain_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_domain_comment(domain_Ptr domain_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_comment(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->comment.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -307,6 +385,58 @@ extern "C"
   }
 
 
+  void cxios_set_domain_dim_i_name(domain_Ptr domain_hdl, const char * dim_i_name, int dim_i_name_size)
+  {
+    std::string dim_i_name_str;
+    if (!cstr2string(dim_i_name, dim_i_name_size, dim_i_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->dim_i_name.setValue(dim_i_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_dim_i_name(domain_Ptr domain_hdl, char * dim_i_name, int dim_i_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->dim_i_name.getInheritedValue(), dim_i_name, dim_i_name_size))
+      ERROR("void cxios_get_domain_dim_i_name(domain_Ptr domain_hdl, char * dim_i_name, int dim_i_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_dim_i_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->dim_i_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domain_dim_j_name(domain_Ptr domain_hdl, const char * dim_j_name, int dim_j_name_size)
+  {
+    std::string dim_j_name_str;
+    if (!cstr2string(dim_j_name, dim_j_name_size, dim_j_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->dim_j_name.setValue(dim_j_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_dim_j_name(domain_Ptr domain_hdl, char * dim_j_name, int dim_j_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->dim_j_name.getInheritedValue(), dim_j_name, dim_j_name_size))
+      ERROR("void cxios_get_domain_dim_j_name(domain_Ptr domain_hdl, char * dim_j_name, int dim_j_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_dim_j_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->dim_j_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domain_domain_ref(domain_Ptr domain_hdl, const char * domain_ref, int domain_ref_size)
   {
     std::string domain_ref_str;
@@ -429,6 +559,32 @@ extern "C"
   }
 
 
+  void cxios_set_domain_lat_name(domain_Ptr domain_hdl, const char * lat_name, int lat_name_size)
+  {
+    std::string lat_name_str;
+    if (!cstr2string(lat_name, lat_name_size, lat_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->lat_name.setValue(lat_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_lat_name(domain_Ptr domain_hdl, char * lat_name, int lat_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->lat_name.getInheritedValue(), lat_name, lat_name_size))
+      ERROR("void cxios_get_domain_lat_name(domain_Ptr domain_hdl, char * lat_name, int lat_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_lat_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->lat_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_domain_latvalue_1d(domain_Ptr domain_hdl, double* latvalue_1d, int* extent)
   {
     CTimer::get("XIOS").resume();
@@ -474,6 +630,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domain_hdl->latvalue_2d.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domain_lon_name(domain_Ptr domain_hdl, const char * lon_name, int lon_name_size)
+  {
+    std::string lon_name_str;
+    if (!cstr2string(lon_name, lon_name_size, lon_name_str)) return;
+    CTimer::get("XIOS").resume();
+    domain_hdl->lon_name.setValue(lon_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domain_lon_name(domain_Ptr domain_hdl, char * lon_name, int lon_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(domain_hdl->lon_name.getInheritedValue(), lon_name, lon_name_size))
+      ERROR("void cxios_get_domain_lon_name(domain_Ptr domain_hdl, char * lon_name, int lon_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domain_lon_name(domain_Ptr domain_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domain_hdl->lon_name.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

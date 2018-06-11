@@ -29,7 +29,7 @@ int CNetCdfInterface::create(const StdString& fileName, int cMode, int& ncId)
     sstr << "Error when calling function: nc_create(fileName.c_str(), cMode, &ncId) " << std::endl
          << errormsg << std::endl
          << "Unable to create file, given its name: " << fileName
-         << "and its creation mode " << creationMode2String(cMode) << std::endl;
+         << " and its creation mode " << creationMode2String(cMode) << std::endl;
     StdString e = sstr.str();
     throw CNetCdfException(e);
   }
@@ -747,7 +747,7 @@ int CNetCdfInterface::defVarDeflate(int ncid, int varId, int compressionLevel)
 {
   
   if (compressionLevel == 0) return NC_NOERR ;
-  int status = nc_def_var_deflate(ncid, varId, false, (compressionLevel > 0), compressionLevel);
+  int status = nc_def_var_deflate(ncid, varId, (compressionLevel > 0), (compressionLevel > 0), compressionLevel);
   if (NC_NOERR != status)
   {
     StdString errormsg(nc_strerror(status));

@@ -44,6 +44,9 @@ namespace xios
 
             //! Returns true if and only if the attribute should be publicly exposed in the API
             virtual bool isPublic() const { return true; }
+            
+            //! Return true if the attribute should be sent to other clients or servers
+            virtual bool doSend() const { return true; }
 
             /*
               Groupd of functions to generate C and Fortran interface 

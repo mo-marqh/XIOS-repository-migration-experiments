@@ -18,8 +18,8 @@
 
   <axis_definition>
     <axis id="axis_atm"/>
-    <axis id="axis_atm_zoom" axis_ref="axis_atm">      
-      <zoom_axis id="axis_atm_zoom" index="(0,2)[3 0 1]"/>
+    <axis id="axis_atm_zoom" axis_ref="axis_atm">
+      <zoom_axis id="axis_atm_zoom" n="4"/>
     </axis>
   </axis_definition>
 

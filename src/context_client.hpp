@@ -39,6 +39,7 @@ namespace xios
       bool checkBuffers(list<int>& ranks);
       bool checkBuffers(void);
       void releaseBuffers(void);
+      bool havePendingRequests(void);
 
       bool isServerLeader(void) const;
       bool isServerNotLeader(void) const;
@@ -46,11 +47,14 @@ namespace xios
       const std::list<int>& getRanksServerNotLeader(void) const;
 
       bool isAttachedModeEnabled() const;
-
       bool hasTemporarilyBufferedEvent() const { return !tmpBufferedEvent.isEmpty(); };
 
+      static void computeLeader(int clientRank, int clientSize, int serverSize,
+                                std::list<int>& rankRecvLeader,
+                                std::list<int>& rankRecvNotLeader);
+
       // Close and finalize context client
-      void closeContext(void);
+//      void closeContext(void);  Never been implemented.
       void finalize(void);
 
       void setBufferSize(const std::map<int,StdSize>& mapSize, const std::map<int,StdSize>& maxEventSize);
@@ -104,12 +108,6 @@ namespace xios
 
       //! List of server ranks for which the client is not leader
       std::list<int> ranksServerNotLeader;
-
-    public: // Some function should be removed in the future
-      //    void registerEvent(CEventClient& event);
-//    list<CBufferOut*> newEvent(CEventClient& event,list<int>& sizes);
-//    bool locked;
-//    set<int> connectedServer;
 
   };
 }

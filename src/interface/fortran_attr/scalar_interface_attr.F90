@@ -9,6 +9,111 @@ MODULE scalar_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_scalar_axis_type(scalar_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_set_scalar_axis_type
+
+    SUBROUTINE cxios_get_scalar_axis_type(scalar_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_get_scalar_axis_type
+
+    FUNCTION cxios_is_defined_scalar_axis_type(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_axis_type
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_axis_type
+
+
+    SUBROUTINE cxios_set_scalar_bounds(scalar_hdl, bounds, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: scalar_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_scalar_bounds
+
+    SUBROUTINE cxios_get_scalar_bounds(scalar_hdl, bounds, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: scalar_hdl
+      REAL (KIND=C_DOUBLE)     , DIMENSION(*) :: bounds
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_scalar_bounds
+
+    FUNCTION cxios_is_defined_scalar_bounds(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_bounds
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_bounds
+
+
+    SUBROUTINE cxios_set_scalar_bounds_name(scalar_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_set_scalar_bounds_name
+
+    SUBROUTINE cxios_get_scalar_bounds_name(scalar_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_get_scalar_bounds_name
+
+    FUNCTION cxios_is_defined_scalar_bounds_name(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_bounds_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_bounds_name
+
+
+    SUBROUTINE cxios_set_scalar_comment(scalar_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_scalar_comment
+
+    SUBROUTINE cxios_get_scalar_comment(scalar_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_scalar_comment
+
+    FUNCTION cxios_is_defined_scalar_comment(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_comment
+
+
+    SUBROUTINE cxios_set_scalar_label(scalar_hdl, label, label_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: label
+      INTEGER  (kind = C_INT)     , VALUE        :: label_size
+    END SUBROUTINE cxios_set_scalar_label
+
+    SUBROUTINE cxios_get_scalar_label(scalar_hdl, label, label_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: label
+      INTEGER  (kind = C_INT)     , VALUE        :: label_size
+    END SUBROUTINE cxios_get_scalar_label
+
+    FUNCTION cxios_is_defined_scalar_label(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_label
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_label
+
+
     SUBROUTINE cxios_set_scalar_long_name(scalar_hdl, long_name, long_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
@@ -49,6 +154,27 @@ MODULE scalar_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_name
       INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
     END FUNCTION cxios_is_defined_scalar_name
+
+
+    SUBROUTINE cxios_set_scalar_positive(scalar_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_set_scalar_positive
+
+    SUBROUTINE cxios_get_scalar_positive(scalar_hdl, positive, positive_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: positive
+      INTEGER  (kind = C_INT)     , VALUE        :: positive_size
+    END SUBROUTINE cxios_get_scalar_positive
+
+    FUNCTION cxios_is_defined_scalar_positive(scalar_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_scalar_positive
+      INTEGER (kind = C_INTPTR_T), VALUE :: scalar_hdl
+    END FUNCTION cxios_is_defined_scalar_positive
 
 
     SUBROUTINE cxios_set_scalar_prec(scalar_hdl, prec) BIND(C)

@@ -1,4 +1,5 @@
 #include "xml_node.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace xios
 {
@@ -25,7 +26,7 @@ namespace xios
       {
          bool retvalue = false;
          for(rapidxml::xml_node<char> * nextElement = this->node->next_sibling();
-                                      ; nextElement = this->node->next_sibling())
+                                      ; nextElement = nextElement->next_sibling())
          {
             if (nextElement == NULL) break;
             else if (nextElement->type() == rapidxml::node_element)
@@ -43,7 +44,7 @@ namespace xios
          rapidxml::xml_node<char> * nextElement = this->node->first_node();
          if (nextElement != NULL)
          {
-            for(;;nextElement = this->node->next_sibling())
+            for(;;nextElement = nextElement->next_sibling())
             {
                if (nextElement == NULL) break;
                else if (nextElement->type() == rapidxml::node_element)
@@ -66,12 +67,29 @@ namespace xios
          level--;
          return (!retvalue);
       }
-
+/*
       bool CXMLNode::getContent(StdString & content)
       {
          if (this->node->value_size() == 0) return (false);
          content.assign(this->node->value(), this->node->value_size());
          return (true);
+      }
+*/
+      bool CXMLNode::getContent(StdString & content)
+      {
+         content="" ;
+         bool retvalue = false;
+         
+         rapidxml::xml_node<char> * nextElement = this->node->first_node();
+         while (nextElement != NULL)
+         {
+             if (nextElement->type() == rapidxml::node_data) content=content+std::string(nextElement->value(),nextElement->value_size());
+             nextElement = nextElement->next_sibling(); 
+         }
+         boost::algorithm::replace_all(content,"\n"," ") ;
+         boost::algorithm::trim(content) ;
+         if (content.size()==0) return false ;
+         else return true ;
       }
 
       const StdString & CXMLNode::GetRootName(void)

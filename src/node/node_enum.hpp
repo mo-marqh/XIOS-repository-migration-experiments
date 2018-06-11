@@ -28,13 +28,17 @@ namespace xios
          eScalar,
          eReduceAxisToScalar,
          eReduceDomainToAxis,
+         eReduceAxisToAxis,
          eExtractDomainToAxis,
          eComputeConnectivityDomain,
          eExpandDomain,
          eExtractAxisToScalar,
-         eReduceDomainToScalar
-
-      } ENodeType;
+         eReduceDomainToScalar,
+         eTemporalSplitting,
+         eDuplicateScalarToAxis,
+         eReduceScalarToScalar,
+         eReorderDomain
+       } ENodeType;
 
 } // namespace xios
 

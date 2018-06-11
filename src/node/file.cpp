@@ -16,6 +16,7 @@
 #include "context_client.hpp"
 #include "mpi.hpp"
 #include "timer.hpp"
+#include "server.hpp"
 
 namespace xios {
 
@@ -24,7 +25,7 @@ namespace xios {
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , allDomainEmpty(false), isOpen(false)
+      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
    {
      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
      setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -33,7 +34,7 @@ namespace xios {
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
       , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
-      , allDomainEmpty(false), isOpen(false)
+      , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
     {
       setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
       setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group"));
@@ -206,7 +207,7 @@ namespace xios {
     }
 
    //! Initialize a file in order to write into it
-   void CFile::initFile(void)
+   void CFile::initWrite(void)
    {
       CContext* context = CContext::getCurrent();
       const CDate& currentDate = context->calendar->getCurrentDate();
@@ -216,7 +217,7 @@ namespace xios {
       lastSplit = currentDate;
       if (!split_freq.isEmpty())
       {
-        StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+        StdString keySuffix("CFile::"+getFileOutputName()+"::") ; 
         if (context->registryIn->foundKey(keySuffix+"splitStart") && context->registryIn->foundKey(keySuffix+"splitEnd"))
         {
           CDate savedSplitStart(*context->getCalendar()), savedSplitEnd(*context->getCalendar());
@@ -227,33 +228,26 @@ namespace xios {
             lastSplit = savedSplitStart;
         }
       }
-      isOpen = false;
-
-      allDomainEmpty = true;
+      isOpen = false;      
 
 //      if (!record_offset.isEmpty() && record_offset < 0)
 //        ERROR("void CFile::initFile(void)",
 //              "Invalid 'record_offset', this attribute cannot be negative.");
       const int recordOffset = record_offset.isEmpty() ? 0 : record_offset;
 
-      // set<CAxis*> setAxis;
-      // set<CDomain*> setDomains;
       set<StdString> setAxis;
       set<StdString> setDomains;
-      
+
       std::vector<CField*>::iterator it, end = this->enabledFields.end();
       for (it = this->enabledFields.begin(); it != end; it++)
       {
-         CField* field = *it;
-         allDomainEmpty &= !field->grid->doGridHaveDataToWrite();
+         CField* field = *it;         
          std::vector<CAxis*> vecAxis = field->grid->getAxis();
          for (size_t i = 0; i < vecAxis.size(); ++i)
-            setAxis.insert(vecAxis[i]->getAxisOutputName());
-            // setAxis.insert(vecAxis[i]);
+           setAxis.insert(vecAxis[i]->getAxisOutputName());
          std::vector<CDomain*> vecDomains = field->grid->getDomains();
          for (size_t i = 0; i < vecDomains.size(); ++i)
-            setDomains.insert(vecDomains[i]->getDomainOutputName());
-            // setDomains.insert(vecDomains[i]);
+           setDomains.insert(vecDomains[i]->getDomainOutputName());
 
          field->resetNStep(recordOffset);
       }
@@ -261,31 +255,98 @@ namespace xios {
       nbDomains = setDomains.size();
 
       // create sub communicator for file
-      int color = allDomainEmpty ? 0 : 1;
-      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
-      if (allDomainEmpty) MPI_Comm_free(&fileComm);
+      createSubComFile();
 
       // if (time_counter.isEmpty()) time_counter.setValue(time_counter_attr::centered);
       if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
     }
 
-    //! Verify state of a file
-    void CFile::checkFile(void)
+    //! Initialize a file in order to write into it
+    void CFile::initRead(void)
     {
-      if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+      if (checkRead) return;
+      createSubComFile();
+      checkRead = true;
+    }
+
+    /*!
+      Create a sub communicator in which processes participate in reading/opening file
+    */
+    void CFile::createSubComFile()
+    {
+      CContext* context = CContext::getCurrent();
+      CContextServer* server = context->server;
+
+      // create sub communicator for file
+      allZoneEmpty = true;      
+      std::vector<CField*>::iterator it, end = this->enabledFields.end();
+      for (it = this->enabledFields.begin(); it != end; it++)
       {
-        CTimer::get("Files : create headers").resume();
-        if (!isOpen) createHeader();
-        CTimer::get("Files : create headers").suspend();
-        checkSync();
+         CField* field = *it;
+         bool nullGrid = (0 == field->grid);
+         allZoneEmpty &= nullGrid ? false : !field->grid->doGridHaveDataToWrite();
       }
-      else
+
+      int color = allZoneEmpty ? 0 : 1;
+      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
+      if (allZoneEmpty) MPI_Comm_free(&fileComm);
+    }
+
+    /*
+       Check condition to write into a file
+       For now, we only use the level-2 server to write files (if this mode is activated)
+       or classical server to do this job.
+    */
+    void CFile::checkWriteFile(void)
+    {
+      CContext* context = CContext::getCurrent();
+      // Done by classical server or secondary server
+      // This condition should be changed soon
+      if (CServer::serverLevel == 0 || CServer::serverLevel == 2)
       {
-        CTimer::get("Files : open headers").resume();
-        if (!isOpen) openInReadMode();
-        CTimer::get("Files : open headers").suspend();
+        if (mode.isEmpty() || mode.getValue() == mode_attr::write)
+        {
+          CTimer::get("Files : create headers").resume();
+          if (!isOpen) createHeader();
+          CTimer::get("Files : create headers").suspend();
+          checkSync();
+        }        
+        checkSplit(); // REally need this?
       }
-      checkSplit();
+    }
+
+    /*
+       Check condition to read from a file
+       For now, we only use the level-1 server to write files (if this mode is activated)
+       or classical server to do this job.
+       This function can be used by client for reading metadata
+    */
+    void CFile::checkReadFile(void)
+    {
+      CContext* context = CContext::getCurrent();
+      // Done by classical server or secondary server
+      // TODO: This condition should be changed soon. It only works with maximum number of level as 2
+      if (CServer::serverLevel == 0 || CServer::serverLevel == 1)
+      {
+        if (!mode.isEmpty() && mode.getValue() == mode_attr::read)
+        {
+          CTimer::get("Files : open headers").resume();
+          
+          if (!isOpen) openInReadMode();
+
+          CTimer::get("Files : open headers").suspend();
+        }
+        //checkSplit(); // Really need for reading?
+      }
+    }
+
+    /*!
+      Verify if a process participates in an opening-file communicator 
+      \return true if the process doesn't participate in opening file
+    */
+    bool CFile::isEmptyZone()
+    {
+      return allZoneEmpty;
     }
 
     /*!
@@ -350,7 +411,7 @@ namespace xios {
       CContext* context = CContext::getCurrent();
       CContextServer* server = context->server;
 
-      if (!allDomainEmpty)
+      if (!allZoneEmpty)
       {
          StdString filename = getFileOutputName();
 
@@ -379,7 +440,7 @@ namespace xios {
          pos2=filename.find(strEndDate,pos1) ;
          if (pos2!=std::string::npos)
          {
-           middlePart=filename.substr(pos1,pos2-pos1) ;           
+           middlePart=filename.substr(pos1,pos2-pos1) ;
            pos2+=strEndDate.size() ;
            lastPart=filename.substr(pos2,filename.size()-pos2) ;
            hasEndDate=true ;
@@ -417,11 +478,13 @@ namespace xios {
            string splitFormat;
            if (split_freq_format.isEmpty())
            {
-             if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
-             else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
-             else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
-             else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
-             else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+             CDuration splitFreq = split_freq.getValue();
+             splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+             if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
+             else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
+             else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
+             else if (splitFreq.day != 0) splitFormat = "%y%mo%d";
+             else if (splitFreq.month != 0) splitFormat = "%y%mo";
              else splitFormat = "%y";
            }
            else splitFormat = split_freq_format;
@@ -432,7 +495,7 @@ namespace xios {
            if (hasEndDate) oss << splitEnd.getStr(splitFormat);
            oss << lastPart ;
 
-           StdString keySuffix("CContext_"+CContext::getCurrent()->getId()+"::CFile_"+getFileOutputName()+"::") ; 
+           StdString keySuffix("CFile::"+getFileOutputName()+"::") ; 
            context->registryOut->setKey(keySuffix+"splitStart", lastSplit);
            context->registryOut->setKey(keySuffix+"splitEnd",   splitEnd);
          }
@@ -487,6 +550,8 @@ namespace xios {
 
         data_out->writeFile(CFile::get(this));
 
+        if (!useCFConvention) sortEnabledFieldsForUgrid();
+
         // Do not recreate the file structure if opening an existing file
         if (!data_out->IsInAppendMode())
         {
@@ -532,12 +597,13 @@ namespace xios {
   /*!
   \brief Open an existing NetCDF file in read-only mode
   */
-  void CFile::openInReadMode(void)
+  void CFile::openInReadMode()
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
+    MPI_Comm readComm = this->fileComm;
 
-    if (!allDomainEmpty)
+    if (!allZoneEmpty)
     {
       StdString filename = getFileOutputName();
       StdOStringStream oss;
@@ -548,11 +614,13 @@ namespace xios {
         string splitFormat;
         if (split_freq_format.isEmpty())
         {
-          if (split_freq.getValue().second != 0) splitFormat = "%y%mo%d%h%mi%s";
-          else if (split_freq.getValue().minute != 0) splitFormat = "%y%mo%d%h%mi";
-          else if (split_freq.getValue().hour != 0) splitFormat = "%y%mo%d%h";
-          else if (split_freq.getValue().day != 0) splitFormat = "%y%mo%d";
-          else if (split_freq.getValue().month != 0) splitFormat = "%y%mo";
+          CDuration splitFreq = split_freq.getValue();
+          splitFreq.solveTimeStep(*CContext::getCurrent()->getCalendar());
+          if (splitFreq.second != 0) splitFormat = "%y%mo%d%h%mi%s";
+          else if (splitFreq.minute != 0) splitFormat = "%y%mo%d%h%mi";
+          else if (splitFreq.hour != 0) splitFormat = "%y%mo%d%h";
+          else if (splitFreq.day != 0) splitFormat = "%y%mo%d";
+          else if (splitFreq.month != 0) splitFormat = "%y%mo";
           else splitFormat = "%y";
         }
         else splitFormat = split_freq_format;
@@ -576,8 +644,8 @@ namespace xios {
       if (multifile)
       {
         int commSize, commRank;
-        MPI_Comm_size(fileComm, &commSize);
-        MPI_Comm_rank(fileComm, &commRank);
+        MPI_Comm_size(readComm, &commSize);
+        MPI_Comm_rank(readComm, &commRank);
 
         if (server->intraCommSize > 1)
         {
@@ -594,11 +662,15 @@ namespace xios {
       oss << ".nc";
 
       bool isCollective = par_access.isEmpty() || par_access == par_access_attr::collective;
+      bool readMetaDataPar = true;
+      if (!context->hasServer) readMetaDataPar = (read_metadata_par.isEmpty()) ? false : read_metadata_par;
 
       if (isOpen) data_out->closeFile();
       bool ugridConvention = !convention.isEmpty() ? (convention == convention_attr::UGRID) : false;
-      if (time_counter_name.isEmpty()) data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, ugridConvention));
-      else data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), fileComm, multifile, isCollective, ugridConvention, time_counter_name));
+      if (time_counter_name.isEmpty())
+        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention));
+      else
+        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention, time_counter_name));
       isOpen = true;
     }
   }
@@ -606,13 +678,14 @@ namespace xios {
    //! Close file
    void CFile::close(void)
    {
-     if (!allDomainEmpty)
+     if (!allZoneEmpty)
        if (isOpen)
        {
          if (mode.isEmpty() || mode.getValue() == mode_attr::write)
           this->data_out->closeFile();
          else
           this->data_in->closeFile();
+        isOpen = false;
        }
       if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
    }
@@ -623,14 +696,9 @@ namespace xios {
      if (enabledFields.empty()) return;
 
      // Just check file and try to open it
-     CContext* context = CContext::getCurrent();
-     CContextClient* client=context->client;
-
-     // It would probably be better to call initFile() somehow
-     MPI_Comm_dup(client->intraComm, &fileComm);
      if (time_counter_name.isEmpty()) time_counter_name = "time_counter";
 
-     checkFile();
+     checkReadFile();
 
      for (int idx = 0; idx < enabledFields.size(); ++idx)
      {
@@ -725,7 +793,87 @@ namespace xios {
      for (int i = 0; i < size; ++i)
      {
        this->enabledFields[i]->solveOnlyReferenceEnabledField(sendToServer);
-//       this->enabledFields[i]->buildGridTransformationGraph();
+     }
+   }
+
+   void CFile::checkGridOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->checkGridOfEnabledFields();
+     }
+   }
+
+   void CFile::sendGridComponentOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->sendGridComponentOfEnabledFields();
+     }
+   }
+
+   /*!
+   \brief Sorting domains with the same name (= describing the same mesh) in the decreasing order of nvertex for UGRID files.
+   This insures that the domain with the highest nvertex is written first and thus all known mesh connectivity is generated at once by this domain.
+   */
+   void CFile::sortEnabledFieldsForUgrid()
+   {
+     int size = this->enabledFields.size();
+     std::vector<int> domainNvertices;
+     std::vector<StdString> domainNames;
+
+     for (int i = 0; i < size; ++i)
+     {
+       std::vector<CDomain*> domain = this->enabledFields[i]->getRelGrid()->getDomains();
+       if (domain.size() != 1)
+       {
+         ERROR("void CFile::sortEnabledFieldsForUgrid()",
+               "A domain, and only one, should be defined for grid "<< this->enabledFields[i]->getRelGrid()->getId() << ".");
+       }
+       StdString domainName = domain[0]->getDomainOutputName();
+       int nvertex;
+       if (domain[0]->nvertex.isEmpty())
+       {
+         ERROR("void CFile::sortEnabledFieldsForUgrid()",
+               "Attributes nvertex must be defined for domain "<< domain[0]->getDomainOutputName() << ".");
+       }
+       else
+         nvertex = domain[0]->nvertex;
+
+       for (int j = 0; j < i; ++j)
+       {
+         if (domainName == domainNames[j] && nvertex > domainNvertices[j])
+         {
+           CField* tmpSwap = this->enabledFields[j];
+           this->enabledFields[j] = this->enabledFields[i];
+           this->enabledFields[i] = tmpSwap;
+           domainNames.push_back(domainNames[j]);
+           domainNames[j] = domainName;
+           domainNvertices.push_back(domainNvertices[j]);
+           domainNvertices[j] = nvertex;
+         }
+         else
+         {
+           domainNames.push_back(domainName);
+           domainNvertices.push_back(nvertex);
+         }
+       }
+       if (i==0)
+       {
+         domainNames.push_back(domainName);
+         domainNvertices.push_back(nvertex);
+       }
+     }
+   }
+
+   void CFile::sendGridOfEnabledFields()
+   { 
+     int size = this->enabledFields.size();
+     for (int i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->sendGridOfEnabledFields();
      }
    }
 
@@ -746,12 +894,12 @@ namespace xios {
    all information of active fields are created on server side, e.g: checking mask or index
    \param [in] sendToServer: Send all info to server (true) or only a part of it (false)
    */
-   void CFile::solveAllRefOfEnabledFields(bool sendToServer)
+   void CFile::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
    {
      int size = this->enabledFields.size();
      for (int i = 0; i < size; ++i)
-     {
-       this->enabledFields[i]->solveAllReferenceEnabledField(sendToServer);
+     {       
+      this->enabledFields[i]->solveAllEnabledFieldsAndTransform();
      }
    }
 
@@ -890,59 +1038,47 @@ namespace xios {
      return vVariableGroup->createChildGroup(id);
    }
 
+   void CFile::setContextClient(CContextClient* newContextClient)
+   {
+     client = newContextClient;
+     size_t size = this->enabledFields.size();
+     for (size_t i = 0; i < size; ++i)
+     {
+       this->enabledFields[i]->setContextClient(newContextClient);
+     }
+   }
+
+   CContextClient* CFile::getContextClient()
+   {
+     return client;
+   }
+
+   void CFile::setReadContextClient(CContextClient* readContextclient)
+   {
+     read_client = readContextclient;
+   }
+
+   CContextClient* CFile::getReadContextClient()
+   {
+     return read_client;
+   }
+
    /*!
    \brief Send a message to create a field on server side
    \param[in] id String identity of field that will be created on server
    */
-   void CFile::sendAddField(const string& id)
+   void CFile::sendAddField(const string& id, CContextClient* client)
    {
-    CContext* context = CContext::getCurrent();
-
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
-
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
-
+      sendAddItem(id, EVENT_ID_ADD_FIELD, client);
    }
 
    /*!
    \brief Send a message to create a field group on server side
    \param[in] id String identity of field group that will be created on server
    */
-   void CFile::sendAddFieldGroup(const string& id)
+   void CFile::sendAddFieldGroup(const string& id, CContextClient* client)
    {
-    CContext* context = CContext::getCurrent();
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
-
-       CEventClient event(this->getType(),EVENT_ID_ADD_FIELD_GROUP);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
-
+      sendAddItem(id, (int)EVENT_ID_ADD_FIELD_GROUP, client);
    }
 
    /*!
@@ -999,7 +1135,7 @@ namespace xios {
    all these attributes on server side. Because variable can have a value, the second thing
    is to duplicate this value on server, too.
    */
-   void CFile::sendAddAllVariables()
+   void CFile::sendAddAllVariables(CContextClient* client)
    {
      std::vector<CVariable*> allVar = getAllVariables();
      std::vector<CVariable*>::const_iterator it = allVar.begin();
@@ -1007,66 +1143,30 @@ namespace xios {
 
      for (; it != itE; ++it)
      {
-       this->sendAddVariable((*it)->getId());
-       (*it)->sendAllAttributesToServer();
-       (*it)->sendValue();
+       this->sendAddVariable((*it)->getId(), client);
+       (*it)->sendAllAttributesToServer(client);
+       (*it)->sendValue(client);
      }
-   }
-
-   /*!
-   \brief Send a message to create a variable on server side
-      A variable always belongs to a variable group
-   \param[in] id String identity of variable that will be created on server
-   */
-   void CFile::sendAddVariable(const string& id)
-   {
-    CContext* context = CContext::getCurrent();
-
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
-
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
-
    }
 
    /*!
    \brief Send a message to create a variable group on server side
    \param[in] id String identity of variable group that will be created on server
+   \param [in] client client to which we will send this adding action
    */
-   void CFile::sendAddVariableGroup(const string& id)
+   void CFile::sendAddVariableGroup(const string& id, CContextClient* client)
    {
-    CContext* context = CContext::getCurrent();
-    if (! context->hasServer )
-    {
-       CContextClient* client = context->client;
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
+   }
 
-       CEventClient event(this->getType(),EVENT_ID_ADD_VARIABLE_GROUP);
-       if (client->isServerLeader())
-       {
-         CMessage msg;
-         msg << this->getId();
-         msg << id;
-         const std::list<int>& ranks = client->getRanksServerLeader();
-         for (std::list<int>::const_iterator itRank = ranks.begin(), itRankEnd = ranks.end(); itRank != itRankEnd; ++itRank)
-           event.push(*itRank,1,msg);
-         client->sendEvent(event);
-       }
-       else client->sendEvent(event);
-    }
-
+   /*
+     Send message to add a variable into a file within a certain client
+     \param [in] id String identity of a variable
+     \param [in] client client to which we will send this adding action
+   */
+   void CFile::sendAddVariable(const string& id, CContextClient* client)
+   {
+      sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
    }
 
    /*!
@@ -1124,18 +1224,19 @@ namespace xios {
    With these two id, it's easier to make reference to grid where all data should be written.
    Remark: This function must be called AFTER all active (enabled) files have been created on the server side
    */
-   void CFile::sendEnabledFields()
+   void CFile::sendEnabledFields(CContextClient* client)
    {
      size_t size = this->enabledFields.size();
      for (size_t i = 0; i < size; ++i)
      {
        CField* field = this->enabledFields[i];
-       this->sendAddField(field->getId());
-       field->checkAttributes();
-       field->sendAllAttributesToServer();
-       field->sendAddAllVariables();
+       this->sendAddField(field->getId(), client);
+       field->checkTimeAttributes();
+       field->sendAllAttributesToServer(client);
+       field->sendAddAllVariables(client);
      }
    }
+
 
    /*!
    \brief Dispatch event received from client

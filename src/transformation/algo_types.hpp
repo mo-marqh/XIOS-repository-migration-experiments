@@ -17,13 +17,18 @@
 #include "axis_algorithm_zoom.hpp"
 #include "axis_algorithm_interpolate.hpp"
 #include "axis_algorithm_reduce_domain.hpp"
+#include "axis_algorithm_reduce_axis.hpp"
 #include "axis_algorithm_transformation.hpp"
 #include "axis_algorithm_extract_domain.hpp"
+#include "axis_algorithm_temporal_splitting.hpp"
 
 #include "domain_algorithm_zoom.hpp"
 #include "domain_algorithm_interpolate.hpp"
 #include "domain_algorithm_compute_connectivity.hpp"
 #include "domain_algorithm_expand.hpp"
+#include "axis_algorithm_duplicate_scalar.hpp"
+#include "scalar_algorithm_reduce_scalar.hpp"
+#include "domain_algorithm_reorder.hpp"
 
 
 

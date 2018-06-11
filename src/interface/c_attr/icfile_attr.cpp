@@ -40,6 +40,32 @@ extern "C"
   }
 
 
+  void cxios_set_file_comment(file_Ptr file_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_comment(file_Ptr file_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_file_comment(file_Ptr file_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_comment(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_compression_level(file_Ptr file_hdl, int compression_level)
   {
     CTimer::get("XIOS").resume();
@@ -401,6 +427,29 @@ extern "C"
   }
 
 
+  void cxios_set_file_read_metadata_par(file_Ptr file_hdl, bool read_metadata_par)
+  {
+    CTimer::get("XIOS").resume();
+    file_hdl->read_metadata_par.setValue(read_metadata_par);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_read_metadata_par(file_Ptr file_hdl, bool* read_metadata_par)
+  {
+    CTimer::get("XIOS").resume();
+    *read_metadata_par = file_hdl->read_metadata_par.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_read_metadata_par(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->read_metadata_par.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_file_record_offset(file_Ptr file_hdl, int record_offset)
   {
     CTimer::get("XIOS").resume();
@@ -419,6 +468,44 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = file_hdl->record_offset.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_split_end_offset(file_Ptr file_hdl, cxios_duration split_end_offset_c)
+  {
+    CTimer::get("XIOS").resume();
+    file_hdl->split_end_offset.allocate();
+    CDuration& split_end_offset = file_hdl->split_end_offset.get();
+    split_end_offset.year = split_end_offset_c.year;
+    split_end_offset.month = split_end_offset_c.month;
+    split_end_offset.day = split_end_offset_c.day;
+    split_end_offset.hour = split_end_offset_c.hour;
+    split_end_offset.minute = split_end_offset_c.minute;
+    split_end_offset.second = split_end_offset_c.second;
+    split_end_offset.timestep = split_end_offset_c.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_split_end_offset(file_Ptr file_hdl, cxios_duration* split_end_offset_c)
+  {
+    CTimer::get("XIOS").resume();
+    CDuration split_end_offset = file_hdl->split_end_offset.getInheritedValue();
+    split_end_offset_c->year = split_end_offset.year;
+    split_end_offset_c->month = split_end_offset.month;
+    split_end_offset_c->day = split_end_offset.day;
+    split_end_offset_c->hour = split_end_offset.hour;
+    split_end_offset_c->minute = split_end_offset.minute;
+    split_end_offset_c->second = split_end_offset.second;
+    split_end_offset_c->timestep = split_end_offset.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_split_end_offset(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->split_end_offset.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
@@ -483,6 +570,70 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = file_hdl->split_freq_format.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_split_last_date(file_Ptr file_hdl, const char * split_last_date, int split_last_date_size)
+  {
+    std::string split_last_date_str;
+    if (!cstr2string(split_last_date, split_last_date_size, split_last_date_str)) return;
+    CTimer::get("XIOS").resume();
+    file_hdl->split_last_date.setValue(split_last_date_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_split_last_date(file_Ptr file_hdl, char * split_last_date, int split_last_date_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(file_hdl->split_last_date.getInheritedValue(), split_last_date, split_last_date_size))
+      ERROR("void cxios_get_file_split_last_date(file_Ptr file_hdl, char * split_last_date, int split_last_date_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_split_last_date(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->split_last_date.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_file_split_start_offset(file_Ptr file_hdl, cxios_duration split_start_offset_c)
+  {
+    CTimer::get("XIOS").resume();
+    file_hdl->split_start_offset.allocate();
+    CDuration& split_start_offset = file_hdl->split_start_offset.get();
+    split_start_offset.year = split_start_offset_c.year;
+    split_start_offset.month = split_start_offset_c.month;
+    split_start_offset.day = split_start_offset_c.day;
+    split_start_offset.hour = split_start_offset_c.hour;
+    split_start_offset.minute = split_start_offset_c.minute;
+    split_start_offset.second = split_start_offset_c.second;
+    split_start_offset.timestep = split_start_offset_c.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_file_split_start_offset(file_Ptr file_hdl, cxios_duration* split_start_offset_c)
+  {
+    CTimer::get("XIOS").resume();
+    CDuration split_start_offset = file_hdl->split_start_offset.getInheritedValue();
+    split_start_offset_c->year = split_start_offset.year;
+    split_start_offset_c->month = split_start_offset.month;
+    split_start_offset_c->day = split_start_offset.day;
+    split_start_offset_c->hour = split_start_offset.hour;
+    split_start_offset_c->minute = split_start_offset.minute;
+    split_start_offset_c->second = split_start_offset.second;
+    split_start_offset_c->timestep = split_start_offset.timestep;
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_file_split_start_offset(file_Ptr file_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = file_hdl->split_start_offset.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

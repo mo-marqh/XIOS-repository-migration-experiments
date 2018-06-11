@@ -531,8 +531,8 @@ namespace xios {
       edge_nodes.resize(nvertex, nbEdges_);
 
       // For determining the global edge index
-      size_t nbEdgesOnProc = nbEdges_;
-      size_t nbEdgesAccum;
+      unsigned long nbEdgesOnProc = nbEdges_;
+      unsigned long nbEdgesAccum;
       MPI_Scan(&nbEdgesOnProc, &nbEdgesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
       nbEdgesAccum -= nbEdges_;
 
@@ -661,8 +661,8 @@ namespace xios {
          // Solution: global node indexing by hand.
          // Maps modified in this step:
          // nodeIdx2Idx = <idx, idxGlo>
-         int nodeCount = nodeIdx2Idx.size();
-         int nodeStart, nbNodes;
+         unsigned long nodeCount = nodeIdx2Idx.size();
+         unsigned long nodeStart, nbNodes;
          MPI_Scan(&nodeCount, &nodeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
          int nNodes = nodeStart;
          MPI_Bcast(&nNodes, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
@@ -754,8 +754,8 @@ namespace xios {
       face_edges.resize(nvertex, nbFaces_);
 
       // For determining the global face index
-      size_t nbFacesOnProc = nbFaces_;
-      size_t nbFacesAccum;
+      unsigned long nbFacesOnProc = nbFaces_;
+      unsigned long nbFacesAccum;
       MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
       nbFacesAccum -= nbFaces_;
 
@@ -879,7 +879,7 @@ namespace xios {
           }
         }
 
-        int edgeStart, nbEdges;
+        unsigned long edgeStart, nbEdges;
         MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
         int nEdges = edgeStart;
         MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
@@ -1099,8 +1099,8 @@ namespace xios {
           }
         }
 
-        int edgeCount = edgeIdx2Idx.size();
-        int edgeStart, nbEdges;
+        unsigned long edgeCount = edgeIdx2Idx.size();
+        unsigned long edgeStart, nbEdges;
         MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
         int nEdges = edgeStart;
         MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
@@ -1369,8 +1369,8 @@ namespace xios {
         // Solution: global node indexing by hand.
         // Maps modified in this step:
         // nodeIdx2Idx = <idx, idxGlo>
-        int nodeCount = nodeIdx2Idx.size();
-        int nodeStart, nbNodes;
+        unsigned long nodeCount = nodeIdx2Idx.size();
+        unsigned long nodeStart, nbNodes;
         MPI_Scan(&nodeCount, &nodeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
         int nNodes = nodeStart;
         MPI_Bcast(&nNodes, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
@@ -1489,8 +1489,8 @@ namespace xios {
           }
         }
 
-        int edgeCount = edgeIdx2Idx.size();
-        int edgeStart, nbEdges;
+        unsigned long edgeCount = edgeIdx2Idx.size();
+        unsigned long edgeStart, nbEdges;
         MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
         int nEdges = edgeStart;
         MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);

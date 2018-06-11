@@ -43,7 +43,7 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
   zoomAxis->checkValid(axisSource);
   zoomBegin_ = zoomAxis->begin.getValue();
   zoomSize_  = zoomAxis->n.getValue();
-  zoomEnd_   = zoomBegin_ + zoomSize_ - 1;  
+  zoomEnd_   = zoomBegin_ + zoomSize_ - 1;
 
   if (zoomSize_ > axisSource->n_glo.getValue())
   {
@@ -62,6 +62,7 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 
     std::sort(zoomIndex_.begin(), zoomIndex_.end());
   }
+
 }
 
 /*!
@@ -69,12 +70,9 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 */
 void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
+  // We use all index of source and destination to calculate the mapping index of zoom.
+  // The server who receives the "zoomed" fields will decide whether it will forward these fields or write "real zoomed" fields into file
+  // That means servers need to change to cover this problem.
   StdSize niSource = axisSrc_->n.getValue();
   StdSize ibeginSource = axisSrc_->begin.getValue();
   StdSize iendSource = ibeginSource + niSource - 1;
@@ -83,6 +81,12 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   StdSize iend = std::min(iendSource, zoomEnd_);
   StdSize ni = iend + 1 - ibegin;
   if (iend < ibegin) ni = 0;
+
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
   if (!zoomIndex_.empty())
   {
@@ -105,7 +109,7 @@ void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<dou
   }
 
   updateZoom();
-  updateAxisDestinationMask();
+  // updateAxisDestinationMask();
 }
 
 /*!
@@ -127,19 +131,19 @@ void CAxisAlgorithmZoom::updateZoom()
   Because only zoomed region on axis is not masked, the remaining must be masked to make sure
 correct index be extracted
 */
-void CAxisAlgorithmZoom::updateAxisDestinationMask()
-{
-  StdSize niMask = axisDest_->mask.numElements();
-  StdSize iBeginMask = axisDest_->begin.getValue();
-  StdSize globalIndexMask = 0;
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationIndexMap::const_iterator ite = (transMap).end();
-  for (StdSize idx = 0; idx < niMask; ++idx)
-  {
-    globalIndexMask = iBeginMask + idx;
-    if (transMap.find(globalIndexMask) == ite)
-      (axisDest_->mask)(idx) = false;
-  }
-}
+// void CAxisAlgorithmZoom::updateAxisDestinationMask()
+// {
+//   StdSize niMask = axisDest_->mask.numElements();
+//   StdSize iBeginMask = axisDest_->begin.getValue();
+//   StdSize globalIndexMask = 0;
+//   TransformationIndexMap& transMap = this->transformationMapping_[0];
+//   TransformationIndexMap::const_iterator ite = (transMap).end();
+//   for (StdSize idx = 0; idx < niMask; ++idx)
+//   {
+//     globalIndexMask = iBeginMask + idx;
+//     if (transMap.find(globalIndexMask) == ite)
+//       (axisDest_->mask)(idx) = false;
+//   }
+// }
 
 }

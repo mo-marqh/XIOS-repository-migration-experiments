@@ -242,7 +242,6 @@ namespace xios
 
         if (this->month == nbMonthsPerYear + 1) { year++; this->month = 1; }
         if (this->month == 0)  { year--; this->month = nbMonthsPerYear; }
-
       }
 
       //----------------------------------------------------------------

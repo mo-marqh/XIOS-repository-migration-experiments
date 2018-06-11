@@ -40,6 +40,7 @@ namespace xios
             
             bool singleDomain ;
             bool isCollective ;
+            int compressionLevel ;
                       
             CFile* file;
                       

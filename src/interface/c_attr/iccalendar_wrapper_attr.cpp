@@ -17,6 +17,32 @@ extern "C"
 {
   typedef xios::CCalendarWrapper* calendar_wrapper_Ptr;
 
+  void cxios_set_calendar_wrapper_comment(calendar_wrapper_Ptr calendar_wrapper_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    calendar_wrapper_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_calendar_wrapper_comment(calendar_wrapper_Ptr calendar_wrapper_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(calendar_wrapper_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_calendar_wrapper_comment(calendar_wrapper_Ptr calendar_wrapper_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_calendar_wrapper_comment(calendar_wrapper_Ptr calendar_wrapper_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = calendar_wrapper_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_calendar_wrapper_day_length(calendar_wrapper_Ptr calendar_wrapper_hdl, int day_length)
   {
     CTimer::get("XIOS").resume();

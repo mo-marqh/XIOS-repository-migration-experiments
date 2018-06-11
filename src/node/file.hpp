@@ -10,6 +10,7 @@
 #include "date.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include "context_client.hpp"
 #include "mpi.hpp"
 
 namespace xios {
@@ -85,8 +86,11 @@ namespace xios {
          bool isSyncTime(void);
          bool checkSplit(void);
          bool checkSync(void);
-         void checkFile(void);
-         void initFile(void);
+         void checkWriteFile(void);
+         void checkReadFile(void);
+         void initWrite(void);
+         void initRead(void);
+         bool isEmptyZone();
 
          /// Mutateurs ///
          // Set some root definitions in a file
@@ -103,27 +107,39 @@ namespace xios {
          void processEnabledFile(void);
          void solveOnlyRefOfEnabledFields(bool sendToServer);
          void generateNewTransformationGridDest();
-         void solveAllRefOfEnabledFields(bool sendToServer);
+         
          void buildFilterGraphOfEnabledFields(CGarbageCollector& gc);
          void postProcessFilterGraph();
          void prefetchEnabledReadModeFields();
          void doPreTimestepOperationsForEnabledReadModeFields();
          void doPostTimestepOperationsForEnabledReadModeFields();
 
+         void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
+         void checkGridOfEnabledFields();
+         void sendGridOfEnabledFields();
+         void sendGridComponentOfEnabledFields();
+
+         void sortEnabledFieldsForUgrid();
+
          // Add component into file
          CField* addField(const string& id = "");
          CFieldGroup* addFieldGroup(const string& id = "");
          CVariable* addVariable(const string& id = "");
          CVariableGroup* addVariableGroup(const string& id = "");
+         void setContextClient(CContextClient* newContextClient);
+         CContextClient* getContextClient();
 
-         // Send info to serever
-         void sendEnabledFields();
-         void sendAddField(const string& id = "");
-         void sendAddFieldGroup(const string& id = "");
-         void sendAddAllVariables();
-         void sendAddVariable(const string& id = "");
-         void sendAddVariableGroup(const string& id = "");
+         void setReadContextClient(CContextClient* newContextClient);
+         CContextClient* getReadContextClient();
 
+         // Send info to server         
+         void sendEnabledFields(CContextClient* client);         
+         void sendAddField(const string& id, CContextClient* client);         
+         void sendAddFieldGroup(const string& id, CContextClient* client);                           
+         void sendAddVariable(const string& id, CContextClient* client);
+         void sendAddVariableGroup(const string& id, CContextClient* client);
+         void sendAddAllVariables(CContextClient* client);
+         
          // Receive info from client
          static void recvAddField(CEventServer& event);
          void recvAddField(CBufferIn& buffer);
@@ -155,17 +171,24 @@ namespace xios {
          CDate lastSync;
          CDate lastSplit;
          int nbAxis, nbDomains;
-         bool isOpen;
-         bool allDomainEmpty;
+         bool isOpen;         
          MPI_Comm fileComm;
 
+      private:
+         void createSubComFile();
+         bool checkRead;
+         bool allZoneEmpty;
+         
       private :
          /// Propriétés privées ///
+         CContextClient* client;
+         CContextClient* read_client; // Context client for reading (channel between server 1 and client)
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup;
          boost::shared_ptr<CDataOutput> data_out;
          boost::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
+
 
       public:
         //         virtual void toBinary  (StdOStream& os) const;

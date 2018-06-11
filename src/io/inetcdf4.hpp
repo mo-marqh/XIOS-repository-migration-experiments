@@ -22,7 +22,8 @@ namespace xios
     public:
       /// Constructors ///
       CINetCDF4(const StdString& filename, const MPI_Comm* comm = NULL, bool multifile = true,
-                const StdString& timeCounterName = "time_counter");
+                bool readMetaDataPar = false, const StdString& timeCounterName = "time_counter");
+
       CINetCDF4(const CINetCDF4& inetcdf4);       // Not implemented.
       CINetCDF4(const CINetCDF4* const inetcdf4); // Not implemented.
 
@@ -133,6 +134,8 @@ namespace xios
       bool isTemporal(const StdString& name, const CVarPath* const path = NULL);
       bool is3Dim(const StdString& name, const CVarPath* const path = NULL);
       bool isCellGrid(const StdString& name, const CVarPath* const path = NULL);
+
+      bool isLonOrLat(const StdString& varname, const CVarPath* const path = NULL);
 
     protected:
       /// Getters ///

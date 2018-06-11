@@ -15,11 +15,11 @@ PROGRAM test_remap
   TYPE(xios_duration) :: dtime
   TYPE(xios_context) :: ctx_hdl
 
-  DOUBLE PRECISION,ALLOCATABLE :: src_lon(:), dst_lon(:), src_lon_tmp(:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:), src_lat_tmp(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_lon(:), dst_lon(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_lat(:), dst_lat(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslon(:,:), dst_boundslon(:,:)
   DOUBLE PRECISION,ALLOCATABLE :: src_boundslat(:,:), dst_boundslat(:,:)
-  DOUBLE PRECISION,ALLOCATABLE :: src_field_2D(:), src_field_2D_clone(:)
+  DOUBLE PRECISION,ALLOCATABLE :: src_field_2D(:)
   DOUBLE PRECISION,ALLOCATABLE :: tmp_field_0(:), tmp_field_1(:), tmp_field_2(:)
   DOUBLE PRECISION,ALLOCATABLE :: src_field_3D(:,:), src_field_4D(:,:,:), lval(:), lval1(:), lval2(:), src_field_pression(:,:)
   LOGICAL,ALLOCATABLE :: src_mask_2D(:)
@@ -35,9 +35,8 @@ PROGRAM test_remap
   INTEGER :: div,remain
   INTEGER :: varid
   INTEGER :: ts
-  INTEGER :: i,j
+  INTEGER :: i
   INTEGER,PARAMETER :: llm=5, interpolatedLlm = 4, llm2 = 6
-  DOUBLE PRECISION, PARAMETER :: missing_value = 100000
 
   CALL MPI_INIT(ierr)
   CALL init_wait
@@ -64,11 +63,11 @@ PROGRAM test_remap
     src_ibegin= remain * (div+1) + (rank-remain) * div ;
   ENDIF
 
-  ALLOCATE(src_lon(src_ni), src_lon_tmp(src_ni))
-  ALLOCATE(src_lat(src_ni), src_lat_tmp(src_ni))
+  ALLOCATE(src_lon(src_ni))
+  ALLOCATE(src_lat(src_ni))
   ALLOCATE(src_boundslon(src_nvertex,src_ni))
   ALLOCATE(src_boundslat(src_nvertex,src_ni))
-  ALLOCATE(src_field_2D(src_ni), src_field_2D_clone(src_ni))
+  ALLOCATE(src_field_2D(src_ni))
   ALLOCATE(src_field_3D(src_ni,llm))
   ALLOCATE(src_field_4D(src_ni,llm,llm2))
   ALLOCATE(src_mask_2D(src_ni))
@@ -89,32 +88,21 @@ PROGRAM test_remap
   ierr=NF90_GET_VAR(ncid,varid, src_field_2D, start=(/src_ibegin+1/),count=(/src_ni/))
   DO i=1,src_ni
     src_field_3D(i,:) = src_field_2D(i)
-    IF ((0 < src_lat(i)) .AND. (src_lat(i) < 25.5) .AND. (30 < src_lon(i)) .AND. (src_lon(i) < 60)) THEN
+    IF (MOD(i,10)==0) THEN
       src_mask_2D(i)=.FALSE.
-      ! src_field_2D(i) = missing_value
     ELSE
-      src_mask_2D(i)=.TRUE.      
+      src_mask_2D(i)=.TRUE.
     ENDIF
-    src_lon_tmp(i) = src_lon(i) + 1000
-    src_lat_tmp(i) = src_lat(i) + 10000
   ENDDO
-  src_field_2D_clone = src_field_2D
 
   DO i=1,llm
     lval(i) = i*100
     src_field_pression(:,i) = i * 100
-    IF (MOD(i,3)==0) THEN
-      ! src_field_pression(:,i) = missing_value
-      src_field_3D(:,i) = missing_value
-    ELSE
-      ! src_field_pression(:,i) = i * 100
-      src_field_3D(:,i) = src_field_3D(:,i) + i * 10 
-    ENDIF
-    ! src_field_3D(:,i) = src_field_3D(:,i) + i * 10    
+    src_field_3D(:,i) = src_field_3D(:,i) + i * 10    
   ENDDO
 
   DO i=1,llm2
-    src_field_4D(:,:,i) = src_field_3D(:,:) + i * 100
+    src_field_4D(:,:,i) = src_field_3D(:,:)
   ENDDO
 
   DO i=1,interpolatedLlm
@@ -173,11 +161,6 @@ PROGRAM test_remap
   CALL xios_set_domain_attr("dst_domain", lonvalue_1D=dst_lon, latvalue_1D=dst_lat, &
                             bounds_lon_1D=dst_boundslon, bounds_lat_1D=dst_boundslat, nvertex=dst_nvertex)
 
-  CALL xios_set_domain_attr("src_domain_unstructured_read", ni_glo=src_ni_glo, ibegin=src_ibegin, ni=src_ni, type="unstructured")
-  CALL xios_set_domain_attr("src_domain_unstructured_read", lonvalue_1D=src_lon_tmp, latvalue_1D=src_lat_tmp, &
-                            bounds_lon_1D=src_boundslon, bounds_lat_1D=src_boundslat, nvertex=src_nvertex)
-
-
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
 
@@ -185,36 +168,26 @@ PROGRAM test_remap
   CALL xios_get_domain_attr("src_domain_regular_read", ni=src_tmp_ni, nj=src_tmp_nj)
   ALLOCATE(tmp_field_0(src_tmp_ni*src_tmp_nj))
 
-  CALL xios_get_axis_attr("src_axis_curvilinear_read", n=src_tmp_n)
-  CALL xios_get_domain_attr("src_domain_curvilinear_read", ni=src_tmp_ni, nj=src_tmp_nj)
-  ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
+  ! CALL xios_get_axis_attr("src_axis_curvilinear_read", n=src_tmp_n)
+  ! CALL xios_get_domain_attr("src_domain_curvilinear_read", ni=src_tmp_ni, nj=src_tmp_nj)
+  ! ALLOCATE(tmp_field_1(src_tmp_ni*src_tmp_nj*src_tmp_n))
 
-  CALL xios_get_domain_attr("src_domain_unstructured_read", ni=src_tmp_ni, nj=src_tmp_nj)
-  ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
-  
-  CALL xios_recv_field("src_field_regular", tmp_field_0)
-  CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
-  CALL xios_recv_field("src_field_unstructured", tmp_field_2)
+  ! CALL xios_get_domain_attr("src_domain_unstructured_read", ni=src_tmp_ni, nj=src_tmp_nj)
+  ! ALLOCATE(tmp_field_2(src_tmp_ni*src_tmp_nj))
 
-  DO ts=1,10
+  DO ts=1,1
+    CALL xios_recv_field("src_field_regular", tmp_field_0)
+    ! CALL xios_recv_field("src_field_curvilinear", tmp_field_1)
+    ! CALL xios_recv_field("src_field_unstructured", tmp_field_2)
     CALL xios_update_calendar(ts)
     CALL xios_send_field("src_field_2D",src_field_2D)
-    
-    DO i=1,src_ni
-      src_field_2D_clone(i) = src_field_2D(i)
-      IF ((23.5 * ts < src_lat(i)) .AND. (src_lat(i) < 65.5 *ts) .AND. (0 < src_lon(i)) .AND. (src_lon(i) < 30*ts)) THEN      
-        src_field_2D_clone(i) = missing_value    
-      ENDIF
-    ENDDO
-
-    CALL xios_send_field("src_field_2D_clone",src_field_2D_clone)
+    CALL xios_send_field("src_field_2D_clone",src_field_2D)
     CALL xios_send_field("src_field_3D",src_field_3D)
-    CALL xios_send_field("src_field_3D_clone",src_field_3D)
-    CALL xios_send_field("src_field_4D",src_field_4D)
-    CALL xios_send_field("src_field_3D_pression",src_field_pression)
+    ! CALL xios_send_field("src_field_4D",src_field_4D)
+    ! CALL xios_send_field("src_field_3D_pression",src_field_pression)
     CALL xios_send_field("tmp_field_0",tmp_field_0)
-    CALL xios_send_field("tmp_field_1",tmp_field_1)
-    CALL xios_send_field("tmp_field_2",tmp_field_2)
+    ! CALL xios_send_field("tmp_field_1",tmp_field_1)
+    ! CALL xios_send_field("tmp_field_2",tmp_field_2)
     CALL wait_us(5000) ;
    ENDDO
 
@@ -222,7 +195,7 @@ PROGRAM test_remap
 
   DEALLOCATE(src_lon, src_lat, src_boundslon,src_boundslat, src_field_2D)
   DEALLOCATE(dst_lon, dst_lat, dst_boundslon,dst_boundslat)
-  DEALLOCATE(tmp_field_0, tmp_field_1, tmp_field_2)
+  ! DEALLOCATE(tmp_field_0, tmp_field_1, tmp_field_2)
 
   CALL MPI_COMM_FREE(comm, ierr)
 

@@ -9,6 +9,7 @@
 #include "array_new.hpp"
 #include "attribute_enum.hpp"
 #include "attribute_enum_impl.hpp"
+#include "attribute_array.hpp"
 #include "transformation.hpp"
 #include "transformation_enum.hpp"
 
@@ -81,7 +82,6 @@ namespace xios
            std::set<StdString> relFiles;
            TransMapTypes transformationMap_;
 
-         private:           
             void setTransformations(const TransMapTypes&);
 
        private:

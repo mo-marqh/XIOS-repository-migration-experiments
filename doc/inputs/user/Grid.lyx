@@ -1,9 +1,7 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
-\save_transient_properties true
-\origin unavailable
 \textclass book
 \use_default_options true
 \master ../../XIOS_user_guide.lyx
@@ -12,16 +10,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman "default" "default"
-\font_sans "default" "default"
-\font_typewriter "default" "default"
-\font_math "auto" "auto"
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100 100
-\font_tt_scale 100 100
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -237,7 +235,9 @@ unique
 \shape default
 \color inherit
  among this kind of components.
- If several grids use same Id, they all represent only one grid.
+ It is not allowed to have two grids with a same id, but it is permitted
+ a grid and, for example, a domain to share a same one.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -414,7 +414,7 @@ As it is discussed more details in the next section, but remember that even
 As mentioned above, grid includes by default one unlimited dimension which
  is often used as time step axis.
  In order to write only time step to netCDF, XIOS provides a special way
- to do: scalar grid - a grid composed of a scalar
+ to do: empty grid - a grid without any domain or axis.
 \end_layout
 
 \begin_layout Standard
@@ -425,12 +425,7 @@ status open
 
 \begin_layout Plain Layout
 
-<grid id="grid_TimeStep"> 
-\end_layout
-
-\begin_layout Plain Layout
-
-  <scalar id="scalar" />
+ <grid id="grid_TimeStep"> 
 \end_layout
 
 \begin_layout Plain Layout

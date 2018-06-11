@@ -1,6 +1,7 @@
 #include "event_scheduler.hpp"
 #include "xios_spl.hpp"
 #include "mpi.hpp"
+#include "tracer.hpp"
 
 namespace xios
 {
@@ -79,6 +80,7 @@ namespace xios
   void CEventScheduler::registerEvent(const size_t timeLine, const size_t contextHashId, const size_t lev)
   {
        
+    traceOff() ;
     SPendingRequest* sentRequest=new SPendingRequest ;
     sentRequest->buffer[0]=timeLine ;
     sentRequest->buffer[1]=contextHashId ;
@@ -86,6 +88,7 @@ namespace xios
 
     pendingSentParentRequest.push(sentRequest) ;
     MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, parent[lev], 0, communicator, &sentRequest->request) ;
+    traceOn() ;
   } 
 
   bool CEventScheduler::queryEvent(const size_t timeLine, const size_t contextHashId)
@@ -101,12 +104,12 @@ namespace xios
   
   void CEventScheduler::checkEvent(void)
   {
+    traceOff() ;
     checkChildRequest() ;
     checkParentRequest() ;
+    traceOn() ;
     
   }
-  
-  
   
   void CEventScheduler::checkParentRequest(void)
   {

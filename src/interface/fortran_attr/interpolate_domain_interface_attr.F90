@@ -9,6 +9,25 @@ MODULE interpolate_domain_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_interpolate_domain_detect_missing_value(interpolate_domain_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)      , VALUE :: detect_missing_value
+    END SUBROUTINE cxios_set_interpolate_domain_detect_missing_value
+
+    SUBROUTINE cxios_get_interpolate_domain_detect_missing_value(interpolate_domain_hdl, detect_missing_value) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      LOGICAL (KIND=C_BOOL)             :: detect_missing_value
+    END SUBROUTINE cxios_get_interpolate_domain_detect_missing_value
+
+    FUNCTION cxios_is_defined_interpolate_domain_detect_missing_value(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_detect_missing_value
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_detect_missing_value
+
+
     SUBROUTINE cxios_set_interpolate_domain_mode(interpolate_domain_hdl, mode, mode_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
@@ -66,6 +85,27 @@ MODULE interpolate_domain_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_quantity
       INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
     END FUNCTION cxios_is_defined_interpolate_domain_quantity
+
+
+    SUBROUTINE cxios_set_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_convention_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: read_write_convention
+      INTEGER  (kind = C_INT)     , VALUE        :: read_write_convention_size
+    END SUBROUTINE cxios_set_interpolate_domain_read_write_convention
+
+    SUBROUTINE cxios_get_interpolate_domain_read_write_convention(interpolate_domain_hdl, read_write_convention, read_write_convention_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: read_write_convention
+      INTEGER  (kind = C_INT)     , VALUE        :: read_write_convention_size
+    END SUBROUTINE cxios_get_interpolate_domain_read_write_convention
+
+    FUNCTION cxios_is_defined_interpolate_domain_read_write_convention(interpolate_domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_interpolate_domain_read_write_convention
+      INTEGER (kind = C_INTPTR_T), VALUE :: interpolate_domain_hdl
+    END FUNCTION cxios_is_defined_interpolate_domain_read_write_convention
 
 
     SUBROUTINE cxios_set_interpolate_domain_renormalize(interpolate_domain_hdl, renormalize) BIND(C)

@@ -17,20 +17,27 @@ namespace xios
   string CXios::xiosCodeId="xios.x" ;
   string CXios::clientFile="./xios_client";
   string CXios::serverFile="./xios_server";
+  string CXios::serverPrmFile="./xios_server1";
+  string CXios::serverSndFile="./xios_server2";
 
   bool CXios::isClient ;
   bool CXios::isServer ;
   MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
+  bool CXios::usingServer2 = false;
+  int CXios::ratioServer2 = 50;
+  int CXios::nbPoolsServer2 = 1;
   double CXios::bufferSizeFactor = 1.0;
   const double CXios::defaultBufferSizeFactor = 1.0;
   StdSize CXios::minBufferSize = 1024 * sizeof(double);
+  StdSize CXios::maxBufferSize = std::numeric_limits<int>::max() ;
   bool CXios::printLogs2Files;
   bool CXios::isOptPerformance = true;
   CRegistry* CXios::globalRegistry = 0;
-  double CXios::recvFieldTimeout = 10.0;
-
+  double CXios::recvFieldTimeout = 300.0;
+  bool CXios::checkEventSync=false ;
+ 
   //! Parse configuration file and create some objects from it
   void CXios::initialize()
   {
@@ -47,6 +54,9 @@ namespace xios
   {
     usingOasis=getin<bool>("using_oasis",false) ;
     usingServer=getin<bool>("using_server",false) ;
+    usingServer2=getin<bool>("using_server2",false) ;
+    ratioServer2=getin<int>("ratio_server2",50);
+    nbPoolsServer2=getin<int>("number_pools_server2",0);
     info.setLevel(getin<int>("info_level",0)) ;
     report.setLevel(getin<int>("info_level",50));
     printLogs2Files=getin<bool>("print_file",false);
@@ -63,9 +73,12 @@ namespace xios
 
     bufferSizeFactor = getin<double>("buffer_size_factor", defaultBufferSizeFactor);
     minBufferSize = getin<int>("min_buffer_size", 1024 * sizeof(double));
-    recvFieldTimeout = getin<double>("recv_field_timeout", 10.0);
+    maxBufferSize = getin<int>("max_buffer_size", std::numeric_limits<int>::max());
+    recvFieldTimeout = getin<double>("recv_field_timeout", recvFieldTimeout);
     if (recvFieldTimeout < 0.0)
       ERROR("CXios::parseXiosConfig()", "recv_field_timeout cannot be negative.");
+
+    checkEventSync = getin<bool>("check_event_sync", checkEventSync);
 
     globalComm=MPI_COMM_WORLD ;
   }
@@ -147,12 +160,25 @@ namespace xios
 
     // Initialize all aspects MPI
     CServer::initialize();
-    if (CServer::getRank()==0) globalRegistry = new CRegistry(CServer::intraComm) ;
+    if (CServer::getRank()==0 && CServer::serverLevel != 1) globalRegistry = new CRegistry(CServer::intraComm) ;
     
     if (printLogs2Files)
     {
-      CServer::openInfoStream(serverFile);
-      CServer::openErrorStream(serverFile);
+      if (CServer::serverLevel == 0)
+      {
+        CServer::openInfoStream(serverFile);
+        CServer::openErrorStream(serverFile);
+      }
+      else if (CServer::serverLevel == 1)
+      {
+        CServer::openInfoStream(serverPrmFile);
+        CServer::openErrorStream(serverPrmFile);
+      }
+      else
+      {
+        CServer::openInfoStream(serverSndFile);
+        CServer::openErrorStream(serverSndFile);
+      }
     }
     else
     {
@@ -164,12 +190,74 @@ namespace xios
     CServer::eventLoop();
 
     // Finalize
-     if (CServer::getRank()==0)
-     {
-       info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
-       globalRegistry->toFile("xios_registry.bin") ;
-       delete globalRegistry ;
-     }
+    if (CServer::serverLevel == 0)
+    {
+      if (CServer::getRank()==0)
+      {
+        info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
+        globalRegistry->toFile("xios_registry.bin") ;
+        delete globalRegistry ;
+      }
+    }
+    else
+    {
+      // If using two server levels:
+      // (1) merge registries on each pool
+      // (2) send merged registries to the first pool
+      // (3) merge received registries on the first pool
+      if (CServer::serverLevel == 2)
+      {
+        vector<int>& secondaryServerGlobalRanks = CServer::getSecondaryServerGlobalRanks();
+        int firstPoolGlobalRank = secondaryServerGlobalRanks[0];
+        int rankGlobal;
+        MPI_Comm_rank(globalComm, &rankGlobal);
+
+        // Merge registries defined on each pools
+        CRegistry globalRegistrySndServers (CServer::intraComm);
+
+        // All pools (except the first): send globalRegistry to the first pool
+        for (int i=1; i<secondaryServerGlobalRanks.size(); i++)
+        {
+          if (rankGlobal == secondaryServerGlobalRanks[i])
+          {
+            globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
+            int registrySize = globalRegistrySndServers.size();
+            MPI_Send(&registrySize,1,MPI_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
+            CBufferOut buffer(registrySize) ;
+            globalRegistrySndServers.toBuffer(buffer) ;
+            MPI_Send(buffer.start(),registrySize,MPI_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
+          }
+        }
+
+        // First pool: receive globalRegistry of all secondary server pools, merge and write the resultant registry
+        if (rankGlobal == firstPoolGlobalRank)
+        {
+          MPI_Status status;
+          char* recvBuff;
+
+          globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
+
+          for (int i=1; i< secondaryServerGlobalRanks.size(); i++)
+          {
+            int rank = secondaryServerGlobalRanks[i];
+            int registrySize = 0;
+            MPI_Recv(&registrySize, 1, MPI_LONG, rank, 15, CXios::globalComm, &status);
+            recvBuff = new char[registrySize];
+            MPI_Recv(recvBuff, registrySize, MPI_CHAR, rank, 15, CXios::globalComm, &status);
+            CBufferIn buffer(recvBuff, registrySize) ;
+            CRegistry recvRegistry;
+            recvRegistry.fromBuffer(buffer) ;
+            globalRegistrySndServers.mergeRegistry(recvRegistry) ;
+            delete[] recvBuff;
+          }
+
+          info(80)<<"Write data base Registry"<<endl<<globalRegistrySndServers.toString()<<endl ;
+          globalRegistrySndServers.toFile("xios_registry.bin") ;
+
+        }
+      }
+      delete globalRegistry;
+    }
     CServer::finalize();
 
 #ifdef XIOS_MEMTRACK

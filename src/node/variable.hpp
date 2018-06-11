@@ -31,14 +31,15 @@ namespace xios
          : public CObjectTemplate<CVariable>
          , public CVariableAttributes
       {
+                     /// typedef ///
+            typedef CObjectTemplate<CVariable>   SuperClass;
+            typedef CVariableAttributes SuperClassAttribute;
+            
+         public :
             enum EEventId
             {
              EVENT_ID_VARIABLE_VALUE
             };
-
-            /// typedef ///
-            typedef CObjectTemplate<CVariable>   SuperClass;
-            typedef CVariableAttributes SuperClassAttribute;
 
             friend class CVariableGroup;
 
@@ -78,6 +79,7 @@ namespace xios
 
             //! Sending a request to set up variable data
             void sendValue();
+            void sendValue(CContextClient* client, bool clientPrim = false);
 
             static void recvValue(CEventServer& event) ;
             void recvValue(CBufferIn& buffer) ;

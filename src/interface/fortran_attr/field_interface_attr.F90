@@ -110,6 +110,27 @@ MODULE field_interface_attr
     END FUNCTION cxios_is_defined_field_check_if_active
 
 
+    SUBROUTINE cxios_set_field_comment(field_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_field_comment
+
+    SUBROUTINE cxios_get_field_comment(field_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_field_comment
+
+    FUNCTION cxios_is_defined_field_comment(field_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_field_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl
+    END FUNCTION cxios_is_defined_field_comment
+
+
     SUBROUTINE cxios_set_field_compression_level(field_hdl, compression_level) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: field_hdl

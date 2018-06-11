@@ -15,6 +15,7 @@
 #include "declare_ref_func.hpp"
 #include "transformation_enum.hpp"
 #include "variable.hpp"
+#include "context_client.hpp"
 
 
 namespace xios {
@@ -35,6 +36,7 @@ namespace xios {
    class CSourceFilter;
    class CStoreFilter;
    class CFileWriterFilter;
+   class CFileServerWriterFilter;
 
    ///--------------------------------------------------------------
 
@@ -55,6 +57,11 @@ namespace xios {
          typedef CObjectTemplate<CField>   SuperClass;
          typedef CFieldAttributes SuperClassAttribute;
 
+         enum EReadField
+         {
+           RF_NODATA, RF_EOF, RF_DATA
+         };
+         
       public:
 
          typedef CFieldAttributes RelAttributes;
@@ -92,8 +99,12 @@ namespace xios {
          void resetNStep(int nstep = 0);
          void resetNStepMax();
 
-         std::map<int, StdSize> getGridAttributesBufferSize();
-         std::map<int, StdSize> getGridDataBufferSize();
+         std::map<int, StdSize> getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
+         // Grid data buffer size for each connection of contextclient
+         std::map<int, StdSize> getGridDataBufferSize(CContextClient* client, bool bufferForWriting = false);
+
+         void setContextClient(CContextClient* newContextClient);
+         CContextClient* getContextClient();
 
        public:
          bool isActive(bool atCurrentTimestep = false) const;
@@ -119,7 +130,18 @@ namespace xios {
          void solveGenerateGrid();
          void solveGridDomainAxisBaseRef();
 
+         void solveAllEnabledFieldsAndTransform();
+         void checkGridOfEnabledFields();
+         void sendGridOfEnabledFields();
+         void sendGridComponentOfEnabledFields();
+
+         /// Vérifications ///
+         void checkTimeAttributes(CDuration* freqOp=NULL);
+
          void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+         size_t getGlobalWrittenSize(void) ;
+         
+         
          boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
          boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
@@ -138,15 +160,17 @@ namespace xios {
 
         template <int N> void setData(const CArray<double, N>& _data);
         static bool dispatchEvent(CEventServer& event);
+        void sendAllAttributesToServer(CContextClient* client) ; 
         void sendUpdateData(const CArray<double,1>& data);
+        void sendUpdateData(const CArray<double,1>& data, CContextClient* client);
         static void recvUpdateData(CEventServer& event);
-        void recvUpdateData(vector<int>& ranks, vector<CBufferIn*>& buffers);
+        void recvUpdateData(std::map<int,CBufferIn*>& rankBuffers);
         void writeField(void);
         bool sendReadDataRequest(const CDate& tsDataRequested);
         bool sendReadDataRequestIfNeeded(void);
         static void recvReadDataRequest(CEventServer& event);
         void recvReadDataRequest(void);
-        bool readField(void);
+        EReadField readField(void);
         static void recvReadDataReady(CEventServer& event);
         void recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers);
         void checkForLateDataFromServer(void);
@@ -169,17 +193,15 @@ namespace xios {
         virtual void solveDescInheritance(bool apply, const CAttributeMap* const parent = 0);
 
         CVariable* addVariable(const string& id = "");
-        CVariableGroup* addVariableGroup(const string& id = "");
-        void sendAddVariable(const string& id = "");
-        void sendAddVariableGroup(const string& id = "");
+        CVariableGroup* addVariableGroup(const string& id = "");        
+        void sendAddVariable(const string& id, CContextClient* client);
+        void sendAddVariableGroup(const string& id, CContextClient* client);
         static void recvAddVariable(CEventServer& event);
         void recvAddVariable(CBufferIn& buffer);
         static void recvAddVariableGroup(CEventServer& event);
-        void recvAddVariableGroup(CBufferIn& buffer);
-        void sendAddAllVariables();
-
-        /// Vérifications ///
-        void checkAttributes(void);
+        void recvAddVariableGroup(CBufferIn& buffer);        
+        void sendAddAllVariables(CContextClient* client);
+        void writeUpdateData(const CArray<double,1>& data);
 
         const std::vector<StdString>& getRefDomainAxisIds();
 
@@ -205,19 +227,30 @@ namespace xios {
 
          map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
 
-         map<int, CArray<double,1> > data_srv;
+         // map<int, CArray<double,1> > data_srv;
+         CArray<double,1> recvDataSrv;
+         
+         boost::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;
 
-         bool areAllReferenceSolved;
-         bool isReferenceSolved;
          std::vector<StdString> domAxisScalarIds_;
          bool useCompressedOutput;
 
-         // Two variable to identify the time_counter meta data written in file, which has no time_counter
+         // Two variables to identify the time_counter meta data written in file, which has no time_counter
          bool hasTimeInstant;
          bool hasTimeCentered;
 
+
          DECLARE_REF_FUNC(Field,field)
+
+      private:
+         CContextClient* client;
+
+         bool areAllReferenceSolved;
+         bool isReferenceSolved;
+         bool isReferenceSolvedAndTransformed;
+         bool isGridChecked;
+         bool nstepMaxRead;
 
       private:
          //! The type of operation attached to the field
@@ -237,6 +270,8 @@ namespace xios {
          boost::shared_ptr<CStoreFilter> storeFilter;
          //! The terminal filter which writes the data to file
          boost::shared_ptr<CFileWriterFilter> fileWriterFilter;
+         //! The terminal filter which writes data to file
+         boost::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
    }; // class CField
 
    ///--------------------------------------------------------------

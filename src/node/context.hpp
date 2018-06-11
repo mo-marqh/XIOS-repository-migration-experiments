@@ -50,7 +50,9 @@ namespace xios {
          {
            EVENT_ID_CLOSE_DEFINITION,EVENT_ID_UPDATE_CALENDAR,
            EVENT_ID_CREATE_FILE_HEADER,EVENT_ID_CONTEXT_FINALIZE,
-           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY
+           EVENT_ID_POST_PROCESS, EVENT_ID_SEND_REGISTRY,
+           EVENT_ID_POST_PROCESS_GLOBAL_ATTRIBUTES,
+           EVENT_ID_PROCESS_GRID_ENABLED_FIELDS
          };
 
          /// typedef ///
@@ -87,31 +89,35 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          bool isInitialized(void);
 
          // Put sever or client into loop state
-         bool checkBuffersAndListen(void);
+         bool checkBuffersAndListen(bool enableEventsProcessing=true);
 
          // Finalize a context
          void finalize(void);
+         bool isFinalized(void);
+
          void closeDefinition(void);
 
          // Some functions to process context
-         void findAllEnabledFields(void);
-         void findAllEnabledFieldsInReadModeFiles(void);
+         void findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         // void findAllEnabledFields(void);
+         // void findAllEnabledFieldsInReadModeFiles(void);
          void readAttributesOfEnabledFieldsInReadModeFiles();
          void solveAllInheritance(bool apply=true);
          void findEnabledFiles(void);
+         void findEnabledWriteModeFiles(void);
          void findEnabledReadModeFiles(void);
          void closeAllFile(void);
          void updateCalendar(int step);
-         void createFileHeader(void );
+         void createFileHeader(void);
+         void initReadFiles(void);
          void checkAxisDomainsGridsEligibilityForCompressedOutput();
          void prepareTimeseries(void);
-         void solveOnlyRefOfEnabledFields(bool sendToServer);
-         void solveAllRefOfEnabledFields(bool sendToServer);
+         void solveOnlyRefOfEnabledFields(bool sendToServer);         
          void buildFilterGraphOfEnabledFields();
          void postProcessFilterGraph();
          void startPrefetchingOfEnabledReadModeFiles();
@@ -121,23 +127,41 @@ namespace xios {
          void solveAllRefOfFieldsWithReadAccess();
          void buildFilterGraphOfFieldsWithReadAccess();
          void postProcessing();
+         void postProcessingGlobalAttributes();         
 
-         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize);
-         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize);
-         void setClientServerBuffer();
+         void solveAllRefOfEnabledFieldsAndTransform(bool sendToServer);
+         void checkGridEnabledFields();
+         void checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         void sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);  
+         void sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)       ;
+
+         std::map<int, StdSize> getAttributesBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
+         std::map<int, StdSize> getDataBufferSize(std::map<int, StdSize>& maxEventSize, CContextClient* contextClient, bool bufferForWriting = false);
+         void setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting = false);
+
+         // Distribute files (in write mode) among secondary-server pools according to the estimated data flux
+         void distributeFiles(void);
+         void distributeFileOverBandwith() ;
+         void distributeFileOverMemoryBandwith() ;
+         
 
          // Send context close definition
          void sendCloseDefinition(void);
          // There are something to send on closing context defintion
          void sendUpdateCalendar(int step);
          void sendCreateFileHeader(void);
-         void sendEnabledFiles();
-         void sendEnabledFields();
-         void sendRefDomainsAxis();
-         void sendRefGrid();
+         void sendEnabledFiles(const std::vector<CFile*>& activeFiles);
+         void sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles);
+         void sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles);
+         void sendRefGrid(const std::vector<CFile*>& activeFiles);
          void sendPostProcessing();
-         void sendRegistry(void) ; //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
+         void sendPostProcessingGlobalAttributes();
+         void sendProcessingGridOfEnabledFields();
+         //!< after be gathered to the root process of the context, merged registry is sent to the root process of the servers
+         void sendRegistry(void) ;
+
          const StdString& getIdServer();
+         const StdString& getIdServer(const int srvPoolNb);
 
          // Client side: Receive and process messages
          static void recvUpdateCalendar(CEventServer& event);
@@ -149,8 +173,14 @@ namespace xios {
          void recvSolveInheritanceContext(CBufferIn& buffer);
          static void recvPostProcessing(CEventServer& event);
          void recvPostProcessing(CBufferIn& buffer);
+         static void recvProcessingGridOfEnabledFields(CEventServer& event);
+         static void recvPostProcessingGlobalAttributes(CEventServer& event);
+         void recvPostProcessingGlobalAttributes(CBufferIn& buffer);
          static void recvRegistry(CEventServer& event) ;
-         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the root process of the servers
+         void recvRegistry(CBufferIn& buffer) ; //!< registry is received by the servers
+
+         void freeComms(void);                  //!< Free internally allcoated communicators
+         void releaseClientBuffers(void);       //! Deallocate buffers allocated by clientContexts
 
          // dispatch event
          static bool dispatchEvent(CEventServer& event);
@@ -193,6 +223,7 @@ namespace xios {
          // Verify if all root definition in a context have children
          virtual bool hasChild(void) const;
 
+
       public :
          // Calendar of context
          boost::shared_ptr<CCalendar>   calendar;
@@ -201,6 +232,8 @@ namespace xios {
          std::vector<CFile*> enabledFiles;
          // List of all enabled files in read mode (files on which fields are read)
          std::vector<CFile*> enabledReadModeFiles;
+         // List of all enabled files in write mode
+         std::vector<CFile*> enabledWriteModeFiles;
 
          // List of all enabled fields whose instant data is accessible from the public API
          // but which are not part of a file
@@ -215,17 +248,19 @@ namespace xios {
          // Determine context on server or not
          bool hasServer;
 
-         // Concrete context server
-         CContextServer* server;
+         CContextServer* server;    //!< Concrete context server
+         CContextClient* client;    //!< Concrete contex client
+         std::vector<CContextServer*> serverPrimServer;
+         std::vector<CContextClient*> clientPrimServer;
 
-         // Concrete contex client
-         CContextClient* client;
-         CRegistry* registryIn ;  //!< input registry which is read from file
-         CRegistry* registryOut ; //!< output registry which will be wrote on file at the finalize
+         CRegistry* registryIn ;    //!< input registry which is read from file
+         CRegistry* registryOut ;   //!< output registry which will be written into file at the finalize
 
       private:
          bool isPostProcessed;
+         bool allProcessed;
          bool finalized;
+         int countChildCtx_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
          StdString idServer_;
          CGarbageCollector garbageCollector;
          std::list<MPI_Comm> comms; //!< Communicators allocated internally

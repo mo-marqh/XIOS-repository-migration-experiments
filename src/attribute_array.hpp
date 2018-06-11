@@ -42,8 +42,7 @@ namespace xios
             void setInheritedValue(const CAttribute& attr );
             CArray<T_numtype, N_rank> getInheritedValue(void) const ;
             bool hasInheritedValue(void) const;
-            
-            bool isEqual(const CAttributeArray& attr);
+                        
             bool isEqual(const CAttribute& attr);
 
             /// Destructeur ///
@@ -66,6 +65,7 @@ namespace xios
             virtual void generateFortranInterfaceGetDeclaration(ostream& oss,const string& className) ;
 
          private :
+          bool isEqual_(const CAttributeArray& attr);
           CArray<T_numtype, N_rank> inheritedValue ;
           StdString _toString(void) const;
           void _fromString(const StdString & str);

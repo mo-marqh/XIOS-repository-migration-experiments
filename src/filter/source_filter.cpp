@@ -6,12 +6,13 @@
 
 namespace xios
 {
-  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid, bool compression, 
                                const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/,
                                bool hasMissingValue /*= false*/,
                                double defaultValue /*= 0.0*/)
     : COutputPin(gc, manualTrigger)
     , grid(grid)
+    , compression(compression)
     , offset(offset)
     , hasMissingValue(hasMissingValue), defaultValue(defaultValue)
   {
@@ -30,9 +31,26 @@ namespace xios
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
 
-    packet->data.resize(grid->storeIndex_client.numElements());
-    grid->inputField(data, packet->data);
+    packet->data.resize(grid->storeIndex_client.numElements());    
+    
+    if (compression)
+    {
+      packet->data = defaultValue;
+      grid->uncompressField(data, packet->data);    
+    }
+    else
+      grid->inputField(data, packet->data);
 
+    
+    
+    // if (compression) grid->inputField(data, packet->data) ;
+    // else
+    // {
+    //   // just make a flat copy
+    //   CArray<double, N> data_tmp(data.copy()) ; // supress const attribute
+    //   CArray<double,1> dataTmp2(data_tmp.dataFirst(),shape(data.numElements()),neverDeleteData) ;
+    //   packet->data = dataTmp2 ;
+    // }
     // Convert missing values to NaN
     if (hasMissingValue)
     {
@@ -64,8 +82,7 @@ namespace xios
     packet->date = date;
     packet->timestamp = date;
     packet->status = CDataPacket::NO_ERROR;
-
-    // if (data.size() != grid->storeIndex_toSrv.size())
+    
     if (data.size() != grid->storeIndex_fromSrv.size())
       ERROR("CSourceFilter::streamDataFromServer(CDate date, const std::map<int, CArray<double, 1> >& data)",
             << "Incoherent data received from servers,"
@@ -74,8 +91,7 @@ namespace xios
     packet->data.resize(grid->storeIndex_client.numElements());
     std::map<int, CArray<double, 1> >::const_iterator it, itEnd = data.end();
     for (it = data.begin(); it != itEnd; it++)
-    {
-      // CArray<int,1>& index = grid->storeIndex_toSrv[it->first];
+    {      
       CArray<int,1>& index = grid->storeIndex_fromSrv[it->first];
       for (int n = 0; n < index.numElements(); n++)
         packet->data(index(n)) = it->second(n);

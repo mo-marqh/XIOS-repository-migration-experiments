@@ -19,7 +19,7 @@ PROGRAM test_client
   INTEGER,PARAMETER :: ni_glo=100
   INTEGER,PARAMETER :: nj_glo=100
   INTEGER,PARAMETER :: llm=5
-  DOUBLE PRECISION  :: lval(llm)=1
+  DOUBLE PRECISION  :: lval(llm)=1, scalar = 5
   TYPE(xios_field) :: field_hdl
   TYPE(xios_fieldgroup) :: fieldgroup_hdl
   TYPE(xios_file) :: file_hdl
@@ -27,7 +27,7 @@ PROGRAM test_client
 
   DOUBLE PRECISION,DIMENSION(ni_glo,nj_glo) :: lon_glo,lat_glo
   DOUBLE PRECISION :: field_A_glo(ni_glo,nj_glo,llm)
-  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:,:) ;
+  DOUBLE PRECISION,ALLOCATABLE :: lon(:,:),lat(:,:),field_A(:,:,:), lonvalue(:,:), axisValue(:), field_domain(:,:) ;
   INTEGER :: ni,ibegin,iend,nj,jbegin,jend
   INTEGER :: i,j,l,ts,n
 
@@ -49,7 +49,7 @@ PROGRAM test_client
       lon_glo(i,j)=(i-1)+(j-1)*ni_glo
       lat_glo(i,j)=1000+(i-1)+(j-1)*ni_glo
       DO l=1,llm
-        field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo+10000*l
+        field_A_glo(i,j,l)=(i-1)+(j-1)*ni_glo*100+10000*l
       ENDDO
     ENDDO
   ENDDO
@@ -65,10 +65,12 @@ PROGRAM test_client
 
   iend=ibegin+ni-1 ; jend=jbegin+nj-1
 
-  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni,nj))
+  ALLOCATE(lon(ni,nj),lat(ni,nj),field_A(0:ni+1,-1:nj+2,llm),lonvalue(ni,nj), axisValue(nj_glo), field_domain(0:ni+1,-1:nj+2))
   lon(:,:)=lon_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   lat(:,:)=lat_glo(ibegin+1:iend+1,jbegin+1:jend+1)
   field_A(1:ni,1:nj,:)=field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,:)
+  field_domain(1:ni,1:nj) = field_A_glo(ibegin+1:iend+1,jbegin+1:jend+1,1)
+  axisValue(1:nj_glo)=field_A_glo(1,1:nj_glo,1);
 
   CALL xios_context_initialize("test",comm)
   CALL xios_get_handle("test",ctx_hdl)
@@ -77,19 +79,20 @@ PROGRAM test_client
   CALL xios_get_calendar_type(calendar_type)
   PRINT *, "calendar_type = ", calendar_type
 
+  ! CALL xios_set_axis_attr("axis_A",n_glo=nj_glo ,value=axisValue, n=nj, begin=jbegin) ;
   CALL xios_set_axis_attr("axis_A",n_glo=llm ,value=lval) ;
   CALL xios_set_domain_attr("domain_A",ni_glo=ni_glo, nj_glo=nj_glo, ibegin=ibegin, ni=ni,jbegin=jbegin,nj=nj,type='curvilinear')
   CALL xios_set_domain_attr("domain_A",data_dim=2, data_ibegin=-1, data_ni=ni+2, data_jbegin=-2, data_nj=nj+4)
   CALL xios_set_domain_attr("domain_A",lonvalue_2D=lon,latvalue_2D=lat)
   CALL xios_set_fieldgroup_attr("field_definition",enabled=.TRUE.)
 
-  CALL xios_get_handle("field_definition",fieldgroup_hdl)
-  CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
-  CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
+  !CALL xios_get_handle("field_definition",fieldgroup_hdl)
+  !CALL xios_add_child(fieldgroup_hdl,field_hdl,"field_B")
+  !CALL xios_set_attr(field_hdl,field_ref="field_A",name="field_B")
 
-  CALL xios_get_handle("output",file_hdl)
-  CALL xios_add_child(file_hdl,field_hdl)
-  CALL xios_set_attr(field_hdl,field_ref="field_A_zoom",name="field_C")
+  !CALL xios_get_handle("output",file_hdl)
+  !CALL xios_add_child(file_hdl,field_hdl)
+  !CALL xios_set_attr(field_hdl,field_ref="field_A_zoom",name="field_C")
 
   dtime%second = 3600
   CALL xios_set_timestep(dtime)
@@ -127,9 +130,14 @@ PROGRAM test_client
   CALL xios_close_context_definition()
 
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
-  DO ts=1,24*10
+  ! CALL xios_recv_field("field", scalar)
+  DO ts=1,4
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
+    CALL xios_send_field("field_Axis",axisValue)
+    ! CALL xios_send_field("field_Axis",lval)
+    CALL xios_send_field("field_Domain",field_domain)
+    CALL xios_send_field("field_Scalar",scalar)
     CALL wait_us(5000) ;
   ENDDO
 

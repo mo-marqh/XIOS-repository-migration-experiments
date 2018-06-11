@@ -15,6 +15,7 @@
 #include "mpi_tag.hpp"
 #include "grid.hpp"
 #include <boost/unordered_map.hpp>
+#include "timer.hpp"
 
 namespace xios {
 CGridTransformation::CGridTransformation(CGrid* destination, CGrid* source)
@@ -384,18 +385,64 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
         ((CGenericAlgorithmTransformation::ELEMENT_NO_MODIFICATION_WITH_DATA == algo->type()) ||
         (CGenericAlgorithmTransformation::ELEMENT_MODIFICATION_WITH_DATA == algo->type()))) // Only registered transformation can be executed
     {
+      CTimer::get("computeIndexSourceMapping").resume() ;
       algo->computeIndexSourceMapping(dataAuxInputs);
-
+      CTimer::get("computeIndexSourceMapping").suspend() ;
+      
       // ComputeTransformation of global index of each element
       int elementPosition = it->first;
-      algo->computeGlobalSourceIndex(elementPosition,
-                                     gridSource_,
-                                     tmpGridDestination_,
-                                     globaIndexWeightFromSrcToDst);
+      bool nonDistributedActivated = CXios::getin<bool>("activate_non_distributed_transformation",false);
+      
+      if (nonDistributedActivated && !algo->isDistributedTransformation(elementPositionInGrid, gridSource_, tmpGridDestination_) )
+      {
+        vector<int> localSrc ;
+        vector<int> localDst ;
+        vector<double> weight ;
+        localMaskOnGridDest_.push_back(vector<bool>()) ;
+        CTimer::get("computeTransformationMappingNonDistributed").resume();  
+        algo->computeTransformationMappingNonDistributed(elementPosition, gridSource_, tmpGridDestination_, 
+                                                         localSrc, localDst, weight, localMaskOnGridDest_.back()) ;
+        CTimer::get("computeTransformationMappingNonDistributed").suspend();  
 
-      // Compute transformation of global indexes among grids
-      computeTransformationMapping(globaIndexWeightFromSrcToDst);
-
+        CTimer::get("computeTransformationMappingConvert").resume();  
+        nbLocalIndexOnGridDest_.push_back(localMaskOnGridDest_.back().size()) ;
+        int clientRank=client->clientRank ;
+        {
+          SendingIndexGridSourceMap tmp;
+          localIndexToSendFromGridSource_.push_back(tmp) ;
+          SendingIndexGridSourceMap& src=localIndexToSendFromGridSource_.back() ;
+          CArray<int,1> arrayTmp ;
+          src.insert( pair<int,CArray<int,1> >(clientRank,arrayTmp)) ;
+          CArray<int,1>& array=src[clientRank] ;
+          array.resize(localSrc.size()) ;
+          for(int i=0;i< localSrc.size();++i) array(i)=localSrc[i]  ;    
+        }
+        {
+          RecvIndexGridDestinationMap tmp;
+          localIndexToReceiveOnGridDest_.push_back(tmp) ;
+          RecvIndexGridDestinationMap& dst=localIndexToReceiveOnGridDest_.back() ;
+          vector<pair<int,double> > vectTmp ;
+          dst.insert( pair<int,vector<pair<int,double> >  >(clientRank,vectTmp)) ;
+          vector<pair<int,double> >& vect=dst[clientRank] ;
+          vect.resize(localDst.size()) ;
+          for(int i=0;i< localDst.size();++i) vect[i]=pair<int,double>(localDst[i],weight[i])  ;      
+        }
+        CTimer::get("computeTransformationMappingConvert").suspend();  
+      }
+      else
+      {
+        CTimer::get("computeGlobalSourceIndex").resume();           
+        algo->computeGlobalSourceIndex(elementPosition,
+                                       gridSource_,
+                                       tmpGridDestination_,
+                                       globaIndexWeightFromSrcToDst);
+                                     
+        CTimer::get("computeGlobalSourceIndex").suspend();           
+        CTimer::get("computeTransformationMapping").resume();     
+        // Compute transformation of global indexes among grids
+        computeTransformationMapping(globaIndexWeightFromSrcToDst);
+        CTimer::get("computeTransformationMapping").suspend(); 
+      } 
       if (1 < nbNormalAlgos_)
       {
         // Now grid destination becomes grid source in a new transformation

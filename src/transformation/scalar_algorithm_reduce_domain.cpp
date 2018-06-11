@@ -45,6 +45,8 @@ CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestin
  : CScalarAlgorithmTransformation(scalarDestination, domainSource),
    reduction_(0)
 {
+  algo->checkValid(scalarDestination, domainSource);
+  
   StdString op;
   switch (algo->operation)
   {
@@ -75,6 +77,7 @@ CScalarAlgorithmReduceDomain::CScalarAlgorithmReduceDomain(CScalar* scalarDestin
        << "Scalar destination " << scalarDestination->getId());
 
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
+  local = algo->local ;
 }
 
 void CScalarAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
@@ -104,14 +107,34 @@ void CScalarAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-  int globalIndexSize = domainSrc_->ni_glo * domainSrc_->nj_glo;  
+  int ni_glo = domainSrc_->ni_glo ;
+  int nj_glo = domainSrc_->nj_glo ;
+  int nbDomainIdx ;
+  
+  if (local)
+  {
+      const CArray<int, 1>& i_index = domainSrc_-> i_index.getValue() ;
+      const CArray<int, 1>& j_index = domainSrc_-> j_index.getValue() ;
+      const CArray<bool,1>& localMask = domainSrc_-> localMask ;
+      int nbDomainIdx = i_index.numElements();
 
-  transMap[0].resize(globalIndexSize);
-  transWeight[0].resize(globalIndexSize, 1.0);
-  for (int idx = 0; idx < globalIndexSize; ++idx)
-  {     
-    transMap[0][idx] = idx;    
+      for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain)
+      {
+        if (localMask(idxDomain))
+        { 
+          transMap[0].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
+          transWeight[0].push_back(1.0) ;
+        }
+      }
   }
+  else
+  {  
+    nbDomainIdx = ni_glo * nj_glo;
+    transMap[0].resize(nbDomainIdx);
+    transWeight[0].resize(nbDomainIdx, 1.0);
+    for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain) transMap[0][idxDomain] = idxDomain;    
+  }
+  
 }
 
 }

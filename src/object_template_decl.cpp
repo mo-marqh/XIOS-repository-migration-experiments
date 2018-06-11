@@ -21,12 +21,17 @@ namespace xios
   template class CObjectTemplate<CScalar>;
   template class CObjectTemplate<CReduceAxisToScalar>;
   template class CObjectTemplate<CReduceDomainToAxis>;
+  template class CObjectTemplate<CReduceAxisToAxis>;
   template class CObjectTemplate<CExtractDomainToAxis>;
   template class CObjectTemplate<CComputeConnectivityDomain>;
   template class CObjectTemplate<CExpandDomain>;
   template class CObjectTemplate<CExtractAxisToScalar>;
   template class CObjectTemplate<CReduceDomainToScalar>;
-
+  template class CObjectTemplate<CTemporalSplitting>;
+  template class CObjectTemplate<CDuplicateScalarToAxis>;
+  template class CObjectTemplate<CReduceScalarToScalar>;
+  template class CObjectTemplate<CReorderDomain>;
+  
   template class CObjectTemplate<CContextGroup>;
   template class CObjectTemplate<CFieldGroup>;
   template class CObjectTemplate<CFileGroup>;
@@ -43,9 +48,14 @@ namespace xios
   template class CObjectTemplate<CScalarGroup>;
   template class CObjectTemplate<CReduceAxisToScalarGroup>;
   template class CObjectTemplate<CReduceDomainToAxisGroup>;
+  template class CObjectTemplate<CReduceAxisToAxisGroup>;
   template class CObjectTemplate<CExtractDomainToAxisGroup>;
   template class CObjectTemplate<CComputeConnectivityDomainGroup>;
   template class CObjectTemplate<CExpandDomainGroup>;
   template class CObjectTemplate<CExtractAxisToScalarGroup>;
   template class CObjectTemplate<CReduceDomainToScalarGroup>;
+  template class CObjectTemplate<CTemporalSplittingGroup>;
+  template class CObjectTemplate<CDuplicateScalarToAxisGroup>;
+  template class CObjectTemplate<CReduceScalarToScalarGroup>;
+  template class CObjectTemplate<CReorderDomainGroup>;
 }

@@ -4,14 +4,17 @@ install_dir=$PWD
 compil_full="false"
 use_oasis="false"
 oasis="oasis3_mct"
+build_path="./"
+build_dir="./"
+build_suffixed="false"
 use_extern_boost="false"
 use_extern_blitz="false"
 use_memtrack="false"
 job="1"
 netcdf_lib="netcdf4_par"
 compil_mode="prod"
-arch_path="arch"
-arch_default_path="arch"
+arch_path=$PWD/"arch"
+arch_default_path=$PWD/"arch"
 arch_defined="FALSE"
 arch_path_defined="FALSE"
 
@@ -29,7 +32,10 @@ while (($# > 0))
 	    echo "       --arch arch : to choose target architecture"
 	    echo "       [--avail] : to know available target architectures "
 	    echo "       [--full] : to generate dependencies and recompile from scratch"
-	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"i
+	    echo "       [--use_oasis 'oasis3' 'oasis3_mct' : default oasis3_mct] : to use Oasis coupler"
+        echo "       [--build_path : absolute path to the build directory"
+        echo "       [--build_dir : name of the build directory"
+        echo "       [--build_suffixed : generate automatically suffixed name of the build directory (e.g. config_X64_CURIE_prod)"
         echo "       [--use_extern_boost : to use external boost library"
         echo "       [--use_extern_blitz : to use external blitz library"
 	    echo "       [--doc] : to generate Doxygen documentation (not available yet)"
@@ -47,6 +53,9 @@ while (($# > 0))
          "--avail") ls arch/*.fcm | cut -d"-" -f2 | cut -d"." -f1 ; exit ;; 
          "--full")  compil_full="true"  ; shift ;;
          "--use_oasis")  use_oasis="true" oasis=$2 ; shift ; shift  ;;
+         "--build_path")  build_path=$2     ; shift ; shift ;;
+         "--build_dir")  build_dir=$2     ; shift ; shift ;;
+         "--build_suffixed")  build_suffixed="true" ; shift  ;;
          "--use_extern_boost")  use_extern_boost="true" ; shift  ;;
          "--use_extern_blitz")  use_extern_blitz="true" ; shift  ;;
          "--doc")   doc="true"          ; shift ;;
@@ -72,6 +81,27 @@ then
     done
 fi
 
+# Definition of the root directory of the build
+
+if [[ "$build_path" == "./" ]]; then
+  install_dir=$PWD
+else
+  install_dir=${build_path}
+fi
+
+if [[ "$build_suffixed" == "true" ]]; then
+    install_dir="${install_dir}/config_${arch}_${compil_mode}"
+else
+    install_dir="${install_dir}/${build_dir}"
+fi
+
+mkdir -p $install_dir
+
+rm -f ${PWD}/bld_dir.cfg
+echo "inc    ${install_dir}/arch.fcm" >> ${PWD}/bld_dir.cfg 
+echo "inc    ${install_dir}/config.fcm" >> ${PWD}/bld_dir.cfg
+echo "dir::root  ${install_dir}"   >> ${PWD}/bld_dir.cfg
+
 # Vérification de la présence d'un identifiant d'architecture.
 
 ###############################################################
@@ -86,37 +116,37 @@ mkdir .void_dir
 
 if [[ "$arch_defined" == "TRUE" ]]
 then
-  rm -f arch.path
-  rm -f arch.fcm
-  rm -f arch.env
+  rm -f ${install_dir}/arch.path
+  rm -f ${install_dir}/arch.fcm
+  rm -f ${install_dir}/arch.env
 
   if test -f $arch_path/arch-${arch}.path
   then
-    ln -s $arch_path/arch-${arch}.path arch.path
+    ln -s $arch_path/arch-${arch}.path ${install_dir}/arch.path
   elif test -f $arch_default_path/arch-${arch}.path
   then
-    ln -s $arch_default_path/arch-${arch}.path arch.path
+    ln -s $arch_default_path/arch-${arch}.path ${install_dir}/arch.path
   fi
         
   if test -f $arch_path/arch-${arch}.fcm
   then
-    ln -s $arch_path/arch-${arch}.fcm arch.fcm
+    ln -s $arch_path/arch-${arch}.fcm ${install_dir}/arch.fcm
   elif test -f $arch_default_path/arch-${arch}.fcm
   then
-    ln -s $arch_default_path/arch-${arch}.fcm arch.fcm
+    ln -s $arch_default_path/arch-${arch}.fcm ${install_dir}/arch.fcm
   fi
 
   if test -f $arch_path/arch-${arch}.env
   then
-    ln -s $arch_path/arch-${arch}.env arch.env
+    ln -s $arch_path/arch-${arch}.env ${install_dir}/arch.env
   elif test -f $arch_default_path/arch-${arch}.env
   then
-    ln -s $arch_default_path/arch-${arch}.env arch.env
+    ln -s $arch_default_path/arch-${arch}.env ${install_dir}/arch.env
   else
-    ln -s .void_file arch.env
+    ln -s .void_file ${install_dir}/arch.env
   fi
-  source arch.env
-  source arch.path
+  source ${install_dir}/arch.env
+  source ${install_dir}/arch.path
 else
       echo "Please choose a target achitecture --> list all available architecture using make_xios --avail!"
       exit 1
@@ -196,6 +226,7 @@ then
    rm -r $PWD/extern/blitz
    ln -s $PWD/.void_dir $PWD/extern/blitz
 else
+   echo "src::blitz $PWD/extern/blitz/src" >> ${PWD}/bld_dir.cfg
    export BLITZ_INCDIR="-I${PWD}/extern/blitz"
    export BLITZ_LIBDIR=""
    export BLITZ_LIB=""
@@ -224,14 +255,14 @@ XIOS_FINCDIR="$NETCDF_INCDIR $XIOS_FINCDIR $MPI_INCDIR $BOOST_INCDIR $BLITZ_INCD
 
 XIOS_LIB="$XIOS_LIB $NETCDF_LIBDIR $HDF5_LIBDIR $MPI_LIBDIR $NETCDF_LIB $HDF5_LIB $MPI_LIB"
 
-rm -f config.fcm
-echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> config.fcm
-echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> config.fcm
-echo "%CPP_KEY       $XIOS_CPPKEY"   >> config.fcm
+rm -f ${install_dir}/config.fcm
+echo "%COMPIL_CFLAGS $COMPIL_CFLAGS" >> ${install_dir}/config.fcm
+echo "%COMPIL_FFLAGS $COMPIL_FFLAGS" >> ${install_dir}/config.fcm
+echo "%CPP_KEY       $XIOS_CPPKEY"   >> ${install_dir}/config.fcm
 
-echo "%CBASE_INC     $XIOS_CINCDIR" >> config.fcm     
-echo "%FBASE_INC     $XIOS_FINCDIR" >> config.fcm
-echo "%ARCH_LD       $XIOS_LIB"     >> config.fcm 
+echo "%CBASE_INC     $XIOS_CINCDIR" >> ${install_dir}/config.fcm     
+echo "%FBASE_INC     $XIOS_FINCDIR" >> ${install_dir}/config.fcm
+echo "%ARCH_LD       $XIOS_LIB"     >> ${install_dir}/config.fcm 
 
 echo "=> Using "$compil_mode" mode for compiling under architecture \""$arch"\" !"
 

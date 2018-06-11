@@ -20,7 +20,9 @@ namespace xios
       bool isEmpty(void);
       std::list<int> getRanks(void);
       std::list<int> getSizes(void);
-
+      int getClassId(void) { return classId; }
+      int getTypeId(void) { return typeId; }
+      
     private:
       int classId;
       int typeId;

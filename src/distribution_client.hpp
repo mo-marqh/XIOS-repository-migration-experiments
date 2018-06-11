@@ -32,8 +32,7 @@ public:
   typedef CDistribution::GlobalLocalMap GlobalLocalDataMap;
 
   public:
-    /** Default constructor */
-    CDistributionClient(int rank, int dims, const CArray<size_t,1>& globalIndex = CArray<size_t,1>());
+    /** Default constructor */        
     CDistributionClient(int rank, CGrid* grid);
 
     void createGlobalIndexSendToServer();
@@ -43,7 +42,9 @@ public:
 
     virtual const std::vector<int>& getLocalDataIndexOnClient();
     GlobalLocalDataMap& getGlobalLocalDataSendToServer();
+    GlobalLocalDataMap& getGlobalDataIndexOnClient();
     const std::vector<int>& getLocalMaskIndexOnClient();
+    const std::vector<int>& getLocalMaskedDataIndexOnClient();
 
     std::vector<int> getNGlob() { return nGlob_; }
     std::vector<int> getDataNIndex() { return dataNIndex_; }
@@ -54,6 +55,8 @@ public:
                                      const int& dataIBegin, const int& dataJBegin,
                                      const int& dataDim, const int& ni, int& j);
     static int getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni);
+
+    void partialClear(void) ;  //! clear heavy sized attibutes
 
   protected:
     void createGlobalIndex();
@@ -78,8 +81,10 @@ public:
   private:
     //!< LocalData index on client
     GlobalLocalDataMap globalLocalDataSendToServerMap_;
+    GlobalLocalDataMap globalDataIndex_;
     std::vector<int> localDataIndex_;
     std::vector<int> localMaskIndex_;
+    std::vector<int> localMaskedDataIndex_;
 
   private:
     /*! Domains and axis are considered elements.

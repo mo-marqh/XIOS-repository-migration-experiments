@@ -70,6 +70,7 @@ CAxisAlgorithmReduceDomain::CAxisAlgorithmReduceDomain(CAxis* axisDestination, C
 
   dir_ = (CReduceDomainToAxis::direction_attr::iDir == algo->direction)  ? iDir : jDir;
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
+  local = algo->local ;
 }
 
 void CAxisAlgorithmReduceDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
@@ -103,31 +104,69 @@ void CAxisAlgorithmReduceDomain::computeIndexSourceMapping_(const std::vector<CA
   int ni_glo = domainSrc_->ni_glo, nj_glo = domainSrc_->nj_glo;
   if (iDir == dir_)
   {
-    int nbAxisIdx = axisDstIndex.numElements();
-    for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+    if (local)
     {
-      int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx].resize(ni_glo);
-      transWeight[globalAxisIdx].resize(ni_glo);
-      for (int idx = 0; idx < ni_glo; ++idx)
+      const CArray<int, 1>& i_index = domainSrc_-> i_index.getValue() ;
+      const CArray<int, 1>& j_index = domainSrc_-> j_index.getValue() ;
+      const CArray<bool,1>& localMask = domainSrc_-> localMask ;
+      int nbDomainIdx = i_index.numElements();
+      
+      for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain)
       {
-        transMap[globalAxisIdx][idx] = globalAxisIdx * ni_glo + idx;
-        transWeight[globalAxisIdx][idx] = 1.0;
+        if (localMask(idxDomain))
+        { 
+          transMap[j_index(idxDomain)].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
+          transWeight[j_index(idxDomain)].push_back(1.0) ;
+        }
+      }
+    }
+    else
+    {
+      int nbAxisIdx = axisDstIndex.numElements();
+      for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+      {
+        int globalAxisIdx = axisDstIndex(idxAxis);
+        transMap[globalAxisIdx].resize(ni_glo);
+        transWeight[globalAxisIdx].resize(ni_glo);
+        for (int idx = 0; idx < ni_glo; ++idx)
+        {
+          transMap[globalAxisIdx][idx] = globalAxisIdx * ni_glo + idx;
+          transWeight[globalAxisIdx][idx] = 1.0;
+        }
       }
     }
   }
   else if (jDir == dir_)
   {
     int nbAxisIdx = axisDstIndex.numElements();
-    for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+    if (local)
     {
-      int globalAxisIdx = axisDstIndex(idxAxis);
-      transMap[globalAxisIdx].resize(nj_glo);
-      transWeight[globalAxisIdx].resize(nj_glo);
-      for (int idx = 0; idx < nj_glo; ++idx)
+      const CArray<int, 1>& i_index = domainSrc_-> i_index.getValue() ;
+      const CArray<int, 1>& j_index = domainSrc_-> j_index.getValue() ;
+      const CArray<bool,1>& localMask = domainSrc_-> localMask ;
+      int nbDomainIdx = i_index.numElements();
+      
+      for (int idxDomain = 0; idxDomain < nbDomainIdx; ++idxDomain)
       {
-        transMap[globalAxisIdx][idx] = globalAxisIdx + ni_glo*idx;
-        transWeight[globalAxisIdx][idx] = 1.0;
+        if (localMask(idxDomain))
+        { 
+          transMap[i_index(idxDomain)].push_back(j_index(idxDomain)* ni_glo + i_index(idxDomain));
+          transWeight[i_index(idxDomain)].push_back(1.0) ;
+        }
+      }
+    }
+    else
+    {
+      for (int idxAxis = 0; idxAxis < nbAxisIdx; ++idxAxis)
+      {
+        int globalAxisIdx = axisDstIndex(idxAxis);
+        transMap[globalAxisIdx].resize(nj_glo);
+        transWeight[globalAxisIdx].resize(nj_glo);
+        for (int idx = 0; idx < nj_glo; ++idx)
+        {
+          transMap[globalAxisIdx][idx] = globalAxisIdx + ni_glo*idx;
+          transWeight[globalAxisIdx][idx] = 1.0;
+        }
       }
     }
   }

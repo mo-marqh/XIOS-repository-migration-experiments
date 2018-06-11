@@ -19,7 +19,9 @@ namespace xios
         static int serverLeader;
         static bool is_MPI_Initialized ;
 
-        //! Get rank of the current process
+        static MPI_Comm& getInterComm();
+
+        //! Get global rank without oasis and current rank in model intraComm in case of oasis
         static int getRank();
 
         //! Open a file stream to write the info logs
@@ -37,7 +39,7 @@ namespace xios
         static void closeErrorStream();
 
       protected:
-        static int rank;
+        static int rank_;                 //!< Rank in model intraComm
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

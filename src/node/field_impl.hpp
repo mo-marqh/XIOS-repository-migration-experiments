@@ -19,7 +19,7 @@ namespace xios {
   {
     if (clientSourceFilter)
     {
-      if (!check_if_active || isActive(true))
+      if (check_if_active.isEmpty() || (!check_if_active.isEmpty() && (!check_if_active) || isActive(true)))
         clientSourceFilter->streamData(CContext::getCurrent()->getCalendar()->getCurrentDate(), _data);
     }
     else if (instantDataFilter)

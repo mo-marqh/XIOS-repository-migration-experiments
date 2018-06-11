@@ -1,9 +1,7 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
-\save_transient_properties true
-\origin unavailable
 \textclass book
 \begin_preamble
 \usepackage{MnSymbol}
@@ -17,16 +15,16 @@ logicalmkup
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman "default" "default"
-\font_sans "default" "default"
-\font_typewriter "default" "default"
-\font_math "auto" "auto"
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100 100
-\font_tt_scale 100 100
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -81,13 +79,8 @@ logicalmkup
 XIOS User Guide
 \end_layout
 
-\begin_layout Standard
-\begin_inset CommandInset toc
-LatexCommand tableofcontents
-
-\end_inset
-
-
+\begin_layout Author
+Draft
 \end_layout
 
 \begin_layout Chapter
@@ -187,7 +180,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization omitted, see the corresponding section of this
+! Context initialization ommited, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -292,7 +285,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization omitted, see the corresponding section of this
+! Context initialization ommited, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -475,7 +468,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization omitted, see the corresponding section of this
+! Context initialization ommited, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -523,7 +516,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization omitted, see the corresponding section of this
+! Context initialization ommited, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -787,7 +780,7 @@ TYPE(xios_context) :: ctx_hdl
 
 \begin_layout Plain Layout
 
-! Context initialization omitted, see the corresponding section of this
+! Context initialization ommited, see the corresponding section of this
  user manual and of the reference manual
 \end_layout
 
@@ -1198,10 +1191,6 @@ duration = date2 - date1
 
 \begin_layout Itemize
 converting dates to
-\begin_inset Separator latexpar
-\end_inset
-
-
 \end_layout
 
 \begin_deeper
@@ -1329,7 +1318,7 @@ status open
 
 \begin_layout Plain Layout
 
-        		<!-- Content of the file omitted for now -->
+        		<!-- Content of the file ommited for now -->
 \end_layout
 
 \begin_layout Plain Layout
@@ -1427,7 +1416,7 @@ TYPE(xios_filegroup) :: filegroup_hdl
 
 \begin_layout Plain Layout
 
-! Context and calendar initializations omitted, see the corresponding section
+! Context and calendar initializations ommited, see the corresponding section
  of this user manual and of the reference manual
 \end_layout
 
@@ -1777,7 +1766,7 @@ netcdf4
 status open
 
 \begin_layout Plain Layout
--\SpecialChar nobreakdash
+-\SpecialChar \nobreakdash-
 -enable-netcdf4
 \end_layout
 
@@ -1820,7 +1809,7 @@ one_file
 status open
 
 \begin_layout Plain Layout
--\SpecialChar nobreakdash
+-\SpecialChar \nobreakdash-
 -enable-parallel
 \end_layout
 
@@ -1863,13 +1852,206 @@ one_file
 status open
 
 \begin_layout Plain Layout
--\SpecialChar nobreakdash
+-\SpecialChar \nobreakdash-
 -enable-pnetcdf
 \end_layout
 
 \end_inset
 
  and that the Parallel NetCDF library has been properly linked.
+\end_layout
+
+\begin_layout Section
+UGRID
+\end_layout
+
+\begin_layout Standard
+In addition to the CF conventions, it is also possible to output data using
+ 
+\begin_inset CommandInset href
+LatexCommand href
+name "UGRID"
+target "https://ugrid-conventions.github.io/ugrid-conventions/"
+
+\end_inset
+
+ metadata conventions developed for unstructured meshes.
+ It allows users to store the topology of an underlying unstructured mesh.
+ Currently XIOS supports 2D unstructured meshes of any shape (triangular,
+ quadrilateral, etc) and their mixture.
+ 
+\end_layout
+
+\begin_layout Standard
+A 2D mesh can be described by a set of nodes, edges and/or faces.
+ XIOS allows one to define data on any of these three types of elements.
+ XIOS will generate a full list of connectivity attributes proposed by the
+ UGRID conventions.
+ For example in case of a mesh comprised of faces the following connectivity
+ parameters will be the calculated:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+edge_node_connectivity
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+face_node_connectivity 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+edge_nodes_connectivity 
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+face_nodes_connectivity
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+face_edges_connectivity
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+edge_face_connectivity
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+face_face_connectivity
+\end_layout
+
+\begin_layout Standard
+In order to select UGRID output format, one has to set file attribute 
+\series bold
+convention
+\series default
+ to 
+\series bold
+\shape italic
+"UGRID"
+\series default
+\shape default
+ (its default value is 
+\series bold
+\shape italic
+
+\begin_inset Quotes eld
+\end_inset
+
+CF
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\shape default
+).
+ Domain attribute 
+\series bold
+nvertex
+\series default
+ is mandatory for UGRID.
+ It servers for identifying one of three types of mesh elements on which
+ data can be defined: nodes (nvertex=1), edges (nvertex=2), and faces (nvertex
+\begin_inset Formula $\geq$
+\end_inset
+
+3).
+ In order to write fields on the same mesh but on its different elements,
+ one has to assign the same domain name to each of the domains.
+ Example given below illustrates this point for three fields defined on
+ the same mesh but on its different elements: nodes, edges, and faces.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<file_definition> 
+\end_layout
+
+\begin_layout Plain Layout
+
+	<file id="output_UGRID" convention="UGRID"> 
+\end_layout
+
+\begin_layout Plain Layout
+
+		<field id="varOnNodes" ...
+ domain_ref="node"/> 
+\end_layout
+
+\begin_layout Plain Layout
+
+		<field id="varOnEdges" ...
+ domain_ref="edge"/>
+\end_layout
+
+\begin_layout Plain Layout
+
+		<field id="varOnFaces" ...
+ domain_ref="face"/> 
+\end_layout
+
+\begin_layout Plain Layout
+
+	</file>
+\end_layout
+
+\begin_layout Plain Layout
+
+</file_definition> 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+<domain_definition> 
+\end_layout
+
+\begin_layout Plain Layout
+
+	<domain id="node" name="mesh2D" nvertex="1"/>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<domain id="edge" name="mesh2D" nvertex="2"/> 
+\end_layout
+
+\begin_layout Plain Layout
+
+	<domain id="face" name="mesh2D" nvertex="4"/> 
+\end_layout
+
+\begin_layout Plain Layout
+
+</domain_definition> 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1952,7 +2134,7 @@ status open
 
 \begin_layout Plain Layout
 
-        		<!-- Content of the file omitted for now -->
+        		<!-- Content of the file ommited for now -->
 \end_layout
 
 \begin_layout Plain Layout
@@ -2194,7 +2376,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -2456,7 +2638,7 @@ TYPE(xios_field) 	:: field_hdl
 
 \begin_layout Plain Layout
 
-! Context, calendar and grid initializations omitted, see the corresponding
+! Context, calendar and grid initializations ommited, see the corresponding
  section of this user manual and of the reference manual
 \end_layout
 
@@ -2735,7 +2917,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3198,7 +3380,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3308,7 +3490,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3459,7 +3641,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3608,7 +3790,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3800,7 +3982,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -3941,7 +4123,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4081,7 +4263,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4277,7 +4459,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4456,7 +4638,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -4566,472 +4748,6 @@ field_A
 \end_layout
 
 \begin_layout Section
-How to check whether a field is active or not
-\end_layout
-
-\begin_layout Standard
-Since XIOS allows modifying the output and input files at runtime, it is
- sometimes useful to be able to dynamically query whether a field is active
- or not from the model (for example to avoid computing a field that would
- not be used anyway for the current run).
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-This can be done using the 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_field_is_active
-\end_layout
-
-\end_inset
-
- function.
- The following code sample shows how this function could be used in a model:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=Fortran,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-IF (xios_field_is_active("field_A")) THEN
-\end_layout
-
-\begin_layout Plain Layout
-
-	! Computation of field_A
-\end_layout
-
-\begin_layout Plain Layout
-
-	! ...
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-	CALL xios_send_field("field_A", field_A)
-\end_layout
-
-\begin_layout Plain Layout
-
-ENDIF
-\end_layout
-
-\end_inset
-
-Note that this function takes into account the possible data dependencies
- that can exist between fields.
- That is, a field will be considered active if it used to compute another
- active field even if it is not directly used in any files.
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-The 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_field_is_active
-\end_layout
-
-\end_inset
-
- function accepts an optional boolean argument 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-at_current_timestep
-\end_layout
-
-\end_inset
-
- which defaults to 
-\series bold
-false
-\series default
- if omitted.
- Setting it to 
-\series bold
-true
-\series default
- allows checking if an input field is active at the current timestep, taking
- into account the data sampling and temporal operations.
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-Considering the following configuration file:
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-<?xml version="1.0"?>
-\end_layout
-
-\begin_layout Plain Layout
-
-<simulation>
-\end_layout
-
-\begin_layout Plain Layout
-
-	<context id="test">
-\end_layout
-
-\begin_layout Plain Layout
-
-		<calendar type="Gregorian" timestep="1h" />
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-		<grid_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-			<grid id="grid_A"><!-- Definition omitted --></grid>
-\end_layout
-
-\begin_layout Plain Layout
-
-		</grid_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-		<field_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-        	<field id="field_A" grid_ref="grid_A" operation="instant" />
-\end_layout
-
-\begin_layout Plain Layout
-
-        	<field id="field_B" grid_ref="grid_A" operation="instant" />
-\end_layout
-
-\begin_layout Plain Layout
-
-        	<field id="field_C" grid_ref="grid_A" operation="instant">field_A
- + field_B</field>
-\end_layout
-
-\begin_layout Plain Layout
-
-		</field_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-		<file_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-			<file name="output" output_freq="10ts">
-\end_layout
-
-\begin_layout Plain Layout
-
-        		<field field_ref="field_C" />
-\end_layout
-
-\begin_layout Plain Layout
-
-			</file>
-\end_layout
-
-\begin_layout Plain Layout
-
-		</file_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-	</context>
-\end_layout
-
-\begin_layout Plain Layout
-
-</simulation>
-\end_layout
-
-\end_inset
-
-With this configuration file, calling 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_field_is_active(
-\begin_inset Quotes eld
-\end_inset
-
-field_A
-\begin_inset Quotes erd
-\end_inset
-
-)
-\end_layout
-
-\end_inset
-
- or
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_field_is_active(
-\begin_inset Quotes eld
-\end_inset
-
-field_B
-\begin_inset Quotes erd
-\end_inset
-
-)
-\end_layout
-
-\end_inset
-
- always returns 
-\series bold
-true
-\series default
- because 
-\begin_inset Quotes eld
-\end_inset
-
-field_A
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Quotes eld
-\end_inset
-
-field_B
-\begin_inset Quotes erd
-\end_inset
-
- are needed to compute 
-\begin_inset Quotes eld
-\end_inset
-
-field_C
-\begin_inset Quotes erd
-\end_inset
-
- which is outputted.
- Since 
-\begin_inset Quotes eld
-\end_inset
-
-field_C
-\begin_inset Quotes erd
-\end_inset
-
- is outputted every 10 timesteps, setting the 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-at_current_timestep
-\end_layout
-
-\end_inset
-
- argument to 
-\series bold
-true
-\series default
- would make a difference.
- Calling 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_field_is_active(
-\begin_inset Quotes eld
-\end_inset
-
-field_A
-\begin_inset Quotes erd
-\end_inset
-
-, .true.)
-\end_layout
-
-\end_inset
-
- would return 
-\series bold
-true
-\series default
- only every 10 timesteps as there is no need to provide 
-\begin_inset Quotes eld
-\end_inset
-
-field_A
-\begin_inset Quotes erd
-\end_inset
-
- (respectively 
-\begin_inset Quotes eld
-\end_inset
-
-field_B
-\begin_inset Quotes erd
-\end_inset
-
-) at timesteps for which 
-\begin_inset Quotes eld
-\end_inset
-
-field_C
-\begin_inset Quotes erd
-\end_inset
-
- is not written to file.
-\begin_inset Newline newline
-\end_inset
-
-
-\begin_inset Newline newline
-\end_inset
-
-Additionally, it possible to set the field attribute 
-\series bold
-check_if_active
-\series default
- to 
-\begin_inset Quotes eld
-\end_inset
-
-
-\series bold
-\emph on
-true
-\series default
-\emph default
-
-\begin_inset Quotes erd
-\end_inset
-
- so that XIOS internally check if a field is active before sending any data.
- For example, defining the following field:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-<field_definition>
-\end_layout
-
-\begin_layout Plain Layout
-
-	<field id="field_A" grid_ref="grid_A" operation="instant" check_if_active
-\series bold
-="true"
-\series default
- />
-\end_layout
-
-\begin_layout Plain Layout
-
-</field_definition>
-\end_layout
-
-\end_inset
-
-has the same effect as if all calls to 
-\begin_inset Flex Code
-status open
-
-\begin_layout Plain Layout
-xios_send_field("field_A", field_A)
-\end_layout
-
-\end_inset
-
- were replaced by:
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-IF (xios_field_is_active("field_A"), .true.) THEN
-\end_layout
-
-\begin_layout Plain Layout
-
-	CALL xios_send_field("field_A", field_A)
-\end_layout
-
-\begin_layout Plain Layout
-
-ENDIF
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
 How to reduce the size of an output file
 \end_layout
 
@@ -5050,8 +4766,16 @@ The first solution is to use the compression feature provided by HDF5 which
  allows a field to be compressed using gzip.
  Since it depends directly on HDF5, this feature works only when the NetCDF-4
  format is used.
- Unfortunately, HDF5 does not support compression (yet) for parallel output
- so you have to use only one server or to engage the 
+ Since HDF5 does not (yet) support compression for parallel output, one
+ has to use two server-level functionality (see Sec.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Launching-secondary-server"
+
+\end_inset
+
+) or to engage the 
 \series bold
 \emph on
 
@@ -5126,7 +4850,7 @@ status open
 
 \begin_layout Plain Layout
 
-			<grid id="grid_A"><!-- Definition omitted --></grid>
+			<grid id="grid_A"><!-- Definition ommited --></grid>
 \end_layout
 
 \begin_layout Plain Layout
@@ -5275,28 +4999,8 @@ filename "inputs/user/Axis.lyx"
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand include
-filename "inputs/user/Scalar.lyx"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand include
-filename "inputs/user/Transformations.lyx"
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Chapter
-XIOS options
+XIOS parameterization
 \end_layout
 
 \begin_layout Standard
@@ -5341,7 +5045,7 @@ status open
 
 \begin_layout Plain Layout
 
-	<!-- Actual context(s) used by the simulation omitted -->
+	<!-- Actual context(s) used by the simulation ommited -->
 \end_layout
 
 \begin_layout Plain Layout
@@ -5381,6 +5085,239 @@ status open
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Launching secondary server
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Launching-secondary-server"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To improve I/O performance and to be able to use HDF5 compression with the
+ 
+\series bold
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+multiple_file
+\begin_inset Quotes erd
+\end_inset
+
+
+\series default
+\emph default
+ mode, it is possible to separate servers into two levels: intermediaries
+ (level one) and writers (level two).
+ A single MPI communicator will be created for the intermediaries, while
+ multiple communicators will be created for the writers according to the
+ number of 
+\begin_inset Quotes eld
+\end_inset
+
+pools
+\begin_inset Quotes erd
+\end_inset
+
+ which can be set by a user.
+ Level-one servers will receive data from clients and will redistribute
+ it to be sent to pools of level-two servers whilst level-two servers will
+ do the I/O (important: for now level-two servers only do writing data).
+ Secondary servers can be launched by means of three parameters:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+using_server2
+\series default
+ (type: 
+\series bold
+bool
+\series default
+) activates the secondary server
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+ratio_server2
+\series default
+ (type: 
+\series bold
+int
+\series default
+) defines the percentage of servers that will be dedicated to level two.
+ The parameter can take value from 0 to 100 with the default value of 50%.
+ In case if the requested number of level-two servers is not valid (for
+ example, zero or equal to the total number of servers), XIOS will run in
+ its classical server mode with one server level.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+number_pools_server2 
+\series default
+(type: 
+\series bold
+int
+\series default
+) sets the number of server-two pools (i.e.
+ MPI communicators on level two).
+ By default the number of pools is equal to the number of level-two servers,
+ thus permitting one process per communicator.
+\end_layout
+
+\begin_layout Standard
+Shown in Fig.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "Fig:server2"
+
+\end_inset
+
+ is the two-level server structure for the following definitions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "breaklines=true,frame=tb,language=XML,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}},tabsize=2"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<context id="xios">     
+\end_layout
+
+\begin_layout Plain Layout
+
+...
+       
+\end_layout
+
+\begin_layout Plain Layout
+
+	<variable id="using_server2" type="bool">true</variable>
+\end_layout
+
+\begin_layout Plain Layout
+
+	<variable id="ratio_server2" type="int">75</variable>         
+\end_layout
+
+\begin_layout Plain Layout
+
+	<variable id="number_pools_server2" type="int">3</variable>         
+\end_layout
+
+\begin_layout Plain Layout
+
+...
+\end_layout
+
+\begin_layout Plain Layout
+
+</context> 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename inputs/images/Server2.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Two levels of servers for the total number of servers of 8 and ratio_server2=75%.
+ The number of level-two servers is 
+\begin_inset Formula $8\times\text{ratio\_server2}=6$
+\end_inset
+
+ and, thus, the remaining 2 servers are of level one.
+ 
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "Fig:server2"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that with one server per pool, the I/O is actually sequential and thus
+ the use of HDF5 compression is possible.
+ 
+\end_layout
+
+\begin_layout Standard
+By default file distribution among server-two pools is optimized for bandwidth.
+ An alternative way of distributing files is possible in order to minimize
+ memory consumption by level-two servers.
+ For this, two additional parameters should be specified:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+server2_dist_file_memory
+\series default
+ (type: 
+\series bold
+bool
+\series default
+) activates memory optimization.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+server2_dist_file_memory_ratio
+\series default
+ (type: 
+\series bold
+double
+\series default
+) (optional) takes value from 0 (memory optimization) to 1 (bandwidth optimizati
+on).
+ The default value is 0.5.
 \end_layout
 
 \begin_layout Section
@@ -5464,7 +5401,7 @@ performance
 \emph default
  mode, XIOS will ensure that all active fields can be buffered without having
  to flush the buffers.
- This mode is used by default since it allows more asynchronous and thus
+ This mode is used by default since it allows more asynchronism and thus
  better performance at the cost of being quite memory hungry.
 \end_layout
 
@@ -5500,7 +5437,7 @@ int
  For each allocated buffers, the used size is defined as 
 \begin_inset Formula 
 \[
-{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\;detected\_size\;\times\;buffer\_size\_factor\right)}
+{\scriptstyle used\_size\;=\;\min\left(minimum\_buffer\_size,\; detected\_size\;\times\; buffer\_size\_factor\right)}
 \]
 
 \end_inset

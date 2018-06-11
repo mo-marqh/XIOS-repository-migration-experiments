@@ -51,6 +51,14 @@ CDomainAlgorithmInterpolate::CDomainAlgorithmInterpolate(CDomain* domainDestinat
 {
   CContext* context = CContext::getCurrent();
   interpDomain_->checkValid(domainSource);
+
+  detectMissingValue = interpDomain_->detect_missing_value ;
+  renormalize = interpDomain_->renormalize ;
+  quantity = interpDomain_->quantity ;
+
+  if (interpDomain_->read_write_convention == CInterpolateDomain::read_write_convention_attr::fortran) fortranConvention=true ;
+  else fortranConvention=false ;
+  
   fileToReadWrite_ = "xios_interpolation_weights_";
 
   if (interpDomain_->weight_filename.isEmpty())
@@ -98,14 +106,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   int i, j, k, idx;
   std::vector<double> srcPole(3,0), dstPole(3,0);
   int orderInterp = interpDomain_->order.getValue();
-  bool renormalize ;
-  bool quantity ;
 
-  if (interpDomain_->renormalize.isEmpty()) renormalize=true;
-  else renormalize = interpDomain_->renormalize;
-
-  if (interpDomain_->quantity.isEmpty()) quantity=false;
-  else quantity = interpDomain_->quantity;
 
   const double poleValue = 90.0;
   const int constNVertex = 4; // Value by default number of vertex for rectangular domain
@@ -452,7 +453,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
       if (recvTemp.end() != recvTemp.find(recvSourceIndexBuff[idx]))
         recvTemp[recvSourceIndexBuff[idx]] += recvSourceWeightBuff[idx]/nbGlobalPointOnPole;
       else
-        recvTemp[recvSourceIndexBuff[idx]] = 0.0;
+        recvTemp[recvSourceIndexBuff[idx]] = recvSourceWeightBuff[idx]/nbGlobalPointOnPole;
     }
 
     std::map<int,double>::const_iterator itRecvTemp, itbRecvTemp = recvTemp.begin(), iteRecvTemp = recvTemp.end();
@@ -472,7 +473,7 @@ void CDomainAlgorithmInterpolate::processPole(std::map<int,std::vector<std::pair
 */
 void CDomainAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  if (readFromFile_ && !writeToFile_)  
+  if (readFromFile_)  
     readRemapInfo();
   else
   {
@@ -562,7 +563,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
     ++globalIndexCount;
   }
 
-  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp);
+  domainIndexClientClientMapping.computeServerIndexMapping(globalIndexInterp, client->serverSize);
   const CClientServerMapping::GlobalIndexMap& globalIndexInterpSendToClient = domainIndexClientClientMapping.getGlobalIndexOnServer();
 
   //Inform each client number of index they will receive
@@ -769,13 +770,15 @@ void CDomainAlgorithmInterpolate::writeInterpolationInfo(std::string& filename,
   CArray<double,1> weights(localNbWeight);
 
   int index = 0;
+  int indexOffset=0 ;
+  if (fortranConvention) indexOffset=1 ;
   for (it = itb; it !=ite; ++it)
   {
     std::vector<std::pair<int,double> >& tmp = it->second;
     for (int idx = 0; idx < tmp.size(); ++idx)
     {
-      dst_idx(index) = it->first + 1;
-      src_idx(index) = tmp[idx].first + 1;
+      dst_idx(index) = it->first + indexOffset;
+      src_idx(index) = tmp[idx].first + indexOffset;
       weights(index) = tmp[idx].second;
       ++index;
     }    
@@ -837,11 +840,20 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
   int weightDimId ;
   size_t nbWeightGlo ;
 
+
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
   int clientRank = client->clientRank;
   int clientSize = client->clientSize;
 
+
+  {
+    ifstream f(filename.c_str());
+    if (!f.good()) ERROR("void CDomainAlgorithmInterpolate::readInterpolationInfo",
+                      << "Attempt to read file weight :"  << filename << " which doesn't seem to exist." << std::endl
+                      << "Please check this file ");
+  }
+                  
   nc_open(filename.c_str(),NC_NOWRITE, &ncid) ;
   nc_inq_dimid(ncid,"n_weight",&weightDimId) ;
   nc_inq_dimlen(ncid,weightDimId,&nbWeightGlo) ;
@@ -876,8 +888,77 @@ void CDomainAlgorithmInterpolate::readInterpolationInfo(std::string& filename,
   nc_inq_varid (ncid, "dst_idx", &dstIndexId) ;
   nc_get_vara_long(ncid, dstIndexId, &start, &nbWeight, dstIndex) ;
 
-  for(size_t ind=0; ind<nbWeight;++ind)
-    interpMapValue[dstIndex[ind]-1].push_back(make_pair(srcIndex[ind]-1,weight[ind]));
+  int indexOffset=0 ;
+  if (fortranConvention) indexOffset=1 ;
+    for(size_t ind=0; ind<nbWeight;++ind)
+      interpMapValue[dstIndex[ind]-indexOffset].push_back(make_pair(srcIndex[ind]-indexOffset,weight[ind]));
+ }
+
+void CDomainAlgorithmInterpolate::apply(const std::vector<std::pair<int,double> >& localIndex,
+                                            const double* dataInput,
+                                            CArray<double,1>& dataOut,
+                                            std::vector<bool>& flagInitial,
+                                            bool ignoreMissingValue, bool firstPass  )
+{
+  int nbLocalIndex = localIndex.size();   
+  double defaultValue = std::numeric_limits<double>::quiet_NaN();
+   
+  if (detectMissingValue)
+  {
+     if (firstPass && renormalize)
+     {
+       renormalizationFactor.resize(dataOut.numElements()) ;
+       renormalizationFactor=1 ;
+     }
+
+    if (firstPass)
+    {
+      allMissing.resize(dataOut.numElements()) ;
+      allMissing=true ;
+    }
+
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      if (NumTraits<double>::isNan(*(dataInput + idx)))
+      {
+        allMissing(localIndex[idx].first) = allMissing(localIndex[idx].first) && true;
+        if (renormalize) renormalizationFactor(localIndex[idx].first)-=localIndex[idx].second ;
+      }
+      else
+      {
+        dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+        allMissing(localIndex[idx].first) = allMissing(localIndex[idx].first) && false; // Reset flag to indicate not all data source are nan
+      }
+    }
+
+  }
+  else
+  {
+    for (int idx = 0; idx < nbLocalIndex; ++idx)
+    {
+      dataOut(localIndex[idx].first) += *(dataInput + idx) * localIndex[idx].second;
+    }
+  }
+}
+
+void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
+{
+  if (detectMissingValue)
+  {
+    double defaultValue = std::numeric_limits<double>::quiet_NaN();
+    size_t nbIndex=dataOut.numElements() ; 
+
+    for (int idx = 0; idx < nbIndex; ++idx)
+    {
+      if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+    }
+    
+    if (renormalize)
+    {
+      if (renormalizationFactor.numElements()>0) dataOut/=renormalizationFactor ; // In some case, process doesn't received any data for interpolation (mask)
+                                                                                 // so renormalizationFactor is not initialized
+    }
+  }
 }
 
 }

@@ -1,9 +1,7 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
-\save_transient_properties true
-\origin unavailable
 \textclass book
 \use_default_options true
 \master ../../XIOS_user_guide.lyx
@@ -12,16 +10,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman "default" "default"
-\font_sans "default" "default"
-\font_typewriter "default" "default"
-\font_math "auto" "auto"
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100 100
-\font_tt_scale 100 100
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -210,7 +208,7 @@ An axis defined by axis_ref will inherit all attributes of the referenced
  If there is no id specified, an implicit one is assigned to this new axis.
  The axis with implicit id can only be used inside the scope where it is
  defined, it can not be referenced, nor be processed.
- It is useless to define an axis without id inside axis_definition.
+ It is rare to define an axis without id inside axis_definition.
  
 \end_layout
 
@@ -268,16 +266,185 @@ Advanced configuration
 \end_layout
 
 \begin_layout Standard
-Like domain, transformation which can be defined inside an axis.
+Like domain, there are several transformation which can be defined with
+ configuration file.
  All transformations on an axis have form *_axis.
- See Chapter 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "chap:Transformation"
+ 
+\end_layout
+
+\begin_layout Standard
+Till now, XIOS supports the following transformation on axis:
+\end_layout
+
+\begin_layout Itemize
+zoom_axis: Like zoom functionality in XIOS 1.0, the destination grid is the
+ zoomed region of the source grid.
+\end_layout
+
+\begin_layout Itemize
+interpolation_axis: Implement interpolation from an axis to one another.
+ For now, only polynominal interpolation is available.
+\end_layout
+
+\begin_layout Itemize
+inverse_axis: Inverse an axis
+\end_layout
+
+\begin_layout Standard
+It is not difficult to define a transformation: Include type of transformation
+ inside axis definition, as the following
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<axis_definition>
+\end_layout
+
+\begin_layout Plain Layout
+
+  <axis id="axis_A" />
+\end_layout
+
+\begin_layout Plain Layout
+
+  <axis id="axis_A_zoom" axis_ref="axis_A"> 
+\end_layout
+
+\begin_layout Plain Layout
+
+   <zoom_axis zoom_begin="1" zoom_n="3"/>
+\end_layout
+
+\begin_layout Plain Layout
+
+  </axis>
+\end_layout
+
+\begin_layout Plain Layout
+
+</axis_definition>
+\end_layout
 
 \end_inset
 
- for more details.
+
+\end_layout
+
+\begin_layout Standard
+The concrete example is translated as: the axis named axis_A_zoom is transformed
+ from axis name axis_A with a zoom activity.
+ The detailed attributes of zoom_axis can be found in reference document,
+ but simply it contains the begining and size of zoomed region.
+\end_layout
+
+\begin_layout Standard
+One remark is the transformed axis SHOULD have an id, in this case, it's
+ axis_A_zoom.
+ As mentioned before, a no-id axis or any no-id component of XIOS can only
+ be used inside its definition scope.
+\end_layout
+
+\begin_layout Standard
+To make use of transformation, the grid must contain axis which references
+ to transformed ones.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<grid id="grid_A">          
+\end_layout
+
+\begin_layout Plain Layout
+
+  <axis axis_ref="axis_A" />
+\end_layout
+
+\begin_layout Plain Layout
+
+</grid>
+\end_layout
+
+\begin_layout Plain Layout
+
+<grid id="grid_A_zoom">          
+\end_layout
+
+\begin_layout Plain Layout
+
+  <axis axis_ref="axis_A_zoom" />
+\end_layout
+
+\begin_layout Plain Layout
+
+</grid>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+On defining this way, we tell XIOS to establish a connection between two
+ grids by a transformation (zoom) with: grid source - grid_A, grid destination
+ - grid_A_zoom.
+\end_layout
+
+\begin_layout Standard
+As mentioned in Grid Chapter, in order to use transformed grid, just reference
+ to it in field_definition
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=XML,breaklines=true,tabsize=2,frame=tb,postbreak={\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}}}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+<field_definition level="1" enabled=".TRUE." default_value="9.96921e+36">
+\end_layout
+
+\begin_layout Plain Layout
+
+  <field id="field_A"  operation="average" freq_op="3600s" grid_ref="grid_A"
+ />
+\end_layout
+
+\begin_layout Plain Layout
+
+  <field id="field_A_zoom"  operation="average" freq_op="3600s" grid_ref="grid_A
+_zoom" />
+\end_layout
+
+\begin_layout Plain Layout
+
+ </field_definition>
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Although xml is helpful to define several configurations, it can not be
+ used to customize attributes of axis.
+ So it's the turn of Fortran interface.
 \end_layout
 
 \begin_layout Section
@@ -285,7 +452,7 @@ Working with FORTRAN code
 \end_layout
 
 \begin_layout Standard
-Although axis is not as complex as domain, there are some mandatory attributes
+Although axis is not as complexe as domain, there are some mandatory attributes
  to define.
  Different from precedent version, XIOS 2.0 supports distribution of data
  on a axis.
@@ -402,7 +569,7 @@ Simpler than local domain data, data on axis is always on-dimension.
 \end_layout
 
 \begin_layout Standard
-Specify the beginning and size of data on the local axis:
+Specify the begining and size of data on the local axis:
 \end_layout
 
 \begin_layout Itemize
@@ -422,7 +589,7 @@ data_index: array of local position of data in the local axis.
 \end_layout
 
 \begin_layout Standard
-Although the valid data must be inside a local axis, it is not necessary
+Although the valid data must be inside a local axis, it is not neccessary
  for data to have same size.
  In fact, data can have larger size than local axis.
 \end_layout
@@ -455,7 +622,7 @@ For local axis_A, the negative value of data_begin indicates that data is
 \end_layout
 
 \begin_layout Standard
-Local data can be defined with:
+Loal data can be defined with:
 \end_layout
 
 \begin_layout Standard

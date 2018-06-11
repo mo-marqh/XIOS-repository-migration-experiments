@@ -6,6 +6,7 @@
 #include <cmath>
 #include "exception.hpp"
 #include "array_new.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
@@ -252,13 +253,32 @@ namespace xios
     static inline double mult_ss(double x, double y)  { return x * y; }
     static inline double div_ss(double x, double y)   { return x / y; }
     static inline double pow_ss(double x, double y)   { return std::pow(x,y); }
-    static inline double eq_ss(double x, double y)    { return x == y; }
+
+    static inline double eq_ss(double x, double y) // specific check for NaN
+    {
+       bool xNan=NumTraits<double>::isNan(x) ;
+       bool yNan=NumTraits<double>::isNan(y) ;
+       if (xNan && yNan) return true ;
+       else if (xNan) return false ;
+       else if (yNan) return false ;
+       else return x == y;
+    }
+    
     static inline double lt_ss(double x, double y)    { return x < y; }
     static inline double gt_ss(double x, double y)    { return x > y; }
     static inline double le_ss(double x, double y)    { return x <= y; }
     static inline double ge_ss(double x, double y)    { return x >= y; }
-    static inline double ne_ss(double x, double y)    { return x != y; }
 
+    static inline double ne_ss(double x, double y) // specific check for NaN
+    {
+       bool xNan=NumTraits<double>::isNan(x) ;
+       bool yNan=NumTraits<double>::isNan(y) ;
+       if (xNan && yNan) return false ;
+       else if (xNan) return true ;
+       else if (yNan) return true ;      
+       else return x != y;
+    }
+    
     static inline CArray<double,1> neg_f(const CArray<double,1>& x)   { return Array<double,1>(-x); }
     static inline CArray<double,1> cos_f(const CArray<double,1>& x)   { return Array<double,1>(cos(x)); }
     static inline CArray<double,1> sin_f(const CArray<double,1>& x)   { return Array<double,1>(sin(x)); }
@@ -285,25 +305,72 @@ namespace xios
     static inline CArray<double,1> mult_fs(const CArray<double,1>& x, double y)  { return Array<double,1>(x * y); }
     static inline CArray<double,1> div_fs(const CArray<double,1>& x, double y)   { return Array<double,1>(x / y); }
     static inline CArray<double,1> pow_fs(const CArray<double,1>& x, double y)   { return Array<double,1>(pow(x,y)); }
-    static inline CArray<double,1> eq_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x == y); }
+
+    static inline CArray<double,1> eq_fs(const CArray<double,1>& x, double y) // specific check for NaN
+    {
+      if (NumTraits<double>::isNan(y))
+      {
+        CArray<double,1> ret(x.numElements()) ;
+        Array<double,1>::const_iterator itx=x.begin(),itxe=x.end();
+        Array<double,1>::iterator itret=ret.begin() ;
+        for(;itx!=itxe;++itx,++itret) *itret=NumTraits<double>::isNan(*itx) ;
+        return ret ;
+      }
+      else return Array<double,1>(x == y); 
+    }
+    
     static inline CArray<double,1> lt_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x < y); }
     static inline CArray<double,1> gt_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x > y); }
     static inline CArray<double,1> le_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x <= y); }
     static inline CArray<double,1> ge_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x >= y); }
-    static inline CArray<double,1> ne_fs(const CArray<double,1>& x, double y)    { return Array<double,1>(x != y); }
+
+    static  inline CArray<double,1> ne_fs(const CArray<double,1>& x, double y) // specific check for NaN
+    {
+      if (NumTraits<double>::isNan(y))
+      {
+        CArray<double,1> ret(x.numElements()) ;
+        Array<double,1>::const_iterator itx=x.begin(),itxe=x.end();
+        Array<double,1>::iterator itret=ret.begin() ;
+        for(;itx!=itxe;++itx,++itret) *itret = !NumTraits<double>::isNan(*itx) ;
+        return ret ;
+      }
+      else return Array<double,1>(x != y); 
+    }
 
     static inline CArray<double,1> add_sf(double x, const CArray<double,1>& y)   { return Array<double,1>(x + y); }
     static inline CArray<double,1> minus_sf(double x, const CArray<double,1>& y) { return Array<double,1>(x - y); }
     static inline CArray<double,1> mult_sf(double x, const CArray<double,1>& y)  { return Array<double,1>(x * y); }
     static inline CArray<double,1> div_sf(double x, const CArray<double,1>& y)   { return Array<double,1>(x / y); }
-    static inline CArray<double,1> eq_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x == y); }
+
+    static inline CArray<double,1> eq_sf(double x, const CArray<double,1>& y) // specific check for NaN
+    {
+      if (NumTraits<double>::isNan(x))
+      {
+        CArray<double,1> ret(y.numElements()) ;
+        Array<double,1>::const_iterator ity=y.begin(),itye=y.end();
+        Array<double,1>::iterator itret=ret.begin() ;
+        for(;ity!=itye;++ity,++itret) *itret=NumTraits<double>::isNan(*ity) ;
+        return ret ;
+      }
+      else return Array<double,1>(x == y); 
+    }
     static inline CArray<double,1> lt_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x < y); }
     static inline CArray<double,1> gt_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x > y); }
     static inline CArray<double,1> le_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x <= y); }
     static inline CArray<double,1> ge_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x >= y); }
-    static inline CArray<double,1> ne_sf(double x, const CArray<double,1>& y)    { return Array<double,1>(x != y); }
 
-
+    static inline CArray<double,1> ne_sf(double x, const CArray<double,1>& y) // specific check for NaN
+    {
+      if (NumTraits<double>::isNan(x))
+      {
+        CArray<double,1> ret(y.numElements()) ;
+        Array<double,1>::const_iterator ity=y.begin(),itye=y.end();
+        Array<double,1>::iterator itret=ret.begin() ;
+        for(;ity!=itye;++ity,++itret) *itret=!NumTraits<double>::isNan(*ity) ;
+        return ret ;
+      }
+      else return Array<double,1>(x != y);
+    }
     static inline double cond_sss(double x, double y, double z)   { return (x==0) ? z : y ; }
 
     static inline CArray<double,1> cond_ssf(double x, double y, const CArray<double,1>& z)

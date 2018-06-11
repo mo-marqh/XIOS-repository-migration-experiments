@@ -6,15 +6,23 @@
 namespace xios
 {
       /// ////////////////////// Définitions ////////////////////// ///
-      const CDuration Year     = { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-                      Month    = { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-                      Week     = { 0.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0 },
-                      Day      = { 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 },
-                      Hour     = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 },
-                      Minute   = { 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
-                      Second   = { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 },
-                      TimeStep = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 },
-                      NoneDu   = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
+      const CDuration Year     ( 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+      const CDuration Month    ( 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+      const CDuration Week     ( 0.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0 );
+      const CDuration Day      ( 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 );
+      const CDuration Hour     ( 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 );
+      const CDuration Minute   ( 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 );
+      const CDuration Second   ( 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
+      const CDuration TimeStep ( 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 );
+      const CDuration NoneDu   ( 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 );
+
+      ///---------------------------------------------------------------
+
+      CDuration::CDuration(double y, double m, double d, double h, double min, double s, double ts) :
+      year(y), month(m), day(d), hour(h), minute(min), second(s), timestep(ts)
+      {
+      }
 
       ///---------------------------------------------------------------
 

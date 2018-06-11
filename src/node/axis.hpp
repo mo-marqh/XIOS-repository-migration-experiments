@@ -37,20 +37,21 @@ namespace xios {
       : public CObjectTemplate<CAxis>
       , public CAxisAttributes
    {
-         enum EEventId
-         {
-           EVENT_ID_SERVER_ATTRIBUT,
-           EVENT_ID_INDEX,
-           EVENT_ID_DISTRIBUTED_VALUE,
-           EVENT_ID_NON_DISTRIBUTED_VALUE
-         } ;
-
-         /// typedef ///
+               /// typedef ///
          typedef CObjectTemplate<CAxis>   SuperClass;
          typedef CAxisAttributes SuperClassAttribute;
+         
+      public:
+         enum EEventId
+         {
+           EVENT_ID_DISTRIBUTION_ATTRIBUTE,           
+           EVENT_ID_DISTRIBUTED_VALUE,
+           EVENT_ID_NON_DISTRIBUTED_VALUE,
+           EVENT_ID_NON_DISTRIBUTED_ATTRIBUTES,
+           EVENT_ID_DISTRIBUTED_ATTRIBUTES
+         } ;
 
-      public :
-
+      public:
          typedef CAxisAttributes RelAttributes;
          typedef CAxisGroup      RelGroup;
          typedef CTransformation<CAxis>::TransformationMapTypes TransMapTypes;
@@ -67,12 +68,13 @@ namespace xios {
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
 
-         const std::vector<int>& getIndexesToWrite(void) const;
-         int getNumberWrittenIndexes() const;
-         int getTotalNumberWrittenIndexes() const;
-         int getOffsetWrittenIndexes() const;
+         int getNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
+         CArray<int, 1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
 
-         std::map<int, StdSize> getAttributesBufferSize();
+         std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
+                                                        CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
          /// Test ///
          bool IsWritten(const StdString & filename) const;
@@ -92,16 +94,15 @@ namespace xios {
 
          virtual void parse(xml::CXMLNode & node);
 
+         void setContextClient(CContextClient* contextClient);
+
          /// Accesseurs statiques ///
          static StdString GetName(void);
          static StdString GetDefName(void);
          static ENodeType GetType(void);
 
-         void sendServerAttribut(const std::vector<int>& globalDim, int orderPositionInGrid,
-                                 CServerDistributionDescription::ServerDistributionType distType);
-         static bool dispatchEvent(CEventServer& event);
-         static void recvServerAttribut(CEventServer& event);
-         void recvServerAttribut(CBufferIn& buffer) ;
+         static bool dispatchEvent(CEventServer& event);         
+         
          void checkAttributesOnClient();
          void checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                          CServerDistributionDescription::ServerDistributionType distType = CServerDistributionDescription::BAND_DISTRIBUTION);
@@ -109,65 +110,71 @@ namespace xios {
                                     CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
 
          void checkEligibilityForCompressedOutput();
+         size_t getGlobalWrittenSize(void) ;
 
+         void computeWrittenIndex();
+         void computeWrittenCompressedIndex(MPI_Comm);
          bool hasTransformation();
          void solveInheritanceTransformation();
-         TransMapTypes getAllTransformations();
-         void fillInValues(const CArray<double,1>& values);
+         TransMapTypes getAllTransformations();         
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
+         bool zoomByIndex();
 
-      public:
-        int zoom_begin_srv, zoom_end_srv, zoom_size_srv;
-        int ni_srv, begin_srv, end_srv;
-        int global_zoom_begin_srv, global_zoom_end_srv, global_zoom_size_srv;
-        CArray<double,1> value_srv;
-        CArray<double,2> bound_srv;
-        CArray<StdString,1> label_srv;
-        CArray<int,1> zoom_index_srv;
-        bool hasValue;
+      public: 
+        bool hasValue;        
+        CArray<size_t,1> localIndexToWriteOnServer;        
 
       private:
          void checkData();
          void checkMask();
          void checkZoom();
          void checkBounds();
-         void checkLabel();         
-         void sendValue();
-         void computeConnectedServer(const std::vector<int>& globalDim, int orderPositionInGrid,
+         void checkLabel();
+         void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
+                             CServerDistributionDescription::ServerDistributionType distType);
+         void sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
+                                        CServerDistributionDescription::ServerDistributionType distType);
+         void computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType);
-         void sendDistributedValue();
-         void sendNonDistributedValue();
-         bool zoomByIndex();
 
-         static void recvIndex(CEventServer& event);
-         static void recvDistributedValue(CEventServer& event);
-         static void recvNonDistributedValue(CEventServer& event);
-         void recvIndex(int rank, CBufferIn& buffer);
-         void recvDistributedValue(int rank, CBufferIn& buffer);
-         void recvNonDistributedValue(int rank, CBufferIn& buffer);
+         void sendNonDistributedAttributes(void);
+         void sendDistributedAttributes(void);
+
+         static void recvNonDistributedAttributes(CEventServer& event);
+         static void recvDistributedAttributes(CEventServer& event);
+         static void recvDistributionAttribute(CEventServer& event);
+         void recvNonDistributedAttributes(int rank, CBufferIn& buffer);
+         void recvDistributedAttributes(vector<int>& rank, vector<CBufferIn*> buffers);
+         void recvDistributionAttribute(CBufferIn& buffer);
 
          void setTransformations(const TransMapTypes&);
 
       private:
+
+/** Clients that have to send a domain. There can be multiple clients in case of secondary server, otherwise only one client. */
+         std::list<CContextClient*> clients;
+         std::set<CContextClient*> clientsSet;
+
          bool isChecked;
          bool areClientAttributesChecked_;
          bool isClientAfterTransformationChecked;
          std::set<StdString> relFiles, relFilesCompressed;
-         TransMapTypes transformationMap_;
-         bool isDistributed_;
+         TransMapTypes transformationMap_;         
          //! True if and only if the data defined on the axis can be outputted in a compressed way
          bool isCompressible_;
-         std::map<int,int> nbConnectedClients_; // Mapping of number of communicating client to a server
-         std::map<int, vector<size_t> > indSrv_; // Global index of each client sent to server
-         std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
+         std::map<int, boost::unordered_map<int, vector<size_t> > > indSrv_; // Global index of each client sent to server
+         // std::map<int, vector<int> > indWrittenSrv_; // Global written index of each client sent to server
+         boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
          std::vector<int> indexesToWrite;
-         int numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
-         std::vector<int> connectedServerRank_;
-         std::map<int, CArray<int,1> > indiSrv_;
-         bool hasBounds_;
-         bool hasLabel;
+         std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
+         std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
+         std::map<int, std::vector<int> > connectedServerRank_;
+         bool hasBounds;
+         bool hasLabel;         
+         bool computedWrittenIndex_;                  
 
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

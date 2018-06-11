@@ -51,6 +51,8 @@ public:
 
   virtual ~CGenericAlgorithmTransformation() {}
 
+  bool isDistributedTransformation(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst) ;
+
   void computeGlobalSourceIndex(int elementPositionInGrid,
                                CGrid* gridSrc,
                                CGrid* gridDst,
@@ -84,6 +86,10 @@ public:
   Compute global index mapping from one element of destination grid to the corresponding element of source grid
   */
   void computeIndexSourceMapping(const std::vector<CArray<double,1>* >& dataAuxInputs = std::vector<CArray<double,1>* >());
+  void computeTransformationMappingNonDistributed(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst,
+                                                  vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, vector<bool>& localMaskOnGridDest);
+  void nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid,  vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst, int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
+                                     vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, CArray<bool,1>& localMaskOnGridSrc, vector<bool>& localMaskOnGridDest) ;
 
 protected:
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;
@@ -125,6 +131,11 @@ protected:
   void computePositionElements(CGrid* dst, CGrid* src);
 
 protected:
+  //! indicate if the transformation is performed on a distributed element
+  bool isDistributed_ ;
+  //! indicate if the method  isDistributedTransformation has been called before
+  bool isDistributedComputed_ ;
+  
   //! Map between global index of destination element and source element
   std::vector<TransformationIndexMap> transformationMapping_;
   //! Weight corresponding of source to destination
@@ -137,8 +148,24 @@ protected:
   std::vector<StdString> idAuxInputs_;
   AlgoTransType type_;
 
+  std::set<StdSize> indexElementSrc_;
+
+  std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc_;
+
+  std::vector<int> procContainSrcElementIdx_;  // List of processes containing source index of transformed elements
+//  std::set<int> procOfNonTransformedElements_; // Processes contain the source index of non-transformed elements
+  std::set<int> commonProc_;
+  std::vector< set<int> > procElementList_ ; // List of processes containing source index of elements
+
+  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc_;
+  
+  bool computedProcSrcNonTransformedElement_; // Flag to indicate whether we computed proc containing non transformed elements
+
   std::map<int, int> elementPositionInGridSrc2AxisPosition_, elementPositionInGridSrc2DomainPosition_, elementPositionInGridSrc2ScalarPosition_;
   std::map<int, int> elementPositionInGridDst2AxisPosition_, elementPositionInGridDst2DomainPosition_, elementPositionInGridDst2ScalarPosition_;
+
+  bool eliminateRedondantSrc_ ; // flag to indicate if the transformation must select only one global source point for all proc.
+                               // In this case it will choose preferentially the current process 
 };
 
 }

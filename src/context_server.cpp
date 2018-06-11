@@ -28,19 +28,23 @@ namespace xios
     intraComm=intraComm_;
     MPI_Comm_size(intraComm,&intraCommSize);
     MPI_Comm_rank(intraComm,&intraCommRank);
+
     interComm=interComm_;
     int flag;
     MPI_Comm_test_inter(interComm,&flag);
     if (flag) MPI_Comm_remote_size(interComm,&commSize);
     else  MPI_Comm_size(interComm,&commSize);
+
     currentTimeLine=0;
     scheduled=false;
     finished=false;
-
     boost::hash<string> hashString;
-    hashId=hashString(context->getId());
-
+    if (CServer::serverLevel == 1)
+      hashId=hashString(context->getId() + boost::lexical_cast<string>(context->clientPrimServer.size()));
+    else
+      hashId=hashString(context->getId());
   }
+
   void CContextServer::setPendingEvent(void)
   {
     pendingEvent=true;
@@ -127,11 +131,12 @@ namespace xios
          MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
          bufferRequest[rank]=addr;
          return true;
-      }
+       }
       else
         return false;
     }
   }
+
 
   void CContextServer::checkPendingRequest(void)
   {
@@ -173,6 +178,7 @@ namespace xios
     size_t timeLine;
     map<size_t,CEventServer*>::iterator it;
 
+    CTimer::get("Process request").resume();
     while(count>0)
     {
       char* startBuffer=(char*)buffer.ptr();
@@ -186,7 +192,7 @@ namespace xios
       buffer.advance(size);
       count=buffer.remain();
     }
-
+    CTimer::get("Process request").suspend();
   }
 
   void CContextServer::processEvents(void)
@@ -232,7 +238,6 @@ namespace xios
     for(it=buffers.begin();it!=buffers.end();++it) delete it->second;
   }
 
-
   void CContextServer::dispatchEvent(CEventServer& event)
   {
     string contextName;
@@ -240,23 +245,25 @@ namespace xios
     int MsgSize;
     int rank;
     list<CEventServer::SSubEvent>::iterator it;
-    CContext::setCurrent(context->getId());
+    StdString ctxId = context->getId();
+    CContext::setCurrent(ctxId);
+    StdSize totalBuf = 0;
 
     if (event.classId==CContext::GetType() && event.type==CContext::EVENT_ID_CONTEXT_FINALIZE)
     {
       finished=true;
-      info(20)<<"Server Side context <"<<context->getId()<<"> finalized"<<endl;
+      info(20)<<" CContextServer: Receive context <"<<context->getId()<<"> finalize."<<endl;
+      context->finalize();
       std::map<int, StdSize>::const_iterator itbMap = mapBufferSize_.begin(),
-                                             iteMap = mapBufferSize_.end(), itMap;
-      StdSize totalBuf = 0;
+                           iteMap = mapBufferSize_.end(), itMap;
       for (itMap = itbMap; itMap != iteMap; ++itMap)
       {
-        report(10)<< " Memory report : Context <"<<context->getId()<<"> : server side : memory used for buffer of each connection to client" << endl
-                  << "  +) With client of rank " << itMap->first << " : " << itMap->second << " bytes " << endl;
+        rank = itMap->first;
+        report(10)<< " Memory report : Context <"<<ctxId<<"> : server side : memory used for buffer of each connection to client" << endl
+            << "  +) With client of rank " << rank << " : " << itMap->second << " bytes " << endl;
         totalBuf += itMap->second;
       }
-      context->finalize();
-      report(0)<< " Memory report : Context <"<<context->getId()<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
+      report(0)<< " Memory report : Context <"<<ctxId<<"> : server side : total memory used for buffer "<<totalBuf<<" bytes"<<endl;
     }
     else if (event.classId==CContext::GetType()) CContext::dispatchEvent(event);
     else if (event.classId==CContextGroup::GetType()) CContextGroup::dispatchEvent(event);

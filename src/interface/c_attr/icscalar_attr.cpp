@@ -17,6 +17,135 @@ extern "C"
 {
   typedef xios::CScalar* scalar_Ptr;
 
+  void cxios_set_scalar_axis_type(scalar_Ptr scalar_hdl, const char * axis_type, int axis_type_size)
+  {
+    std::string axis_type_str;
+    if (!cstr2string(axis_type, axis_type_size, axis_type_str)) return;
+    CTimer::get("XIOS").resume();
+    scalar_hdl->axis_type.fromString(axis_type_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_axis_type(scalar_Ptr scalar_hdl, char * axis_type, int axis_type_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(scalar_hdl->axis_type.getInheritedStringValue(), axis_type, axis_type_size))
+      ERROR("void cxios_get_scalar_axis_type(scalar_Ptr scalar_hdl, char * axis_type, int axis_type_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_axis_type(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->axis_type.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_scalar_bounds(scalar_Ptr scalar_hdl, double* bounds, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(bounds, shape(extent[0]), neverDeleteData);
+    scalar_hdl->bounds.reference(tmp.copy());
+     CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_bounds(scalar_Ptr scalar_hdl, double* bounds, int* extent)
+  {
+    CTimer::get("XIOS").resume();
+    CArray<double,1> tmp(bounds, shape(extent[0]), neverDeleteData);
+    tmp=scalar_hdl->bounds.getInheritedValue();
+     CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_bounds(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->bounds.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_scalar_bounds_name(scalar_Ptr scalar_hdl, const char * bounds_name, int bounds_name_size)
+  {
+    std::string bounds_name_str;
+    if (!cstr2string(bounds_name, bounds_name_size, bounds_name_str)) return;
+    CTimer::get("XIOS").resume();
+    scalar_hdl->bounds_name.setValue(bounds_name_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_bounds_name(scalar_Ptr scalar_hdl, char * bounds_name, int bounds_name_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(scalar_hdl->bounds_name.getInheritedValue(), bounds_name, bounds_name_size))
+      ERROR("void cxios_get_scalar_bounds_name(scalar_Ptr scalar_hdl, char * bounds_name, int bounds_name_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_bounds_name(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->bounds_name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_scalar_comment(scalar_Ptr scalar_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    scalar_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_comment(scalar_Ptr scalar_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(scalar_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_scalar_comment(scalar_Ptr scalar_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_comment(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_scalar_label(scalar_Ptr scalar_hdl, const char * label, int label_size)
+  {
+    std::string label_str;
+    if (!cstr2string(label, label_size, label_str)) return;
+    CTimer::get("XIOS").resume();
+    scalar_hdl->label.setValue(label_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_label(scalar_Ptr scalar_hdl, char * label, int label_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(scalar_hdl->label.getInheritedValue(), label, label_size))
+      ERROR("void cxios_get_scalar_label(scalar_Ptr scalar_hdl, char * label, int label_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_label(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->label.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_scalar_long_name(scalar_Ptr scalar_hdl, const char * long_name, int long_name_size)
   {
     std::string long_name_str;
@@ -64,6 +193,32 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = scalar_hdl->name.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_scalar_positive(scalar_Ptr scalar_hdl, const char * positive, int positive_size)
+  {
+    std::string positive_str;
+    if (!cstr2string(positive, positive_size, positive_str)) return;
+    CTimer::get("XIOS").resume();
+    scalar_hdl->positive.fromString(positive_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_scalar_positive(scalar_Ptr scalar_hdl, char * positive, int positive_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(scalar_hdl->positive.getInheritedStringValue(), positive, positive_size))
+      ERROR("void cxios_get_scalar_positive(scalar_Ptr scalar_hdl, char * positive, int positive_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_scalar_positive(scalar_Ptr scalar_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = scalar_hdl->positive.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }

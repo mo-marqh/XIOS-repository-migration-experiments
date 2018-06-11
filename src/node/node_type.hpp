@@ -18,12 +18,16 @@
 #include "scalar.hpp"
 #include "reduce_axis_to_scalar.hpp"
 #include "reduce_domain_to_axis.hpp"
+#include "reduce_axis_to_axis.hpp"
 #include "extract_domain_to_axis.hpp"
 #include "compute_connectivity_domain.hpp"
 #include "expand_domain.hpp"
 #include "extract_axis_to_scalar.hpp"
 #include "reduce_domain_to_scalar.hpp"
-
+#include "temporal_splitting.hpp"
+#include "duplicate_scalar_to_axis.hpp"
+#include "reduce_scalar_to_scalar.hpp"
+#include "reorder_domain.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

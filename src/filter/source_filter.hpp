@@ -26,6 +26,7 @@ namespace xios
        * \param defaultValue missing value to detect
        */
       CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+                    bool compression=true,
                     const CDuration offset = NoneDu, bool manualTrigger = false,
                     bool hasMissingValue = false,
                     double defaultValue = 0.0);
@@ -63,6 +64,7 @@ namespace xios
       const CDuration offset; //!< The offset applied to the timestamp of all packets
       const bool hasMissingValue;
       const double defaultValue;
+      const bool compression ; //!< indicate if the data need to be compressed : on client size : true, on server side : false
   }; // class CSourceFilter
 } // namespace xios
 

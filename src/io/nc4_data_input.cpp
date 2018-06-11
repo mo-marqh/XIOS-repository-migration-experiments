@@ -9,9 +9,10 @@
 
 namespace xios
 {
-  CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/, bool ugridConvention /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
+  CNc4DataInput::CNc4DataInput(const StdString& filename, MPI_Comm comm_file, bool multifile, bool isCollective /*= true*/,
+                               bool readMetaDataPar /*= false*/, bool ugridConvention /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
     : SuperClass()
-    , SuperClassWriter(filename, &comm_file, multifile, timeCounterName)
+    , SuperClassWriter(filename, &comm_file, multifile, readMetaDataPar, timeCounterName)
     , comm_file(comm_file)
     , filename(filename)
     , isCollective(isCollective)
@@ -184,8 +185,33 @@ namespace xios
     for (std::map<StdString, StdSize>::const_iterator itMap = dimSizeMap.begin(); itMap != dimSizeMap.end(); ++itMap)
       listDimSize.push_front(*itMap);
 */
-    for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
-      listDimSize.push_front(*dimSizeMap.find(*it));
+
+//    if (!SuperClassWriter::isRectilinear(fieldId))
+    if (true)
+    {
+      for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
+        listDimSize.push_front(*dimSizeMap.find(*it));
+    }
+    else
+    {
+       std::list<StdString> coords = SuperClassWriter::getCoordinatesIdList(fieldId);
+       std::list<StdString>::const_iterator itCoord = coords.begin();
+       for (; itCoord != coords.end(); itCoord++)
+       {
+         const StdString& coord = *itCoord;
+         if (SuperClassWriter::hasVariable(coord) && !SuperClassWriter::isTemporal(coord))
+         {
+           std::map<StdString, StdSize> dimsTmp = SuperClassWriter::getDimensions(&coord);
+           StdString dimNameTmp = dimsTmp.begin()->first;
+           StdSize dimSizeTmp = dimsTmp.begin()->second;
+           listDimSize.push_front(make_pair(coord, dimSizeTmp));
+           dimSizeMap.erase(dimNameTmp);
+           dimList.remove(dimNameTmp);
+         }
+       }
+       for (std::list<StdString>::const_iterator it = dimList.begin(); it != dimList.end(); ++it)
+        listDimSize.push_front(*dimSizeMap.find(*it));
+    }
 
     // Now process domain and axis
     CArray<int,1> axisDomainOrder = grid->axis_domain_order;
@@ -264,7 +290,7 @@ namespace xios
 
     if ((CDomain::type_attr::rectilinear == domain->type))
     {
-      // Ok, try to read some f.. attributes such as longitude and latitude
+      // Ok, try to read some attributes such as longitude and latitude
       bool hasLat = SuperClassWriter::hasVariable(itMapNj->first);
       if (hasLat)
       {
@@ -283,29 +309,50 @@ namespace xios
     }
     else if ((CDomain::type_attr::curvilinear == domain->type))
     {
-      int ni = domain->ni;
-      int nj = domain->nj;
+      // Make sure that if there is no local domain defined on a process, the process still reads just one value.
+      int ni, nj, ibegin, jbegin;
+      if (domain->ni == 0)
+      {
+        ni = 1;
+        ibegin = 0;
+      }
+      else
+      {
+        ni = domain->ni;
+        ibegin = domain->ibegin;
+      }
+      if (domain->nj == 0)
+      {
+        nj = 1;
+        jbegin = 0;
+      }
+      else
+      {
+        nj = domain->nj;
+        jbegin = domain->jbegin;
+      }
+
       std::vector<StdSize> nBeginLatLon(2), nSizeLatLon(2);
-      nBeginLatLon[0] = 0; nBeginLatLon[1] = 0;
-      nSizeLatLon[0]  = domain->nj_glo.getValue(); nSizeLatLon[1] = domain->ni_glo.getValue();
+      nBeginLatLon[0] = jbegin; nBeginLatLon[1] = ibegin;
+      nSizeLatLon[0]  = nj; nSizeLatLon[1] = ni;
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
+        domain->latvalue_curvilinear_read_from_file.resize(ni, nj);
         readFieldVariableValue(domain->latvalue_curvilinear_read_from_file, latName, nBeginLatLon, nSizeLatLon);
       }
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName))
       {
-        domain->lonvalue_curvilinear_read_from_file.resize(domain->ni_glo,domain->nj_glo);
+        domain->lonvalue_curvilinear_read_from_file.resize(ni, nj);
         readFieldVariableValue(domain->lonvalue_curvilinear_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
       StdString boundsLatName = this->getBoundsId(latName);
       StdString boundsLonName = this->getBoundsId(lonName);
 
-      int nbVertex = this->getNbVertex(fieldId);
+      int nbVertex = 4; //this->getNbVertex(fieldId);
       if (!domain->nvertex.isEmpty() && (domain->nvertex != nbVertex))
       {
         ERROR("void CNc4DataInput::readDomainAttributeValueFromFile(...)",
@@ -320,40 +367,52 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(3), nSizeBndsLatLon(3);
-      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->nj_glo.getValue();
-      nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = domain->ni_glo.getValue();
+      nBeginBndsLatLon[0] = jbegin; nSizeBndsLatLon[0] = nj;
+      nBeginBndsLatLon[1] = ibegin; nSizeBndsLatLon[1] = ni;
       nBeginBndsLatLon[2] = 0; nSizeBndsLatLon[2] = nbVertex;
 
       if (SuperClassWriter::hasVariable(boundsLatName))
       {
-        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
+        domain->bounds_latvalue_curvilinear_read_from_file.resize(nbVertex, ni, nj);
         readFieldVariableValue(domain->bounds_latvalue_curvilinear_read_from_file, boundsLatName, nBeginBndsLatLon, nSizeBndsLatLon);
 
       }
       if (SuperClassWriter::hasVariable(boundsLonName)) 
       {
-        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex,domain->ni_glo,domain->nj_glo);
+        domain->bounds_lonvalue_curvilinear_read_from_file.resize(nbVertex, ni, nj);
         readFieldVariableValue(domain->bounds_lonvalue_curvilinear_read_from_file, boundsLonName, nBeginBndsLatLon, nSizeBndsLatLon);
       }      
     }
     else if ((CDomain::type_attr::unstructured == domain->type))// || (this->isUnstructured(fieldId)))
     {
+      // Make sure that if there is no local domain defined on a process, the process still reads just one value.
+      int ni, ibegin;
+      if (domain->ni == 0)
+      {
+        ni = 1;
+        ibegin = 0;
+      }
+      else
+      {
+        ni = domain->ni;
+        ibegin = domain->ibegin;
+      }
+
       std::vector<StdSize> nBeginLatLon(1,0), nSizeLatLon(1,0);
-      nSizeLatLon[0]  = domain->ni_glo.getValue();
-      CArray<double,1> globalLonLat(domain->ni_glo.getValue());
+      nBeginLatLon[0] = ibegin;
+      nSizeLatLon[0]  = ni;
 
       StdString latName = this->getLatCoordName(fieldId);
       if (SuperClassWriter::hasVariable(latName))
       {
-        domain->latvalue_unstructured_read_from_file.resize(domain->ni_glo);
+        domain->latvalue_unstructured_read_from_file.resize(ni);
         readFieldVariableValue(domain->latvalue_unstructured_read_from_file, latName, nBeginLatLon, nSizeLatLon);  
       }
 
       StdString lonName = this->getLonCoordName(fieldId);
       if (SuperClassWriter::hasVariable(lonName)) //(0 != lonName.compare(""))
       {
-        // readFieldVariableValue(globalLonLat, lonName, nBeginLatLon, nSizeLatLon);
-        domain->lonvalue_unstructured_read_from_file.resize(domain->ni_glo);
+        domain->lonvalue_unstructured_read_from_file.resize(ni);
         readFieldVariableValue(domain->lonvalue_unstructured_read_from_file, lonName, nBeginLatLon, nSizeLatLon);
       }
 
@@ -382,7 +441,7 @@ namespace xios
         domain->nvertex.setValue(nbVertex);
 
       std::vector<StdSize> nBeginBndsLatLon(2), nSizeBndsLatLon(2);
-      nBeginBndsLatLon[0] = 0; nSizeBndsLatLon[0] = domain->ni_glo.getValue();
+      nBeginBndsLatLon[0] = ibegin; nSizeBndsLatLon[0] = ni;
       nBeginBndsLatLon[1] = 0; nSizeBndsLatLon[1] = nbVertex;
 
       if (SuperClassWriter::hasVariable(boundsLatName)) 
@@ -417,7 +476,8 @@ namespace xios
     for (int i = 0; i < elementPosition; ++i, ++itMapNi) {}
     itMapNj = itMapNi; ++itMapNj;
 
-    if (this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
+    if (CDomain::type_attr::rectilinear == domain->type || CDomain::type_attr::curvilinear == domain->type ||
+        this->isRectilinear(fieldId) || this->isCurvilinear(fieldId))
     {
       if (!domain->nj_glo.isEmpty() && (domain->nj_glo != itMapNj->second))
       {
@@ -441,7 +501,7 @@ namespace xios
       } 
       domain->ni_glo.setValue(itMapNi->second);
     }
-    else if (this->isUnstructured(fieldId))
+    else if (CDomain::type_attr::unstructured == domain->type|| this->isUnstructured(fieldId))
     {
       domain->nj_glo.setValue(1);
 
@@ -499,14 +559,18 @@ namespace xios
     for (int i = 0; i < elementPosition; ++i, ++itMapN) {}
 
     { // Read axis value
-      std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
-      CArray<double,1> readAxisValue(itMapN->second);
-      readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
-      int begin = 0, n = itMapN->second;
-      if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
-      if (!axis->n.isEmpty()) n = axis->n.getValue();
-      axis->value.resize(n);
-      for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+      bool hasValue = SuperClassWriter::hasVariable(itMapN->first);
+      if (hasValue)
+      {
+        std::vector<StdSize> nBegin(1, 0), nSize(1, itMapN->second);
+        CArray<double,1> readAxisValue(itMapN->second);
+        readFieldVariableValue(readAxisValue, itMapN->first, nBegin, nSize, true);
+        int begin = 0, n = itMapN->second;
+        if (!axis->begin.isEmpty()) begin = axis->begin.getValue();
+        if (!axis->n.isEmpty()) n = axis->n.getValue();
+        axis->value.resize(n);
+        for (int i = 0; i < n; ++i) axis->value(i) = readAxisValue(begin + i);
+      }
     }
   }
 

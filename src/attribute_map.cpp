@@ -277,7 +277,6 @@ namespace xios
          }
       }
  */
-
       
       void CAttributeMap::generateCInterface(ostream& oss, const string& className)
       {

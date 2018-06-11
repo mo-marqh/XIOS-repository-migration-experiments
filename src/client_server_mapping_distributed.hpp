@@ -37,7 +37,7 @@ class CClientServerMappingDistributed : public CClientServerMapping
                                     const MPI_Comm& clientIntraComm,
                                     bool isDataDistributed = true);
 
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer);
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer, int nbServer);
 
     /** Default destructor */
     virtual ~CClientServerMappingDistributed();

@@ -1,9 +1,7 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
-\save_transient_properties true
-\origin unavailable
 \textclass book
 \use_default_options true
 \begin_modules
@@ -14,16 +12,16 @@ logicalmkup
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman "default" "default"
-\font_sans "default" "default"
-\font_typewriter "default" "default"
-\font_math "auto" "auto"
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100 100
-\font_tt_scale 100 100
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -80,15 +78,6 @@ XIOS Fortran Reference Guide
 
 \begin_layout Author
 Yann Meurdesoif
-\end_layout
-
-\begin_layout Standard
-\begin_inset CommandInset toc
-LatexCommand tableofcontents
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Chapter
@@ -283,7 +272,7 @@ TYPE(xios_date) :: time_origin
 
 \begin_layout Standard
 Define the time origin of the time axis.
- It will appear as meta-data attached to the time axis in the output file.
+ It will appear as metadata attached to the time axis in the output file.
  This attribute is optional, the default value is 
 \begin_inset Flex Emph
 status collapsed
@@ -896,190 +885,6 @@ SUBROUTINE xios_define_calendar(type, timestep, start_date, time_origin,
 \end_layout
 
 \begin_layout Section
-Scalar attribute reference
-\end_layout
-
-\begin_layout Subsection*
-name: 
-\begin_inset Flex Emph
-status collapsed
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Fortran: 
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: name
-\end_layout
-
-\begin_layout Standard
-Define the name of the scalar, as it will appear in a file.
- If not defined, a name is self generated from the id.
- If multiple scalars are defined in a same file, each name must be different.
- 
-\end_layout
-
-\begin_layout Subsection*
-standard_name: 
-\begin_inset Flex Emph
-status collapsed
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Fortran: 
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: standard_name
-\end_layout
-
-\begin_layout Standard
-Define the standard name of the scalar, as it will appear in the meta-data
- attached to the scalar of the output file.
- 
-\end_layout
-
-\begin_layout Subsection*
-long_name: 
-\begin_inset Flex Emph
-status collapsed
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Fortran: 
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: long_name
-\end_layout
-
-\begin_layout Standard
-Define the long name of the scalar, as it will appear in the meta-data attached
- to the scalar of the output file.
- 
-\end_layout
-
-\begin_layout Subsection*
-unit: 
-\begin_inset Flex Emph
-status collapsed
-
-\begin_layout Plain Layout
-string
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Fortran: 
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: unit
-\end_layout
-
-\begin_layout Standard
-Define the unit of the scalar as it will appear in the meta-data attached
- to the scalar in the output file.
-\end_layout
-
-\begin_layout Subsection*
-value: 
-\begin_inset Flex Emph
-status collapsed
-
-\begin_layout Plain Layout
-double
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Fortran:
-\end_layout
-
-\begin_layout LyX-Code
-DOUBLE PRECISION :: value
-\end_layout
-
-\begin_layout Standard
-Define the value of a scalar.
- 
-\end_layout
-
-\begin_layout Subsection*
-scalar_ref: string
-\end_layout
-
-\begin_layout Standard
-Fortran:
-\end_layout
-
-\begin_layout LyX-Code
-CHARACTER(LEN=*) :: axis_ref
-\end_layout
-
-\begin_layout Standard
-Define the reference of the scalar.
- All attributes are inherited from the referenced scalar with the classical
- inheritance mechanism.
- The value assigned to the referenced axis is transmitted to to current
- scalar.
- This attribute is optional.
-\end_layout
-
-\begin_layout Subsection*
-prec: 
-\emph on
-integer
-\end_layout
-
-\begin_layout Standard
-Fortran:
-\end_layout
-
-\begin_layout LyX-Code
-INTEGER :: prec
-\end_layout
-
-\begin_layout Standard
-Define the precision in byte of a field in an output file.
- Available value are: 2 (integer), 4 (float single precision) and 8 (float
- double precision).
-\end_layout
-
-\begin_layout Section
 Axis attribute reference
 \end_layout
 
@@ -1137,7 +942,7 @@ CHARACTER(LEN=*) :: standard_name
 
 \begin_layout Standard
 Define the standard name of the vertical axis, as it will appear in the
- meta-data attached to the axis of the output file.
+ metadata attached to the axis of the output file.
  
 \end_layout
 
@@ -1164,7 +969,7 @@ CHARACTER(LEN=*) :: long_name
 \end_layout
 
 \begin_layout Standard
-Define the long name of the vertical axis, as it will appear in the meta-data
+Define the long name of the vertical axis, as it will appear in the metadata
  attached to the axis of the output file.
  
 \end_layout
@@ -1192,8 +997,8 @@ CHARACTER(LEN=*) :: unit
 \end_layout
 
 \begin_layout Standard
-Define the unit of the axis as it will appear in the meta-data attached
- to the axis in the output file.
+Define the unit of the axis as it will appear in the metadata attached to
+ the axis in the output file.
 \end_layout
 
 \begin_layout Subsection*
@@ -1717,7 +1522,7 @@ CHARACTER(LEN=*) :: standard_name
 \end_layout
 
 \begin_layout Standard
-Define the standard name of the domain, as it will appear in the meta-data
+Define the standard name of the domain, as it will appear in the metadata
  attached to the domain of the output file.
  
 \end_layout
@@ -1745,7 +1550,7 @@ CHARACTER(LEN=*) :: long_name
 \end_layout
 
 \begin_layout Standard
-Define the long name of the domain, as it will appear in the meta-data attached
+Define the long name of the domain, as it will appear in the metadata attached
  to the domain of the output file.
  
 \end_layout
@@ -1854,7 +1659,7 @@ INTEGER :: ibegin
 \end_layout
 
 \begin_layout Standard
-Define the beginning index of the first dimension of the local domain.
+Define the begining index of the first dimension of the local domain.
  This attribute is optional.
  This must be an integer between 
 \begin_inset Flex Strong
@@ -2083,7 +1888,7 @@ DOUBLE PRECISION :: lonvalue(:)
 
 \begin_layout Standard
 Define the value of the longitude on the local domain.
- For a Cartesian grid, the size of the array will be 
+ For a cartesian grid, the size of the array will be 
 \begin_inset Flex Strong
 status collapsed
 
@@ -2128,7 +1933,7 @@ DOUBLE PRECISION :: lonvalue(:,:)
 
 \begin_layout Standard
 Define the value of the longitude on the local domain.
- For a Cartesian and curvilinear grid, the size of the array will be 
+ For a cartesian and curvilinear grid, the size of the array will be 
 \begin_inset Flex Strong
 status collapsed
 
@@ -2163,7 +1968,7 @@ DOUBLE PRECISION :: latvalue(:)
 
 \begin_layout Standard
 Define the value of the latitude on the local domain.
- For a Cartesian grid, the size of the array will be nj.
+ For a cartesian grid, the size of the array will be nj.
  For a curvilinear grid, the size of the array will be 
 \begin_inset Flex Strong
 status collapsed
@@ -2198,7 +2003,7 @@ DOUBLE PRECISION :: latvalue(:,:)
 
 \begin_layout Standard
 Define the value of the latitude on the local domain.
- For a Cartesian and a curvilinear grid, the size of the array will be 
+ For a cartesian and a curvilinear grid, the size of the array will be 
 \begin_inset Flex Strong
 status collapsed
 
@@ -3129,7 +2934,7 @@ standard_name
 
 \end_inset
 
- attribute as it will appear in the meta-data of an output file.
+ attribute as it will appear in the metadata of an output file.
  This attribute is optional.
 \end_layout
 
@@ -3158,7 +2963,7 @@ long_name
 
 \end_inset
 
- attribute as it will appear in the meta-data of an output file.
+ attribute as it will appear in the metadata of an output file.
  This attribute is optional.
 \end_layout
 
@@ -3436,38 +3241,6 @@ true
 \end_layout
 
 \begin_layout Subsection*
-check_if_active: 
-\emph on
-bool
-\end_layout
-
-\begin_layout Standard
-Fortran:
-\end_layout
-
-\begin_layout LyX-Code
-LOGICAL :: check_if_active
-\end_layout
-
-\begin_layout Standard
-Define whether XIOS will automatically check if the field is active at current
- timestep when sending data from the model.
- Enabling this behavior can sometimes improve the performances by avoiding
- unneeded data processing.
- This attribute is optional, the default value is 
-\begin_inset Flex Strong
-status collapsed
-
-\begin_layout Plain Layout
-false
-\end_layout
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Subsection*
 field_ref: 
 \emph on
 string
@@ -3686,7 +3459,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-LOGICAL:: detect_missing_value
+LOGICAL: detect_missing_value
 \end_layout
 
 \begin_layout Standard
@@ -3705,7 +3478,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-DOUBLE PRECISION :: add_offset
+DOUBLE PRECISION: add_offset
 \end_layout
 
 \begin_layout Standard
@@ -3719,7 +3492,7 @@ add_offset
 
 \end_inset
 
- meta-data CF attribute in the output file.
+ metadata CF attribute in the output file.
  In output, the 
 \begin_inset Flex Strong
 status collapsed
@@ -3744,7 +3517,7 @@ Fortran:
 \end_layout
 
 \begin_layout LyX-Code
-DOUBLE PRECISION :: scale_factor
+DOUBLE PRECISION: scale_factor
 \end_layout
 
 \begin_layout Standard
@@ -3758,7 +3531,7 @@ scale_factor
 
 \end_inset
 
- meta-data CF attribute in the output file.
+ metadata CF attribute in the output file.
  In output, the field values are divided by the 
 \begin_inset Flex Strong
 status collapsed
@@ -4431,8 +4204,8 @@ type
 one_file
 \series default
 \emph default
- only if the NetCDF4 library was compiled with Parallel NetCDF support (–enable-
-pnetcdf).
+ only if the NetCDF4 library was compiled with Parallel NetCDF support (--enable
+-pnetcdf).
 \end_layout
 
 \begin_layout Subsection*
@@ -4739,13 +4512,472 @@ Define offset of record from the beginning record.
  This attribute is optional, by default, its value is 0.
 \end_layout
 
+\begin_layout Section
+Transformation attribute reference
+\end_layout
+
+\begin_layout Subsection
+interpolate_axis
+\end_layout
+
+\begin_layout Subsection*
+type: 
+\emph on
+string
+\end_layout
+
 \begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand include
-filename "inputs/reference/Transformations.lyx"
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: type
+\end_layout
+
+\begin_layout Standard
+Define the type of interpolation on an axis.
+ This attribute is optional.
+\end_layout
+
+\begin_layout Subsection*
+order: 
+\emph on
+integer
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: order
+\end_layout
+
+\begin_layout Standard
+Define a order of interpolation.
+ This attribute is optional.
+ The default value is 2.
+\end_layout
+
+\begin_layout Subsection
+inverse_axis
+\end_layout
+
+\begin_layout Subsection
+zoom_axis
+\end_layout
+
+\begin_layout Subsection*
+begin: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: begin
+\end_layout
+
+\begin_layout Standard
+Define the begining index of the zoomed region on global axis.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+ and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni_glo-1
+\end_layout
+
+\end_inset
+
+ of associated axis.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+n: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: n
+\end_layout
+
+\begin_layout Standard
+Define the size of zoomed region on global axis.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+nj_glo
+\end_layout
+
+\end_inset
+
+ of the associated axis.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+nj_glo
+\end_layout
+
+\end_inset
+
+ of the associated axis.
+\end_layout
+
+\begin_layout Subsection
+interpolate_domain
+\end_layout
+
+\begin_layout Subsection*
+file: 
+\emph on
+string
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+CHARACTER(LEN=*) :: type
+\end_layout
+
+\begin_layout Standard
+Define the file which contains the weight value to interpolate from domain
+ source to domain destination.
+ This attribute is optional.
+ If not specified, the internal interpolation module will be used.
+\end_layout
+
+\begin_layout Subsection*
+order: 
+\emph on
+integer
+\end_layout
+
+\begin_layout Standard
+Fortran: 
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: order
+\end_layout
+
+\begin_layout Standard
+Define a order of interpolation.
+ This attribute is only for internal interoplation module.
+ This attribute is optional.
+ The default value is 2.
+\end_layout
+
+\begin_layout Subsection
+zoom_domain
+\end_layout
+
+\begin_layout Subsection*
+ibegin: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: ibegin
+\end_layout
+
+\begin_layout Standard
+Define the begining index of the zoomed region on the first dimension of
+ the global domain.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+ and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni_glo-1
+\end_layout
+
+\end_inset
+
+ of the associated dimension of domain.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+ni: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: ni
+\end_layout
+
+\begin_layout Standard
+Define the size of zoomed region on the first dimension of the global domain.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni_glo
+\end_layout
+
+\end_inset
+
+ of the associated dimension of domain.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+ni_glo
+\end_layout
+
+\end_inset
+
+ of the dimension of domain.
+\end_layout
+
+\begin_layout Subsection*
+jbegin: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: jbegin
+\end_layout
+
+\begin_layout Standard
+Define the begining index of the zoomed region on the second dimension of
+ the global domain.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+ and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+nj_glo-1
+\end_layout
+
+\end_inset
+
+ of the associated dimension of domain.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+nj: 
+\begin_inset Flex Emph
+status collapsed
+
+\begin_layout Plain Layout
+integer
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fortran:
+\end_layout
+
+\begin_layout LyX-Code
+INTEGER :: nj
+\end_layout
+
+\begin_layout Standard
+Define the size of zoomed region on the second dimension of the global domain.
+ This attribute is optional.
+ This must be an integer between 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+1
+\end_layout
+
+\end_inset
+
+and 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+nj_glo
+\end_layout
+
+\end_inset
+
+ of the associated dimension of domain.
+ If not specified the default value is 
+\begin_inset Flex Strong
+status collapsed
+
+\begin_layout Plain Layout
+nj_glo
+\end_layout
+
+\end_inset
+
+ of the dimension of domain.
+\end_layout
+
+\begin_layout Subsection
+generate_rectilinear_domain
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
@@ -4894,10 +5126,6 @@ xios_finalize
 
 \begin_layout Itemize
 If OASIS coupler is not used (using_oasis=false)
-\begin_inset Separator latexpar
-\end_inset
-
-
 \end_layout
 
 \begin_deeper
@@ -5036,10 +5264,6 @@ using_oasis=true
 \end_inset
 
 )
-\begin_inset Separator latexpar
-\end_inset
-
-
 \end_layout
 
 \begin_deeper
@@ -5055,10 +5279,6 @@ using_server=false
 \end_inset
 
 ) 
-\begin_inset Separator latexpar
-\end_inset
-
-
 \end_layout
 
 \begin_deeper
@@ -5169,10 +5389,6 @@ using_server=true
 \end_inset
 
 )
-\begin_inset Separator latexpar
-\end_inset
-
-
 \end_layout
 
 \begin_deeper
@@ -7304,11 +7520,11 @@ xios_timestep
 \end_layout
 
 \begin_layout Subsection*
-Arithmetic operations on duration
+Arithmetic operations on durations
 \end_layout
 
 \begin_layout Standard
-The following arithmetic operations on duration are available:
+The following arithmetic operations on durations are available:
 \end_layout
 
 \begin_layout Itemize
@@ -7378,11 +7594,11 @@ xios_duration = -xios_duration
 \end_layout
 
 \begin_layout Subsection*
-Comparison operations on duration
+Comparison operations on durations
 \end_layout
 
 \begin_layout Standard
-The following comparison operations on duration are available:
+The following comparison operations on durations are available:
 \end_layout
 
 \begin_layout Itemize

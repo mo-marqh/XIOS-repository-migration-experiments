@@ -16,14 +16,14 @@ namespace xios
     CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
     bool eventLoop(bool enableEventsProcessing = true);
     void listen(void) ;
-    bool listenPendingRequest(MPI_Status& status);
+    bool listenPendingRequest(MPI_Status& status) ;
     void checkPendingRequest(void) ;
     void processRequest(int rank, char* buff,int count) ;
     void processEvents(void) ;
+    bool hasFinished(void);
     void dispatchEvent(CEventServer& event) ;
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
-    bool hasFinished(void);
 
     MPI_Comm intraComm ;
     int intraCommSize ;
@@ -44,6 +44,7 @@ namespace xios
     bool pendingEvent ;
     bool scheduled  ;    /*!< event of current timeline is alreading scheduled ? */
     size_t hashId ;
+
     ~CContextServer() ;
 
     private:

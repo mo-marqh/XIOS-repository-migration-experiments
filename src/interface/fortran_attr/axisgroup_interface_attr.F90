@@ -30,6 +30,27 @@ MODULE axisgroup_interface_attr
     END FUNCTION cxios_is_defined_axisgroup_axis_ref
 
 
+    SUBROUTINE cxios_set_axisgroup_axis_type(axisgroup_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_set_axisgroup_axis_type
+
+    SUBROUTINE cxios_get_axisgroup_axis_type(axisgroup_hdl, axis_type, axis_type_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: axis_type
+      INTEGER  (kind = C_INT)     , VALUE        :: axis_type_size
+    END SUBROUTINE cxios_get_axisgroup_axis_type
+
+    FUNCTION cxios_is_defined_axisgroup_axis_type(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_axis_type
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_axis_type
+
+
     SUBROUTINE cxios_set_axisgroup_begin(axisgroup_hdl, begin) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
@@ -68,6 +89,48 @@ MODULE axisgroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_bounds
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
     END FUNCTION cxios_is_defined_axisgroup_bounds
+
+
+    SUBROUTINE cxios_set_axisgroup_bounds_name(axisgroup_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_set_axisgroup_bounds_name
+
+    SUBROUTINE cxios_get_axisgroup_bounds_name(axisgroup_hdl, bounds_name, bounds_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: bounds_name
+      INTEGER  (kind = C_INT)     , VALUE        :: bounds_name_size
+    END SUBROUTINE cxios_get_axisgroup_bounds_name
+
+    FUNCTION cxios_is_defined_axisgroup_bounds_name(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_bounds_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_bounds_name
+
+
+    SUBROUTINE cxios_set_axisgroup_comment(axisgroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_axisgroup_comment
+
+    SUBROUTINE cxios_get_axisgroup_comment(axisgroup_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_axisgroup_comment
+
+    FUNCTION cxios_is_defined_axisgroup_comment(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_comment
 
 
     SUBROUTINE cxios_set_axisgroup_data_begin(axisgroup_hdl, data_begin) BIND(C)
@@ -127,6 +190,111 @@ MODULE axisgroup_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_data_n
       INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
     END FUNCTION cxios_is_defined_axisgroup_data_n
+
+
+    SUBROUTINE cxios_set_axisgroup_dim_name(axisgroup_hdl, dim_name, dim_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: dim_name
+      INTEGER  (kind = C_INT)     , VALUE        :: dim_name_size
+    END SUBROUTINE cxios_set_axisgroup_dim_name
+
+    SUBROUTINE cxios_get_axisgroup_dim_name(axisgroup_hdl, dim_name, dim_name_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: dim_name
+      INTEGER  (kind = C_INT)     , VALUE        :: dim_name_size
+    END SUBROUTINE cxios_get_axisgroup_dim_name
+
+    FUNCTION cxios_is_defined_axisgroup_dim_name(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_dim_name
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_dim_name
+
+
+    SUBROUTINE cxios_set_axisgroup_formula(axisgroup_hdl, formula, formula_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_size
+    END SUBROUTINE cxios_set_axisgroup_formula
+
+    SUBROUTINE cxios_get_axisgroup_formula(axisgroup_hdl, formula, formula_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_size
+    END SUBROUTINE cxios_get_axisgroup_formula
+
+    FUNCTION cxios_is_defined_axisgroup_formula(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_formula
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_formula
+
+
+    SUBROUTINE cxios_set_axisgroup_formula_bounds(axisgroup_hdl, formula_bounds, formula_bounds_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_bounds
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_bounds_size
+    END SUBROUTINE cxios_set_axisgroup_formula_bounds
+
+    SUBROUTINE cxios_get_axisgroup_formula_bounds(axisgroup_hdl, formula_bounds, formula_bounds_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_bounds
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_bounds_size
+    END SUBROUTINE cxios_get_axisgroup_formula_bounds
+
+    FUNCTION cxios_is_defined_axisgroup_formula_bounds(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_formula_bounds
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_formula_bounds
+
+
+    SUBROUTINE cxios_set_axisgroup_formula_term(axisgroup_hdl, formula_term, formula_term_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_term
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_term_size
+    END SUBROUTINE cxios_set_axisgroup_formula_term
+
+    SUBROUTINE cxios_get_axisgroup_formula_term(axisgroup_hdl, formula_term, formula_term_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_term
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_term_size
+    END SUBROUTINE cxios_get_axisgroup_formula_term
+
+    FUNCTION cxios_is_defined_axisgroup_formula_term(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_formula_term
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_formula_term
+
+
+    SUBROUTINE cxios_set_axisgroup_formula_term_bounds(axisgroup_hdl, formula_term_bounds, formula_term_bounds_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_term_bounds
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_term_bounds_size
+    END SUBROUTINE cxios_set_axisgroup_formula_term_bounds
+
+    SUBROUTINE cxios_get_axisgroup_formula_term_bounds(axisgroup_hdl, formula_term_bounds, formula_term_bounds_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: formula_term_bounds
+      INTEGER  (kind = C_INT)     , VALUE        :: formula_term_bounds_size
+    END SUBROUTINE cxios_get_axisgroup_formula_term_bounds
+
+    FUNCTION cxios_is_defined_axisgroup_formula_term_bounds(axisgroup_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_axisgroup_formula_term_bounds
+      INTEGER (kind = C_INTPTR_T), VALUE :: axisgroup_hdl
+    END FUNCTION cxios_is_defined_axisgroup_formula_term_bounds
 
 
     SUBROUTINE cxios_set_axisgroup_group_ref(axisgroup_hdl, group_ref, group_ref_size) BIND(C)

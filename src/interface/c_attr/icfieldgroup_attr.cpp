@@ -141,6 +141,32 @@ extern "C"
   }
 
 
+  void cxios_set_fieldgroup_comment(fieldgroup_Ptr fieldgroup_hdl, const char * comment, int comment_size)
+  {
+    std::string comment_str;
+    if (!cstr2string(comment, comment_size, comment_str)) return;
+    CTimer::get("XIOS").resume();
+    fieldgroup_hdl->comment.setValue(comment_str);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_fieldgroup_comment(fieldgroup_Ptr fieldgroup_hdl, char * comment, int comment_size)
+  {
+    CTimer::get("XIOS").resume();
+    if (!string_copy(fieldgroup_hdl->comment.getInheritedValue(), comment, comment_size))
+      ERROR("void cxios_get_fieldgroup_comment(fieldgroup_Ptr fieldgroup_hdl, char * comment, int comment_size)", << "Input string is too short");
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_fieldgroup_comment(fieldgroup_Ptr fieldgroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = fieldgroup_hdl->comment.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
   void cxios_set_fieldgroup_compression_level(fieldgroup_Ptr fieldgroup_hdl, int compression_level)
   {
     CTimer::get("XIOS").resume();

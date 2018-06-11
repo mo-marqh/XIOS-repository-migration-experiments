@@ -47,46 +47,22 @@ namespace xios {
              << "Please define a correct one") ;
     }
 
+    bool detect_missing_value=false ;
+    if (!this->detect_missing_value.isEmpty()) detect_missing_value = this->detect_missing_value.getValue();
+    else this->detect_missing_value.setValue(detect_missing_value);
+
+    bool renormalize=false ;
+    if (!this->renormalize.isEmpty()) renormalize = this->renormalize.getValue();
+    else this->renormalize.setValue(renormalize);
+
+    bool quantity=false ;
+    if (!this->quantity.isEmpty()) quantity = this->quantity.getValue();
+    else this->quantity.setValue(quantity);
+
     if (this->mode.isEmpty()) this->mode.setValue(mode_attr::compute);
     if (this->write_weight.isEmpty()) this->write_weight.setValue(false);
 
-    StdString weightFile;
-    switch (this->mode)
-    {
-      case mode_attr::read:
-        if (this->weight_filename.isEmpty())
-        {
-          if (!this->write_weight)
-            ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",
-                 << "Read mode is activated but there is no file specified." << std::endl
-                 << "Please define a correct file containing interpolation weights with option 'file'. ");
-        }
-        else
-        {
-          weightFile = this->weight_filename;
-          ifstream f(weightFile.c_str());
-          if (!f.good())
-            ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",
-                  << "Read mode is activated but file "  << weightFile << " doesn't exist." << std::endl
-                  << "Please check this file ");
-        }
-        break;
-      case mode_attr::compute:
-        break;
-      case mode_attr::read_or_compute:
-        if (!this->weight_filename.isEmpty() && !this->write_weight)
-        {
-          weightFile = this->weight_filename;
-          ifstream f(weightFile.c_str());
-          if (!f.good())
-            ERROR("void CInterpolateDomain::checkValid(CDomain* domainSrc)",
-                  << "read_or_compute mode is activated but file "  << weightFile << " doesn't exist." << std::endl
-                  << "Please check this file ");
-        }
-        break;
-      default:
-        break;
-    }
+    if (this->read_write_convention.isEmpty()) this->read_write_convention.setValue(read_write_convention_attr::fortran);
 
   }
 

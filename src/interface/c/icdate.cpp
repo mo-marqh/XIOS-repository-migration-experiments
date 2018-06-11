@@ -69,9 +69,7 @@ extern "C"
     xios::CDate date = xios::CDate(getCalendar("cxios_date cxios_date_add_duration(cxios_date date_c, cxios_duration dur_c)"),
                                    date_c.year, date_c.month, date_c.day,
                                    date_c.hour, date_c.minute, date_c.second);
-    xios::CDuration dur = { dur_c.year, dur_c.month, dur_c.day,
-                            dur_c.hour, dur_c.minute, dur_c.second,
-                            dur_c.timestep };
+    xios::CDuration dur( dur_c.year, dur_c.month, dur_c.day, dur_c.hour, dur_c.minute, dur_c.second, dur_c.timestep );
     xios::CDate res = date + dur;
     return { res.getYear(), res.getMonth(), res.getDay(), res.getHour(), res.getMinute(), res.getSecond() };
   }
@@ -81,9 +79,8 @@ extern "C"
     xios::CDate date = xios::CDate(getCalendar("cxios_date cxios_date_sub_duration(cxios_date date_c, cxios_duration dur_c)"),
                                    date_c.year, date_c.month, date_c.day,
                                    date_c.hour, date_c.minute, date_c.second);
-    xios::CDuration dur = { dur_c.year, dur_c.month, dur_c.day,
-                            dur_c.hour, dur_c.minute, dur_c.second,
-                            dur_c.timestep };
+    xios::CDuration dur( dur_c.year, dur_c.month, dur_c.day, dur_c.hour, dur_c.minute, dur_c.second, dur_c.timestep );
+
     xios::CDate res = date - dur;
     return { res.getYear(), res.getMonth(), res.getDay(), res.getHour(), res.getMinute(), res.getSecond() };
   }

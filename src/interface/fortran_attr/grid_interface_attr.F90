@@ -9,6 +9,27 @@ MODULE grid_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_grid_comment(grid_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_grid_comment
+
+    SUBROUTINE cxios_get_grid_comment(grid_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_grid_comment
+
+    FUNCTION cxios_is_defined_grid_comment(grid_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
+    END FUNCTION cxios_is_defined_grid_comment
+
+
     SUBROUTINE cxios_set_grid_description(grid_hdl, description, description_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
@@ -28,6 +49,27 @@ MODULE grid_interface_attr
       LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_description
       INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
     END FUNCTION cxios_is_defined_grid_description
+
+
+    SUBROUTINE cxios_set_grid_mask_0d(grid_hdl, mask_0d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_0d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_set_grid_mask_0d
+
+    SUBROUTINE cxios_get_grid_mask_0d(grid_hdl, mask_0d, extent) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE       :: grid_hdl
+      LOGICAL (KIND=C_BOOL)     , DIMENSION(*) :: mask_0d
+      INTEGER (kind = C_INT), DIMENSION(*)     :: extent
+    END SUBROUTINE cxios_get_grid_mask_0d
+
+    FUNCTION cxios_is_defined_grid_mask_0d(grid_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_grid_mask_0d
+      INTEGER (kind = C_INTPTR_T), VALUE :: grid_hdl
+    END FUNCTION cxios_is_defined_grid_mask_0d
 
 
     SUBROUTINE cxios_set_grid_mask_1d(grid_hdl, mask_1d, extent) BIND(C)

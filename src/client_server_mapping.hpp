@@ -33,13 +33,15 @@ public:
     virtual ~CClientServerMapping();
 
     // Only need global index on client to calculate mapping (supposed client has info of distribution)
-    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient) = 0;
+    virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient, int nbServer) = 0;
 
     static std::map<int,int> computeConnectedClients(int nbServer, int nbClient,
                                                      MPI_Comm& clientIntraComm,
                                                      const std::vector<int>& connectedServerRank);
 
     const GlobalIndexMap& getGlobalIndexOnServer() const;
+
+    GlobalIndexMap& getGlobalIndexOnServer();
 
   protected:
     //! Global index of data on SERVER, which are calculated by client(s)

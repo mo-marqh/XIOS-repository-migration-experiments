@@ -43,7 +43,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <string>
-
 #include <execinfo.h>
 
 #include "memtrack.hpp"

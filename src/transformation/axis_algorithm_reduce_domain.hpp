@@ -45,8 +45,10 @@ protected:
     iDir = 1,
     jDir = 2
   };
-
+  
   ReduceDirection dir_;
+  bool local ;
+  
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs); 
   

@@ -9,6 +9,27 @@ MODULE calendar_wrapper_interface_attr
   INTERFACE
     ! Do not call directly / interface FORTRAN 2003 <-> C99
 
+    SUBROUTINE cxios_set_calendar_wrapper_comment(calendar_wrapper_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_set_calendar_wrapper_comment
+
+    SUBROUTINE cxios_get_calendar_wrapper_comment(calendar_wrapper_hdl, comment, comment_size) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+      CHARACTER(kind = C_CHAR)    , DIMENSION(*) :: comment
+      INTEGER  (kind = C_INT)     , VALUE        :: comment_size
+    END SUBROUTINE cxios_get_calendar_wrapper_comment
+
+    FUNCTION cxios_is_defined_calendar_wrapper_comment(calendar_wrapper_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_calendar_wrapper_comment
+      INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl
+    END FUNCTION cxios_is_defined_calendar_wrapper_comment
+
+
     SUBROUTINE cxios_set_calendar_wrapper_day_length(calendar_wrapper_hdl, day_length) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: calendar_wrapper_hdl

@@ -22,10 +22,15 @@ namespace xios
   macro(Scalar)
   macro(ReduceAxisToScalar)
   macro(ReduceDomainToAxis)
+  macro(ReduceAxisToAxis)
   macro(ExtractDomainToAxis)
   macro(ComputeConnectivityDomain)
   macro(ExpandDomain)
   macro(ExtractAxisToScalar)
   macro(ReduceDomainToScalar)
+  macro(TemporalSplitting)
+  macro(DuplicateScalarToAxis)
+  macro(ReduceScalarToScalar)
+  macro(ReorderDomain)
 
 }

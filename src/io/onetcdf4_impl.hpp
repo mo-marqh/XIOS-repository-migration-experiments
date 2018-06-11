@@ -59,26 +59,36 @@ namespace xios
     this->getWriteDataInfos(name, record, array_size,  sstart, scount, start, count);
     CTimer::get("CONetCDF4::writeData getWriteDataInfos").suspend();
  
+    int dimArrayLen;
+    for (int i=0; i<scount.size(); i++)
+      if (scount[i] == stringArrayLen)
+        dimArrayLen = i;
+
     if (data.numElements()*stringArrayLen != array_size)
     {
       ERROR("CONetCDF4::writeData(...)",
-      << "[ input array size = "  << data.numElements()
+      << "[ input array size = "  << data.numElements()*stringArrayLen
       << ", intern array size = " << array_size
       << " ] Invalid input data !" );
     }
-    char* ArrayStr ;
     char *PtrArrayStr ;
-    PtrArrayStr=ArrayStr=new char[data.numElements()*stringArrayLen] ;
+    PtrArrayStr=new char[stringArrayLen] ;
     Array<StdString,1>::const_iterator it, itb=data.begin(), ite=data.end() ;
-    for(it=itb;it!=ite;++it,PtrArrayStr+=stringArrayLen)
+    int lineNb = 0;
+    for(it=itb;it!=ite;++it)
     {
       it->copy(PtrArrayStr,it->size()) ;
       PtrArrayStr[it->size()]='\0' ;
+      sstart[0] = lineNb;
+      sstart[dimArrayLen] = 0;
+      scount[0] = 1;
+      scount[dimArrayLen] = it->size() + 1;
+      CTimer::get("CONetCDF4::writeData writeData_").resume();
+      this->writeData_(grpid, varid, sstart, scount, PtrArrayStr);
+      CTimer::get("CONetCDF4::writeData writeData_").suspend();
+      ++lineNb;
     }
-    CTimer::get("CONetCDF4::writeData writeData_").resume();
-    this->writeData_(grpid, varid, sstart, scount, ArrayStr);
-    CTimer::get("CONetCDF4::writeData writeData_").suspend();
-    delete [] ArrayStr ;
+    delete []  PtrArrayStr;
   }
 
 //----------------------------------------------------------------

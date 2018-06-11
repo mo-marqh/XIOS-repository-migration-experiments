@@ -21,6 +21,7 @@ void CGridTransformationSelector::registerTransformations()
   CScalarAlgorithmReduceAxis::registerTrans();
   CScalarAlgorithmExtractAxis::registerTrans();
   CScalarAlgorithmReduceDomain::registerTrans();
+  CScalarAlgorithmReduceScalar::registerTrans();
 
   //! Axis
   CAxisAlgorithmZoom::registerTrans();
@@ -28,12 +29,16 @@ void CGridTransformationSelector::registerTransformations()
   CAxisAlgorithmInterpolate::registerTrans();
   CAxisAlgorithmInverse::registerTrans();
   CAxisAlgorithmReduceDomain::registerTrans();
+  CAxisAlgorithmReduceAxis::registerTrans();
+  CAxisAlgorithmTemporalSplitting::registerTrans();
+  CAxisAlgorithmDuplicateScalar::registerTrans();
 
   //! Domain
   CDomainAlgorithmComputeConnectivity::registerTrans();
   CDomainAlgorithmInterpolate::registerTrans();
   CDomainAlgorithmZoom::registerTrans();
   CDomainAlgorithmExpand::registerTrans();
+  CDomainAlgorithmReorder::registerTrans();
 }
 
 CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)

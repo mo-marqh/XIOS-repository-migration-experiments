@@ -37,6 +37,8 @@ namespace xios
     class CReduceAxisToScalarGroup;
     class CReduceDomainToAxis;
     class CReduceDomainToAxisGroup;
+    class CReduceAxisToAxis;
+    class CReduceAxisToAxisGroup;
     class CExtractDomainToAxis;
     class CExtractDomainToAxisGroup;
     class CComputeConnectivityDomain;
@@ -47,7 +49,15 @@ namespace xios
     class CExtractAxisToScalarGroup;
     class CReduceDomainToScalar;
     class CReduceDomainToScalarGroup;
-
+    class CTemporalSplitting;
+    class CTemporalSplittingGroup;
+    class CDuplicateScalarToAxis;
+    class CDuplicateScalarToAxisGroup;
+    class CReduceScalarToScalar;
+    class CReduceScalarToScalarGroup;
+    class CReorderDomain;
+    class CReorderDomainGroup;
+     
   template <typename T> inline string getStrType(void);
 
 #define macro(T) template <> inline string getStrType<T>(void) { return std::string(#T); }
@@ -101,6 +111,8 @@ namespace xios
   macro(CReduceAxisToScalarGroup)
   macro(CReduceDomainToAxis)
   macro(CReduceDomainToAxisGroup)
+  macro(CReduceAxisToAxis)
+  macro(CReduceAxisToAxisGroup)
   macro(CExtractDomainToAxis)
   macro(CExtractDomainToAxisGroup)
   macro(CComputeConnectivityDomain)
@@ -111,6 +123,14 @@ namespace xios
   macro(CExtractAxisToScalarGroup)
   macro(CReduceDomainToScalar)
   macro(CReduceDomainToScalarGroup)
+  macro(CTemporalSplitting)
+  macro(CTemporalSplittingGroup)
+  macro(CDuplicateScalarToAxis)
+  macro(CDuplicateScalarToAxisGroup)
+  macro(CReduceScalarToScalar)
+  macro(CReduceScalarToScalarGroup)
+  macro(CReorderDomain)
+  macro(CReorderDomainGroup)
   
 #undef macro
 }

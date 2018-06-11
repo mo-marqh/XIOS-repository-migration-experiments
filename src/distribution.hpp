@@ -34,7 +34,8 @@ class CDistribution
 
     int getDims() const; //! Get dimension size
     int getRank() const; //! Get rank of current process
-
+    const CArray<size_t,1>& getGlobalIndex() const;
+    
   protected:
     virtual void createGlobalIndex() {};
 

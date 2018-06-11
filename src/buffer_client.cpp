@@ -36,15 +36,15 @@ namespace xios
    delete retBuffer;
   }
 
-  int CClientBuffer::remain(void)
+  StdSize CClientBuffer::remain(void)
   {
     return bufferSize - count;
   }
 
-  bool CClientBuffer::isBufferFree(int size)
+  bool CClientBuffer::isBufferFree(StdSize size)
   {
     if (size > bufferSize)
-      ERROR("bool CClientBuffer::isBufferFree(int size)",
+      ERROR("bool CClientBuffer::isBufferFree(StdSize size)",
             << "The requested size (" << size << " bytes) is too big to fit the buffer (" << bufferSize << " bytes), please increase the client buffer size." << endl);
 
     if (size > maxEventSize)
@@ -63,7 +63,7 @@ namespace xios
   }
 
 
-  CBufferOut* CClientBuffer::getBuffer(int size)
+  CBufferOut* CClientBuffer::getBuffer(StdSize size)
   {
     if (size <= remain())
     {
@@ -74,7 +74,7 @@ namespace xios
     }
     else
     {
-      ERROR("CBufferOut* CClientBuffer::getBuffer(int size)",
+      ERROR("CBufferOut* CClientBuffer::getBuffer(StdSize size)",
             << "Not enough space in buffer, this should not have happened...");
       return NULL;
     }

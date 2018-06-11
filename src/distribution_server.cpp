@@ -11,18 +11,6 @@
 
 namespace xios {
 
-CDistributionServer::CDistributionServer(int rank, int dims, const CArray<size_t,1>& globalIndex)
-  : CDistribution(rank, dims, globalIndex), nGlobal_(), nZoomSize_(), nZoomBegin_(), globalLocalIndexMap_()
-{
-}
-
-CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
-                                         const std::vector<int>& nZoomSize, const std::vector<int>& nGlobal)
-  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
-{
-  createGlobalIndex();
-}
-
 CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
                                          const std::vector<int>& nZoomSize,
                                          const std::vector<int>& nZoomBeginGlobal,
@@ -36,12 +24,12 @@ CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoom
 CDistributionServer::CDistributionServer(int rank, 
                                         const std::vector<CArray<int,1> >& globalIndexElements,
                                         const CArray<int,1>& elementOrder,
-                                        const std::vector<int>& nZoomBeginServer,
-                                        const std::vector<int>& nZoomSizeServer,
+                                        const std::vector<int>& nZoomBegin,
+                                        const std::vector<int>& nZoomSize,
                                         const std::vector<int>& nZoomBeginGlobal,
                                         const std::vector<int>& nGlobal)
   : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
-    nZoomSize_(nZoomSizeServer), nZoomBegin_(nZoomBeginServer), globalLocalIndexMap_()
+    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
 {
   createGlobalIndex(globalIndexElements, elementOrder);
 }
@@ -183,38 +171,23 @@ void CDistributionServer::createGlobalIndex(const std::vector<CArray<int,1> >& g
 
 /*!
   Compute local index for writing data on server
-  \param [in] globalIndex global index received from client
-  \return local index of written data
-*/
-CArray<size_t,1> CDistributionServer::computeLocalIndex(const CArray<size_t,1>& globalIndex)
-{
-  int ssize = globalIndex.numElements();
-  CArray<size_t,1> localIndex(ssize);
-  GlobalLocalMap::const_iterator ite = globalLocalIndexMap_.end(), it;
-  for (int idx = 0; idx < ssize; ++idx)
-  {
-    it = globalLocalIndexMap_.find(globalIndex(idx));
-    if (ite != it)
-      localIndex(idx) = it->second;
-  }
-
-  return localIndex;
-}
-
-/*!
-  Compute local index for writing data on server
   \param [in] globalIndex Global index received from client
 */
 void CDistributionServer::computeLocalIndex(CArray<size_t,1>& globalIndex)
 {
-  int ssize = globalIndex.numElements();
-  CArray<size_t,1> localIndex(ssize);
+  size_t ssize = globalIndex.numElements();
+  size_t localIndexSize = std::min(globalIndex_.numElements(), ssize);
+  CArray<size_t,1> localIndex(localIndexSize);
   GlobalLocalMap::const_iterator ite = globalLocalIndexMap_.end(), it;
-  for (int idx = 0; idx < ssize; ++idx)
+  int i = 0;
+  for (size_t idx = 0; idx < ssize; ++idx)
   {
     it = globalLocalIndexMap_.find(globalIndex(idx));
     if (ite != it)
-      localIndex(idx) = it->second;
+    {
+      localIndex(i) = it->second;
+      ++i;
+    }
   }
 
   globalIndex.reference(localIndex);
@@ -233,6 +206,13 @@ void CDistributionServer::computeGlobalIndex(CArray<int,1>& indexes) const
   }
 }
 
+/*!
+  Get the size of grid index in server (e.x: sizeGrid *= size of each dimensiion)
+*/
+int CDistributionServer::getGridSize() const
+{
+   return globalLocalIndexMap_.size();
+}
 
 const std::vector<int>& CDistributionServer::getZoomBeginGlobal() const
 {
@@ -248,4 +228,11 @@ const std::vector<int>& CDistributionServer::getZoomSizeServer() const
 {
   return nZoomSize_;
 }
+
+void CDistributionServer::partialClear(void)
+{
+  GlobalLocalMap void1 ;
+  globalLocalIndexMap_.swap(void1) ;
+}
+  
 } // namespace xios

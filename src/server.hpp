@@ -15,7 +15,7 @@ namespace xios
         static void initialize(void);
         static void finalize(void);
         static void eventLoop(void);
-        static void contextEventLoop(void);
+        static void contextEventLoop(bool enableEventsProcessing=true);
         static void listenContext(void);
         static void listenFinalize(void);
         static void recvContextMessage(void* buff,int count);
@@ -24,10 +24,14 @@ namespace xios
         static void registerContext(void* buff,int count, int leaderRank=0);
 
         static MPI_Comm intraComm;
-        static list<MPI_Comm> interComm;
-        static std::list<MPI_Comm> contextInterComms;
+        static std::list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
+        static std::list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
+        static std::list<MPI_Comm> contextInterComms;  // list of context intercomms
+        static std::list<MPI_Comm> contextIntraComms;  // list of context intercomms (needed only in case of secondary servers)
         static CEventScheduler* eventScheduler;
-        
+
+        static int serverLevel ;
+
         struct contextMessage
         {
           int nbRecv;
@@ -41,8 +45,11 @@ namespace xios
         static bool is_MPI_Initialized;
 
       public:
-        //! Get rank of the current process
+        //! Get rank of the current process in the intraComm
         static int getRank();
+
+        //!< Get global ranks of secondary server processes
+        static vector<int>& getSecondaryServerGlobalRanks();
 
         //! Open a file stream to write the info logs
         static void openInfoStream(const StdString& fileName);
@@ -59,7 +66,9 @@ namespace xios
         static void closeErrorStream();
 
       private:
-        static int rank;
+        static vector<int> sndServerGlobalRanks;  //!< Global ranks of pool leaders on the secondary server
+        static int rank_;                         //!< If (!oasis) global rank, else rank in the intraComm returned by oasis
+        static int nbContexts;                    //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
 

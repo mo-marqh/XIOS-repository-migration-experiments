@@ -44,16 +44,18 @@ class CDistributionServer : public CDistribution
     const std::vector<int>& getZoomBeginGlobal() const;
     const std::vector<int>& getZoomBeginServer() const;
     const std::vector<int>& getZoomSizeServer() const;
-
-    virtual CArray<size_t,1> computeLocalIndex(const CArray<size_t,1>& globalIndex);
+    const GlobalLocalMap& getGlobalLocalIndex() const { return globalLocalIndexMap_; }    
+    int getGridSize() const;
+    
     virtual void computeLocalIndex(CArray<size_t,1>& globalIndex);
     virtual void computeGlobalIndex(CArray<int,1>& indexes) const;
+    virtual void partialClear(void); //! clear heavy sized attibutes
 
   protected:
     virtual void createGlobalIndex();
     void createGlobalIndex(const std::vector<CArray<int,1> >& globalIndexElements,
                            const CArray<int,1>& elementOrder);
-
+    
   protected:
     GlobalLocalMap globalLocalIndexMap_;
 

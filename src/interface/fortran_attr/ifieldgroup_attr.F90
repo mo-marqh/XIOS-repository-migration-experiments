@@ -11,11 +11,11 @@ MODULE ifieldgroup_attr
 CONTAINS
 
   SUBROUTINE xios(set_fieldgroup_attr)  &
-    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup))  :: fieldgroup_hdl
@@ -26,6 +26,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active
       LOGICAL (KIND=C_BOOL) :: check_if_active_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
@@ -62,20 +63,20 @@ CONTAINS
       CALL xios(get_fieldgroup_handle) &
       (fieldgroup_id,fieldgroup_hdl)
       CALL xios(set_fieldgroup_attr_hdl_)   &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(set_fieldgroup_attr)
 
   SUBROUTINE xios(set_fieldgroup_attr_hdl)  &
-    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -85,6 +86,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active
       LOGICAL (KIND=C_BOOL) :: check_if_active_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value
@@ -119,20 +121,20 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: valid_min
 
       CALL xios(set_fieldgroup_attr_hdl_)  &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(set_fieldgroup_attr_hdl)
 
   SUBROUTINE xios(set_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_, level_, long_name_  &
-    , name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_  &
-    , ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_  &
+    , expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -142,6 +144,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: cell_methods_mode_
       LOGICAL  , OPTIONAL, INTENT(IN) :: check_if_active_
       LOGICAL (KIND=C_BOOL) :: check_if_active__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(IN) :: comment_
       INTEGER  , OPTIONAL, INTENT(IN) :: compression_level_
       REAL (KIND=8) , OPTIONAL, INTENT(IN) :: default_value_
       LOGICAL  , OPTIONAL, INTENT(IN) :: detect_missing_value_
@@ -199,6 +202,11 @@ CONTAINS
         check_if_active__tmp = check_if_active_
         CALL cxios_set_fieldgroup_check_if_active &
       (fieldgroup_hdl%daddr, check_if_active__tmp)
+      ENDIF
+
+      IF (PRESENT(comment_)) THEN
+        CALL cxios_set_fieldgroup_comment &
+      (fieldgroup_hdl%daddr, comment_, len(comment_))
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
@@ -344,11 +352,11 @@ CONTAINS
   END SUBROUTINE xios(set_fieldgroup_attr_hdl_)
 
   SUBROUTINE xios(get_fieldgroup_attr)  &
-    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup))  :: fieldgroup_hdl
@@ -359,6 +367,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active
       LOGICAL (KIND=C_BOOL) :: check_if_active_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
@@ -395,20 +404,20 @@ CONTAINS
       CALL xios(get_fieldgroup_handle) &
       (fieldgroup_id,fieldgroup_hdl)
       CALL xios(get_fieldgroup_attr_hdl_)   &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(get_fieldgroup_attr)
 
   SUBROUTINE xios(get_fieldgroup_attr_hdl)  &
-    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -418,6 +427,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active
       LOGICAL (KIND=C_BOOL) :: check_if_active_tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value
@@ -452,20 +462,20 @@ CONTAINS
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: valid_min
 
       CALL xios(get_fieldgroup_attr_hdl_)  &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(get_fieldgroup_attr_hdl)
 
   SUBROUTINE xios(get_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_, level_, long_name_  &
-    , name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_  &
-    , ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_  &
+    , expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -475,6 +485,7 @@ CONTAINS
       CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: cell_methods_mode_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: check_if_active_
       LOGICAL (KIND=C_BOOL) :: check_if_active__tmp
+      CHARACTER(len = *) , OPTIONAL, INTENT(OUT) :: comment_
       INTEGER  , OPTIONAL, INTENT(OUT) :: compression_level_
       REAL (KIND=8) , OPTIONAL, INTENT(OUT) :: default_value_
       LOGICAL  , OPTIONAL, INTENT(OUT) :: detect_missing_value_
@@ -532,6 +543,11 @@ CONTAINS
         CALL cxios_get_fieldgroup_check_if_active &
       (fieldgroup_hdl%daddr, check_if_active__tmp)
         check_if_active_ = check_if_active__tmp
+      ENDIF
+
+      IF (PRESENT(comment_)) THEN
+        CALL cxios_get_fieldgroup_comment &
+      (fieldgroup_hdl%daddr, comment_, len(comment_))
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN
@@ -677,11 +693,11 @@ CONTAINS
   END SUBROUTINE xios(get_fieldgroup_attr_hdl_)
 
   SUBROUTINE xios(is_defined_fieldgroup_attr)  &
-    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_id, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup))  :: fieldgroup_hdl
@@ -696,6 +712,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: cell_methods_mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: check_if_active
       LOGICAL(KIND=C_BOOL) :: check_if_active_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment
+      LOGICAL(KIND=C_BOOL) :: comment_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_level
       LOGICAL(KIND=C_BOOL) :: compression_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value
@@ -754,20 +772,20 @@ CONTAINS
       CALL xios(get_fieldgroup_handle) &
       (fieldgroup_id,fieldgroup_hdl)
       CALL xios(is_defined_fieldgroup_attr_hdl_)   &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_fieldgroup_attr)
 
   SUBROUTINE xios(is_defined_fieldgroup_attr_hdl)  &
-    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-    , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-    , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-    , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-     )
+    ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+    , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+    , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+    , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+    , unit, valid_max, valid_min )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -781,6 +799,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: cell_methods_mode_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: check_if_active
       LOGICAL(KIND=C_BOOL) :: check_if_active_tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment
+      LOGICAL(KIND=C_BOOL) :: comment_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_level
       LOGICAL(KIND=C_BOOL) :: compression_level_tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value
@@ -837,20 +857,20 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: valid_min_tmp
 
       CALL xios(is_defined_fieldgroup_attr_hdl_)  &
-      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, compression_level  &
-      , default_value, detect_missing_value, domain_ref, enabled, expr, field_ref, freq_offset, freq_op  &
-      , grid_path, grid_ref, group_ref, indexed_output, level, long_name, name, operation, prec, read_access  &
-      , scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq, unit, valid_max, valid_min  &
-       )
+      ( fieldgroup_hdl, add_offset, axis_ref, cell_methods, cell_methods_mode, check_if_active, comment  &
+      , compression_level, default_value, detect_missing_value, domain_ref, enabled, expr, field_ref  &
+      , freq_offset, freq_op, grid_path, grid_ref, group_ref, indexed_output, level, long_name, name  &
+      , operation, prec, read_access, scalar_ref, scale_factor, standard_name, ts_enabled, ts_split_freq  &
+      , unit, valid_max, valid_min )
 
   END SUBROUTINE xios(is_defined_fieldgroup_attr_hdl)
 
   SUBROUTINE xios(is_defined_fieldgroup_attr_hdl_)   &
     ( fieldgroup_hdl, add_offset_, axis_ref_, cell_methods_, cell_methods_mode_, check_if_active_  &
-    , compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_, expr_, field_ref_  &
-    , freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_, level_, long_name_  &
-    , name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_, ts_enabled_  &
-    , ts_split_freq_, unit_, valid_max_, valid_min_ )
+    , comment_, compression_level_, default_value_, detect_missing_value_, domain_ref_, enabled_  &
+    , expr_, field_ref_, freq_offset_, freq_op_, grid_path_, grid_ref_, group_ref_, indexed_output_  &
+    , level_, long_name_, name_, operation_, prec_, read_access_, scalar_ref_, scale_factor_, standard_name_  &
+    , ts_enabled_, ts_split_freq_, unit_, valid_max_, valid_min_ )
 
     IMPLICIT NONE
       TYPE(txios(fieldgroup)) , INTENT(IN) :: fieldgroup_hdl
@@ -864,6 +884,8 @@ CONTAINS
       LOGICAL(KIND=C_BOOL) :: cell_methods_mode__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: check_if_active_
       LOGICAL(KIND=C_BOOL) :: check_if_active__tmp
+      LOGICAL, OPTIONAL, INTENT(OUT) :: comment_
+      LOGICAL(KIND=C_BOOL) :: comment__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: compression_level_
       LOGICAL(KIND=C_BOOL) :: compression_level__tmp
       LOGICAL, OPTIONAL, INTENT(OUT) :: default_value_
@@ -947,6 +969,12 @@ CONTAINS
         check_if_active__tmp = cxios_is_defined_fieldgroup_check_if_active &
       (fieldgroup_hdl%daddr)
         check_if_active_ = check_if_active__tmp
+      ENDIF
+
+      IF (PRESENT(comment_)) THEN
+        comment__tmp = cxios_is_defined_fieldgroup_comment &
+      (fieldgroup_hdl%daddr)
+        comment_ = comment__tmp
       ENDIF
 
       IF (PRESENT(compression_level_)) THEN

@@ -6,7 +6,8 @@
 
 namespace xios
 {
-  CINetCDF4::CINetCDF4(const StdString& filename, const MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/, const StdString& timeCounterName /*= "time_counter"*/)
+  CINetCDF4::CINetCDF4(const StdString& filename, const MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/,
+                       bool readMetaDataPar /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
   {
     // Don't use parallel mode if there is only one process
     if (comm)
@@ -16,7 +17,7 @@ namespace xios
       if (commSize <= 1)
         comm = NULL;
     }
-    mpi = comm && !multifile;
+    mpi = comm && !multifile && readMetaDataPar;
 
     // The file format will be detected automatically by NetCDF, it is safe to always set NC_MPIIO
     // even if Parallel NetCDF ends up being used.
@@ -82,7 +83,7 @@ namespace xios
   {
     std::pair<nc_type, StdSize> retvalue;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     CNetCdfInterface::inqAtt(grpid, varid, attname, retvalue.first, retvalue.second);
     return retvalue;
   }
@@ -215,10 +216,10 @@ namespace xios
   {
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::list<StdString> retvalue;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
     {
       CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
@@ -246,10 +247,10 @@ namespace xios
   {
     int nbdim = 0, *dimid = NULL;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::map<StdString, StdSize> retvalue;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
     {
       CNetCdfInterface::inqVarNDims(grpid, varid, nbdim);
       dimid = new int[nbdim]();
@@ -281,9 +282,9 @@ namespace xios
     int nbatt = 0;
     std::list<StdString> retvalue;
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
 
-    if (var != NULL)
+    if (var != NULL && this->hasVariable(*var, path))
       CNetCdfInterface::inqVarNAtts(grpid, varid, nbatt);
     else
       CNetCdfInterface::inqNAtts(grpid, nbatt);
@@ -375,7 +376,7 @@ namespace xios
                                               const CVarPath* const path)
   {
     int grpid = this->getGroup(path);
-    int varid = (var != NULL) ? this->getVariable(*var, path) : NC_GLOBAL;
+    int varid = (var != NULL && this->hasVariable(*var, path)) ? this->getVariable(*var, path) : NC_GLOBAL;
     std::pair<nc_type , StdSize> attinfos = this->getAttribute(name, var, path);
     std::vector<T> retvalue(attinfos.second);
     nc_type type = CNetCdfInterface::getNcType<T>();
@@ -493,21 +494,45 @@ namespace xios
 
   bool CINetCDF4::isRectilinear(const StdString& name, const CVarPath* const path)
   {
-    std::list<StdString> coords = this->getCoordinatesIdList(name, path);
-    std::list<StdString>::const_iterator it = coords.begin(), end = coords.end();
+    std::list<StdString> varCoords = this->getCoordinatesIdList(name, path);
+    std::list<StdString> varDims = this->getDimensionsList(&name, path);
+    std::list<StdString>::const_iterator it = varCoords.begin(), end = varCoords.end();
+    std::set<StdString> varDims1D;
+
+    // Firstly, loop over coordinate list
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) )
       {
-        std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
-        if ((dimvar.size() == 1) && (dimvar.find(coord) != dimvar.end()))
+        std::map<StdString, StdSize> coordDims = this->getDimensions(&coord, path);
+        for (std::map<StdString, StdSize>::const_iterator itTmp = coordDims.begin(); itTmp != coordDims.end(); itTmp++)
+        {
+          varDims.remove(itTmp->first);
+        }
+        if (this->isLonOrLat(coord, path) && coordDims.size() == 1)
+        {
+          varDims1D.insert(coordDims.begin()->first);
           continue;
-        else
-          return false;
+        }
       }
     }
-    return true;
+    // Secondly, loop over remaining dimensions
+    for (it= varDims.begin(); it != varDims.end(); it++)
+    {
+      const StdString& coord = *it;
+      std::map<StdString, StdSize> coordDims = this->getDimensions(&coord, path);
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) )
+      {
+        if (this->isLonOrLat(coord, path) && coordDims.size() == 1)
+        {
+          varDims1D.insert(coordDims.begin()->first);
+          continue;
+        }
+      }
+    }
+
+    return (varDims1D.size() == 2);
   }
 
   bool CINetCDF4::isCurvilinear(const StdString& name, const CVarPath* const path)
@@ -522,7 +547,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if (2 == dimvar.size()) ++nbLonLat;
@@ -549,7 +574,7 @@ namespace xios
     for (; it != end; it++)
     {
       const StdString& coord = *it;
-      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path))
+      if (this->hasVariable(coord, path) && !this->isTemporal(coord, path) && this->isLonOrLat(coord, path))
       {
         std::map<StdString, StdSize> dimvar = this->getDimensions(&coord, path);
         if ((dimvar.size() == 1) &&
@@ -779,4 +804,16 @@ namespace xios
     else
       return *(++(++clist.rbegin()));
   }
+
+  bool CINetCDF4::isLonOrLat(const StdString& varname, const CVarPath* const path)
+  {
+    if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &varname, path))
+    {
+      StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &varname, path);
+      return      (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit)
+                || CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit));
+    }
+    else return false ;
+  }
+
 } // namespace xios
