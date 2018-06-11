@@ -807,12 +807,13 @@ namespace xios
 
   bool CINetCDF4::isLonOrLat(const StdString& varname, const CVarPath* const path)
   {
-  if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &varname, path))
-  {
-    StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &varname, path);
-    return (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit)
-            || CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit));
+    if (this->hasAttribute(CCFKeywords::XIOS_CF_units, &varname, path))
+    {
+      StdString unit = this->getAttributeValue(CCFKeywords::XIOS_CF_units, &varname, path);
+      return      (CCFConvention::XIOS_CF_Latitude_units.end() != CCFConvention::XIOS_CF_Latitude_units.find(unit)
+                || CCFConvention::XIOS_CF_Longitude_units.end() != CCFConvention::XIOS_CF_Longitude_units.find(unit));
     }
+    else return false ;
   }
 
 } // namespace xios
