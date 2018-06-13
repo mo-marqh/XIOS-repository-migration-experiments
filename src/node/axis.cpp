@@ -201,7 +201,7 @@ namespace xios {
      if (isDistributed)
      {
        // size estimation for sendDistributedValue
-       boost::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->serverSize].end();
+       std::unordered_map<int, vector<size_t> >::const_iterator it, ite = indSrv_[client->serverSize].end();
        for (it = indSrv_[client->serverSize].begin(); it != ite; ++it)
        {
          size_t size = 6 * sizeof(size_t);
@@ -622,7 +622,7 @@ namespace xios {
         CServerDistributionDescription serverDescription(nGlobAxis, nbServer, distType);
       
         std::vector<int> serverZeroIndex;
-        serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);      
+        serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
 
         std::list<int> serverZeroIndexLeader;
         std::list<int> serverZeroIndexNotLeader; 
@@ -688,7 +688,7 @@ namespace xios {
     // Because all written data are local on a client, 
     // we need to compute the local index on the server from its corresponding global index
     size_t nbWritten = 0, indGlo;      
-    boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+    std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                         ite = globalLocalIndexMap_.end(), it;          
     CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                      itSrve = writtenGlobalIndex.end(), itSrv;  
@@ -720,7 +720,7 @@ namespace xios {
     else
     {
       nbWritten = 0;
-      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+      std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;
       for (int i = 0; i < zoom_index.numElements(); ++i)
       {
@@ -744,7 +744,7 @@ namespace xios {
     // if (isCompressible())
     // {
     //   nbWritten = 0;
-    //   boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+    //   std::unordered_map<size_t,size_t> localGlobalIndexMap;
     //   for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
     //   {
     //     indGlo = *itSrv;
@@ -809,12 +809,12 @@ namespace xios {
       nGlob[0]        = n_glo;
       CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
-      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+      std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;   
 
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                        itSrve = writtenGlobalIndex.end(), itSrv;
-      boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      std::unordered_map<size_t,size_t> localGlobalIndexMap;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       {
         indGlo = *itSrv;
@@ -1136,7 +1136,7 @@ namespace xios {
           dataIndex(idx) = 1;
       }
 
-      boost::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
+      std::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[nbServer].end();
       for (int k = 0; k < connectedServerRank_[nbServer].size(); ++k)
       {

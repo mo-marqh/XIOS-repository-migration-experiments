@@ -4,7 +4,7 @@
 /// ////////////////////// Macros ////////////////////// ///
 
 // Type Fortran
-#define ARRAY(valuetype, numdims) boost::shared_ptr<CArray<valuetype, numdims> >
+#define ARRAY(valuetype, numdims) std::shared_ptr<CArray<valuetype, numdims> >
 
 #define ARRAY_ASSIGN(value, valuetype, numdims, extent)\
    value.reset(new CArray<valuetype, numdims>(boost::extents extent)) 

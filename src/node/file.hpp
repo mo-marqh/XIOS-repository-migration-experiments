@@ -70,8 +70,8 @@ namespace xios {
       public:
          /// Accesseurs ///
          const StdString getFileOutputName(void) const;
-         boost::shared_ptr<CDataOutput> getDataOutput(void) const;
-         boost::shared_ptr<CDataInput> getDataInput(void) const;
+         std::shared_ptr<CDataOutput> getDataOutput(void) const;
+         std::shared_ptr<CDataInput> getDataInput(void) const;
          CFieldGroup* getVirtualFieldGroup(void) const;
          CVariableGroup* getVirtualVariableGroup(void) const;
          std::vector<CField*> getAllFields(void) const;
@@ -185,8 +185,8 @@ namespace xios {
          CContextClient* read_client; // Context client for reading (channel between server 1 and client)
          CFieldGroup* vFieldGroup;
          CVariableGroup* vVariableGroup;
-         boost::shared_ptr<CDataOutput> data_out;
-         boost::shared_ptr<CDataInput> data_in;
+         std::shared_ptr<CDataOutput> data_out;
+         std::shared_ptr<CDataInput> data_in;
          std::vector<CField*> enabledFields;
 
 

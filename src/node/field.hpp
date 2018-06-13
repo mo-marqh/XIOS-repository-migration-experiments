@@ -91,7 +91,7 @@ namespace xios {
 
          template <int N> void getData(CArray<double, N>& _data) const;
 
-         boost::shared_ptr<COutputPin> getInstantDataFilter();
+         std::shared_ptr<COutputPin> getInstantDataFilter();
 
          /// Mutateur ///
          void setRelFile(CFile* _file);
@@ -142,10 +142,10 @@ namespace xios {
          size_t getGlobalWrittenSize(void) ;
          
          
-         boost::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
-         boost::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
-         boost::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
-         boost::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
+         std::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
+         std::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
+         std::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
+         std::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
 //         virtual void fromBinary(StdIStream& is);
 
@@ -225,12 +225,12 @@ namespace xios {
          bool wasDataRequestedFromServer, wasDataAlreadyReceivedFromServer;
          bool mustAutoTrigger;
 
-         map<int,boost::shared_ptr<func::CFunctor> > foperation_srv;
+         map<int,std::shared_ptr<func::CFunctor> > foperation_srv;
 
          // map<int, CArray<double,1> > data_srv;
          CArray<double,1> recvDataSrv;
          
-         boost::shared_ptr<func::CFunctor> recvFoperationSrv;
+         std::shared_ptr<func::CFunctor> recvFoperationSrv;
          string content;
 
          std::vector<StdString> domAxisScalarIds_;
@@ -257,21 +257,21 @@ namespace xios {
          func::CFunctor::ETimeType operationTimeType;
 
          //! The output pin of the filter providing the instant data for the field
-         boost::shared_ptr<COutputPin> instantDataFilter;
+         std::shared_ptr<COutputPin> instantDataFilter;
          //! The output pin of the filters providing the result of the field's temporal operation
-         std::map<CDuration, boost::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
+         std::map<CDuration, std::shared_ptr<COutputPin>, DurationFakeLessComparator> temporalDataFilters;
          //! The output pin of the filter providing the instant data for self references
-         boost::shared_ptr<COutputPin> selfReferenceFilter;
+         std::shared_ptr<COutputPin> selfReferenceFilter;
          //! The source filter for data provided by the client
-         boost::shared_ptr<CSourceFilter> clientSourceFilter;
+         std::shared_ptr<CSourceFilter> clientSourceFilter;
          //! The source filter for data provided by the server
-         boost::shared_ptr<CSourceFilter> serverSourceFilter;
+         std::shared_ptr<CSourceFilter> serverSourceFilter;
          //! The terminal filter which stores the instant data
-         boost::shared_ptr<CStoreFilter> storeFilter;
+         std::shared_ptr<CStoreFilter> storeFilter;
          //! The terminal filter which writes the data to file
-         boost::shared_ptr<CFileWriterFilter> fileWriterFilter;
+         std::shared_ptr<CFileWriterFilter> fileWriterFilter;
          //! The terminal filter which writes data to file
-         boost::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
+         std::shared_ptr<CFileServerWriterFilter> fileServerWriterFilter;
    }; // class CField
 
    ///--------------------------------------------------------------

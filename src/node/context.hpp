@@ -7,8 +7,6 @@
 #include "calendar_wrapper.hpp"
 
 #include "declare_group.hpp"
-//#include "context_client.hpp"
-//#include "context_server.hpp"
 #include "data_output.hpp"
 #include "garbage_collector.hpp"
 #include "registry.hpp"
@@ -82,10 +80,10 @@ namespace xios {
       public :
 
          /// Mutateurs ///
-         void setCalendar(boost::shared_ptr<CCalendar> newCalendar);
+         void setCalendar(std::shared_ptr<CCalendar> newCalendar);
 
          /// Accesseurs ///
-         boost::shared_ptr<CCalendar>      getCalendar(void) const;
+         std::shared_ptr<CCalendar>      getCalendar(void) const;
 
       public :
          // Initialize server or client
@@ -226,7 +224,7 @@ namespace xios {
 
       public :
          // Calendar of context
-         boost::shared_ptr<CCalendar>   calendar;
+         std::shared_ptr<CCalendar>   calendar;
 
          // List of all enabled files (files on which fields are written or read)
          std::vector<CFile*> enabledFiles;
@@ -240,7 +238,7 @@ namespace xios {
          std::vector<CField*> fieldsWithReadAccess;
 
          // Context root
-         static shared_ptr<CContextGroup> root;
+         static std::shared_ptr<CContextGroup> root;
 
          // Determine context on client or not
          bool hasClient;

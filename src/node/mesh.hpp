@@ -75,6 +75,9 @@ namespace xios {
 
     private:
 
+      typedef std::pair<double, double> pairDouble;
+      typedef std::pair<int, int> pairInt;
+
       int nbNodes_;
       int nbEdges_;
       int nbFaces_;
@@ -89,11 +92,6 @@ namespace xios {
       void getLocNghbFacesEdgeType(const CArray<int, 1>&, const CArray<double, 2>&, const CArray<double, 2>&, CArray<int, 2>&, CArray<int, 1>&);
 
       vector<size_t> createHashes (const double, const double);
-
-      size_t nodeIndex (double, double);                           // redundant in parallel version with epsilon precision
-      boost::unordered_map <size_t, size_t> hashed_map_nodes;      // redundant in parallel version with epsilon precision
-      boost::unordered_map <pair<double,double>, int> map_nodes;   // redundant in parallel version with epsilon precision
-      boost::unordered_map <pair<int,int>, int> map_edges;         // redundant in parallel version with epsilon precision
 
   }; 
 

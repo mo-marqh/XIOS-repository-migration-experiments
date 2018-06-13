@@ -37,14 +37,14 @@ public:
 
 public:
   // Mapping between global index map of DESTINATION and its local index with pair of global index of SOURCE and weights
-  typedef boost::unordered_map<int, boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > > > SourceDestinationIndexMap;
+  typedef std::unordered_map<int, std::unordered_map<size_t, std::vector<std::pair<size_t,double> > > > SourceDestinationIndexMap;
 
 protected:
-  typedef boost::unordered_map<size_t,int> GlobalLocalMap;
+  typedef std::unordered_map<size_t,int> GlobalLocalMap;
 protected:
-  typedef boost::unordered_map<int, std::vector<int> > TransformationIndexMap;
-  typedef boost::unordered_map<int, std::vector<double> > TransformationWeightMap;
-  typedef boost::unordered_map<int, std::vector<int> > TransformationPositionMap;
+  typedef std::unordered_map<int, std::vector<int> > TransformationIndexMap;
+  typedef std::unordered_map<int, std::vector<double> > TransformationWeightMap;
+  typedef std::unordered_map<int, std::vector<int> > TransformationPositionMap;
 
 public:
   CGenericAlgorithmTransformation();
@@ -107,26 +107,26 @@ protected:
 protected:
   void computeGlobalGridIndexMapping(int elementPositionInGrid,
                                      const std::vector<int>& srcRank,
-                                     boost::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
+                                     std::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
                                      CGrid* gridDst,
                                      CGrid* gridSrc,
-                                     std::vector<boost::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
+                                     std::vector<std::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
                                      SourceDestinationIndexMap& globaIndexWeightFromSrcToDst);
 
   void computeExchangeDomainIndex(CDomain* domainDst,
                                   CDomain* domainSrc,
                                   CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                  boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
+                                  std::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc);
 
   void computeExchangeAxisIndex(CAxis* axisDst,
                                 CAxis* axisSrc,
                                 CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc);
+                                std::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc);
 
   void computeExchangeScalarIndex(CScalar* scalarDst,
                                   CScalar* scalarSrc,
                                   CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                  boost::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc);
+                                  std::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc);
 
   void computePositionElements(CGrid* dst, CGrid* src);
 
@@ -150,7 +150,7 @@ protected:
 
   std::set<StdSize> indexElementSrc_;
 
-  std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc_;
+  std::vector<std::unordered_map<int,std::vector<size_t> > > globalElementIndexOnProc_;
 
   std::vector<int> procContainSrcElementIdx_;  // List of processes containing source index of transformed elements
 //  std::set<int> procOfNonTransformedElements_; // Processes contain the source index of non-transformed elements

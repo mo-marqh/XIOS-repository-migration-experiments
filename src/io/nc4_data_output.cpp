@@ -2696,7 +2696,7 @@ namespace xios
 
       void CNc4DataOutput::writeTimeAxis_
                   (CField*    field,
-                   const boost::shared_ptr<CCalendar> cal)
+                   const std::shared_ptr<CCalendar> cal)
       {
          StdOStringStream oss;
          bool createInstantAxis=false ;
@@ -2919,7 +2919,7 @@ namespace xios
            msg.append(context->getId()); msg.append("\n");
            msg.append(e.what());
            ERROR("CNc4DataOutput::writeTimeAxis_ (CField*    field, \
-                  const boost::shared_ptr<CCalendar> cal)", << msg);
+                  const std::shared_ptr<CCalendar> cal)", << msg);
          }
       }
 

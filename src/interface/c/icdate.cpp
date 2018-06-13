@@ -3,7 +3,6 @@
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "xios.hpp"
 
@@ -26,7 +25,7 @@ static const xios::CCalendar& getCalendar(const std::string& idFunc)
   const xios::CContext* context = CContext::getCurrent();
   if (!context)
     ERROR(idFunc, << "Impossible to do calendar operations: no current context available.");
-  const boost::shared_ptr<xios::CCalendar> cal = context->getCalendar();
+  const std::shared_ptr<xios::CCalendar> cal = context->getCalendar();
   if (!cal)
     ERROR(idFunc, << "Impossible to do calendar operations: no calendar was defined.");
   return *cal;

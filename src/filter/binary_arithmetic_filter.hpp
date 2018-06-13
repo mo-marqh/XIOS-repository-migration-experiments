@@ -4,6 +4,7 @@
 #include "filter.hpp"
 #include <string>
 #include "operator_expr.hpp"
+#include <unordered_map>
 
 namespace xios
 {

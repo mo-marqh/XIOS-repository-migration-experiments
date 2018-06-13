@@ -5,6 +5,8 @@
 #include <utility>
 #include <string>
 #include <algorithm>
+#include <unordered_map>
+#include <memory>
 
 // standard C
 #include <cstring>
@@ -27,8 +29,6 @@
 #include <sstream>
 
 /// boost headers ///
-#include <boost/unordered_map.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/cast.hpp>
 /// Map ///
 #define xios_map std::map

@@ -287,7 +287,7 @@ namespace xios {
 
         void checkAttributesAfterTransformation();
         void setTransformationAlgorithms();
-        void computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+        void computeIndexByElement(const std::vector<std::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                    const CContextClient* client,
                                    CClientServerMapping::GlobalIndexMap& globalIndexOnServer);
         int computeGridGlobalDimension(std::vector<int>& globalDim,

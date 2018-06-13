@@ -218,7 +218,7 @@ namespace xios{
 
       // Gather all data from different clients      
       recvDataSrv.resize(storeClient.numElements());
-      recvFoperationSrv = boost::shared_ptr<func::CFunctor>(new func::CInstant(recvDataSrv));
+      recvFoperationSrv = std::shared_ptr<func::CFunctor>(new func::CInstant(recvDataSrv));
     }
 
     CArray<double,1> recv_data_tmp(recvDataSrv.numElements());    
@@ -715,7 +715,7 @@ namespace xios{
 
    //----------------------------------------------------------------
 
-   boost::shared_ptr<COutputPin> CField::getInstantDataFilter()
+   std::shared_ptr<COutputPin> CField::getInstantDataFilter()
    {
      return instantDataFilter;
    }
@@ -983,7 +983,7 @@ namespace xios{
         ERROR("void CField::solveServerOperation(void)",
               << "An operation must be defined for field \"" << getId() << "\".");
 
-      boost::shared_ptr<func::CFunctor> functor;
+      std::shared_ptr<func::CFunctor> functor;
       CArray<double, 1> dummyData;
 
 #define DECLARE_FUNCTOR(MType, mtype) \
@@ -1026,7 +1026,7 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
-          instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
+          instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
 
 
        // If the field data is to be read by the client or/and written to a file
@@ -1034,7 +1034,7 @@ namespace xios{
        {
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
-           fileServerWriterFilter = boost::shared_ptr<CFileServerWriterFilter>(new CFileServerWriterFilter(gc, this));
+           fileServerWriterFilter = std::shared_ptr<CFileServerWriterFilter>(new CFileServerWriterFilter(gc, this));
            instantDataFilter->connectOutput(fileServerWriterFilter, 0);
          }
        }
@@ -1042,14 +1042,14 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
-         instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
+         instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
        {
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
-           fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
            instantDataFilter->connectOutput(fileWriterFilter, 0);
          }
        }
@@ -1063,7 +1063,7 @@ namespace xios{
          if (hasExpression())
          {
            boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
-           boost::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
+           std::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
 
            // Check if a spatial transformation is needed
            if (!field_ref.isEmpty())
@@ -1072,7 +1072,7 @@ namespace xios{
 
              if (grid && grid != gridRef && grid->hasTransform())
              {
-                 std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, detectMissingValues, defaultValue); 
+                 std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, detectMissingValues, defaultValue); 
 
                filter->connectOutput(filters.first, 0);
                filter = filters.second;
@@ -1088,13 +1088,13 @@ namespace xios{
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          {
            checkTimeAttributes();
-           instantDataFilter = serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
+           instantDataFilter = serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
                                                                                                        detectMissingValues, defaultValue));
          }
          else // The data might be passed from the model
          {
             if (check_if_active.isEmpty()) check_if_active = false; 
-            instantDataFilter = clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
+            instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
                                                                                                         detectMissingValues, defaultValue));
          }
        }
@@ -1104,14 +1104,14 @@ namespace xios{
        {
          if (!read_access.isEmpty() && read_access)
          {
-           storeFilter = boost::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid,
+           storeFilter = std::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid,
                                                                           detectMissingValues, defaultValue));
            instantDataFilter->connectOutput(storeFilter, 0);
          }
 
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
-           fileWriterFilter = boost::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
+           fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
            getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
          }
        }
@@ -1125,7 +1125,7 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to the field reference
     */
-   boost::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
+   std::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
    {
      if (instantDataFilter || field_ref.isEmpty())
        ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
@@ -1134,7 +1134,7 @@ namespace xios{
      CField* fieldRef = CField::get(field_ref);
      fieldRef->buildFilterGraph(gc, false);
 
-     std::pair<boost::shared_ptr<CFilter>, boost::shared_ptr<CFilter> > filters;
+     std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
      if (grid && grid != fieldRef->grid && grid->hasTransform())
      {       
@@ -1143,7 +1143,7 @@ namespace xios{
        filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, hasMissingValue, defaultValue);
      }
      else
-       filters.first = filters.second = boost::shared_ptr<CFilter>(new CPassThroughFilter(gc));
+       filters.first = filters.second = std::shared_ptr<CFilter>(new CPassThroughFilter(gc));
 
      fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
 
@@ -1159,7 +1159,7 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to a self reference
     */
-   boost::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
+   std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
    {
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
@@ -1175,7 +1175,7 @@ namespace xios{
          if (!serverSourceFilter)
          {
            checkTimeAttributes();
-           serverSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
+           serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
                                                                                    detectMissingValues, defaultValue));
          }
 
@@ -1192,7 +1192,7 @@ namespace xios{
          if (!clientSourceFilter)
          {
            if (check_if_active.isEmpty()) check_if_active = false;
-           clientSourceFilter = boost::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
+           clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
                                                                                    detectMissingValues, defaultValue));
          }
 
@@ -1212,9 +1212,9 @@ namespace xios{
     * \param outFreq the operation frequency, i.e. the frequency at which the output data will be computed
     * \return the output pin corresponding to the requested temporal filter
     */
-   boost::shared_ptr<COutputPin> CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   std::shared_ptr<COutputPin> CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
    {
-     std::map<CDuration, boost::shared_ptr<COutputPin> >::iterator it = temporalDataFilters.find(outFreq);
+     std::map<CDuration, std::shared_ptr<COutputPin> >::iterator it = temporalDataFilters.find(outFreq);
 
      if (it == temporalDataFilters.end())
      {
@@ -1225,7 +1225,7 @@ namespace xios{
        checkTimeAttributes(&outFreq);
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty()  && detect_missing_value == true);
-       boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
+       std::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 
@@ -1246,7 +1246,7 @@ namespace xios{
     * \return the output pin corresponding to the requested temporal filter
     */
    
-   boost::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   std::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
    {
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfTemporalDataFilter(CGarbageCollector& gc)",
@@ -1263,7 +1263,7 @@ namespace xios{
        checkTimeAttributes(&outFreq);
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && detect_missing_value == true);
-       boost::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
+       std::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
                                                                              CContext::getCurrent()->getCalendar()->getInitDate(),
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 

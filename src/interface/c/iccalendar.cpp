@@ -23,7 +23,7 @@ extern "C"
   {
     CTimer::get("XIOS").resume();
     const xios::CContext* context = CContext::getCurrent();
-    const boost::shared_ptr<xios::CCalendar> cal = context->getCalendar();
+    const std::shared_ptr<xios::CCalendar> cal = context->getCalendar();
     if (!cal)
       ERROR("void cxios_get_current_date(cxios_date* current_date_c)",
             << "Impossible to get the current date: no calendar was defined.");
@@ -40,7 +40,7 @@ extern "C"
   int cxios_get_year_length_in_seconds(int year)
   {
     CTimer::get("XIOS").resume();
-    const boost::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
+    const std::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
     if (!cal)
       ERROR("int cxios_get_year_length_in_seconds(int year)",
             << "Impossible to get the year length: no calendar was defined.");
@@ -53,7 +53,7 @@ extern "C"
   int cxios_get_day_length_in_seconds()
   {
     CTimer::get("XIOS").resume();
-    const boost::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
+    const std::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
     if (!cal)
       ERROR("int cxios_get_day_length_in_seconds()",
             << "Impossible to get the day length: no calendar was defined.");

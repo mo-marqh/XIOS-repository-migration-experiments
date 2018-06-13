@@ -12,7 +12,7 @@
 #include "xios_spl.hpp"
 #include "array_new.hpp"
 #include "mpi.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace xios {
 
@@ -24,7 +24,7 @@ on server side.
 class CClientServerMapping
 {
 public:
-  typedef boost::unordered_map<int, std::vector<size_t> > GlobalIndexMap;
+  typedef std::unordered_map<int, std::vector<size_t> > GlobalIndexMap;
   public:
     /** Default constructor */
     CClientServerMapping();

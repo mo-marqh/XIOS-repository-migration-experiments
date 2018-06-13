@@ -107,7 +107,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
     }
   }
 
-  typedef boost::unordered_map<size_t, std::vector<double> > GlobalIndexMapFromSrcToDest;
+  typedef std::unordered_map<size_t, std::vector<double> > GlobalIndexMapFromSrcToDest;
   GlobalIndexMapFromSrcToDest globalIndexMapFromSrcToDest;
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationIndexMap::const_iterator itb = transMap.begin(), ite = transMap.end(), it;
@@ -125,7 +125,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
   CClientClientDHTInt dhtIndexProcRank(globalIndex2ProcRank, client->intraComm);
   dhtIndexProcRank.computeIndexInfoMapping(globalSrcIndex);
   CClientClientDHTInt::Index2VectorInfoTypeMap& computedGlobalIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
-  boost::unordered_map<int, std::vector<size_t> > globalSrcIndexSendToProc;
+  std::unordered_map<int, std::vector<size_t> > globalSrcIndexSendToProc;
   for (int idx = 0; idx < localIndex; ++idx)
   {
     size_t tmpIndex = globalSrcIndex(idx);
@@ -136,7 +136,7 @@ void CAxisAlgorithmInverse::updateAxisValue()
     }
   }
 
-  boost::unordered_map<int, std::vector<size_t> >::const_iterator itbIndex = globalSrcIndexSendToProc.begin(), itIndex,
+  std::unordered_map<int, std::vector<size_t> >::const_iterator itbIndex = globalSrcIndexSendToProc.begin(), itIndex,
                                                                   iteIndex = globalSrcIndexSendToProc.end();
   std::map<int,int> sendRankSizeMap,recvRankSizeMap;
   int connectedClient = globalSrcIndexSendToProc.size();
@@ -174,8 +174,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
   // Sending global index of grid source to corresponding process as well as the corresponding mask
   std::vector<MPI_Request> requests;
   std::vector<MPI_Status> status;
-  boost::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
-  boost::unordered_map<int, double* > sendValueToDest;
+  std::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
+  std::unordered_map<int, double* > sendValueToDest;
   for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
   {
     int recvRank = itRecv->first;
@@ -187,8 +187,8 @@ void CAxisAlgorithmInverse::updateAxisValue()
     MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
   }
 
-  boost::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
-  boost::unordered_map<int, double* > recvValueFromSrc;
+  std::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
+  std::unordered_map<int, double* > recvValueFromSrc;
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
   {
     int sendRank = itIndex->first;
@@ -270,12 +270,12 @@ void CAxisAlgorithmInverse::updateAxisValue()
   delete [] sendSizeBuff;
   delete [] recvSizeBuff;
 
-  boost::unordered_map<int, double* >::const_iterator itChar;
+  std::unordered_map<int, double* >::const_iterator itChar;
   for (itChar = sendValueToDest.begin(); itChar != sendValueToDest.end(); ++itChar)
     delete [] itChar->second;
   for (itChar = recvValueFromSrc.begin(); itChar != recvValueFromSrc.end(); ++itChar)
     delete [] itChar->second;
-  boost::unordered_map<int, unsigned long* >::const_iterator itLong;
+  std::unordered_map<int, unsigned long* >::const_iterator itLong;
   for (itLong = sendGlobalIndexSrc.begin(); itLong != sendGlobalIndexSrc.end(); ++itLong)
     delete [] itLong->second;
   for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)

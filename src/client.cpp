@@ -313,7 +313,7 @@ namespace xios
       fb->open(fileNameClient.str().c_str(), std::ios::out);
       if (!fb->is_open())
         ERROR("void CClient::openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb)",
-              << std::endl << "Can not open <" << fileNameClient << "> file to write the client log(s).");
+              << std::endl << "Can not open <" << fileNameClient.str() << "> file to write the client log(s).");
     }
 
     /*!

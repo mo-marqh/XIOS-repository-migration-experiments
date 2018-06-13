@@ -63,8 +63,8 @@ namespace xios
          virtual void solveDescInheritance(bool apply, const CAttributeMap * const parent = 0);
          void solveRefInheritance(void);
 //         static bool has(const string & id); 
-//         static boost::shared_ptr<V> get(const string& id) ;
-//         static boost::shared_ptr<V> create(const string& id=string("")) ;
+//         static std::shared_ptr<V> get(const string& id) ;
+//         static std::shared_ptr<V> create(const string& id=string("")) ;
          U* createChild(const string& id="") ;
           
          void addChild(U* child) ; 

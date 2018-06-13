@@ -214,7 +214,7 @@ namespace xios {
          std::map<int, map<int,int> > nbSenders; // Mapping of number of communicating client to a server
 
 /** Global index of each client sent to server: map<serverSize, map<serverRank, indexes>> */
-         std::map<int, boost::unordered_map<int, vector<size_t> > > indSrv_;
+         std::map<int, std::unordered_map<int, vector<size_t> > > indSrv_;
          // std::map<CContextClient*, std::map<int, vector<int> > > indWrittenSrv_; // Global written index of each client sent to server
          std::vector<int> indexesToWrite;
          std::vector<int> recvClientRanks_;
@@ -228,7 +228,7 @@ namespace xios {
          bool isRedistributed_;
          TransMapTypes transformationMap_;         
          bool isUnstructed_;
-         boost::unordered_map<size_t,size_t> globalLocalIndexMap_;
+         std::unordered_map<size_t,size_t> globalLocalIndexMap_;
        
        private:
          static bool initializeTransformationMap(std::map<StdString, ETranformationType>& m);

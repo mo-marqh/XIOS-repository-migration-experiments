@@ -18,7 +18,7 @@
 namespace xios
 {
 
-CClientServerMappingDistributed::CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
+CClientServerMappingDistributed::CClientServerMappingDistributed(const std::unordered_map<size_t,int>& globalIndexOfServer,
                                                                  const MPI_Comm& clientIntraComm, bool isDataDistributed)
   : CClientServerMapping(), ccDHT_(0)
 {

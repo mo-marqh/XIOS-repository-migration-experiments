@@ -5,6 +5,8 @@
 */
 
 #include "mesh.hpp"
+#include <boost/functional/hash.hpp>
+//#include <unordered_map>
 
 namespace xios {
 
@@ -135,82 +137,6 @@ namespace xios {
       return seed ;
     }
 
-
-///----------------------------------------------------------------
-/*!
- * \fn size_t CMesh::nodeIndex (double lon, double lat)
- * Returns its index if a node exists; otherwise adds the node and returns -1.
- * Precision check is implemented with two hash values for each dimension, longitude and latitude.
- * \param [in] lon Node longitude in degrees.
- * \param [in] lat Node latitude in degrees ranged from 0 to 360.
- * \return node index if a node exists; -1 otherwise
- */
-  size_t CMesh::nodeIndex (double lon, double lat)
-  {
-    double minBoundLon = 0. ;
-    double maxBoundLon = 360. ;
-    double minBoundLat = -90 ;
-    double maxBoundLat = 90 ;
-    double prec=1e-11 ;
-    double precLon=prec ;
-    double precLat=prec ;
-
-    size_t maxsize_t=numeric_limits<size_t>::max() ;
-    if ( (maxBoundLon-minBoundLon)/maxsize_t > precLon) precLon=(maxBoundLon-minBoundLon)/maxsize_t ;
-    if ( (maxBoundLat-minBoundLat)/maxsize_t > precLat) precLat=(maxBoundLat-minBoundLat)/maxsize_t ;
-
-    size_t iMinLon=0 ;
-    size_t iMaxLon=(maxBoundLon-minBoundLon)/precLon ;
-    size_t iMinLat=0 ;
-    size_t iMaxLat=(maxBoundLat-minBoundLat)/precLat ;
-
-    size_t hash0,hash1,hash2,hash3 ;
-    size_t lon0,lon1,lat0,lat1 ;
-
-    lon0=(lon-minBoundLon)/precLon ;
-    if ( ((lon0+1)*precLon + lon0*precLon)/2 > lon-minBoundLon)
-    {
-      if (lon0==iMinLon) lon1=iMaxLon ;
-      else lon1=lon0-1 ;
-    }
-    else
-    {
-      if (lon0==iMaxLon) lon1=iMinLon ;
-      else lon1=lon0+1 ;
-    }
-
-    lat0=(lat-minBoundLat)/precLat ;
-    if ( ((lat0+1)*precLat + lat0*precLat)/2 > lat-minBoundLat)
-    {
-      if (lat0==iMinLat) lat1=lat0 ;
-      else lat1=lat0-1 ;
-    }
-    else
-    {
-      if (lat0==iMaxLat) lat1=lat0 ;
-      else lat1=lat0+1 ;
-    }
-
-    hash0=hashPair(lon0,lat0) ;
-    hash1=hashPair(lon0,lat1) ;
-    hash2=hashPair(lon1,lat0) ;
-    hash3=hashPair(lon1,lat1) ;
-
-    boost::unordered_map<size_t, size_t>::iterator end = hashed_map_nodes.end() ;
-    size_t mapSize = hashed_map_nodes.size();
-    if (hashed_map_nodes.find(hash0)==end && hashed_map_nodes.find(hash1)==end && hashed_map_nodes.find(hash2)==end && hashed_map_nodes.find(hash3)==end)
-    {
-      hashed_map_nodes[hash0] = mapSize ;
-      hashed_map_nodes[hash1] = mapSize + 1;
-      hashed_map_nodes[hash2] = mapSize + 2;
-      hashed_map_nodes[hash3] = mapSize + 3;
-      return -1;
-    }
-    else
-      return ( (hashed_map_nodes[hash0]+1) / 4 );
-
-  } // nodeIndex()
-
 ///----------------------------------------------------------------
 /*!
  * \fn CArray<size_t,1>& CMesh::createHashes (const double longitude, const double latitude)
@@ -297,183 +223,183 @@ namespace xios {
  * \param [in] bounds_lon Array of boundary longitudes. Its size depends on the element type.
  * \param [in] bounds_lat Array of boundary latitudes. Its size depends on the element type.
  */
-  void CMesh::createMesh(const CArray<double, 1>& lonvalue, const CArray<double, 1>& latvalue,
-            const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat)
-  {
-    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
-
-    if (nvertex == 1)
-    {
-      nbNodes_ = lonvalue.numElements();
-      node_lon.resizeAndPreserve(nbNodes_);
-      node_lat.resizeAndPreserve(nbNodes_);
-      for (int nn = 0; nn < nbNodes_; ++nn)
-      {
-        if (map_nodes.find(make_pair (lonvalue(nn), latvalue(nn))) == map_nodes.end())
-        {
-          map_nodes[make_pair (lonvalue(nn), latvalue(nn))] = nn ;
-          node_lon(nn) = lonvalue(nn);
-          node_lat(nn) = latvalue(nn);
-        }
-      }
-    }
-    else if (nvertex == 2)
-    {
-      nbEdges_ = bounds_lon.shape()[1];
-
-      // Create nodes and edge_node connectivity
-      node_lon.resizeAndPreserve(nbEdges_*nvertex); // Max possible number of nodes
-      node_lat.resizeAndPreserve(nbEdges_*nvertex);
-      edge_nodes.resizeAndPreserve(nvertex, nbEdges_);
-
-      for (int ne = 0; ne < nbEdges_; ++ne)
-      {
-        for (int nv = 0; nv < nvertex; ++nv)
-        {
-          if (map_nodes.find(make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))) == map_nodes.end())
-          {
-            map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv, ne))] = nbNodes_ ;
-            edge_nodes(nv,ne) = nbNodes_ ;
-            node_lon(nbNodes_) = bounds_lon(nv, ne);
-            node_lat(nbNodes_) = bounds_lat(nv, ne);
-            ++nbNodes_ ;
-          }
-          else
-            edge_nodes(nv,ne) = map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))];
-        }
-      }
-      node_lon.resizeAndPreserve(nbNodes_);
-      node_lat.resizeAndPreserve(nbNodes_);
-
-      // Create edges
-      edge_lon.resizeAndPreserve(nbEdges_);
-      edge_lat.resizeAndPreserve(nbEdges_);
-
-      for (int ne = 0; ne < nbEdges_; ++ne)
-      {
-        if (map_edges.find(make_ordered_pair (edge_nodes(0,ne), edge_nodes(1,ne))) == map_edges.end())
-        {
-          map_edges[make_ordered_pair ( edge_nodes(0,ne), edge_nodes(1,ne) )] = ne ;
-          edge_lon(ne) = lonvalue(ne);
-          edge_lat(ne) = latvalue(ne);
-        }
-
-      }
-      edgesAreWritten = true;
-    }
-    else
-    {
-      nbFaces_ = bounds_lon.shape()[1];
-  
-      // Create nodes and face_node connectivity
-      node_lon.resizeAndPreserve(nbFaces_*nvertex);  // Max possible number of nodes
-      node_lat.resizeAndPreserve(nbFaces_*nvertex);
-      face_nodes.resize(nvertex, nbFaces_);
-  
-      for (int nf = 0; nf < nbFaces_; ++nf)
-      {
-        for (int nv = 0; nv < nvertex; ++nv)
-        {
-          if (map_nodes.find(make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))) == map_nodes.end())
-          {
-            map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes_ ;
-            face_nodes(nv,nf) = nbNodes_ ;
-            node_lon(nbNodes_) = bounds_lon(nv, nf);
-            node_lat(nbNodes_) = bounds_lat(nv ,nf);
-            ++nbNodes_ ;
-          }
-          else
-          {
-            face_nodes(nv,nf) = map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))];
-          }
-        }
-      }
-      node_lon.resizeAndPreserve(nbNodes_);
-      node_lat.resizeAndPreserve(nbNodes_);
-  
-      // Create edges and edge_nodes connectivity
-      edge_lon.resizeAndPreserve(nbFaces_*nvertex); // Max possible number of edges
-      edge_lat.resizeAndPreserve(nbFaces_*nvertex);
-      edge_nodes.resizeAndPreserve(2, nbFaces_*nvertex);
-      edge_faces.resize(2, nbFaces_*nvertex);
-      face_edges.resize(nvertex, nbFaces_);
-      face_faces.resize(nvertex, nbFaces_);
-
-      vector<int> countEdges(nbFaces_*nvertex);   // needed in case if edges have been already generated
-      vector<int> countFaces(nbFaces_);
-      countEdges.assign(nbFaces_*nvertex, 0);
-      countFaces.assign(nbFaces_, 0);
-      int edge;
-      for (int nf = 0; nf < nbFaces_; ++nf)
-      {
-        for (int nv1 = 0; nv1 < nvertex; ++nv1)
-        {
-          int nv = 0;
-          int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
-          if (map_edges.find(make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))) == map_edges.end())
-          {
-            map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))] = nbEdges_ ;
-            face_edges(nv1,nf) = map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))];
-            edge_faces(0,nbEdges_) = nf;
-            edge_faces(1,nbEdges_) = -999;
-            face_faces(nv1,nf) = 999999;
-            edge_nodes(Range::all(),nbEdges_) = face_nodes(nv1,nf), face_nodes(nv2,nf);
-            edge_lon(nbEdges_) = ( abs( node_lon(face_nodes(nv1,nf)) - node_lon(face_nodes(nv2,nf))) < 180.) ?
-                        (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5) :
-                        (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5 -180.);
-            edge_lat(nbEdges_) = ( node_lat(face_nodes(nv1,nf)) + node_lat(face_nodes(nv2,nf)) ) * 0.5;
-            ++nbEdges_;
-          }
-          else
-          {
-            edge = map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))];
-            face_edges(nv1,nf) = edge;
-            if (edgesAreWritten)
-            {
-              edge_faces(countEdges[edge], edge) = nf;
-              if (countEdges[edge]==0)
-              {
-                face_faces(nv1,nf) = 999999;
-              }
-              else
-              {
-                int face1 = nf; // = edge_faces(1,edge)
-                int face2 = edge_faces(0,edge);
-                face_faces(countFaces[face1], face1) =  face2;
-                face_faces(countFaces[face2], face2) =  face1;
-                ++(countFaces[face1]);
-                ++(countFaces[face2]);
-              }
-            }
-            else
-            {
-              edge_faces(1,edge) = nf;
-              int face1 = nf; // = edge_faces(1,edge)
-              int face2 = edge_faces(0,edge);
-              face_faces(countFaces[face1], face1) =  face2;
-              face_faces(countFaces[face2], face2) =  face1;
-              ++(countFaces[face1]);
-              ++(countFaces[face2]);
-            }
-            ++(countEdges[edge]);
-          }
-        }
-      }
-      edge_nodes.resizeAndPreserve(2, nbEdges_);
-      edge_faces.resizeAndPreserve(2, nbEdges_);
-      edge_lon.resizeAndPreserve(nbEdges_);
-      edge_lat.resizeAndPreserve(nbEdges_);
-
-      // Create faces
-      face_lon.resize(nbFaces_);
-      face_lat.resize(nbFaces_);
-      face_lon = lonvalue;
-      face_lat = latvalue;
-      facesAreWritten = true;
-
-    } // nvertex > 2
-    
-  } // createMesh()
+//  void CMesh::createMesh(const CArray<double, 1>& lonvalue, const CArray<double, 1>& latvalue,
+//            const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat)
+//  {
+//    int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
+//
+//    if (nvertex == 1)
+//    {
+//      nbNodes_ = lonvalue.numElements();
+//      node_lon.resizeAndPreserve(nbNodes_);
+//      node_lat.resizeAndPreserve(nbNodes_);
+//      for (int nn = 0; nn < nbNodes_; ++nn)
+//      {
+//        if (map_nodes.find(make_pair (lonvalue(nn), latvalue(nn))) == map_nodes.end())
+//        {
+//          map_nodes[make_pair (lonvalue(nn), latvalue(nn))] = nn ;
+//          node_lon(nn) = lonvalue(nn);
+//          node_lat(nn) = latvalue(nn);
+//        }
+//      }
+//    }
+//    else if (nvertex == 2)
+//    {
+//      nbEdges_ = bounds_lon.shape()[1];
+//
+//      // Create nodes and edge_node connectivity
+//      node_lon.resizeAndPreserve(nbEdges_*nvertex); // Max possible number of nodes
+//      node_lat.resizeAndPreserve(nbEdges_*nvertex);
+//      edge_nodes.resizeAndPreserve(nvertex, nbEdges_);
+//
+//      for (int ne = 0; ne < nbEdges_; ++ne)
+//      {
+//        for (int nv = 0; nv < nvertex; ++nv)
+//        {
+//          if (map_nodes.find(make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))) == map_nodes.end())
+//          {
+//            map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv, ne))] = nbNodes_ ;
+//            edge_nodes(nv,ne) = nbNodes_ ;
+//            node_lon(nbNodes_) = bounds_lon(nv, ne);
+//            node_lat(nbNodes_) = bounds_lat(nv, ne);
+//            ++nbNodes_ ;
+//          }
+//          else
+//            edge_nodes(nv,ne) = map_nodes[make_pair (bounds_lon(nv, ne), bounds_lat(nv ,ne))];
+//        }
+//      }
+//      node_lon.resizeAndPreserve(nbNodes_);
+//      node_lat.resizeAndPreserve(nbNodes_);
+//
+//      // Create edges
+//      edge_lon.resizeAndPreserve(nbEdges_);
+//      edge_lat.resizeAndPreserve(nbEdges_);
+//
+//      for (int ne = 0; ne < nbEdges_; ++ne)
+//      {
+//        if (map_edges.find(make_ordered_pair (edge_nodes(0,ne), edge_nodes(1,ne))) == map_edges.end())
+//        {
+//          map_edges[make_ordered_pair ( edge_nodes(0,ne), edge_nodes(1,ne) )] = ne ;
+//          edge_lon(ne) = lonvalue(ne);
+//          edge_lat(ne) = latvalue(ne);
+//        }
+//
+//      }
+//      edgesAreWritten = true;
+//    }
+//    else
+//    {
+//      nbFaces_ = bounds_lon.shape()[1];
+//
+//      // Create nodes and face_node connectivity
+//      node_lon.resizeAndPreserve(nbFaces_*nvertex);  // Max possible number of nodes
+//      node_lat.resizeAndPreserve(nbFaces_*nvertex);
+//      face_nodes.resize(nvertex, nbFaces_);
+//
+//      for (int nf = 0; nf < nbFaces_; ++nf)
+//      {
+//        for (int nv = 0; nv < nvertex; ++nv)
+//        {
+//          if (map_nodes.find(make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))) == map_nodes.end())
+//          {
+//            map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv, nf))] = nbNodes_ ;
+//            face_nodes(nv,nf) = nbNodes_ ;
+//            node_lon(nbNodes_) = bounds_lon(nv, nf);
+//            node_lat(nbNodes_) = bounds_lat(nv ,nf);
+//            ++nbNodes_ ;
+//          }
+//          else
+//          {
+//            face_nodes(nv,nf) = map_nodes[make_pair (bounds_lon(nv, nf), bounds_lat(nv ,nf))];
+//          }
+//        }
+//      }
+//      node_lon.resizeAndPreserve(nbNodes_);
+//      node_lat.resizeAndPreserve(nbNodes_);
+//
+//      // Create edges and edge_nodes connectivity
+//      edge_lon.resizeAndPreserve(nbFaces_*nvertex); // Max possible number of edges
+//      edge_lat.resizeAndPreserve(nbFaces_*nvertex);
+//      edge_nodes.resizeAndPreserve(2, nbFaces_*nvertex);
+//      edge_faces.resize(2, nbFaces_*nvertex);
+//      face_edges.resize(nvertex, nbFaces_);
+//      face_faces.resize(nvertex, nbFaces_);
+//
+//      vector<int> countEdges(nbFaces_*nvertex);   // needed in case if edges have been already generated
+//      vector<int> countFaces(nbFaces_);
+//      countEdges.assign(nbFaces_*nvertex, 0);
+//      countFaces.assign(nbFaces_, 0);
+//      int edge;
+//      for (int nf = 0; nf < nbFaces_; ++nf)
+//      {
+//        for (int nv1 = 0; nv1 < nvertex; ++nv1)
+//        {
+//          int nv = 0;
+//          int nv2 = (nv1 < nvertex -1 ) ? (nv1 + 1) : (nv1 + 1 - nvertex); // cyclic rotation
+//          if (map_edges.find(make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))) == map_edges.end())
+//          {
+//            map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))] = nbEdges_ ;
+//            face_edges(nv1,nf) = map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))];
+//            edge_faces(0,nbEdges_) = nf;
+//            edge_faces(1,nbEdges_) = -999;
+//            face_faces(nv1,nf) = 999999;
+//            edge_nodes(Range::all(),nbEdges_) = face_nodes(nv1,nf), face_nodes(nv2,nf);
+//            edge_lon(nbEdges_) = ( abs( node_lon(face_nodes(nv1,nf)) - node_lon(face_nodes(nv2,nf))) < 180.) ?
+//                        (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5) :
+//                        (( node_lon(face_nodes(nv1,nf)) + node_lon(face_nodes(nv2,nf))) * 0.5 -180.);
+//            edge_lat(nbEdges_) = ( node_lat(face_nodes(nv1,nf)) + node_lat(face_nodes(nv2,nf)) ) * 0.5;
+//            ++nbEdges_;
+//          }
+//          else
+//          {
+//            edge = map_edges[make_ordered_pair (face_nodes(nv1,nf), face_nodes(nv2,nf))];
+//            face_edges(nv1,nf) = edge;
+//            if (edgesAreWritten)
+//            {
+//              edge_faces(countEdges[edge], edge) = nf;
+//              if (countEdges[edge]==0)
+//              {
+//                face_faces(nv1,nf) = 999999;
+//              }
+//              else
+//              {
+//                int face1 = nf; // = edge_faces(1,edge)
+//                int face2 = edge_faces(0,edge);
+//                face_faces(countFaces[face1], face1) =  face2;
+//                face_faces(countFaces[face2], face2) =  face1;
+//                ++(countFaces[face1]);
+//                ++(countFaces[face2]);
+//              }
+//            }
+//            else
+//            {
+//              edge_faces(1,edge) = nf;
+//              int face1 = nf; // = edge_faces(1,edge)
+//              int face2 = edge_faces(0,edge);
+//              face_faces(countFaces[face1], face1) =  face2;
+//              face_faces(countFaces[face2], face2) =  face1;
+//              ++(countFaces[face1]);
+//              ++(countFaces[face2]);
+//            }
+//            ++(countEdges[edge]);
+//          }
+//        }
+//      }
+//      edge_nodes.resizeAndPreserve(2, nbEdges_);
+//      edge_faces.resizeAndPreserve(2, nbEdges_);
+//      edge_lon.resizeAndPreserve(nbEdges_);
+//      edge_lat.resizeAndPreserve(nbEdges_);
+//
+//      // Create faces
+//      face_lon.resize(nbFaces_);
+//      face_lat.resize(nbFaces_);
+//      face_lon = lonvalue;
+//      face_lat = latvalue;
+//      facesAreWritten = true;
+//
+//    } // nvertex > 2
+//
+//  } // createMesh()
 
 ///----------------------------------------------------------------
 /*!
@@ -2087,7 +2013,7 @@ namespace xios {
       }
 
     // faceToFaces connectivity
-    boost::unordered_map <int, int> mapFaces;  // mapFaces = < hash(face1, face2), hash> (the mapped value is irrelevant)
+    std::unordered_map <int, int> mapFaces;  // mapFaces = < hash(face1, face2), hash> (the mapped value is irrelevant)
     int maxNb = 20;                            // some assumption on the max possible number of neighboring cells
     faceToFaces.resize(maxNb, nbFaces);
     CClientClientDHTSizet::Index2VectorInfoTypeMap::iterator it;
@@ -2144,7 +2070,7 @@ namespace xios {
     // faceToNodes connectivity
     CArray<double, 2> faceToNodes (nvertex, nbFaces);
 
-    boost::unordered_map <pair<double,double>, int> mapNodes;
+    std::unordered_map <pairDouble, int, boost::hash<pairDouble> > mapNodes;
 
     for (int nf = 0; nf < nbFaces; ++nf)
       for (int nv = 0; nv < nvertex; ++nv)
@@ -2160,7 +2086,7 @@ namespace xios {
       }
 
     // faceToFaces connectivity
-    boost::unordered_map <pair<int,int>, int> mapEdges;
+    std::unordered_map <pairInt, int, boost::hash<pairInt> > mapEdges;
     faceToFaces.resize(nvertex, nbFaces);
     CArray<int, 2> edgeToFaces(2, nbFaces*nvertex); // max possible
 

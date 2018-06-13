@@ -60,7 +60,7 @@ namespace xios
             virtual void closeFile_     (void);
             virtual void syncFile_      (void);
             virtual void writeTimeAxis_ (CField* field,
-                                         const boost::shared_ptr<CCalendar> cal);
+                                         const std::shared_ptr<CCalendar> cal);
 
          protected :
             void writeUnstructuredDomain (CDomain* domain);

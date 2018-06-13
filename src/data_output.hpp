@@ -58,7 +58,7 @@ namespace xios
             virtual void writeGridCompressed_(CGrid* grid)   = 0;
             virtual void writeTimeDimension_(void)           = 0;
             virtual void writeTimeAxis_ (CField*     field,
-                                         const shared_ptr<CCalendar> cal) = 0;
+                                         const std::shared_ptr<CCalendar> cal) = 0;
 
             /// Propriétés protégées ///
             EDataOutputType type;

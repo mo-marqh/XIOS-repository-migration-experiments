@@ -35,7 +35,7 @@ namespace xios
        * \param defaultValue default value
        * \return the first and the last filters of the filter graph
        */
-      static std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
+      static std::pair<std::shared_ptr<CSpatialTransformFilter>, std::shared_ptr<CSpatialTransformFilter> >
       buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, bool hasMissingValue, double defaultValue);
 
     protected:
@@ -140,7 +140,7 @@ namespace xios
       CGridTransformation* gridTransformation; //!< The grid transformation used by the engine
 
       //! The allocated engines
-      static std::map<CGridTransformation*, boost::shared_ptr<CSpatialTransformFilterEngine> > engines;
+      static std::map<CGridTransformation*, std::shared_ptr<CSpatialTransformFilterEngine> > engines;
   }; // class CSpatialTransformFilterEngine
 } // namespace xios
 

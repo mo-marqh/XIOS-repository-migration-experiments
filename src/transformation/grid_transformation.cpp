@@ -14,7 +14,7 @@
 #include "distribution_client.hpp"
 #include "mpi_tag.hpp"
 #include "grid.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "timer.hpp"
 
 namespace xios {
@@ -478,7 +478,7 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
   // Find out number of index sent from grid source and number of index received on grid destination
   SourceDestinationIndexMap::const_iterator itbIndex = globaIndexWeightFromSrcToDst.begin(),
                                             iteIndex = globaIndexWeightFromSrcToDst.end(), itIndex;
-  typedef boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > > SendIndexMap;
+  typedef std::unordered_map<size_t, std::vector<std::pair<size_t,double> > > SendIndexMap;
   std::map<int,int> sendRankSizeMap,recvRankSizeMap;
   int connectedClient = globaIndexWeightFromSrcToDst.size();
   int* recvCount=new int[nbClient];
@@ -521,8 +521,8 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
   // Sending global index of grid source to corresponding process as well as the corresponding mask
   std::vector<MPI_Request> requests;
   std::vector<MPI_Status> status;
-  boost::unordered_map<int, unsigned char* > recvMaskDst;
-  boost::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
+  std::unordered_map<int, unsigned char* > recvMaskDst;
+  std::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
   for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
   {
     int recvRank = itRecv->first;
@@ -536,10 +536,10 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
     MPI_Irecv(recvMaskDst[recvRank], recvSize, MPI_UNSIGNED_CHAR, recvRank, 47, client->intraComm, &requests.back());
   }
 
-  boost::unordered_map<int, CArray<size_t,1> > globalIndexDst;
-  boost::unordered_map<int, CArray<double,1> > weightDst;
-  boost::unordered_map<int, unsigned char* > sendMaskDst;
-  boost::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
+  std::unordered_map<int, CArray<size_t,1> > globalIndexDst;
+  std::unordered_map<int, CArray<double,1> > weightDst;
+  std::unordered_map<int, unsigned char* > sendMaskDst;
+  std::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
   {
     int sendRank = itIndex->first;
@@ -669,12 +669,12 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
   delete [] sendSizeBuff;
   delete [] recvSizeBuff;
 
-  boost::unordered_map<int, unsigned char* >::const_iterator itChar;
+  std::unordered_map<int, unsigned char* >::const_iterator itChar;
   for (itChar = sendMaskDst.begin(); itChar != sendMaskDst.end(); ++itChar)
     delete [] itChar->second;
   for (itChar = recvMaskDst.begin(); itChar != recvMaskDst.end(); ++itChar)
     delete [] itChar->second;
-  boost::unordered_map<int, unsigned long* >::const_iterator itLong;
+  std::unordered_map<int, unsigned long* >::const_iterator itLong;
   for (itLong = sendGlobalIndexSrc.begin(); itLong != sendGlobalIndexSrc.end(); ++itLong)
     delete [] itLong->second;
   for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)

@@ -10,9 +10,9 @@ namespace xios
     : fieldId(fieldId)
   { /* Nothing to do */ }
 
-  boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<COutputPin> outputPin;
+    std::shared_ptr<COutputPin> outputPin;
 
     if (fieldId == "this")
       outputPin = thisField.getSelfReference(gc);
@@ -20,7 +20,7 @@ namespace xios
     {
       CField* field = CField::get(fieldId);
       if (field == &thisField)
-        ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+        ERROR("std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
               << "The field " << fieldId << " has an invalid reference to itself. "
               << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
 
@@ -28,7 +28,7 @@ namespace xios
       outputPin = field->getInstantDataFilter();
     }
     else
-      ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+      ERROR("std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
             << "The field " << fieldId << " does not exist.");
 
     return outputPin;
@@ -38,9 +38,9 @@ namespace xios
     : fieldId(fieldId)
   { /* Nothing to do */ }
 
-  boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<COutputPin> outputPin;
+    std::shared_ptr<COutputPin> outputPin;
 
     if (fieldId == "this")
       outputPin = thisField.getSelfTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
@@ -48,7 +48,7 @@ namespace xios
     {
       CField* field = CField::get(fieldId);
       if (field == &thisField)
-        ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+        ERROR("std::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
               << "The field " << fieldId << " has an invalid reference to itself. "
               << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
 
@@ -56,7 +56,7 @@ namespace xios
       outputPin = field->getTemporalDataFilter(gc, thisField.freq_op.isEmpty() ? TimeStep : thisField.freq_op);
     }
     else
-      ERROR("boost::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
+      ERROR("std::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
             << "The field " << fieldId << " does not exist.");
 
     return outputPin;
@@ -71,9 +71,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterUnaryOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterUnaryOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CUnaryArithmeticFilter> filter(new CUnaryArithmeticFilter(gc, opId));
+    std::shared_ptr<CUnaryArithmeticFilter> filter(new CUnaryArithmeticFilter(gc, opId));
     child->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -88,9 +88,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CScalarFieldArithmeticFilter> filter(new CScalarFieldArithmeticFilter(gc, opId, child1->reduce()));
+    std::shared_ptr<CScalarFieldArithmeticFilter> filter(new CScalarFieldArithmeticFilter(gc, opId, child1->reduce()));
     child2->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -105,9 +105,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldScalarArithmeticFilter> filter(new CFieldScalarArithmeticFilter(gc, opId, child2->reduce()));
+    std::shared_ptr<CFieldScalarArithmeticFilter> filter(new CFieldScalarArithmeticFilter(gc, opId, child2->reduce()));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -122,9 +122,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldFieldArithmeticFilter> filter(new CFieldFieldArithmeticFilter(gc, opId));
+    std::shared_ptr<CFieldFieldArithmeticFilter> filter(new CFieldFieldArithmeticFilter(gc, opId));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     child2->reduce(gc, thisField)->connectOutput(filter, 1);
     return filter;
@@ -144,9 +144,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterScalarScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CScalarScalarFieldArithmeticFilter> filter(new CScalarScalarFieldArithmeticFilter(gc, opId, child1->reduce(),child2->reduce()));
+    std::shared_ptr<CScalarScalarFieldArithmeticFilter> filter(new CScalarScalarFieldArithmeticFilter(gc, opId, child1->reduce(),child2->reduce()));
     child3->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -163,9 +163,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterScalarFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CScalarFieldScalarArithmeticFilter> filter(new CScalarFieldScalarArithmeticFilter(gc, opId, child1->reduce(),child3->reduce()));
+    std::shared_ptr<CScalarFieldScalarArithmeticFilter> filter(new CScalarFieldScalarArithmeticFilter(gc, opId, child1->reduce(),child3->reduce()));
     child2->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -182,9 +182,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterScalarFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CScalarFieldFieldArithmeticFilter> filter(new CScalarFieldFieldArithmeticFilter(gc, opId, child1->reduce()));
+    std::shared_ptr<CScalarFieldFieldArithmeticFilter> filter(new CScalarFieldFieldArithmeticFilter(gc, opId, child1->reduce()));
     child2->reduce(gc, thisField)->connectOutput(filter, 0);
     child3->reduce(gc, thisField)->connectOutput(filter, 1);
     return filter;
@@ -203,9 +203,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldScalarScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldScalarScalarArithmeticFilter> filter(new CFieldScalarScalarArithmeticFilter(gc, opId, child2->reduce(),child3->reduce()));
+    std::shared_ptr<CFieldScalarScalarArithmeticFilter> filter(new CFieldScalarScalarArithmeticFilter(gc, opId, child2->reduce(),child3->reduce()));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     return filter;
   }
@@ -223,9 +223,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldScalarFieldArithmeticFilter> filter(new CFieldScalarFieldArithmeticFilter(gc, opId, child2->reduce()));
+    std::shared_ptr<CFieldScalarFieldArithmeticFilter> filter(new CFieldScalarFieldArithmeticFilter(gc, opId, child2->reduce()));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     child3->reduce(gc, thisField)->connectOutput(filter, 1);
     return filter;
@@ -244,9 +244,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldFieldScalarArithmeticFilter> filter(new CFieldFieldScalarArithmeticFilter(gc, opId, child3->reduce()));
+    std::shared_ptr<CFieldFieldScalarArithmeticFilter> filter(new CFieldFieldScalarArithmeticFilter(gc, opId, child3->reduce()));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     child2->reduce(gc, thisField)->connectOutput(filter, 1);
     return filter;
@@ -264,9 +264,9 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  boost::shared_ptr<COutputPin> CFilterFieldFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
   {
-    boost::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId));
+    std::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId));
     child1->reduce(gc, thisField)->connectOutput(filter, 0);
     child2->reduce(gc, thisField)->connectOutput(filter, 1);
     child3->reduce(gc, thisField)->connectOutput(filter, 2);

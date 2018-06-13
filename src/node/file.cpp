@@ -63,7 +63,7 @@ namespace xios {
    This function allows to access the data writer object.
    \return data writer object.
    */
-   boost::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
+   std::shared_ptr<CDataOutput> CFile::getDataOutput(void) const
    {
       return data_out;
    }
@@ -74,7 +74,7 @@ namespace xios {
    This function allows to access the data reader object.
    \return data reader object.
    */
-   boost::shared_ptr<CDataInput> CFile::getDataInput(void) const
+   std::shared_ptr<CDataInput> CFile::getDataInput(void) const
    {
       return data_in;
    }
@@ -544,7 +544,7 @@ namespace xios {
 
          if (isOpen) data_out->closeFile();
 
-        data_out = shared_ptr<CDataOutput>(new CNc4DataOutput(this, oss.str(), append, useClassicFormat, useCFConvention,
+        data_out = std::shared_ptr<CDataOutput>(new CNc4DataOutput(this, oss.str(), append, useClassicFormat, useCFConvention,
                                                               fileComm, multifile, isCollective, time_counter_name));
         isOpen = true;
 
@@ -668,9 +668,9 @@ namespace xios {
       if (isOpen) data_out->closeFile();
       bool ugridConvention = !convention.isEmpty() ? (convention == convention_attr::UGRID) : false;
       if (time_counter_name.isEmpty())
-        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention));
+        data_in = std::shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention));
       else
-        data_in = shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention, time_counter_name));
+        data_in = std::shared_ptr<CDataInput>(new CNc4DataInput(oss.str(), readComm, multifile, isCollective, readMetaDataPar, ugridConvention, time_counter_name));
       isOpen = true;
     }
   }

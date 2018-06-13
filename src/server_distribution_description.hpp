@@ -12,7 +12,7 @@
 
 #include "xios_spl.hpp"
 #include "array_new.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace xios
 {
@@ -38,7 +38,7 @@ class CServerDistributionDescription
 
     void computeServerDistribution(bool doComputeGlobalIndex = false, int positionDimensionDistributed = 1);
     std::vector<int> computeServerGlobalIndexInRange(const std::pair<size_t, size_t>& indexBeginEnd, int positionDimensionDistributed = 1);
-    std::vector<int> computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+    std::vector<int> computeServerGlobalByElement(std::vector<std::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                                   int rank,
                                                   int clientSize,
                                                   const CArray<int,1>& axisDomainOrder,
@@ -47,7 +47,7 @@ class CServerDistributionDescription
     std::vector<std::vector<int> > getServerIndexBegin() const;
     std::vector<std::vector<int> > getServerDimensionSizes() const;
     const std::vector<CArray<size_t,1> >& getGlobalIndex() const;
-    const boost::unordered_map<size_t,int>& getGlobalIndexRange() const;
+    const std::unordered_map<size_t,int>& getGlobalIndexRange() const;
     int getDimensionDistributed();
 
     static int defaultDistributedDimension(int gridDimension,                                   
@@ -72,7 +72,7 @@ class CServerDistributionDescription
     std::vector<CArray<size_t,1> > vecGlobalIndex_;
 
     //!< In case we need only global index of one server with specific rank
-    boost::unordered_map<size_t,int> globalIndex_;
+    std::unordered_map<size_t,int> globalIndex_;
 
     //!< Type of distribution on server side
     ServerDistributionType serverType_;

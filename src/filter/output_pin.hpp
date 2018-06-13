@@ -28,7 +28,7 @@ namespace xios
        * \param inputPin the input pin to connect
        * \param inputSlot the input slot number
        */
-      void connectOutput(boost::shared_ptr<CInputPin> inputPin, size_t inputSlot);
+      void connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot);
 
       /*!
        * Triggers the output of any buffered packet for the specified timestamp.
@@ -92,7 +92,7 @@ namespace xios
       bool manualTrigger;
 
       //!< The list of connected filters and the corresponding slot numbers
-      std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> > outputs;
+      std::vector<std::pair<std::shared_ptr<CInputPin>, size_t> > outputs;
 
       //! Output buffer, store the packets until the output is triggered
       std::map<Time, CDataPacketPtr> outputPackets;

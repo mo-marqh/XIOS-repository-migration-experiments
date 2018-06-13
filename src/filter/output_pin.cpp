@@ -8,7 +8,7 @@ namespace xios
     , manualTrigger(manualTrigger)
   { /* Nothing to do */ }
 
-  void COutputPin::connectOutput(boost::shared_ptr<CInputPin> inputPin, size_t inputSlot)
+  void COutputPin::connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot)
   {
     if (!inputPin)
       ERROR("void COutputPin::connectOutput(CInputPin* inputPin, size_t inputSlot)",
@@ -41,7 +41,7 @@ namespace xios
       ERROR("void COutputPin::deliverOuput(CDataPacketPtr packet)",
             "The packet cannot be null.");
 
-    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::iterator it, itEnd;
+    std::vector<std::pair<std::shared_ptr<CInputPin>, size_t> >::iterator it, itEnd;
     for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
       it->first->setInput(it->second, packet);
   }
@@ -67,7 +67,7 @@ namespace xios
 
   bool COutputPin::mustAutoTrigger() const
   {
-    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
+    std::vector<std::pair<std::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
     for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
     {
       if (it->first->mustAutoTrigger())
@@ -79,14 +79,14 @@ namespace xios
 
   void COutputPin::setOutputTriggers()
   {
-    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::iterator it, itEnd;
+    std::vector<std::pair<std::shared_ptr<CInputPin>, size_t> >::iterator it, itEnd;
     for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
       it->first->setInputTrigger(it->second, this);
   }
 
   bool COutputPin::isDataExpected(const CDate& date) const
   {
-    std::vector<std::pair<boost::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
+    std::vector<std::pair<std::shared_ptr<CInputPin>, size_t> >::const_iterator it, itEnd;
     for (it = outputs.begin(), itEnd = outputs.end(); it != itEnd; ++it)
     {
       if (it->first->isDataExpected(date))

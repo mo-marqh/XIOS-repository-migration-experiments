@@ -22,7 +22,7 @@
 
 namespace xios {
 
-  shared_ptr<CContextGroup> CContext::root;
+  std::shared_ptr<CContextGroup> CContext::root;
 
    /// ////////////////////// Définitions ////////////////////// ///
 
@@ -65,7 +65,7 @@ namespace xios {
    */
    CContextGroup* CContext::getRoot(void)
    {
-      if (root.get()==NULL) root=shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName()));
+      if (root.get()==NULL) root=std::shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName()));
       return root.get();
    }
 
@@ -75,7 +75,7 @@ namespace xios {
    \brief Get calendar of a context
    \return Calendar
    */
-   boost::shared_ptr<CCalendar> CContext::getCalendar(void) const
+   std::shared_ptr<CCalendar> CContext::getCalendar(void) const
    {
       return (this->calendar);
    }
@@ -86,7 +86,7 @@ namespace xios {
    \brief Set a context with a calendar
    \param[in] newCalendar new calendar
    */
-   void CContext::setCalendar(boost::shared_ptr<CCalendar> newCalendar)
+   void CContext::setCalendar(std::shared_ptr<CCalendar> newCalendar)
    {
       this->calendar = newCalendar;
    }
@@ -1413,7 +1413,7 @@ namespace xios {
    {
      idServer_ = this->getId();
      idServer_ += "_server_";
-     idServer_ += boost::lexical_cast<string>(i);
+     idServer_ += std::to_string(static_cast<unsigned long long>(i));
      return idServer_;
    }
 

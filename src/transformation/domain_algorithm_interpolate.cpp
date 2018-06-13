@@ -7,7 +7,7 @@
    \brief Algorithm for interpolation on a domain.
  */
 #include "domain_algorithm_interpolate.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "context.hpp"
 #include "context_client.hpp"
 #include "distribution_client.hpp"
@@ -535,7 +535,7 @@ void CDomainAlgorithmInterpolate::exchangeRemapInfo(std::map<int,std::vector<std
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-  boost::unordered_map<size_t,int> globalIndexOfDomainDest;
+  std::unordered_map<size_t,int> globalIndexOfDomainDest;
   int ni = domainDest_->ni.getValue();
   int nj = domainDest_->nj.getValue();
   int ni_glo = domainDest_->ni_glo.getValue();

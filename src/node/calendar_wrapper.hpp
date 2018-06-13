@@ -66,7 +66,7 @@ namespace xios {
 
     public :
       /// Accesseurs ///
-      boost::shared_ptr<CCalendar> getCalendar(bool checkValid = false) const;
+      std::shared_ptr<CCalendar> getCalendar(bool checkValid = false) const;
 
       const CDate& getInitDate() const;
       const CDate& getTimeOrigin() const;
@@ -77,7 +77,7 @@ namespace xios {
 
     private:
       // Calendar of context
-      boost::shared_ptr<CCalendar> calendar;
+      std::shared_ptr<CCalendar> calendar;
 
   }; // class CCalendarWrapper
 

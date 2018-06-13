@@ -70,7 +70,7 @@ namespace xios
          bool isEqual(T* obj, const vector<StdString>& excludedAttrs);
 
          /// Accesseur statique ///
-         static std::vector<boost::shared_ptr<DerivedType> > &
+         static std::vector<std::shared_ptr<DerivedType> > &
             GetAllVectobject(const StdString & contextId);
 
          /// Destructeur ///
@@ -82,8 +82,8 @@ namespace xios
          static T* get(const T* ptr) ;
          static T* get(const string& contextId, const string& id) ;
          T* get(void) ;
-         shared_ptr<T> getShared(void) ;
-         static shared_ptr<T> getShared(const T* ptr) ;
+         std::shared_ptr<T> getShared(void) ;
+         static std::shared_ptr<T> getShared(const T* ptr) ;
 
          static T* create(const string& id=string("")) ;
          static const vector<T*> getAll() ;
@@ -107,9 +107,9 @@ namespace xios
          /// Propriétés statiques ///
          static xios_map<StdString,
                 xios_map<StdString,
-                boost::shared_ptr<DerivedType> > > AllMapObj;
+                std::shared_ptr<DerivedType> > > AllMapObj;
          static xios_map<StdString,
-                std::vector<boost::shared_ptr<DerivedType> > > AllVectObj;
+                std::vector<std::shared_ptr<DerivedType> > > AllVectObj;
 
          static xios_map< StdString, long int > GenId ;
 

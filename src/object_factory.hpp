@@ -1,8 +1,7 @@
 #ifndef __XIOS_CObjectFactory__
 #define __XIOS_CObjectFactory__
 
-/// boost headers ///
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 /// XIOS headers ///
 #include "xios_spl.hpp"
@@ -23,13 +22,13 @@ namespace xios
          static StdString & GetCurrentContextId(void);
 
          template <typename U>
-            static  boost::shared_ptr<U> GetObject(const StdString & id);
+            static  std::shared_ptr<U> GetObject(const StdString & id);
 
          template <typename U>
-            static  boost::shared_ptr<U> GetObject(const StdString& context,const StdString & id);
+            static  std::shared_ptr<U> GetObject(const StdString& context,const StdString & id);
 
          template <typename U>
-            static  boost::shared_ptr<U> GetObject(const U * const object);
+            static  std::shared_ptr<U> GetObject(const U * const object);
 
          template <typename U>
             static  int GetObjectNum(void);
@@ -37,7 +36,7 @@ namespace xios
             static  int GetObjectIdNum(void);
 
          template <typename U>
-            static  const std::vector<boost::shared_ptr<U> > &
+            static  const std::vector<std::shared_ptr<U> > &
                GetObjectVector(const StdString & context = CObjectFactory::GetCurrentContextId());
 
          /// Tests ///
@@ -49,7 +48,7 @@ namespace xios
 
          /// Instanciateur ///
          template <typename U>
-            static  boost::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
+            static  std::shared_ptr<U> CreateObject(const StdString & id = StdString(""));
 
          template <typename U> static const StdString& GetUIdBase(void);
          template <typename U> static StdString GenUId(void);

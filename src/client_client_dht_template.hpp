@@ -14,7 +14,7 @@
 #include "array_new.hpp"
 #include "mpi.hpp"
 #include "policy.hpp"
-#include <boost/unordered_map.hpp>
+#include  <unordered_map>
 #include "dht_data_types.hpp"
 
 namespace xios
@@ -33,9 +33,9 @@ class CClientClientDHTTemplate: public HierarchyPolicy
   public:
     typedef T InfoType;
     static const int infoTypeSize = sizeof(InfoType);
-//    typedef typename boost::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
-    typedef typename boost::unordered_map<size_t,InfoType> Index2InfoTypeMap;
-    typedef typename boost::unordered_map<size_t,std::vector<InfoType> > Index2VectorInfoTypeMap;
+//    typedef typename std::unordered_map<InfoType, std::vector<size_t> > InfoType2IndexMap;
+    typedef typename std::unordered_map<size_t,InfoType> Index2InfoTypeMap;
+    typedef typename std::unordered_map<size_t,std::vector<InfoType> > Index2VectorInfoTypeMap;
 
   public:
     CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoInitMap,

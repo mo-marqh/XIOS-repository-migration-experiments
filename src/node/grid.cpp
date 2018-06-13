@@ -782,7 +782,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
          }
 
          // Compute mapping between client and server
-         std::vector<boost::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
+         std::vector<std::unordered_map<size_t,std::vector<int> > > indexServerOnElement;
          CServerDistributionDescription serverDistributionDescription(getGlobalDimension(), client->serverSize);
          std::vector<int> serverZeroIndex = serverDistributionDescription.computeServerGlobalByElement(indexServerOnElement,
                                                                                                     client->clientRank,
@@ -888,7 +888,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
       \param [in] client contextClient
       \param [out] globalIndexOnServer global index of grid and its corresponding rank of server.
    */
-   void CGrid::computeIndexByElement(const std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+   void CGrid::computeIndexByElement(const std::vector<std::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                      const CContextClient* client,
                                      CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
    {
@@ -941,7 +941,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      }
 
      std::vector<std::vector<bool> > elementOnServer(nbElement, std::vector<bool>(serverSize, false));
-     std::vector<boost::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
+     std::vector<std::unordered_map<int,std::vector<size_t> > > globalElementIndexOnServer(nbElement);
      CArray<int,1> nbIndexOnServer(serverSize); // Number of distributed global index held by each client for each server
      // Number of temporary distributed global index held by each client for each server
      // We have this variable for the case of non-distributed element (often axis) to check the duplicate server rank
@@ -949,7 +949,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      for (int idx = 0; idx < nbElement; ++idx)
      {
        nbIndexOnServer = 0;
-       const boost::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
+       const std::unordered_map<size_t,std::vector<int> >& indexServerElement = indexServerOnElement[idx];
        const CArray<size_t,1>& globalIndexElementOnClient = globalIndexElement[idx];
        CClientClientDHTInt clientClientDHT(indexServerElement, client->intraComm);
        clientClientDHT.computeIndexInfoMapping(globalIndexElementOnClient);

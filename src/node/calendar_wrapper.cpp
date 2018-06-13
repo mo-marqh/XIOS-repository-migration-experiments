@@ -31,7 +31,7 @@ namespace xios {
   \brief Extract the calendar from its wrapper
   \return the calendar
   */
-  boost::shared_ptr<CCalendar> CCalendarWrapper::getCalendar(bool checkValid /*= false*/) const
+  std::shared_ptr<CCalendar> CCalendarWrapper::getCalendar(bool checkValid /*= false*/) const
   {
     if (checkValid && !this->calendar)
       ERROR("CCalendarWrapper::getCalendar(bool checkValid = true)", << "The calendar was accessed before being created!");
@@ -91,7 +91,7 @@ namespace xios {
     {
 #define DECLARE_CALENDAR(MType, eType)                                     \
       if (type.getValue() == type_attr::eType)                             \
-        calendar = boost::shared_ptr<CCalendar>(new C##MType##Calendar());
+        calendar = std::shared_ptr<CCalendar>(new C##MType##Calendar());
 #include "calendar_type.conf"
 #undef DECLARE_CALENDAR
       // Special case for the user defined calendar
@@ -110,7 +110,7 @@ namespace xios {
           ERROR("CCalendarWrapper::createCalendar(void)",
                 << "Both leap_year_drift and leap_year_month attributes are mandatory if you wish to use leap_year_drift_offset attribute.");
 
-        boost::shared_ptr<CUserDefinedCalendar> userDefinedCalendar;
+        std::shared_ptr<CUserDefinedCalendar> userDefinedCalendar;
         if (year_length.isEmpty())
           userDefinedCalendar.reset(new CUserDefinedCalendar(day_length.getValue(), month_lengths.getValue()));
         else

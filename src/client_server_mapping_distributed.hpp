@@ -15,7 +15,7 @@
 #include "xios_spl.hpp"
 #include "array_new.hpp"
 #include "mpi.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "client_client_dht_template.hpp"
 
 namespace xios
@@ -33,7 +33,7 @@ class CClientServerMappingDistributed : public CClientServerMapping
 {
   public:
     /** Default constructor */
-    CClientServerMappingDistributed(const boost::unordered_map<size_t,int>& globalIndexOfServer,
+    CClientServerMappingDistributed(const std::unordered_map<size_t,int>& globalIndexOfServer,
                                     const MPI_Comm& clientIntraComm,
                                     bool isDataDistributed = true);
 

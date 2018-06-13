@@ -10,15 +10,15 @@ namespace xios
     : CFilter(gc, inputSlotsCount, engine), outputDefaultValue(outputValue)
   { /* Nothing to do */ }
 
-  std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >
+  std::pair<std::shared_ptr<CSpatialTransformFilter>, std::shared_ptr<CSpatialTransformFilter> >
   CSpatialTransformFilter::buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid, bool hasMissingValue, double missingValue)
   {
     if (!srcGrid || !destGrid)
-      ERROR("std::pair<boost::shared_ptr<CSpatialTransformFilter>, boost::shared_ptr<CSpatialTransformFilter> >"
+      ERROR("std::pair<std::shared_ptr<CSpatialTransformFilter>, std::shared_ptr<CSpatialTransformFilter> >"
             "buildFilterGraph(CGarbageCollector& gc, CGrid* srcGrid, CGrid* destGrid)",
             "Impossible to build the filter graph if either the source or the destination grid are null.");
 
-    boost::shared_ptr<CSpatialTransformFilter> firstFilter, lastFilter;
+    std::shared_ptr<CSpatialTransformFilter> firstFilter, lastFilter;
     // Note that this loop goes from the last transformation to the first transformation
     do
     {
@@ -35,9 +35,9 @@ namespace xios
       bool isSpatialTemporal=false ;
       for (it=algoList.begin();it!=algoList.end();++it)  if (it->second.first == TRANS_TEMPORAL_SPLITTING) isSpatialTemporal=true ;
 
-      boost::shared_ptr<CSpatialTransformFilter> filter ;
-      if( isSpatialTemporal) filter = boost::shared_ptr<CSpatialTransformFilter>(new CSpatialTemporalFilter(gc, engine, gridTransformation, defaultValue, inputCount));
-      else filter = boost::shared_ptr<CSpatialTransformFilter>(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
+      std::shared_ptr<CSpatialTransformFilter> filter ;
+      if( isSpatialTemporal) filter = std::shared_ptr<CSpatialTransformFilter>(new CSpatialTemporalFilter(gc, engine, gridTransformation, defaultValue, inputCount));
+      else filter = std::shared_ptr<CSpatialTransformFilter>(new CSpatialTransformFilter(gc, engine, defaultValue, inputCount));
 
       
       if (!lastFilter)
@@ -139,7 +139,7 @@ namespace xios
             "Impossible to construct a spatial transform filter engine without a valid grid transformation.");
   }
 
-  std::map<CGridTransformation*, boost::shared_ptr<CSpatialTransformFilterEngine> > CSpatialTransformFilterEngine::engines;
+  std::map<CGridTransformation*, std::shared_ptr<CSpatialTransformFilterEngine> > CSpatialTransformFilterEngine::engines;
 
   CSpatialTransformFilterEngine* CSpatialTransformFilterEngine::get(CGridTransformation* gridTransformation)
   {
@@ -147,10 +147,10 @@ namespace xios
       ERROR("CSpatialTransformFilterEngine& CSpatialTransformFilterEngine::get(CGridTransformation* gridTransformation)",
             "Impossible to get the requested engine, the grid transformation is invalid.");
 
-    std::map<CGridTransformation*, boost::shared_ptr<CSpatialTransformFilterEngine> >::iterator it = engines.find(gridTransformation);
+    std::map<CGridTransformation*, std::shared_ptr<CSpatialTransformFilterEngine> >::iterator it = engines.find(gridTransformation);
     if (it == engines.end())
     {
-      boost::shared_ptr<CSpatialTransformFilterEngine> engine(new CSpatialTransformFilterEngine(gridTransformation));
+      std::shared_ptr<CSpatialTransformFilterEngine> engine(new CSpatialTransformFilterEngine(gridTransformation));
       it = engines.insert(std::make_pair(gridTransformation, engine)).first;
     }
 

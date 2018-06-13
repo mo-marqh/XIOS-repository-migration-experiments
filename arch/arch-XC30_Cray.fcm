@@ -18,7 +18,7 @@
 %FCOMPILER      ftn
 %LINKER         CC
 
-%BASE_CFLAGS    -DMPICH_SKIP_MPICXX -h msglevel_4 -h zero -h gnu
+%BASE_CFLAGS     –hstd=c++11 -DMPICH_SKIP_MPICXX -h msglevel_4 -h zero -h gnu
 
 ## Only use -O3 if you can load module cce/8.3.7 or later
 #%PROD_CFLAGS    -O3 -DBOOST_DISABLE_ASSERTS

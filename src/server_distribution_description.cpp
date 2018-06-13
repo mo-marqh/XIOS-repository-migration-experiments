@@ -195,7 +195,7 @@ std::vector<int> CServerDistributionDescription::computeServerGlobalIndexInRange
   \param [in] axisDomainOrder the order of element in grid (2 for domain, 1 for axis, 0 for scalar)
   \param [in] positionDimensionDistributed dimension of server on which we make the cut.
 */
-std::vector<int> CServerDistributionDescription::computeServerGlobalByElement(std::vector<boost::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
+std::vector<int> CServerDistributionDescription::computeServerGlobalByElement(std::vector<std::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                                                               int clientRank,
                                                                               int clientSize,
                                                                               const CArray<int,1>& axisDomainOrder,
@@ -509,7 +509,7 @@ const std::vector<CArray<size_t,1> >& CServerDistributionDescription::getGlobalI
 /*!
   Get global index calculated by computeServerGlobalIndexInRange
 */
-const boost::unordered_map<size_t,int>& CServerDistributionDescription::getGlobalIndexRange() const
+const std::unordered_map<size_t,int>& CServerDistributionDescription::getGlobalIndexRange() const
 {
   return globalIndex_;
 }

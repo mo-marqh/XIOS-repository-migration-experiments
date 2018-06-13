@@ -42,20 +42,20 @@ namespace xios
    }
 
    template <typename U>
-      boost::shared_ptr<U> CObjectFactory::GetObject(const U * const object)
+      std::shared_ptr<U> CObjectFactory::GetObject(const U * const object)
    {
       if (CurrContext.size() == 0)
          ERROR("CObjectFactory::GetObject(const U * const object)",
                << "please define current context id !");
-      std::vector<boost::shared_ptr<U> > & vect =
+      std::vector<std::shared_ptr<U> > & vect =
                      U::AllVectObj[CObjectFactory::CurrContext];
 
-      typename std::vector<boost::shared_ptr<U> >::const_iterator
+      typename std::vector<std::shared_ptr<U> >::const_iterator
          it = vect.begin(), end = vect.end();
 
       for (; it != end; it++)
       {
-         boost::shared_ptr<U> ptr = *it;
+         std::shared_ptr<U> ptr = *it;
          if (ptr.get() == object)
             return (ptr);
       }
@@ -63,11 +63,11 @@ namespace xios
       ERROR("CObjectFactory::GetObject(const U * const object)",
                << "[type = " << U::GetName() << ", adress = " << object << "] "
                << "object was not found.");
-      return (boost::shared_ptr<U>()); // jamais atteint
+      return (std::shared_ptr<U>()); // jamais atteint
    }
 
    template <typename U>
-      boost::shared_ptr<U> CObjectFactory::GetObject(const StdString & id)
+      std::shared_ptr<U> CObjectFactory::GetObject(const StdString & id)
    {
       if (CurrContext.size() == 0)
          ERROR("CObjectFactory::GetObject(const StdString & id)",
@@ -80,7 +80,7 @@ namespace xios
    }
 
    template <typename U>
-      boost::shared_ptr<U> CObjectFactory::GetObject(const StdString & context, const StdString & id)
+      std::shared_ptr<U> CObjectFactory::GetObject(const StdString & context, const StdString & id)
    {
       if (!CObjectFactory::HasObject<U>(context,id))
          ERROR("CObjectFactory::GetObject(const StdString & id)",
@@ -90,7 +90,7 @@ namespace xios
    }
 
    template <typename U>
-   boost::shared_ptr<U> CObjectFactory::CreateObject(const StdString& id)
+   std::shared_ptr<U> CObjectFactory::CreateObject(const StdString& id)
    {
       if (CurrContext.empty())
          ERROR("CObjectFactory::CreateObject(const StdString& id)",
@@ -102,7 +102,7 @@ namespace xios
       }
       else
       {
-         boost::shared_ptr<U> value(new U(id.empty() ? CObjectFactory::GenUId<U>() : id));
+         std::shared_ptr<U> value(new U(id.empty() ? CObjectFactory::GenUId<U>() : id));
 
          U::AllVectObj[CObjectFactory::CurrContext].insert(U::AllVectObj[CObjectFactory::CurrContext].end(), value);
          U::AllMapObj[CObjectFactory::CurrContext].insert(std::make_pair(value->getId(), value));
@@ -112,7 +112,7 @@ namespace xios
    }
 
    template <typename U>
-      const std::vector<boost::shared_ptr<U> > &
+      const std::vector<std::shared_ptr<U> > &
          CObjectFactory::GetObjectVector(const StdString & context)
    {
       return (U::AllVectObj[context]);

@@ -164,7 +164,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
   CContextClient* client = context->client;
   int nbClient = client->clientSize;
 
-  typedef boost::unordered_map<int, std::vector<std::pair<int,double> > > SrcToDstMap;
+  typedef std::unordered_map<int, std::vector<std::pair<int,double> > > SrcToDstMap;
   int idx;
 
   // compute position of elements on grids
@@ -286,7 +286,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       {
         if (idx != elementPositionInGrid)
         {
-          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+          std::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
                                                                    ite = globalElementIndexOnProc_[idx].end();
           for (it = itb; it != ite; ++it) it->second.resize(1);
         }
@@ -300,7 +300,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       {
         if (idx != elementPositionInGrid)
         {
-          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+          std::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
                                                                    ite = globalElementIndexOnProc_[idx].end();
           for (it = itb; it != ite; ++it) procOfNonTransformedElements_.insert(it->first);
           if (procOfNonTransformedElements_.size() == nbClient)
@@ -358,7 +358,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
         {
           set<int> tmpSet ; 
           procList.swap(tmpSet) ;
-          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+          std::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
                                                                    ite = globalElementIndexOnProc_[idx].end();
           for (it = itb; it != ite; ++it)
           {
@@ -394,7 +394,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
     src2DstMap.rehash(std::ceil(transformationMapping_[idxTrans].size()/src2DstMap.max_load_factor()));
 
     // Build mapping between global source element index and global destination element index.
-    boost::unordered_map<int,std::vector<size_t> >().swap(globalElementIndexOnProc_[elementPositionInGrid]);
+    std::unordered_map<int,std::vector<size_t> >().swap(globalElementIndexOnProc_[elementPositionInGrid]);
     std::set<int> tmpCounter;
     itTransWeight = itbTransWeight;
     for (itTransMap = itbTransMap; itTransMap != iteTransMap; ++itTransMap, ++itTransWeight)
@@ -425,7 +425,7 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
       {
         if (idx != elementPositionInGrid)
         {
-          boost::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
+          std::unordered_map<int,std::vector<size_t> >::iterator itb = globalElementIndexOnProc_[idx].begin(), it,
                                                                    ite = globalElementIndexOnProc_[idx].end();
           for (it = itb; it != ite; ++it) it->second[0] = transPos(idxTrans);
         }
@@ -455,10 +455,10 @@ void CGenericAlgorithmTransformation::computeGlobalSourceIndex(int elementPositi
 */
 void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementPositionInGrid,
                                                                    const std::vector<int>& srcRank,
-                                                                   boost::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
+                                                                   std::unordered_map<int, std::vector<std::pair<int,double> > >& src2DstMap,
                                                                    CGrid* gridSrc,
                                                                    CGrid* gridDst,
-                                                                   std::vector<boost::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
+                                                                   std::vector<std::unordered_map<int,std::vector<size_t> > >& globalElementIndexOnProc,
                                                                    SourceDestinationIndexMap& globaIndexWeightFromSrcToDst)
 {
   SourceDestinationIndexMap globaIndexWeightFromSrcToDst_tmp ;
@@ -614,7 +614,7 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
       double weight ;
  
       SourceDestinationIndexMap::iterator rankIt,rankIte ;
-      boost::unordered_map<size_t, std::vector<std::pair<size_t,double> > >::iterator globalSrcIndexIt, globalSrcIndexIte ;
+      std::unordered_map<size_t, std::vector<std::pair<size_t,double> > >::iterator globalSrcIndexIt, globalSrcIndexIte ;
       std::vector<std::pair<size_t,double> >::iterator vectIt,vectIte ;
    
       rankIt=globaIndexWeightFromSrcToDst_tmp.begin() ; rankIte=globaIndexWeightFromSrcToDst_tmp.end() ;
@@ -652,7 +652,7 @@ void CGenericAlgorithmTransformation::computeGlobalGridIndexMapping(int elementP
 void CGenericAlgorithmTransformation::computeExchangeScalarIndex(CScalar* scalarDst,
                                                                  CScalar* scalarSrc,
                                                                  CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                                                 boost::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc)
+                                                                 std::unordered_map<int,std::vector<size_t> >& globalScalarIndexOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -676,7 +676,7 @@ void CGenericAlgorithmTransformation::computeExchangeScalarIndex(CScalar* scalar
 void CGenericAlgorithmTransformation::computeExchangeAxisIndex(CAxis* axisDst,
                                                                CAxis* axisSrc,
                                                                CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                                               boost::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc)
+                                                               std::unordered_map<int,std::vector<size_t> >& globalAxisIndexOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -745,7 +745,7 @@ void CGenericAlgorithmTransformation::computeExchangeAxisIndex(CAxis* axisDst,
 void CGenericAlgorithmTransformation::computeExchangeDomainIndex(CDomain* domainDst,
                                                                  CDomain* domainSrc,
                                                                  CArray<size_t,1>& destGlobalIndexPositionInGrid,
-                                                                 boost::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc)
+                                                                 std::unordered_map<int,std::vector<size_t> >& globalDomainIndexOnProc)
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;

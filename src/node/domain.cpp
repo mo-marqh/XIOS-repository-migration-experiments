@@ -149,12 +149,12 @@ namespace xios {
        }
      }
 
-     boost::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_[client->serverSize].end();
+     std::unordered_map<int, vector<size_t> >::const_iterator itIndexEnd = indSrv_[client->serverSize].end();
      // std::map<int, std::vector<int> >::const_iterator itWrittenIndexEnd = indWrittenSrv_.end();
      for (size_t k = 0; k < connectedServerRank_[client->serverSize].size(); ++k)
      {
        int rank = connectedServerRank_[client->serverSize][k];
-       boost::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_[client->serverSize].find(rank);
+       std::unordered_map<int, std::vector<size_t> >::const_iterator it = indSrv_[client->serverSize].find(rank);
        size_t idxCount = (it != itIndexEnd) ? it->second.size() : 0;
 
        // size estimation for sendIndex (and sendArea which is always smaller or equal)
@@ -1837,8 +1837,8 @@ namespace xios {
            // We only use several client to send "empty" message to these servers
            CServerDistributionDescription serverDescription(nGlobDomain, nbServer);
            std::vector<int> serverZeroIndex;
-           if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 0);
-           else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t,size_t>(indexBegin, indexEnd), 1);
+           if (isUnstructed_) serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 0);
+           else serverZeroIndex = serverDescription.computeServerGlobalIndexInRange(std::make_pair<size_t&,size_t&>(indexBegin, indexEnd), 1);
 
            std::list<int> serverZeroIndexLeader;
            std::list<int> serverZeroIndexNotLeader;
@@ -1895,7 +1895,7 @@ namespace xios {
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
       size_t nbWritten = 0, indGlo;      
-      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+      std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;          
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                        itSrve = writtenGlobalIndex.end(), itSrv;
@@ -1931,7 +1931,7 @@ namespace xios {
       // if (isCompressible())
       // {
       //   nbWritten = 0;
-      //   boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      //   std::unordered_map<size_t,size_t> localGlobalIndexMap;
       //   for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       //   {
       //     indGlo = *itSrv;
@@ -1995,11 +1995,11 @@ namespace xios {
       CDistributionServer srvDist(server->intraCommSize, nBegin, nSize, nBeginGlobal, nGlob); 
       const CArray<size_t,1>& writtenGlobalIndex  = srvDist.getGlobalIndex();
 
-      boost::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
+      std::unordered_map<size_t,size_t>::const_iterator itb = globalLocalIndexMap_.begin(),
                                                           ite = globalLocalIndexMap_.end(), it;   
       CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                        itSrve = writtenGlobalIndex.end(), itSrv;
-      boost::unordered_map<size_t,size_t> localGlobalIndexMap;
+      std::unordered_map<size_t,size_t> localGlobalIndexMap;
       for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
       {
         indGlo = *itSrv;
@@ -2075,7 +2075,7 @@ namespace xios {
       list<CMessage> list_msgsIndex;
       list<CArray<int,1> > list_indZoom, list_writtenInd, list_indGlob;
 
-      boost::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
+      std::unordered_map<int, vector<size_t> >::const_iterator itIndex, iteIndex;
       iteIndex = indSrv_[serverSize].end();
       for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
       {
@@ -2176,7 +2176,7 @@ namespace xios {
       list<CMessage> list_msgsMask;
       list<CArray<bool,1> > list_mask;
 
-      boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[serverSize].end();
       for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
       {
@@ -2223,7 +2223,7 @@ namespace xios {
       list<CMessage> list_msgsArea;
       list<CArray<double,1> > list_area;
 
-      boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[serverSize].end();
       for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
       {
@@ -2274,7 +2274,7 @@ namespace xios {
       list<CArray<double,1> > list_lon, list_lat;
       list<CArray<double,2> > list_boundslon, list_boundslat;
 
-      boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[serverSize].end();
       for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
       {
@@ -2391,7 +2391,7 @@ namespace xios {
         }
       }
 
-      boost::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
+      std::unordered_map<int, vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[serverSize].end();
       for (int k = 0; k < connectedServerRank_[serverSize].size(); ++k)
       {

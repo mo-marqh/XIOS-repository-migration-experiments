@@ -11,7 +11,7 @@
 
 #include "xios_spl.hpp"
 #include "array_new.hpp"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 namespace xios {
 /*!
@@ -23,7 +23,7 @@ distribution of index on client or server side.
 class CDistribution
 {
   public:
-  typedef boost::unordered_map<size_t,int> GlobalLocalMap;
+  typedef std::unordered_map<size_t,int> GlobalLocalMap;
 
   public:
     /** Default constructor */

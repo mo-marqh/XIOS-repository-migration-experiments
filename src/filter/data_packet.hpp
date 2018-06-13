@@ -1,7 +1,7 @@
 #ifndef __XIOS_CDataPacket__
 #define __XIOS_CDataPacket__
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "array_new.hpp"
 #include "date.hpp"
@@ -42,8 +42,8 @@ namespace xios
     };
   }; // struct CDataPacket
 
-  typedef boost::shared_ptr<CDataPacket> CDataPacketPtr;
-  typedef boost::shared_ptr<const CDataPacket> CConstDataPacketPtr;
+  typedef std::shared_ptr<CDataPacket> CDataPacketPtr;
+  typedef std::shared_ptr<const CDataPacket> CConstDataPacketPtr;
 } // namespace xios
 
 #endif //__XIOS_CDataPacket__

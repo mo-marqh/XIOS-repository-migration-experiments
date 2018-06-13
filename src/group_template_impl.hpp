@@ -325,19 +325,19 @@ namespace xios
 //   }
 
 //   template <class U, class V, class W>
-//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::get(const string& id) 
+//   std::shared_ptr<V> CGroupTemplate<U, V, W>::get(const string& id) 
 //   {
 //       return CObjectFactory::GetObject<V>(id) ;
 //   }
 
 //   template <class U, class V, class W>
-//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::get() 
+//   std::shared_ptr<V> CGroupTemplate<U, V, W>::get() 
 //   {
 //       return CObjectFactory::GetObject<V>(this) ;
 //   }
    
 //   template <class U, class V, class W>
-//   boost::shared_ptr<V> CGroupTemplate<U, V, W>::create(const string& id) 
+//   std::shared_ptr<V> CGroupTemplate<U, V, W>::create(const string& id) 
 //   {
 //       return CObjectFactory::CreateObject<V>(id) ;
 //   }
