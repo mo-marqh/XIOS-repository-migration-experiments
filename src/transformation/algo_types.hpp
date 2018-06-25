@@ -29,6 +29,7 @@
 #include "axis_algorithm_duplicate_scalar.hpp"
 #include "scalar_algorithm_reduce_scalar.hpp"
 #include "domain_algorithm_reorder.hpp"
+#include "domain_algorithm_extract.hpp"
 
 
 

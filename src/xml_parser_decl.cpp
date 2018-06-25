@@ -37,5 +37,6 @@ namespace xios
     macro( DuplicateScalarToAxis )
     macro( ReduceScalarToScalar )
     macro( ReorderDomain )
+    macro( ExtractDomain )
   }
 }

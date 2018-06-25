@@ -57,6 +57,8 @@ namespace xios
     class CReduceScalarToScalarGroup;
     class CReorderDomain;
     class CReorderDomainGroup;
+    class CExtractDomain;
+    class CExtractDomainGroup;
      
   template <typename T> inline string getStrType(void);
 
@@ -131,6 +133,8 @@ namespace xios
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomain)
   macro(CReorderDomainGroup)
+  macro(CExtractDomain)
+  macro(CExtractDomainGroup)
   
 #undef macro
 }

@@ -43,4 +43,5 @@ namespace xios
   macro(CDuplicateScalarToAxisGroup)
   macro(CReduceScalarToScalarGroup)
   macro(CReorderDomainGroup)
+  macro(CExtractDomainGroup)
 }

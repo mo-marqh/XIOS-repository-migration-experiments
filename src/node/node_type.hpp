@@ -28,6 +28,7 @@
 #include "duplicate_scalar_to_axis.hpp"
 #include "reduce_scalar_to_scalar.hpp"
 #include "reorder_domain.hpp"
+#include "extract_domain.hpp"
 
 
 #endif // __XIOS_NODE_TYPE__

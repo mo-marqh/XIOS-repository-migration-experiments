@@ -37,7 +37,8 @@ namespace xios
          eTemporalSplitting,
          eDuplicateScalarToAxis,
          eReduceScalarToScalar,
-         eReorderDomain
+         eReorderDomain,
+         eExtractDomain
        } ENodeType;
 
 } // namespace xios

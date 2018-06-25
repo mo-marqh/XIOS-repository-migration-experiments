@@ -613,6 +613,12 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
 {
   int tempI = dataIIndex + dataIBegin,
       tempJ = (dataJIndex + dataJBegin);
+  if (ni == 0)
+  {
+    int i = 0;
+    j = 0;
+    return i;
+  }
   int i = (dataDim == 1) ? (tempI) % ni
                          : (tempI) ;
   j = (dataDim == 1) ? (tempI) / ni

@@ -76,6 +76,7 @@ namespace xios {
      m["compute_connectivity_domain"] = TRANS_COMPUTE_CONNECTIVITY_DOMAIN;
      m["expand_domain"] = TRANS_EXPAND_DOMAIN;
      m["reorder_domain"] = TRANS_REORDER_DOMAIN;
+     m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
    }
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
@@ -1211,13 +1212,15 @@ namespace xios {
    //----------------------------------------------------------------
 
    /*
-     Fill in longitude and latitude value from clients (or models) into internal values lonvalue, latvalue which
-     will be used by XIOS.
+     Fill in longitude, latitude, bounds, and area into internal values (lonvalue, latvalue, bounds_lonvalue, bounds_latvalue, areavalue)
+     which will be used by XIOS.
    */
    void CDomain::completeLonLatClient(void)
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      checkBounds() ;
+     checkArea() ;
+
      if (!lonvalue_2d.isEmpty() && !lonlatValueExisted)
      {
        lonvalue.resize(ni * nj);
@@ -1309,6 +1312,19 @@ namespace xios {
          {
            bounds_lonvalue.reference(bounds_lon_1d);
            bounds_latvalue.reference(bounds_lat_1d);
+         }
+       }
+     }
+
+     if (!area.isEmpty() && areavalue.isEmpty())
+     {
+        areavalue.resize(ni*nj);
+       for (int j = 0; j < nj; ++j)
+       {
+         for (int i = 0; i < ni; ++i)
+         {
+           int k = j * ni + i;
+           areavalue(k) = area(i,j);
          }
        }
      }
@@ -1454,14 +1470,14 @@ namespace xios {
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_1d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(1)
+               << "'bounds_lon_1d' dimension is " << bounds_lon_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_2d.isEmpty() && nvertex.getValue() != bounds_lon_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lon_2d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(2)
+               << "'bounds_lon_2d' dimension is " << bounds_lon_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lon_1d.isEmpty() && lonvalue_1d.isEmpty())
@@ -1478,14 +1494,14 @@ namespace xios {
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_1d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(1)
+               << "'bounds_lat_1d' dimension is " << bounds_lat_1d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_2d.isEmpty() && nvertex.getValue() != bounds_lat_2d.extent(0))
          ERROR("CDomain::checkBounds(void)",
                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
                << "'bounds_lat_2d' dimension is not compatible with 'nvertex'." << std::endl
-               << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(2)
+               << "'bounds_lat_2d' dimension is " << bounds_lat_2d.extent(0)
                << " but nvertex is " << nvertex.getValue() << ".");
 
        if (!bounds_lat_1d.isEmpty() && latvalue_1d.isEmpty())
@@ -1524,18 +1540,18 @@ namespace xios {
                << "Local size is " << ni.getValue() << " x " << nj.getValue() << "." << std::endl
                << "Area size is " << area.extent(0) << " x " << area.extent(1) << ".");
        }
-       if (areavalue.isEmpty())
-       {
-          areavalue.resize(ni*nj);
-         for (int j = 0; j < nj; ++j)
-         {
-           for (int i = 0; i < ni; ++i)
-           {
-             int k = j * ni + i;
-             areavalue(k) = area(i,j);
-           }
-         }
-       }
+//       if (areavalue.isEmpty())
+//       {
+//          areavalue.resize(ni*nj);
+//         for (int j = 0; j < nj; ++j)
+//         {
+//           for (int i = 0; i < ni; ++i)
+//           {
+//             int k = j * ni + i;
+//             areavalue(k) = area(i,j);
+//           }
+//         }
+//       }
      }
    }
 

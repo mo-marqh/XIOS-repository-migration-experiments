@@ -39,6 +39,7 @@ void CGridTransformationSelector::registerTransformations()
   CDomainAlgorithmZoom::registerTrans();
   CDomainAlgorithmExpand::registerTrans();
   CDomainAlgorithmReorder::registerTrans();
+  CDomainAlgorithmExtract::registerTrans();
 }
 
 CGridTransformationSelector::CGridTransformationSelector(CGrid* destination, CGrid* source, TransformationType type)
