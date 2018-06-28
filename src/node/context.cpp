@@ -403,26 +403,18 @@ namespace xios {
     if (CServer::serverLevel == 0)
     {
       client->checkBuffers();
-      bool hasTmpBufferedEvent = client->hasTemporarilyBufferedEvent();
-      if (hasTmpBufferedEvent)
-        hasTmpBufferedEvent = !client->sendTemporarilyBufferedEvent();
-      // Don't process events if there is a temporarily buffered event
-      return server->eventLoop(!hasTmpBufferedEvent || !enableEventsProcessing);
+      return server->eventLoop(true);
     }
     else if (CServer::serverLevel == 1)
     {
-      if (!finalized)
-        client->checkBuffers();
+      if (!finalized) client->checkBuffers();
       bool serverFinished = true;
-      if (!finalized)
-        serverFinished = server->eventLoop(enableEventsProcessing);
+      if (!finalized) serverFinished = server->eventLoop(enableEventsProcessing);
       bool serverPrimFinished = true;
       for (int i = 0; i < clientPrimServer.size(); ++i)
       {
-        if (!finalized)
-          clientPrimServer[i]->checkBuffers();
-        if (!finalized)
-          serverPrimFinished *= serverPrimServer[i]->eventLoop(enableEventsProcessing);
+        if (!finalized) clientPrimServer[i]->checkBuffers();
+        if (!finalized) serverPrimFinished *= serverPrimServer[i]->eventLoop(enableEventsProcessing);
       }
       return ( serverFinished && serverPrimFinished);
     }
@@ -455,14 +447,17 @@ namespace xios {
        if (countChildCtx_ < 1)
        {
          ++countChildCtx_;
-
+         
+         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
          client->finalize();
-         while (client->havePendingRequests())
-            client->checkBuffers();
-
+         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
+         while (client->havePendingRequests()) client->checkBuffers();
+         client->releaseBuffers();
+         
+         info(100)<<"DEBUG: context "<<getId()<<" no pending request ok"<<endl ;
          while (!server->hasFinished())
            server->eventLoop();
-
+        info(100)<<"DEBUG: context "<<getId()<<" server has finished"<<endl ;
          if (hasServer) // Mode attache
          {
            closeAllFile();
@@ -471,8 +466,8 @@ namespace xios {
          }
 
          //! Deallocate client buffers
-         client->releaseBuffers();
-
+//         client->releaseBuffers();
+        info(100)<<"DEBUG: context "<<getId()<<" release client ok"<<endl ;
          //! Free internally allocated communicators
          for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
            MPI_Comm_free(&(*it));
@@ -487,22 +482,35 @@ namespace xios {
        // Send context finalize to its child contexts (if any)
        if (countChildCtx_ == 0)
          for (int i = 0; i < clientPrimServer.size(); ++i)
+         {
            clientPrimServer[i]->finalize();
+           bool bufferReleased;
+           do
+           {
+             clientPrimServer[i]->checkBuffers();
+             bufferReleased = !clientPrimServer[i]->havePendingRequests();
+           } while (!bufferReleased);
+           clientPrimServer[i]->releaseBuffers();
+         }
+           
 
        // (Last) context finalized message received
        if (countChildCtx_ == clientPrimServer.size())
        {
          // Blocking send of context finalize message to its client (e.g. primary server or model)
-         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize<<"<<endl ;
+         info(100)<<"DEBUG: context "<<getId()<<" Send client finalize"<<endl ;
          client->finalize();
+         info(100)<<"DEBUG: context "<<getId()<<" Client finalize sent"<<endl ;
          bool bufferReleased;
          do
          {
            client->checkBuffers();
            bufferReleased = !client->havePendingRequests();
          } while (!bufferReleased);
+         client->releaseBuffers();
          finalized = true;
-
+         info(100)<<"DEBUG: context "<<getId()<<" bufferRelease OK"<<endl ;
+         
          closeAllFile(); // Just move to here to make sure that server-level 1 can close files
          if (hasServer && !hasClient)
          {           
@@ -511,10 +519,13 @@ namespace xios {
          }
 
          //! Deallocate client buffers
-         client->releaseBuffers();
+//         client->releaseBuffers();
+         info(100)<<"DEBUG: context "<<getId()<<" client release"<<endl ;
+
+/*         
          for (int i = 0; i < clientPrimServer.size(); ++i)
            clientPrimServer[i]->releaseBuffers();
-
+*/
          //! Free internally allocated communicators
          for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
            MPI_Comm_free(&(*it));

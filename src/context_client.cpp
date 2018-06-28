@@ -124,7 +124,6 @@ namespace xios
 
          // We force the getBuffers call to be non-blocking on classical servers
         list<CBufferOut*> buffList;
-//        bool couldBuffer = getBuffers(timeLine, ranks, sizes, buffList, (!CXios::isClient && (CServer::serverLevel == 0) ));
         getBuffers(timeLine, ranks, sizes, buffList) ;
 
         event.send(timeLine, sizes, buffList);
@@ -194,7 +193,6 @@ namespace xios
         bufferList.push_back(it->second);
       }
 
-      if (CXios::isServer) info(100)<<" getBuffers : entering loop"<<endl ;
       CTimer::get("Blocking time").resume();
       do
       {
@@ -204,15 +202,11 @@ namespace xios
           areBuffersFree &= (*itBuffer)->isBufferFree(*itSize);
         }
 
-        if (CXios::isServer) info(100)<<" getBuffers : areBuffersFree ? "<<areBuffersFree<<endl ; ;
         if (!areBuffersFree)
         {
           for (itBuffer = bufferList.begin(); itBuffer != bufferList.end(); itBuffer++) (*itBuffer)->unlockBuffer();
-          if (CXios::isServer) info(100)<<" getBuffers : buffers unlocked "<<endl ;
           checkBuffers();
-          if (CXios::isServer) info(100)<<" getBuffers : buffers checked "<<endl ;
           if (CServer::serverLevel == 0)  context->server->listen();
-          if (CXios::isServer) info(100)<<" getBuffers : server listened... "<<endl ;
           else if (CServer::serverLevel == 1)
           {
             context->server->listen();
@@ -224,7 +218,6 @@ namespace xios
 
         }
       } while (!areBuffersFree && !nonBlocking);
-      if (CXios::isServer) info(100)<<" getBuffers : out of loop"<<endl ;
       CTimer::get("Blocking time").suspend();
 
       if (areBuffersFree)
@@ -232,7 +225,6 @@ namespace xios
         for (itBuffer = bufferList.begin(), itSize = sizeList.begin(); itBuffer != bufferList.end(); itBuffer++, itSize++)
           retBuffers.push_back((*itBuffer)->getBuffer(timeLine, *itSize));
       }
-      if (CXios::isServer) info(100)<<" getBuffers : message pushed"<<endl ;
       return areBuffersFree;
    }
 
@@ -259,9 +251,7 @@ namespace xios
         MPI_Comm OneSidedInterComm, oneSidedComm ;
         MPI_Intercomm_create(commSelf, 0, interCommMerged, clientSize+rank, 0, &OneSidedInterComm );
         MPI_Intercomm_merge(OneSidedInterComm,false,&oneSidedComm);
-        info(100)<<"DEBUG: before creating windows (client)"<<endl ;
         buffer->createWindows(oneSidedComm) ;
-        info(100)<<"DEBUG: after creating windows (client)"<<endl ;
       }
        
    }
@@ -285,13 +275,7 @@ namespace xios
       map<int,CClientBuffer*>::iterator itBuff;
       for (itBuff = buffers.begin(); itBuff != buffers.end(); itBuff++)
       {
-//          CEventClient event(CContext::GetType(), CContext::EVENT_ID_CLOSE_P2P_CHANNEL);
-//          CMessage msg;
-//          event.push(itBuff->first, 1, msg);
-//          timeLine = std::numeric_limits<size_t>::max() ;
-//          sendEvent(event);
-//          while (itBuff->second->checkBuffer(!pureOneSided));
-          delete itBuff->second;
+         delete itBuff->second;
       }
       buffers.clear();
    }

@@ -83,13 +83,9 @@ namespace xios
 
   bool CContextServer::eventLoop(bool enableEventsProcessing /*= true*/)
   {
-//    info(100)<<"CContextServer::eventLoop : listen"<<endl ;
     listen();
-//    info(100)<<"CContextServer::eventLoop : checkPendingRequest"<<endl ;
     checkPendingRequest();
-//    info(100)<<"CContextServer::eventLoop : process events"<<endl ;
     if (enableEventsProcessing)  processEvents();
-//    info(100)<<"CContextServer::eventLoop : finished "<<finished<<endl ;
     return finished;
   }
 
@@ -149,9 +145,7 @@ namespace xios
          MPI_Comm OneSidedInterComm, oneSidedComm ;
          MPI_Intercomm_create(commSelf, 0, interCommMerged, rank, 0, &OneSidedInterComm );
          MPI_Intercomm_merge(OneSidedInterComm,true,&oneSidedComm);
-         info(100)<<"DEBUG: before creating windows (server)"<<endl ;
          buffers[rank]->createWindows(oneSidedComm) ;
-         info(100)<<"DEBUG: before creating windows (server)"<<endl ;
        }
        lastTimeLine[rank]=0 ;
        itLastTimeLine=lastTimeLine.begin() ;
@@ -222,7 +216,6 @@ namespace xios
         {
           if (buffers[rank]->getBufferFromClient(timeLine, buffer, count))
           {
-            info(100)<<"get buffer from client : timeLine "<<timeLine<<endl ;
             processRequest(rank, buffer, count);
             break ;
           }
@@ -248,7 +241,6 @@ namespace xios
       char* startBuffer=(char*)buffer.ptr();
       CBufferIn newBuffer(startBuffer,buffer.remain());
       newBuffer>>size>>timeLine;
-      info(100)<<"new event :   timeLine : "<<timeLine<<"  size : "<<size<<endl ;
       it=events.find(timeLine);
       if (it==events.end()) it=events.insert(pair<int,CEventServer*>(timeLine,new CEventServer)).first;
       it->second->push(rank,buffers[rank],startBuffer,size);
