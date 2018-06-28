@@ -1,16 +1,9 @@
-/*!
-   \file domain_algorithm_zoom.cpp
-   \author Ha NGUYEN
-   \since 02 Jul 2015
-   \date 02 Jul 2015
-
-   \brief Algorithm for zooming on an domain.
- */
 #include "domain_algorithm_zoom.hpp"
 #include "zoom_domain.hpp"
 #include "domain.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
+#include "attribute_template.hpp"
 
 namespace xios {
 CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(CGrid* gridDst, CGrid* gridSrc,
@@ -66,6 +59,165 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
            << "Size nj_glo of domain source " <<domainSource->getId() << " is " << domainSource->nj_glo.getValue()  << std::endl
            << "Zoom size is " << zoomNj_ );
   }
+
+  // Calculate the size of local domain
+  int ind, indLocSrc, indLocDest, iIdxSrc, jIdxSrc, destIBegin = -1, destJBegin = -1, niDest = 0, njDest = 0, ibeginDest, jbeginDest ;
+  int indGloDest, indGloSrc, niGloSrc = domainSrc_->ni_glo, iSrc, jSrc;
+  for (int j = 0; j < domainSrc_->nj.getValue(); j++)
+  {
+    for (int i = 0; i < domainSrc_->ni.getValue(); i++)
+    {
+      ind = j*domainSrc_->ni + i;
+      iIdxSrc = domainSrc_->i_index(ind);
+      if ((iIdxSrc >= zoomIBegin_) && (iIdxSrc <= zoomIEnd_))
+      {
+        jIdxSrc = domainSrc_->j_index(ind);
+        if ((jIdxSrc >= zoomJBegin_) && (jIdxSrc <= zoomJEnd_))
+        {
+          if ((niDest == 0) && (njDest == 0))
+          {
+            destIBegin = i;
+            destJBegin = j;
+          }
+          if (i == destIBegin) ++njDest;
+        }
+        if (j == destJBegin) ++niDest;
+
+      }
+    }
+  }
+  ibeginDest = destIBegin + domainSrc_->ibegin - zoomIBegin_;
+  jbeginDest = destJBegin + domainSrc_->jbegin - zoomJBegin_;
+  domainDest_->ni_glo.setValue(zoomNi_);
+  domainDest_->nj_glo.setValue(zoomNj_);
+  domainDest_->ni.setValue(niDest);
+  domainDest_->nj.setValue(njDest);
+  domainDest_->ibegin.setValue(ibeginDest);
+  domainDest_->jbegin.setValue(jbeginDest);
+  domainDest_->i_index.resize(niDest*njDest);
+  domainDest_->j_index.resize(niDest*njDest);
+
+  domainDest_->data_ni.setValue(niDest);
+  domainDest_->data_nj.setValue(njDest);
+  domainDest_->data_ibegin.setValue(0);  // local position
+  domainDest_->data_jbegin.setValue(0);  // local position
+  domainDest_->data_i_index.resize(niDest*njDest); // local position
+  domainDest_->data_j_index.resize(niDest*njDest); // local position
+
+  domainDest_->domainMask.resize(niDest*njDest);
+
+  if (!domainSrc_->lonvalue_1d.isEmpty())
+  {
+    if (domainDest_->type == CDomain::type_attr::rectilinear)
+    {
+      domainDest_->lonvalue_1d.resize(niDest);
+      domainDest_->latvalue_1d.resize(njDest);
+    }
+    else if (domainDest_->type == CDomain::type_attr::unstructured)
+    {
+      domainDest_->lonvalue_1d.resize(niDest);
+      domainDest_->latvalue_1d.resize(niDest);
+    }
+  }
+  else if (!domainSrc_->lonvalue_2d.isEmpty())
+  {
+    domainDest_->lonvalue_2d.resize(niDest,njDest);
+    domainDest_->latvalue_2d.resize(niDest,njDest);
+  }
+
+  if (domainSrc_->hasBounds)
+  {
+    if (!domainSrc_->bounds_lon_2d.isEmpty())
+    {
+      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
+      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
+    }
+    else if (!domainSrc_->bounds_lon_1d.isEmpty())
+    {
+      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
+      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
+    }
+  }
+  if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
+
+  this->transformationMapping_.resize(1);
+  this->transformationWeight_.resize(1);
+  TransformationIndexMap& transMap = this->transformationMapping_[0];
+  TransformationWeightMap& transWeight = this->transformationWeight_[0];
+
+  for (int iDest = 0; iDest < niDest; iDest++)
+  {
+    iSrc = iDest + destIBegin;
+    for (int jDest = 0; jDest < njDest; jDest++)
+    {
+      jSrc = jDest + destJBegin;
+      ind = jSrc * domainSrc_->ni + iSrc;
+      iIdxSrc = domainSrc_->i_index(ind);
+      jIdxSrc = domainSrc_->j_index(ind);
+      indLocDest = jDest*niDest + iDest;
+      indGloDest = (jDest + jbeginDest)*zoomNi_ + (iDest + ibeginDest);
+      indLocSrc = (jDest+destJBegin)*domainSrc_->ni + (iDest+destIBegin);
+      indGloSrc = (jIdxSrc )* niGloSrc + iIdxSrc;
+      domainDest_->i_index(indLocDest) = iDest + ibeginDest;                                             // i_index contains global positions
+      domainDest_->j_index(indLocDest) = jDest + jbeginDest;                                             // i_index contains global positions
+      domainDest_->data_i_index(indLocDest) = (domainSrc_->data_dim == 1) ? indLocDest : iDest;          // data_i_index contains local positions
+      domainDest_->data_j_index(indLocDest) = (domainSrc_->data_dim == 1) ? 0 :jDest;                    // data_i_index contains local positions
+      domainDest_->domainMask(indLocDest) = domainSrc_->domainMask(indLocSrc);
+
+      if (domainSrc_->hasArea)
+        domainDest_->area(iDest,jDest) = domainSrc_->area(iSrc,jSrc);
+
+      if (domainSrc_->hasBounds)
+      {
+        if (!domainSrc_->bounds_lon_2d.isEmpty())
+        {
+          for (int n = 0; n < domainSrc_->nvertex; ++n)
+          {
+            domainDest_->bounds_lon_2d(n,iDest,jDest) = domainSrc_->bounds_lon_2d(n,iSrc,jSrc);
+            domainDest_->bounds_lat_2d(n,iDest,jDest) = domainSrc_->bounds_lat_2d(n,iSrc,jSrc);
+          }
+        }
+        else if (!domainSrc_->bounds_lon_1d.isEmpty())
+        {
+          for (int n = 0; n < domainSrc_->nvertex; ++n)
+          {
+            domainDest_->bounds_lon_1d(n,iDest) = domainSrc_->bounds_lon_1d(n,iSrc);
+            domainDest_->bounds_lat_1d(n,iDest) = domainSrc_->bounds_lat_1d(n,iSrc);
+          }
+        }
+      }
+
+      if (domainSrc_->hasLonLat)
+      {
+        if (domainDest_->type == CDomain::type_attr::rectilinear)
+        {
+          domainDest_->latvalue_1d(jDest) = domainSrc_->latvalue_1d(jSrc);
+        }
+        else if (domainDest_->type == CDomain::type_attr::curvilinear)
+        {
+          domainDest_->lonvalue_2d(iDest,jDest) = domainSrc_->lonvalue_2d(iSrc,jSrc);
+          domainDest_->latvalue_2d(iDest,jDest) = domainSrc_->latvalue_2d(iSrc,jSrc);
+        }
+      }
+
+      transMap[indGloDest].push_back(indGloSrc);
+      transWeight[indGloDest].push_back(1.0);
+
+    }
+    if (domainSrc_->hasLonLat)
+    {
+      if (domainDest_->type == CDomain::type_attr::unstructured)
+      {
+        domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
+        domainDest_->latvalue_1d(iDest) = domainSrc_->latvalue_1d(iSrc);
+      }
+      else if (domainDest_->type == CDomain::type_attr::rectilinear)
+      {
+        domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
+      }
+    }
+  }
+
 }
 
 /*!
@@ -73,72 +225,7 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 */
 void CDomainAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-
-  int niGlob = domainSrc_->ni_glo.getValue();
-  int njGlob = domainSrc_->nj_glo.getValue();
-
-  this->transformationMapping_.resize(1);
-  this->transformationWeight_.resize(1);
-
-  TransformationIndexMap& transMap = this->transformationMapping_[0];
-  TransformationWeightMap& transWeight = this->transformationWeight_[0];
-
-  int domainGlobalIndex;
-  int iglob ;
-  int jglob ;
-  const CArray<int,1>& i_index = domainSrc_->i_index.getValue() ;
-  const CArray<int,1>& j_index = domainSrc_->j_index.getValue() ;
-
-  int nglo = i_index.numElements() ;
-  for (size_t i = 0; i < nglo ; ++i)
-  {
-    iglob=i_index(i) ; jglob=j_index(i) ;
-    if (iglob>=zoomIBegin_ && iglob<=zoomIEnd_ && jglob>=zoomJBegin_ && jglob<=zoomJEnd_)
-    {
-      domainGlobalIndex = jglob*niGlob + iglob;
-      transMap[domainGlobalIndex].push_back(domainGlobalIndex);
-      transWeight[domainGlobalIndex].push_back(1.0);
-    }
-  }
-  updateZoom();
 }
 
-/*!
-  After a zoom on domain, it should be certain that (global) zoom begin and (global) zoom size are updated
-*/
-void CDomainAlgorithmZoom::updateZoom()
-{
-  domainDest_->global_zoom_ibegin = zoomIBegin_;
-  domainDest_->global_zoom_jbegin = zoomJBegin_;
-  domainDest_->global_zoom_ni  = zoomNi_;
-  domainDest_->global_zoom_nj  = zoomNj_;
-}
-
-/*!
-  Update mask on domain
-  Because only zoomed region on domain is not masked, the remaining must be masked to make sure
-correct index be extracted
-*/
-// void CDomainAlgorithmZoom::updateDomainDestinationMask()
-// {
-//   int niMask     = domainDest_->ni.getValue();
-//   int iBeginMask = domainDest_->ibegin.getValue();
-//   int njMask     = domainDest_->nj.getValue();
-//   int jBeginMask = domainDest_->jbegin.getValue();
-//   int niGlob = domainDest_->ni_glo.getValue();
-//   int globalIndexMask = 0;
-
-//   TransformationIndexMap& transMap = this->transformationMapping_[0];
-//   TransformationIndexMap::const_iterator ite = (transMap).end();
-//   for (int j = 0; j < njMask; ++j)
-//   {
-//     for (int i = 0; i < niMask; ++i)
-//     {
-//       globalIndexMask = (j+jBeginMask) * niGlob + (i + iBeginMask);
-//       if (transMap.find(globalIndexMask) == ite)
-//         (domainDest_->mask_1d)(i+j*niMask) = false;
-//     }
-//   }
-// }
 
 }

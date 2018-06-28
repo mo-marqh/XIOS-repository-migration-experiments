@@ -227,8 +227,6 @@ void CDomainAlgorithmExpand::updateRectilinearDomainAttributes(CDomain* domainDe
   domainDestination->nj_glo.setValue(njGloDst);
   domainDestination->ni.setValue(niDst);
   domainDestination->nj.setValue(njDst);
-  domainDestination->global_zoom_ni.setValue(domainSource->global_zoom_ni+2);
-  domainDestination->global_zoom_nj.setValue(domainSource->global_zoom_nj+2);
 
   CArray<bool,1>& mask_1d_dst = domainDestination->domainMask;
   CArray<int,1>& i_index_dst  = domainDestination->i_index;

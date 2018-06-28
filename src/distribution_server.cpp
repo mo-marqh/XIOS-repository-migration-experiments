@@ -11,25 +11,25 @@
 
 namespace xios {
 
-CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nZoomBegin,
-                                         const std::vector<int>& nZoomSize,
-                                         const std::vector<int>& nZoomBeginGlobal,
+CDistributionServer::CDistributionServer(int rank, const std::vector<int>& nBegin,
+                                         const std::vector<int>& nSize,
+                                         const std::vector<int>& nBeginGlobal,
                                          const std::vector<int>& nGlobal)
-  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
-    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nBeginGlobal_(nBeginGlobal),
+    nSize_(nSize), nBegin_(nBegin), globalLocalIndexMap_()
 {
   createGlobalIndex();
 }
 
-CDistributionServer::CDistributionServer(int rank, 
+CDistributionServer::CDistributionServer(int rank,
                                         const std::vector<CArray<int,1> >& globalIndexElements,
                                         const CArray<int,1>& elementOrder,
-                                        const std::vector<int>& nZoomBegin,
-                                        const std::vector<int>& nZoomSize,
-                                        const std::vector<int>& nZoomBeginGlobal,
+                                        const std::vector<int>& nBegin,
+                                        const std::vector<int>& nSize,
+                                        const std::vector<int>& nBeginGlobal,
                                         const std::vector<int>& nGlobal)
-  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nZoomBeginGlobal_(nZoomBeginGlobal),
-    nZoomSize_(nZoomSize), nZoomBegin_(nZoomBegin), globalLocalIndexMap_()
+  : CDistribution(rank, nGlobal.size()), nGlobal_(nGlobal), nBeginGlobal_(nBeginGlobal),
+    nSize_(nSize), nBegin_(nBegin), globalLocalIndexMap_()
 {
   createGlobalIndex(globalIndexElements, elementOrder);
 }
@@ -47,32 +47,32 @@ written on each server
 void CDistributionServer::createGlobalIndex()
 {
   size_t idx = 0, ssize = 1;
-  for (int i = 0; i < nZoomSize_.size(); ++i) ssize *= nZoomSize_[i];
+  for (int i = 0; i < nSize_.size(); ++i) ssize *= nSize_[i];
 
   this->globalIndex_.resize(ssize);
   std::vector<int> idxLoop(this->getDims(),0);
   std::vector<int> currentIndex(this->getDims());
-  int innerLoopSize = nZoomSize_[0];
+  int innerLoopSize = nSize_[0];
 
   globalLocalIndexMap_.rehash(std::ceil(ssize/globalLocalIndexMap_.max_load_factor()));
   while (idx<ssize)
   {
     for (int i = 0; i < this->dims_-1; ++i)
     {
-      if (idxLoop[i] == nZoomSize_[i])
+      if (idxLoop[i] == nSize_[i])
       {
         idxLoop[i] = 0;
         ++idxLoop[i+1];
       }
     }
 
-    for (int i = 1; i < this->dims_; ++i)  currentIndex[i] = idxLoop[i] + nZoomBegin_[i];
+    for (int i = 1; i < this->dims_; ++i)  currentIndex[i] = idxLoop[i] + nBegin_[i];
 
     size_t mulDim, globalIndex;
     for (int i = 0; i < innerLoopSize; ++i)
     {
       mulDim = 1;
-      globalIndex = i + nZoomBegin_[0];
+      globalIndex = i + nBegin_[0];
 
       for (int k = 1; k < this->dims_; ++k)
       {
@@ -212,21 +212,6 @@ void CDistributionServer::computeGlobalIndex(CArray<int,1>& indexes) const
 int CDistributionServer::getGridSize() const
 {
    return globalLocalIndexMap_.size();
-}
-
-const std::vector<int>& CDistributionServer::getZoomBeginGlobal() const
-{
-  return nZoomBeginGlobal_;
-}
-
-const std::vector<int>& CDistributionServer::getZoomBeginServer() const
-{
-  return nZoomBegin_;
-}
-
-const std::vector<int>& CDistributionServer::getZoomSizeServer() const
-{
-  return nZoomSize_;
 }
 
 void CDistributionServer::partialClear(void)

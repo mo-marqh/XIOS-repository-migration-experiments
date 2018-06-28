@@ -164,7 +164,6 @@ namespace xios {
          void checkBounds(void);
          void checkArea(void);
          void checkLonLat();
-         void checkZoom(void);
 
          void setTransformations(const TransMapTypes&);         
          void computeNGlobDomain();
@@ -182,7 +181,6 @@ namespace xios {
          
          static void recvDistributionAttributes(CEventServer& event);
          static void recvIndex(CEventServer& event);
-         static void recvIndexZoom(CEventServer& event);
          static void recvMask(CEventServer& event);         
          static void recvLon(CEventServer& event);
          static void recvLat(CEventServer& event);
@@ -205,7 +203,6 @@ namespace xios {
          std::list<CContextClient*> clients;
          std::set<CContextClient*> clientsSet;
 
-         bool doZoomByIndex_;
          bool isChecked, computedWrittenIndex_;
          std::set<StdString> relFiles, relFilesCompressed;
          bool isClientChecked; // Verify whether all attributes of domain on the client side are good

@@ -62,27 +62,6 @@ namespace xios
         break;
       case ONE_FILE:
       {
-/*
-        std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
-        std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
-        std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
-
-        int ssize = nZoomBeginGlobal.size();
-
-        std::vector<StdSize> start(ssize);
-        std::vector<StdSize> count(ssize);
-
-        for (int i = 0; i < ssize; ++i)
-        {
-          start[i] = nZoomBeginServer[ssize - i - 1] - nZoomBeginGlobal[ssize - i - 1];
-          count[i] = nZoomSizeServer[ssize - i - 1];
-        }
-*/
-
-        std::vector<int> nZoomBeginGlobal = grid->getDistributionServer()->getZoomBeginGlobal();
-        std::vector<int> nZoomBeginServer = grid->getDistributionServer()->getZoomBeginServer();
-        std::vector<int> nZoomSizeServer  = grid->getDistributionServer()->getZoomSizeServer();
-
         std::vector<StdSize> start, count;
 
         CArray<int,1> axisDomainOrder = grid->axis_domain_order;
@@ -90,10 +69,10 @@ namespace xios
         std::vector<StdString> axisList   = grid->getAxisList();
         int numElement = axisDomainOrder.numElements();
         int idxDomain = domainList.size() - 1, idxAxis = axisList.size() - 1;
-        int idx = nZoomBeginGlobal.size() - 1;
+        int idx = domainList.size() * 2 + axisList.size() - 1;
 
-        start.reserve(nZoomBeginGlobal.size());
-        count.reserve(nZoomBeginGlobal.size());
+        start.reserve(idx+1);
+        count.reserve(idx+1);
 
         for (int i = numElement - 1; i >= 0; --i)
         {
@@ -102,19 +81,21 @@ namespace xios
             CDomain* domain = CDomain::get(domainList[idxDomain]);
             if ((domain->type) != CDomain::type_attr::unstructured)
             {
-              start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-              count.push_back(nZoomSizeServer[idx]);
+              start.push_back(domain->jbegin);
+              count.push_back(domain->nj);
             }
             --idx ;
-            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-            count.push_back(nZoomSizeServer[idx]);
+            start.push_back(domain->ibegin);
+            count.push_back(domain->ni);
+
             --idx ;
             --idxDomain;
           }
           else if (1 == axisDomainOrder(i))
           {
-            start.push_back(nZoomBeginServer[idx] - nZoomBeginGlobal[idx]);
-            count.push_back(nZoomSizeServer[idx]);
+            CAxis* axis = CAxis::get(axisList[idxAxis]);
+            start.push_back(axis->begin);
+            count.push_back(axis->n);
             --idx;
           }
           else

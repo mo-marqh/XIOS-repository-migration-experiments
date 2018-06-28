@@ -1631,20 +1631,20 @@ One of the ways is to convert this array into 1-dimension one and every process 
           std::vector<CDomain*> domainList = getDomains();
           std::vector<CAxis*> axisList = getAxis();
           std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize), nGlobElement(numElement);
-          std::vector<CArray<int,1> > globalZoomIndex(numElement);
+          std::vector<CArray<int,1> > globalZoomIndex(numElement);  // RENAME INTO globalIndex
           for (int i = 0; i < numElement; ++i)
           {
             nGlobElement[i] = globalSize;
             if (2 == axis_domain_order(i)) //domain
             {
-              nZoomBegin[indexMap[i]] = domainList[domainId]->zoom_ibegin;
-              nZoomSize[indexMap[i]]  = domainList[domainId]->zoom_ni;
-              nZoomBeginGlobal[indexMap[i]] = domainList[domainId]->global_zoom_ibegin;              
+              nZoomBegin[indexMap[i]] = domainList[domainId]->ibegin;
+              nZoomSize[indexMap[i]]  = domainList[domainId]->ni;
+              nZoomBeginGlobal[indexMap[i]] = 0;
               nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
 
-              nZoomBegin[indexMap[i] + 1] = domainList[domainId]->zoom_jbegin;
-              nZoomSize[indexMap[i] + 1] = domainList[domainId]->zoom_nj;
-              nZoomBeginGlobal[indexMap[i] + 1] = domainList[domainId]->global_zoom_jbegin;              
+              nZoomBegin[indexMap[i] + 1] = domainList[domainId]->jbegin;
+              nZoomSize[indexMap[i] + 1] = domainList[domainId]->nj;
+              nZoomBeginGlobal[indexMap[i] + 1] = 0;
               nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
 
               {

@@ -140,11 +140,6 @@ CDomainAlgorithmExtract::CDomainAlgorithmExtract(CDomain* domainDestination, CDo
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
 
-  domainDest_->global_zoom_ni.setValue(extractNi_);
-  domainDest_->global_zoom_ibegin.setValue(0);
-  domainDest_->global_zoom_nj.setValue(extractNj_);
-  domainDest_->global_zoom_jbegin.setValue(0);
-
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
   TransformationIndexMap& transMap = this->transformationMapping_[0];
