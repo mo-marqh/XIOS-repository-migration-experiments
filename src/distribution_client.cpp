@@ -636,8 +636,17 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
 */
 int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin, const int& ni)
 {
-   int tempI = dataIndex + dataBegin;
-   return ((tempI)%ni);
+  if (ni == 0)
+  {
+    return -1;
+  }
+  int tempI = dataIndex + dataBegin;
+  if ((tempI < 0) || (tempI > ni))
+    return -1;
+  else if (tempI == ni)
+    return tempI;
+  else
+    return ((tempI)%ni);
 }
 
 /*!
