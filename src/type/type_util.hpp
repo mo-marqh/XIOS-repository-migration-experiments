@@ -25,6 +25,8 @@ namespace xios
     class CZoomAxisGroup;
     class CInterpolateAxis;
     class CInterpolateAxisGroup;
+    class CExtractAxis;
+    class CExtractAxisGroup;
     class CZoomDomain;
     class CZoomDomainGroup;
     class CInterpolateDomain;
@@ -101,6 +103,8 @@ namespace xios
   macro(CZoomAxisGroup)
   macro(CInterpolateAxis)
   macro(CInterpolateAxisGroup)
+  macro(CExtractAxis)
+  macro(CExtractAxisGroup)
   macro(CZoomDomain)
   macro(CZoomDomainGroup)
   macro(CInterpolateDomain)

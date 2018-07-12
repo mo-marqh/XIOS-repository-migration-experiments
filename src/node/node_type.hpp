@@ -12,6 +12,7 @@
 #include "inverse_axis.hpp"
 #include "zoom_axis.hpp"
 #include "interpolate_axis.hpp"
+#include "extract_axis.hpp"
 #include "zoom_domain.hpp"
 #include "interpolate_domain.hpp"
 #include "generate_rectilinear_domain.hpp"

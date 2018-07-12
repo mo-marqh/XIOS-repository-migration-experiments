@@ -124,6 +124,9 @@ namespace xios {
 
       public: 
         bool hasValue;        
+        bool hasBounds;
+        bool hasLabel;
+
         CArray<size_t,1> localIndexToWriteOnServer;        
 
       private:
@@ -172,8 +175,6 @@ namespace xios {
          std::map<int,int> numberWrittenIndexes_, totalNumberWrittenIndexes_, offsetWrittenIndexes_;
          std::map<int, CArray<int, 1> > compressedIndexToWriteOnServer;
          std::map<int, std::vector<int> > connectedServerRank_;
-         bool hasBounds;
-         bool hasLabel;         
          bool computedWrittenIndex_;                  
 
        private:

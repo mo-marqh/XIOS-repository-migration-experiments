@@ -22,6 +22,7 @@ namespace xios
          eInverseAxis,
          eZoomAxis,
          eInterpolateAxis,
+         eExtractAxis,
          eZoomDomain,
          eInterpolateDomain,
          eGenerateRectilinearDomain,

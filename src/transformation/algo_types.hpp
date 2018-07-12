@@ -16,6 +16,7 @@
 #include "axis_algorithm_inverse.hpp"
 #include "axis_algorithm_zoom.hpp"
 #include "axis_algorithm_interpolate.hpp"
+#include "axis_algorithm_extract.hpp"
 #include "axis_algorithm_reduce_domain.hpp"
 #include "axis_algorithm_reduce_axis.hpp"
 #include "axis_algorithm_transformation.hpp"

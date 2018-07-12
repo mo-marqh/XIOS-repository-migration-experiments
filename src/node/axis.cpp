@@ -50,6 +50,7 @@ namespace xios {
    {
      m["zoom_axis"] = TRANS_ZOOM_AXIS;
      m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
+     m["extract_axis"] = TRANS_EXTRACT_AXIS;
      m["inverse_axis"] = TRANS_INVERSE_AXIS;
      m["reduce_domain"] = TRANS_REDUCE_DOMAIN_TO_AXIS;
      m["reduce_axis"] = TRANS_REDUCE_AXIS_TO_AXIS;
