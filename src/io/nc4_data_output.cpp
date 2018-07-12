@@ -1174,13 +1174,10 @@ namespace xios
         axis->computeWrittenIndex();
         axis->computeWrittenCompressedIndex(comm_file);
        
-        int zoom_size  = (MULTI_FILE == SuperClass::type) ? axis->zoom_n.getValue()
-                                                          : axis->global_zoom_n.getValue();
+        int size  = (MULTI_FILE == SuperClass::type) ? axis->n.getValue()
+                                                          : axis->n_glo.getValue();
 
-        int zoom_count = axis->zoom_n;                                                 
-        int zoom_begin = axis->zoom_begin;
-
-        if ((0 == axis->zoom_n) && (MULTI_FILE == SuperClass::type)) return;
+        if ((0 == axis->n) && (MULTI_FILE == SuperClass::type)) return;
 
         std::vector<StdString> dims;
         StdString axisid = axis->getAxisOutputName();
@@ -1199,7 +1196,7 @@ namespace xios
         {
           if (axis->dim_name.isEmpty()) axisDim = axisid;
           else axisDim=axis->dim_name.getValue();
-          SuperClassWriter::addDimension(axisDim, zoom_size);
+          SuperClassWriter::addDimension(axisDim, size);
           dims.push_back(axisDim);
 
           if (!axis->label.isEmpty() && !SuperClassWriter::dimExist(strId)) SuperClassWriter::addDimension(strId, stringArrayLen);
@@ -1343,8 +1340,8 @@ namespace xios
             {
               std::vector<StdSize> start(1), startBounds(2) ;
               std::vector<StdSize> count(1), countBounds(2) ;
-              start[0] = startBounds[0] = zoom_begin - axis->global_zoom_begin;
-              count[0] = countBounds[0] = zoom_count; // zoom_size
+              start[0] = startBounds[0] = axis->begin;
+              count[0] = countBounds[0] = axis->n;
               startBounds[1] = 0;
               countBounds[1] = 2;
 
@@ -2615,8 +2612,8 @@ namespace xios
                     else if (1 == axisDomainOrder(i))
                     {
                         CAxis* axis = CAxis::get(axisList[idxAxis]);
-                        start.push_back(axis->zoom_begin - axis->global_zoom_begin);
-                        count.push_back(axis->zoom_n);
+                        start.push_back(axis->begin);
+                        count.push_back(axis->n);
                       --idx;
                       --idxAxis;
                     }

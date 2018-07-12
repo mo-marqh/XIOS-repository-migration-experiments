@@ -1,10 +1,6 @@
 /*!
    \file axis_algorithm_zoom.cpp
-   \author Ha NGUYEN
-   \since 03 June 2015
-   \date 12 June 2015
-
-   \brief Algorithm for zooming on an axis.
+   \brief Algorithm for zooming an axis.
  */
 #include "axis_algorithm_zoom.hpp"
 #include "axis.hpp"
@@ -42,108 +38,77 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 {
   zoomAxis->checkValid(axisSource);
   zoomBegin_ = zoomAxis->begin.getValue();
-  zoomSize_  = zoomAxis->n.getValue();
-  zoomEnd_   = zoomBegin_ + zoomSize_ - 1;
+  zoomN_  = zoomAxis->n.getValue();
+  zoomEnd_   = zoomBegin_ + zoomN_ - 1;
 
-  if (zoomSize_ > axisSource->n_glo.getValue())
+  if (zoomN_ > axisSource->n_glo.getValue())
   {
     ERROR("CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)",
-           << "Zoom size is greater than global size of axis source"
-           << "Global size of axis source " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
-           << "Zoom size is " << zoomSize_ );
+           << "Zoom size is greater than global size of source axis"
+           << "Global size of source axis " <<axisSource->getId() << " is " << axisSource->n_glo.getValue()  << std::endl
+           << "Zoom size is " << zoomN_ );
   }
 
-  if (!zoomAxis->index.isEmpty())
+  int idxSrc, nDest = 0, beginDestLoc, beginDestGlo = 0 ;
+  int indGloDest, indGloSrc, iSrc;
+  for (int i = 0; i < axisSrc_->n.getValue(); i++)
   {
-    int sz = zoomAxis->index.numElements();
-    zoomIndex_.resize(sz);
-    for (int i = 0; i < sz; ++i)
-      zoomIndex_[i] = zoomAxis->index(i);
-
-    std::sort(zoomIndex_.begin(), zoomIndex_.end());
+    idxSrc = axisSrc_->index(i);
+    if ((idxSrc >= zoomBegin_) && (idxSrc <= zoomEnd_))
+    {
+      if (nDest == 0) beginDestLoc = i;
+      ++nDest;
+    }
   }
+  beginDestGlo = beginDestLoc + axisSrc_->begin - zoomBegin_;
+  axisDest_->n_glo.setValue(zoomN_);
+  axisDest_->n.setValue(nDest);
+  axisDest_->begin.setValue(beginDestGlo);
+  axisDest_->index.resize(nDest);
 
-}
+  axisDest_->data_n.setValue(nDest);
+  axisDest_->data_begin.setValue(0);
+  axisDest_->data_index.resize(nDest);
 
-/*!
-  Compute the index mapping between axis on grid source and one on grid destination
-*/
-void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
-{
-  // We use all index of source and destination to calculate the mapping index of zoom.
-  // The server who receives the "zoomed" fields will decide whether it will forward these fields or write "real zoomed" fields into file
-  // That means servers need to change to cover this problem.
-  StdSize niSource = axisSrc_->n.getValue();
-  StdSize ibeginSource = axisSrc_->begin.getValue();
-  StdSize iendSource = ibeginSource + niSource - 1;
-
-  StdSize ibegin = std::max(ibeginSource, zoomBegin_);
-  StdSize iend = std::min(iendSource, zoomEnd_);
-  StdSize ni = iend + 1 - ibegin;
-  if (iend < ibegin) ni = 0;
+  axisDest_->mask.resize(nDest);
+  if (axisSrc_->hasValue) axisDest_->value.resize(nDest);
+  if (axisSrc_->hasLabel) axisDest_->label.resize(nDest);
+  if (axisSrc_->hasBounds) axisDest_->bounds.resize(2,nDest);
 
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
-
   TransformationIndexMap& transMap = this->transformationMapping_[0];
   TransformationWeightMap& transWeight = this->transformationWeight_[0];
 
-  if (!zoomIndex_.empty())
+  for (int iDest = 0; iDest < nDest; iDest++)
   {
-    std::vector<int>::iterator itZoomBegin, itZoomEnd;
-    itZoomBegin = std::lower_bound(zoomIndex_.begin(), zoomIndex_.end(), ibeginSource);
-    itZoomEnd   = std::upper_bound(zoomIndex_.begin(), zoomIndex_.end(), iendSource);            
-    for (; itZoomBegin != itZoomEnd; ++itZoomBegin)
-    {
-      transMap[*itZoomBegin].push_back(*itZoomBegin);
-      transWeight[*itZoomBegin].push_back(1.0);
-    }
-  }
-  else
-  {
-    for (StdSize idx = 0; idx < ni; ++idx)
-    {
-      transMap[ibegin+idx].push_back(ibegin+idx);
-      transWeight[ibegin+idx].push_back(1.0);
-    }
-  }
+    iSrc = iDest + beginDestLoc;
+    axisDest_->index(iDest) = iDest + beginDestGlo;
+    axisDest_->data_index(iDest) = axisSrc_->data_index(iSrc) - beginDestLoc;
+    axisDest_->mask(iDest) = axisSrc_->mask(iSrc);
 
-  updateZoom();
-  // updateAxisDestinationMask();
+    if (axisSrc_->hasValue)
+      axisDest_->value(iDest) = axisSrc_->value(iSrc);
+    if (axisSrc_->hasLabel)
+      axisDest_->label(iDest) = axisSrc_->label(iSrc);
+    if (axisSrc_->hasBounds)
+    {
+      axisDest_->bounds(0,iDest) = axisSrc_->bounds(0,iSrc);
+      axisDest_->bounds(1,iDest) = axisSrc_->bounds(1,iSrc);
+    }
+    indGloDest = axisDest_->index(iDest);
+    indGloSrc = axisSrc_->index(iSrc);
+    transMap[indGloDest].push_back(indGloSrc);
+    transWeight[indGloDest].push_back(1.0);
+
+  }
 }
 
 /*!
-  After a zoom on axis, it should be certain that (global) zoom begin and (global) zoom size are updated
+  Compute the index mapping between domain on grid source and one on grid destination
 */
-void CAxisAlgorithmZoom::updateZoom()
+void CAxisAlgorithmZoom::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
 {
-  axisDest_->global_zoom_begin = zoomBegin_;
-  axisDest_->global_zoom_n  = zoomSize_;
-  if (!zoomIndex_.empty())
-  {
-    axisDest_->global_zoom_index.resize(zoomIndex_.size());
-    std::copy(zoomIndex_.begin(), zoomIndex_.end(), axisDest_->global_zoom_index.begin());
-  }
 }
-
-/*!
-  Update mask on axis
-  Because only zoomed region on axis is not masked, the remaining must be masked to make sure
-correct index be extracted
-*/
-// void CAxisAlgorithmZoom::updateAxisDestinationMask()
-// {
-//   StdSize niMask = axisDest_->mask.numElements();
-//   StdSize iBeginMask = axisDest_->begin.getValue();
-//   StdSize globalIndexMask = 0;
-//   TransformationIndexMap& transMap = this->transformationMapping_[0];
-//   TransformationIndexMap::const_iterator ite = (transMap).end();
-//   for (StdSize idx = 0; idx < niMask; ++idx)
-//   {
-//     globalIndexMask = iBeginMask + idx;
-//     if (transMap.find(globalIndexMask) == ite)
-//       (axisDest_->mask)(idx) = false;
-//   }
-// }
 
 }

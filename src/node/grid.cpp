@@ -1630,30 +1630,30 @@ One of the ways is to convert this array into 1-dimension one and every process 
           int axisId = 0, domainId = 0, scalarId = 0, globalSize = 1;
           std::vector<CDomain*> domainList = getDomains();
           std::vector<CAxis*> axisList = getAxis();
-          std::vector<int> nZoomBegin(ssize), nZoomSize(ssize), nGlob(ssize), nZoomBeginGlobal(ssize), nGlobElement(numElement);
-          std::vector<CArray<int,1> > globalZoomIndex(numElement);  // RENAME INTO globalIndex
+          std::vector<int> nBegin(ssize), nSize(ssize), nGlob(ssize), nBeginGlobal(ssize), nGlobElement(numElement);
+          std::vector<CArray<int,1> > globalIndex(numElement);
           for (int i = 0; i < numElement; ++i)
           {
             nGlobElement[i] = globalSize;
             if (2 == axis_domain_order(i)) //domain
             {
-              nZoomBegin[indexMap[i]] = domainList[domainId]->ibegin;
-              nZoomSize[indexMap[i]]  = domainList[domainId]->ni;
-              nZoomBeginGlobal[indexMap[i]] = 0;
+              nBegin[indexMap[i]] = domainList[domainId]->ibegin;
+              nSize[indexMap[i]]  = domainList[domainId]->ni;
+              nBeginGlobal[indexMap[i]] = 0;
               nGlob[indexMap[i]] = domainList[domainId]->ni_glo;
 
-              nZoomBegin[indexMap[i] + 1] = domainList[domainId]->jbegin;
-              nZoomSize[indexMap[i] + 1] = domainList[domainId]->nj;
-              nZoomBeginGlobal[indexMap[i] + 1] = 0;
+              nBegin[indexMap[i] + 1] = domainList[domainId]->jbegin;
+              nSize[indexMap[i] + 1] = domainList[domainId]->nj;
+              nBeginGlobal[indexMap[i] + 1] = 0;
               nGlob[indexMap[i] + 1] = domainList[domainId]->nj_glo;
 
               {
                 int count = 0;
-                globalZoomIndex[i].resize(nZoomSize[indexMap[i]]*nZoomSize[indexMap[i]+1]);
-                for (int jdx = 0; jdx < nZoomSize[indexMap[i]+1]; ++jdx)
-                  for (int idx = 0; idx < nZoomSize[indexMap[i]]; ++idx)                
+                globalIndex[i].resize(nSize[indexMap[i]]*nSize[indexMap[i]+1]);
+                for (int jdx = 0; jdx < nSize[indexMap[i]+1]; ++jdx)
+                  for (int idx = 0; idx < nSize[indexMap[i]]; ++idx)
                   {
-                    globalZoomIndex[i](count) = (nZoomBegin[indexMap[i]] + idx) + (nZoomBegin[indexMap[i]+1] + jdx) * nGlob[indexMap[i]];
+                    globalIndex[i](count) = (nBegin[indexMap[i]] + idx) + (nBegin[indexMap[i]+1] + jdx) * nGlob[indexMap[i]];
                     ++count;
                   }
               }
@@ -1662,41 +1662,34 @@ One of the ways is to convert this array into 1-dimension one and every process 
             }
             else if (1 == axis_domain_order(i)) // axis
             {
-              nZoomBegin[indexMap[i]] = axisList[axisId]->zoom_begin;
-              nZoomSize[indexMap[i]]  = axisList[axisId]->zoom_n;
-              nZoomBeginGlobal[indexMap[i]] = axisList[axisId]->global_zoom_begin;              
+              nBegin[indexMap[i]] = axisList[axisId]->begin;
+              nSize[indexMap[i]]  = axisList[axisId]->n;
+              nBeginGlobal[indexMap[i]] = 0;
               nGlob[indexMap[i]] = axisList[axisId]->n_glo;     
-              if (axisList[axisId]->zoomByIndex())
-              {
-                globalZoomIndex[i].reference(axisList[axisId]->zoom_index);                
-              }
-              else
-              {
-                globalZoomIndex[i].resize(nZoomSize[indexMap[i]]);
-                for (int idx = 0; idx < nZoomSize[indexMap[i]]; ++idx)
-                  globalZoomIndex[i](idx) = nZoomBegin[indexMap[i]] + idx;
-              }
+              globalIndex[i].resize(nSize[indexMap[i]]);
+              for (int idx = 0; idx < nSize[indexMap[i]]; ++idx)
+                globalIndex[i](idx) = nBegin[indexMap[i]] + idx;
 
               ++axisId;
             }
             else // scalar
             { 
-              nZoomBegin[indexMap[i]] = 0;
-              nZoomSize[indexMap[i]]  = 1;
-              nZoomBeginGlobal[indexMap[i]] = 0;              
+              nBegin[indexMap[i]] = 0;
+              nSize[indexMap[i]]  = 1;
+              nBeginGlobal[indexMap[i]] = 0;
               nGlob[indexMap[i]] = 1;
-              globalZoomIndex[i].resize(1);
-              globalZoomIndex[i](0) = 0;
+              globalIndex[i].resize(1);
+              globalIndex[i](0) = 0;
               ++scalarId;
             }
           }
           dataSize = 1;
 
-          for (int i = 0; i < nZoomSize.size(); ++i)
-            dataSize *= nZoomSize[i];
+          for (int i = 0; i < nSize.size(); ++i)
+            dataSize *= nSize[i];
           serverDistribution_ = new CDistributionServer(server->intraCommRank, 
-                                                        globalZoomIndex, axis_domain_order,
-                                                        nZoomBegin, nZoomSize, nZoomBeginGlobal, nGlob);
+                                                        globalIndex, axis_domain_order,
+                                                        nBegin, nSize, nBeginGlobal, nGlob);
         }
 
         CArray<size_t,1> outIndex;

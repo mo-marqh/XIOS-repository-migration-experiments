@@ -120,7 +120,6 @@ namespace xios {
          void duplicateTransformation(CAxis*);
          CTransformation<CAxis>* addTransformation(ETranformationType transType, const StdString& id="");
          bool isEqual(CAxis* axis);
-         bool zoomByIndex();
 
       public: 
         bool hasValue;        
@@ -132,7 +131,6 @@ namespace xios {
       private:
          void checkData();
          void checkMask();
-         void checkZoom();
          void checkBounds();
          void checkLabel();
          void sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
