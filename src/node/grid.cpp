@@ -1296,7 +1296,6 @@ One of the ways is to convert this array into 1-dimension one and every process 
    {
       const std::vector<int>& localMaskedDataIndex = clientDistribution_->getLocalMaskedDataIndexOnClient();
       const int size = localMaskedDataIndex.size();
-      
       for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
    }
 
@@ -1304,11 +1303,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
   void CGrid::computeClientIndexScalarGrid()
   {
     CContext* context = CContext::getCurrent();    
-//    int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 1) : 1; // This should be changed soon
-//    for (int p = 0; p < nbSrvPools; ++p)
     {
-//      CContextClient* client = (context->hasServer) ? (context->hasClient ? context->clientPrimServer[p] : context->client)
-//                                                    : context->client;
       CContextClient* client = context->client;
 
       int rank = client->clientRank;

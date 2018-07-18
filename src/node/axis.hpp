@@ -28,7 +28,6 @@ namespace xios {
    // Declare/Define CAxisAttribute
    BEGIN_DECLARE_ATTRIBUTE_MAP(CAxis)
 #  include "axis_attribute.conf"
-#  include "axis_attribute_private.conf"
    END_DECLARE_ATTRIBUTE_MAP(CAxis)
 
    ///--------------------------------------------------------------
