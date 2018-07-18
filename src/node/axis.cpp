@@ -650,7 +650,7 @@ namespace xios {
 
     // We describe the distribution of client (server) on which data are written
     std::vector<int> nBegin(1), nSize(1), nBeginGlobal(1), nGlob(1);
-    nBegin[0]       = 0;
+    nBegin[0]       = begin;
     nSize[0]        = n;
     nBeginGlobal[0] = 0; 
     nGlob[0]        = n_glo;
