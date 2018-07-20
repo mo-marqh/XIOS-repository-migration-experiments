@@ -67,25 +67,25 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
       gridMask_(0) = true;
       break;
     case 1:
-      readGridMaskInfo(grid->mask_1d);
+      if (!grid->mask_1d.isEmpty()) readGridMaskInfo(grid->mask_1d);
       break;
     case 2:
-      readGridMaskInfo(grid->mask_2d);
+      if (!grid->mask_2d.isEmpty()) readGridMaskInfo(grid->mask_2d);
       break;
     case 3:
-      readGridMaskInfo(grid->mask_3d);
+      if (!grid->mask_3d.isEmpty()) readGridMaskInfo(grid->mask_3d);
       break;
     case 4:
-      readGridMaskInfo(grid->mask_4d);
+      if (!grid->mask_4d.isEmpty()) readGridMaskInfo(grid->mask_4d);
       break;
     case 5:
-      readGridMaskInfo(grid->mask_5d);
+      if (!grid->mask_5d.isEmpty()) readGridMaskInfo(grid->mask_5d);
       break;
     case 6:
-      readGridMaskInfo(grid->mask_6d);
+      if (!grid->mask_6d.isEmpty()) readGridMaskInfo(grid->mask_6d);
       break;
     case 7:
-      readGridMaskInfo(grid->mask_7d);
+      if (!grid->mask_7d.isEmpty()) readGridMaskInfo(grid->mask_7d);
       break;
     default:
       break;
@@ -410,6 +410,7 @@ void CDistributionClient::createGlobalIndexSendToServer()
   int innerLoopSize = eachElementSize[0];
   size_t idx = 0, indexLocalDataOnClientCount = 0;
   size_t ssize = 1;
+
   for (int i = 0; i < numElement_; ++i) ssize *= eachElementSize[i];
   while (idx < ssize)
   {
@@ -435,15 +436,37 @@ void CDistributionClient::createGlobalIndexSendToServer()
     {
       int gridMaskIndex = 0;
       currentIndex[0] = elementLocalIndex_[0](i);
-      for (int k = 0; k < this->numElement_; ++k)
+
+      // If defined, iterate on grid mask
+      if (!gridMask_.isEmpty())
       {
-        gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
+        for (int k = 0; k < this->numElement_; ++k)
+        {
+          gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
+        }
+        if (gridMask_(gridMaskIndex)) ++indexLocalDataOnClientCount;
+      }
+      // If grid mask is not defined, iterate on elements' mask
+      else
+      {
+        bool maskTmp = true;
+        int idxDomain = 0, idxAxis = 0;
+        for (int elem = 0; elem < numElement_; ++elem)
+        {
+          if (2 == axisDomainOrder_(elem))
+          {
+            maskTmp = maskTmp && domainMasks_[idxDomain](currentIndex[elem]);
+            ++idxDomain;
+          }
+          else if (1 == axisDomainOrder_(elem))
+          {
+            maskTmp = maskTmp && axisMasks_[idxAxis](currentIndex[elem]);
+            ++idxAxis;
+          }
+        }
+        if (maskTmp) ++indexLocalDataOnClientCount;
       }
 
-      if (gridMask_(gridMaskIndex))
-      {
-        ++indexLocalDataOnClientCount;
-      }
     }
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
@@ -517,7 +540,32 @@ void CDistributionClient::createGlobalIndexSendToServer()
             gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
           }
 
-          if (gridMask_(gridMaskIndex))
+          bool maskTmp = true;
+          // If defined, apply grid mask
+         if (!gridMask_.isEmpty())
+          {
+            maskTmp =  gridMask_(gridMaskIndex);
+          }
+          // If grid mask is not defined, apply elements' mask
+          else
+          {
+            int idxDomain = 0, idxAxis = 0;
+            for (int elem = 0; elem < numElement_; ++elem)
+            {
+              if (2 == axisDomainOrder_(elem))
+              {
+                maskTmp = maskTmp && domainMasks_[idxDomain](currentIndex[elem]);
+                ++idxDomain;
+              }
+              else if (1 == axisDomainOrder_(elem))
+              {
+                maskTmp = maskTmp && axisMasks_[idxAxis](currentIndex[elem]);
+                ++idxAxis;
+              }
+            }
+          }
+
+          if (maskTmp)
           {
             size_t globalIndex = 0;
             for (int k = 0; k < numElement_; ++k)

@@ -18,7 +18,7 @@
 
 namespace xios {
 
-   /// ////////////////////// D��clarations ////////////////////// ///
+   /// ////////////////////// Declarations ////////////////////// ///
 
    class CGridGroup;
    class CGridAttributes;
@@ -90,7 +90,7 @@ namespace xios {
 
          StdSize  getDataSize(void) const;
 
-         /// Entr��es-sorties de champs
+         /// Entrees-sorties de champs
          template <int n>
          void inputField(const CArray<double,n>& field, CArray<double,1>& stored) const;
          template <int n>
@@ -416,100 +416,103 @@ namespace xios {
                              const CArray<int,1>& axisDomainOrder,
                              bool createMask)
    {
-     int idx = 0;
-     int numElement = axisDomainOrder.numElements();
-     int dim = domainMasks.size() * 2 + axisMasks.size();
-     std::vector<CDomain*> domainP = this->getDomains();
-     std::vector<CAxis*> axisP = this->getAxis();
+     if (!gridMask.isEmpty() || createMask)
+     {
+       int idx = 0;
+       int numElement = axisDomainOrder.numElements();
+       int dim = domainMasks.size() * 2 + axisMasks.size();
+       std::vector<CDomain*> domainP = this->getDomains();
+       std::vector<CAxis*> axisP = this->getAxis();
 
-     std::vector<int> idxLoop(dim,0), indexMap(numElement), eachDimSize(dim);
-     std::vector<int> currentIndex(dim);
-     int idxDomain = 0, idxAxis = 0;
-    for (int i = 0; i < numElement; ++i)
-    {
-      indexMap[i] = idx;
-      if (2 == axisDomainOrder(i)) {
-          eachDimSize[indexMap[i]]   = domainP[idxDomain]->ni;
-          eachDimSize[indexMap[i]+1] = domainP[idxDomain]->nj;
-          idx += 2; ++idxDomain;
-      }
-      else if (1 == axisDomainOrder(i)) {
-//        eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
-        eachDimSize[indexMap[i]] = axisP[idxAxis]->n;
-        ++idx; ++idxAxis;
-      }
-      else {};
-    }
-
-    if (!gridMask.isEmpty() && !createMask)
-    {
-      for (int i = 0; i < dim; ++i)
-      {
-        if (gridMask.extent(i) != eachDimSize[i])
-          ERROR("CGrid::checkMask(void)",
-                << "The mask has one dimension whose size is different from the one of the local grid." << std::endl
-                << "Local size of dimension " << i << " is " << eachDimSize[i] << "." << std::endl
-                << "Mask size for dimension " << i << " is " << gridMask.extent(i) << "." << std::endl
-                << "Grid = " << this->getId())
-      }
-    }
-    else {
-        CArrayBoolTraits<CArray<bool,N> >::resizeArray(gridMask,eachDimSize);
-        gridMask = true;
-    }
-
-    int ssize = gridMask.numElements();
-    idx = 0;
-    while (idx < ssize)
-    {
-      for (int i = 0; i < dim-1; ++i)
-      {
-        if (idxLoop[i] == eachDimSize[i])
-        {
-          idxLoop[i] = 0;
-          ++idxLoop[i+1];
-        }
-      }
-
-      // Find out outer index
-      idxDomain = idxAxis = 0;
-      bool maskValue = true;
+       std::vector<int> idxLoop(dim,0), indexMap(numElement), eachDimSize(dim);
+       std::vector<int> currentIndex(dim);
+       int idxDomain = 0, idxAxis = 0;
       for (int i = 0; i < numElement; ++i)
       {
-        if (2 == axisDomainOrder(i))
-        {
-          int idxTmp = idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]];
-          if (idxTmp < (*domainMasks[idxDomain]).numElements())
-            maskValue = maskValue && (*domainMasks[idxDomain])(idxTmp);
-          else
-            maskValue = false;
-          ++idxDomain;
+        indexMap[i] = idx;
+        if (2 == axisDomainOrder(i)) {
+            eachDimSize[indexMap[i]]   = domainP[idxDomain]->ni;
+            eachDimSize[indexMap[i]+1] = domainP[idxDomain]->nj;
+            idx += 2; ++idxDomain;
         }
-        else if (1 == axisDomainOrder(i))
-        {
-          int idxTmp = idxLoop[indexMap[i]];
-          if (idxTmp < (*axisMasks[idxAxis]).numElements())
-            maskValue = maskValue && (*axisMasks[idxAxis])(idxTmp);
-          else
-            maskValue = false;
-
-          ++idxAxis;
+        else if (1 == axisDomainOrder(i)) {
+  //        eachDimSize[indexMap[i]] = axisMasks[idxAxis]->numElements();
+          eachDimSize[indexMap[i]] = axisP[idxAxis]->n;
+          ++idx; ++idxAxis;
         }
+        else {};
       }
 
-      int maskIndex = idxLoop[0];
-      int mulDim = 1;
-      for (int k = 1; k < dim; ++k)
+//      if (!gridMask.isEmpty() && !createMask)
+      if (!createMask)
       {
-        mulDim *= eachDimSize[k-1];
-        maskIndex += idxLoop[k]*mulDim;
+        for (int i = 0; i < dim; ++i)
+        {
+          if (gridMask.extent(i) != eachDimSize[i])
+            ERROR("CGrid::checkMask(void)",
+                  << "The mask has one dimension whose size is different from the one of the local grid." << std::endl
+                  << "Local size of dimension " << i << " is " << eachDimSize[i] << "." << std::endl
+                  << "Mask size for dimension " << i << " is " << gridMask.extent(i) << "." << std::endl
+                  << "Grid = " << this->getId())
+        }
       }
-      *(gridMask.dataFirst()+maskIndex) &= maskValue;
+      else {
+          CArrayBoolTraits<CArray<bool,N> >::resizeArray(gridMask,eachDimSize);
+          gridMask = true;
+      }
 
-      ++idxLoop[0];
-      ++idx;
-    }
+      int ssize = gridMask.numElements();
+      idx = 0;
+      while (idx < ssize)
+      {
+        for (int i = 0; i < dim-1; ++i)
+        {
+          if (idxLoop[i] == eachDimSize[i])
+          {
+            idxLoop[i] = 0;
+            ++idxLoop[i+1];
+          }
+        }
 
+        // Find out outer index
+        idxDomain = idxAxis = 0;
+        bool maskValue = true;
+        for (int i = 0; i < numElement; ++i)
+        {
+          if (2 == axisDomainOrder(i))
+          {
+            int idxTmp = idxLoop[indexMap[i]] + idxLoop[indexMap[i]+1] * eachDimSize[indexMap[i]];
+            if (idxTmp < (*domainMasks[idxDomain]).numElements())
+              maskValue = maskValue && (*domainMasks[idxDomain])(idxTmp);
+            else
+              maskValue = false;
+            ++idxDomain;
+          }
+          else if (1 == axisDomainOrder(i))
+          {
+            int idxTmp = idxLoop[indexMap[i]];
+            if (idxTmp < (*axisMasks[idxAxis]).numElements())
+              maskValue = maskValue && (*axisMasks[idxAxis])(idxTmp);
+            else
+              maskValue = false;
+
+            ++idxAxis;
+          }
+        }
+
+        int maskIndex = idxLoop[0];
+        int mulDim = 1;
+        for (int k = 1; k < dim; ++k)
+        {
+          mulDim *= eachDimSize[k-1];
+          maskIndex += idxLoop[k]*mulDim;
+        }
+        *(gridMask.dataFirst()+maskIndex) &= maskValue;
+
+        ++idxLoop[0];
+        ++idx;
+      }
+     }
    }
 
    template<int N>
