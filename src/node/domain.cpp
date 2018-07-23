@@ -457,7 +457,7 @@ namespace xios {
    */
    void CDomain::fillInRectilinearLonLat()
    {
-     if (!lonvalue_rectilinear_read_from_file.isEmpty())
+     if (!lonvalue_rectilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
        lonvalue_1d.resize(ni);
        for (int idx = 0; idx < ni; ++idx)
@@ -491,7 +491,7 @@ namespace xios {
      }
 
 
-     if (!latvalue_rectilinear_read_from_file.isEmpty())
+     if (!latvalue_rectilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty() && latvalue_1d.isEmpty())
      {
        latvalue_1d.resize(nj);
        for (int idx = 0; idx < nj; ++idx)
@@ -526,12 +526,12 @@ namespace xios {
    }
 
     /*
-      Fill in longitude and latitude of curvilinear domain read from a file
-      If there are already longitude and latitude defined by model. We just igonore reading value.
+      Fill in 2D longitude and latitude of curvilinear domain read from a file.
+      If there are already longitude and latitude defined by model. We just ignore read value.
     */
    void CDomain::fillInCurvilinearLonLat()
    {
-     if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty())
+     if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
        lonvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -541,7 +541,7 @@ namespace xios {
        lonvalue_curvilinear_read_from_file.free();
      }
 
-     if (!latvalue_curvilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty())
+     if (!latvalue_curvilinear_read_from_file.isEmpty() && latvalue_2d.isEmpty() && latvalue_1d.isEmpty())
      {
        latvalue_2d.resize(ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -551,7 +551,7 @@ namespace xios {
        latvalue_curvilinear_read_from_file.free();
      }
 
-     if (!bounds_lonvalue_curvilinear_read_from_file.isEmpty() && bounds_lon_2d.isEmpty())
+     if (!bounds_lonvalue_curvilinear_read_from_file.isEmpty() && bounds_lon_2d.isEmpty() && bounds_lon_1d.isEmpty())
      {
        bounds_lon_2d.resize(nvertex,ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -562,7 +562,7 @@ namespace xios {
        bounds_lonvalue_curvilinear_read_from_file.free();
      }
 
-     if (!bounds_latvalue_curvilinear_read_from_file.isEmpty() && bounds_lat_2d.isEmpty())
+     if (!bounds_latvalue_curvilinear_read_from_file.isEmpty() && bounds_lat_2d.isEmpty() && bounds_lat_1d.isEmpty())
      {
        bounds_lat_2d.resize(nvertex,ni,nj);
        for (int jdx = 0; jdx < nj; ++jdx)
@@ -2917,7 +2917,7 @@ namespace xios {
          dataIIndex(lInd) = (-1 == dataIIndex(lInd)) ? tmpI(ind) : dataIIndex(lInd); // Only fill in dataIndex if there is no data
          dataJIndex(lInd) = (-1 == dataJIndex(lInd)) ? tmpJ(ind) : dataJIndex(lInd);  
 
-         if (!domainMask(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes    
+         if (!domainMask(lInd))   // Include mask info into data index on the RECEIVE getServerDimensionSizes
          {
            dataIIndex(lInd) = dataJIndex(lInd) = -1;
          }
