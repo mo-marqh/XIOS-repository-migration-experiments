@@ -791,12 +791,11 @@ namespace xios {
           // Use const int to ensure CMessage holds a copy of the value instead of just a reference
           const int begin = serverIndexBegin[*itRank][orderPositionInGrid];
           const int ni    = serverDimensionSizes[*itRank][orderPositionInGrid];
-          const int end   = begin + ni - 1;          
 
           msgs.push_back(CMessage());
           CMessage& msg = msgs.back();
           msg << this->getId();
-          msg << ni << begin << end;          
+          msg << ni << begin;
           msg << isCompressible_;                    
 
           event.push(*itRank,1,msg);
@@ -825,8 +824,8 @@ namespace xios {
   */
   void CAxis::recvDistributionAttribute(CBufferIn& buffer)
   {
-    int ni_srv, begin_srv, end_srv;
-    buffer >> ni_srv >> begin_srv >> end_srv;    
+    int ni_srv, begin_srv;
+    buffer >> ni_srv >> begin_srv;
     buffer >> isCompressible_;            
 
     // Set up new local size of axis on the receiving clients
@@ -1137,16 +1136,18 @@ namespace xios {
     index.resize(nbIndexGlob);
     globalLocalIndexMap_.rehash(std::ceil(index.numElements()/globalLocalIndexMap_.max_load_factor()));
     nbIndexGlob = 0;
+    int nbIndLoc = 0;
     for (idx = 0; idx < nbReceived; ++idx)
     {
       CArray<int,1>& tmp = vec_indi[idx];
       for (ind = 0; ind < tmp.numElements(); ++ind)
       {
          gloInd = tmp(ind);
+         nbIndLoc = (gloInd % n_glo)-begin;
          if (0 == globalLocalIndexMap_.count(gloInd))
          {
-           index(nbIndexGlob) = gloInd % n_glo;           
-           globalLocalIndexMap_[gloInd] = nbIndexGlob;  
+           index(nbIndLoc) = gloInd % n_glo;
+           globalLocalIndexMap_[gloInd] = nbIndLoc;
            ++nbIndexGlob;
          } 
       } 
