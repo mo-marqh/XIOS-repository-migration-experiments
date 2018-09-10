@@ -84,11 +84,8 @@ namespace xios
               start.push_back(domain->jbegin);
               count.push_back(domain->nj);
             }
-            --idx ;
             start.push_back(domain->ibegin);
             count.push_back(domain->ni);
-
-            --idx ;
             --idxDomain;
           }
           else if (1 == axisDomainOrder(i))
@@ -96,7 +93,7 @@ namespace xios
             CAxis* axis = CAxis::get(axisList[idxAxis]);
             start.push_back(axis->begin);
             count.push_back(axis->n);
-            --idx;
+            --idxAxis ;
           }
           else
           {
@@ -105,7 +102,6 @@ namespace xios
               start.push_back(0);
               count.push_back(1);
             }
-            --idx;
           }
         }
 
