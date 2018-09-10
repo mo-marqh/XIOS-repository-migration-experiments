@@ -1468,7 +1468,8 @@ namespace xios{
 
       CFieldGroup* group = CFieldGroup::get(gref);
       CFieldGroup* owner = CFieldGroup::get(boost::polymorphic_downcast<CFieldGroup*>(this));
-
+      owner->setAttributes(group); // inherite of attributes of group reference
+      
       std::vector<CField*> allChildren  = group->getAllChildren();
       std::vector<CField*>::iterator it = allChildren.begin(), end = allChildren.end();
 
