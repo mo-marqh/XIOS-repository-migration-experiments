@@ -22,5 +22,6 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos);
 void packIntersection(const Elt& e, char *buffer, int& pos);
 void unpackIntersection(Elt *e, const char *buffer);
 int packIntersectionSize(const Elt& e);
+double triarea( const Coord& A, const Coord& B, const Coord& C) ;
 
 }
