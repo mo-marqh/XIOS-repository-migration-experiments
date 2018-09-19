@@ -32,7 +32,8 @@ namespace xios {
       , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
-      , clients()
+      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
+      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
    {
    }
 
@@ -44,7 +45,8 @@ namespace xios {
       , isRedistributed_(false), hasPole(false)
       , lonvalue(), latvalue(), bounds_lonvalue(), bounds_latvalue()
       , globalLocalIndexMap_(), computedWrittenIndex_(false)
-      , clients()
+      , clients(), hasLatInReadFile_(false), hasBoundsLatInReadFile_(false)
+      , hasLonInReadFile_(false), hasBoundsLonInReadFile_(false)
    {
     }
 
@@ -465,7 +467,7 @@ namespace xios {
        lon_start.setValue(lonvalue_rectilinear_read_from_file(0));
        lon_end.setValue(lonvalue_rectilinear_read_from_file(ni_glo-1));
      }
-     else
+     else if (!hasLonInReadFile_)
      {
        if (!lonvalue_2d.isEmpty()) lonvalue_2d.free();
        lonvalue_1d.resize(ni);
@@ -499,7 +501,7 @@ namespace xios {
        lat_start.setValue(latvalue_rectilinear_read_from_file(0));
        lat_end.setValue(latvalue_rectilinear_read_from_file(nj_glo-1));
      }
-     else
+     else if (!hasLatInReadFile_)
      {
        if (!latvalue_2d.isEmpty()) latvalue_1d.free();
        latvalue_1d.resize(nj);
