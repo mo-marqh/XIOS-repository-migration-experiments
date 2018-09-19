@@ -132,7 +132,8 @@ void computeGradients(Elt **elts, int N)
   for (int j = 0; j < N; j++)
   {
     for (int i = 0; i < elts[j]->n; i++) 
-      if ( elts[j]->neighbour[i]== NOT_FOUND) neighbours[i]=NULL ;
+      if ( elts[j]->neighbour[i]== NOT_FOUND) neighbours[i]=NULL ; // no neighbour
+      else if (elts[elts[j]->neighbour[i]]->is.size() == 0) neighbours[i]=NULL ; // neighbour has none supermesh cell 
       else  neighbours[i] = elts[elts[j]->neighbour[i]];
 
     for (int i = 0; i < elts[j]->n; i++)
