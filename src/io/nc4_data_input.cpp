@@ -493,6 +493,25 @@ namespace xios
       }       
       domain->ni_glo.setValue(itMapNi->second);
     }
+
+// determine if coordinates values are present in file
+    if ((CDomain::type_attr::rectilinear == domain->type))
+    {
+      // Ok, try to read some attributes such as longitude and latitude
+      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(itMapNj->first);
+      domain->hasLonInReadFile_  = SuperClassWriter::hasVariable(itMapNi->first);
+    }
+    else if ((CDomain::type_attr::curvilinear == domain->type) || (CDomain::type_attr::unstructured == domain->type) )
+    {
+      StdString latName = this->getLatCoordName(fieldId);
+      domain->hasLatInReadFile_ = SuperClassWriter::hasVariable(latName) ;
+      StdString lonName = this->getLonCoordName(fieldId);        
+      domain->hasLonInReadFile_ = SuperClassWriter::hasVariable(lonName) ; 
+      StdString boundsLatName = this->getBoundsId(latName);
+      domain->hasBoundsLatInReadFile_ = SuperClassWriter::hasVariable(boundsLatName) ; 
+      StdString boundsLonName = this->getBoundsId(lonName);
+      domain->hasBoundsLonInReadFile_ = SuperClassWriter::hasVariable(boundsLonName) ;
+    }
   }
 
   /*!
