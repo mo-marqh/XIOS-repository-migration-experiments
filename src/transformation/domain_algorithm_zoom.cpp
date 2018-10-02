@@ -62,7 +62,7 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 
   // Calculate the size of local domain
   int ind, indLocSrc, indLocDest, iIdxSrc, jIdxSrc, destIBegin = -1, destJBegin = -1, niDest = 0, njDest = 0, ibeginDest, jbeginDest ;
-  int indGloDest, indGloSrc, niGloSrc = domainSrc_->ni_glo, iSrc, jSrc;
+  int indGloDest, indGloSrc, niGloSrc = domainSrc_->ni_glo, iSrc, jSrc, nvertex = 0;
   for (int j = 0; j < domainSrc_->nj.getValue(); j++)
   {
     for (int i = 0; i < domainSrc_->ni.getValue(); i++)
@@ -118,6 +118,11 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
       domainDest_->lonvalue_1d.resize(niDest);
       domainDest_->latvalue_1d.resize(niDest);
     }
+    else if (domainDest_->type == CDomain::type_attr::curvilinear)
+    {
+      domainDest_->lonvalue_1d.resize(niDest*njDest);
+      domainDest_->latvalue_1d.resize(niDest*njDest);
+    }
   }
   else if (!domainSrc_->lonvalue_2d.isEmpty())
   {
@@ -127,15 +132,30 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 
   if (domainSrc_->hasBounds)
   {
-    if (!domainSrc_->bounds_lon_2d.isEmpty())
+    nvertex = domainSrc_->nvertex;
+    domainDest_->nvertex.setValue(nvertex);
+    if (!domainSrc_->bounds_lon_1d.isEmpty())
     {
-      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
-      domainDest_->bounds_lon_2d.resize(domainDest_->nvertex, niDest, njDest);
+      if (domainDest_->type == CDomain::type_attr::rectilinear)
+      {
+        domainDest_->bounds_lon_1d.resize(nvertex, niDest);
+        domainDest_->bounds_lat_1d.resize(nvertex, njDest);
+      }
+      else if (domainDest_->type == CDomain::type_attr::unstructured)
+      {
+        domainDest_->bounds_lon_1d.resize(nvertex, niDest);
+        domainDest_->bounds_lat_1d.resize(nvertex, niDest);
+      }
+      else if (domainDest_->type == CDomain::type_attr::curvilinear)
+      {
+        domainDest_->bounds_lon_1d.resize(nvertex, niDest*njDest);
+        domainDest_->bounds_lat_1d.resize(nvertex, niDest*njDest);
+      }
     }
-    else if (!domainSrc_->bounds_lon_1d.isEmpty())
+    else if (!domainSrc_->bounds_lon_2d.isEmpty())
     {
-      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
-      domainDest_->bounds_lon_1d.resize(domainDest_->nvertex, niDest);
+      domainDest_->bounds_lon_2d.resize(nvertex, niDest, njDest);
+      domainDest_->bounds_lat_2d.resize(nvertex, niDest, njDest);
     }
   }
   if (domainSrc_->hasArea) domainDest_->area.resize(niDest,njDest);
@@ -167,53 +187,74 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
       if (domainSrc_->hasArea)
         domainDest_->area(iDest,jDest) = domainSrc_->area(iSrc,jSrc);
 
-      if (domainSrc_->hasBounds)
-      {
-        if (!domainSrc_->bounds_lon_2d.isEmpty())
-        {
-          for (int n = 0; n < domainSrc_->nvertex; ++n)
-          {
-            domainDest_->bounds_lon_2d(n,iDest,jDest) = domainSrc_->bounds_lon_2d(n,iSrc,jSrc);
-            domainDest_->bounds_lat_2d(n,iDest,jDest) = domainSrc_->bounds_lat_2d(n,iSrc,jSrc);
-          }
-        }
-        else if (!domainSrc_->bounds_lon_1d.isEmpty())
-        {
-          for (int n = 0; n < domainSrc_->nvertex; ++n)
-          {
-            domainDest_->bounds_lon_1d(n,iDest) = domainSrc_->bounds_lon_1d(n,iSrc);
-            domainDest_->bounds_lat_1d(n,iDest) = domainSrc_->bounds_lat_1d(n,iSrc);
-          }
-        }
-      }
-
       if (domainSrc_->hasLonLat)
       {
-        if (domainDest_->type == CDomain::type_attr::rectilinear)
+        if (!domainSrc_->latvalue_1d.isEmpty())
         {
-          domainDest_->latvalue_1d(jDest) = domainSrc_->latvalue_1d(jSrc);
+          if (domainDest_->type == CDomain::type_attr::rectilinear)
+          {
+            domainDest_->latvalue_1d(jDest) = domainSrc_->latvalue_1d(jSrc);
+          }
+          else
+          {
+            domainDest_->lonvalue_1d(indLocDest) = domainSrc_->lonvalue_1d(ind);
+            domainDest_->latvalue_1d(indLocDest) = domainSrc_->latvalue_1d(ind);
+          }
         }
-        else if (domainDest_->type == CDomain::type_attr::curvilinear)
+        else if (!domainSrc_->latvalue_2d.isEmpty())
         {
           domainDest_->lonvalue_2d(iDest,jDest) = domainSrc_->lonvalue_2d(iSrc,jSrc);
           domainDest_->latvalue_2d(iDest,jDest) = domainSrc_->latvalue_2d(iSrc,jSrc);
         }
       }
 
+      if (domainSrc_->hasBounds)
+      {
+        if (!domainSrc_->bounds_lon_1d.isEmpty())
+        {
+          if (domainDest_->type == CDomain::type_attr::rectilinear)
+          {
+            for (int n = 0; n < nvertex; ++n)
+              domainDest_->bounds_lat_1d(n,jDest) = domainSrc_->bounds_lat_1d(n,jSrc);
+          }
+          else
+          {
+            for (int n = 0; n < nvertex; ++n)
+            {
+              domainDest_->bounds_lon_1d(n,indLocDest) = domainSrc_->bounds_lon_1d(n,ind);
+              domainDest_->bounds_lat_1d(n,indLocDest) = domainSrc_->bounds_lat_1d(n,ind);
+            }
+          }
+        }
+        else if (!domainSrc_->bounds_lon_2d.isEmpty())
+        {
+          for (int n = 0; n < nvertex; ++n)
+          {
+            domainDest_->bounds_lon_2d(n,iDest,jDest) = domainSrc_->bounds_lon_2d(n,iSrc,jSrc);
+            domainDest_->bounds_lat_2d(n,iDest,jDest) = domainSrc_->bounds_lat_2d(n,iSrc,jSrc);
+          }
+        }
+
+      }
+
       transMap[indGloDest].push_back(indGloSrc);
       transWeight[indGloDest].push_back(1.0);
-
     }
-    if (domainSrc_->hasLonLat)
+
+    if (domainSrc_->hasLonLat && !domainSrc_->latvalue_1d.isEmpty())
     {
-      if (domainDest_->type == CDomain::type_attr::unstructured)
+      if (domainDest_->type == CDomain::type_attr::rectilinear)
       {
         domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
-        domainDest_->latvalue_1d(iDest) = domainSrc_->latvalue_1d(iSrc);
       }
-      else if (domainDest_->type == CDomain::type_attr::rectilinear)
+    }
+
+    if (domainSrc_->hasBounds && !domainSrc_->bounds_lon_1d.isEmpty())
+    {
+      if (domainDest_->type == CDomain::type_attr::rectilinear)
       {
-        domainDest_->lonvalue_1d(iDest) = domainSrc_->lonvalue_1d(iSrc);
+        for (int n = 0; n < nvertex; ++n)
+          domainDest_->bounds_lon_1d(n,iDest) = domainSrc_->bounds_lon_1d(n,iSrc);
       }
     }
   }
