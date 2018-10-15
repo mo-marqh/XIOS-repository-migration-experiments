@@ -83,6 +83,13 @@ extern "C"
      CTimer::get("XIOS").suspend();
    }
 
+   void cxios_oasis_enddef()
+   {
+     CTimer::get("XIOS").resume();
+     CClient::callOasisEnddef();
+     CTimer::get("XIOS").suspend();
+   }
+
    void cxios_context_is_initialized(const char* context_id , int len_context_id, bool* initialized)
    {
      std::string str;

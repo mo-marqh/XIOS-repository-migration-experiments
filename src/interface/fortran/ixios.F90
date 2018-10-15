@@ -12,7 +12,7 @@ USE icontext, ONLY : txios(context), xios(set_current_context), xios(is_valid_co
 USE icontext_attr, ONLY : xios(set_context_attr), xios(get_context_attr), xios(is_defined_context_attr)
 
 USE idata, ONLY : xios(initialize), xios(init_server), xios(finalize), xios(context_initialize), xios(context_is_initialized), &
-                  xios(close_context_definition), xios(context_finalize), xios(solve_inheritance)
+                  xios(close_context_definition), xios(context_finalize), xios(solve_inheritance), xios(oasis_enddef)
 
 USE idomain, ONLY : txios(domain), txios(domaingroup), xios(is_valid_domain), xios(is_valid_domaingroup)
 

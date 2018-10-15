@@ -41,7 +41,10 @@ MODULE IDATA
          USE ISO_C_BINDING
       END SUBROUTINE cxios_context_finalize
 
-
+      SUBROUTINE  cxios_oasis_enddef() BIND(C)
+         USE ISO_C_BINDING
+      END SUBROUTINE cxios_oasis_enddef
+      
       SUBROUTINE  cxios_finalize() BIND(C)
       END SUBROUTINE cxios_finalize
 
@@ -506,6 +509,12 @@ MODULE IDATA
 
     END SUBROUTINE  xios(finalize)
 
+   SUBROUTINE  xios(oasis_enddef)
+   IMPLICIT NONE
+
+      CALL cxios_oasis_enddef
+
+    END SUBROUTINE  xios(oasis_enddef)
 
    SUBROUTINE xios(close_context_definition)()
    IMPLICIT NONE

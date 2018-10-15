@@ -21,6 +21,8 @@ namespace xios
         static void recvContextMessage(void* buff,int count);
         static void listenRootContext(void);
         static void listenRootFinalize(void);
+        static void listenRootOasisEnddef(void);
+        static void listenOasisEnddef(void);
         static void registerContext(void* buff,int count, int leaderRank=0);
 
         static MPI_Comm intraComm;
@@ -71,7 +73,6 @@ namespace xios
         static int nbContexts;                    //!< Number of contexts registered by server
         static StdOFStream m_infoStream;
         static StdOFStream m_errorStream;
-
         static void openStream(const StdString& fileName, const StdString& ext, std::filebuf* fb);
     };
 }

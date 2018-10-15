@@ -12,6 +12,7 @@ namespace xios
         static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
         static void finalize(void);
         static void registerContext(const string& id, MPI_Comm contextComm);
+        static void callOasisEnddef(void) ;
 
         static MPI_Comm intraComm;
         static MPI_Comm interComm;
