@@ -219,6 +219,7 @@ double intersect_ym(Elt *a, Elt *b)
       for(int n=0; n < nv; n++)
       {
         intersectPolygon[n] = Ox*intersectPolygon[n].x+Oy*intersectPolygon[n].y+Oz;
+        intersectPolygon[n] = intersectPolygon[n]*(1./norm(intersectPolygon[n])) ;
       }
 
 
