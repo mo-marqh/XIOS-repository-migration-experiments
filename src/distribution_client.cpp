@@ -584,6 +584,8 @@ void CDistributionClient::createGlobalIndexSendToServer()
         correctIndexOfElement[0] = correctIndexInnerElement;;
       }
     }
+    else countLocalData+=innerLoopSize ;
+    
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
   }
