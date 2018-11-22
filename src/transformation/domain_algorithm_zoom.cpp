@@ -92,8 +92,16 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
   domainDest_->nj_glo.setValue(zoomNj_);
   domainDest_->ni.setValue(niDest);
   domainDest_->nj.setValue(njDest);
-  domainDest_->ibegin.setValue(ibeginDest);
-  domainDest_->jbegin.setValue(jbeginDest);
+  if ( (niDest==0) || (njDest==0))
+  {
+    domainDest_->ibegin.setValue(0);
+    domainDest_->jbegin.setValue(0);
+  }
+  else
+  {
+    domainDest_->ibegin.setValue(ibeginDest);
+    domainDest_->jbegin.setValue(jbeginDest);
+  }
   domainDest_->i_index.resize(niDest*njDest);
   domainDest_->j_index.resize(niDest*njDest);
 
