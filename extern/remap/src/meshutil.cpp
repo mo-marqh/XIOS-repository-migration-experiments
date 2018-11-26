@@ -1,10 +1,67 @@
 #include <list>
 #include "elt.hpp"
 #include "polyg.hpp"
+#include "intersection_ym.hpp"
+#include "earcut.hpp"
+#include <vector>
 
 namespace sphereRemap {
 
 using namespace std;
+
+double computePolygoneArea(Elt& a, const Coord &pole)
+{
+  using N = uint32_t;
+  using Point = array<double, 2>;
+  vector<Point> vect_points;
+  vector< vector<Point> > polyline;
+  
+  vector<Coord> dstPolygon ;
+  createGreatCirclePolygon(a, pole, dstPolygon) ;
+
+  int na=dstPolygon.size() ;
+  Coord *a_gno   = new Coord[na];
+  
+  Coord OC=barycentre(a.vertex,a.n) ;
+  Coord Oz=OC ;
+  Coord Ox=crossprod(Coord(0,0,1),Oz) ;
+// choose Ox not too small to avoid rounding error
+  if (norm(Ox)< 0.1) Ox=crossprod(Coord(0,1,0),Oz) ;
+  Ox=Ox*(1./norm(Ox)) ;
+  Coord Oy=crossprod(Oz,Ox) ;
+  double cos_alpha;
+
+  for(int n=0; n<na;n++)
+  {
+    cos_alpha=scalarprod(OC,dstPolygon[n]) ;
+    a_gno[n].x=scalarprod(dstPolygon[n],Ox)/cos_alpha ;
+    a_gno[n].y=scalarprod(dstPolygon[n],Oy)/cos_alpha ;
+    a_gno[n].z=scalarprod(dstPolygon[n],Oz)/cos_alpha ; // must be equal to 1
+
+    vect_points.push_back( array<double, 2>() );
+    vect_points[n][0] = a_gno[n].x;
+    vect_points[n][1] = a_gno[n].y;
+
+  }
+
+  polyline.push_back(vect_points);
+  vector<N> indices_a_gno = mapbox::earcut<N>(polyline);
+  
+  double area_a_gno=0 ;
+  for(int i=0;i<indices_a_gno.size()/3;++i)
+    {
+      Coord x0 = Ox * polyline[0][indices_a_gno[3*i]][0] + Oy* polyline[0][indices_a_gno[3*i]][1] + Oz ;
+      Coord x1 = Ox * polyline[0][indices_a_gno[3*i+1]][0] + Oy* polyline[0][indices_a_gno[3*i+1]][1] + Oz ;
+      Coord x2 = Ox * polyline[0][indices_a_gno[3*i+2]][0] + Oy* polyline[0][indices_a_gno[3*i+2]][1] + Oz ;
+      area_a_gno+=triarea(x0 * (1./norm(x0)),x1* (1./norm(x1)), x2* (1./norm(x2))) ;
+    }
+
+  vect_points.clear();
+  polyline.clear();
+  indices_a_gno.clear();
+  return area_a_gno ;
+}
+
 
 void cptEltGeom(Elt& elt, const Coord &pole)
 {
@@ -13,7 +70,11 @@ void cptEltGeom(Elt& elt, const Coord &pole)
   Coord gg;
   elt.area = airbar(elt.n, elt.vertex, elt.edge, elt.d, pole, gg);
   elt.x = gg;
+// overwrite area computation 
+
+  elt.area =  computePolygoneArea(elt, pole) ;
 }
+
 
 void cptAllEltsGeom(Elt *elt, int N, const Coord &pole)
 {
