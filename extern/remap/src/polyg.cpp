@@ -217,7 +217,7 @@ double polygonarea(Coord *vertices, int N)
 
 int packedPolygonSize(const Elt& e)
 {
-  return sizeof(e.id) + sizeof(e.src_id) + sizeof(e.x) + sizeof(e.val) +
+  return sizeof(e.id) + sizeof(e.src_id) + sizeof(e.x) + sizeof(e.val)  + sizeof(e.given_area)+
          sizeof(e.n) + e.n*(sizeof(double)+sizeof(Coord));
 }
 
@@ -232,6 +232,9 @@ void packPolygon(const Elt& e, char *buffer, int& pos)
   pos += sizeof(e.x);
 
   *((double*) &(buffer[pos])) = e.val;
+  pos += sizeof(e.val);
+
+  *((double*) &(buffer[pos])) = e.given_area;
   pos += sizeof(e.val);
 
   *((int *) & (buffer[pos])) = e.n;
@@ -259,6 +262,9 @@ void unpackPolygon(Elt& e, const char *buffer, int& pos)
   pos += sizeof(e.x);
 
   e.val = *((double *) & (buffer[pos]));
+  pos += sizeof(double);
+
+  e.given_area = *((double *) & (buffer[pos]));
   pos += sizeof(double);
 
   e.n = *((int *) & (buffer[pos]));
@@ -291,6 +297,7 @@ void packIntersection(const Elt& e, char* buffer,int& pos)
     *((double *) &(buffer[pos])) = e.area;
     pos += sizeof(double);
 
+
     *((GloId *) &(buffer[pos])) = (*it)->id;
     pos += sizeof(GloId);
   
@@ -320,6 +327,7 @@ void unpackIntersection(Elt* e, const char* buffer)
 
     elt.area=*((double *) & (buffer[pos]));
     pos += sizeof(double);
+
 
     Polyg *polygon = new Polyg;
 
