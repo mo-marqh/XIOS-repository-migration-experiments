@@ -94,7 +94,7 @@ namespace xios
     void CContextClient::sendEvent(CEventClient& event)
     {
       list<int> ranks = event.getRanks();
-
+      info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<endl ;
       if (CXios::checkEventSync)
       {
         int typeId, classId, typeId_in, classId_in, timeLine_out;
@@ -123,6 +123,7 @@ namespace xios
         if (couldBuffer)
         {
           event.send(timeLine, sizes, buffList);
+          info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
 
           checkBuffers(ranks);
 
@@ -141,6 +142,7 @@ namespace xios
             tmpBufferedEvent.buffers.push_back(new CBufferOut(*it));
           info(100)<<"DEBUG : temporaly event created : timeline "<<timeLine<<endl ;
           event.send(timeLine, tmpBufferedEvent.sizes, tmpBufferedEvent.buffers);
+          info(100)<<"Event "<<timeLine<<" of context "<<context->getId()<<"  sent"<<endl ;
         }
       }
 

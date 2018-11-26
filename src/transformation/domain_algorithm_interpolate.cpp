@@ -303,9 +303,15 @@ void CDomainAlgorithmInterpolate::computeRemap()
 
   CArray<double,2> boundsLonSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
   CArray<double,2> boundsLatSrcUnmasked(nVertexSrc,nSrcLocalUnmasked);
+  CArray<double,1> areaSrcUnmasked(nSrcLocalUnmasked);
+  
   long int * globalSrcUnmasked = new long int [nSrcLocalUnmasked];
 
   nSrcLocalUnmasked=0 ;
+  bool hasSrcArea=!domainSrc_->area.isEmpty() && !domainSrc_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true  ;
+  double srcAreaFactor ;
+  if (hasSrcArea) srcAreaFactor=1./(domainSrc_->radius*domainSrc_->radius) ;
+  
   for (int idx=0 ; idx < nSrcLocal; idx++)
   {
     if (domainSrc_->localMask(idx))
@@ -315,20 +321,26 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonSrcUnmasked(n,nSrcLocalUnmasked) = boundsLonSrc(n,idx) ;
         boundsLatSrcUnmasked(n,nSrcLocalUnmasked) = boundsLatSrc(n,idx) ;
       }
+      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = domainSrc_->area(idx)*srcAreaFactor ;
       globalSrcUnmasked[nSrcLocalUnmasked]=globalSrc[idx] ;
       ++nSrcLocalUnmasked ;
     }
   }
-
+ 
 
   int nDstLocalUnmasked = 0 ;
   for (int idx=0 ; idx < nDstLocal; idx++) if (domainDest_->localMask(idx)) ++nDstLocalUnmasked ;
 
   CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
   CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
+  CArray<double,1>   areaDstUnmasked(nSrcLocalUnmasked);
+
   long int * globalDstUnmasked = new long int [nDstLocalUnmasked];
 
   nDstLocalUnmasked=0 ;
+  bool hasDstArea=!domainDest_->area.isEmpty() && !domainDest_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true ;
+  double dstAreaFactor ;
+  if (hasDstArea) dstAreaFactor=1./(domainDest_->radius*domainDest_->radius) ;
   for (int idx=0 ; idx < nDstLocal; idx++)
   {
     if (domainDest_->localMask(idx))
@@ -338,13 +350,20 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonDestUnmasked(n,nDstLocalUnmasked) = boundsLonDest(n,idx) ;
         boundsLatDestUnmasked(n,nDstLocalUnmasked) = boundsLatDest(n,idx) ;
       }
+      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = domainDest_->area(idx)*dstAreaFactor ;
       globalDstUnmasked[nDstLocalUnmasked]=globalDst[idx] ;
       ++nDstLocalUnmasked ;
     }
   }
 
-  mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
-  mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
+  double* ptAreaSrcUnmasked = NULL ;
+  if (hasSrcArea) ptAreaSrcUnmasked=areaSrcUnmasked.dataFirst() ;
+
+  double* ptAreaDstUnmasked = NULL ;
+  if (hasDstArea) ptAreaDstUnmasked=areaDstUnmasked.dataFirst() ;
+
+  mapper.setSourceMesh(boundsLonSrcUnmasked.dataFirst(), boundsLatSrcUnmasked.dataFirst(), ptAreaSrcUnmasked, nVertexSrc, nSrcLocalUnmasked, &srcPole[0], globalSrcUnmasked);
+  mapper.setTargetMesh(boundsLonDestUnmasked.dataFirst(), boundsLatDestUnmasked.dataFirst(), ptAreaDstUnmasked, nVertexDest, nDstLocalUnmasked, &dstPole[0], globalDstUnmasked);
 
   std::vector<double> timings = mapper.computeWeights(orderInterp,renormalize,quantity);
 
@@ -948,9 +967,12 @@ void CDomainAlgorithmInterpolate::updateData(CArray<double,1>& dataOut)
     double defaultValue = std::numeric_limits<double>::quiet_NaN();
     size_t nbIndex=dataOut.numElements() ; 
 
-    for (int idx = 0; idx < nbIndex; ++idx)
+    if (allMissing.numElements()>0)
     {
-      if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+      for (int idx = 0; idx < nbIndex; ++idx)
+      {
+        if (allMissing(idx)) dataOut(idx) = defaultValue; // If all data source are nan then data destination must be nan
+      }
     }
     
     if (renormalize)
