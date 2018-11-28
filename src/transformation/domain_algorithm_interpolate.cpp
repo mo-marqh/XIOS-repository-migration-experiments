@@ -308,7 +308,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
   long int * globalSrcUnmasked = new long int [nSrcLocalUnmasked];
 
   nSrcLocalUnmasked=0 ;
-  bool hasSrcArea=!domainSrc_->area.isEmpty() && !domainSrc_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true  ;
+  bool hasSrcArea=domainSrc_->hasArea && !domainSrc_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true  ;
   double srcAreaFactor ;
   if (hasSrcArea) srcAreaFactor=1./(domainSrc_->radius*domainSrc_->radius) ;
   
@@ -321,7 +321,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonSrcUnmasked(n,nSrcLocalUnmasked) = boundsLonSrc(n,idx) ;
         boundsLatSrcUnmasked(n,nSrcLocalUnmasked) = boundsLatSrc(n,idx) ;
       }
-      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = domainSrc_->area(idx)*srcAreaFactor ;
+      if (hasSrcArea) areaSrcUnmasked(nSrcLocalUnmasked) = domainSrc_->areavalue(idx)*srcAreaFactor ;
       globalSrcUnmasked[nSrcLocalUnmasked]=globalSrc[idx] ;
       ++nSrcLocalUnmasked ;
     }
@@ -333,12 +333,12 @@ void CDomainAlgorithmInterpolate::computeRemap()
 
   CArray<double,2> boundsLonDestUnmasked(nVertexDest,nDstLocalUnmasked);
   CArray<double,2> boundsLatDestUnmasked(nVertexDest,nDstLocalUnmasked);
-  CArray<double,1>   areaDstUnmasked(nSrcLocalUnmasked);
+  CArray<double,1>   areaDstUnmasked(nDstLocalUnmasked);
 
   long int * globalDstUnmasked = new long int [nDstLocalUnmasked];
 
   nDstLocalUnmasked=0 ;
-  bool hasDstArea=!domainDest_->area.isEmpty() && !domainDest_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true ;
+  bool hasDstArea=domainDest_->hasArea && !domainDest_->radius.isEmpty() && !interpDomain_->use_area.isEmpty() && interpDomain_->use_area==true ;
   double dstAreaFactor ;
   if (hasDstArea) dstAreaFactor=1./(domainDest_->radius*domainDest_->radius) ;
   for (int idx=0 ; idx < nDstLocal; idx++)
@@ -350,7 +350,7 @@ void CDomainAlgorithmInterpolate::computeRemap()
         boundsLonDestUnmasked(n,nDstLocalUnmasked) = boundsLonDest(n,idx) ;
         boundsLatDestUnmasked(n,nDstLocalUnmasked) = boundsLatDest(n,idx) ;
       }
-      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = domainDest_->area(idx)*dstAreaFactor ;
+      if (hasDstArea) areaDstUnmasked(nDstLocalUnmasked) = domainDest_->areavalue(idx)*dstAreaFactor ;
       globalDstUnmasked[nDstLocalUnmasked]=globalDst[idx] ;
       ++nDstLocalUnmasked ;
     }
