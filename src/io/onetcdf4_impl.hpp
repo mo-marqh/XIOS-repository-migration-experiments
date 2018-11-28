@@ -72,22 +72,20 @@ namespace xios
       << " ] Invalid input data !" );
     }
     char *PtrArrayStr ;
-    PtrArrayStr=new char[stringArrayLen] ;
+    PtrArrayStr=new char[stringArrayLen*data.numElements()] ;
+    memset (PtrArrayStr,' ',stringArrayLen*data.numElements());
+    size_t offset=0 ;
     Array<StdString,1>::const_iterator it, itb=data.begin(), ite=data.end() ;
-    int lineNb = 0;
-    for(it=itb;it!=ite;++it)
+    for(it=itb;it!=ite;++it, offset+=stringArrayLen)
     {
-      it->copy(PtrArrayStr,it->size()) ;
-      PtrArrayStr[it->size()]='\0' ;
-      sstart[0] = lineNb;
-      sstart[dimArrayLen] = 0;
-      scount[0] = 1;
-      scount[dimArrayLen] = it->size() + 1;
-      CTimer::get("CONetCDF4::writeData writeData_").resume();
-      this->writeData_(grpid, varid, sstart, scount, PtrArrayStr);
-      CTimer::get("CONetCDF4::writeData writeData_").suspend();
-      ++lineNb;
+      it->copy(PtrArrayStr+offset,it->size()) ;
+      PtrArrayStr[offset+it->size()]='\0' ;
     }
+
+     CTimer::get("CONetCDF4::writeData writeData_").resume();
+     this->writeData_(grpid, varid, sstart, scount, PtrArrayStr);
+     CTimer::get("CONetCDF4::writeData writeData_").suspend();
+
     delete []  PtrArrayStr;
   }
 
