@@ -107,10 +107,10 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
 
   domainDest_->data_ni.setValue(niDest);
   domainDest_->data_nj.setValue(njDest);
-  domainDest_->data_ibegin.setValue(0);  // local position
-  domainDest_->data_jbegin.setValue(0);  // local position
-  domainDest_->data_i_index.resize(niDest*njDest); // local position
-  domainDest_->data_j_index.resize(niDest*njDest); // local position
+  domainDest_->data_ibegin.setValue(0);
+  domainDest_->data_jbegin.setValue(0);
+  domainDest_->data_i_index.resize(niDest*njDest);
+  domainDest_->data_j_index.resize(niDest*njDest);
 
   domainDest_->domainMask.resize(niDest*njDest);
 
@@ -266,7 +266,7 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
       }
     }
   }
-
+  domainDest_->computeLocalMask();
 }
 
 /*!
