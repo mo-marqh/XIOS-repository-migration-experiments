@@ -16,6 +16,7 @@ namespace xios {
 
   template <int N>
   void CField::setData(const CArray<double, N>& _data)
+  TRY
   {
     if (clientSourceFilter)
     {
@@ -26,9 +27,11 @@ namespace xios {
       ERROR("void CField::setData(const CArray<double, N>& _data)",
             << "Impossible to receive data from the model for a field [ id = " << getId() << " ] with a reference or an arithmetic operation.");
   }
+  CATCH_DUMP_ATTR
 
   template <int N>
   void CField::getData(CArray<double, N>& _data) const
+  TRY
   {
     if (storeFilter)
     {
@@ -44,6 +47,7 @@ namespace xios {
             << "Impossible to access field data, the field [ id = " << getId() << " ] does not have read access.");
     }
   }
+  CATCH
 } // namespace xios
 
 #endif

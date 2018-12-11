@@ -26,6 +26,7 @@ CGenericAlgorithmTransformation* CScalarAlgorithmReduceAxis::create(CGrid* gridD
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CScalar*> scalarListDestP = gridDst->getScalars();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -36,15 +37,19 @@ CGenericAlgorithmTransformation* CScalarAlgorithmReduceAxis::create(CGrid* gridD
 
   return (new CScalarAlgorithmReduceAxis(scalarListDestP[scalarDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
 }
+CATCH
 
 bool CScalarAlgorithmReduceAxis::registerTrans()
+TRY
 {
   CGridTransformationFactory<CScalar>::registerTransformation(TRANS_REDUCE_AXIS_TO_SCALAR, create);
 }
+CATCH
 
 CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestination, CAxis* axisSource, CReduceAxisToScalar* algo)
  : CScalarAlgorithmTransformation(scalarDestination, axisSource),
    reduction_(0)
+TRY
 {
   if (algo->operation.isEmpty())
     ERROR("CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToScalar* algo)",
@@ -82,24 +87,32 @@ CScalarAlgorithmReduceAxis::CScalarAlgorithmReduceAxis(CScalar* scalarDestinatio
 
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
+CATCH
 
 void CScalarAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex, const double* dataInput, CArray<double,1>& dataOut,
                                          std::vector<bool>& flagInitial, bool ignoreMissingValue, bool firstPass)
+TRY
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
+CATCH
 
 void CScalarAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
+TRY
 {
   reduction_->updateData(dataOut);
 }
+CATCH
 
 CScalarAlgorithmReduceAxis::~CScalarAlgorithmReduceAxis()
+TRY
 {
   if (0 != reduction_) delete reduction_;
 }
+CATCH
 
 void CScalarAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -115,5 +128,6 @@ void CScalarAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CA
     transWeight[0].push_back(1.0);
   }
 }
+CATCH
 
 }

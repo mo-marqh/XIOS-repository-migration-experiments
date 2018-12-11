@@ -28,6 +28,7 @@ namespace xios
   { /* Nothing more to do */ }
 
   StdSize CNc4DataInput::getFieldNbRecords_(CField* field)
+  TRY
   {
     StdString fieldId = field->getFieldOutputName();
 
@@ -39,8 +40,10 @@ namespace xios
 
     return 1;
   }
+  CATCH
 
   void CNc4DataInput::readFieldData_(CField* field)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
@@ -120,8 +123,10 @@ namespace xios
       field->invertScaleFactorAddOffset(scaleFactor, addOffset);
     }
   }
+  CATCH
 
   void CNc4DataInput::readFieldAttributes_(CField* field, bool readAttributeValues)
+  TRY
   {
     StdString fieldId = field->getFieldOutputName();
 
@@ -247,6 +252,7 @@ namespace xios
       }
     }
   }
+  CATCH
 
   /*!
     Read attributes of a domain from a file
@@ -257,6 +263,7 @@ namespace xios
   */
   void CNc4DataInput::readDomainAttributeValueFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                        int elementPosition, const StdString& fieldId)
+  TRY
   {
     // There are some optional attributes of a domain to retrieve from file    // + lon lat?
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapNi = dimSizeMap.begin(), itMapNj,
@@ -435,6 +442,7 @@ namespace xios
     }
     domain->fillInLonLat();
   }
+  CATCH
 
   /*!
     Read attribute value of a domain from a file
@@ -445,6 +453,7 @@ namespace xios
   */
   void CNc4DataInput::readDomainAttributesFromFile(CDomain* domain, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                    int elementPosition, const StdString& fieldId)
+  TRY
   {
     // There are some mandatory attributes of a domain to retrieve from file
     // + ni_glo, nj_glo
@@ -513,6 +522,7 @@ namespace xios
       domain->hasBoundsLonInReadFile_ = SuperClassWriter::hasVariable(boundsLonName) ;
     }
   }
+  CATCH
 
   /*!
     Read attributes of an axis from a file
@@ -523,6 +533,7 @@ namespace xios
   */
   void CNc4DataInput::readAxisAttributesFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                  int elementPosition, const StdString& fieldId)
+  TRY
   {
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
                                                               iteMap = dimSizeMap.end();
@@ -539,6 +550,7 @@ namespace xios
     }    
     axis->n_glo.setValue(itMapN->second);
   }
+  CATCH
 
   /*!
     Read attribute value of an axis from a file
@@ -549,6 +561,7 @@ namespace xios
   */
   void CNc4DataInput::readAxisAttributeValueFromFile(CAxis* axis, std::list<std::pair<StdString, StdSize> >& dimSizeMap,
                                                     int elementPosition, const StdString& fieldId)
+  TRY
   {
     std::list<std::pair<StdString, StdSize> >::const_iterator itMapN = dimSizeMap.begin(),
                                                               iteMap = dimSizeMap.end();
@@ -569,6 +582,7 @@ namespace xios
       }
     }
   }
+  CATCH
 
   /*!
     Read attributes of a scalar from a file
@@ -597,7 +611,9 @@ namespace xios
   }
 
   void CNc4DataInput::closeFile_(void)
+  TRY
   {
     SuperClassWriter::close();
   }
+  CATCH
 } // namespace xios

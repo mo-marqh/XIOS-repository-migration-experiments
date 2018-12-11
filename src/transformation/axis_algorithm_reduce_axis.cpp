@@ -23,6 +23,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmReduceAxis::create(CGrid* gridDst
                                                                    std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                    std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                    std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -33,15 +34,19 @@ CGenericAlgorithmTransformation* CAxisAlgorithmReduceAxis::create(CGrid* gridDst
 
   return (new CAxisAlgorithmReduceAxis(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], reduceAxis));
 }
+CATCH
 
 bool CAxisAlgorithmReduceAxis::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_REDUCE_AXIS_TO_AXIS, create);
 }
+CATCH
 
 
 CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(CAxis* axisDestination, CAxis* axisSource, CReduceAxisToAxis* algo)
  : CAxisAlgorithmTransformation(axisDestination, axisSource), reduction_(0)
+TRY
 {
   eliminateRedondantSrc_= false ;
   algo->checkValid(axisDestination, axisSource);
@@ -70,27 +75,35 @@ CAxisAlgorithmReduceAxis::CAxisAlgorithmReduceAxis(CAxis* axisDestination, CAxis
 
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
+CATCH
 
 void CAxisAlgorithmReduceAxis::apply(const std::vector<std::pair<int,double> >& localIndex,
                                        const double* dataInput,
                                        CArray<double,1>& dataOut,
                                        std::vector<bool>& flagInitial,                     
                                        bool ignoreMissingValue, bool firstPass)
+TRY
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
+CATCH
 
 void CAxisAlgorithmReduceAxis::updateData(CArray<double,1>& dataOut)
+TRY
 {
   reduction_->updateData(dataOut);
 }
+CATCH
 
 CAxisAlgorithmReduceAxis::~CAxisAlgorithmReduceAxis()
+TRY
 {
   if (0 != reduction_) delete reduction_;
 }
+CATCH
 
 void CAxisAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -108,5 +121,6 @@ void CAxisAlgorithmReduceAxis::computeIndexSourceMapping_(const std::vector<CArr
     transWeight[globalAxisIdx][0] = 1.0 ;      
   }
 }
+CATCH
 
 }

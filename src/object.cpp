@@ -33,6 +33,11 @@ namespace xios
     return this->id;
   }
 
+  StdString CObject::dumpClassAttributes(void)
+  {
+    return "";
+  }
+
   bool CObject::hasId(void) const
   {
     return this->idDefined;

@@ -18,6 +18,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmZoom::create(CGrid* gridDst, CGri
                                                            std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                            std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                            std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -28,13 +29,18 @@ CGenericAlgorithmTransformation* CAxisAlgorithmZoom::create(CGrid* gridDst, CGri
 
   return (new CAxisAlgorithmZoom(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], zoomAxis));
 }
+CATCH
+
 bool CAxisAlgorithmZoom::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_ZOOM_AXIS, create);
 }
+CATCH
 
 CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource, CZoomAxis* zoomAxis)
 : CAxisAlgorithmTransformation(axisDestination, axisSource)
+TRY
 {
   zoomAxis->checkValid(axisSource);
   zoomBegin_ = zoomAxis->begin.getValue();
@@ -103,6 +109,7 @@ CAxisAlgorithmZoom::CAxisAlgorithmZoom(CAxis* axisDestination, CAxis* axisSource
 
   }
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

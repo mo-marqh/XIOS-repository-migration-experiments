@@ -24,6 +24,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmExtractDomain::create(CGrid* grid
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CDomain*> domainListSrcP = gridSrc->getDomains();
@@ -34,16 +35,20 @@ CGenericAlgorithmTransformation* CAxisAlgorithmExtractDomain::create(CGrid* grid
 
   return (new CAxisAlgorithmExtractDomain(axisListDestP[axisDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
 }
+CATCH
 
 //bool CAxisAlgorithmExtractDomain::_dummyRegistered = CAxisAlgorithmExtractDomain::registerTrans();
 bool CAxisAlgorithmExtractDomain::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_EXTRACT_DOMAIN_TO_AXIS, create);
 }
+CATCH
 
 
 CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(CAxis* axisDestination, CDomain* domainSource, CExtractDomainToAxis* algo)
  : CAxisAlgorithmTransformation(axisDestination, domainSource), pos_(-1), reduction_(0)
+TRY
 {
   algo->checkValid(axisDestination, domainSource);
   StdString op = "extract";
@@ -63,22 +68,28 @@ CAxisAlgorithmExtractDomain::CAxisAlgorithmExtractDomain(CAxis* axisDestination,
   pos_ = algo->position;
   reduction_ = CReductionAlgorithm::createOperation(CReductionAlgorithm::ReductionOperations[op]);
 }
+CATCH
 
 void CAxisAlgorithmExtractDomain::apply(const std::vector<std::pair<int,double> >& localIndex,
                                         const double* dataInput,
                                         CArray<double,1>& dataOut,
                                         std::vector<bool>& flagInitial,                     
                                         bool ignoreMissingValue, bool firstPass)
+TRY
 {
   reduction_->apply(localIndex, dataInput, dataOut, flagInitial, ignoreMissingValue, firstPass);
 }
+CATCH
 
 CAxisAlgorithmExtractDomain::~CAxisAlgorithmExtractDomain()
+TRY
 {
   if (0 != reduction_) delete reduction_;
 }
+CATCH
 
 void CAxisAlgorithmExtractDomain::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -116,5 +127,5 @@ void CAxisAlgorithmExtractDomain::computeIndexSourceMapping_(const std::vector<C
   else
   {}
 }
-
+CATCH
 }

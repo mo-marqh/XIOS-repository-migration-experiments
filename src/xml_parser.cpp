@@ -13,6 +13,7 @@ namespace xios
       /// ////////////////////// Définitions ////////////////////// ///
 
       void CXMLParser::ParseFile(const StdString & filename, const std::set<StdString>& parseContextList)
+      TRY
       {
          StdIFStream ifs ( filename.c_str() , StdIFStream::in );
          if ( (ifs.rdstate() & std::ifstream::failbit ) != 0 )
@@ -21,6 +22,7 @@ namespace xios
 
          CXMLParser::ParseStream(ifs, filename, parseContextList);
       }
+      CATCH
 
       void CXMLParser::ParseString(const StdString & xmlContent)
       {
@@ -53,43 +55,77 @@ namespace xios
             std::set<StdString>::iterator it;
             std::set<StdString>::const_iterator itE = parseContextList.end();
             bool isParseAll = (parseContextList.empty());
-            if (node.goToChildElement())
+            try
             {
-               do
-               {
-                  CContextGroup* group_context = CContext::getRoot() ;
+              if (node.goToChildElement())
+              {
+                 do
+                 {
+                    CContextGroup* group_context = CContext::getRoot() ;
 
-                  attributes = node.getAttributes();
+                    attributes = node.getAttributes();
 
-                  if (attributes.end() == attributes.find("id"))
-                  {
-                     DEBUG("The context will not be processed because it is not identified (missing id)");
-                     continue;
-                  }
-
-                  CContext::setCurrent(attributes["id"]) ;
-
-
-                  if (isParseAll)
-                  {
-                    CContext* context = CContext::create(attributes["id"]);
-                    context->parse(node);
-
-                    attributes.clear();
-                  }
-                  else
-                  {
-                    it = parseContextList.find(attributes["id"]);
-                    if (itE != it)
+                    if (attributes.end() == attributes.find("id"))
                     {
-                      CContext* context = CContext::create(*it);
+                       DEBUG("The context will not be processed because it is not identified (missing id)");
+                       continue;
+                    }
+
+                    CContext::setCurrent(attributes["id"]) ;
+
+                    if (isParseAll)
+                    {
+                      CContext* context = CContext::create(attributes["id"]);
                       context->parse(node);
 
                       attributes.clear();
                     }
-                  }
-               } while (node.goToNextElement());
+                    else
+                    {
+                      it = parseContextList.find(attributes["id"]);
+                      if (itE != it)
+                      {
+                        CContext* context = CContext::create(*it);
+                        context->parse(node);
+
+                        attributes.clear();
+                      }
+                    }
+                 } while (node.goToNextElement());
+              }
             }
+            catch(CException& e)
+            {
+              CException::StackInfo stk;
+              stk.info.append("Exception occurred while parsing XML file \"");
+              stk.info.append(attributes["src"]);
+              stk.info.append("\".\n");
+              stk.file = FILE_NAME;
+              stk.function = FUNCTION_NAME;
+              stk.line = __LINE__;
+              e.stack.push_back(stk);
+              if (CXios::xiosStack)
+                throw;
+             else
+               throw 0;
+            }
+            catch(...)
+            {
+              CException exc;
+              CException::StackInfo stk;
+              stk.info.append("Exception occurred while parsing XML file \"");
+              stk.info.append(attributes["src"]);
+              stk.info.append("\".\n");
+              stk.file = FILE_NAME;
+              stk.function = FUNCTION_NAME;
+              stk.line = __LINE__;
+              exc.stack.push_back(stk);
+              if (CXios::xiosStack)
+                throw exc;
+             else
+               throw 0;
+            }
+
          }
          catch (rapidxml::parse_error & exc)
          {
@@ -109,8 +145,8 @@ namespace xios
             ERROR("CXMLParser::ParseStream(StdIStream & stream)", << endl
                   << "Error is occuring when parsing XML flux from <"<<fluxId<<"> at character "<< pos<<" line "<<lineNumber<<" column "<< columnNumber<< endl
                   << strLine<<endl
-                  << string(columnNumber-1,'x')<<'^'<<endl
-                  <<" Error : " << exc.what() )
+                  << string(columnNumber-1,'x')<<'^'<<endl)
+//                  <<" Error : " << exc.what() )
          }
       }
 

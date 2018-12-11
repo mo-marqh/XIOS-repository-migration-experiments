@@ -9,6 +9,7 @@
 extern "C"
 {
   void cxios_update_calendar(int step)
+  TRY
   {
     CTimer::get("XIOS").resume();
     xios::CContext* context = CContext::getCurrent();
@@ -18,8 +19,10 @@ extern "C"
     context->sendUpdateCalendar(step);
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   void cxios_get_current_date(cxios_date* current_date_c)
+  TRY
   {
     CTimer::get("XIOS").resume();
     const xios::CContext* context = CContext::getCurrent();
@@ -36,8 +39,10 @@ extern "C"
     current_date_c->second = currentDate.getSecond();
     CTimer::get("XIOS").suspend();
   }
+  CATCH_DUMP_STACK
 
   int cxios_get_year_length_in_seconds(int year)
+  TRY
   {
     CTimer::get("XIOS").resume();
     const std::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
@@ -49,8 +54,10 @@ extern "C"
 
     return length;
   }
+  CATCH_DUMP_STACK
 
   int cxios_get_day_length_in_seconds()
+  TRY
   {
     CTimer::get("XIOS").resume();
     const std::shared_ptr<xios::CCalendar> cal = CContext::getCurrent()->getCalendar();
@@ -62,4 +69,5 @@ extern "C"
 
     return length;
   }
+  CATCH_DUMP_STACK
 }

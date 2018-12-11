@@ -57,20 +57,25 @@ namespace xios {
    ///---------------------------------------------------------------
 
    void CDomain::assignMesh(const StdString meshName, const int nvertex)
+   TRY
    {
      mesh = CMesh::getMesh(meshName, nvertex);
    }
+   CATCH_DUMP_ATTR
 
    CDomain* CDomain::createDomain()
+   TRY
    {
      CDomain* domain = CDomainGroup::get("domain_definition")->createChild();
      return domain;
    }
+   CATCH
 
    std::map<StdString, ETranformationType> CDomain::transformationMapList_ = std::map<StdString, ETranformationType>();
    bool CDomain::_dummyTransformationMapList = CDomain::initializeTransformationMap(CDomain::transformationMapList_);
 
    bool CDomain::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   TRY
    {
      m["zoom_domain"] = TRANS_ZOOM_DOMAIN;
      m["interpolate_domain"] = TRANS_INTERPOLATE_DOMAIN;
@@ -80,52 +85,62 @@ namespace xios {
      m["reorder_domain"] = TRANS_REORDER_DOMAIN;
      m["extract_domain"] = TRANS_EXTRACT_DOMAIN;
    }
+   CATCH
 
    const std::set<StdString> & CDomain::getRelFiles(void) const
+   TRY
    {
       return (this->relFiles);
    }
-
+   CATCH
 
    /*!
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
    int CDomain::getNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return numberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
    int CDomain::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return totalNumberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
    int CDomain::getOffsetWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return offsetWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    CArray<int, 1>& CDomain::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return compressedIndexToWriteOnServer[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -135,6 +150,7 @@ namespace xios {
     * \return A map associating the server rank with its minimum buffer size.
     */
    std::map<int, StdSize> CDomain::getAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= false*/)
+   TRY
    {
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
@@ -181,29 +197,37 @@ namespace xios {
 
      return attributesSizes;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    bool CDomain::isEmpty(void) const
+   TRY
    {
      return ((this->i_index.isEmpty()) || (0 == this->i_index.numElements()));
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    bool CDomain::IsWritten(const StdString & filename) const
+   TRY
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
+   CATCH
 
    bool CDomain::isWrittenCompressed(const StdString& filename) const
+   TRY
    {
       return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    bool CDomain::isDistributed(void) const
+   TRY
    {
       bool distributed =  !((!ni.isEmpty() && (ni == ni_glo) && !nj.isEmpty() && (nj == nj_glo)) ||
               (!i_index.isEmpty() && i_index.numElements() == ni_glo*nj_glo));
@@ -211,6 +235,7 @@ namespace xios {
 
       return distributed;
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -220,19 +245,25 @@ namespace xios {
     * \return true if and only if a mask was defined for this domain
     */
    bool CDomain::isCompressible(void) const
+   TRY
    {
       return isCompressible_;
    }
+   CATCH
 
    void CDomain::addRelFile(const StdString & filename)
+   TRY
    {
       this->relFiles.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::addRelFileCompressed(const StdString& filename)
+   TRY
    {
       this->relFilesCompressed.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    StdString CDomain::GetName(void)   { return (StdString("domain")); }
    StdString CDomain::GetDefName(void){ return (CDomain::GetName()); }
@@ -245,6 +276,7 @@ namespace xios {
       This checking verifies the definition of distribution attributes (ni, nj, ibegin, jbegin)
    */
    bool CDomain::distributionAttributesHaveValue() const
+   TRY
    {
       bool hasValues = true;
 
@@ -256,6 +288,7 @@ namespace xios {
 
       return hasValues;
    }
+   CATCH
 
    /*!
      Redistribute RECTILINEAR or CURVILINEAR domain with a number of local domains.
@@ -265,6 +298,7 @@ namespace xios {
     \param [in] nbLocalDomain number of local domain on the domain destination
    */
    void CDomain::redistribute(int nbLocalDomain)
+   TRY
    {
      if (this->isRedistributed_) return;
 
@@ -427,11 +461,13 @@ namespace xios {
 
      checkDomain();
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Fill in longitude and latitude whose values are read from file
    */
    void CDomain::fillInLonLat()
+   TRY
    {
      switch (type)
      {
@@ -449,8 +485,8 @@ namespace xios {
       break;
      }
      completeLonLatClient() ;
-
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Fill in the values for lonvalue_1d and latvalue_1d of rectilinear domain
@@ -458,6 +494,7 @@ namespace xios {
      Range of latitude value from -90 - +90
    */
    void CDomain::fillInRectilinearLonLat()
+   TRY
    {
      if (!lonvalue_rectilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
@@ -526,12 +563,14 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
     /*
       Fill in 2D longitude and latitude of curvilinear domain read from a file.
       If there are already longitude and latitude defined by model. We just ignore read value.
     */
    void CDomain::fillInCurvilinearLonLat()
+   TRY
    {
      if (!lonvalue_curvilinear_read_from_file.isEmpty() && lonvalue_2d.isEmpty() && lonvalue_1d.isEmpty())
      {
@@ -574,14 +613,15 @@ namespace xios {
 
        bounds_latvalue_curvilinear_read_from_file.free();
      }
-
    }
+   CATCH_DUMP_ATTR
 
     /*
       Fill in longitude and latitude of unstructured domain read from a file
       If there are already longitude and latitude defined by model. We just igonore reading value.
     */
    void CDomain::fillInUnstructuredLonLat()
+   TRY
    {
      if (i_index.isEmpty())
      {
@@ -633,11 +673,13 @@ namespace xios {
         bounds_latvalue_unstructured_read_from_file.free();
      }
    }
+   CATCH_DUMP_ATTR
 
   /*
     Get global longitude and latitude of rectilinear domain.
   */
    void CDomain::AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat, CArray<double,1>& lon_g, CArray<double,1>& lat_g)
+   TRY
    {
      CContext* context = CContext::getCurrent();
     // For now the assumption is that secondary server pools consist of the same number of procs.
@@ -669,10 +711,12 @@ namespace xios {
       delete[] ni_g ;
       delete[] nj_g ;
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::fillInRectilinearBoundLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                               CArray<double,2>& boundsLon, CArray<double,2>& boundsLat)
-   {
+   TRY
+  {
      int i,j,k;
 
      const int nvertexValue = 4;
@@ -771,11 +815,13 @@ namespace xios {
                                                                       : (lat(jbegin + j + 1)+lat(jbegin + j))/2;
       }
    }
+   CATCH_DUMP_ATTR
 
    /*
      General check of the domain to verify its mandatory attributes
    */
    void CDomain::checkDomain(void)
+   TRY
    {
      if (type.isEmpty())
      {
@@ -867,6 +913,7 @@ namespace xios {
          for (int i = 0; i < ni; ++i) j_index(i+j*ni) = j+jbegin;
      }
    }
+   CATCH_DUMP_ATTR
 
    size_t CDomain::getGlobalWrittenSize(void)
    {
@@ -876,6 +923,7 @@ namespace xios {
 
    // Check validity of local domain on using the combination of 3 parameters: ibegin, ni and i_index
    void CDomain::checkLocalIDomain(void)
+   TRY
    {
       // If ibegin and ni are provided then we use them to check the validity of local domain
       if (i_index.isEmpty() && !ibegin.isEmpty() && !ni.isEmpty())
@@ -934,9 +982,11 @@ namespace xios {
               << " check the attributes 'ni_glo' (" << ni_glo.getValue() << "), 'ni' (" << ni.getValue() << ") and 'ibegin' (" << ibegin.getValue() << ")");
       }
    }
+   CATCH_DUMP_ATTR
 
    // Check validity of local domain on using the combination of 3 parameters: jbegin, nj and j_index
    void CDomain::checkLocalJDomain(void)
+   TRY
    {
     // If jbegin and nj are provided then we use them to check the validity of local domain
      if (j_index.isEmpty() && !jbegin.isEmpty() && !nj.isEmpty())
@@ -985,10 +1035,12 @@ namespace xios {
               << " check the attributes 'nj_glo' (" << nj_glo.getValue() << "), 'nj' (" << nj.getValue() << ") and 'jbegin' (" << jbegin.getValue() << ")");
      }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkMask(void)
+   TRY
    {
       if (!mask_1d.isEmpty() && !mask_2d.isEmpty())
         ERROR("CDomain::checkMask(void)",
@@ -1034,10 +1086,12 @@ namespace xios {
       domainMask=mask_1d ;
      }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkDomainData(void)
+   TRY
    {
       if (data_dim.isEmpty())
       {
@@ -1077,10 +1131,12 @@ namespace xios {
               << "The data size cannot be negative ('data_nj' = " << data_nj.getValue() << ").");
       }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CDomain::checkCompression(void)
+   TRY
    {
       if (!data_i_index.isEmpty())
       {
@@ -1147,9 +1203,11 @@ namespace xios {
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    void CDomain::computeLocalMask(void)
+   TRY
    {
      localMask.resize(i_index.numElements()) ;
      localMask=false ;
@@ -1181,12 +1239,15 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkEligibilityForCompressedOutput(void)
+   TRY
    {
      // We don't check if the mask or the indexes are valid here, just if they have been defined at this point.
      isCompressible_ = !mask_1d.isEmpty() || !mask_2d.isEmpty() || !data_i_index.isEmpty();
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -1195,6 +1256,7 @@ namespace xios {
      which will be used by XIOS.
    */
    void CDomain::completeLonLatClient(void)
+   TRY
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      checkBounds() ;
@@ -1308,11 +1370,13 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    /*
      Convert internal longitude latitude value used by XIOS to "lonvalue_*" which can be retrieved with Fortran interface
    */
    void CDomain::convertLonLatValue(void)
+   TRY
    {
      bool lonlatValueExisted = (0 != lonvalue.numElements()) || (0 != latvalue.numElements());
      if (!lonvalue_2d.isEmpty() && lonlatValueExisted)
@@ -1410,9 +1474,10 @@ namespace xios {
        }
      }
    }
-
+   CATCH_DUMP_ATTR
 
    void CDomain::checkBounds(void)
+   TRY
    {
      bool hasBoundValues = (0 != bounds_lonvalue.numElements()) || (0 != bounds_latvalue.numElements());
      if (!nvertex.isEmpty() && nvertex > 0 && !hasBoundValues)
@@ -1504,8 +1569,10 @@ namespace xios {
        hasBounds = false;
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkArea(void)
+   TRY
    {
      bool hasAreaValue = (!areavalue.isEmpty() && 0 != areavalue.numElements());
      hasArea = !area.isEmpty();
@@ -1533,8 +1600,10 @@ namespace xios {
 //       }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkLonLat()
+   TRY
    {
      if (!hasLonLat) hasLonLat = (!latvalue_1d.isEmpty() && !lonvalue_1d.isEmpty()) ||
                                  (!latvalue_2d.isEmpty() && !lonvalue_2d.isEmpty());
@@ -1594,8 +1663,10 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkAttributesOnClientAfterTransformation()
+   TRY
    {
      CContext* context=CContext::getCurrent() ;
 
@@ -1610,11 +1681,13 @@ namespace xios {
 
      this->isClientAfterTransformationChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    // Divide function checkAttributes into 2 seperate ones
    // This function only checks all attributes of current domain
    void CDomain::checkAttributesOnClient()
+   TRY
    {
      if (this->isClientChecked) return;
      CContext* context=CContext::getCurrent();
@@ -1640,9 +1713,11 @@ namespace xios {
 
       this->isClientChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    // Send all checked attributes to server
    void CDomain::sendCheckedAttributes()
+   TRY
    {
      if (!this->isClientChecked) checkAttributesOnClient();
      if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation();
@@ -1655,8 +1730,10 @@ namespace xios {
      }
      this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    void CDomain::checkAttributes(void)
+   TRY
    {
       if (this->isChecked) return;
       CContext* context=CContext::getCurrent() ;
@@ -1686,6 +1763,7 @@ namespace xios {
 
       this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
   /*!
      Compute the connection of a client to other clients to determine which clients to send attributes to.
@@ -1694,6 +1772,7 @@ namespace xios {
      A client connects to other clients which holds the same global index as it.     
   */
   void CDomain::computeConnectedClients()
+  TRY
   {
     CContext* context=CContext::getCurrent() ;
     
@@ -1798,6 +1877,7 @@ namespace xios {
       }
     }
   }
+  CATCH_DUMP_ATTR
 
    /*!
      Compute index to write data. We only write data on the zoomed region, therefore, there should
@@ -1805,6 +1885,7 @@ namespace xios {
      By using global index we can easily create this kind of mapping.
    */
    void CDomain::computeWrittenIndex()
+   TRY
    {  
       if (computedWrittenIndex_) return;
       computedWrittenIndex_ = true;
@@ -1899,8 +1980,10 @@ namespace xios {
       //     totalNumberWrittenIndexes_ = numberWrittenIndexes_;
       // }      
    }
+   CATCH_DUMP_ATTR
 
   void CDomain::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  TRY
   {
     int writtenCommSize;
     MPI_Comm_size(writtenComm, &writtenCommSize);
@@ -1968,12 +2051,14 @@ namespace xios {
         totalNumberWrittenIndexes_[writtenCommSize] = numberWrittenIndexes_[writtenCommSize];
       }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send all attributes from client to connected clients
     The attributes will be rebuilt on receiving side
   */
   void CDomain::sendAttributes()
+  TRY
   {
     sendDistributionAttributes();
     sendIndex();       
@@ -1982,11 +2067,12 @@ namespace xios {
     sendArea();    
     sendDataIndex();
   }
-
+  CATCH
   /*!
     Send global index from client to connected client(s)
   */
   void CDomain::sendIndex()
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -2029,6 +2115,7 @@ namespace xios {
       client->sendEvent(eventIndex);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send distribution from client to other clients
@@ -2036,6 +2123,7 @@ namespace xios {
     it calculates this distribution then sends it to the corresponding clients on the next level
   */
   void CDomain::sendDistributionAttributes(void)
+  TRY
   {
     std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -2082,11 +2170,13 @@ namespace xios {
       else client->sendEvent(event);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send mask index from client to connected(s) clients    
   */
   void CDomain::sendMask()
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -2126,11 +2216,13 @@ namespace xios {
       client->sendEvent(eventMask);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send area from client to connected client(s)
   */
   void CDomain::sendArea()
+  TRY
   {
     if (!hasArea) return;
 
@@ -2174,6 +2266,7 @@ namespace xios {
       client->sendEvent(eventArea);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send longitude and latitude from client to servers
@@ -2181,6 +2274,7 @@ namespace xios {
     Because longitude and latitude are optional, this function only called if latitude and longitude exist
   */
   void CDomain::sendLonLat()
+  TRY
   {
     if (!hasLonLat) return;
 
@@ -2269,6 +2363,7 @@ namespace xios {
       client->sendEvent(eventLat);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send data index to corresponding connected clients.
@@ -2277,6 +2372,7 @@ namespace xios {
     The compressed index are represented with 1 and others are represented with -1
   */
   void CDomain::sendDataIndex()
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -2345,8 +2441,10 @@ namespace xios {
       client->sendEvent(eventDataIndex);
     }
   }
+  CATCH
   
   bool CDomain::dispatchEvent(CEventServer& event)
+  TRY
   {
     if (SuperClass::dispatchEvent(event)) return true;
     else
@@ -2388,12 +2486,14 @@ namespace xios {
        }
     }
   }
+  CATCH
 
   /*!
     Receive index event from clients(s)
     \param[in] event event contain info about rank and associated index
   */
   void CDomain::recvIndex(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2407,6 +2507,7 @@ namespace xios {
     }
     get(domainId)->recvIndex(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive index information from client(s). We use the global index for mapping index between
@@ -2414,6 +2515,7 @@ namespace xios {
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvIndex(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, type_int, iIndex, jIndex;
     recvClientRanks_.resize(nbReceived);        
@@ -2478,18 +2580,21 @@ namespace xios {
       j_index.resizeAndPreserve(nbIndGlob);
     }
   }
+  CATCH
 
   /*!
     Receive attributes event from clients(s)
     \param[in] event event contain info about rank and associated attributes
   */
   void CDomain::recvDistributionAttributes(CEventServer& event)
+  TRY
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string domainId ;
     *buffer>>domainId ;
     get(domainId)->recvDistributionAttributes(*buffer);
   }
+  CATCH
 
   /*!
     Receive attributes from client(s)
@@ -2497,6 +2602,7 @@ namespace xios {
     \param[in] buffer message containing attributes info
   */
   void CDomain::recvDistributionAttributes(CBufferIn& buffer)
+  TRY
   {
     int ni_tmp, ibegin_tmp, nj_tmp, jbegin_tmp;
     int ni_glo_tmp, nj_glo_tmp;
@@ -2512,12 +2618,14 @@ namespace xios {
     nj_glo.setValue(nj_glo_tmp);
 
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive area event from clients(s)
     \param[in] event event contain info about rank and associated area
   */
   void CDomain::recvMask(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2531,13 +2639,14 @@ namespace xios {
     }
     get(domainId)->recvMask(rankBuffers);
   }
-
+  CATCH
 
   /*!
     Receive mask information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvMask(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2581,12 +2690,14 @@ namespace xios {
     }
     domainMask=mask_1d ;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive longitude event from clients(s)
     \param[in] event event contain info about rank and associated longitude
   */
   void CDomain::recvLon(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2600,12 +2711,14 @@ namespace xios {
     }
     get(domainId)->recvLon(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive longitude information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvLon(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, iindex, jindex, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2665,12 +2778,14 @@ namespace xios {
       }       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive latitude event from clients(s)
     \param[in] event event contain info about rank and associated latitude
   */
   void CDomain::recvLat(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2684,12 +2799,14 @@ namespace xios {
     }
     get(domainId)->recvLat(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive latitude information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer  
   */
   void CDomain::recvLat(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, iindex, jindex, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2751,12 +2868,14 @@ namespace xios {
       }       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive area event from clients(s)
     \param[in] event event contain info about rank and associated area
   */
   void CDomain::recvArea(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2770,12 +2889,14 @@ namespace xios {
     }
     get(domainId)->recvArea(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive area information from client(s)
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
   */
   void CDomain::recvArea(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, lInd;
     if (nbReceived != recvClientRanks_.size())
@@ -2821,6 +2942,7 @@ namespace xios {
       
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Compare two domain objects. 
@@ -2830,6 +2952,7 @@ namespace xios {
   \return result of the comparison
   */
   bool CDomain::isEqual(CDomain* obj)
+  TRY
   {
     vector<StdString> excludedAttr;
     excludedAttr.push_back("domain_ref");
@@ -2852,12 +2975,14 @@ namespace xios {
 
     return objEqual;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Receive data index event from clients(s)
     \param[in] event event contain info about rank and associated index
   */
   void CDomain::recvDataIndex(CEventServer& event)
+  TRY
   {
     string domainId;
     std::map<int, CBufferIn*> rankBuffers;
@@ -2871,6 +2996,7 @@ namespace xios {
     }
     get(domainId)->recvDataIndex(rankBuffers);
   }
+  CATCH
 
   /*!
     Receive data index information from client(s)
@@ -2882,6 +3008,7 @@ namespace xios {
     \param[in] rankBuffers rank of sending client and the corresponding receive buffer     
   */
   void CDomain::recvDataIndex(std::map<int, CBufferIn*>& rankBuffers)
+  TRY
   {
     int nbReceived = rankBuffers.size(), i, ind, index, indexI, indexJ, type_int, lInd;    
     if (nbReceived != recvClientRanks_.size())
@@ -2953,52 +3080,64 @@ namespace xios {
     data_ibegin.setValue(0);
     data_jbegin.setValue(0);
   }
+  CATCH_DUMP_ATTR
 
   CTransformation<CDomain>* CDomain::addTransformation(ETranformationType transType, const StdString& id)
+  TRY
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CDomain>::createTransformation(transType,id)));
     return transformationMap_.back().second;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Check whether a domain has transformation
     \return true if domain has transformation
   */
   bool CDomain::hasTransformation()
+  TRY
   {
     return (!transformationMap_.empty());
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Set transformation for current domain. It's the method to move transformation in hierarchy
     \param [in] domTrans transformation on domain
   */
   void CDomain::setTransformations(const TransMapTypes& domTrans)
+  TRY
   {
     transformationMap_ = domTrans;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Get all transformation current domain has
     \return all transformation
   */
   CDomain::TransMapTypes CDomain::getAllTransformations(void)
+  TRY
   {
     return transformationMap_;
   }
+  CATCH_DUMP_ATTR
 
   void CDomain::duplicateTransformation(CDomain* src)
+  TRY
   {
     if (src->hasTransformation())
     {
       this->setTransformations(src->getAllTransformations());
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
    * Go through the hierarchy to find the domain from which the transformations must be inherited
    */
   void CDomain::solveInheritanceTransformation()
+  TRY
   {
     if (hasTransformation() || !hasDirectDomainReference())
       return;
@@ -3015,8 +3154,10 @@ namespace xios {
       for (size_t i = 0; i < refDomains.size(); ++i)
         refDomains[i]->setTransformations(domain->getAllTransformations());
   }
+  CATCH_DUMP_ATTR
 
   void CDomain::setContextClient(CContextClient* contextClient)
+  TRY
   {
     if (clientsSet.find(contextClient)==clientsSet.end())
     {
@@ -3024,6 +3165,7 @@ namespace xios {
       clientsSet.insert(contextClient);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Parse children nodes of a domain in xml file.
@@ -3031,6 +3173,7 @@ namespace xios {
     \param node child node to process
   */
   void CDomain::parse(xml::CXMLNode & node)
+  TRY
   {
     SuperClass::parse(node);
 
@@ -3061,6 +3204,7 @@ namespace xios {
       node.goToParentElement();
     }
   }
+  CATCH_DUMP_ATTR
    //----------------------------------------------------------------
 
    DEFINE_REF_FUNC(Domain,domain)

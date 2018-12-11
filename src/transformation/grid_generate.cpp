@@ -29,10 +29,12 @@ CGridGenerate::~CGridGenerate()
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridGenerate::selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   CGenericAlgorithmTransformation* algo = 0;
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
   Select algorithm of an axis correspoding to its transformation type and its position in each element
@@ -42,10 +44,12 @@ void CGridGenerate::selectScalarAlgo(int elementPositionInGrid, ETranformationTy
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridGenerate::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   CGenericAlgorithmTransformation* algo = 0;
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
   Select algorithm of a domain correspoding to its transformation type and its position in each element
@@ -55,6 +59,7 @@ void CGridGenerate::selectAxisAlgo(int elementPositionInGrid, ETranformationType
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridGenerate::selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDestination_->getDomains();
   std::vector<CDomain*> domainListSrcP(domainListDestP.size());
@@ -88,11 +93,13 @@ void CGridGenerate::selectDomainAlgo(int elementPositionInGrid, ETranformationTy
   }
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
 
 */
 void CGridGenerate::completeGrid()
+TRY
 {
   ListAlgoType::const_iterator itb = listAlgos_.begin(),
                                ite = listAlgos_.end(), it;
@@ -109,5 +116,6 @@ void CGridGenerate::completeGrid()
     selectAlgo(elementPositionInGrid, transType, transformationOrder, algoType);
   }
 }
+CATCH
 
 }

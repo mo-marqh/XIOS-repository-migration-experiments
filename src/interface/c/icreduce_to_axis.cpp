@@ -26,6 +26,7 @@ extern "C"
    
    // ------------------------ Création des handle -----------------------------
    void cxios_reduce_domain_to_axis_handle_create(XReduceDomainToAxisPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -33,9 +34,11 @@ extern "C"
       *_ret = xios::CReduceDomainToAxis::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
    void cxios_reduce_domain_to_axis_valid_id(bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -44,5 +47,6 @@ extern "C"
       *_ret = xios::CReduceDomainToAxis::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
 } // extern "C"

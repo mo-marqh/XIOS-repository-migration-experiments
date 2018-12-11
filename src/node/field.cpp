@@ -70,29 +70,38 @@ namespace xios{
   //----------------------------------------------------------------
 
    void CField::setVirtualVariableGroup(CVariableGroup* newVVariableGroup)
+   TRY
    {
       this->vVariableGroup = newVVariableGroup;
    }
+   CATCH
 
    CVariableGroup* CField::getVirtualVariableGroup(void) const
+   TRY
    {
       return this->vVariableGroup;
    }
+   CATCH
 
    std::vector<CVariable*> CField::getAllVariables(void) const
+   TRY
    {
       return this->vVariableGroup->getAllChildren();
    }
+   CATCH
 
    void CField::solveDescInheritance(bool apply, const CAttributeMap* const parent)
+   TRY
    {
       SuperClassAttribute::setAttributes(parent, apply);
       this->getVirtualVariableGroup()->solveDescInheritance(apply, NULL);
    }
+   CATCH_DUMP_ATTR
 
   //----------------------------------------------------------------
 
   bool CField::dispatchEvent(CEventServer& event)
+  TRY
   {
     if (SuperClass::dispatchEvent(event)) return true;
     else
@@ -130,8 +139,10 @@ namespace xios{
       }
     }
   }
+  CATCH
 
   void CField::sendUpdateData(const CArray<double,1>& data)
+  TRY
   {
     CTimer::get("Field : send data").resume();
 
@@ -188,8 +199,10 @@ namespace xios{
 
     CTimer::get("Field : send data").suspend();
   }
+  CATCH_DUMP_ATTR
 
   void CField::recvUpdateData(CEventServer& event)
+  TRY
   {
     std::map<int,CBufferIn*> rankBuffers;
 
@@ -206,8 +219,10 @@ namespace xios{
     get(fieldId)->recvUpdateData(rankBuffers);
     CTimer::get("Field : recv data").suspend();
   }
+  CATCH
 
   void  CField::recvUpdateData(std::map<int,CBufferIn*>& rankBuffers)
+  TRY
   {
     CContext* context = CContext::getCurrent();
 
@@ -248,8 +263,10 @@ namespace xios{
     recvFoperationSrv.reset() ;
     recvDataSrv.reset() ;
   }
+  CATCH_DUMP_ATTR
 
   void CField::writeUpdateData(const CArray<double,1>& data)
+  TRY
   {
     CContext* context = CContext::getCurrent();
 
@@ -276,8 +293,10 @@ namespace xios{
       lastlast_Write_srv = last_Write_srv;
     }
   }
+  CATCH_DUMP_ATTR
 
   void CField::writeField(void)
+  TRY
   {
     if (!getRelFile()->isEmptyZone())
     {
@@ -289,6 +308,7 @@ namespace xios{
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
     Send a request for reading data.
@@ -298,6 +318,7 @@ namespace xios{
     \param [in] tsDataRequested timestamp when the call is made
   */
   bool CField::sendReadDataRequest(const CDate& tsDataRequested)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     // CContextClient* client = context->client;
@@ -329,12 +350,14 @@ namespace xios{
 
     return !isEOF;
   }
+  CATCH_DUMP_ATTR
 
   /*!
   Send request new data read from file if need be, that is the current data is out-of-date.
   \return true if and only if some data was requested
   */
   bool CField::sendReadDataRequestIfNeeded(void)
+  TRY
   {
     const CDate& currentDate = CContext::getCurrent()->getCalendar()->getCurrentDate();
 
@@ -352,14 +375,17 @@ namespace xios{
 
     return dataRequested;
   }
+  CATCH_DUMP_ATTR
 
   void CField::recvReadDataRequest(CEventServer& event)
+  TRY
   {
     CBufferIn* buffer = event.subEvents.begin()->buffer;
     StdString fieldId;
     *buffer >> fieldId;
     get(fieldId)->recvReadDataRequest();
   }
+  CATCH
 
   /*!
     Receive data request sent from client and process it
@@ -368,6 +394,7 @@ namespace xios{
     In the future, this should (only) be done by the last level servers.
   */
   void CField::recvReadDataRequest(void)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     CContextClient* client = context->client;
@@ -448,6 +475,7 @@ namespace xios{
       client->sendEvent(event);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Read field from a file.
@@ -455,6 +483,7 @@ namespace xios{
     \return State of field can be read from a file
   */
   CField::EReadField CField::readField(void)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     grid->computeWrittenIndex();
@@ -507,6 +536,7 @@ namespace xios{
 
     return readState;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Receive read data from server.
@@ -515,6 +545,7 @@ namespace xios{
     \param event event containing read data
   */
   void CField::recvReadDataReady(CEventServer& event)
+  TRY
   {
     string fieldId;
     vector<int> ranks;
@@ -530,6 +561,7 @@ namespace xios{
     }
     get(fieldId)->recvReadDataReady(ranks, buffers);
   }
+  CATCH
 
   /*!
     Receive read data from server
@@ -537,6 +569,7 @@ namespace xios{
     \param [in] buffers buffers containing read data
   */
   void CField::recvReadDataReady(vector<int> ranks, vector<CBufferIn*> buffers)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     std::map<int, CArray<double,1> > data;
@@ -573,8 +606,10 @@ namespace xios{
     else
       serverSourceFilter->streamDataFromServer(lastDataReceivedFromServer, data);
   }
+  CATCH_DUMP_ATTR
 
   void CField::checkForLateDataFromServer(void)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     const CDate& currentDate = context->getCalendar()->getCurrentDate();
@@ -606,25 +641,32 @@ namespace xios{
               << "Late data at timestep = " << currentDate);
     }
   }
+  CATCH_DUMP_ATTR
 
   void CField::checkIfMustAutoTrigger(void)
+  TRY
   {
     mustAutoTrigger = serverSourceFilter ? serverSourceFilter->mustAutoTrigger() : false;
   }
+  CATCH_DUMP_ATTR
 
   void CField::autoTriggerIfNeeded(void)
+  TRY
   {
     if (mustAutoTrigger)
       serverSourceFilter->trigger(CContext::getCurrent()->getCalendar()->getCurrentDate());
   }
+  CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CField::setRelFile(CFile* _file)
+   TRY
    {
       this->file = _file;
       hasOutputFile = true;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -635,48 +677,63 @@ namespace xios{
    //----------------------------------------------------------------
 
    CGrid* CField::getRelGrid(void) const
+   TRY
    {
       return this->grid;
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    CFile* CField::getRelFile(void) const
+   TRY
    {
       return this->file;
    }
+   CATCH
 
    int CField::getNStep(void) const
+   TRY
    {
       return this->nstep;
    }
+   CATCH
 
    func::CFunctor::ETimeType CField::getOperationTimeType() const
+   TRY
    {
      return operationTimeType;
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    void CField::incrementNStep(void)
+   TRY
    {
       this->nstep++;
    }
+   CATCH_DUMP_ATTR
 
    void CField::resetNStep(int nstep /*= 0*/)
+   TRY
    {
       this->nstep = nstep;
    }
+   CATCH_DUMP_ATTR
 
    void CField::resetNStepMax(void)
+   TRY
    {
       this->nstepMax = 0;
       nstepMaxRead = false;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    bool CField::isActive(bool atCurrentTimestep /*= false*/) const
+   TRY
    {
       if (clientSourceFilter)
         return atCurrentTimestep ? clientSourceFilter->isDataExpected(CContext::getCurrent()->getCalendar()->getCurrentDate()) : true;
@@ -688,37 +745,48 @@ namespace xios{
 
       return false;
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    bool CField::wasWritten() const
+   TRY
    {
      return written;
    }
+   CATCH
 
    void CField::setWritten()
+   TRY
    {
      written = true;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    bool CField::getUseCompressedOutput() const
+   TRY
    {
      return useCompressedOutput;
    }
+   CATCH
 
    void CField::setUseCompressedOutput()
+   TRY
    {
      useCompressedOutput = true;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    std::shared_ptr<COutputPin> CField::getInstantDataFilter()
+   TRY
    {
      return instantDataFilter;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -727,6 +795,7 @@ namespace xios{
      This function should be called before \func solveGridReference()
    */
    void CField::buildGridTransformationGraph()
+   TRY
    {
      CContext* context = CContext::getCurrent();
      if (context->hasClient && !context->hasServer)
@@ -737,11 +806,13 @@ namespace xios{
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Generate a new grid destination if there are more than one grid source pointing to a same grid destination
    */
    void CField::generateNewTransformationGridDest()
+   TRY
    {
      CContext* context = CContext::getCurrent();
      if (context->hasClient && !context->hasServer)
@@ -796,8 +867,10 @@ namespace xios{
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    void CField::updateRef(CGrid* grid)
+   TRY
    {
      if (!grid_ref.isEmpty()) grid_ref.setValue(grid->getId());
      else
@@ -819,12 +892,14 @@ namespace xios{
        if (!axis_ref.isEmpty()) axis_ref.setValue(axisTmp[0]->getId());
      }
    }
+   CATCH_DUMP_ATTR
    
    /*!
      Solve reference of all enabled fields even the source fields .
      In this step, we do transformations.
    */
    void CField::solveAllEnabledFieldsAndTransform()
+   TRY
    {
      CContext* context = CContext::getCurrent();
      bool hasClient = context->hasClient;
@@ -861,8 +936,10 @@ namespace xios{
        solveGridDomainAxisRef(false);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CField::checkGridOfEnabledFields()
+   TRY
    {
      if (!isGridChecked)
      {
@@ -870,20 +947,26 @@ namespace xios{
        solveCheckMaskIndex(false);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CField::sendGridComponentOfEnabledFields()
+   TRY
    {
       solveGridDomainAxisRef(true);
       // solveCheckMaskIndex(true);
    }
+   CATCH_DUMP_ATTR
 
    void CField::sendGridOfEnabledFields()
+   TRY
    {
       // solveGridDomainAxisRef(true);
       solveCheckMaskIndex(true);
    }   
+   CATCH_DUMP_ATTR
 
    void CField::solveOnlyReferenceEnabledField(bool doSending2Server)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      if (!isReferenceSolved)
@@ -909,8 +992,10 @@ namespace xios{
        }
      }
    }
-     
+   CATCH_DUMP_ATTR
+
    void CField::solveAllReferenceEnabledField(bool doSending2Server)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      solveOnlyReferenceEnabledField(doSending2Server);
@@ -939,25 +1024,33 @@ namespace xios{
 
      solveCheckMaskIndex(doSending2Server);
    }
+   CATCH_DUMP_ATTR
 
    std::map<int, StdSize> CField::getGridAttributesBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
+   TRY
    {
      return grid->getAttributesBufferSize(client, bufferForWriting);
    }
+   CATCH_DUMP_ATTR
 
    std::map<int, StdSize> CField::getGridDataBufferSize(CContextClient* client, bool bufferForWriting /*= "false"*/)
+   TRY
    {
      return grid->getDataBufferSize(client, getId(), bufferForWriting);
    }
+   CATCH_DUMP_ATTR
 
    size_t CField::getGlobalWrittenSize()
+   TRY
    {
      return grid->getGlobalWrittenSize();
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    void CField::solveServerOperation(void)
+   TRY
    {
       CContext* context = CContext::getCurrent();
 
@@ -1000,6 +1093,7 @@ namespace xios{
 
       operationTimeType = functor->timeType();
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -1012,6 +1106,7 @@ namespace xios{
     *                     read by the client or/and written to a file
     */
    void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
+   TRY
    {     
     if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
     if (!isGridChecked) checkGridOfEnabledFields();
@@ -1117,6 +1212,7 @@ namespace xios{
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Returns the filter needed to handle the field reference.
@@ -1126,6 +1222,7 @@ namespace xios{
     * \return the output pin corresponding to the field reference
     */
    std::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
+   TRY
    {
      if (instantDataFilter || field_ref.isEmpty())
        ERROR("COutputPin* CField::getFieldReference(CGarbageCollector& gc)",
@@ -1149,6 +1246,7 @@ namespace xios{
 
      return filters.second;
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Returns the filter needed to handle a self reference in the field's expression.
@@ -1160,6 +1258,7 @@ namespace xios{
     * \return the output pin corresponding to a self reference
     */
    std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
+   TRY
    {
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
@@ -1202,6 +1301,7 @@ namespace xios{
 
      return selfReferenceFilter;
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Returns the temporal filter corresponding to the field's temporal operation
@@ -1213,6 +1313,7 @@ namespace xios{
     * \return the output pin corresponding to the requested temporal filter
     */
    std::shared_ptr<COutputPin> CField::getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   TRY
    {
      std::map<CDuration, std::shared_ptr<COutputPin> >::iterator it = temporalDataFilters.find(outFreq);
 
@@ -1236,6 +1337,7 @@ namespace xios{
 
      return it->second;
    }
+   CATCH_DUMP_ATTR
 
   /*!
     * Returns the temporal filter corresponding to the field's temporal operation
@@ -1247,6 +1349,7 @@ namespace xios{
     */
    
    std::shared_ptr<COutputPin> CField::getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq)
+   TRY
    {
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfTemporalDataFilter(CGarbageCollector& gc)",
@@ -1277,6 +1380,7 @@ namespace xios{
        return fieldRef->getTemporalDataFilter(gc, outFreq) ;
      }
   }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 /*
@@ -1295,6 +1399,7 @@ namespace xios{
    //----------------------------------------------------------------
 
    void CField::solveGridReference(void)
+   TRY
    {
       if (grid_ref.isEmpty() && domain_ref.isEmpty() && axis_ref.isEmpty() && scalar_ref.isEmpty())
       {
@@ -1378,18 +1483,24 @@ namespace xios{
                      << "Invalid reference to grid '" << grid_ref.getValue() << "'.");
       }
    }
+   CATCH_DUMP_ATTR
 
    void CField::solveGridDomainAxisRef(bool checkAtt)
+   TRY
    {
      grid->solveDomainAxisRef(checkAtt);
    }
+   CATCH_DUMP_ATTR
 
    void CField::solveCheckMaskIndex(bool doSendingIndex)
+   TRY
    {
      grid->checkMaskIndex(doSendingIndex);
    }
+   CATCH_DUMP_ATTR
 
    void CField::solveTransformedGrid()
+   TRY
    {
      if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
      {
@@ -1438,25 +1549,31 @@ namespace xios{
        // grid->transformGrid(grid);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CField::solveGenerateGrid()
+   TRY
    {
      if (grid && !grid->isTransformed() && hasDirectFieldReference() && grid != getDirectFieldReference()->grid)
        grid->completeGrid(getDirectFieldReference()->grid);
      else
        grid->completeGrid();
    }
+   CATCH_DUMP_ATTR
 
    void CField::solveGridDomainAxisBaseRef()
+   TRY
    {
      grid->solveDomainAxisRef(false);
      grid->solveDomainAxisBaseRef();
    }
+   CATCH_DUMP_ATTR
 
    ///-------------------------------------------------------------------
 
    template <>
    void CGroupTemplate<CField, CFieldGroup, CFieldAttributes>::solveRefInheritance(void)
+   TRY
    {
       if (this->group_ref.isEmpty()) return;
       StdString gref = this->group_ref.getValue();
@@ -1480,18 +1597,24 @@ namespace xios{
 
       }
    }
+   CATCH_DUMP_ATTR
 
    void CField::scaleFactorAddOffset(double scaleFactor, double addOffset)
+   TRY
    {
      recvDataSrv = (recvDataSrv - addOffset) / scaleFactor;
    }
+   CATCH_DUMP_ATTR
 
    void CField::invertScaleFactorAddOffset(double scaleFactor, double addOffset)
+   TRY
    {
      recvDataSrv = recvDataSrv * scaleFactor + addOffset;
    }
+   CATCH_DUMP_ATTR
 
    void CField::outputField(CArray<double,1>& fieldOut)
+   TRY
    { 
       CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
       CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
@@ -1500,8 +1623,10 @@ namespace xios{
         fieldOut(outIndexServer(idx)) = recvDataSrv(outIndexClient(idx));
       }
    }
+   CATCH_DUMP_ATTR
 
    void CField::inputField(CArray<double,1>& fieldIn)
+   TRY
    {
       CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
       CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
@@ -1509,10 +1634,11 @@ namespace xios{
       {
         recvDataSrv(outIndexClient(idx)) = fieldIn(outIndexServer(idx));
       }
-
    }
+   CATCH_DUMP_ATTR
 
    void CField::outputCompressedField(CArray<double,1>& fieldOut)
+   TRY
    {
       CArray<size_t,1>& outIndexClient = grid->localIndexToWriteOnClient;
       CArray<size_t,1>& outIndexServer = grid->localIndexToWriteOnServer;
@@ -1521,10 +1647,12 @@ namespace xios{
         fieldOut((idx)) = recvDataSrv(outIndexClient(idx));
       }
    }
+   CATCH_DUMP_ATTR
 
    ///-------------------------------------------------------------------
 
    void CField::parse(xml::CXMLNode& node)
+   TRY
    {
       string newContent ;
       SuperClass::parse(node);
@@ -1539,6 +1667,7 @@ namespace xios{
       }
       if (node.getContent(newContent)) content=newContent ;
     }
+   CATCH_DUMP_ATTR
 
    /*!
      This function retrieves Id of corresponding domain_ref and axis_ref (if any)
@@ -1546,6 +1675,7 @@ namespace xios{
    \return pair of Domain and Axis id
    */
    const std::vector<StdString>& CField::getRefDomainAxisIds()
+   TRY
    {
      CGrid* cgPtr = getRelGrid();
      if (NULL != cgPtr)
@@ -1574,18 +1704,24 @@ namespace xios{
      }
      return (domAxisScalarIds_);
    }
+   CATCH_DUMP_ATTR
 
    CVariable* CField::addVariable(const string& id)
+   TRY
    {
      return vVariableGroup->createChild(id);
    }
+   CATCH
 
    CVariableGroup* CField::addVariableGroup(const string& id)
+   TRY
    {
      return vVariableGroup->createChildGroup(id);
    }
+   CATCH
 
    void CField::setContextClient(CContextClient* contextClient)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      client = contextClient;
@@ -1601,13 +1737,17 @@ namespace xios{
            grid->setContextClient(contextClient);
      }
    }
+   CATCH_DUMP_ATTR
 
    CContextClient* CField::getContextClient()
+   TRY
    {
      return client;
    }
+   CATCH
 
    void CField::sendAddAllVariables(CContextClient* client)
+   TRY
    {
      std::vector<CVariable*> allVar = getAllVariables();
      std::vector<CVariable*>::const_iterator it = allVar.begin();
@@ -1620,7 +1760,7 @@ namespace xios{
        (*it)->sendValue(client);
      }
    }
-
+   CATCH_DUMP_ATTR
 
    /*!
     * Send all Attributes to server. This method is overloaded, since only grid_ref attribute
@@ -1628,6 +1768,7 @@ namespace xios{
     */
     
    void CField::sendAllAttributesToServer(CContextClient* client)
+   TRY
    {
      if (grid_ref.isEmpty())
      {
@@ -1637,18 +1778,24 @@ namespace xios{
      }
      else SuperClass::sendAllAttributesToServer(client) ;
    }
+   CATCH_DUMP_ATTR
     
    void CField::sendAddVariable(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE, client);
    }
+   CATCH_DUMP_ATTR
 
    void CField::sendAddVariableGroup(const string& id, CContextClient* client)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_VARIABLE_GROUP, client);
    }
+   CATCH_DUMP_ATTR
 
    void CField::recvAddVariable(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1656,15 +1803,19 @@ namespace xios{
       *buffer >> id;
       get(id)->recvAddVariable(*buffer);
    }
+   CATCH
 
    void CField::recvAddVariable(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer >> id;
       addVariable(id);
    }
+   CATCH_DUMP_ATTR
 
    void CField::recvAddVariableGroup(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -1672,18 +1823,22 @@ namespace xios{
       *buffer >> id;
       get(id)->recvAddVariableGroup(*buffer);
    }
+   CATCH
 
    void CField::recvAddVariableGroup(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer >> id;
       addVariableGroup(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Check on freq_off and freq_op attributes.
     */
    void CField::checkTimeAttributes(CDuration* freqOp)
+   TRY
    {
      bool isFieldRead  = file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read;
      bool isFieldWrite = file && ( file->mode.isEmpty() ||  file->mode == CFile::mode_attr::write);
@@ -1705,12 +1860,14 @@ namespace xios{
      if (freq_offset.isEmpty())
        freq_offset.setValue(isFieldRead ? NoneDu : (freq_op.getValue() - TimeStep));
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Returns string arithmetic expression associated to the field.
     * \return if content is defined return content string, otherwise, if "expr" attribute is defined, return expr string.
     */
    const string& CField::getExpression(void)
+   TRY
    {
      if (!expr.isEmpty() && content.empty())
      {
@@ -1720,12 +1877,14 @@ namespace xios{
 
      return content;
    }
+   CATCH_DUMP_ATTR
 
    bool CField::hasExpression(void) const
+   TRY
    {
      return (!expr.isEmpty() || !content.empty());
    }
-
+   CATCH
 
    DEFINE_REF_FUNC(Field,field)
 } // namespace xios

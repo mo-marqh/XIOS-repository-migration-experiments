@@ -108,10 +108,12 @@ namespace xios
 
    template <class T>
       void CObjectTemplate<T>::parse(xml::CXMLNode & node)
+   TRY
    {
       xml::THashAttributes attributes = node.getAttributes();
       CAttributeMap::setAttributes(attributes);
    }
+   CATCH
 
    //---------------------------------------------------------------
 

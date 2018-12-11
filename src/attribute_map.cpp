@@ -29,6 +29,35 @@ namespace xios
          }
       }
 
+      ///--------------------------------------------------------------
+      /*!
+         Dump of all non-empty attributes of an object
+      */
+      StdString CAttributeMap::dumpXiosAttributes(void) const
+      {
+        int maxNbChar = 250;
+        StdString str;
+        typedef std::pair<StdString, CAttribute*> StdStrAttPair;
+        auto it = SuperClassMap::begin(), end = SuperClassMap::end();
+        for (; it != end; it++)
+        {
+          const StdStrAttPair& att = *it;
+          if (!att.second->isEmpty())
+          {
+            if (str.length() < maxNbChar)
+            {
+              str.append(att.second->dump());
+              str.append(" ");
+            }
+            else if (str.length() == maxNbChar)
+            {
+              str.append("...");
+            }
+          }
+        }
+        return str;
+      }
+
       //---------------------------------------------------------------
 
       /*

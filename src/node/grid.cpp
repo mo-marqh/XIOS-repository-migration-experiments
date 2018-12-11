@@ -81,13 +81,16 @@ namespace xios {
 
 
    StdSize CGrid::getDimension(void)
+   TRY
    {
       return getGlobalDimension().size();
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
    StdSize CGrid::getDataSize(void) const
+   TRY
    {
      StdSize retvalue = 1;
      if (!isScalarGrid())
@@ -97,6 +100,7 @@ namespace xios {
      }
      return retvalue;
    }
+   CATCH
 
    /*!
     * Compute the minimum buffer size required to send the attributes to the server(s).
@@ -105,6 +109,7 @@ namespace xios {
     * TODO: Refactor code
     */
    std::map<int, StdSize> CGrid::getAttributesBufferSize(CContextClient* client, bool bufferForWriting)
+   TRY
    {
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
 
@@ -146,6 +151,7 @@ namespace xios {
 
      return attributesSizes;
   }
+   CATCH_DUMP_ATTR
 
    /*!
     * Compute the minimum buffer size required to send the data.
@@ -155,6 +161,7 @@ namespace xios {
     * \return A map associating the sender rank with its minimum buffer size.
     */
    std::map<int, StdSize> CGrid::getDataBufferSize(CContextClient* client, const std::string& id /*= ""*/, bool bufferForWriting /*= "false"*/)
+   TRY
    {     
      // The record index is sometimes sent along with the data but we always
      // include it in the size calculation for the sake of simplicity
@@ -179,8 +186,10 @@ namespace xios {
 
      return dataSizes;
    }
+   CATCH_DUMP_ATTR
 
    size_t CGrid::getGlobalWrittenSize(void)
+   TRY
    {
 	 std::vector<CDomain*> domainP = this->getDomains();
      std::vector<CAxis*> axisP = this->getAxis();
@@ -190,9 +199,10 @@ namespace xios {
      for (std::vector<CAxis*>::iterator it=axisP.begin(); it!=axisP.end();++it) globalGridSize*=(*it)->getGlobalWrittenSize() ;
      return globalGridSize ;
    }
-   
+   CATCH_DUMP_ATTR
    
    void CGrid::checkAttributesAfterTransformation()
+   TRY
    {
       setAxisList();
       std::vector<CAxis*> axisListP = this->getAxis();
@@ -227,6 +237,7 @@ namespace xios {
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
@@ -236,27 +247,34 @@ namespace xios {
     * \return true if and only if a mask was defined for this grid
     */
    bool CGrid::isCompressible(void) const
+   TRY
    {
       return isCompressible_;
    }
+   CATCH
 
    //---------------------------------------------------------------
 
    void CGrid::addRelFileCompressed(const StdString& filename)
+   TRY
    {
       this->relFilesCompressed.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    bool CGrid::isWrittenCompressed(const StdString& filename) const
+   TRY
    {
       return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
    }
+   CATCH
 
    //---------------------------------------------------------------
    /*
      Find all reference of grid's components and inherite attributes if necessary
    */
    void CGrid::solveDomainAxisRef(bool areAttributesChecked)
+   TRY
    {
      if (this->isDomainAxisChecked) return;
 
@@ -265,12 +283,14 @@ namespace xios {
      this->solveDomainRef(areAttributesChecked);     
      this->isDomainAxisChecked = areAttributesChecked;
    }
+   CATCH_DUMP_ATTR
 
    /*
      Go up hierachy reference and fill in the base reference with attributes of the children
      This function should be only used after reading component's attributes from file
    */
    void CGrid::solveDomainAxisBaseRef()
+   TRY
    {
      if (this->hasDomainAxisBaseRef_) return;
      // Account for the scalar attributes
@@ -296,14 +316,18 @@ namespace xios {
 
      this->hasDomainAxisBaseRef_ = true;
    }
+   CATCH_DUMP_ATTR
 
    void CGrid::checkEligibilityForCompressedOutput()
+   TRY
    {
      // We don't check if the mask is valid here, just if a mask has been defined at this point.
      isCompressible_ = !mask_1d.isEmpty() || !mask_2d.isEmpty() || !mask_3d.isEmpty();
    }
+   CATCH_DUMP_ATTR
 
    void CGrid::checkMaskIndex(bool doSendingIndex)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      int nbSrvPools = (context->hasServer) ? (context->hasClient ? context->clientPrimServer.size() : 0) : 1;   
@@ -338,11 +362,13 @@ namespace xios {
      if (!(this->hasTransform() && (!this->isGenerated())))
       this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    /*
      Create mask of grid from mask of its components
    */
    void CGrid::createMask(void)
+   TRY
    {
       using namespace std;
       std::vector<CDomain*> domainP = this->getDomains();
@@ -380,11 +406,13 @@ namespace xios {
           break;
       }
    }
+   CATCH_DUMP_ATTR
 
    /*
      Check validity of grid's mask by using the masks of its components
    */
    void CGrid::checkMask(void)
+   TRY
    {
       using namespace std;
       std::vector<CDomain*> domainP = this->getDomains();
@@ -422,7 +450,7 @@ namespace xios {
           break;
       }
    }
-
+   CATCH_DUMP_ATTR
 
 /*!
   A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
@@ -432,6 +460,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
 */
 
   void CGrid::getLocalMask(CArray<bool,1>& localMask)
+  TRY
   {
       std::vector<CDomain*> domainP = this->getDomains();
       std::vector<CAxis*> axisP = this->getAxis();
@@ -467,6 +496,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
           break;
       }
   }
+  CATCH_DUMP_ATTR
       
    /*
      Modify value of mask in a certain index
@@ -475,6 +505,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      \param [in] modifyValue
    */
    void CGrid::modifyMask(const CArray<int,1>& indexToModify, bool modifyValue)
+   TRY
    {
       using namespace std;
       std::vector<CDomain*> domainP = this->getDomains();
@@ -510,6 +541,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
           break;
       }
    }
+   CATCH_DUMP_ATTR
 
    /*
      Change the mask size. This function is used on reconstructing mask in server side
@@ -517,6 +549,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      \param [in] newValue 
    */
    void CGrid::modifyMaskSize(const std::vector<int>& newDimensionSize, bool newValue)
+   TRY
    {      
       std::vector<CDomain*> domainP = this->getDomains();
       std::vector<CAxis*> axisP = this->getAxis();            
@@ -551,10 +584,12 @@ One of the ways is to convert this array into 1-dimension one and every process 
           break;
       }
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
    void CGrid::solveDomainRef(bool sendAtt)
+   TRY
    {
       setDomainList();
       std::vector<CDomain*> domListP = this->getDomains();
@@ -567,10 +602,12 @@ One of the ways is to convert this array into 1-dimension one and every process 
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
    void CGrid::solveAxisRef(bool sendAtt)
+   TRY
    {
       setAxisList();
       std::vector<CAxis*> axisListP = this->getAxis();
@@ -598,10 +635,12 @@ One of the ways is to convert this array into 1-dimension one and every process 
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
    void CGrid::solveScalarRef(bool sendAtt)
+   TRY
    {
       setScalarList();
       std::vector<CScalar*> scalarListP = this->getScalars();
@@ -615,11 +654,13 @@ One of the ways is to convert this array into 1-dimension one and every process 
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Compute the index to for write data into a file
    */
    void CGrid::computeWrittenIndex()
+   TRY
    {      
       if (computedWrittenIndex_) return;
       computedWrittenIndex_ = true;
@@ -679,6 +720,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
         } 
       }
    }
+   CATCH_DUMP_ATTR
 
    //---------------------------------------------------------------
 
@@ -689,6 +731,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      These global indexes also correspond to data sent to servers (if any)
    */
    void CGrid::computeClientIndex()
+   TRY
    {
      CContext* context = CContext::getCurrent();
 
@@ -745,11 +788,13 @@ One of the ways is to convert this array into 1-dimension one and every process 
         }
       }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Compute connected receivers and indexes to be sent to these receivers.
    */
    void CGrid::computeConnectedClients()
+   TRY
    {
      CContext* context = CContext::getCurrent();
      int nbSrvPools = (context->clientPrimServer.size() == 0) ? 1 : context->clientPrimServer.size();
@@ -843,6 +888,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Compute the global index of grid to send to server as well as the connected server of the current client.
@@ -852,6 +898,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
      of the current client.
    */
    void CGrid::computeIndex(void)
+   TRY
    {
      CContext* context = CContext::getCurrent();
      if (isScalarGrid())
@@ -878,6 +925,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
        outGlobalIndexFromClient.clear() ;
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Compute the global of (client) grid to send to server with the global index of each element of grid
@@ -891,6 +939,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
    void CGrid::computeIndexByElement(const std::vector<std::unordered_map<size_t,std::vector<int> > >& indexServerOnElement,
                                      const CContextClient* client,
                                      CClientServerMapping::GlobalIndexMap& globalIndexOnServer)
+   TRY
    {
      int serverSize = client->serverSize;
 
@@ -1057,39 +1106,49 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
    }
-   //----------------------------------------------------------------
+   CATCH_DUMP_ATTR
+//----------------------------------------------------------------
 
    CGrid* CGrid::createGrid(CDomain* domain)
+   TRY
    {
       std::vector<CDomain*> vecDom(1, domain);
       std::vector<CAxis*> vecAxis;
 
       return createGrid(vecDom, vecAxis);
    }
+   CATCH
 
    CGrid* CGrid::createGrid(CDomain* domain, CAxis* axis)
-   {
+   TRY
+  {
       std::vector<CDomain*> vecDom(1, domain);
       std::vector<CAxis*> vecAxis(1, axis);
 
       return createGrid(vecDom, vecAxis);
    }
+   CATCH
 
    CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const CArray<int,1>& axisDomainOrder)
+   TRY
    {
      std::vector<CScalar*> vecScalar;
      return createGrid(generateId(domains, axis, vecScalar, axisDomainOrder), domains, axis, vecScalar, axisDomainOrder);
    }
+   CATCH
 
    CGrid* CGrid::createGrid(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   TRY
    {
      return createGrid(generateId(domains, axis, scalars, axisDomainOrder), domains, axis, scalars, axisDomainOrder);
    }
+   CATCH
 
    CGrid* CGrid::createGrid(StdString id, const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                             const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   TRY
    {
       if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
         ERROR("CGrid* CGrid::createGrid(...)",
@@ -1131,8 +1190,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
       return grid;
    }
+   CATCH
 
    CGrid* CGrid::cloneGrid(const StdString& idNewGrid, CGrid* gridSrc)
+   TRY
    {
      std::vector<CDomain*> domainSrcTmp = gridSrc->getDomains(), domainSrc;
      std::vector<CAxis*> axisSrcTmp = gridSrc->getAxis(), axisSrc;
@@ -1172,9 +1233,11 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
       return grid;
    }
+   CATCH
 
    StdString CGrid::generateId(const std::vector<CDomain*>& domains, const std::vector<CAxis*>& axis,
                                const std::vector<CScalar*>& scalars, const CArray<int,1>& axisDomainOrder)
+   TRY
    {
       if (axisDomainOrder.numElements() > 0 && axisDomainOrder.numElements() != (domains.size() + axis.size() + scalars.size()))
         ERROR("CGrid* CGrid::generateId(...)",
@@ -1215,8 +1278,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
       return id.str();
    }
+   CATCH
 
    StdString CGrid::generateId(const CGrid* gridSrc, const CGrid* gridDest)
+   TRY
    {
      StdString idSrc  = gridSrc->getId();
      StdString idDest = gridDest->getId();
@@ -1226,23 +1291,30 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
      return id.str();
    }
+   CATCH
 
    //----------------------------------------------------------------
 
    CDomainGroup* CGrid::getVirtualDomainGroup() const
+   TRY
    {
      return this->vDomainGroup_;
    }
+   CATCH
 
    CAxisGroup* CGrid::getVirtualAxisGroup() const
+   TRY
    {
      return this->vAxisGroup_;
    }
+   CATCH
 
    CScalarGroup* CGrid::getVirtualScalarGroup() const
+   TRY
    {
      return this->vScalarGroup_;
    }
+   CATCH
 
 /*
    void CGrid::outputField(int rank, const CArray<double, 1>& stored, double* field)
@@ -1278,29 +1350,35 @@ One of the ways is to convert this array into 1-dimension one and every process 
    //----------------------------------------------------------------
 
    void CGrid::storeField_arr(const double* const data, CArray<double, 1>& stored) const
+   TRY
    {
       const StdSize size = storeIndex_client.numElements();
 
       stored.resize(size);
       for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
    }
+   CATCH
 
    void CGrid::restoreField_arr(const CArray<double, 1>& stored, double* const data) const
+   TRY
    {
       const StdSize size = storeIndex_client.numElements();
 
       for(StdSize i = 0; i < size; i++) data[storeIndex_client(i)] = stored(i);
    }
+   CATCH
 
    void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
+   TRY
    {
       const std::vector<int>& localMaskedDataIndex = clientDistribution_->getLocalMaskedDataIndexOnClient();
       const int size = localMaskedDataIndex.size();
       for(int i = 0; i < size; ++i) out(localMaskedDataIndex[i]) = data[i];
    }
-
+   CATCH
 
   void CGrid::computeClientIndexScalarGrid()
+  TRY
   {
     CContext* context = CContext::getCurrent();    
     {
@@ -1334,8 +1412,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::computeConnectedClientsScalarGrid()
+  TRY
   {
     CContext* context = CContext::getCurrent();    
     int nbSrvPools = (context->clientPrimServer.size()==0) ? 1 : context->clientPrimServer.size();
@@ -1380,8 +1460,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
       isDataDistributed_ = false;
     }
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::sendIndexScalarGrid()
+  TRY
   {
     CContext* context = CContext::getCurrent();
     storeIndex_toSrv.clear();
@@ -1445,8 +1527,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::sendIndex(void)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     storeIndex_toSrv.clear();
@@ -1566,8 +1650,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::recvIndex(CEventServer& event)
+  TRY
   {
     string gridId;
     vector<int> ranks;
@@ -1583,8 +1669,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
     }
     get(gridId)->recvIndex(ranks, buffers);
   }
+  CATCH
 
   void CGrid::recvIndex(vector<int> ranks, vector<CBufferIn*> buffers)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     connectedServerRankRead_ = ranks;
@@ -1790,6 +1878,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
       nbReadSenders[client] = CClientServerMappingDistributed::computeConnectedClients(context->client->serverSize, context->client->clientSize, context->client->intraComm, ranks);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
      Compute on the fly the global dimension of a grid with its elements
@@ -1805,7 +1894,8 @@ One of the ways is to convert this array into 1-dimension one and every process 
                                         const std::vector<CAxis*> axis,
                                         const std::vector<CScalar*> scalars,
                                         const CArray<int,1>& axisDomainOrder)
-  {
+  TRY
+ {
  //   globalDim.resize(domains.size()*2+axis.size()+scalars.size());
     globalDim.resize(domains.size()*2+axis.size());
     int positionDimensionDistributed = 1;
@@ -1845,27 +1935,34 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return positionDimensionDistributed;
   }
+  CATCH_DUMP_ATTR
 
   // Retrieve the global dimension of grid
   std::vector<int> CGrid::getGlobalDimension()
+  TRY
   {
     std::vector<int> globalDim;
     computeGridGlobalDimension(globalDim, getDomains(), getAxis(), getScalars(), axis_domain_order);
 
     return globalDim;
   }
+  CATCH_DUMP_ATTR
 
   // Retrieve dimension on which we do distribution (Very often, it should be 2nd dimension)
   int CGrid::getDistributedDimension()
+  TRY
   {
     std::vector<int> globalDim;
     return computeGridGlobalDimension(globalDim, getDomains(), getAxis(), getScalars(), axis_domain_order);    
   }
+  CATCH_DUMP_ATTR
 
   bool CGrid::isScalarGrid() const
+  TRY
   {
     return (axisList_.empty() && domList_.empty());
   }
+  CATCH
 
   /*!
     Verify whether one server need to write data
@@ -1873,9 +1970,11 @@ One of the ways is to convert this array into 1-dimension one and every process 
     just only want to zoom on a domain.
   */
   bool CGrid::doGridHaveDataToWrite()
+  TRY
   {
      return (0 != writtenDataSize_);
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Return size of data which is written on each server
@@ -1884,48 +1983,61 @@ One of the ways is to convert this array into 1-dimension one and every process 
     \return size of data written on server
   */
   size_t CGrid::getWrittenDataSize() const
+  TRY
   {
     return writtenDataSize_;
   }
+  CATCH
 
   /*!
     Returns the number of indexes written by each server.
     \return the number of indexes written by each server
   */
   int CGrid::getNumberWrittenIndexes() const
+  TRY
   {
     return numberWrittenIndexes_;
   }
+  CATCH
 
   /*!
     Returns the total number of indexes written by the servers.
     \return the total number of indexes written by the servers
   */
   int CGrid::getTotalNumberWrittenIndexes() const
+  TRY
   {
     return totalNumberWrittenIndexes_;
   }
+  CATCH
 
   /*!
     Returns the offset of indexes written by each server.
     \return the offset of indexes written by each server
   */
   int CGrid::getOffsetWrittenIndexes() const
+  TRY
   {
     return offsetWrittenIndexes_;
   }
+  CATCH
 
   CDistributionServer* CGrid::getDistributionServer()
+  TRY
   {
     return serverDistribution_;
   }
+  CATCH_DUMP_ATTR
 
   CDistributionClient* CGrid::getDistributionClient()
+  TRY
   {
     return clientDistribution_;
   }
+  CATCH_DUMP_ATTR
 
   bool CGrid::doGridHaveDataDistributed(CContextClient* client)
+  TRY
   {
     if (isScalarGrid()) return false;
     else if (0 != client)
@@ -1935,6 +2047,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
     else
       return isDataDistributed_;    
   }
+  CATCH_DUMP_ATTR
 
    /*!
    \brief Dispatch event received from client
@@ -1944,6 +2057,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
    \param [in] event: Received message
    */
   bool CGrid::dispatchEvent(CEventServer& event)
+  TRY
   {
 
     if (SuperClass::dispatchEvent(event)) return true;
@@ -1977,83 +2091,103 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
   }
+  CATCH
 
    ///---------------------------------------------------------------
 
    CDomain* CGrid::addDomain(const std::string& id)
+   TRY
    {
      order_.push_back(2);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vDomainGroup_->createChild(id);
    }
+   CATCH_DUMP_ATTR
 
    CAxis* CGrid::addAxis(const std::string& id)
+   TRY
    {
      order_.push_back(1);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vAxisGroup_->createChild(id);
    }
+   CATCH_DUMP_ATTR
 
    CScalar* CGrid::addScalar(const std::string& id)
+   TRY
    {
      order_.push_back(0);
      axis_domain_order.resize(order_.size());
      for (int idx = 0; idx < order_.size(); ++idx) axis_domain_order(idx)=order_[idx];
      return vScalarGroup_->createChild(id);
    }
+   CATCH_DUMP_ATTR
 
    //! Change virtual field group to a new one
    void CGrid::setVirtualDomainGroup(CDomainGroup* newVDomainGroup)
+   TRY
    {
       this->vDomainGroup_ = newVDomainGroup;
    }
+   CATCH_DUMP_ATTR
 
    //! Change virtual variable group to new one
    void CGrid::setVirtualAxisGroup(CAxisGroup* newVAxisGroup)
+   TRY
    {
       this->vAxisGroup_ = newVAxisGroup;
    }
+   CATCH_DUMP_ATTR
 
    //! Change virtual variable group to new one
    void CGrid::setVirtualScalarGroup(CScalarGroup* newVScalarGroup)
+   TRY
    {
       this->vScalarGroup_ = newVScalarGroup;
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create a domain on server side
    \param[in] id String identity of domain that will be created on server
    */
    void CGrid::sendAddDomain(const string& id)
-   {
+   TRY
+  {
       sendAddItem(id, (int)EVENT_ID_ADD_DOMAIN);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create an axis on server side
    \param[in] id String identity of axis that will be created on server
    */
    void CGrid::sendAddAxis(const string& id)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_AXIS);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Send a message to create a scalar on server side
    \param[in] id String identity of scalar that will be created on server
    */
    void CGrid::sendAddScalar(const string& id)
+   TRY
    {
       sendAddItem(id, (int)EVENT_ID_ADD_SCALAR);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of a domain on server side
    \param[in] event Received event
    */
    void CGrid::recvAddDomain(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -2061,23 +2195,27 @@ One of the ways is to convert this array into 1-dimension one and every process 
       *buffer >> id;
       get(id)->recvAddDomain(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of a domain on server side
    \param[in] buffer Buffer containing message
    */
    void CGrid::recvAddDomain(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer >> id;
       addDomain(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of an axis on server side
    \param[in] event Received event
    */
    void CGrid::recvAddAxis(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -2085,23 +2223,27 @@ One of the ways is to convert this array into 1-dimension one and every process 
       *buffer >> id;
       get(id)->recvAddAxis(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of an axis on server side
    \param[in] buffer Buffer containing message
    */
    void CGrid::recvAddAxis(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer >> id;
       addAxis(id);
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Receive a message annoucing the creation of an scalar on server side
    \param[in] event Received event
    */
    void CGrid::recvAddScalar(CEventServer& event)
+   TRY
    {
 
       CBufferIn* buffer = event.subEvents.begin()->buffer;
@@ -2109,17 +2251,20 @@ One of the ways is to convert this array into 1-dimension one and every process 
       *buffer >> id;
       get(id)->recvAddScalar(*buffer);
    }
+   CATCH
 
    /*!
    \brief Receive a message annoucing the creation of an scalar on server side
    \param[in] buffer Buffer containing message
    */
    void CGrid::recvAddScalar(CBufferIn& buffer)
+   TRY
    {
       string id;
       buffer >> id;
       addScalar(id);
    }
+   CATCH_DUMP_ATTR
 
   /*!
   \brief Solve domain and axis references
@@ -2128,6 +2273,7 @@ One of the ways is to convert this array into 1-dimension one and every process 
   \param[in] apply inherit all attributes of parents (true)
   */
   void CGrid::solveDomainAxisRefInheritance(bool apply)
+  TRY
   {
     CContext* context = CContext::getCurrent();
     unsigned int vecSize, i;
@@ -2168,38 +2314,50 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   bool CGrid::isTransformed()
+  TRY
   {
     return isTransformed_;
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::setTransformed()
+  TRY
   {
     isTransformed_ = true;
   }
+  CATCH_DUMP_ATTR
 
   CGridTransformation* CGrid::getTransformations()
+  TRY
   {
     return transformations_;
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::addTransGridSource(CGrid* gridSrc)
+  TRY
   {
     if (gridSrc_.end() == gridSrc_.find(gridSrc))
       gridSrc_.insert(make_pair(gridSrc,make_pair(false,"")));
   }
+  CATCH_DUMP_ATTR
 
   std::map<CGrid*,std::pair<bool,StdString> >& CGrid::getTransGridSource()
+  TRY
   {
     return gridSrc_;
   }
+  CATCH_DUMP_ATTR
 
   /*!
      Complete all the necessary (and lacking) attributes of a grid
      This function is similar to gridTransformation but works only (till now) on generate_rectilinear_domain transformation
   */
   void CGrid::completeGrid(CGrid* transformGridSrc)
+  TRY
   {
     if (0 != transformGridSrc)
     {
@@ -2218,18 +2376,24 @@ One of the ways is to convert this array into 1-dimension one and every process 
     CGridGenerate gridGenerate(this, transformGridSrc);
     gridGenerate.completeGrid();
   }
+  CATCH_DUMP_ATTR
 
   bool CGrid::isGenerated()
+  TRY
   {
     return isGenerated_;
   }
+  CATCH
 
   void CGrid::setGenerated()
+  TRY
   {
     isGenerated_ = true;
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::transformGrid(CGrid* transformGridSrc)
+  TRY
   {
     if (!transformGridSrc)
       ERROR("CGrid::transformGrid(CGrid* transformGridSrc)",
@@ -2255,8 +2419,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
     // Ok, now need to compute index of grid source
     transformGridSrc->checkMaskIndex(false);
   }
+  CATCH_DUMP_ATTR
 
   bool CGrid::hasTransform()
+  TRY
   {
     if (hasTransform_) return hasTransform_;
 
@@ -2270,12 +2436,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return hasTransform_;
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get the list of domain pointers
   \return list of domain pointers
   */
   std::vector<CDomain*> CGrid::getDomains()
+  TRY
   {
     std::vector<CDomain*> domList;
     if (!domList_.empty())
@@ -2284,12 +2452,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
     }
     return domList;
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get the list of  axis pointers
   \return list of axis pointers
   */
   std::vector<CAxis*> CGrid::getAxis()
+  TRY
   {
     std::vector<CAxis*> aList;
     if (!axisList_.empty())
@@ -2297,12 +2467,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return aList;
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get the list of  axis pointers
   \return list of axis pointers
   */
   std::vector<CScalar*> CGrid::getScalars()
+  TRY
   {
     std::vector<CScalar*> sList;
     if (!scalarList_.empty())
@@ -2310,12 +2482,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return sList;
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get domain pointer with index
   \return domain pointer
   */
   CDomain* CGrid::getDomain(int domainIndex)
+  TRY
   {
     std::vector<CDomain*> domainListP = this->getDomains();
     if (domainListP.empty())
@@ -2333,12 +2507,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return domainListP[domainIndex];
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get the axis pointer with index
   \return axis pointer
   */
   CAxis* CGrid::getAxis(int axisIndex)
+  TRY
   {
     std::vector<CAxis*> axisListP = this->getAxis();
     if (axisListP.empty())
@@ -2356,12 +2532,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return axisListP[axisIndex];
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get the a scalar pointer
   \return scalar pointer
   */
   CScalar* CGrid::getScalar(int scalarIndex)
+  TRY
   {
     std::vector<CScalar*> scalarListP = this->getScalars();
     if (scalarListP.empty())
@@ -2379,12 +2557,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
 
     return scalarListP[scalarIndex];
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Set domain(s) of a grid from a list
   \param[in] domains list of domains
   */
   void CGrid::setDomainList(const std::vector<CDomain*> domains)
+  TRY
   {
     if (isDomListSet) return;
     std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
@@ -2405,14 +2585,15 @@ One of the ways is to convert this array into 1-dimension one and every process 
       }
       isDomListSet = true;
     }
-
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Set axis(s) of a grid from a list
   \param[in] axis list of axis
   */
   void CGrid::setAxisList(const std::vector<CAxis*> axis)
+  TRY
   {
     if (isAxisListSet) return;
     std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
@@ -2434,12 +2615,14 @@ One of the ways is to convert this array into 1-dimension one and every process 
       isAxisListSet = true;
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Set scalar(s) of a grid from a list
   \param[in] scalars list of scalars
   */
   void CGrid::setScalarList(const std::vector<CScalar*> scalars)
+  TRY
   {
     if (isScalarListSet) return;
     std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
@@ -2461,41 +2644,49 @@ One of the ways is to convert this array into 1-dimension one and every process 
       isScalarListSet = true;
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
   \brief Get list of id of domains
   \return id list of domains
   */
   std::vector<StdString> CGrid::getDomainList()
+  TRY
   {
     setDomainList();
     return domList_;
   }
+  CATCH
 
   /*!
   \brief Get list of id of axis
   \return id list of axis
   */
   std::vector<StdString> CGrid::getAxisList()
+  TRY
   {
     setAxisList();
     return axisList_;
   }
+  CATCH
 
   /*!
   \brief Get list of id of scalar
   \return id list of scalar
   */
   std::vector<StdString> CGrid::getScalarList()
+  TRY
   {
     setScalarList();
     return scalarList_;
   }
+  CATCH
 
   /*!
     Send all attributes of domains from client to server
   */
   void CGrid::sendAllDomains()
+  TRY
   {
     std::vector<CDomain*> domList = this->getVirtualDomainGroup()->getAllChildren();
     int dSize = domList.size();
@@ -2505,11 +2696,13 @@ One of the ways is to convert this array into 1-dimension one and every process 
       domList[i]->sendAllAttributesToServer();
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send all attributes of axis from client to server
   */
   void CGrid::sendAllAxis()
+  TRY
   {
     std::vector<CAxis*> aList = this->getVirtualAxisGroup()->getAllChildren();
     int aSize = aList.size();
@@ -2520,11 +2713,13 @@ One of the ways is to convert this array into 1-dimension one and every process 
       aList[i]->sendAllAttributesToServer();
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send all attributes of scalars from client to server
   */
   void CGrid::sendAllScalars()
+  TRY
   {
     std::vector<CScalar*> sList = this->getVirtualScalarGroup()->getAllChildren();
     int sSize = sList.size();
@@ -2535,8 +2730,10 @@ One of the ways is to convert this array into 1-dimension one and every process 
       sList[i]->sendAllAttributesToServer();
     }
   }
+  CATCH_DUMP_ATTR
 
   void CGrid::setContextClient(CContextClient* contextClient)
+  TRY
   {
     if (clientsSet.find(contextClient)==clientsSet.end())
     {
@@ -2548,11 +2745,13 @@ One of the ways is to convert this array into 1-dimension one and every process 
     for (int i=0; i<this->getAxis().size(); i++)
     	this->getAxis()[i]->setContextClient(contextClient);
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Parse a grid, for now, it contains only domain, axis and scalar
   */
   void CGrid::parse(xml::CXMLNode& node)
+  TRY
   {
     SuperClass::parse(node);
 
@@ -2593,4 +2792,6 @@ One of the ways is to convert this array into 1-dimension one and every process 
     setAxisList();
     setScalarList();
    }
+  CATCH_DUMP_ATTR
+
 } // namespace xios

@@ -26,6 +26,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmInverse::create(CGrid* gridDst, C
                                                                std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -36,15 +37,18 @@ CGenericAlgorithmTransformation* CAxisAlgorithmInverse::create(CGrid* gridDst, C
 
   return (new CAxisAlgorithmInverse(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], inverseAxis));
 }
+CATCH
 
 bool CAxisAlgorithmInverse::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INVERSE_AXIS, create);
 }
-
+CATCH
 
 CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axisSource, CInverseAxis* inverseAxis)
  : CAxisAlgorithmTransformation(axisDestination, axisSource)
+TRY
 {
   if (axisDestination->n_glo.getValue() != axisSource->n_glo.getValue())
   {
@@ -54,8 +58,10 @@ CAxisAlgorithmInverse::CAxisAlgorithmInverse(CAxis* axisDestination, CAxis* axis
            << "Size of axis destination " <<axisDestination->getId() << " is " << axisDestination->n_glo.getValue());
   }
 }
+CATCH
 
 void CAxisAlgorithmInverse::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   this->transformationMapping_.resize(1);
   this->transformationWeight_.resize(1);
@@ -81,12 +87,14 @@ void CAxisAlgorithmInverse::computeIndexSourceMapping_(const std::vector<CArray<
     }
   }
 }
+CATCH
 
 /*!
   Update value on axis after inversing
   After an axis is inversed, not only the data on it must be inversed but also the value
 */
 void CAxisAlgorithmInverse::updateAxisValue()
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -281,5 +289,6 @@ void CAxisAlgorithmInverse::updateAxisValue()
   for (itLong = recvGlobalIndexSrc.begin(); itLong != recvGlobalIndexSrc.end(); ++itLong)
     delete [] itLong->second;
 }
+CATCH
 
 }

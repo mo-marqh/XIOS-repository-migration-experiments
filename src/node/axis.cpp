@@ -47,6 +47,7 @@ namespace xios {
    std::map<StdString, ETranformationType> CAxis::transformationMapList_ = std::map<StdString, ETranformationType>();
    bool CAxis::dummyTransformationMapList_ = CAxis::initializeTransformationMap(CAxis::transformationMapList_);
    bool CAxis::initializeTransformationMap(std::map<StdString, ETranformationType>& m)
+   TRY
    {
      m["zoom_axis"] = TRANS_ZOOM_AXIS;
      m["interpolate_axis"] = TRANS_INTERPOLATE_AXIS;
@@ -59,33 +60,42 @@ namespace xios {
      m["duplicate_scalar"] = TRANS_DUPLICATE_SCALAR_TO_AXIS;
 
    }
+   CATCH
 
    ///---------------------------------------------------------------
 
    const std::set<StdString> & CAxis::getRelFiles(void) const
+   TRY
    {
       return (this->relFiles);
    }
+   CATCH
 
    bool CAxis::IsWritten(const StdString & filename) const
+   TRY
    {
       return (this->relFiles.find(filename) != this->relFiles.end());
    }
+   CATCH
 
    bool CAxis::isWrittenCompressed(const StdString& filename) const
+   TRY
    {
       return (this->relFilesCompressed.find(filename) != this->relFilesCompressed.end());
    }
+   CATCH
 
    bool CAxis::isDistributed(void) const
+   TRY
    {
       bool distributed = (!this->begin.isEmpty() && !this->n.isEmpty() && (this->begin + this->n < this->n_glo)) ||
              (!this->n.isEmpty() && (this->n != this->n_glo));
-      // A same stupid condition to make sure that if there is only one client, axis
+      // A condition to make sure that if there is only one client, axis
       // should be considered to be distributed. This should be a temporary solution     
       distributed |= (1 == CContext::getCurrent()->client->clientSize);
       return distributed;
    }
+   CATCH
 
    /*!
     * Test whether the data defined on the axis can be outputted in a compressed way.
@@ -93,19 +103,25 @@ namespace xios {
     * \return true if and only if a mask was defined for this axis
     */
    bool CAxis::isCompressible(void) const
+   TRY
    {
       return isCompressible_;
    }
+   CATCH
 
    void CAxis::addRelFile(const StdString & filename)
+   TRY
    {
       this->relFiles.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    void CAxis::addRelFileCompressed(const StdString& filename)
+   TRY
    {
       this->relFilesCompressed.insert(filename);
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -114,40 +130,49 @@ namespace xios {
      \return the number of indexes written by each server
    */
    int CAxis::getNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return numberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
    int CAxis::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return totalNumberWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
    int CAxis::getOffsetWrittenIndexes(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return offsetWrittenIndexes_[writtenSize];
    }
+   CATCH_DUMP_ATTR
 
    CArray<int, 1>& CAxis::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   TRY
    {
      int writtenSize;
      MPI_Comm_size(writtenCom, &writtenSize);
      return compressedIndexToWriteOnServer[writtenSize];
    }
+   CATCH_DUMP_ATTR
+
    //----------------------------------------------------------------
 
    /*!
@@ -157,6 +182,7 @@ namespace xios {
     */
    std::map<int, StdSize> CAxis::getAttributesBufferSize(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                                                          CServerDistributionDescription::ServerDistributionType distType)
+   TRY
    {
 
      std::map<int, StdSize> attributesSizes = getMinimumBufferSizeForAttributes(client);
@@ -220,9 +246,9 @@ namespace xios {
            attributesSizes[it->first] = size;
        }
      }
-
      return attributesSizes;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
@@ -233,16 +259,19 @@ namespace xios {
    //----------------------------------------------------------------
 
    CAxis* CAxis::createAxis()
+   TRY
    {
      CAxis* axis = CAxisGroup::get("axis_definition")->createChild();
      return axis;
    }
+   CATCH
 
    /*!
      Check common attributes of an axis.
      This check should be done in the very beginning of work flow
    */
    void CAxis::checkAttributes(void)
+   TRY
    {
       if (this->n_glo.isEmpty())
         ERROR("CAxis::checkAttributes(void)",
@@ -284,7 +313,7 @@ namespace xios {
         }
       }
 
-      // Remove this check because it doen't make sense in case of a hole or overlapping axes
+      // Remove this check because it doesn't make sense in case of a hole or overlapping axes
       if (!this->value.isEmpty())
       {
 //        StdSize true_size = value.numElements();
@@ -305,11 +334,13 @@ namespace xios {
         this->checkLabel();
       }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Check the validity of data and fill in values if any.
    */
    void CAxis::checkData()
+   TRY
    {
       if (data_begin.isEmpty()) data_begin.setValue(0);
 
@@ -330,6 +361,7 @@ namespace xios {
         for (int i = 0; i < data_n; ++i) data_index(i) = i;
       }
    }
+   CATCH_DUMP_ATTR
 
     size_t CAxis::getGlobalWrittenSize(void)
     {
@@ -340,6 +372,7 @@ namespace xios {
      Check validity of mask info and fill in values if any.
    */
    void CAxis::checkMask()
+   TRY
    {
       if (!mask.isEmpty())
       {
@@ -359,11 +392,13 @@ namespace xios {
          }
       }
    }
+   CATCH_DUMP_ATTR
 
    /*!
      Check validity of bounds info and fill in values if any.
    */
    void CAxis::checkBounds()
+   TRY
    {
      if (!bounds.isEmpty())
      {
@@ -376,8 +411,10 @@ namespace xios {
      }
      else hasBounds = false;
    }
+   CATCH_DUMP_ATTR
 
   void CAxis::checkLabel()
+  TRY
   {
     if (!label.isEmpty())
     {
@@ -390,20 +427,24 @@ namespace xios {
     }
     else hasLabel = false;
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Check whether we can do compressed output
   */
   void CAxis::checkEligibilityForCompressedOutput()
+  TRY
   {
     // We don't check if the mask is valid here, just if a mask has been defined at this point.
     isCompressible_ = !mask.isEmpty();
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Dispatch event from the lower communication layer then process event according to its type
   */
   bool CAxis::dispatchEvent(CEventServer& event)
+  TRY
   {
      if (SuperClass::dispatchEvent(event)) return true;
      else
@@ -429,11 +470,13 @@ namespace xios {
         }
      }
   }
+  CATCH
 
    /*!
      Check attributes on client side (This name is still adequate???)
    */
    void CAxis::checkAttributesOnClient()
+   TRY
    {
      if (this->areClientAttributesChecked_) return;
 
@@ -442,6 +485,7 @@ namespace xios {
 
      this->areClientAttributesChecked_ = true;
    }
+   CATCH_DUMP_ATTR
 
    /*
      The (spatial) transformation sometimes can change attributes of an axis (e.g zoom can change mask or generate can change whole attributes)
@@ -449,6 +493,7 @@ namespace xios {
    */
    void CAxis::checkAttributesOnClientAfterTransformation(const std::vector<int>& globalDim, int orderPositionInGrid,
                                                           CServerDistributionDescription::ServerDistributionType distType)
+   TRY
    {
      CContext* context=CContext::getCurrent() ;
 
@@ -462,6 +507,7 @@ namespace xios {
 
      this->isClientAfterTransformationChecked = true;
    }
+   CATCH_DUMP_ATTR
 
    /*
      Send all checked attributes to server? (We dont have notion of server any more so client==server)
@@ -472,6 +518,7 @@ namespace xios {
    */
    void CAxis::sendCheckedAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
+   TRY
    {
      if (!this->areClientAttributesChecked_) checkAttributesOnClient();
      if (!this->isClientAfterTransformationChecked) checkAttributesOnClientAfterTransformation(globalDim, orderPositionInGrid, distType);
@@ -482,6 +529,7 @@ namespace xios {
 
      this->isChecked = true;
    }
+   CATCH_DUMP_ATTR
 
   /*!
     Send attributes from one client to other clients
@@ -490,6 +538,7 @@ namespace xios {
   */
   void CAxis::sendAttributes(const std::vector<int>& globalDim, int orderPositionInGrid,
                              CServerDistributionDescription::ServerDistributionType distType)
+  TRY
   {
      sendDistributionAttribute(globalDim, orderPositionInGrid, distType);
 
@@ -504,6 +553,7 @@ namespace xios {
        sendNonDistributedAttributes();    
      }     
   }
+  CATCH_DUMP_ATTR
 
   /*
     Compute the connection between group of clients (or clients/servers).
@@ -515,6 +565,7 @@ namespace xios {
   */
   void CAxis::computeConnectedClients(const std::vector<int>& globalDim, int orderPositionInGrid,
                                      CServerDistributionDescription::ServerDistributionType distType)
+  TRY
   {
     CContext* context = CContext::getCurrent();
 
@@ -634,6 +685,7 @@ namespace xios {
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
     Compute the index of data to write into file
@@ -641,6 +693,7 @@ namespace xios {
     or transfered to another clients)
   */
   void CAxis::computeWrittenIndex()
+  TRY
   {  
     if (computedWrittenIndex_) return;
     computedWrittenIndex_ = true;
@@ -687,8 +740,10 @@ namespace xios {
       }
     }
   }
+  CATCH_DUMP_ATTR
 
   void CAxis::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  TRY
   {
     int writtenCommSize;
     MPI_Comm_size(writtenComm, &writtenCommSize);
@@ -757,6 +812,7 @@ namespace xios {
         totalNumberWrittenIndexes_[writtenCommSize] = numberWrittenIndexes_[writtenCommSize];
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
     Send distribution information from a group of client (client role) to another group of client (server role)
@@ -767,6 +823,7 @@ namespace xios {
   */
   void CAxis::sendDistributionAttribute(const std::vector<int>& globalDim, int orderPositionInGrid,
                                         CServerDistributionDescription::ServerDistributionType distType)
+  TRY
   {
     std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -805,24 +862,28 @@ namespace xios {
       else client->sendEvent(event);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
     Receive distribution attribute from another client
     \param [in] event event containing data of these attributes
   */
   void CAxis::recvDistributionAttribute(CEventServer& event)
+  TRY
   {
     CBufferIn* buffer = event.subEvents.begin()->buffer;
     string axisId;
     *buffer >> axisId;
     get(axisId)->recvDistributionAttribute(*buffer);
   }
+  CATCH
 
   /*
     Receive distribution attribute from another client
     \param [in] buffer buffer containing data of these attributes
   */
   void CAxis::recvDistributionAttribute(CBufferIn& buffer)
+  TRY
   {
     int ni_srv, begin_srv;
     buffer >> ni_srv >> begin_srv;
@@ -832,6 +893,7 @@ namespace xios {
     n.setValue(ni_srv);
     begin.setValue(begin_srv);
   }
+  CATCH_DUMP_ATTR
 
   /*
     Send attributes of axis from a group of client to other group of clients/servers 
@@ -839,6 +901,7 @@ namespace xios {
     In the future, if new attributes are added, they should also be processed in this function
   */
   void CAxis::sendNonDistributedAttributes()
+  TRY
   {
     std::list<CContextClient*>::iterator it;
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -892,12 +955,14 @@ namespace xios {
       else client->sendEvent(event);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
     Receive the non-distributed attributes from another group of clients
     \param [in] event event containing data of these attributes
   */
   void CAxis::recvNonDistributedAttributes(CEventServer& event)
+  TRY
   {
     list<CEventServer::SSubEvent>::iterator it;
     for (it = event.subEvents.begin(); it != event.subEvents.end(); ++it)
@@ -908,6 +973,7 @@ namespace xios {
       get(axisId)->recvNonDistributedAttributes(it->rank, *buffer);
     }
   }
+  CATCH
 
   /*
     Receive the non-distributed attributes from another group of clients
@@ -915,6 +981,7 @@ namespace xios {
     \param [in] buffer buffer containing data sent from the sender
   */
   void CAxis::recvNonDistributedAttributes(int rank, CBufferIn& buffer)
+  TRY
   { 
     CArray<int,1> tmp_index, tmp_data_index;
     CArray<bool,1> tmp_mask;
@@ -956,6 +1023,7 @@ namespace xios {
 //    for (int idx = 0; idx < index.numElements(); ++idx) globalLocalIndexMap_[idx] = index(idx);
     for (int idx = 0; idx < index.numElements(); ++idx) globalLocalIndexMap_[index(idx)] = idx;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Send attributes of axis from a group of client to other group of clients/servers 
@@ -963,6 +1031,7 @@ namespace xios {
     In the future, if new attributes are added, they should also be processed in this function
   */
   void CAxis::sendDistributedAttributes(void)
+  TRY
   {
     int ns, n, i, j, ind, nv, idx;
     std::list<CContextClient*>::iterator it;
@@ -1068,12 +1137,14 @@ namespace xios {
       client->sendEvent(eventData);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*
     Receive the distributed attributes from another group of clients
     \param [in] event event containing data of these attributes
   */
   void CAxis::recvDistributedAttributes(CEventServer& event)
+  TRY
   {
     string axisId;
     vector<int> ranks;
@@ -1089,6 +1160,7 @@ namespace xios {
     }
     get(axisId)->recvDistributedAttributes(ranks, buffers);
   }
+  CATCH
 
   /*
     Receive the non-distributed attributes from another group of clients
@@ -1096,6 +1168,7 @@ namespace xios {
     \param [in] buffers buffer containing data sent from the sender
   */
   void CAxis::recvDistributedAttributes(vector<int>& ranks, vector<CBufferIn*> buffers)
+  TRY
   {
     int nbReceived = ranks.size(), idx, ind, gloInd, locInd;
     vector<CArray<int,1> > vec_indi(nbReceived), vec_dataInd(nbReceived);
@@ -1218,7 +1291,7 @@ namespace xios {
 
     data_begin.setValue(0);
   }
-
+  CATCH_DUMP_ATTR
 
   /*!
     Compare two axis objects. 
@@ -1228,6 +1301,7 @@ namespace xios {
   \return result of the comparison
   */
   bool CAxis::isEqual(CAxis* obj)
+  TRY
   {
     vector<StdString> excludedAttr;
     excludedAttr.push_back("axis_ref");
@@ -1251,6 +1325,7 @@ namespace xios {
 
     return objEqual;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Add transformation into axis. This function only servers for Fortran interface
@@ -1258,53 +1333,64 @@ namespace xios {
     \param [in] id identifier of the transformation object
   */
   CTransformation<CAxis>* CAxis::addTransformation(ETranformationType transType, const StdString& id)
+  TRY
   {
     transformationMap_.push_back(std::make_pair(transType, CTransformation<CAxis>::createTransformation(transType,id)));
     return transformationMap_.back().second;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Check whether an axis has (spatial) transformation
   */
   bool CAxis::hasTransformation()
+  TRY
   {
     return (!transformationMap_.empty());
   }
+  CATCH_DUMP_ATTR
 
   /*
     Set transformation
     \param [in] axisTrans transformation to set
   */
   void CAxis::setTransformations(const TransMapTypes& axisTrans)
+  TRY
   {
     transformationMap_ = axisTrans;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Return all transformation held by the axis
     \return transformation the axis has
   */
   CAxis::TransMapTypes CAxis::getAllTransformations(void)
+  TRY
   {
     return transformationMap_;
   }
+  CATCH_DUMP_ATTR
 
   /*
     Duplicate transformation of another axis
     \param [in] src axis whose transformations are copied
   */
   void CAxis::duplicateTransformation(CAxis* src)
+  TRY
   {
     if (src->hasTransformation())
     {
       this->setTransformations(src->getAllTransformations());
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
    * Go through the hierarchy to find the axis from which the transformations must be inherited
    */
   void CAxis::solveInheritanceTransformation()
+  TRY
   {
     if (hasTransformation() || !hasDirectAxisReference())
       return;
@@ -1321,17 +1407,21 @@ namespace xios {
       for (size_t i = 0; i < refAxis.size(); ++i)
         refAxis[i]->setTransformations(axis->getAllTransformations());
   }
+  CATCH_DUMP_ATTR
 
   void CAxis::setContextClient(CContextClient* contextClient)
+  TRY
   {
     if (clientsSet.find(contextClient)==clientsSet.end())
     {
       clients.push_back(contextClient) ;
       clientsSet.insert(contextClient);
     }
-}
+  }
+  CATCH_DUMP_ATTR
 
   void CAxis::parse(xml::CXMLNode & node)
+  TRY
   {
     SuperClass::parse(node);
 
@@ -1362,6 +1452,7 @@ namespace xios {
       node.goToParentElement();
     }
   }
+  CATCH_DUMP_ATTR
 
   DEFINE_REF_FUNC(Axis,axis)
 

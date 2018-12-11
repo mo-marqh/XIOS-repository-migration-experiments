@@ -31,6 +31,7 @@ extern "C"
    // ------------------------ Création des handle -----------------------------
 
    void cxios_context_handle_create (XContextPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -53,26 +54,32 @@ extern "C"
              << "Context "<<id<<"  unknown");
       // Lever une exeception ici
    }
+   CATCH_DUMP_STACK
 
    // ------------------------ Changements de contextes ------------------------
 
    void cxios_context_get_current(XContextPtr* context)
+   TRY
    {
       CTimer::get("XIOS").resume();
       *context = CContext::getCurrent();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_context_set_current(XContextPtr context, bool withswap)
+   TRY
    {
       CTimer::get("XIOS").resume() ;
       CContext::setCurrent(context->getId());
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
 
    void cxios_context_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -92,4 +99,5 @@ extern "C"
       }
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 } // extern "C"

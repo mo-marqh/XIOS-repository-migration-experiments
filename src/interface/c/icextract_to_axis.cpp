@@ -25,6 +25,7 @@ extern "C"
    
    // ------------------------ Création des handle -----------------------------
    void cxios_extract_domain_to_axis_handle_create(XExtractDomainToAxisPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -32,9 +33,11 @@ extern "C"
       *_ret = xios::CExtractDomainToAxis::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
    void cxios_extract_domain_to_axis_valid_id(bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -43,5 +46,6 @@ extern "C"
       *_ret = xios::CExtractDomainToAxis::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
 } // extern "C"

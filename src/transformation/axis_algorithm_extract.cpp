@@ -18,6 +18,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmExtract::create(CGrid* gridDst, C
                                                            std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                            std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                            std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -28,13 +29,18 @@ CGenericAlgorithmTransformation* CAxisAlgorithmExtract::create(CGrid* gridDst, C
 
   return (new CAxisAlgorithmExtract(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], extractAxis));
 }
+CATCH
+
 bool CAxisAlgorithmExtract::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_EXTRACT_AXIS, create);
 }
+CATCH
 
 CAxisAlgorithmExtract::CAxisAlgorithmExtract(CAxis* axisDestination, CAxis* axisSource, CExtractAxis* extractAxis)
 : CAxisAlgorithmTransformation(axisDestination, axisSource)
+TRY
 {
   extractAxis->checkValid(axisSource);
   extractBegin_ = extractAxis->begin.getValue();
@@ -103,6 +109,7 @@ CAxisAlgorithmExtract::CAxisAlgorithmExtract(CAxis* axisDestination, CAxis* axis
 
   }
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

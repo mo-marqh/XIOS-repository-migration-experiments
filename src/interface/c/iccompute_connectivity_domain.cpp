@@ -24,6 +24,7 @@ extern "C"
 
    // ------------------------ Création des handle -----------------------------
    void cxios_compute_connectivity_domain_handle_create(XComConDomainPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -31,9 +32,11 @@ extern "C"
       *_ret = xios::CComputeConnectivityDomain::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
    void cxios_compute_connectivity_domain_valid_id(bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -42,4 +45,5 @@ extern "C"
       *_ret = xios::CComputeConnectivityDomain::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 } // extern "C"

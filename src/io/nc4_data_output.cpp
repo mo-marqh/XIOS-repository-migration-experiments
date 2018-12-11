@@ -53,6 +53,7 @@ namespace xios
       //---------------------------------------------------------------
 
       void CNc4DataOutput::writeDomain_(CDomain* domain)
+      TRY
       {
         StdString lonName,latName ;
          
@@ -539,6 +540,7 @@ namespace xios
 
          domain->addRelFile(this->filename);
       }
+      CATCH
 
     //--------------------------------------------------------------
 

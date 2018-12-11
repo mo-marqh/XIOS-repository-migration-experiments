@@ -32,6 +32,7 @@ namespace xios {
       , isPostProcessed(false), finalized(false)
       , idServer_(), client(0), server(0)
       , allProcessed(false), countChildCtx_(0)
+
    { /* Ne rien faire de plus */ }
 
    CContext::CContext(const StdString & id)
@@ -64,10 +65,12 @@ namespace xios {
    \return Context root
    */
    CContextGroup* CContext::getRoot(void)
+   TRY
    {
       if (root.get()==NULL) root=std::shared_ptr<CContextGroup>(new CContextGroup(xml::CXMLNode::GetRootName()));
       return root.get();
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -76,9 +79,11 @@ namespace xios {
    \return Calendar
    */
    std::shared_ptr<CCalendar> CContext::getCalendar(void) const
+   TRY
    {
       return (this->calendar);
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -87,9 +92,11 @@ namespace xios {
    \param[in] newCalendar new calendar
    */
    void CContext::setCalendar(std::shared_ptr<CCalendar> newCalendar)
+   TRY
    {
       this->calendar = newCalendar;
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    /*!
@@ -97,6 +104,7 @@ namespace xios {
    \param [in] node xmld node corresponding in xml file
    */
    void CContext::parse(xml::CXMLNode & node)
+   TRY
    {
       CContext::SuperClass::parse(node);
 
@@ -151,10 +159,12 @@ namespace xios {
          node.goToParentElement(); // Retour au parent
       }
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
    //! Show tree structure of context
    void CContext::ShowTree(StdOStream & out)
+   TRY
    {
       StdString currentContextId = CContext::getCurrent() -> getId();
       std::vector<CContext*> def_vector =
@@ -175,12 +185,13 @@ namespace xios {
       out << "</" << xml::CXMLNode::GetRootName() << " >" << std::endl;
       CContext::setCurrent(currentContextId);
    }
-
+   CATCH
 
    //----------------------------------------------------------------
 
    //! Convert context object into string (to print)
    StdString CContext::toString(void) const
+   TRY
    {
       StdOStringStream oss;
       oss << "<" << CContext::GetName()
@@ -200,11 +211,10 @@ namespace xios {
 #include "node_type.conf"
 
       }
-
       oss << "</" << CContext::GetName() << " >";
-
       return (oss.str());
    }
+   CATCH
 
    //----------------------------------------------------------------
 
@@ -215,6 +225,7 @@ namespace xios {
    \param [in] parent unused
    */
    void CContext::solveDescInheritance(bool apply, const CAttributeMap * const UNUSED(parent))
+   TRY
    {
 #define DECLARE_NODE(Name_, name_)    \
    if (C##Name_##Definition::has(C##Name_##Definition::GetDefName())) \
@@ -222,11 +233,13 @@ namespace xios {
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
+   CATCH_DUMP_ATTR
 
    //----------------------------------------------------------------
 
    //! Verify if all root definition in the context have child.
    bool CContext::hasChild(void) const
+   TRY
    {
       return (
 #define DECLARE_NODE(Name_, name_)    \
@@ -235,19 +248,24 @@ namespace xios {
 #include "node_type.conf"
       false);
 }
+   CATCH
 
    //----------------------------------------------------------------
 
    void CContext::CleanTree(void)
+   TRY
    {
 #define DECLARE_NODE(Name_, name_) C##Name_##Definition::ClearAllAttributes();
 #define DECLARE_NODE_PAR(Name_, name_)
 #include "node_type.conf"
    }
+   CATCH
+
    ///---------------------------------------------------------------
 
    //! Initialize client side
    void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer /*= 0*/)
+   TRY
    {
 
      hasClient = true;
@@ -297,6 +315,7 @@ namespace xios {
        serverPrimServer.push_back(new CContextServer(this, intraCommServer, interCommServer));
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
     Sets client buffers.
@@ -305,6 +324,7 @@ namespace xios {
     This flag is only true for client and server-1 for communication with server-2
   */
    void CContext::setClientServerBuffer(CContextClient* contextClient, bool bufferForWriting)
+   TRY
    {
       // Estimated minimum event size for small events (10 is an arbitrary constant just for safety)
      const size_t minEventSize = CEventClient::headerSize + getIdServer().size() + 10 * sizeof(int);
@@ -351,16 +371,19 @@ namespace xios {
        }
      }
      contextClient->setBufferSize(bufferSize, maxEventSize);
-
    }
+   CATCH_DUMP_ATTR
 
    //! Verify whether a context is initialized
    bool CContext::isInitialized(void)
+   TRY
    {
      return hasClient;
    }
+   CATCH_DUMP_ATTR
 
    void CContext::initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient /*= 0*/)
+   TRY
    {
      hasServer=true;
      server = new CContextServer(this,intraComm,interComm);
@@ -393,9 +416,11 @@ namespace xios {
      }
      client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
    }
+   CATCH_DUMP_ATTR
 
    //! Try to send the buffers and receive possible answers
   bool CContext::checkBuffersAndListen(bool enableEventsProcessing /*= true*/)
+  TRY
   {
     bool clientReady, serverFinished;
 
@@ -433,9 +458,11 @@ namespace xios {
       return server->eventLoop(enableEventsProcessing);
     }
   }
+   CATCH_DUMP_ATTR
 
    //! Terminate a context
    void CContext::finalize(void)
+   TRY
    {
       if (hasClient && !hasServer) // For now we only use server level 1 to read data
       {
@@ -526,24 +553,30 @@ namespace xios {
        ++countChildCtx_;
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Free internally allocated communicators
    void CContext::freeComms(void)
+   TRY
    {
      for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
        MPI_Comm_free(&(*it));
      comms.clear();
    }
+   CATCH_DUMP_ATTR
 
    //! Deallocate buffers allocated by clientContexts
    void CContext::releaseClientBuffers(void)
+   TRY
    {
      client->releaseBuffers();
      for (int i = 0; i < clientPrimServer.size(); ++i)
        clientPrimServer[i]->releaseBuffers();
    }
+   CATCH_DUMP_ATTR
 
    void CContext::postProcessingGlobalAttributes()
+   TRY
    {
      if (allProcessed) return;  
      
@@ -607,8 +640,10 @@ namespace xios {
      }
      allProcessed = true;
    }
+   CATCH_DUMP_ATTR
 
    void CContext::sendPostProcessingGlobalAttributes()
+   TRY
    {
       // Use correct context client to send message
      // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
@@ -633,19 +668,24 @@ namespace xios {
        else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::recvPostProcessingGlobalAttributes(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->recvPostProcessingGlobalAttributes(*buffer);
    }
+   CATCH
 
    void CContext::recvPostProcessingGlobalAttributes(CBufferIn& buffer)
+   TRY
    {      
       postProcessingGlobalAttributes();
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Close all the context defintion and do processing data
@@ -656,7 +696,9 @@ namespace xios {
    the only information that it needs is the enabled files
    and the active fields (fields will be written onto active files)
    */
+
    void CContext::closeDefinition(void)
+   TRY
    {
     CTimer::get("Context : close definition").resume() ;
     postProcessingGlobalAttributes();
@@ -687,20 +729,26 @@ namespace xios {
     }
     CTimer::get("Context : close definition").suspend() ;
    }
+   CATCH_DUMP_ATTR
 
    void CContext::findAllEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      for (unsigned int i = 0; i < activeFiles.size(); i++)
      (void)activeFiles[i]->getEnabledFields();
    }
+   CATCH_DUMP_ATTR
 
    void CContext::readAttributesOfEnabledFieldsInReadModeFiles()
+   TRY
    {
       for (unsigned int i = 0; i < this->enabledReadModeFiles.size(); ++i)
         (void)this->enabledReadModeFiles[i]->readAttributesOfEnabledFieldsInReadMode();
    }
+   CATCH_DUMP_ATTR
 
    void CContext::sendGridComponentEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -708,12 +756,14 @@ namespace xios {
        activeFiles[i]->sendGridComponentOfEnabledFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Send active (enabled) fields in file from a client to others
       \param [in] activeFiles files contains enabled fields to send
    */
    void CContext::sendGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -721,8 +771,10 @@ namespace xios {
        activeFiles[i]->sendGridOfEnabledFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::checkGridEnabledFields()
+   TRY
    {
      int size = enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -730,12 +782,14 @@ namespace xios {
        enabledFiles[i]->checkGridOfEnabledFields();       
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Check grid of active (enabled) fields in file 
       \param [in] activeFiles files contains enabled fields whose grid needs checking
    */
    void CContext::checkGridEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -743,6 +797,7 @@ namespace xios {
        activeFiles[i]->checkGridOfEnabledFields();       
      }
    }
+   CATCH_DUMP_ATTR
 
     /*!
       Go up the hierachical tree via field_ref and do check of attributes of fields
@@ -750,6 +805,7 @@ namespace xios {
       \param [in] sendToServer Flag to indicate whether calculated information will be sent
    */
    void CContext::solveOnlyRefOfEnabledFields(bool sendToServer)
+   TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -762,6 +818,7 @@ namespace xios {
        this->enabledFiles[i]->generateNewTransformationGridDest();
      }
    }
+   CATCH_DUMP_ATTR
 
     /*!
       Go up the hierachical tree via field_ref and do check of attributes of fields.
@@ -770,6 +827,7 @@ namespace xios {
       \param [in] sendToServer Flag to indicate whether calculated information will be sent
    */
    void CContext::solveAllRefOfEnabledFieldsAndTransform(bool sendToServer)
+   TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -777,8 +835,10 @@ namespace xios {
        this->enabledFiles[i]->solveAllRefOfEnabledFieldsAndTransform(sendToServer);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::buildFilterGraphOfEnabledFields()
+   TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -786,8 +846,10 @@ namespace xios {
        this->enabledFiles[i]->buildFilterGraphOfEnabledFields(garbageCollector);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::postProcessFilterGraph()
+   TRY
    {
      int size = enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -795,8 +857,10 @@ namespace xios {
         enabledFiles[i]->postProcessFilterGraph();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::startPrefetchingOfEnabledReadModeFiles()
+   TRY
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -804,8 +868,10 @@ namespace xios {
         enabledReadModeFiles[i]->prefetchEnabledReadModeFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::doPreTimestepOperationsForEnabledReadModeFiles()
+   TRY
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -813,8 +879,10 @@ namespace xios {
         enabledReadModeFiles[i]->doPreTimestepOperationsForEnabledReadModeFields();
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::doPostTimestepOperationsForEnabledReadModeFiles()
+   TRY
    {
      int size = enabledReadModeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -822,8 +890,10 @@ namespace xios {
         enabledReadModeFiles[i]->doPostTimestepOperationsForEnabledReadModeFields();
      }
    }
+   CATCH_DUMP_ATTR
 
   void CContext::findFieldsWithReadAccess(void)
+  TRY
   {
     fieldsWithReadAccess.clear();
     const vector<CField*> allFields = CField::getAll();
@@ -837,20 +907,26 @@ namespace xios {
         fieldsWithReadAccess.push_back(field);
     }
   }
+  CATCH_DUMP_ATTR
 
   void CContext::solveAllRefOfFieldsWithReadAccess()
+  TRY
   {
     for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
       fieldsWithReadAccess[i]->solveAllReferenceEnabledField(false);
   }
+  CATCH_DUMP_ATTR
 
   void CContext::buildFilterGraphOfFieldsWithReadAccess()
+  TRY
   {
     for (size_t i = 0; i < fieldsWithReadAccess.size(); ++i)
       fieldsWithReadAccess[i]->buildFilterGraph(garbageCollector, true);
   }
+  CATCH_DUMP_ATTR
 
    void CContext::solveAllInheritance(bool apply)
+   TRY
    {
      // Résolution des héritages descendants (càd des héritages de groupes)
      // pour chacun des contextes.
@@ -873,8 +949,10 @@ namespace xios {
         allGrids[i]->solveDomainAxisRefInheritance(apply);
 
    }
+  CATCH_DUMP_ATTR
 
    void CContext::findEnabledFiles(void)
+   TRY
    {
       const std::vector<CFile*> allFiles = CFile::getAll();
       const CDate& initDate = calendar->getInitDate();
@@ -923,8 +1001,10 @@ namespace xios {
                << getId() << "\" !");
 
    }
+   CATCH_DUMP_ATTR
 
    void CContext::distributeFiles(void)
+   TRY
    {
      bool distFileMemory=false ;
      distFileMemory=CXios::getin<bool>("server2_dist_file_memory", distFileMemory);
@@ -932,9 +1012,10 @@ namespace xios {
      if (distFileMemory) distributeFileOverMemoryBandwith() ;
      else distributeFileOverBandwith() ;
    }
-
+   CATCH_DUMP_ATTR
 
    void CContext::distributeFileOverBandwith(void)
+   TRY
    {
      double eps=std::numeric_limits<double>::epsilon()*10 ;
      
@@ -1014,8 +1095,10 @@ namespace xios {
          enabledFiles[i]->setContextClient(client);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::distributeFileOverMemoryBandwith(void)
+   TRY
    {
      // If primary server
      if (hasServer && hasClient)
@@ -1106,13 +1189,13 @@ namespace xios {
         enabledFiles[i]->setContextClient(client);
    }
 }
-
-
+   CATCH_DUMP_ATTR
 
    /*!
       Find all files in write mode
    */
    void CContext::findEnabledWriteModeFiles(void)
+   TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -1122,11 +1205,13 @@ namespace xios {
         enabledWriteModeFiles.push_back(enabledFiles[i]);
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
       Find all files in read mode
    */
    void CContext::findEnabledReadModeFiles(void)
+   TRY
    {
      int size = this->enabledFiles.size();
      for (int i = 0; i < size; ++i)
@@ -1135,8 +1220,10 @@ namespace xios {
         enabledReadModeFiles.push_back(enabledFiles[i]);
      }
    }
+   CATCH_DUMP_ATTR
 
    void CContext::closeAllFile(void)
+   TRY
    {
      std::vector<CFile*>::const_iterator
             it = this->enabledFiles.begin(), end = this->enabledFiles.end();
@@ -1147,6 +1234,7 @@ namespace xios {
        (*it)->close();
      }
    }
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Dispatch event received from client
@@ -1156,6 +1244,7 @@ namespace xios {
    \param [in] event: Received message
    */
    bool CContext::dispatchEvent(CEventServer& event)
+   TRY
    {
 
       if (SuperClass::dispatchEvent(event)) return true;
@@ -1197,9 +1286,11 @@ namespace xios {
          }
       }
    }
+   CATCH
 
    //! Client side: Send a message to server to make it close
    void CContext::sendCloseDefinition(void)
+   TRY
    {
      // Use correct context client to send message
      int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
@@ -1222,18 +1313,22 @@ namespace xios {
        else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client announcing a context close
    void CContext::recvCloseDefinition(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->closeDefinition();
    }
+   CATCH
 
    //! Client side: Send a message to update calendar in each time step
    void CContext::sendUpdateCalendar(int step)
+   TRY
    {
      // Use correct context client to send message
     int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
@@ -1257,18 +1352,22 @@ namespace xios {
          else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client annoucing calendar update
    void CContext::recvUpdateCalendar(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->recvUpdateCalendar(*buffer);
    }
+   CATCH
 
    //! Server side: Receive a message of client annoucing calendar update
    void CContext::recvUpdateCalendar(CBufferIn& buffer)
+   TRY
    {
       int step;
       buffer>>step;
@@ -1278,9 +1377,11 @@ namespace xios {
         sendUpdateCalendar(step);
       }
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send a message to create header part of netcdf file
    void CContext::sendCreateFileHeader(void)
+   TRY
    {
      // Use correct context client to send message
      // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
@@ -1305,25 +1406,31 @@ namespace xios {
        else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
    void CContext::recvCreateFileHeader(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->recvCreateFileHeader(*buffer);
    }
+   CATCH
 
    //! Server side: Receive a message of client annoucing the creation of header part of netcdf file
    void CContext::recvCreateFileHeader(CBufferIn& buffer)
+   TRY
    {
       if (!hasClient && hasServer) 
         createFileHeader();
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send a message to do some post processing on server
    void CContext::sendProcessingGridOfEnabledFields()
+   TRY
    {
       // Use correct context client to send message
      int nbSrvPools = (this->hasServer) ? (this->hasClient ? this->clientPrimServer.size() : 0) : 1;
@@ -1347,17 +1454,21 @@ namespace xios {
        else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message to do some post processing
    void CContext::recvProcessingGridOfEnabledFields(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;      
    }
+   CATCH
 
    //! Client side: Send a message to do some post processing on server
    void CContext::sendPostProcessing()
+   TRY
    {
       // Use correct context client to send message
      // int nbSrvPools = (hasServer) ? clientPrimServer.size() : 1;
@@ -1381,24 +1492,30 @@ namespace xios {
        else contextClientTmp->sendEvent(event);
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Receive a message to do some post processing
    void CContext::recvPostProcessing(CEventServer& event)
+   TRY
    {
       CBufferIn* buffer=event.subEvents.begin()->buffer;
       string id;
       *buffer>>id;
       get(id)->recvPostProcessing(*buffer);
    }
+   CATCH
 
    //! Server side: Receive a message to do some post processing
    void CContext::recvPostProcessing(CBufferIn& buffer)
+   TRY
    {
       CCalendarWrapper::get(CCalendarWrapper::GetDefName())->createCalendar();
       postProcessing();
    }
+   CATCH_DUMP_ATTR
 
    const StdString& CContext::getIdServer()
+   TRY
    {
       if (hasClient)
       {
@@ -1408,15 +1525,17 @@ namespace xios {
       }
       if (hasServer) return (this->getId());
    }
+   CATCH_DUMP_ATTR
 
    const StdString& CContext::getIdServer(const int i)
+   TRY
    {
      idServer_ = this->getId();
      idServer_ += "_server_";
      idServer_ += std::to_string(static_cast<unsigned long long>(i));
      return idServer_;
    }
-
+   CATCH_DUMP_ATTR
 
    /*!
    \brief Do some simple post processings after parsing xml file
@@ -1425,6 +1544,7 @@ namespace xios {
    which will be written out into netcdf files, are processed
    */
    void CContext::postProcessing()
+   TRY
    {
      if (isPostProcessed) return;
 
@@ -1487,6 +1607,7 @@ namespace xios {
 
       isPostProcessed = true;
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Compute the required buffer size to send the attributes (mostly those grid related).
@@ -1497,6 +1618,7 @@ namespace xios {
     */
    std::map<int, StdSize> CContext::getAttributesBufferSize(std::map<int, StdSize>& maxEventSize,
                                                            CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
+   TRY
    {
 	 // As calendar attributes are sent even if there are no active files or fields, maps are initialized according the size of calendar attributes
      std::map<int, StdSize> attributesSize = CCalendarWrapper::get(CCalendarWrapper::GetDefName())->getMinimumBufferSizeForAttributes(contextClient);
@@ -1528,6 +1650,7 @@ namespace xios {
      }
      return attributesSize;
    }
+   CATCH_DUMP_ATTR
 
    /*!
     * Compute the required buffer size to send the fields data.
@@ -1538,6 +1661,7 @@ namespace xios {
     */
    std::map<int, StdSize> CContext::getDataBufferSize(std::map<int, StdSize>& maxEventSize,
                                                       CContextClient* contextClient, bool bufferForWriting /*= "false"*/)
+   TRY
    {
      std::map<int, StdSize> dataSize;
 
@@ -1546,7 +1670,6 @@ namespace xios {
      size_t numEnabledFiles = fileList.size();
      for (size_t i = 0; i < numEnabledFiles; ++i)
      {
-//       CFile* file = this->enabledFiles[i];
        CFile* file = fileList[i];
        if (file->getContextClient() == contextClient)
        {
@@ -1574,9 +1697,11 @@ namespace xios {
      }
      return dataSize;
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send infomation of active files (files are enabled to write out)
    void CContext::sendEnabledFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      int size = activeFiles.size();
 
@@ -1594,9 +1719,11 @@ namespace xios {
        f->sendAddAllVariables(f->getContextClient());
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send information of active fields (ones are written onto files)
    void CContext::sendEnabledFieldsInFiles(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      int size = activeFiles.size();
      for (int i = 0; i < size; ++i)
@@ -1604,9 +1731,11 @@ namespace xios {
        activeFiles[i]->sendEnabledFields(activeFiles[i]->getContextClient());
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Check if the defined axis, domains and grids are eligible for compressed indexed output
    void CContext::checkAxisDomainsGridsEligibilityForCompressedOutput()
+   TRY
    {
      if (!hasClient) return;
 
@@ -1622,9 +1751,11 @@ namespace xios {
      for (vector<CGrid*>::const_iterator it = allGrids.begin(); it != allGrids.end(); it++)
        (*it)->checkEligibilityForCompressedOutput();
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Prepare the timeseries by adding the necessary files
    void CContext::prepareTimeseries()
+   TRY
    {
      if (!hasClient) return;
 
@@ -1722,9 +1853,11 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send information of reference grid of active fields
    void CContext::sendRefGrid(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      std::set<StdString> gridIds;
      int sizeFile = activeFiles.size();
@@ -1756,9 +1889,11 @@ namespace xios {
        CGrid::get(*it)->sendAllScalars();
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Client side: Send information of reference domain, axis and scalar of active fields
    void CContext::sendRefDomainsAxisScalars(const std::vector<CFile*>& activeFiles)
+   TRY
    {
      std::set<StdString> domainIds, axisIds, scalarIds;
 
@@ -1817,9 +1952,11 @@ namespace xios {
        }
      }
    }
+   CATCH_DUMP_ATTR
 
    //! Update calendar in each time step
    void CContext::updateCalendar(int step)
+   TRY
    {
       int prevStep = calendar->getStep();
 
@@ -1849,8 +1986,10 @@ namespace xios {
         ERROR("void CContext::updateCalendar(int step)",
               << "Illegal calendar update: previous step was " << prevStep << ", new step " << step << "is in the past!")
    }
+   CATCH_DUMP_ATTR
 
    void CContext::initReadFiles(void)
+   TRY
    {
       vector<CFile*>::const_iterator it;
 
@@ -1859,9 +1998,11 @@ namespace xios {
          (*it)->initRead();
       }
    }
+   CATCH_DUMP_ATTR
 
    //! Server side: Create header of netcdf file
    void CContext::createFileHeader(void)
+   TRY
    {
       vector<CFile*>::const_iterator it;
 
@@ -1871,22 +2012,27 @@ namespace xios {
          (*it)->initWrite();
       }
    }
+   CATCH_DUMP_ATTR
 
    //! Get current context
    CContext* CContext::getCurrent(void)
+   TRY
    {
      return CObjectFactory::GetObject<CContext>(CObjectFactory::GetCurrentContextId()).get();
    }
+   CATCH
 
    /*!
    \brief Set context with an id be the current context
    \param [in] id identity of context to be set to current
    */
    void CContext::setCurrent(const string& id)
+   TRY
    {
      CObjectFactory::SetCurrentContextId(id);
      CGroupFactory::SetCurrentContextId(id);
    }
+   CATCH
 
   /*!
   \brief Create a context with specific id
@@ -1894,6 +2040,7 @@ namespace xios {
   \return pointer to the new context or already-existed one with identity id
   */
   CContext* CContext::create(const StdString& id)
+  TRY
   {
     CContext::setCurrent(id);
 
@@ -1909,18 +2056,21 @@ namespace xios {
 
     return (context);
   }
-
+  CATCH
 
      //! Server side: Receive a message to do some post processing
   void CContext::recvRegistry(CEventServer& event)
+  TRY
   {
     CBufferIn* buffer=event.subEvents.begin()->buffer;
     string id;
     *buffer>>id;
     get(id)->recvRegistry(*buffer);
   }
+  CATCH
 
   void CContext::recvRegistry(CBufferIn& buffer)
+  TRY
   {
     if (server->intraCommRank==0)
     {
@@ -1929,8 +2079,10 @@ namespace xios {
       registryOut->mergeRegistry(registry) ;
     }
   }
+  CATCH_DUMP_ATTR
 
   void CContext::sendRegistry(void)
+  TRY
   {
     registryOut->hierarchicalGatherRegistry() ;
 
@@ -1956,14 +2108,31 @@ namespace xios {
          else contextClientTmp->sendEvent(event);
     }
   }
+  CATCH_DUMP_ATTR
 
   /*!
   * \fn bool CContext::isFinalized(void)
   * Context is finalized if it received context post finalize event.
   */
   bool CContext::isFinalized(void)
+  TRY
   {
     return finalized;
+  }
+  CATCH_DUMP_ATTR
+  ///--------------------------------------------------------------
+  StdString CContext::dumpClassAttributes(void)
+  {
+    StdString str;
+    str.append("enabled files=\"");
+    int size = this->enabledFiles.size();
+    for (int i = 0; i < size; ++i)
+    {
+      str.append(enabledFiles[i]->getId());
+      str.append(" ");
+    }
+    str.append("\"");
+    return str;
   }
 
 } // namespace xios

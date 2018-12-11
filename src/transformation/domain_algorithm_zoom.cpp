@@ -15,6 +15,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(CGrid* gridDst, CG
                                                              std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                              std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                              std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -25,14 +26,18 @@ CGenericAlgorithmTransformation* CDomainAlgorithmZoom::create(CGrid* gridDst, CG
 
   return (new CDomainAlgorithmZoom(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], zoomDomain));
 }
+CATCH
 
 bool CDomainAlgorithmZoom::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_ZOOM_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* domainSource, CZoomDomain* zoomDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
+TRY
 {
   zoomDomain->checkValid(domainSource);
   zoomIBegin_ = zoomDomain->ibegin.getValue();
@@ -268,6 +273,7 @@ CDomainAlgorithmZoom::CDomainAlgorithmZoom(CDomain* domainDestination, CDomain* 
   }
   domainDest_->computeLocalMask();
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

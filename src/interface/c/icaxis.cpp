@@ -27,6 +27,7 @@ extern "C"
    // ------------------------ Création des handle -----------------------------
    
    void cxios_axis_handle_create (XAxisPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -34,8 +35,10 @@ extern "C"
       *_ret = xios::CAxis::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
    
    void cxios_axisgroup_handle_create (XAxisGroupPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -43,10 +46,12 @@ extern "C"
       *_ret = xios::CAxisGroup::get(id);
       CTimer::get("XIOS").suspend() ;
     }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
 
    void cxios_axis_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -55,8 +60,10 @@ extern "C"
       *_ret = xios::CAxis::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    void cxios_axisgroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -66,5 +73,6 @@ extern "C"
       CTimer::get("XIOS").suspend() ;
 
    }
+   CATCH_DUMP_STACK
    
 } // extern "C"

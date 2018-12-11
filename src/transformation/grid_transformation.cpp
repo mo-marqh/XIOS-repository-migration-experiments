@@ -37,6 +37,7 @@ CGridTransformation::~CGridTransformation()
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   std::vector<CScalar*> scaListDestP = gridDestination_->getScalars();
   int scalarDstIndex =  elementPositionInGridDst2ScalarPosition_[elementPositionInGrid];
@@ -58,6 +59,7 @@ void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranforma
                                                                   elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
   Select algorithm of an axis corresponding to its transformation type and its position in each element
@@ -66,6 +68,7 @@ void CGridTransformation::selectScalarAlgo(int elementPositionInGrid, ETranforma
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDestination_->getAxis();
   int axisDstIndex =  elementPositionInGridDst2AxisPosition_[elementPositionInGrid];
@@ -87,6 +90,7 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
                                                                  elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
   Select algorithm of a domain corresponding to its transformation type and its position in each element
@@ -95,6 +99,7 @@ void CGridTransformation::selectAxisAlgo(int elementPositionInGrid, ETranformati
   \param [in] transformationOrder position of the transformation in an element (an element can have several transformation)
 */
 void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranformationType transType, int transformationOrder)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDestination_->getDomains();
   int domainIndex =  elementPositionInGridDst2DomainPosition_[elementPositionInGrid];
@@ -116,12 +121,14 @@ void CGridTransformation::selectDomainAlgo(int elementPositionInGrid, ETranforma
                                                                    elementPositionInGridDst2DomainPosition_);
   algoTransformation_.push_back(algo);
 }
+CATCH
 
 /*!
   Find position of element in a grid as well as its type (domain, axis, scalar) and position in its own element list
   \return element position: map<int,<int,int> > corresponds to <element position in grid, <element type, element position in element list> >
 */
 std::map<int,std::pair<int,int> > CGridTransformation::getElementPosition(CGrid* grid)
+TRY
 {
   std::vector<CScalar*> scalarListP = grid->getScalars(); 
   std::vector<CAxis*> axisListP = grid->getAxis();
@@ -154,6 +161,7 @@ std::map<int,std::pair<int,int> > CGridTransformation::getElementPosition(CGrid*
 
   return elementPosition;  
 }
+CATCH
 
 /*!
   If there are more than one transformation, a new temporary grid will be created and it will play the role of grid destination.
@@ -162,6 +170,7 @@ This new created one keeps a pointer to the real transformed element of grid des
   \param [in] transType transformation type
 */
 void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranformationType transType)
+TRY
 {
   if (isSpecialTransformation(transType)) return;
 
@@ -239,6 +248,7 @@ void CGridTransformation::setUpGridDestination(int elementPositionInGrid, ETranf
   tmpGridDestination_ = CGrid::createGrid(domainDst, axisDst, scalarDst, elementOrder);  
   tempGridDests_.push_back(tmpGridDestination_);
 }
+CATCH
 
 /*!
   Assign the current grid destination to the grid source in the new transformation.
@@ -248,6 +258,7 @@ Only element on which the transformation is performed is modified
   \param [in] transType transformation type
 */
 void CGridTransformation::setUpGridSource(int elementPositionInGrid)
+TRY
 {
   if (!tempGridSrcs_.empty() && (getNbAlgo()-1) == tempGridSrcs_.size())
   {
@@ -325,6 +336,7 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid)
 
   tempGridSrcs_.push_back(gridSource_);
 }
+CATCH
 
 /*!
   Perform all transformations
@@ -335,6 +347,7 @@ void CGridTransformation::setUpGridSource(int elementPositionInGrid)
   -) Make current grid destination become grid source in the next transformation
 */
 void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& dataAuxInputs, Time timeStamp)
+TRY
 {
   if (nbNormalAlgos_ < 1) return;
   if (!auxInputs_.empty() && !dynamicalTransformation_) { dynamicalTransformation_ = true; return; }
@@ -452,12 +465,14 @@ void CGridTransformation::computeAll(const std::vector<CArray<double,1>* >& data
     }
   }
 }
+CATCH
 
 /*!
   Compute exchange index between grid source and grid destination
   \param [in] globalIndexWeightFromDestToSource global index mapping between grid destination and grid source
 */
 void CGridTransformation::computeTransformationMapping(const SourceDestinationIndexMap& globaIndexWeightFromSrcToDst)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client = context->client;
@@ -681,41 +696,50 @@ void CGridTransformation::computeTransformationMapping(const SourceDestinationIn
     delete [] itLong->second;
 
 }
+CATCH
 
 /*!
   Local index of data which need sending from the grid source
   \return local index of data
 */
 const std::list<CGridTransformation::SendingIndexGridSourceMap>& CGridTransformation::getLocalIndexToSendFromGridSource() const
+TRY
 {
   return localIndexToSendFromGridSource_;
 }
+CATCH
 
 /*!
   Local index of data which will be received on the grid destination
   \return local index of data
 */
 const std::list<CGridTransformation::RecvIndexGridDestinationMap>& CGridTransformation::getLocalIndexToReceiveOnGridDest() const
+TRY
 {
   return localIndexToReceiveOnGridDest_;
 }
+CATCH
 
 /*!
  Number of index will be received on the grid destination
   \return number of index of data
 */
 const std::list<size_t>& CGridTransformation::getNbLocalIndexToReceiveOnGridDest() const
+TRY
 {
   return nbLocalIndexOnGridDest_;
 }
+CATCH
 
 /*!
   Local mask of data which will be received on the grid destination
   \return local mask of data
 */
 const std::list<std::vector<bool> >& CGridTransformation::getLocalMaskIndexOnGridDest() const
+TRY
 {
   return localMaskOnGridDest_;
 }
+CATCH
 
 }

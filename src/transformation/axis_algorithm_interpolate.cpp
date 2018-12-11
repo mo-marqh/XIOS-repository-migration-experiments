@@ -28,6 +28,7 @@ CGenericAlgorithmTransformation* CAxisAlgorithmInterpolate::create(CGrid* gridDs
                                                                    std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                    std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                    std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CAxis*> axisListDestP = gridDst->getAxis();
   std::vector<CAxis*> axisListSrcP  = gridSrc->getAxis();
@@ -38,15 +39,18 @@ CGenericAlgorithmTransformation* CAxisAlgorithmInterpolate::create(CGrid* gridDs
 
   return (new CAxisAlgorithmInterpolate(axisListDestP[axisDstIndex], axisListSrcP[axisSrcIndex], interpolateAxis));
 }
+CATCH
 
 bool CAxisAlgorithmInterpolate::registerTrans()
+TRY
 {
   CGridTransformationFactory<CAxis>::registerTransformation(TRANS_INTERPOLATE_AXIS, create);
 }
-
+CATCH
 
 CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAxis* axisSource, CInterpolateAxis* interpAxis)
 : CAxisAlgorithmTransformation(axisDestination, axisSource), coordinate_(), transPosition_()
+TRY
 {
   interpAxis->checkValid(axisSource);
   order_ = interpAxis->order.getValue();
@@ -57,11 +61,13 @@ CAxisAlgorithmInterpolate::CAxisAlgorithmInterpolate(CAxis* axisDestination, CAx
     this->idAuxInputs_[0] = coordinate_;
   }
 }
+CATCH
 
 /*!
   Compute the index mapping between axis on grid source and one on grid destination
 */
 void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").resume() ;
   CContext* context = CContext::getCurrent();
@@ -87,6 +93,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
   }
   CTimer::get("CAxisAlgorithmInterpolate::computeIndexSourceMapping_").suspend() ;
 }
+CATCH
 
 /*!
   Compute the interpolant points
@@ -97,6 +104,7 @@ void CAxisAlgorithmInterpolate::computeIndexSourceMapping_(const std::vector<CAr
 void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double>& axisValue,
                                                         const std::vector<int>& indexVec,
                                                         int transPos)
+TRY
 {
   std::vector<double>::const_iterator itb = axisValue.begin(), ite = axisValue.end();
   std::vector<double>::const_iterator itLowerBound, itUpperBound, it, iteRange, itfirst, itsecond;
@@ -161,12 +169,14 @@ void CAxisAlgorithmInterpolate::computeInterpolantPoint(const std::vector<double
   }
   computeWeightedValueAndMapping(interpolatingIndexValues, transPos);
 }
+CATCH
 
 /*!
   Compute weight (coeff) of Lagrange's polynomial
   \param [in] interpolatingIndexValues the necessary axis value to calculate the coeffs
 */
 void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<int, std::vector<std::pair<int,double> > >& interpolatingIndexValues, int transPos)
+TRY
 {
   TransformationIndexMap& transMap = this->transformationMapping_[transPos];
   TransformationWeightMap& transWeight = this->transformationWeight_[transPos];
@@ -204,6 +214,7 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
     (this->transformationPosition_[transPos])[0] = transPosition_[transPos];
 
 }
+CATCH
 
 /*!
   Each client retrieves all values of an axis
@@ -212,6 +223,7 @@ void CAxisAlgorithmInterpolate::computeWeightedValueAndMapping(const std::map<in
 */
 void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axisValue, const CArray<bool,1>& axisMask,
                                                      std::vector<double>& recvBuff, std::vector<int>& indexVec)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -281,6 +293,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axi
     delete [] sendValueBuff;
   }
 }
+CATCH
 
 /*!
   Fill in axis value dynamically from a field whose grid is composed of a domain and an axis
@@ -288,6 +301,7 @@ void CAxisAlgorithmInterpolate::retrieveAllAxisValue(const CArray<double,1>& axi
 */
 void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& vecAxisValue,
                                                 const std::vector<CArray<double,1>* >& dataAuxInputs)
+TRY
 {
   if (coordinate_.empty())
   {
@@ -376,5 +390,6 @@ void CAxisAlgorithmInterpolate::fillInAxisValue(std::vector<CArray<double,1> >& 
     }
   }
 }
+CATCH
 
 }

@@ -18,6 +18,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmReorder::create(CGrid* gridDst,
                                                              std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                              std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                              std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -28,14 +29,18 @@ CGenericAlgorithmTransformation* CDomainAlgorithmReorder::create(CGrid* gridDst,
 
   return (new CDomainAlgorithmReorder(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], reorderDomain));
 }
+CATCH
 
 bool CDomainAlgorithmReorder::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_REORDER_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmReorder::CDomainAlgorithmReorder(CDomain* domainDestination, CDomain* domainSource, CReorderDomain* reorderDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
+TRY
 {
   reorderDomain->checkValid(domainSource);
   if (domainDestination->type !=  CDomain::type_attr::rectilinear)
@@ -108,9 +113,8 @@ CDomainAlgorithmReorder::CDomainAlgorithmReorder(CDomain* domainDestination, CDo
       }
     }
   }
-    
-  
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

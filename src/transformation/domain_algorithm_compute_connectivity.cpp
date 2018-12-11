@@ -23,6 +23,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmComputeConnectivity::create(CGr
                                                                      std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                                      std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -33,15 +34,19 @@ CGenericAlgorithmTransformation* CDomainAlgorithmComputeConnectivity::create(CGr
 
   return (new CDomainAlgorithmComputeConnectivity(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], compute_connectivityDomain));
 }
+CATCH
 
 bool CDomainAlgorithmComputeConnectivity::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_COMPUTE_CONNECTIVITY_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(CDomain* domainDestination, CDomain* domainSource,
                                                                          CComputeConnectivityDomain* compute_connectivityDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
+TRY
 {
   this->type_ = (ELEMENT_NO_MODIFICATION_WITHOUT_DATA);
   compute_connectivityDomain->checkValid(domainDestination);
@@ -63,6 +68,7 @@ CDomainAlgorithmComputeConnectivity::CDomainAlgorithmComputeConnectivity(CDomain
 
   computeLocalConnectivity(type, domainDestination, nbNeighborMax, nbNeighbor, localNeighbors);
 }
+CATCH
 
 /*!
  *  Compute local connectivity of a domain
@@ -77,6 +83,7 @@ void CDomainAlgorithmComputeConnectivity::computeLocalConnectivity(int type,
                                                                   int& nbConnectivityMax,
                                                                   CArray<int,1>& nbConnectivity,
                                                                   CArray<int,2>& localConnectivity)
+TRY
 {
 
   CMesh mesh;
@@ -92,8 +99,7 @@ void CDomainAlgorithmComputeConnectivity::computeLocalConnectivity(int type,
   for (int idx =0; idx < nbConnectivity.numElements(); ++idx)
     if (nbConnectivityMax < nbConnectivity(idx)) nbConnectivityMax = nbConnectivity(idx);
 }
-
-
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

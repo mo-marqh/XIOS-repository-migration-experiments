@@ -42,16 +42,21 @@ extern "C"
    // This function is not exported to the public Fortran interface,
    // it is only used from the parse_xml.exe standalone test tool.
    void cxios_init(void)
+   TRY
    {
      CXios::initialize();
    }
+   CATCH_DUMP_STACK
 
    void cxios_init_server(void)
+   TRY
    {
      CXios::initServerSide();
    }
+   CATCH_DUMP_STACK
 
    void cxios_init_client(const char* client_id , int len_client_id, MPI_Fint* f_local_comm, MPI_Fint* f_return_comm )
+   TRY
    {
       std::string str;
       MPI_Comm local_comm;
@@ -68,8 +73,10 @@ extern "C"
       CTimer::get("XIOS init").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_context_initialize(const char* context_id , int len_context_id, MPI_Fint* f_comm)
+   TRY
    {
      std::string str;
      MPI_Comm comm;
@@ -82,15 +89,19 @@ extern "C"
      CTimer::get("XIOS init context").suspend();
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_oasis_enddef()
+   TRY
    {
      CTimer::get("XIOS").resume();
      CClient::callOasisEnddef();
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_context_is_initialized(const char* context_id , int len_context_id, bool* initialized)
+   TRY
    {
      std::string str;
 
@@ -100,8 +111,10 @@ extern "C"
      *initialized=context->isInitialized();
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
-    void cxios_context_close_definition()
+   void cxios_context_close_definition()
+   TRY
    {
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS close definition").resume();
@@ -110,8 +123,10 @@ extern "C"
      CTimer::get("XIOS close definition").suspend();
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_context_finalize()
+   TRY
    {
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS context finalize").resume();
@@ -120,21 +135,26 @@ extern "C"
      CTimer::get("XIOS context finalize").suspend();
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_finalize()
+   TRY
    {
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS finalize").resume();
      CXios::clientFinalize();
    }
+   CATCH_DUMP_STACK
 
    void cxios_solve_inheritance()
+   TRY
    {
      CTimer::get("XIOS").resume();
      CContext* context = CContext::getCurrent();
      context->solveAllInheritance(false);
      CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    /*! \brief This group of functions retrieve variable information from the configuration file (.xml)
     *
@@ -147,6 +167,7 @@ extern "C"
     * \param isVarExisted [in/out] Verify whether variable with varId exists
    */
    void cxios_get_variable_data_k8(const char* varId, int varIdSize, double* data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -165,8 +186,10 @@ extern "C"
       CTimer::get("XIOS get variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_get_variable_data_k4(const char* varId, int varIdSize, float* data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -185,8 +208,10 @@ extern "C"
       CTimer::get("XIOS get variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_get_variable_data_int(const char* varId, int varIdSize, int* data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -205,8 +230,10 @@ extern "C"
       CTimer::get("XIOS get variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_get_variable_data_logic(const char* varId, int varIdSize, bool* data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -225,8 +252,10 @@ extern "C"
       CTimer::get("XIOS get variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_get_variable_data_char(const char* varId, int varIdSize, char* data, int dataSizeIn, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -246,6 +275,7 @@ extern "C"
       CTimer::get("XIOS get variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    /*! \brief This group of functions write information into existing variable in the configuration file (.xml)
     *
@@ -258,7 +288,8 @@ extern "C"
     * \param isVarExisted [in/out] Verify whether variable with varId exists
    */
    void cxios_set_variable_data_k8(const char* varId, int varIdSize, double data, bool* isVarExisted)
-   {
+   TRY
+  {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
 
@@ -277,8 +308,10 @@ extern "C"
       CTimer::get("XIOS set variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_set_variable_data_k4(const char* varId, int varIdSize, float data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -298,8 +331,10 @@ extern "C"
       CTimer::get("XIOS set variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_set_variable_data_int(const char* varId, int varIdSize, int data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -320,8 +355,10 @@ extern "C"
       CTimer::get("XIOS set variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_set_variable_data_logic(const char* varId, int varIdSize, bool data, bool* isVarExisted)
+   TRY
    {
       std::string varIdStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
@@ -341,9 +378,11 @@ extern "C"
       CTimer::get("XIOS set variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_set_variable_data_char(const char* varId, int varIdSize, const char* data, int dataSizeIn, bool* isVarExisted)
-   {
+   TRY
+  {
       std::string varIdStr, dataStr;
       if (!cstr2string(varId, varIdSize, varIdStr)) return;
       if (!cstr2string(data, dataSizeIn, dataStr))
@@ -367,11 +406,12 @@ extern "C"
       CTimer::get("XIOS set variable data").suspend();
       CTimer::get("XIOS").suspend();
    }
-
+   CATCH_DUMP_STACK
 
    // ---------------------- Ecriture des données ------------------------------
 
    void cxios_write_data_k80(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -386,8 +426,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k81(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -405,8 +447,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -424,8 +468,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -443,8 +489,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k84(const char* fieldid, int fieldid_size, double* data_k8, int data_0size, int data_1size, int data_2size, int data_3size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -462,10 +510,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k85(const char* fieldid, int fieldid_size, double* data_k8,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -483,10 +533,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k86(const char* fieldid, int fieldid_size, double* data_k8,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -504,11 +556,13 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k87(const char* fieldid, int fieldid_size, double* data_k8,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size,
                              int data_6size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -526,8 +580,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k40(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -545,8 +601,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k41(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -566,8 +624,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k42(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -587,8 +647,10 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k43(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -608,10 +670,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k44(const char* fieldid, int fieldid_size, float* data_k4,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -631,10 +695,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k45(const char* fieldid, int fieldid_size, float* data_k4,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -654,10 +720,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k46(const char* fieldid, int fieldid_size, float* data_k4,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -677,11 +745,13 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_write_data_k47(const char* fieldid, int fieldid_size, float* data_k4,
                              int data_0size, int data_1size, int data_2size,
                              int data_3size, int data_4size, int data_5size,
                              int data_6size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -701,10 +771,12 @@ extern "C"
       CTimer::get("XIOS send field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    // ---------------------- Lecture des données ------------------------------
 
    void cxios_read_data_k80(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -722,8 +794,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k81(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -741,8 +815,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k82(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -760,8 +836,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k83(const char* fieldid, int fieldid_size, double* data_k8, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -779,10 +857,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k84(const char* fieldid, int fieldid_size, double* data_k8,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -800,10 +880,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k85(const char* fieldid, int fieldid_size, double* data_k8,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -821,10 +903,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k86(const char* fieldid, int fieldid_size, double* data_k8,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size, int data_5size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -842,11 +926,13 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k87(const char* fieldid, int fieldid_size, double* data_k8,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size, int data_5size,
                             int data_6size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -864,8 +950,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k40(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -885,8 +973,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k41(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -906,8 +996,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k42(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -927,8 +1019,10 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
    }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k43(const char* fieldid, int fieldid_size, float* data_k4, int data_Xsize, int data_Ysize, int data_Zsize)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -948,10 +1042,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k44(const char* fieldid, int fieldid_size, float* data_k4,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -971,10 +1067,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k45(const char* fieldid, int fieldid_size, float* data_k4,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -994,10 +1092,12 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k46(const char* fieldid, int fieldid_size, float* data_k4,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size, int data_5size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -1017,11 +1117,13 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 
    void cxios_read_data_k47(const char* fieldid, int fieldid_size, float* data_k4,
                             int data_0size, int data_1size, int data_2size,
                             int data_3size, int data_4size, int data_5size,
                             int data_6size)
+   TRY
    {
       std::string fieldid_str;
       if (!cstr2string(fieldid, fieldid_size, fieldid_str)) return;
@@ -1041,4 +1143,5 @@ extern "C"
       CTimer::get("XIOS recv field").suspend();
       CTimer::get("XIOS").suspend();
     }
+   CATCH_DUMP_STACK
 } // extern "C"

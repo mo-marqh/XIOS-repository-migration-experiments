@@ -35,6 +35,7 @@ void CDomainAlgorithmTransformation::computeIndexSourceMapping_(const std::vecto
 void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<size_t,1>& globalDomainIndex,
                                                                 int elementType,
                                                                 CClientClientDHTInt::Index2VectorInfoTypeMap& globalDomainIndexOnProc)
+TRY
 {
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
@@ -64,5 +65,6 @@ void CDomainAlgorithmTransformation::computeExchangeGlobalIndex(const CArray<siz
   dhtIndexProcRank.computeIndexInfoMapping(globalDomainIndex);
   globalDomainIndexOnProc = dhtIndexProcRank.getInfoIndexMap();
 }
+CATCH
 
 }

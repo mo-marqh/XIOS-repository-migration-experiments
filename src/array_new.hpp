@@ -531,6 +531,18 @@ namespace xios
 
       virtual void fromString(const string& str) { istringstream iss(str); iss >> *this; initialized = true; }
       virtual string toString(void) const { ostringstream oss; oss << *this; return oss.str(); }
+
+      virtual string dump(void) const
+      {
+        ostringstream oss;
+        oss << this->shape()<<" ";
+        if (this->shape().numElements() == 1 && this->shape().dataFirst()[0] == 1)
+          oss << this->dataFirst()[0];
+        else
+          oss << this->dataFirst()[0] <<" ... "<< this->dataFirst()[this->numElements()-1];
+        return oss.str();
+      }
+
       virtual void reset(void) { this->free(); initialized = false; }
       virtual bool isEmpty(void) const { return !initialized; }
       virtual size_t size(void) const { return size(this->numElements()); }

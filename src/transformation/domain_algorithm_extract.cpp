@@ -15,6 +15,7 @@ CGenericAlgorithmTransformation* CDomainAlgorithmExtract::create(CGrid* gridDst,
                                                              std::map<int, int>& elementPositionInGridDst2ScalarPosition,
                                                              std::map<int, int>& elementPositionInGridDst2AxisPosition,
                                                              std::map<int, int>& elementPositionInGridDst2DomainPosition)
+TRY
 {
   std::vector<CDomain*> domainListDestP = gridDst->getDomains();
   std::vector<CDomain*> domainListSrcP  = gridSrc->getDomains();
@@ -25,14 +26,18 @@ CGenericAlgorithmTransformation* CDomainAlgorithmExtract::create(CGrid* gridDst,
 
   return (new CDomainAlgorithmExtract(domainListDestP[domainDstIndex], domainListSrcP[domainSrcIndex], extractDomain));
 }
+CATCH
 
 bool CDomainAlgorithmExtract::registerTrans()
+TRY
 {
   CGridTransformationFactory<CDomain>::registerTransformation(TRANS_EXTRACT_DOMAIN, create);
 }
+CATCH
 
 CDomainAlgorithmExtract::CDomainAlgorithmExtract(CDomain* domainDestination, CDomain* domainSource, CExtractDomain* extractDomain)
 : CDomainAlgorithmTransformation(domainDestination, domainSource)
+TRY
 {
   extractDomain->checkValid(domainSource);
   extractIBegin_ = extractDomain->ibegin.getValue();
@@ -219,6 +224,7 @@ CDomainAlgorithmExtract::CDomainAlgorithmExtract(CDomain* domainDestination, CDo
   }
 
 }
+CATCH
 
 /*!
   Compute the index mapping between domain on grid source and one on grid destination

@@ -27,6 +27,7 @@ extern "C"
    // ------------------------ Création des handle -----------------------------
    
    void cxios_file_handle_create (XFilePtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -34,8 +35,10 @@ extern "C"
       *_ret = CFile::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
    
    void cxios_filegroup_handle_create (XFileGroupPtr * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id; 
       if (!cstr2string(_id, _id_len, id)) return;
@@ -43,10 +46,12 @@ extern "C"
       *_ret = CFileGroup::get(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    // -------------------- Vérification des identifiants -----------------------
 
    void cxios_file_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -54,8 +59,10 @@ extern "C"
       *_ret = CFile::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 
    void cxios_filegroup_valid_id (bool * _ret, const char * _id, int _id_len)
+   TRY
    {
       std::string id;
       if (!cstr2string(_id, _id_len, id)) return;
@@ -63,4 +70,5 @@ extern "C"
       *_ret = CFileGroup::has(id);
       CTimer::get("XIOS").suspend() ;
    }
+   CATCH_DUMP_STACK
 } // extern "C"

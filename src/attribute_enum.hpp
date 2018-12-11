@@ -13,7 +13,7 @@
 
 namespace xios
 {
-      /// ////////////////////// Déclarations ////////////////////// ///
+      /// ////////////////////// Declarations ////////////////////// ///
         /*!
         \class CAttributeEnum
         This class implements the attribute representing enumeration
@@ -61,6 +61,7 @@ namespace xios
             /// Autre ///
             virtual StdString toString(void) const { return _toString();}
             virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
+            virtual StdString dump(void) const { return _toString();}
 
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);} 
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); } 
