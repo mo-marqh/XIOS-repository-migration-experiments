@@ -781,6 +781,25 @@ MODULE domain_interface_attr
     END FUNCTION cxios_is_defined_domain_prec
 
 
+    SUBROUTINE cxios_set_domain_radius(domain_hdl, radius) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)      , VALUE :: radius
+    END SUBROUTINE cxios_set_domain_radius
+
+    SUBROUTINE cxios_get_domain_radius(domain_hdl, radius) BIND(C)
+      USE ISO_C_BINDING
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+      REAL (KIND=C_DOUBLE)             :: radius
+    END SUBROUTINE cxios_get_domain_radius
+
+    FUNCTION cxios_is_defined_domain_radius(domain_hdl) BIND(C)
+      USE ISO_C_BINDING
+      LOGICAL(kind=C_BOOL) :: cxios_is_defined_domain_radius
+      INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl
+    END FUNCTION cxios_is_defined_domain_radius
+
+
     SUBROUTINE cxios_set_domain_standard_name(domain_hdl, standard_name, standard_name_size) BIND(C)
       USE ISO_C_BINDING
       INTEGER (kind = C_INTPTR_T), VALUE :: domain_hdl

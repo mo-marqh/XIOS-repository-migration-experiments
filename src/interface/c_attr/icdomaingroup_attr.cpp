@@ -3,7 +3,6 @@
  * ************************************************************************** */
 
 #include <boost/multi_array.hpp>
-#include <memory>
 #include "xios.hpp"
 #include "attribute_template.hpp"
 #include "object_template.hpp"
@@ -972,6 +971,29 @@ extern "C"
   {
      CTimer::get("XIOS").resume();
      bool isDefined = domaingroup_hdl->prec.hasInheritedValue();
+     CTimer::get("XIOS").suspend();
+     return isDefined;
+  }
+
+
+  void cxios_set_domaingroup_radius(domaingroup_Ptr domaingroup_hdl, double radius)
+  {
+    CTimer::get("XIOS").resume();
+    domaingroup_hdl->radius.setValue(radius);
+    CTimer::get("XIOS").suspend();
+  }
+
+  void cxios_get_domaingroup_radius(domaingroup_Ptr domaingroup_hdl, double* radius)
+  {
+    CTimer::get("XIOS").resume();
+    *radius = domaingroup_hdl->radius.getInheritedValue();
+    CTimer::get("XIOS").suspend();
+  }
+
+  bool cxios_is_defined_domaingroup_radius(domaingroup_Ptr domaingroup_hdl)
+  {
+     CTimer::get("XIOS").resume();
+     bool isDefined = domaingroup_hdl->radius.hasInheritedValue();
      CTimer::get("XIOS").suspend();
      return isDefined;
   }
