@@ -6,13 +6,15 @@
 
 namespace xios
 {
-  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid, bool compression, 
+  CSourceFilter::CSourceFilter(CGarbageCollector& gc, CGrid* grid,
+                               bool compression /*= true*/, bool mask /*= false*/,
                                const CDuration offset /*= NoneDu*/, bool manualTrigger /*= false*/,
                                bool hasMissingValue /*= false*/,
                                double defaultValue /*= 0.0*/)
     : COutputPin(gc, manualTrigger)
     , grid(grid)
     , compression(compression)
+    , mask(mask)
     , offset(offset)
     , hasMissingValue(hasMissingValue), defaultValue(defaultValue)
   {
@@ -39,18 +41,12 @@ namespace xios
       grid->uncompressField(data, packet->data);    
     }
     else
-      grid->inputField(data, packet->data);
-
-    
-    
-    // if (compression) grid->inputField(data, packet->data) ;
-    // else
-    // {
-    //   // just make a flat copy
-    //   CArray<double, N> data_tmp(data.copy()) ; // supress const attribute
-    //   CArray<double,1> dataTmp2(data_tmp.dataFirst(),shape(data.numElements()),neverDeleteData) ;
-    //   packet->data = dataTmp2 ;
-    // }
+    {
+      if (mask)
+        grid->maskField(data, packet->data);
+      else
+        grid->inputField(data, packet->data);
+    }
     // Convert missing values to NaN
     if (hasMissingValue)
     {

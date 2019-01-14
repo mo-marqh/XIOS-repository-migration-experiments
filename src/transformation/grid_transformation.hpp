@@ -48,7 +48,6 @@ public:
   const std::list<SendingIndexGridSourceMap>& getLocalIndexToSendFromGridSource() const;
   const std::list<RecvIndexGridDestinationMap>& getLocalIndexToReceiveOnGridDest() const;
   const std::list<size_t>& getNbLocalIndexToReceiveOnGridDest() const;
-  const std::list<std::vector<bool> >& getLocalMaskIndexOnGridDest() const;
 
   CGrid* getGridSource() { return originalGridSource_; }
   CGrid* getGridDestination() { return gridDestination_; }
@@ -83,7 +82,6 @@ protected:
 
   //! Number of local index of data to receive on grid destination
   std::list<size_t> nbLocalIndexOnGridDest_;
-  std::list<std::vector<bool> > localMaskOnGridDest_;
 
   bool dynamicalTransformation_;
   std::set<Time> timeStamp_; //! Time stamps for auxillary inputs

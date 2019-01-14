@@ -273,7 +273,9 @@ namespace xios {
    void CAxis::checkAttributes(void)
    TRY
    {
-      if (this->n_glo.isEmpty())
+     CContext* context=CContext::getCurrent();
+
+     if (this->n_glo.isEmpty())
         ERROR("CAxis::checkAttributes(void)",
               << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
               << "The axis is wrongly defined, attribute 'n_glo' must be specified");
@@ -313,31 +315,34 @@ namespace xios {
         }
       }
 
-      // Remove this check because it doesn't make sense in case of a hole or overlapping axes
       if (!this->value.isEmpty())
       {
-//        StdSize true_size = value.numElements();
-//        if (this->n.getValue() != true_size)
-//          ERROR("CAxis::checkAttributes(void)",
-//                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
-//                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+        // Avoid this check at writing because it fails in case of a hole
+        if (context->hasClient)
+        {
+          StdSize true_size = value.numElements();
+          if (this->n.getValue() != true_size)
+            ERROR("CAxis::checkAttributes(void)",
+                << "[ id = '" << getId() << "' , context = '" << CObjectFactory::GetCurrentContextId() << "' ] "
+                << "The axis is wrongly defined, attribute 'value' has a different size (" << true_size
+                << ") than the one defined by the \'size\' attribute (" << n.getValue() << ").");
+        }
         this->hasValue = true;
       }
 
       this->checkBounds();
 
-      CContext* context=CContext::getCurrent();
       if (context->hasClient)
       {
-        this->checkData();
         this->checkMask();
+        this->checkData();
         this->checkLabel();
       }
    }
    CATCH_DUMP_ATTR
 
    /*!
-      Check the validity of data and fill in values if any.
+      Check the validity of data, fill in values if any, and apply mask.
    */
    void CAxis::checkData()
    TRY
@@ -358,8 +363,34 @@ namespace xios {
       if (data_index.isEmpty())
       {
         data_index.resize(data_n);
-        for (int i = 0; i < data_n; ++i) data_index(i) = i;
+        for (int i = 0; i < data_n; ++i)
+        {
+          if ((i+data_begin) >= 0 && (i+data_begin<n))
+          {
+            if (mask(i+data_begin))
+              data_index(i) = i+data_begin;
+            else
+              data_index(i) = -1;
+          }
+          else
+            data_index(i) = -1;
+        }
       }
+      else
+      {
+        if (data_index.numElements() != data_n)
+        {
+          ERROR("CAxis::checkData(void)",
+                << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+                << "The size of data_index = "<< data_index.numElements() << "is not equal to the data size data_n = " << data_n.getValue() << ").");
+        }
+        for (int i = 0; i < data_n; ++i)
+        {
+          if ((i+data_begin) >= 0 && (i+data_begin<n) && !mask(i+data_begin))
+            data_index(i) = -1;
+        }
+      }
+
    }
    CATCH_DUMP_ATTR
 
@@ -376,20 +407,19 @@ namespace xios {
    {
       if (!mask.isEmpty())
       {
-         if (mask.extent(0) != n)
-           ERROR("CAxis::checkMask(void)",
-                 << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
-                 << "The mask does not have the same size as the local domain." << std::endl
-                 << "Local size is " << n.getValue() << "." << std::endl
-                 << "Mask size is " << mask.extent(0) << ".");
+        if (mask.extent(0) != n)
+        {
+          ERROR("CAxis::checkMask(void)",
+              << "[ id = " << this->getId() << " , context = '" << CObjectFactory::GetCurrentContextId() << " ] "
+              << "The mask does not have the same size as the local domain." << std::endl
+              << "Local size is " << n.getValue() << "." << std::endl
+              << "Mask size is " << mask.extent(0) << ".");
+        }
       }
-      else // (mask.isEmpty())
-      { // If no mask was defined, we create a default one without any masked point.
-         mask.resize(n);
-         for (int i = 0; i < n; ++i)
-         {
-           mask(i) = true;
-         }
+      else
+      {
+        mask.resize(n);
+        mask = true;
       }
    }
    CATCH_DUMP_ATTR
@@ -597,20 +627,20 @@ namespace xios {
         }
 
         // Calculate the compressed index if any
-        std::set<int> writtenInd;
-        if (isCompressible_)
-        {
-          for (int idx = 0; idx < data_index.numElements(); ++idx)
-          {
-            int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
-
-            if (ind >= 0 && ind < ni && mask(ind))
-            {
-              ind += ibegin;
-              writtenInd.insert(ind);
-            }
-          }
-        }
+//        std::set<int> writtenInd;
+//        if (isCompressible_)
+//        {
+//          for (int idx = 0; idx < data_index.numElements(); ++idx)
+//          {
+//            int ind = CDistributionClient::getAxisIndex(data_index(idx), data_begin, ni);
+//
+//            if (ind >= 0 && ind < ni && mask(ind))
+//            {
+//              ind += ibegin;
+//              writtenInd.insert(ind);
+//            }
+//          }
+//        }
 
         // Compute the global index of the current client (process) hold
         std::vector<int> nGlobAxis(1);
@@ -679,7 +709,7 @@ namespace xios {
          if (connectedServerRank_[nbServer].empty())
           connectedServerRank_[nbServer].push_back(client->clientRank % client->serverSize);
 
-         nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
+        nbSenders[nbServer] = CClientServerMapping::computeConnectedClients(client->serverSize, client->clientSize, client->intraComm, connectedServerRank_[nbServer]);
 
         delete clientServerMap;
       }
@@ -717,18 +747,8 @@ namespace xios {
                                                         ite = globalLocalIndexMap_.end(), it;          
     CArray<size_t,1>::const_iterator itSrvb = writtenGlobalIndex.begin(),
                                      itSrve = writtenGlobalIndex.end(), itSrv;  
-    for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
-    {
-      indGlo = *itSrv;
-      if (ite != globalLocalIndexMap_.find(indGlo))
-      {
-        ++nbWritten;
-      }
-    }
 
     localIndexToWriteOnServer.resize(writtenGlobalIndex.numElements());
-//      localIndexToWriteOnServer.resize(nbWritten);
-
     nbWritten = 0;
     for (itSrv = itSrvb; itSrv != itSrve; ++itSrv)
     {
@@ -736,9 +756,14 @@ namespace xios {
       if (ite != globalLocalIndexMap_.find(indGlo))
       {
         localIndexToWriteOnServer(nbWritten) = globalLocalIndexMap_[indGlo];
-        ++nbWritten;
       }
+      else
+      {
+        localIndexToWriteOnServer(nbWritten) = -1;
+      }
+      ++nbWritten;
     }
+
   }
   CATCH_DUMP_ATTR
 
@@ -779,6 +804,26 @@ namespace xios {
           ++nbWritten;
         }                 
       }
+//
+//      nbWritten = 0;
+//      for (int idx = 0; idx < data_index.numElements(); ++idx)
+//      {
+//        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+//        {
+//          ++nbWritten;
+//        }
+//      }
+//
+//      compressedIndexToWriteOnServer[writtenCommSize].resize(nbWritten);
+//      nbWritten = 0;
+//      for (int idx = 0; idx < data_index.numElements(); ++idx)
+//      {
+//        if (localGlobalIndexMap.end() != localGlobalIndexMap.find(data_index(idx)))
+//        {
+//          compressedIndexToWriteOnServer[writtenCommSize](nbWritten) = localGlobalIndexMap[data_index(idx)];
+//          ++nbWritten;
+//        }
+//      }
 
       nbWritten = 0;
       for (int idx = 0; idx < data_index.numElements(); ++idx)
@@ -1026,14 +1071,14 @@ namespace xios {
   CATCH_DUMP_ATTR
 
   /*
-    Send attributes of axis from a group of client to other group of clients/servers 
-    on supposing that these attributes are distributed among the clients of the sending group
-    In the future, if new attributes are added, they should also be processed in this function
+    Send axis attributes from a group of clients to another group of clients/servers
+    supposing that these attributes are distributed among the clients of the sending group
+    In future, if new attributes are added, they should also be processed in this function
   */
   void CAxis::sendDistributedAttributes(void)
   TRY
   {
-    int ns, n, i, j, ind, nv, idx;
+    int ind, idx;
     std::list<CContextClient*>::iterator it;
 
     for (it=clients.begin(); it!=clients.end(); ++it)
@@ -1045,33 +1090,32 @@ namespace xios {
 
       list<CMessage> listData;
       list<CArray<int,1> > list_indi, list_dataInd;
-      list<CArray<bool,1> > list_mask;
       list<CArray<double,1> > list_val;
       list<CArray<double,2> > list_bounds;
       list<CArray<string,1> > list_label;
 
+      // Cut off the ghost points
       int nbIndex = index.numElements();
       CArray<int,1> dataIndex(nbIndex);
       dataIndex = -1;
       for (idx = 0; idx < data_index.numElements(); ++idx)
       {
         if (0 <= data_index(idx) && data_index(idx) < nbIndex)
-          dataIndex(idx) = 1;
+          dataIndex(data_index(idx)) = 1;
       }
 
       std::unordered_map<int, std::vector<size_t> >::const_iterator it, iteMap;
       iteMap = indSrv_[nbServer].end();
       for (int k = 0; k < connectedServerRank_[nbServer].size(); ++k)
       {
-        int nbData = 0;
+        int nbData = 0, nbDataCount = 0;
         int rank = connectedServerRank_[nbServer][k];
         it = indSrv_[nbServer].find(rank);
         if (iteMap != it)
           nbData = it->second.size();
 
         list_indi.push_back(CArray<int,1>(nbData));
-        list_dataInd.push_back(CArray<int,1>(nbData));        
-        list_mask.push_back(CArray<bool,1>(nbData));
+        list_dataInd.push_back(CArray<int,1>(nbData));
 
         if (hasValue)
           list_val.push_back(CArray<double,1>(nbData));
@@ -1083,17 +1127,16 @@ namespace xios {
           list_label.push_back(CArray<string,1>(nbData));
 
         CArray<int,1>& indi = list_indi.back();
-        CArray<int,1>& dataIndi = list_dataInd.back();        
-        CArray<bool,1>& maskIndi = list_mask.back();
+        CArray<int,1>& dataIndi = list_dataInd.back();
+        dataIndi = -1;
 
-        for (n = 0; n < nbData; ++n)
+        for (int n = 0; n < nbData; ++n)
         {
           idx = static_cast<int>(it->second[n]);
           indi(n) = idx;
 
           ind = globalLocalIndexMap_[idx];
           dataIndi(n) = dataIndex(ind);
-          maskIndi(n) = mask(ind);
 
           if (hasValue)
           {
@@ -1117,7 +1160,7 @@ namespace xios {
 
         listData.push_back(CMessage());
         listData.back() << this->getId()
-                        << list_indi.back() << list_dataInd.back() << list_mask.back();
+                        << list_indi.back() << list_dataInd.back();
 
         listData.back() << hasValue;
         if (hasValue)
@@ -1172,7 +1215,6 @@ namespace xios {
   {
     int nbReceived = ranks.size(), idx, ind, gloInd, locInd;
     vector<CArray<int,1> > vec_indi(nbReceived), vec_dataInd(nbReceived);
-    vector<CArray<bool,1> > vec_mask(nbReceived);
     vector<CArray<double,1> > vec_val(nbReceived);
     vector<CArray<double,2> > vec_bounds(nbReceived);
     vector<CArray<string,1> > vec_label(nbReceived);
@@ -1182,7 +1224,6 @@ namespace xios {
       CBufferIn& buffer = *buffers[idx];
       buffer >> vec_indi[idx];
       buffer >> vec_dataInd[idx];      
-      buffer >> vec_mask[idx];
 
       buffer >> hasValue;
       if (hasValue)
@@ -1219,8 +1260,8 @@ namespace xios {
          nbIndLoc = (gloInd % n_glo)-begin;
          if (0 == globalLocalIndexMap_.count(gloInd))
          {
-           index(nbIndLoc) = gloInd % n_glo;
-           globalLocalIndexMap_[gloInd] = nbIndLoc;
+           index(nbIndexGlob) = gloInd % n_glo;
+           globalLocalIndexMap_[gloInd] = nbIndexGlob;
            ++nbIndexGlob;
          } 
       } 
@@ -1233,7 +1274,8 @@ namespace xios {
     int nbData = nbIndexGlob;
     CArray<int,1> nonCompressedData(nbData);
     nonCompressedData = -1;   
-    mask.resize(nbData);
+    // Mask is incorporated into data_index and is not sent/received anymore
+    mask.resize(0);
     if (hasValue)
       value.resize(nbData);
     if (hasBounds)
@@ -1246,7 +1288,6 @@ namespace xios {
     {
       CArray<int,1>& indi = vec_indi[idx];
       CArray<int,1>& dataIndi = vec_dataInd[idx];
-      CArray<bool,1>& maskIndi = vec_mask[idx];
       int nb = indi.numElements();
       for (int n = 0; n < nb; ++n)
       { 
@@ -1254,9 +1295,6 @@ namespace xios {
 
         nonCompressedData(locInd) = (-1 == nonCompressedData(locInd)) ? dataIndi(n) : nonCompressedData(locInd);
 
-        if (!mask(locInd)) // Only rewrite mask if it's not true
-          mask(locInd) = maskIndi(n);
-        
         if (hasValue)
           value(locInd) = vec_val[idx](n);
 
@@ -1271,11 +1309,11 @@ namespace xios {
       }
     }
     
-    int nbCompressedData = 0; 
+    int nbCompressedData = 0;
     for (idx = 0; idx < nonCompressedData.numElements(); ++idx)
     {
       if (0 <= nonCompressedData(idx))
-        ++nbCompressedData;        
+        ++nbCompressedData;
     }
 
     data_index.resize(nbCompressedData);
@@ -1285,11 +1323,12 @@ namespace xios {
       if (0 <= nonCompressedData(idx))
       {
         data_index(nbCompressedData) = idx % n;
-        ++nbCompressedData;        
+        ++nbCompressedData;
       }
     }
 
     data_begin.setValue(0);
+    data_n.setValue(data_index.numElements());
   }
   CATCH_DUMP_ATTR
 

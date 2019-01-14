@@ -68,10 +68,6 @@ namespace xios
       onOutputReady(outputPacket);
   }
 
-
-
-
-
   CSpatialTemporalFilter::CSpatialTemporalFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, CGridTransformation* gridTransformation, double outputValue, size_t inputSlotsCount)
     : CSpatialTransformFilter(gc, engine, outputValue, inputSlotsCount), record(0)
   {
@@ -200,7 +196,6 @@ namespace xios
     const std::list<CGridTransformation::SendingIndexGridSourceMap>& listLocalIndexSend = gridTransformation->getLocalIndexToSendFromGridSource();
     const std::list<CGridTransformation::RecvIndexGridDestinationMap>& listLocalIndexToReceive = gridTransformation->getLocalIndexToReceiveOnGridDest();
     const std::list<size_t>& listNbLocalIndexToReceive = gridTransformation->getNbLocalIndexToReceiveOnGridDest();
-    const std::list<std::vector<bool> >& listLocalIndexMaskOnDest = gridTransformation->getLocalMaskIndexOnGridDest();
     const std::vector<CGenericAlgorithmTransformation*>& listAlgos = gridTransformation->getAlgos();
 
     CArray<double,1> dataCurrentDest(dataSrc.copy());
@@ -209,10 +204,9 @@ namespace xios
                                                                               iteListSend = listLocalIndexSend.end();
     std::list<CGridTransformation::RecvIndexGridDestinationMap>::const_iterator itListRecv = listLocalIndexToReceive.begin();
     std::list<size_t>::const_iterator itNbListRecv = listNbLocalIndexToReceive.begin();
-    std::list<std::vector<bool> >::const_iterator itLocalMaskIndexOnDest = listLocalIndexMaskOnDest.begin();
     std::vector<CGenericAlgorithmTransformation*>::const_iterator itAlgo = listAlgos.begin();
 
-    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv, ++itLocalMaskIndexOnDest, ++itAlgo)
+    for (; itListSend != iteListSend; ++itListSend, ++itListRecv, ++itNbListRecv, ++itAlgo)
     {
       CArray<double,1> dataCurrentSrc(dataCurrentDest);
       const CGridTransformation::SendingIndexGridSourceMap& localIndexToSend = *itListSend;
@@ -265,10 +259,7 @@ namespace xios
       MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
 
       dataCurrentDest.resize(*itNbListRecv);
-      const std::vector<bool>& localMaskDest = *itLocalMaskIndexOnDest;
-      for (int i = 0; i < localMaskDest.size(); ++i)
-        if (localMaskDest[i]) dataCurrentDest(i) = 0.0;
-        else dataCurrentDest(i) = defaultValue;
+      dataCurrentDest = 0.0;
 
       std::vector<bool> localInitFlag(dataCurrentDest.numElements(), true);
       currentBuff = 0;

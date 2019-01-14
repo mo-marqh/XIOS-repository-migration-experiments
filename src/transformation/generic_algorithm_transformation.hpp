@@ -87,9 +87,11 @@ public:
   */
   void computeIndexSourceMapping(const std::vector<CArray<double,1>* >& dataAuxInputs = std::vector<CArray<double,1>* >());
   void computeTransformationMappingNonDistributed(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst,
-                                                  vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, vector<bool>& localMaskOnGridDest);
-  void nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid,  vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst, int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
-                                     vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, CArray<bool,1>& localMaskOnGridSrc, vector<bool>& localMaskOnGridDest) ;
+                                                  vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, int& nbLocalIndexOnGridDest);
+  void nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid,  vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst,
+                                    int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc,
+                                    int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
+                                    vector<int>& localSrc, vector<int>& localDst, vector<double>& weight) ;
 
 protected:
   virtual void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >&) = 0;

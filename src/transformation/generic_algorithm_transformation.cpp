@@ -855,7 +855,8 @@ TRY
 CATCH
 
 void CGenericAlgorithmTransformation::computeTransformationMappingNonDistributed(int elementPositionInGrid, CGrid* gridSrc, CGrid* gridDst,
-                                                                                 vector<int>& localSrc, vector<int>& localDst, vector<double>& weight, vector<bool>& localMaskOnGridDest)
+                                                                                 vector<int>& localSrc, vector<int>& localDst, vector<double>& weight,
+                                                                                 int& nlocalIndexDest)
 TRY
 {
 
@@ -882,7 +883,8 @@ TRY
   vector< CArray<bool,1>* > maskDst(nElement) ;
     
   int nlocalIndexSrc=1 ;
-  int nlocalIndexDest=1 ;
+//  int nlocalIndexDest=1 ;
+  nlocalIndexDest=1 ;
   CArray<bool,1> maskScalar(1) ;
   maskScalar  = true ;
   
@@ -991,19 +993,6 @@ TRY
     dstLocalInd[0]=0 ; 
   }
 
-// just get the local src mask
-  CArray<bool,1> localMaskOnSrcGrid;
-  gridSrc->getLocalMask(localMaskOnSrcGrid) ;
-// intermediate grid, mask is not initialized => set up mask to true
-  if (localMaskOnSrcGrid.isEmpty())
-  {
-    localMaskOnSrcGrid.resize(nlocalIndexSrc) ;
-    localMaskOnSrcGrid=true ;
-  }
-  
-
-  localMaskOnGridDest.resize(nlocalIndexDest,false) ;
-
   vector<vector<vector<pair<int,double> > > > dstIndWeight(transformationMapping_.size()) ;
    
   for(int t=0;t<transformationMapping_.size();++t)
@@ -1030,13 +1019,17 @@ TRY
   int srcIndCompressed=0 ;
   
   nonDistributedrecursiveFunct(nElement-1,true,elementPositionInGrid,maskSrc,maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight,  
-                               currentInd,localSrc,localDst,weight, localMaskOnSrcGrid, localMaskOnGridDest );
+                               currentInd,localSrc,localDst,weight);
                
 }
 CATCH
 
-void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid, vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst, int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc, int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
-                    vector<int>& localSrc, vector<int>& localDst, vector<double>& weight,  CArray<bool,1>& localMaskOnGridSrc, vector<bool>& localMaskOnGridDest )
+
+void CGenericAlgorithmTransformation::nonDistributedrecursiveFunct(int currentPos, bool masked, int elementPositionInGrid,
+                                                                   vector< CArray<bool,1>* >& maskSrc, vector< CArray<bool,1>* >& maskDst,
+                                                                   int& srcInd, int& srcIndCompressed, vector<int>& nIndexSrc,
+                                                                   int& t, vector<vector<vector<pair<int,double> > > >& dstIndWeight, int currentInd,
+                                                                   vector<int>& localSrc, vector<int>& localDst, vector<double>& weight)
 TRY
 {
   int masked_ ;
@@ -1050,7 +1043,8 @@ TRY
       {
         masked_=masked ;
         if (!mask(i)) masked_=false ;
-        nonDistributedrecursiveFunct(currentPos-1, masked_, elementPositionInGrid, maskSrc, maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight, currentInd, localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
+        nonDistributedrecursiveFunct(currentPos-1, masked_, elementPositionInGrid, maskSrc, maskDst, srcInd, srcIndCompressed, nIndexSrc, t,
+                                     dstIndWeight, currentInd, localSrc, localDst, weight);
       }
     }
     else
@@ -1064,18 +1058,14 @@ TRY
           {
             for(vector<pair<int,double> >::iterator it = dstIndWeight[t][currentInd].begin(); it!=dstIndWeight[t][currentInd].end(); ++it)
             {
-              if (localMaskOnGridSrc(srcInd))
-              {
-                localSrc.push_back(srcIndCompressed) ;
-                localDst.push_back(it->first) ;
-                weight.push_back(it->second) ;
-                localMaskOnGridDest[it->first]=true ;
-              }
+              localSrc.push_back(srcIndCompressed) ;
+              localDst.push_back(it->first) ;
+              weight.push_back(it->second) ;
               (it->first)++ ;
             }
           }
           if (t < dstIndWeight.size()-1) t++ ;
-          if (localMaskOnGridSrc(srcInd)) srcIndCompressed ++ ;
+            srcIndCompressed ++ ;
         }
         srcInd++ ;
       }
@@ -1093,7 +1083,8 @@ TRY
         t=0 ;
         masked_=masked ;
         if (!mask(i)) masked_=false ; 
-        nonDistributedrecursiveFunct(currentPos-1, masked_, elementPositionInGrid, maskSrc, maskDst, srcInd, srcIndCompressed, nIndexSrc, t, dstIndWeight , i,  localSrc, localDst, weight, localMaskOnGridSrc, localMaskOnGridDest) ;
+        nonDistributedrecursiveFunct(currentPos-1, masked_, elementPositionInGrid, maskSrc, maskDst, srcInd,
+                                     srcIndCompressed, nIndexSrc, t, dstIndWeight , i,  localSrc, localDst, weight);
       }
     }
     else
@@ -1107,18 +1098,14 @@ TRY
           {
             for(vector<pair<int,double> >::iterator it = dstIndWeight[t][i].begin(); it!=dstIndWeight[t][i].end(); ++it)
             {
-              if (localMaskOnGridSrc(srcInd))
-              {
-                localSrc.push_back(srcIndCompressed) ;
-                localDst.push_back(it->first) ;
-                weight.push_back(it->second) ;
-                localMaskOnGridDest[it->first]=true ;
-              }
+              localSrc.push_back(srcIndCompressed) ;
+              localDst.push_back(it->first) ;
+              weight.push_back(it->second) ;
               (it->first)++ ;
             }
            }
           if (t < dstIndWeight.size()-1) t++ ;
-          if (localMaskOnGridSrc(srcInd)) srcIndCompressed ++ ;
+          srcIndCompressed ++ ;
         }
         srcInd++ ;
       }

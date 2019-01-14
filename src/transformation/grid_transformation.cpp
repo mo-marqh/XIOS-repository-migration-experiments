@@ -358,7 +358,6 @@ TRY
       std::list<SendingIndexGridSourceMap>().swap(localIndexToSendFromGridSource_);
       std::list<RecvIndexGridDestinationMap>().swap(localIndexToReceiveOnGridDest_);
       std::list<size_t>().swap(nbLocalIndexOnGridDest_);
-      std::list<std::vector<bool> >().swap(localMaskOnGridDest_);
     }
     else
       return;
@@ -411,14 +410,14 @@ TRY
         vector<int> localSrc ;
         vector<int> localDst ;
         vector<double> weight ;
-        localMaskOnGridDest_.push_back(vector<bool>()) ;
+        int nbLocalIndexOnGridDest;
         CTimer::get("computeTransformationMappingNonDistributed").resume();  
         algo->computeTransformationMappingNonDistributed(elementPosition, gridSource_, tmpGridDestination_, 
-                                                         localSrc, localDst, weight, localMaskOnGridDest_.back()) ;
+                                                         localSrc, localDst, weight, nbLocalIndexOnGridDest) ;
         CTimer::get("computeTransformationMappingNonDistributed").suspend();  
 
         CTimer::get("computeTransformationMappingConvert").resume();  
-        nbLocalIndexOnGridDest_.push_back(localMaskOnGridDest_.back().size()) ;
+        nbLocalIndexOnGridDest_.push_back(nbLocalIndexOnGridDest) ;
         int clientRank=client->clientRank ;
         {
           SendingIndexGridSourceMap tmp;
@@ -486,9 +485,9 @@ TRY
   // Update number of local index on each transformation
   size_t nbLocalIndex = globalLocalIndexGridDestSendToServer.size();
   nbLocalIndexOnGridDest_.push_back(nbLocalIndex);
-  localMaskOnGridDest_.push_back(std::vector<bool>());
-  std::vector<bool>& tmpMask = localMaskOnGridDest_.back();
-  tmpMask.resize(nbLocalIndex,false);
+//  localMaskOnGridDest_.push_back(std::vector<bool>());
+//  std::vector<bool>& tmpMask = localMaskOnGridDest_.back();
+//  tmpMask.resize(nbLocalIndex,false);
 
   // Find out number of index sent from grid source and number of index received on grid destination
   SourceDestinationIndexMap::const_iterator itbIndex = globaIndexWeightFromSrcToDst.begin(),
@@ -671,7 +670,6 @@ TRY
       {
         recvTmp[recvRank][realRecvSize].first = globalLocalIndexGridDestSendToServer[recvIndexDst(idx)];
         recvTmp[recvRank][realRecvSize].second = recvWeightDst(idx);
-        tmpMask[globalLocalIndexGridDestSendToServer[recvIndexDst(idx)]] = true;
          ++realRecvSize;
       }
     }
@@ -728,17 +726,6 @@ const std::list<size_t>& CGridTransformation::getNbLocalIndexToReceiveOnGridDest
 TRY
 {
   return nbLocalIndexOnGridDest_;
-}
-CATCH
-
-/*!
-  Local mask of data which will be received on the grid destination
-  \return local mask of data
-*/
-const std::list<std::vector<bool> >& CGridTransformation::getLocalMaskIndexOnGridDest() const
-TRY
-{
-  return localMaskOnGridDest_;
 }
 CATCH
 

@@ -14,7 +14,7 @@ CDistributionClient::CDistributionClient(int rank, CGrid* grid)
    : CDistribution(rank, 0)
    , axisDomainOrder_()
    , nLocal_(), nGlob_(), nBeginLocal_(), nBeginGlobal_()
-   , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_(), domainMasks_(), axisMasks_()
+   , dataNIndex_(), dataDims_(), dataBegin_(), dataIndex_()
    , gridMask_(), indexMap_()
    , isDataDistributed_(true), axisNum_(0), domainNum_(0)
    , localDataIndex_(), localMaskIndex_()
@@ -35,7 +35,7 @@ void CDistributionClient::partialClear()
   GlobalLocalMap void1 ;
   GlobalLocalMap void2 ;
   std::vector<int> void3 ;
-  std::vector<int> void4 ;
+  std::vector<bool> void4 ;
 
   globalLocalDataSendToServerMap_.swap(void1) ;
   globalDataIndex_.swap(void2) ;
@@ -60,7 +60,6 @@ void CDistributionClient::readDistributionInfo(CGrid* grid)
 
   // Then check mask of grid
   int gridDim = domList.size() * 2 + axisList.size();
-  grid->checkMask();
   switch (gridDim) {
     case 0:
       gridMask_.resize(1);
@@ -115,21 +114,6 @@ void CDistributionClient::readDistributionInfo(const std::vector<CDomain*>& domL
 
   axisDomainOrder_.resize(numElement_);
   axisDomainOrder_ = axisDomainOrder;
-
-  // Each domain or axis has its mask, of course
-  domainMasks_.resize(domainNum_);
-  for (int i = 0; i < domainNum_;++i)
-  {
-    domainMasks_[i].resize(domList[i]->domainMask.numElements());
-    domainMasks_[i] = domList[i]->domainMask;
-  }
-
-  axisMasks_.resize(axisNum_);
-  for (int i = 0; i < axisNum_; ++i)
-  {
-    axisMasks_[i].resize(axisList[i]->mask.numElements());
-    axisMasks_[i] = axisList[i]->mask;
-  }
 
   // Because domain and axis can be in any order (axis1, domain1, axis2, axis3, )
   // their position should be specified. In axisDomainOrder, domain == true, axis == false
@@ -281,8 +265,7 @@ void CDistributionClient::createLocalDomainDataIndex()
                               dataDims_[i], nLocal_[indexMap_[i]], jIdx);
 
         if ((iIdx >= nBeginLocal_[indexMap_[i]]) && (iIdx < nLocal_[indexMap_[i]]) &&
-           (jIdx >= nBeginLocal_[indexMap_[i]+1]) && (jIdx < nLocal_[indexMap_[i]+1]) &&
-           (domainMasks_[idxDomain](iIdx + jIdx*nLocal_[indexMap_[i]])))
+           (jIdx >= nBeginLocal_[indexMap_[i]+1]) && (jIdx < nLocal_[indexMap_[i]+1]))
         {
           ++count;
           elementIndexData_[i](j) = true;
@@ -324,12 +307,12 @@ void CDistributionClient::createLocalAxisDataIndex()
     {
       elementIndexData_[i].resize(dataNIndex_[i]);
       elementIndexData_[i] = false;
-      int iIdx = 0, count = 0, localIndex = 0;
+      int iIdx = 0, count = 0;
       for (int j = 0; j < dataNIndex_[i]; ++j)
       {
         iIdx = getAxisIndex((dataIndex_[indexMap_[i]])(j), dataBegin_[indexMap_[i]], nLocal_[indexMap_[i]]);
         if ((iIdx >= nBeginLocal_[indexMap_[i]]) &&
-           (iIdx < nLocal_[indexMap_[i]]) && (axisMasks_[idxAxis](iIdx)))
+           (iIdx < nLocal_[indexMap_[i]]) )//&& (axisMasks_[idxAxis](iIdx)))
         {
           ++count;
           elementIndexData_[i](j) = true;
@@ -412,72 +395,13 @@ void CDistributionClient::createGlobalIndexSendToServer()
   size_t ssize = 1;
 
   for (int i = 0; i < numElement_; ++i) ssize *= eachElementSize[i];
-  while (idx < ssize)
-  {
-    for (int i = 0; i < numElement_-1; ++i)
-    {
-      if (idxLoop[i] == eachElementSize[i])
-      {
-        idxLoop[i] = 0;
-        ++idxLoop[i+1];
-      }
-    }
 
-    // Find out outer index
-    // Depending the inner-most element is axis or domain,
-    // The outer loop index begins correspondingly at one (1) or zero (0)
-    for (int i = 1; i < numElement_; ++i)
-    {
-      currentIndex[i] = elementLocalIndex_[i](idxLoop[i]);
-    }
+  localDataIndex_.resize(ssize);
+  if (!gridMask_.isEmpty()) localMaskIndex_.resize(ssize);
+  localMaskedDataIndex_.resize(ssize);
+  globalDataIndex_.rehash(std::ceil(ssize/globalDataIndex_.max_load_factor()));
+  globalLocalDataSendToServerMap_.rehash(std::ceil(ssize/globalLocalDataSendToServerMap_.max_load_factor()));
 
-    // Inner most index
-    for (int i = 0; i < innerLoopSize; ++i)
-    {
-      int gridMaskIndex = 0;
-      currentIndex[0] = elementLocalIndex_[0](i);
-
-      // If defined, iterate on grid mask
-      if (!gridMask_.isEmpty())
-      {
-        for (int k = 0; k < this->numElement_; ++k)
-        {
-          gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
-        }
-        if (gridMask_(gridMaskIndex)) ++indexLocalDataOnClientCount;
-      }
-      // If grid mask is not defined, iterate on elements' mask
-      else
-      {
-        bool maskTmp = true;
-        int idxDomain = 0, idxAxis = 0;
-        for (int elem = 0; elem < numElement_; ++elem)
-        {
-          if (2 == axisDomainOrder_(elem))
-          {
-            maskTmp = maskTmp && domainMasks_[idxDomain](currentIndex[elem]);
-            ++idxDomain;
-          }
-          else if (1 == axisDomainOrder_(elem))
-          {
-            maskTmp = maskTmp && axisMasks_[idxAxis](currentIndex[elem]);
-            ++idxAxis;
-          }
-        }
-        if (maskTmp) ++indexLocalDataOnClientCount;
-      }
-
-    }
-    idxLoop[0] += innerLoopSize;
-    idx += innerLoopSize;
-  }
-
-  // Now allocate these arrays
-  localDataIndex_.resize(indexLocalDataOnClientCount);
-  localMaskIndex_.resize(indexLocalDataOnClientCount);
-  localMaskedDataIndex_.resize(indexLocalDataOnClientCount);
-  globalDataIndex_.rehash(std::ceil(indexLocalDataOnClientCount/globalDataIndex_.max_load_factor()));
-  globalLocalDataSendToServerMap_.rehash(std::ceil(indexLocalDataOnClientCount/globalLocalDataSendToServerMap_.max_load_factor()));
 
   // We need to loop with data index
   idxLoop.assign(numElement_,0);
@@ -534,58 +458,42 @@ void CDistributionClient::createGlobalIndexSendToServer()
 
         if (isCurrentIndexDataCorrect)
         {
-          int gridMaskIndex = 0;
-          for (int k = 0; k < this->numElement_; ++k)
-          {
-            gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
-          }
-
           bool maskTmp = true;
-          // If defined, apply grid mask
-         if (!gridMask_.isEmpty())
+          bool maskGridTmp = true;
+          size_t globalIndex = 0;
+          for (int k = 0; k < numElement_; ++k)
           {
-            maskTmp =  gridMask_(gridMaskIndex);
+            globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
           }
-          // If grid mask is not defined, apply elements' mask
-          else
+          globalDataIndex_[globalIndex] = indexLocalDataOnClientCount;
+          localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
+          globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
+          localMaskedDataIndex_[indexLocalDataOnClientCount] = indexLocalDataOnClientCount;
+
+          // Grid mask: unmasked values will be replaces by NaN and then all values will be sent
+          if (!gridMask_.isEmpty())
           {
-            int idxDomain = 0, idxAxis = 0;
-            for (int elem = 0; elem < numElement_; ++elem)
+            int gridMaskIndex = 0;
+            for (int k = 0; k < this->numElement_; ++k)
             {
-              if (2 == axisDomainOrder_(elem))
-              {
-                maskTmp = maskTmp && domainMasks_[idxDomain](currentIndex[elem]);
-                ++idxDomain;
-              }
-              else if (1 == axisDomainOrder_(elem))
-              {
-                maskTmp = maskTmp && axisMasks_[idxAxis](currentIndex[elem]);
-                ++idxAxis;
-              }
+              gridMaskIndex += (currentIndex[k])*elementNLocal_[k];
             }
+            maskGridTmp =  gridMask_(gridMaskIndex);
+            if (maskGridTmp)
+              localMaskIndex_[indexLocalDataOnClientCount] = true;
+            else
+              localMaskIndex_[indexLocalDataOnClientCount] = false;
           }
 
-          if (maskTmp)
-          {
-            size_t globalIndex = 0;
-            for (int k = 0; k < numElement_; ++k)
-            {
-              globalIndex += (currentGlobalIndex[k])*elementNGlobal_[k];
-            }
-            globalDataIndex_[globalIndex] = indexLocalDataOnClientCount;
-            localDataIndex_[indexLocalDataOnClientCount] = countLocalData;
-            globalLocalDataSendToServerMap_[globalIndex] = indexLocalDataOnClientCount;
-            localMaskIndex_[indexLocalDataOnClientCount] = gridMaskIndex;
-            localMaskedDataIndex_[indexLocalDataOnClientCount] = indexLocalDataOnClientCount;
-            ++indexLocalDataOnClientCount;
-          }
+          ++indexLocalDataOnClientCount;
+
         }
         ++countLocalData;
         correctIndexOfElement[0] = correctIndexInnerElement;;
       }
     }
     else countLocalData+=innerLoopSize ;
-    
+
     idxLoop[0] += innerLoopSize;
     idx += innerLoopSize;
   }
@@ -613,19 +521,26 @@ int CDistributionClient::getDomainIndex(const int& dataIIndex, const int& dataJI
                                         const int& dataIBegin, const int& dataJBegin,
                                         const int& dataDim, const int& ni, int& j)
 {
+  int i;
   int tempI = dataIIndex + dataIBegin,
       tempJ = (dataJIndex + dataJBegin);
   if (ni == 0)
   {
-    int i = 0;
-    j = 0;
+    i = -1;
+    j = -1;
     return i;
   }
-  int i = (dataDim == 1) ? (tempI) % ni
-                         : (tempI) ;
-  j = (dataDim == 1) ? (tempI) / ni
-                     : (tempJ) ;
-
+  if ((tempI < 0) || (tempJ < 0))
+  {
+    i = -1;
+    j = -1;
+    return i;
+  }
+  else
+  {
+    i = (dataDim == 1) ? (tempI) % ni : (tempI) ;
+    j = (dataDim == 1) ? (tempI) / ni : (tempJ) ;
+  }
   return i;
 }
 
@@ -642,7 +557,7 @@ int CDistributionClient::getAxisIndex(const int& dataIndex, const int& dataBegin
   {
     return -1;
   }
-  int tempI = dataIndex + dataBegin;
+  int tempI = dataIndex;
   if ((tempI < 0) || (tempI > ni))
     return -1;
   else
@@ -676,7 +591,7 @@ const std::vector<int>& CDistributionClient::getLocalDataIndexOnClient()
 /*!
   Return local mask index of client
 */
-const std::vector<int>& CDistributionClient::getLocalMaskIndexOnClient()
+const std::vector<bool>& CDistributionClient::getLocalMaskIndexOnClient()
 {
   if (!isComputed_) createGlobalIndexSendToServer();
   return localMaskIndex_;

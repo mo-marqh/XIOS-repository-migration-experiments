@@ -125,7 +125,7 @@ namespace xios {
         bool hasBounds;
         bool hasLabel;
 
-        CArray<size_t,1> localIndexToWriteOnServer;        
+        CArray<int,1> localIndexToWriteOnServer;
 
       private:
          void checkData();

@@ -363,6 +363,13 @@ namespace xios {
       this->isChecked = true;
    }
    CATCH_DUMP_ATTR
+   bool CGrid::hasMask() const
+   TRY
+   {
+     return (!mask_1d.isEmpty() || !mask_2d.isEmpty() || !mask_3d.isEmpty() ||
+             !mask_4d.isEmpty() || !mask_5d.isEmpty() || !mask_6d.isEmpty() || !mask_7d.isEmpty());
+   }
+   CATCH
 
    /*
      Create mask of grid from mask of its components
@@ -452,52 +459,6 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-/*!
-  A grid can have multiple dimension, so can its mask in the form of multi-dimension array.
-It's not a good idea to store all multi-dimension arrays corresponding to each mask.
-One of the ways is to convert this array into 1-dimension one and every process is taken place on it.
-  \param [in] multi-dimension array grid mask
-*/
-
-  void CGrid::getLocalMask(CArray<bool,1>& localMask)
-  TRY
-  {
-      std::vector<CDomain*> domainP = this->getDomains();
-      std::vector<CAxis*> axisP = this->getAxis();
-      int dim = domainP.size() * 2 + axisP.size();
-
-      switch (dim)
-      {
-        case 0:
-          getLocalMask(mask_0d, localMask);
-          break;
-        case 1:
-          getLocalMask(mask_1d, localMask);
-          break;
-        case 2:
-          getLocalMask(mask_2d, localMask);
-          break;
-        case 3:
-          getLocalMask(mask_3d, localMask);
-          break;
-        case 4:
-          getLocalMask(mask_4d, localMask);
-          break;
-        case 5:
-          getLocalMask(mask_5d, localMask);
-          break;
-        case 6:
-          getLocalMask(mask_6d, localMask);
-          break;
-        case 7:
-          getLocalMask(mask_7d, localMask);
-          break;
-        default:
-          break;
-      }
-  }
-  CATCH_DUMP_ATTR
-      
    /*
      Modify value of mask in a certain index
      This function can be used to correct the mask of grid after being constructed with createMask
@@ -735,14 +696,18 @@ One of the ways is to convert this array into 1-dimension one and every process 
    {
      CContext* context = CContext::getCurrent();
 
-     CContextClient* client = context->client;  // Here it's not important which contextClient to recuperate
+     CContextClient* client = context->client;
      int rank = client->clientRank;
 
      clientDistribution_ = new CDistributionClient(rank, this);
      // Get local data index on client
-     storeIndex_client.resize(clientDistribution_->getLocalDataIndexOnClient().size());
-     int nbStoreIndex = storeIndex_client.numElements();
+     int nbStoreIndex = clientDistribution_->getLocalDataIndexOnClient().size();
+     int nbStoreGridMask = clientDistribution_->getLocalMaskIndexOnClient().size();
+     // nbStoreGridMask = nbStoreIndex if grid mask is defined, and 0 otherwise
+     storeIndex_client.resize(nbStoreIndex);
+     storeMask_client.resize(nbStoreGridMask);
      for (int idx = 0; idx < nbStoreIndex; ++idx) storeIndex_client(idx) = (clientDistribution_->getLocalDataIndexOnClient())[idx];
+     for (int idx = 0; idx < nbStoreGridMask; ++idx) storeMask_client(idx) = (clientDistribution_->getLocalMaskIndexOnClient())[idx];
 
      if (0 == serverDistribution_) isDataDistributed_= clientDistribution_->isDataDistributed();
      else
@@ -883,6 +848,30 @@ One of the ways is to convert this array into 1-dimension one and every process 
          // send an "empty" data to this server
          if (connectedServerRank_[receiverSize].empty())
           connectedServerRank_[receiverSize].push_back(client->clientRank % client->serverSize);
+
+         // Now check if all servers have data to receive. If not, master client will send empty data.
+         // This ensures that all servers will participate in collective calls upon receiving even if they have no date to receive.
+         std::vector<int> counts (client->clientSize);
+         std::vector<int> displs (client->clientSize);
+         displs[0] = 0;
+         int localCount = connectedServerRank_[receiverSize].size() ;
+         MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
+         for (int i = 0; i < client->clientSize-1; ++i)
+         {
+           displs[i+1] = displs[i] + counts[i];
+         }
+         std::vector<int> allConnectedServers(displs[client->clientSize-1]+counts[client->clientSize-1]);
+         MPI_Gatherv(&(connectedServerRank_[receiverSize])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
+
+         if ((allConnectedServers.size() != receiverSize) && (client->clientRank == 0))
+         {
+           std::vector<bool> isSrvConnected (receiverSize, false);
+           for (int i = 0; i < allConnectedServers.size(); ++i) isSrvConnected[allConnectedServers[i]] = true;
+           for (int i = 0; i < receiverSize; ++i)
+           {
+             if (!isSrvConnected[i]) connectedServerRank_[receiverSize].push_back(i);
+           }
+         }
 
          nbSenders[receiverSize] = clientServerMap_->computeConnectedClients(receiverSize, client->clientSize, client->intraComm, connectedServerRank_[receiverSize]);
        }
@@ -1368,6 +1357,18 @@ One of the ways is to convert this array into 1-dimension one and every process 
    }
    CATCH
 
+   void CGrid::maskField_arr(const double* const data, CArray<double, 1>& stored) const
+   {
+      const StdSize size = storeIndex_client.numElements();
+      stored.resize(size);
+      const double nanValue = std::numeric_limits<double>::quiet_NaN();
+
+      if (storeMask_client.numElements() != 0)
+        for(StdSize i = 0; i < size; i++) stored(i) = (storeMask_client(i)) ? data[storeIndex_client(i)] : nanValue;
+      else
+        for(StdSize i = 0; i < size; i++) stored(i) = data[storeIndex_client(i)];
+   }
+
    void CGrid::uncompressField_arr(const double* const data, CArray<double, 1>& out) const
    TRY
    {
@@ -1835,42 +1836,6 @@ One of the ways is to convert this array into 1-dimension one and every process 
           nBeginGlobal.push_back(0);              
           nGlob.push_back(1);  
         }
-
-        modifyMaskSize(nSize, false);
-
-        // These below codes are reserved for future
-        CDistributionServer srvDist(server->intraCommRank, nBegin, nSize, nBeginGlobal, nGlob); 
-        map<int, CArray<size_t, 1> >::iterator itb = outGlobalIndexFromClient.begin(),
-                                               ite = outGlobalIndexFromClient.end(), it;  
-        const CDistributionServer::GlobalLocalMap&  globalLocalMask = srvDist.getGlobalLocalIndex();
-        CDistributionServer::GlobalLocalMap::const_iterator itSrv;
-        size_t nb = 0;
-        for (it = itb; it != ite; ++it)
-        {
-          CArray<size_t,1>& globalInd = it->second;
-          for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
-          {
-            if (globalLocalMask.end() != globalLocalMask.find(globalInd(idx))) ++nb;
-          }
-        }
-        
-        CArray<int,1> indexToModify(nb);
-        nb = 0;    
-        for (it = itb; it != ite; ++it)
-        {
-          CArray<size_t,1>& globalInd = it->second;
-          for (size_t idx = 0; idx < globalInd.numElements(); ++idx)
-          {
-            itSrv = globalLocalMask.find(globalInd(idx));
-            if (globalLocalMask.end() != itSrv) 
-            {
-              indexToModify(nb) = itSrv->second;
-              ++nb;
-            }
-          }
-        }
-
-        modifyMask(indexToModify, true);
       }
 
       if (isScalarGrid()) return;

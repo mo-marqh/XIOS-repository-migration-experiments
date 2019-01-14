@@ -1121,7 +1121,7 @@ namespace xios{
      if (hasWriterServer)
      {
         if (!instantDataFilter)
-          instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid,true));
+          instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, false));
 
 
        // If the field data is to be read by the client or/and written to a file
@@ -1137,7 +1137,7 @@ namespace xios{
      else if (hasIntermediateServer)
      {
        if (!instantDataFilter)
-         instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true));
+         instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, false));
 
              // If the field data is to be read by the client or/and written to a file
        if (enableOutput && !storeFilter && !fileWriterFilter)
@@ -1183,13 +1183,13 @@ namespace xios{
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          {
            checkTimeAttributes();
-           instantDataFilter = serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
+           instantDataFilter = serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, false, freq_offset, true,
                                                                                                        detectMissingValues, defaultValue));
          }
          else // The data might be passed from the model
          {
             if (check_if_active.isEmpty()) check_if_active = false; 
-            instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, NoneDu, false,
+            instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, true, NoneDu, false,
                                                                                                         detectMissingValues, defaultValue));
          }
        }
@@ -1274,7 +1274,7 @@ namespace xios{
          if (!serverSourceFilter)
          {
            checkTimeAttributes();
-           serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, freq_offset, true,
+           serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, false, freq_offset, true,
                                                                                    detectMissingValues, defaultValue));
          }
 
@@ -1291,7 +1291,7 @@ namespace xios{
          if (!clientSourceFilter)
          {
            if (check_if_active.isEmpty()) check_if_active = false;
-           clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, NoneDu, false,
+           clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, true, NoneDu, false,
                                                                                    detectMissingValues, defaultValue));
          }
 
@@ -1883,6 +1883,13 @@ namespace xios{
    TRY
    {
      return (!expr.isEmpty() || !content.empty());
+   }
+   CATCH
+
+   bool CField::hasGridMask(void) const
+   TRY
+   {
+     return (this->grid->hasMask());
    }
    CATCH
 

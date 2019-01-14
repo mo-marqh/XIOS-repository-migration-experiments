@@ -20,13 +20,16 @@ namespace xios
        *
        * \param gc the garbage collector associated with this filter
        * \param grid the grid to which the data is attached
+       * \param compression
+       * \param mask
        * \param offset the offset applied to the timestamp of all packets
        * \param manualTrigger whether the output should be triggered manually
        * \param hasMissingValue whether data has missing value
        * \param defaultValue missing value to detect
        */
       CSourceFilter(CGarbageCollector& gc, CGrid* grid,
-                    bool compression=true,
+                    bool compression = true,
+                    bool mask = false,
                     const CDuration offset = NoneDu, bool manualTrigger = false,
                     bool hasMissingValue = false,
                     double defaultValue = 0.0);
@@ -60,11 +63,12 @@ namespace xios
       void signalEndOfStream(CDate date);
 
     private:
-      CGrid* grid; //!< The grid attached to the data the filter can accept
-      const CDuration offset; //!< The offset applied to the timestamp of all packets
+      CGrid* grid;             //!< The grid attached to the data the filter can accept
+      const CDuration offset;  //!< The offset applied to the timestamp of all packets
       const bool hasMissingValue;
       const double defaultValue;
-      const bool compression ; //!< indicate if the data need to be compressed : on client size : true, on server side : false
+      const bool compression ; //!< indicates if data need to be compressed : on client side : true, on server side : false
+      const bool mask ;        //!< indicates whether grid mask should be applied (true for clients, false for servers)
   }; // class CSourceFilter
 } // namespace xios
 
