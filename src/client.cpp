@@ -8,6 +8,7 @@
 #include "context_client.hpp"
 #include "oasis_cinterface.hpp"
 #include "mpi.hpp"
+//#include "mpi_wrapper.hpp"
 #include "timer.hpp"
 #include "buffer_client.hpp"
 #include "string_tools.hpp"
@@ -15,15 +16,15 @@
 namespace xios
 {
 
-    MPI_Comm CClient::intraComm ;
-    MPI_Comm CClient::interComm ;
-    std::list<MPI_Comm> CClient::contextInterComms;
+    ep_lib::MPI_Comm CClient::intraComm ;
+    ep_lib::MPI_Comm CClient::interComm ;
+    std::list<ep_lib::MPI_Comm> CClient::contextInterComms;
     int CClient::serverLeader ;
     bool CClient::is_MPI_Initialized ;
     int CClient::rank_ = INVALID_RANK;
     StdOFStream CClient::m_infoStream;
     StdOFStream CClient::m_errorStream;
-    MPI_Comm& CClient::getInterComm(void)   { return (interComm); }
+    ep_lib::MPI_Comm& CClient::getInterComm(void)   { return (interComm); }
      
 ///---------------------------------------------------------------
 /*!
@@ -34,10 +35,10 @@ namespace xios
  * \param [in/out] returnComm (intra)communicator of client group.
  */
 
-    void CClient::initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
+    void CClient::initialize(const string& codeId, ep_lib::MPI_Comm& localComm, ep_lib::MPI_Comm& returnComm)
     {
       int initialized ;
-      MPI_Initialized(&initialized) ;
+      ep_lib::MPI_Initialized(&initialized) ;
       if (initialized) is_MPI_Initialized=true ;
       else is_MPI_Initialized=false ;
       int rank ;
@@ -46,11 +47,11 @@ namespace xios
       if (!CXios::usingOasis)
       {
 // localComm isn't given
-        if (localComm == MPI_COMM_NULL)
+        if (localComm == EP_COMM_NULL)
         {
           if (!is_MPI_Initialized)
           {
-            MPI_Init(NULL, NULL);
+            ep_lib::MPI_Init(NULL, NULL);
           }
           CTimer::get("XIOS").resume() ;
           CTimer::get("XIOS init/finalize").resume() ;
@@ -62,14 +63,15 @@ namespace xios
           int size ;
           int myColor ;
           int i,c ;
-          MPI_Comm newComm ;
+          ep_lib::MPI_Comm newComm ;
 
-          MPI_Comm_size(CXios::globalComm,&size) ;
-          MPI_Comm_rank(CXios::globalComm,&rank_);
+          ep_lib::MPI_Comm_size(CXios::globalComm,&size) ;
+
+          ep_lib::MPI_Comm_rank(CXios::globalComm,&rank_);
 
           hashAll=new unsigned long[size] ;
 
-          MPI_Allgather(&hashClient,1,MPI_LONG,hashAll,1,MPI_LONG,CXios::globalComm) ;
+          ep_lib::MPI_Allgather(&hashClient,1,EP_LONG,hashAll,1,EP_LONG,CXios::globalComm) ;
 
           map<unsigned long, int> colors ;
           map<unsigned long, int> leaders ;
@@ -96,23 +98,23 @@ namespace xios
           }
 
           myColor=colors[hashClient];
-          MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
+          ep_lib::MPI_Comm_split(CXios::globalComm,myColor,rank_,&intraComm) ;
 
           if (CXios::usingServer)
           {
             int clientLeader=leaders[hashClient] ;
             serverLeader=leaders[hashServer] ;
             int intraCommSize, intraCommRank ;
-            MPI_Comm_size(intraComm,&intraCommSize) ;
-            MPI_Comm_rank(intraComm,&intraCommRank) ;
+            ep_lib::MPI_Comm_size(intraComm,&intraCommSize) ;
+            ep_lib::MPI_Comm_rank(intraComm,&intraCommRank) ;
             info(50)<<"intercommCreate::client "<<rank_<<" intraCommSize : "<<intraCommSize
                    <<" intraCommRank :"<<intraCommRank<<"  clientLeader "<< serverLeader<<endl ;
-             MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader, 0, &interComm) ;
+             ep_lib::MPI_Intercomm_create(intraComm, 0, CXios::globalComm, serverLeader, 0, &interComm) ;
              //rank_ = intraCommRank;
           }
           else
           {
-            MPI_Comm_dup(intraComm,&interComm) ;
+            ep_lib::MPI_Comm_dup(intraComm,&interComm) ;
           }
           delete [] hashAll ;
         }
@@ -125,8 +127,8 @@ namespace xios
           }
           else
           {
-            MPI_Comm_dup(localComm,&intraComm) ;
-            MPI_Comm_dup(intraComm,&interComm) ;
+            ep_lib::MPI_Comm_dup(localComm,&intraComm) ;
+            ep_lib::MPI_Comm_dup(intraComm,&interComm) ;
           }
         }
       }
@@ -134,29 +136,29 @@ namespace xios
       else
       {
         // localComm isn't given
-        if (localComm == MPI_COMM_NULL)
+        if (localComm == EP_COMM_NULL)
         {
           if (!is_MPI_Initialized) oasis_init(codeId) ;
           oasis_get_localcomm(localComm) ;
         }
-        MPI_Comm_dup(localComm,&intraComm) ;
+        ep_lib::MPI_Comm_dup(localComm,&intraComm) ;
 
         CTimer::get("XIOS").resume() ;
         CTimer::get("XIOS init/finalize").resume() ;
 
         if (CXios::usingServer)
         {
-          MPI_Status status ;
-          MPI_Comm_rank(intraComm,&rank_) ;
+          ep_lib::MPI_Status status ;
+          ep_lib::MPI_Comm_rank(intraComm,&rank_) ;
 
           oasis_get_intercomm(interComm,CXios::xiosCodeId) ;
-          if (rank_==0) MPI_Recv(&serverLeader,1, MPI_INT, 0, 0, interComm, &status) ;
-          MPI_Bcast(&serverLeader,1,MPI_INT,0,intraComm) ;
+          if (rank_==0) ep_lib::MPI_Recv(&serverLeader,1, EP_INT, 0, 0, interComm, &status) ;
+          ep_lib::MPI_Bcast(&serverLeader,1,EP_INT,0,intraComm) ;
         }
-        else MPI_Comm_dup(intraComm,&interComm) ;
+        else ep_lib::MPI_Comm_dup(intraComm,&interComm) ;
       }
 
-      MPI_Comm_dup(intraComm,&returnComm) ;
+      ep_lib::MPI_Comm_dup(intraComm,&returnComm) ;
     }
 
 ///---------------------------------------------------------------
@@ -167,7 +169,7 @@ namespace xios
  * \param [in] contextComm.
  * Function is only called by client.
  */
-    void CClient::registerContext(const string& id, MPI_Comm contextComm)
+    void CClient::registerContext(const string& id, ep_lib::MPI_Comm contextComm)
     {
       CContext::setCurrent(id) ;
       CContext* context=CContext::create(id);
@@ -177,8 +179,8 @@ namespace xios
       if (CXios::isServer && !context->hasServer)
       // Attached mode
       {
-        MPI_Comm contextInterComm ;
-        MPI_Comm_dup(contextComm,&contextInterComm) ;
+        ep_lib::MPI_Comm contextInterComm ;
+        ep_lib::MPI_Comm_dup(contextComm,&contextInterComm) ;
         CContext* contextServer = CContext::create(idServer);
 
         // Firstly, initialize context on client side
@@ -197,11 +199,11 @@ namespace xios
         int size,rank,globalRank ;
         size_t message_size ;
         int leaderRank ;
-        MPI_Comm contextInterComm ;
+        ep_lib::MPI_Comm contextInterComm ;
 
-        MPI_Comm_size(contextComm,&size) ;
-        MPI_Comm_rank(contextComm,&rank) ;
-        MPI_Comm_rank(CXios::globalComm,&globalRank) ;
+        ep_lib::MPI_Comm_size(contextComm,&size) ;
+        ep_lib::MPI_Comm_rank(contextComm,&rank) ;
+        ep_lib::MPI_Comm_rank(CXios::globalComm,&globalRank) ;
         if (rank!=0) globalRank=0 ;
 
         CMessage msg ;
@@ -213,18 +215,18 @@ namespace xios
         CBufferOut buffer((void*)buff,messageSize) ;
         buffer<<msg ;
 
-        MPI_Send((void*)buff,buffer.count(),MPI_CHAR,serverLeader,1,CXios::globalComm) ;
+        ep_lib::MPI_Send((void*)buff,buffer.count(),EP_CHAR,serverLeader,1,CXios::globalComm) ;
 
-        MPI_Intercomm_create(contextComm,0,CXios::globalComm,serverLeader,10+globalRank,&contextInterComm) ;
+        ep_lib::MPI_Intercomm_create(contextComm,0,CXios::globalComm,serverLeader,10+globalRank,&contextInterComm) ;
         info(10)<<"Register new Context : "<<id<<endl ;
-        MPI_Comm inter ;
-        MPI_Intercomm_merge(contextInterComm,0,&inter) ;
-        MPI_Barrier(inter) ;
+        ep_lib::MPI_Comm inter ;
+        ep_lib::MPI_Intercomm_merge(contextInterComm,0,&inter) ;
+        ep_lib::MPI_Barrier(inter) ;
 
         context->initClient(contextComm,contextInterComm) ;
 
         contextInterComms.push_back(contextInterComm);
-        MPI_Comm_free(&inter);
+        ep_lib::MPI_Comm_free(&inter);
         delete [] buff ;
 
       }
@@ -250,10 +252,10 @@ namespace xios
         int rank ;
         int msg=0 ;
 
-        MPI_Comm_rank(intraComm,&rank) ;
+        ep_lib::MPI_Comm_rank(intraComm,&rank) ;
         if (rank==0) 
         {
-          MPI_Send(&msg,1,MPI_INT,0,5,interComm) ; // tags oasis_endded = 5
+          ep_lib::MPI_Send(&msg,1,EP_INT,0,5,interComm) ; // tags oasis_endded = 5
         }
 
       }
@@ -265,21 +267,21 @@ namespace xios
       int rank ;
       int msg=0 ;
 
-      MPI_Comm_rank(intraComm,&rank) ;
+      ep_lib::MPI_Comm_rank(intraComm,&rank) ;
  
       if (!CXios::isServer)
       {
-        MPI_Comm_rank(intraComm,&rank) ;
+        ep_lib::MPI_Comm_rank(intraComm,&rank) ;
         if (rank==0)
         {
-          MPI_Send(&msg,1,MPI_INT,0,0,interComm) ;
+          ep_lib::MPI_Send(&msg,1,EP_INT,0,0,interComm) ;
         }
       }
 
-      for (std::list<MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
-        MPI_Comm_free(&(*it));
-      MPI_Comm_free(&interComm);
-      MPI_Comm_free(&intraComm);
+      for (std::list<ep_lib::MPI_Comm>::iterator it = contextInterComms.begin(); it != contextInterComms.end(); it++)
+        ep_lib::MPI_Comm_free(&(*it));
+      ep_lib::MPI_Comm_free(&interComm);
+      ep_lib::MPI_Comm_free(&intraComm);
 
       CTimer::get("XIOS init/finalize").suspend() ;
       CTimer::get("XIOS").suspend() ;
@@ -287,7 +289,7 @@ namespace xios
       if (!is_MPI_Initialized)
       {
         if (CXios::usingOasis) oasis_finalize();
-        else MPI_Finalize() ;
+        else ep_lib::MPI_Finalize() ;
       }
       
       info(20) << "Client side context is finalized"<<endl ;
@@ -324,7 +326,7 @@ namespace xios
       int numDigit = 0;
       int size = 0;
       int rank;
-      MPI_Comm_size(CXios::globalComm, &size);
+      ep_lib::MPI_Comm_size(CXios::globalComm, &size);
       while (size)
       {
         size /= 10;
@@ -333,7 +335,7 @@ namespace xios
 
       if (CXios::usingOasis)
       {
-        MPI_Comm_rank(CXios::globalComm,&rank);
+        ep_lib::MPI_Comm_rank(CXios::globalComm,&rank);
         fileNameClient << fileName << "_" << std::setfill('0') << std::setw(numDigit) << rank << ext;
       }
       else

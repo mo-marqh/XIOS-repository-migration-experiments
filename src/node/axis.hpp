@@ -67,10 +67,10 @@ namespace xios {
          /// Accesseurs ///
          const std::set<StdString> & getRelFiles(void) const;
 
-         int getNumberWrittenIndexes(MPI_Comm writtenCom);
-         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
-         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
-         CArray<int, 1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
+         int getNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom);
+         int getTotalNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom);
+         int getOffsetWrittenIndexes(ep_lib::MPI_Comm writtenCom);
+         CArray<int, 1>& getCompressedIndexToWriteOnServer(ep_lib::MPI_Comm writtenCom);
 
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, const std::vector<int>& globalDim, int orderPositionInGrid,
                                                         CServerDistributionDescription::ServerDistributionType disType = CServerDistributionDescription::BAND_DISTRIBUTION);
@@ -112,7 +112,7 @@ namespace xios {
          size_t getGlobalWrittenSize(void) ;
 
          void computeWrittenIndex();
-         void computeWrittenCompressedIndex(MPI_Comm);
+         void computeWrittenCompressedIndex(ep_lib::MPI_Comm);
          bool hasTransformation();
          void solveInheritanceTransformation();
          TransMapTypes getAllTransformations();         

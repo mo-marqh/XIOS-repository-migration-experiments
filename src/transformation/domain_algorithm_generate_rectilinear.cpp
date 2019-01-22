@@ -69,8 +69,8 @@ TRY
         HashXIOS<int> hashFunc;
         StdSize hashValue = hashFunc.hashVec(globalAxisIndex);
         std::vector<StdSize> recvBuff(client->clientSize);
-        MPI_Gather(&hashValue, 1, MPI_UNSIGNED_LONG,
-                   &recvBuff[0], 1, MPI_UNSIGNED_LONG,
+        ep_lib::MPI_Gather(&hashValue, 1, EP_UNSIGNED_LONG,
+                   &recvBuff[0], 1, EP_UNSIGNED_LONG,
                    0,
                    client->intraComm);
         if (0 == client->clientRank)
@@ -86,7 +86,7 @@ TRY
           }
         }
 
-        MPI_Bcast(&nbLocalAxis[0], nbAxis, MPI_INT,
+        ep_lib::MPI_Bcast(&nbLocalAxis[0], nbAxis, EP_INT,
                   0, client->intraComm);
       }
 

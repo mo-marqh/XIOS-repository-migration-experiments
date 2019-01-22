@@ -11,10 +11,10 @@ namespace sphereRemap {
 class CCascadeLevel
 {
 public:
-	CCascadeLevel(MPI_Comm comm) : comm(comm)
+	CCascadeLevel(ep_lib::MPI_Comm comm) : comm(comm)
 	{
-		MPI_Comm_size(comm, &size);
-		MPI_Comm_rank(comm, &rank);
+		ep_lib::MPI_Comm_size(comm, &size);
+		ep_lib::MPI_Comm_rank(comm, &rank);
 	}
 	int colour() const { return rank % group_size; };
 	int key() const { return p_colour() + rank/(p_grp_size*group_size)*p_grp_size; }
@@ -23,7 +23,7 @@ public:
 	int p_colour() const { return (rank%group_size + rank/group_size) % p_grp_size; }
 	int p_key() const { return colour() + rank/(p_grp_size*group_size)*group_size; }
 
-	MPI_Comm comm, pg_comm;
+	ep_lib::MPI_Comm comm, pg_comm;
 	int rank;
 	int size;
 	int group_size; // group_size and p_grp_size are interchanged?? FIXME
@@ -34,7 +34,7 @@ class CMPICascade
 {
 public:
 	// 
-	CMPICascade(int nodes_per_level, MPI_Comm comm);
+	CMPICascade(int nodes_per_level, ep_lib::MPI_Comm comm);
 
 	int num_levels;
 	std::vector<CCascadeLevel> level;

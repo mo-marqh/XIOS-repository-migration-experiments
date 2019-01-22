@@ -31,8 +31,8 @@ void Mapper::setSourceMesh(const double* boundsLon, const double* boundsLat, con
   srcGrid.pole = Coord(pole[0], pole[1], pole[2]);
 
   int mpiRank, mpiSize;
-  MPI_Comm_rank(communicator, &mpiRank);
-  MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
 
   sourceElements.reserve(nbCells);
   sourceMesh.reserve(nbCells);
@@ -42,7 +42,7 @@ void Mapper::setSourceMesh(const double* boundsLon, const double* boundsLat, con
   {
     long int offset ;
     long int nb=nbCells ;
-    MPI_Scan(&nb,&offset,1,MPI_LONG,MPI_SUM,communicator) ;
+    ep_lib::MPI_Scan(&nb,&offset,1,EP_LONG,EP_SUM,communicator) ;
     offset=offset-nb ;
     for(int i=0;i<nbCells;i++) sourceGlobalId[i]=offset+i ;
   }
@@ -69,8 +69,8 @@ void Mapper::setTargetMesh(const double* boundsLon, const double* boundsLat, con
   tgtGrid.pole = Coord(pole[0], pole[1], pole[2]);
 
   int mpiRank, mpiSize;
-  MPI_Comm_rank(communicator, &mpiRank);
-  MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
 
   targetElements.reserve(nbCells);
   targetMesh.reserve(nbCells);
@@ -80,7 +80,7 @@ void Mapper::setTargetMesh(const double* boundsLon, const double* boundsLat, con
   {
     long int offset ;
     long int nb=nbCells ;
-    MPI_Scan(&nb,&offset,1,MPI_LONG,MPI_SUM,communicator) ;
+    ep_lib::MPI_Scan(&nb,&offset,1,EP_LONG,EP_SUM,communicator) ;
     offset=offset-nb ;
     for(int i=0;i<nbCells;i++) targetGlobalId[i]=offset+i ;
   }
@@ -116,8 +116,8 @@ vector<double> Mapper::computeWeights(int interpOrder, bool renormalize, bool qu
 {
   vector<double> timings;
   int mpiSize, mpiRank;
-  MPI_Comm_size(communicator, &mpiSize);
-  MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
 
   this->buildSSTree(sourceMesh, targetMesh);
 
@@ -172,8 +172,8 @@ vector<double> Mapper::computeWeights(int interpOrder, bool renormalize, bool qu
 int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bool quantity)
 {
   int mpiSize, mpiRank;
-  MPI_Comm_size(communicator, &mpiSize);
-  MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
 
   /* create list of intersections (super mesh elements) for each rank */
   multimap<int, Polyg *> *elementList = new multimap<int, Polyg *>[mpiSize];
@@ -234,7 +234,7 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
 
   /* communicate sizes of source elements to be sent (index lists and later values and gradients) */
   int *nbRecvElement = new int[mpiSize];
-  MPI_Alltoall(nbSendElement, 1, MPI_INT, nbRecvElement, 1, MPI_INT, communicator);
+  ep_lib::MPI_Alltoall(nbSendElement, 1, EP_INT, nbRecvElement, 1, EP_INT, communicator);
 
   /* communicate indices of source elements on other ranks whoes value and gradient we need (since intersection) */
   int nbSendRequest = 0;
@@ -245,13 +245,13 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
   double **sendGivenArea = new double*[mpiSize];
   Coord **sendGrad = new Coord*[mpiSize];
   GloId **sendNeighIds = new GloId*[mpiSize];
-  MPI_Request *sendRequest = new MPI_Request[5*mpiSize];
-  MPI_Request *recvRequest = new MPI_Request[5*mpiSize];
+  ep_lib::MPI_Request *sendRequest = new ep_lib::MPI_Request[5*mpiSize];
+  ep_lib::MPI_Request *recvRequest = new ep_lib::MPI_Request[5*mpiSize];
   for (int rank = 0; rank < mpiSize; rank++)
   {
     if (nbSendElement[rank] > 0)
     {
-      MPI_Issend(sendElement[rank], nbSendElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendElement[rank], nbSendElement[rank], EP_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
     }
 
@@ -270,14 +270,14 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
       {
         sendNeighIds[rank] = new GloId[nbRecvElement[rank]];
       }
-      MPI_Irecv(recvElement[rank], nbRecvElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvElement[rank], nbRecvElement[rank], EP_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
     }
   }
-  MPI_Status *status = new MPI_Status[5*mpiSize];
+  ep_lib::MPI_Status *status = new ep_lib::MPI_Status[5*mpiSize];
   
-  MPI_Waitall(nbSendRequest, sendRequest, status);
-        MPI_Waitall(nbRecvRequest, recvRequest, status);
+  ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
+        ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
 
   /* for all indices that have been received from requesting ranks: pack values and gradients, then send */
   nbSendRequest = 0;
@@ -309,55 +309,55 @@ int Mapper::remap(Elt *elements, int nbElements, int order, bool renormalize, bo
         else
           sendNeighIds[rank][j] = sstree.localElements[recvElement[rank][j]].src_id;
       }
-      MPI_Issend(sendValue[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendValue[rank],  nbRecvElement[rank], EP_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
-      MPI_Issend(sendArea[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendArea[rank],  nbRecvElement[rank], EP_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
-      MPI_Issend(sendGivenArea[rank],  nbRecvElement[rank], MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendGivenArea[rank],  nbRecvElement[rank], EP_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
       if (order == 2)
       {
-        MPI_Issend(sendGrad[rank], 3*nbRecvElement[rank]*(NMAX+1), MPI_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
+        ep_lib::MPI_Issend(sendGrad[rank], 3*nbRecvElement[rank]*(NMAX+1), EP_DOUBLE, rank, 0, communicator, &sendRequest[nbSendRequest]);
         nbSendRequest++;
-        MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+        ep_lib::MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank]*(NMAX+1), EP_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
 //ym  --> attention taille GloId
         nbSendRequest++;
       }
       else
       {
-        MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank], MPI_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
+        ep_lib::MPI_Issend(sendNeighIds[rank], 4*nbRecvElement[rank], EP_INT, rank, 0, communicator, &sendRequest[nbSendRequest]);
 //ym  --> attention taille GloId
         nbSendRequest++;
       }
     }
     if (nbSendElement[rank] > 0)
     {
-      MPI_Irecv(recvValue[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvValue[rank],  nbSendElement[rank], EP_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
-      MPI_Irecv(recvArea[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvArea[rank],  nbSendElement[rank], EP_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
-      MPI_Irecv(recvGivenArea[rank],  nbSendElement[rank], MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvGivenArea[rank],  nbSendElement[rank], EP_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
       if (order == 2)
       {
-        MPI_Irecv(recvGrad[rank], 3*nbSendElement[rank]*(NMAX+1),
-            MPI_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+        ep_lib::MPI_Irecv(recvGrad[rank], 3*nbSendElement[rank]*(NMAX+1),
+            EP_DOUBLE, rank, 0, communicator, &recvRequest[nbRecvRequest]);
         nbRecvRequest++;
-        MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank]*(NMAX+1), MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+        ep_lib::MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank]*(NMAX+1), EP_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 //ym  --> attention taille GloId
         nbRecvRequest++;
       }
       else
       {
-        MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank], MPI_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+        ep_lib::MPI_Irecv(recvNeighIds[rank], 4*nbSendElement[rank], EP_INT, rank, 0, communicator, &recvRequest[nbRecvRequest]);
 //ym  --> attention taille GloId
         nbRecvRequest++;
       }
     }
   }
         
-        MPI_Waitall(nbSendRequest, sendRequest, status);
-  MPI_Waitall(nbRecvRequest, recvRequest, status);
+        ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
+  ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
   
 
   /* now that all values and gradients are available use them to computed interpolated values on target
@@ -486,8 +486,8 @@ void Mapper::computeGrads()
 void Mapper::buildMeshTopology()
 {
   int mpiSize, mpiRank;
-  MPI_Comm_size(communicator, &mpiSize);
-  MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
 
   vector<Node> *routingList = new vector<Node>[mpiSize];
   vector<vector<int> > routes(sstree.localTree.leafs.size());
@@ -521,8 +521,8 @@ void Mapper::buildMeshTopology()
     }
   }
 
-  MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
-  MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
+  ep_lib::MPI_Alltoall(nbSendNode, 1, EP_INT, nbRecvNode, 1, EP_INT, communicator);
+  ep_lib::MPI_Alltoall(sendMessageSize, 1, EP_INT, recvMessageSize, 1, EP_INT, communicator);
 
   char **sendBuffer = new char*[mpiSize];
   char **recvBuffer = new char*[mpiSize];
@@ -548,26 +548,26 @@ void Mapper::buildMeshTopology()
 
   int nbSendRequest = 0;
   int nbRecvRequest = 0;
-  MPI_Request *sendRequest = new MPI_Request[mpiSize];
-  MPI_Request *recvRequest = new MPI_Request[mpiSize];
-  MPI_Status  *status      = new MPI_Status[mpiSize];
+  ep_lib::MPI_Request *sendRequest = new ep_lib::MPI_Request[mpiSize];
+  ep_lib::MPI_Request *recvRequest = new ep_lib::MPI_Request[mpiSize];
+  ep_lib::MPI_Status  *status      = new ep_lib::MPI_Status[mpiSize];
 
   for (int rank = 0; rank < mpiSize; rank++)
   {
     if (nbSendNode[rank] > 0)
     {
-      MPI_Issend(sendBuffer[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendBuffer[rank], sendMessageSize[rank], EP_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
     }
     if (nbRecvNode[rank] > 0)
     {
-      MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], EP_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
     }
   }
 
-  MPI_Waitall(nbRecvRequest, recvRequest, status);
-  MPI_Waitall(nbSendRequest, sendRequest, status);
+  ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
+  ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
 
   for (int rank = 0; rank < mpiSize; rank++)
     if (nbSendNode[rank] > 0) delete [] sendBuffer[rank];
@@ -614,9 +614,9 @@ void Mapper::buildMeshTopology()
   delete [] recvBuffer;
 
 
-  MPI_Barrier(communicator);
-  MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
-  MPI_Alltoall(sendMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
+  ep_lib::MPI_Barrier(communicator);
+  ep_lib::MPI_Alltoall(nbSendNode, 1, EP_INT, nbRecvNode, 1, EP_INT, communicator);
+  ep_lib::MPI_Alltoall(sendMessageSize, 1, EP_INT, recvMessageSize, 1, EP_INT, communicator);
 
   for (int rank = 0; rank < mpiSize; rank++)
     if (nbRecvNode[rank] > 0) recvBuffer2[rank] = new char[recvMessageSize[rank]];
@@ -628,18 +628,18 @@ void Mapper::buildMeshTopology()
   {
     if (nbSendNode[rank] > 0)
     {
-      MPI_Issend(sendBuffer2[rank], sendMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendBuffer2[rank], sendMessageSize[rank], EP_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
     }
     if (nbRecvNode[rank] > 0)
     {
-      MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], EP_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
     }
   }
 
-  MPI_Waitall(nbRecvRequest, recvRequest, status);
-  MPI_Waitall(nbSendRequest, sendRequest, status);
+  ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
+  ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
 
   int nbNeighbourNodes = 0;
   for (int rank = 0; rank < mpiSize; rank++)
@@ -724,10 +724,10 @@ void Mapper::buildMeshTopology()
 void Mapper::computeIntersection(Elt *elements, int nbElements)
 {
   int mpiSize, mpiRank;
-  MPI_Comm_size(communicator, &mpiSize);
-  MPI_Comm_rank(communicator, &mpiRank);
+  ep_lib::MPI_Comm_size(communicator, &mpiSize);
+  ep_lib::MPI_Comm_rank(communicator, &mpiRank);
 
-  MPI_Barrier(communicator);
+  ep_lib::MPI_Barrier(communicator);
 
   vector<Node> *routingList = new vector<Node>[mpiSize];
 
@@ -752,7 +752,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
       cout << routingList[rank].size() << "   ";
     cout << endl;
   }
-  MPI_Barrier(communicator);
+  ep_lib::MPI_Barrier(communicator);
 
   int *nbSendNode = new int[mpiSize];
   int *nbRecvNode = new int[mpiSize];
@@ -770,8 +770,8 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
     }
   }
 
-  MPI_Alltoall(nbSendNode, 1, MPI_INT, nbRecvNode, 1, MPI_INT, communicator);
-  MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
+  ep_lib::MPI_Alltoall(nbSendNode, 1, EP_INT, nbRecvNode, 1, EP_INT, communicator);
+  ep_lib::MPI_Alltoall(sentMessageSize, 1, EP_INT, recvMessageSize, 1, EP_INT, communicator);
 
   int total = 0;
 
@@ -804,26 +804,26 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
 
   int nbSendRequest = 0;
   int nbRecvRequest = 0;
-  MPI_Request *sendRequest = new MPI_Request[mpiSize];
-  MPI_Request *recvRequest = new MPI_Request[mpiSize];
-  MPI_Status   *status = new MPI_Status[mpiSize];
+  ep_lib::MPI_Request *sendRequest = new ep_lib::MPI_Request[mpiSize];
+  ep_lib::MPI_Request *recvRequest = new ep_lib::MPI_Request[mpiSize];
+  ep_lib::MPI_Status   *status = new ep_lib::MPI_Status[mpiSize];
 
   for (int rank = 0; rank < mpiSize; rank++)
   {
     if (nbSendNode[rank] > 0)
     {
-      MPI_Issend(sendBuffer[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendBuffer[rank], sentMessageSize[rank], EP_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
     }
     if (nbRecvNode[rank] > 0)
     {
-      MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvBuffer[rank], recvMessageSize[rank], EP_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
     }
   }
 
-  MPI_Waitall(nbRecvRequest, recvRequest, status);
-  MPI_Waitall(nbSendRequest, sendRequest, status);
+  ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
+  ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
   char **sendBuffer2 = new char*[mpiSize];
   char **recvBuffer2 = new char*[mpiSize];
 
@@ -882,7 +882,7 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
   }
 
   if (verbose >= 2) cout << "Rank " << mpiRank << "  Compute (internal) intersection " << cputime() - tic << " s" << endl;
-  MPI_Alltoall(sentMessageSize, 1, MPI_INT, recvMessageSize, 1, MPI_INT, communicator);
+  ep_lib::MPI_Alltoall(sentMessageSize, 1, EP_INT, recvMessageSize, 1, EP_INT, communicator);
 
   for (int rank = 0; rank < mpiSize; rank++)
     if (recvMessageSize[rank] > 0)
@@ -895,18 +895,18 @@ void Mapper::computeIntersection(Elt *elements, int nbElements)
   {
     if (sentMessageSize[rank] > 0)
     {
-      MPI_Issend(sendBuffer2[rank], sentMessageSize[rank], MPI_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
+      ep_lib::MPI_Issend(sendBuffer2[rank], sentMessageSize[rank], EP_CHAR, rank, 0, communicator, &sendRequest[nbSendRequest]);
       nbSendRequest++;
     }
     if (recvMessageSize[rank] > 0)
     {
-      MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], MPI_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
+      ep_lib::MPI_Irecv(recvBuffer2[rank], recvMessageSize[rank], EP_CHAR, rank, 0, communicator, &recvRequest[nbRecvRequest]);
       nbRecvRequest++;
     }
   }
 
-  MPI_Waitall(nbRecvRequest, recvRequest, status);
-  MPI_Waitall(nbSendRequest, sendRequest, status);
+  ep_lib::MPI_Waitall(nbRecvRequest, recvRequest, status);
+  ep_lib::MPI_Waitall(nbSendRequest, sendRequest, status);
 
   delete [] sendRequest;
   delete [] recvRequest;

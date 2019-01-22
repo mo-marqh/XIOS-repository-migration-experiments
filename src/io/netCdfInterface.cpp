@@ -9,7 +9,7 @@
 
 #include "netCdfInterface.hpp"
 #include "netCdfException.hpp"
-
+#include "ep_mpi.hpp"
 namespace xios
 {
 /*!
@@ -46,9 +46,13 @@ This function creates a new netcdf file on parallel file system
 \param [in/out] ncId id of the created file
 \return Status code
 */
-int CNetCdfInterface::createPar(const StdString& fileName, int cMode, MPI_Comm comm, MPI_Info info, int& ncId)
+int CNetCdfInterface::createPar(const StdString& fileName, int cMode, ep_lib::MPI_Comm comm, ep_lib::MPI_Info info, int& ncId)
 {
+  #ifdef _usingMPI
   int status = xios::nc_create_par(fileName.c_str(), cMode, comm, info, &ncId);
+  #elif _usingEP
+  int status = xios::nc_create_par(fileName.c_str(), cMode, to_mpi_comm(comm->mpi_comm), to_mpi_info(info), &ncId);
+  #endif
   if (NC_NOERR != status)
   {
     StdString errormsg(nc_strerror(status));
@@ -99,9 +103,13 @@ This function opens a new netcdf file on parallel file system
 \param [in/out] ncId id of the opened file
 \return Status code
 */
-int CNetCdfInterface::openPar(const StdString& fileName, int oMode, MPI_Comm comm, MPI_Info info, int& ncId)
+int CNetCdfInterface::openPar(const StdString& fileName, int oMode, ep_lib::MPI_Comm comm, ep_lib::MPI_Info info, int& ncId)
 {
+  #ifdef _usingMPI
   int status = xios::nc_open_par(fileName.c_str(), oMode, comm, info, &ncId);
+  #elif _usingEP
+  int status = xios::nc_open_par(fileName.c_str(), oMode, to_mpi_comm(comm->mpi_comm), to_mpi_info(info), &ncId);
+  #endif
   if (NC_NOERR != status)
   {
     StdString errormsg(nc_strerror(status));

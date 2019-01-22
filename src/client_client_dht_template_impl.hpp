@@ -13,10 +13,10 @@
 namespace xios
 {
 template<typename T, typename H>
-CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const MPI_Comm& clientIntraComm)
+CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const ep_lib::MPI_Comm& clientIntraComm)
   : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_(), nbClient_(0)
 {
-  MPI_Comm_size(clientIntraComm, &nbClient_);
+  ep_lib::MPI_Comm_size(clientIntraComm, &nbClient_);
   this->computeMPICommLevel();
   int nbLvl = this->getNbLevel();
   sendRank_.resize(nbLvl);
@@ -33,10 +33,10 @@ will be redistributed (projected) into size_t space as long as the associated in
 */
 template<typename T, typename H>
 CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const Index2InfoTypeMap& indexInfoMap,
-                                                        const MPI_Comm& clientIntraComm)
+                                                        const ep_lib::MPI_Comm& clientIntraComm)
   : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_(), nbClient_(0)
 {
-  MPI_Comm_size(clientIntraComm, &nbClient_);
+  ep_lib::MPI_Comm_size(clientIntraComm, &nbClient_);
   this->computeMPICommLevel();
   int nbLvl = this->getNbLevel();
   sendRank_.resize(nbLvl);
@@ -58,10 +58,10 @@ will be redistributed (projected) into size_t space as long as the associated in
 */
 template<typename T, typename H>
 CClientClientDHTTemplate<T,H>::CClientClientDHTTemplate(const Index2VectorInfoTypeMap& indexInfoMap,
-                                                        const MPI_Comm& clientIntraComm)
+                                                        const ep_lib::MPI_Comm& clientIntraComm)
   : H(clientIntraComm), index2InfoMapping_(), indexToInfoMappingLevel_(), nbClient_(0)
 {
-  MPI_Comm_size(clientIntraComm, &nbClient_);
+  ep_lib::MPI_Comm_size(clientIntraComm, &nbClient_);
   this->computeMPICommLevel();
   int nbLvl = this->getNbLevel();
   sendRank_.resize(nbLvl);
@@ -94,11 +94,11 @@ for each level of hierarchical DHT. Recursive function
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<size_t,1>& indices,
-                                                                 const MPI_Comm& commLevel,
+                                                                 const ep_lib::MPI_Comm& commLevel,
                                                                  int level)
 {
   int clientRank;
-  MPI_Comm_rank(commLevel,&clientRank);
+  ep_lib::MPI_Comm_rank(commLevel,&clientRank);
   int groupRankBegin = this->getGroupBegin()[level];
   int nbClient = this->getNbInGroup()[level];
   std::vector<size_t> hashedIndex;
@@ -168,27 +168,37 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
   if (0 != recvNbIndexCount)
     recvIndexBuff = new unsigned long[recvNbIndexCount];
 
-  std::vector<MPI_Request> request;
+  int request_size = 0;
+  for (int idx = 0; idx < recvRankClient.size(); ++idx)
+  {
+    if (0 != recvNbIndexClientCount[idx])
+      request_size ++;
+  }
+
+  request_size += client2ClientIndex.size();
+
+  std::vector<ep_lib::MPI_Request> request(request_size);
   std::vector<int>::iterator itbRecvIndex = recvRankClient.begin(), itRecvIndex,
                              iteRecvIndex = recvRankClient.end(),
                            itbRecvNbIndex = recvNbIndexClientCount.begin(),
                            itRecvNbIndex;
   int currentIndex = 0;
   int nbRecvClient = recvRankClient.size();
+  int request_position = 0;
   for (int idx = 0; idx < nbRecvClient; ++idx)
   {
     if (0 != recvNbIndexClientCount[idx])
-      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
+      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, &request[request_position++]);
     currentIndex += recvNbIndexClientCount[idx];
   }
 
   std::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
                                                 iteIndex = client2ClientIndex.end();
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-    sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
+    sendIndexToClients(itIndex->first, (itIndex->second), sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, &request[request_position++]);
 
-  std::vector<MPI_Status> status(request.size());
-  MPI_Waitall(request.size(), &request[0], &status[0]);
+  std::vector<ep_lib::MPI_Status> status(request.size());
+  ep_lib::MPI_Waitall(request.size(), &request[0], &status[0]);
 
   CArray<size_t,1>* tmpGlobalIndex;
   if (0 != recvNbIndexCount)
@@ -241,17 +251,36 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
     recvInfoBuffOnReturn = new unsigned char[recvNbIndexCountOnReturn*ProcessDHTElement<InfoType>::typeSize()];
   }
 
-  std::vector<MPI_Request> requestOnReturn;
+  int requestOnReturn_size=0;
+  for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
+  {
+    if (0 != recvNbIndexOnReturn[idx])
+    {
+      requestOnReturn_size += 2;
+    }
+  }
+
+  for (int idx = 0; idx < nbRecvClient; ++idx)
+  {
+    if (0 != sendNbIndexOnReturn[idx])
+    {
+      requestOnReturn_size += 2;
+    }
+  }
+
+  int requestOnReturn_position=0;
+
+  std::vector<ep_lib::MPI_Request> requestOnReturn(requestOnReturn_size);
   currentIndex = 0;
   for (int idx = 0; idx < recvRankOnReturn.size(); ++idx)
   {
     if (0 != recvNbIndexOnReturn[idx])
     {
-      recvIndexFromClients(recvRankOnReturn[idx], recvIndexBuffOnReturn+currentIndex, recvNbIndexOnReturn[idx], commLevel, requestOnReturn);
+      recvIndexFromClients(recvRankOnReturn[idx], recvIndexBuffOnReturn+currentIndex, recvNbIndexOnReturn[idx], commLevel, &requestOnReturn[requestOnReturn_position++]);
       recvInfoFromClients(recvRankOnReturn[idx],
                           recvInfoBuffOnReturn+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
                           recvNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(),
-                          commLevel, requestOnReturn);
+                          commLevel, &requestOnReturn[requestOnReturn_position++]);
     }
     currentIndex += recvNbIndexOnReturn[idx];
   }
@@ -285,15 +314,15 @@ void CClientClientDHTTemplate<T,H>::computeIndexInfoMappingLevel(const CArray<si
       }
 
       sendIndexToClients(rank, client2ClientIndexOnReturn[rank],
-                         sendNbIndexOnReturn[idx], commLevel, requestOnReturn);
+                         sendNbIndexOnReturn[idx], commLevel, &requestOnReturn[requestOnReturn_position++]);
       sendInfoToClients(rank, client2ClientInfoOnReturn[rank],
-                        sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(), commLevel, requestOnReturn);
+                        sendNbIndexOnReturn[idx]*ProcessDHTElement<InfoType>::typeSize(), commLevel, &requestOnReturn[requestOnReturn_position++]);
     }
     currentIndex += recvNbIndexClientCount[idx];
   }
 
-  std::vector<MPI_Status> statusOnReturn(requestOnReturn.size());
-  MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
+  std::vector<ep_lib::MPI_Status> statusOnReturn(requestOnReturn.size());
+  ep_lib::MPI_Waitall(requestOnReturn.size(), &requestOnReturn[0], &statusOnReturn[0]);
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(recvNbIndexCountOnReturn/indexToInfoMapping.max_load_factor()));
@@ -359,11 +388,11 @@ After the redistribution, each client holds rearranged index and its correspondi
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorInfoTypeMap& indexInfoMap,
-                                                            const MPI_Comm& commLevel,
+                                                            const ep_lib::MPI_Comm& commLevel,
                                                             int level)
 {
   int clientRank;
-  MPI_Comm_rank(commLevel,&clientRank);
+  ep_lib::MPI_Comm_rank(commLevel,&clientRank);
   computeSendRecvRank(level, clientRank);
 
   int groupRankBegin = this->getGroupBegin()[level];
@@ -438,18 +467,34 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   // If a client holds information about index and the corresponding which don't belong to it,
   // it will send a message to the correct clients.
   // Contents of the message are index and its corresponding informatioin
-  std::vector<MPI_Request> request;
+  int request_size = 0;
+   for (int idx = 0; idx < recvRankClient.size(); ++idx)
+   {
+     if (0 != recvNbIndexClientCount[idx])
+     {
+       request_size += 2;
+     }
+   }
+ 
+   request_size += client2ClientIndex.size();
+   request_size += client2ClientInfo.size();
+ 
+   std::vector<ep_lib::MPI_Request> request(request_size);
+
   int currentIndex = 0;
   int nbRecvClient = recvRankClient.size();
+  int request_position=0;
   for (int idx = 0; idx < nbRecvClient; ++idx)
   {
     if (0 != recvNbIndexClientCount[idx])
     {
-      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, request);
+      recvIndexFromClients(recvRankClient[idx], recvIndexBuff+currentIndex, recvNbIndexClientCount[idx], commLevel, &request[request_position++]);
+      //if(clientRank==0) printf("recv index request = %p, inserted = %p, request = %d\n", &request[0], request.back(), *static_cast< int*>(request.back()->mpi_request));
       recvInfoFromClients(recvRankClient[idx],
-                          recvInfoBuff+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
-                          recvNbIndexClientCount[idx]*ProcessDHTElement<InfoType>::typeSize(),
-                          commLevel, request);
+                            recvInfoBuff+currentIndex*ProcessDHTElement<InfoType>::typeSize(),
+                            recvNbIndexClientCount[idx]*ProcessDHTElement<InfoType>::typeSize(),
+                            commLevel, &request[request_position++]);
+      //if(clientRank==0) printf("recv info request = %p, inserted = %p, request = %d\n", &request[0], request.back(), *static_cast< int*>(request.back()->mpi_request));
     }
     currentIndex += recvNbIndexClientCount[idx];
   }
@@ -457,14 +502,17 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
   std::unordered_map<int, size_t* >::iterator itbIndex = client2ClientIndex.begin(), itIndex,
                                                 iteIndex = client2ClientIndex.end();
   for (itIndex = itbIndex; itIndex != iteIndex; ++itIndex)
-    sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, request);
+  {  sendIndexToClients(itIndex->first, itIndex->second, sendNbIndexBuff[itIndex->first-groupRankBegin], commLevel, &request[request_position++]);
+  }    //if(clientRank==0) printf("send index request = %p, inserted = %p, request = %d\n", &request[0], request.back(), *static_cast< int*>(request.back()->mpi_request));}
   std::unordered_map<int, unsigned char*>::iterator itbInfo = client2ClientInfo.begin(), itInfo,
                                                       iteInfo = client2ClientInfo.end();
   for (itInfo = itbInfo; itInfo != iteInfo; ++itInfo)
-    sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, request);
+   { sendInfoToClients(itInfo->first, itInfo->second, sendNbInfo[itInfo->first-groupRankBegin], commLevel, &request[request_position++]);
+   }//   if(clientRank==0) printf("send info request = %p, inserted = %p, request = %d\n", &request[0], request.back(), *static_cast< int*>(request.back()->mpi_request));}
 
-  std::vector<MPI_Status> status(request.size());
-  MPI_Waitall(request.size(), &request[0], &status[0]);
+  std::vector<ep_lib::MPI_Status> status(request.size());
+  
+  ep_lib::MPI_Waitall(request.size(), &request[0], &status[0]);
 
   Index2VectorInfoTypeMap indexToInfoMapping;
   indexToInfoMapping.rehash(std::ceil(currentIndex/indexToInfoMapping.max_load_factor()));
@@ -517,13 +565,30 @@ void CClientClientDHTTemplate<T,H>::computeDistributedIndex(const Index2VectorIn
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, size_t* indices, size_t indiceSize,
-                                                       const MPI_Comm& clientIntraComm,
-                                                       std::vector<MPI_Request>& requestSendIndex)
+                                                       const ep_lib::MPI_Comm& clientIntraComm,
+                                                       std::vector<ep_lib::MPI_Request>& requestSendIndex)
 {
-  MPI_Request request;
+  ep_lib::MPI_Request request;
   requestSendIndex.push_back(request);
-  MPI_Isend(indices, indiceSize, MPI_UNSIGNED_LONG,
+  ep_lib::MPI_Isend(indices, indiceSize, EP_UNSIGNED_LONG,
             clientDestRank, MPI_DHT_INDEX, clientIntraComm, &(requestSendIndex.back()));
+}
+
+/*!
+  Send message containing index to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] indices index to send
+  \param [in] indiceSize size of index array to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestSendIndex sending request
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, size_t* indices, size_t indiceSize,
+                                                       const ep_lib::MPI_Comm& clientIntraComm,
+                                                       ep_lib::MPI_Request* requestSendIndex)
+{
+  ep_lib::MPI_Isend(indices, indiceSize, EP_UNSIGNED_LONG,
+            clientDestRank, MPI_DHT_INDEX, clientIntraComm, requestSendIndex);
 }
 
 /*!
@@ -535,13 +600,29 @@ void CClientClientDHTTemplate<T,H>::sendIndexToClients(int clientDestRank, size_
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::recvIndexFromClients(int clientSrcRank, size_t* indices, size_t indiceSize,
-                                                         const MPI_Comm& clientIntraComm,
-                                                         std::vector<MPI_Request>& requestRecvIndex)
+                                                         const ep_lib::MPI_Comm& clientIntraComm,
+                                                         std::vector<ep_lib::MPI_Request>& requestRecvIndex)
 {
-  MPI_Request request;
+  ep_lib::MPI_Request request;
   requestRecvIndex.push_back(request);
-  MPI_Irecv(indices, indiceSize, MPI_UNSIGNED_LONG,
+  ep_lib::MPI_Irecv(indices, indiceSize, EP_UNSIGNED_LONG,
             clientSrcRank, MPI_DHT_INDEX, clientIntraComm, &(requestRecvIndex.back()));
+}
+
+/*!
+  Receive message containing index to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] indices index to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestRecvIndex receiving request
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::recvIndexFromClients(int clientSrcRank, size_t* indices, size_t indiceSize,
+                                                         const ep_lib::MPI_Comm& clientIntraComm,
+                                                         ep_lib::MPI_Request *requestRecvIndex)
+{
+  ep_lib::MPI_Irecv(indices, indiceSize, EP_UNSIGNED_LONG,
+            clientSrcRank, MPI_DHT_INDEX, clientIntraComm, requestRecvIndex);
 }
 
 /*!
@@ -554,14 +635,31 @@ void CClientClientDHTTemplate<T,H>::recvIndexFromClients(int clientSrcRank, size
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
-                                                      const MPI_Comm& clientIntraComm,
-                                                      std::vector<MPI_Request>& requestSendInfo)
+                                                      const ep_lib::MPI_Comm& clientIntraComm,
+                                                      std::vector<ep_lib::MPI_Request>& requestSendInfo)
 {
-  MPI_Request request;
+  ep_lib::MPI_Request request;
   requestSendInfo.push_back(request);
 
-  MPI_Isend(info, infoSize, MPI_CHAR,
+  ep_lib::MPI_Isend(info, infoSize, EP_CHAR,
             clientDestRank, MPI_DHT_INFO, clientIntraComm, &(requestSendInfo.back()));
+}
+
+/*!
+  Send message containing information to clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] info info array to send
+  \param [in] infoSize info array size to send
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestSendInfo sending request
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsigned char* info, int infoSize,
+                                                      const ep_lib::MPI_Comm& clientIntraComm,
+                                                      ep_lib::MPI_Request *requestSendInfo)
+{
+  ep_lib::MPI_Isend(info, infoSize, EP_CHAR,
+            clientDestRank, MPI_DHT_INFO, clientIntraComm, requestSendInfo);
 }
 
 /*!
@@ -574,14 +672,31 @@ void CClientClientDHTTemplate<T,H>::sendInfoToClients(int clientDestRank, unsign
 */
 template<typename T, typename H>
 void CClientClientDHTTemplate<T,H>::recvInfoFromClients(int clientSrcRank, unsigned char* info, int infoSize,
-                                                        const MPI_Comm& clientIntraComm,
-                                                        std::vector<MPI_Request>& requestRecvInfo)
+                                                        const ep_lib::MPI_Comm& clientIntraComm,
+                                                        std::vector<ep_lib::MPI_Request>& requestRecvInfo)
 {
-  MPI_Request request;
+  ep_lib::MPI_Request request;
   requestRecvInfo.push_back(request);
 
-  MPI_Irecv(info, infoSize, MPI_CHAR,
+  ep_lib::MPI_Irecv(info, infoSize, EP_CHAR,
             clientSrcRank, MPI_DHT_INFO, clientIntraComm, &(requestRecvInfo.back()));
+}
+
+/*!
+  Receive message containing information from other clients
+  \param [in] clientDestRank rank of destination client
+  \param [in] info info array to receive
+  \param [in] infoSize info array size to receive
+  \param [in] clientIntraComm communication group of client
+  \param [in] requestRecvInfo list of receiving request
+*/
+template<typename T, typename H>
+void CClientClientDHTTemplate<T,H>::recvInfoFromClients(int clientSrcRank, unsigned char* info, int infoSize,
+                                                        const ep_lib::MPI_Comm& clientIntraComm,
+                                                        ep_lib::MPI_Request* requestRecvInfo)
+{
+  ep_lib::MPI_Irecv(info, infoSize, EP_CHAR,
+            clientSrcRank, MPI_DHT_INFO, clientIntraComm, requestRecvInfo);
 }
 
 /*!
@@ -650,25 +765,25 @@ void CClientClientDHTTemplate<T,H>::sendRecvOnReturn(const std::vector<int>& sen
                                                      const std::vector<int>& recvNbRank, std::vector<int>& recvNbElements)
 {
   recvNbElements.resize(recvNbRank.size());
-  std::vector<MPI_Request> request(sendNbRank.size()+recvNbRank.size());
-  std::vector<MPI_Status> requestStatus(sendNbRank.size()+recvNbRank.size());
+  std::vector<ep_lib::MPI_Request> request(sendNbRank.size()+recvNbRank.size());
+  std::vector<ep_lib::MPI_Status> requestStatus(sendNbRank.size()+recvNbRank.size());
 
   int nRequest = 0;
   for (int idx = 0; idx < recvNbRank.size(); ++idx)
   {
-    MPI_Irecv(&recvNbElements[0]+idx, 1, MPI_INT,
+    ep_lib::MPI_Irecv(&recvNbElements[0]+idx, 1, EP_INT,
               recvNbRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
 
   for (int idx = 0; idx < sendNbRank.size(); ++idx)
   {
-    MPI_Isend(&sendNbElements[0]+idx, 1, MPI_INT,
+    ep_lib::MPI_Isend(&sendNbElements[0]+idx, 1, EP_INT,
               sendNbRank[idx], MPI_DHT_INDEX_1, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
 
-  MPI_Waitall(sendNbRank.size()+recvNbRank.size(), &request[0], &requestStatus[0]);
+  ep_lib::MPI_Waitall(sendNbRank.size()+recvNbRank.size(), &request[0], &requestStatus[0]);
 }
 
 /*!
@@ -695,13 +810,13 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
   int recvBuffSize = recvRank.size();
   std::vector<int> recvBuff(recvBuffSize*2,0);
 
-  std::vector<MPI_Request> request(sendBuffSize+recvBuffSize);
-  std::vector<MPI_Status> requestStatus(sendBuffSize+recvBuffSize);
+  std::vector<ep_lib::MPI_Request> request(sendBuffSize+recvBuffSize);
+  std::vector<ep_lib::MPI_Status> requestStatus(sendBuffSize+recvBuffSize);
 
   int nRequest = 0;
   for (int idx = 0; idx < recvBuffSize; ++idx)
   {
-    MPI_Irecv(&recvBuff[0]+2*idx, 2, MPI_INT,
+    ep_lib::MPI_Irecv(&recvBuff[0]+2*idx, 2, EP_INT,
               recvRank[idx], MPI_DHT_INDEX_0, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
@@ -715,12 +830,12 @@ void CClientClientDHTTemplate<T,H>::sendRecvRank(int level,
 
   for (int idx = 0; idx < sendBuffSize; ++idx)
   {
-    MPI_Isend(&sendBuff[idx*2], 2, MPI_INT,
+    ep_lib::MPI_Isend(&sendBuff[idx*2], 2, EP_INT,
               sendRank[idx], MPI_DHT_INDEX_0, this->internalComm_, &request[nRequest]);
     ++nRequest;
   }
 
-  MPI_Waitall(sendBuffSize+recvBuffSize, &request[0], &requestStatus[0]);
+  ep_lib::MPI_Waitall(sendBuffSize+recvBuffSize, &request[0], &requestStatus[0]);
   int nbRecvRank = 0, nbRecvElements = 0;
   recvNbRank.clear();
   recvNbElements.clear();

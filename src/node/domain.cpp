@@ -98,11 +98,11 @@ namespace xios {
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
-   int CDomain::getNumberWrittenIndexes(MPI_Comm writtenCom)
+   int CDomain::getNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return numberWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -111,11 +111,11 @@ namespace xios {
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
-   int CDomain::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
+   int CDomain::getTotalNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return totalNumberWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -124,20 +124,20 @@ namespace xios {
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
-   int CDomain::getOffsetWrittenIndexes(MPI_Comm writtenCom)
+   int CDomain::getOffsetWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return offsetWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
 
-   CArray<int, 1>& CDomain::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   CArray<int, 1>& CDomain::getCompressedIndexToWriteOnServer(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return compressedIndexToWriteOnServer[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -689,16 +689,16 @@ namespace xios {
      int* nj_g = new int[client->clientSize] ;
      int v ;
      v=ibegin ;
-     MPI_Allgather(&v,1,MPI_INT,ibegin_g,1,MPI_INT,client->intraComm) ;
+     ep_lib::MPI_Allgather(&v,1,EP_INT,ibegin_g,1,EP_INT,client->intraComm) ;
      v=jbegin ;
-     MPI_Allgather(&v,1,MPI_INT,jbegin_g,1,MPI_INT,client->intraComm) ;
+     ep_lib::MPI_Allgather(&v,1,EP_INT,jbegin_g,1,EP_INT,client->intraComm) ;
      v=ni ;
-     MPI_Allgather(&v,1,MPI_INT,ni_g,1,MPI_INT,client->intraComm) ;
+     ep_lib::MPI_Allgather(&v,1,EP_INT,ni_g,1,EP_INT,client->intraComm) ;
      v=nj ;
-     MPI_Allgather(&v,1,MPI_INT,nj_g,1,MPI_INT,client->intraComm) ;
+     ep_lib::MPI_Allgather(&v,1,EP_INT,nj_g,1,EP_INT,client->intraComm) ;
 
-     MPI_Allgatherv(lon.dataFirst(),ni,MPI_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,MPI_DOUBLE,client->intraComm) ;
-     MPI_Allgatherv(lat.dataFirst(),nj,MPI_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,MPI_DOUBLE,client->intraComm) ;
+     ep_lib::MPI_Allgatherv(lon.dataFirst(),ni,EP_DOUBLE,lon_g.dataFirst(),ni_g, ibegin_g,EP_DOUBLE,client->intraComm) ;
+     ep_lib::MPI_Allgatherv(lat.dataFirst(),nj,EP_DOUBLE,lat_g.dataFirst(),nj_g, jbegin_g,EP_DOUBLE,client->intraComm) ;
 
       delete[] ibegin_g ;
       delete[] jbegin_g ;
@@ -1931,13 +1931,13 @@ namespace xios {
           std::vector<int> displs (clientSize);
           displs[0] = 0;
           int localCount = connectedServerRank_[nbServer].size() ;
-          MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
+          ep_lib::MPI_Gather(&localCount, 1, EP_INT, &counts[0], 1, EP_INT, 0, client->intraComm) ;
           for (int i = 0; i < clientSize-1; ++i)
           {
             displs[i+1] = displs[i] + counts[i];
           }
           std::vector<int> allConnectedServers(displs[clientSize-1]+counts[clientSize-1]);
-          MPI_Gatherv(&(connectedServerRank_[nbServer])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
+          ep_lib::MPI_Gatherv(&(connectedServerRank_[nbServer])[0], localCount, EP_INT, &allConnectedServers[0], &counts[0], &displs[0], EP_INT, 0, client->intraComm);
 
           if ((allConnectedServers.size() != nbServer) && (rank == 0))
           {
@@ -2002,11 +2002,11 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-  void CDomain::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  void CDomain::computeWrittenCompressedIndex(ep_lib::MPI_Comm writtenComm)
   TRY
   {
     int writtenCommSize;
-    MPI_Comm_size(writtenComm, &writtenCommSize);
+    ep_lib::MPI_Comm_size(writtenComm, &writtenCommSize);
     if (compressedIndexToWriteOnServer.find(writtenCommSize) != compressedIndexToWriteOnServer.end())
       return;
 
@@ -2063,8 +2063,8 @@ namespace xios {
       if (isDistributed())
       {
              
-        MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
-        MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        ep_lib::MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, EP_INT, EP_SUM, writtenComm);
+        ep_lib::MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, EP_INT, EP_SUM, writtenComm);
         offsetWrittenIndexes_[writtenCommSize] -= numberWrittenIndexes_[writtenCommSize];
       }
       else

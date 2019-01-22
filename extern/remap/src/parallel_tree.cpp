@@ -114,7 +114,7 @@ static void transferRoutedIntersections(CMPIRouting& MPIRoute, const vector<Node
 }
 
 //CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MIN_NODE_SZ*MIN_NODE_SZ, comm)
-CParallelTree::CParallelTree(MPI_Comm comm) : communicator(comm), cascade(MAX_NODE_SZ*MAX_NODE_SZ*2, comm)
+CParallelTree::CParallelTree(ep_lib::MPI_Comm comm) : communicator(comm), cascade(MAX_NODE_SZ*MAX_NODE_SZ*2, comm)
 {
 	treeCascade.reserve(cascade.num_levels);
 	for (int lev = 0; lev < cascade.num_levels; lev++)
@@ -150,13 +150,13 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 	int blocSize = comm.group_size * ipow(MAX_NODE_SZ, assignLevel);
 
 	int nrecv; // global number of samples  THIS WILL BE THE NUMBER OF LEAFS IN THE SAMPLE TREE
-	MPI_Allreduce(&n, &nrecv, 1, MPI_INT, MPI_SUM, comm.comm); // => size of sample tree does not depend on keepNodes!
+	ep_lib::MPI_Allreduce(&n, &nrecv, 1, EP_INT, EP_SUM, comm.comm); // => size of sample tree does not depend on keepNodes!
 	double ratio = blocSize / (1.0 * nrecv);
 	int nsend = ratio * n + 1; // nsend = n_local_samples / n_global_samples * blocksize + 1 = blocksize/comm.size
 	if (nsend > n) nsend = n;
 
 	int *counts = new int[comm.size];
-	MPI_Allgather(&nsend, 1, MPI_INT, counts, 1, MPI_INT, comm.comm);
+	ep_lib::MPI_Allgather(&nsend, 1, EP_INT, counts, 1, EP_INT, comm.comm);
 
 	nrecv = 0;
 	int *displs = new int[comm.size];
@@ -182,7 +182,7 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 
 	/* each process needs the sample elements from all processes */
 	double *recvBuffer = new double[nrecv*4];
-	MPI_Allgatherv(sendBuffer, 4 * nsend, MPI_DOUBLE, recvBuffer, counts, displs, MPI_DOUBLE, comm.comm);
+	ep_lib::MPI_Allgatherv(sendBuffer, 4 * nsend, EP_DOUBLE, recvBuffer, counts, displs, EP_DOUBLE, comm.comm);
 	delete[] sendBuffer;
 	delete[] counts;
 	delete[] displs;
@@ -240,13 +240,13 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
     cerr << comm.rank << ": PROBLEM: (node assign)" << tree.levelSize[assignLevel] << " != " << comm.group_size << " (keepNodes)" 
          << "   node size : "<<node.size()<<"   bloc size : "<<blocSize<<"  total number of leaf : "<<tree.leafs.size()<<endl ;
 /*
-	MPI_Allreduce(&ok, &allok, 1, MPI_INT, MPI_PROD, communicator);
+	MPI_Allreduce(&ok, &allok, 1, EP_INT, MPI_PROD, communicator);
 	if (!allok) {
 		MPI_Finalize();
 		exit(1);
 	}
 */
-    MPI_Abort(MPI_COMM_WORLD,-1) ;
+    ep_lib::MPI_Abort(EP_COMM_WORLD,-1) ;
   }
 /*
   cout<<"*******************************************"<<endl ;
@@ -264,7 +264,7 @@ void buildSampleTree(CSampleTree& tree, const vector<Node>& node, const CCascade
 void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& route)
 {
 	CMPIRouting MPIRoute(communicator);
-	MPI_Barrier(communicator);
+	ep_lib::MPI_Barrier(communicator);
 	CTimer::get("buildLocalTree(initRoute)").resume();
 	MPIRoute.init(route);
 	CTimer::get("buildLocalTree(initRoute)").suspend();
@@ -289,7 +289,7 @@ void CParallelTree::buildLocalTree(const vector<Node>& node, const vector<int>& 
 	CTimer::get("buildLocalTree(local)").resume();
 
 	int mpiRank;
-	MPI_Comm_rank(communicator, &mpiRank);
+	ep_lib::MPI_Comm_rank(communicator, &mpiRank);
 	localTree.leafs.reserve(nbLocalElements);
 	for (int i = 0; i < nbLocalElements; i++)
 	{
@@ -315,9 +315,9 @@ void CParallelTree::build(vector<Node>& node, vector<Node>& node2)
   long int nb1, nb2, nb, nbTot ;
   nb1=node.size() ; nb2=node2.size() ;
   nb=nb1+nb2 ;
-  MPI_Allreduce(&nb, &nbTot, 1, MPI_LONG, MPI_SUM, communicator) ;
+  ep_lib::MPI_Allreduce(&nb, &nbTot, 1, EP_LONG, EP_SUM, communicator) ;
   int commSize ;
-  MPI_Comm_size(communicator,&commSize) ;
+  ep_lib::MPI_Comm_size(communicator,&commSize) ;
   
 	// make multiple of two
 	nbSampleNodes /= 2;
@@ -500,11 +500,11 @@ void CParallelTree::updateCirclesForRouting(Coord rootCentre, double rootRadius,
 
 	// gather circles on this level of the cascade
 	int pg_size;
-	MPI_Comm_size(cascade.level[level].pg_comm, &pg_size);
+	ep_lib::MPI_Comm_size(cascade.level[level].pg_comm, &pg_size);
 	vector<Coord> allRootCentres(pg_size);
 	vector<double> allRootRadia(pg_size);
-	MPI_Allgather(&rootCentre, 3, MPI_DOUBLE, &allRootCentres[0], 3, MPI_DOUBLE, cascade.level[level].pg_comm);
-	MPI_Allgather(&rootRadius, 1, MPI_DOUBLE, &allRootRadia[0],   1, MPI_DOUBLE, cascade.level[level].pg_comm);
+	ep_lib::MPI_Allgather(&rootCentre, 3, EP_DOUBLE, &allRootCentres[0], 3, EP_DOUBLE, cascade.level[level].pg_comm);
+	ep_lib::MPI_Allgather(&rootRadius, 1, EP_DOUBLE, &allRootRadia[0],   1, EP_DOUBLE, cascade.level[level].pg_comm);
 
 	// now allRootsRadia and allRootCentres must be inserted into second levels of us and propagated to root
 	treeCascade[level].root->assignCircleAndPropagateUp(&allRootCentres[0], &allRootRadia[0], assignLevel);

@@ -30,7 +30,7 @@ namespace xios
 class DivideAdaptiveComm
 {
 protected:
-  DivideAdaptiveComm(const MPI_Comm& mpiComm);
+  DivideAdaptiveComm(const ep_lib::MPI_Comm& mpiComm);
 
   void computeMPICommLevel();
   const std::vector<int>& getGroupBegin() { return groupBegin_; }
@@ -40,7 +40,7 @@ protected:
   int getNbLevel() { return level_; }
 
 protected:
-  const MPI_Comm& internalComm_;
+  const ep_lib::MPI_Comm& internalComm_;
   std::vector<std::vector<int> > groupParentsBegin_;
   std::vector<std::vector<int> > nbInGroupParents_;
 

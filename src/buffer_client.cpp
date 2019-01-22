@@ -11,7 +11,7 @@ namespace xios
 {
   size_t CClientBuffer::maxRequestSize = 0;
 
-  CClientBuffer::CClientBuffer(MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize, StdSize maxBufferedEvents)
+  CClientBuffer::CClientBuffer(ep_lib::MPI_Comm interComm, int serverRank, StdSize bufferSize, StdSize estimatedMaxEventSize, StdSize maxBufferedEvents)
     : interComm(interComm)
     , serverRank(serverRank)
     , bufferSize(bufferSize)
@@ -82,13 +82,13 @@ namespace xios
 
   bool CClientBuffer::checkBuffer(void)
   {
-    MPI_Status status;
+    ep_lib::MPI_Status status;
     int flag;
 
     if (pending)
     {
       traceOff();
-      MPI_Test(&request, &flag, &status);
+      ep_lib::MPI_Test(&request, &flag, &status);
       traceOn();
       if (flag == true) pending = false;
     }
@@ -97,7 +97,7 @@ namespace xios
     {
       if (count > 0)
       {
-        MPI_Issend(buffer[current], count, MPI_CHAR, serverRank, 20, interComm, &request);
+        ep_lib::MPI_Issend(buffer[current], count, EP_CHAR, serverRank, 20, interComm, &request);
         pending = true;
         if (current == 1) current = 0;
         else current = 1;

@@ -9,18 +9,18 @@ namespace xios
     class CClient
     {
       public:
-        static void initialize(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm);
+        static void initialize(const string& codeId, ep_lib::MPI_Comm& localComm, ep_lib::MPI_Comm& returnComm);
         static void finalize(void);
-        static void registerContext(const string& id, MPI_Comm contextComm);
+        static void registerContext(const string& id, ep_lib::MPI_Comm contextComm);
         static void callOasisEnddef(void) ;
 
-        static MPI_Comm intraComm;
-        static MPI_Comm interComm;
-        static std::list<MPI_Comm> contextInterComms;
+        static ep_lib::MPI_Comm intraComm;
+        static ep_lib::MPI_Comm interComm;
+        static std::list<ep_lib::MPI_Comm> contextInterComms;
         static int serverLeader;
         static bool is_MPI_Initialized ;
 
-        static MPI_Comm& getInterComm();
+        static ep_lib::MPI_Comm& getInterComm();
 
         //! Get global rank without oasis and current rank in model intraComm in case of oasis
         static int getRank();

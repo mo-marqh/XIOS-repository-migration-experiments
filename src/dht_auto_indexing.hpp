@@ -24,10 +24,10 @@ class CDHTAutoIndexing: public CClientClientDHTTemplate<size_t>
   public:
 
     CDHTAutoIndexing(const CArray<size_t,1>& hashValue,
-                     const MPI_Comm& clientIntraComm);
+                     const ep_lib::MPI_Comm& clientIntraComm);
 
     CDHTAutoIndexing(Index2VectorInfoTypeMap& hashInitMap,
-                     const MPI_Comm& clientIntraComm);
+                     const ep_lib::MPI_Comm& clientIntraComm);
 
     size_t getNbIndexesGlobal() const;
     size_t getIndexStart() const;

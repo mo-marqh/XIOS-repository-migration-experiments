@@ -21,7 +21,7 @@ namespace xios
   {
     public:
       /// Constructors ///
-      CINetCDF4(const StdString& filename, const MPI_Comm* comm = NULL, bool multifile = true,
+      CINetCDF4(const StdString& filename, const ep_lib::MPI_Comm* comm = NULL, bool multifile = true,
                 bool readMetaDataPar = false, const StdString& timeCounterName = "time_counter");
 
       CINetCDF4(const CINetCDF4& inetcdf4);       // Not implemented.

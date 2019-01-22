@@ -129,11 +129,11 @@ namespace xios {
      Returns the number of indexes written by each server.
      \return the number of indexes written by each server
    */
-   int CAxis::getNumberWrittenIndexes(MPI_Comm writtenCom)
+   int CAxis::getNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return numberWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -142,11 +142,11 @@ namespace xios {
      Returns the total number of indexes written by the servers.
      \return the total number of indexes written by the servers
    */
-   int CAxis::getTotalNumberWrittenIndexes(MPI_Comm writtenCom)
+   int CAxis::getTotalNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return totalNumberWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -155,20 +155,20 @@ namespace xios {
      Returns the offset of indexes written by each server.
      \return the offset of indexes written by each server
    */
-   int CAxis::getOffsetWrittenIndexes(MPI_Comm writtenCom)
+   int CAxis::getOffsetWrittenIndexes(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return offsetWrittenIndexes_[writtenSize];
    }
    CATCH_DUMP_ATTR
 
-   CArray<int, 1>& CAxis::getCompressedIndexToWriteOnServer(MPI_Comm writtenCom)
+   CArray<int, 1>& CAxis::getCompressedIndexToWriteOnServer(ep_lib::MPI_Comm writtenCom)
    TRY
    {
      int writtenSize;
-     MPI_Comm_size(writtenCom, &writtenSize);
+     ep_lib::MPI_Comm_size(writtenCom, &writtenSize);
      return compressedIndexToWriteOnServer[writtenSize];
    }
    CATCH_DUMP_ATTR
@@ -767,11 +767,11 @@ namespace xios {
   }
   CATCH_DUMP_ATTR
 
-  void CAxis::computeWrittenCompressedIndex(MPI_Comm writtenComm)
+  void CAxis::computeWrittenCompressedIndex(ep_lib::MPI_Comm writtenComm)
   TRY
   {
     int writtenCommSize;
-    MPI_Comm_size(writtenComm, &writtenCommSize);
+    ep_lib::MPI_Comm_size(writtenComm, &writtenCommSize);
     if (compressedIndexToWriteOnServer.find(writtenCommSize) != compressedIndexToWriteOnServer.end())
       return;
 
@@ -849,8 +849,8 @@ namespace xios {
       if (isDistributed())
       {
              
-        MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
-        MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
+        ep_lib::MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, EP_INT, EP_SUM, writtenComm);
+        ep_lib::MPI_Scan(&numberWrittenIndexes_[writtenCommSize], &offsetWrittenIndexes_[writtenCommSize], 1, EP_INT, EP_SUM, writtenComm);
         offsetWrittenIndexes_[writtenCommSize] -= numberWrittenIndexes_[writtenCommSize];
       }
       else

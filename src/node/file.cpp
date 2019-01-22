@@ -24,7 +24,7 @@ namespace xios {
 
    CFile::CFile(void)
       : CObjectTemplate<CFile>(), CFileAttributes()
-      , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
+      , vFieldGroup(), data_out(), enabledFields(), fileComm(EP_COMM_NULL)
       , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
    {
      setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
@@ -33,7 +33,7 @@ namespace xios {
 
    CFile::CFile(const StdString & id)
       : CObjectTemplate<CFile>(id), CFileAttributes()
-      , vFieldGroup(), data_out(), enabledFields(), fileComm(MPI_COMM_NULL)
+      , vFieldGroup(), data_out(), enabledFields(), fileComm(EP_COMM_NULL)
       , isOpen(false), read_client(0), checkRead(false), allZoneEmpty(false)
     {
       setVirtualFieldGroup(CFieldGroup::create(getId() + "_virtual_field_group"));
@@ -306,8 +306,8 @@ namespace xios {
       }
 
       int color = allZoneEmpty ? 0 : 1;
-      MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
-      if (allZoneEmpty) MPI_Comm_free(&fileComm);
+      ep_lib::MPI_Comm_split(server->intraComm, color, server->intraCommRank, &fileComm);
+      if (allZoneEmpty) ep_lib::MPI_Comm_free(&fileComm);
     }
     CATCH_DUMP_ATTR
 
@@ -553,8 +553,8 @@ namespace xios {
          if (multifile)
          {
             int commSize, commRank;
-            MPI_Comm_size(fileComm, &commSize);
-            MPI_Comm_rank(fileComm, &commRank);
+            ep_lib::MPI_Comm_size(fileComm, &commSize);
+            ep_lib::MPI_Comm_rank(fileComm, &commRank);
 
             if (server->intraCommSize > 1)
             {
@@ -633,7 +633,7 @@ namespace xios {
   {
     CContext* context = CContext::getCurrent();
     CContextServer* server = context->server;
-    MPI_Comm readComm = this->fileComm;
+    ep_lib::MPI_Comm readComm = this->fileComm;
 
     if (!allZoneEmpty)
     {
@@ -676,8 +676,8 @@ namespace xios {
       if (multifile)
       {
         int commSize, commRank;
-        MPI_Comm_size(readComm, &commSize);
-        MPI_Comm_rank(readComm, &commRank);
+        ep_lib::MPI_Comm_size(readComm, &commSize);
+        ep_lib::MPI_Comm_rank(readComm, &commRank);
 
         if (server->intraCommSize > 1)
         {
@@ -721,7 +721,7 @@ namespace xios {
           this->data_in->closeFile();
         isOpen = false;
        }
-      if (fileComm != MPI_COMM_NULL) MPI_Comm_free(&fileComm);
+      if (fileComm != EP_COMM_NULL) ep_lib::MPI_Comm_free(&fileComm);
    }
    CATCH_DUMP_ATTR
 

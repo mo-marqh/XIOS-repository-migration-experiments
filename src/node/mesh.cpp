@@ -413,15 +413,15 @@ namespace xios {
  * \param [in] bounds_lon Array of boundary longitudes. Its size depends on the element type.
  * \param [in] bounds_lat Array of boundary latitudes. Its size depends on the element type.
  */
-  void CMesh::createMeshEpsilon(const MPI_Comm& comm,
+  void CMesh::createMeshEpsilon(const ep_lib::MPI_Comm& comm,
                                 const CArray<double, 1>& lonvalue, const CArray<double, 1>& latvalue,
                                 const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat)
   {
 
     int nvertex = (bounds_lon.numElements() == 0) ? 1 : bounds_lon.rows();
     int mpiRank, mpiSize;
-    MPI_Comm_rank(comm, &mpiRank);
-    MPI_Comm_size(comm, &mpiSize);
+    ep_lib::MPI_Comm_rank(comm, &mpiRank);
+    ep_lib::MPI_Comm_size(comm, &mpiSize);
     double prec = 1e-11;  // used in calculations of edge_lon/lat
 
     if (nvertex == 1)
@@ -459,7 +459,7 @@ namespace xios {
       // For determining the global edge index
       unsigned long nbEdgesOnProc = nbEdges_;
       unsigned long nbEdgesAccum;
-      MPI_Scan(&nbEdgesOnProc, &nbEdgesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      ep_lib::MPI_Scan(&nbEdgesOnProc, &nbEdgesAccum, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
       nbEdgesAccum -= nbEdges_;
 
       CClientClientDHTSizet::Index2VectorInfoTypeMap edgeHash2IdxGlo;
@@ -589,9 +589,9 @@ namespace xios {
          // nodeIdx2Idx = <idx, idxGlo>
          unsigned long nodeCount = nodeIdx2Idx.size();
          unsigned long nodeStart, nbNodes;
-         MPI_Scan(&nodeCount, &nodeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+         ep_lib::MPI_Scan(&nodeCount, &nodeStart, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
          int nNodes = nodeStart;
-         MPI_Bcast(&nNodes, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+         ep_lib::MPI_Bcast(&nNodes, 1, EP_UNSIGNED_LONG, mpiSize-1, comm);
          nbNodesGlo = nNodes;
 
          nodeStart -= nodeCount;
@@ -682,7 +682,7 @@ namespace xios {
       // For determining the global face index
       unsigned long nbFacesOnProc = nbFaces_;
       unsigned long nbFacesAccum;
-      MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+      ep_lib::MPI_Scan(&nbFacesOnProc, &nbFacesAccum, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
       nbFacesAccum -= nbFaces_;
 
       // Case (1): edges have been previously generated
@@ -806,9 +806,9 @@ namespace xios {
         }
 
         unsigned long edgeStart, nbEdges;
-        MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+        ep_lib::MPI_Scan(&edgeCount, &edgeStart, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
         int nEdges = edgeStart;
-        MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+        ep_lib::MPI_Bcast(&nEdges, 1, EP_UNSIGNED_LONG, mpiSize-1, comm);
         nbEdgesGlo = nEdges;
 
         // edges to be splitted equally between procs
@@ -1027,9 +1027,9 @@ namespace xios {
 
         unsigned long edgeCount = edgeIdx2Idx.size();
         unsigned long edgeStart, nbEdges;
-        MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+        ep_lib::MPI_Scan(&edgeCount, &edgeStart, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
         int nEdges = edgeStart;
-        MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+        ep_lib::MPI_Bcast(&nEdges, 1, EP_UNSIGNED_LONG, mpiSize-1, comm);
         nbEdgesGlo = nEdges;
 
         edgeStart -= edgeCount;
@@ -1297,9 +1297,9 @@ namespace xios {
         // nodeIdx2Idx = <idx, idxGlo>
         unsigned long nodeCount = nodeIdx2Idx.size();
         unsigned long nodeStart, nbNodes;
-        MPI_Scan(&nodeCount, &nodeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+        ep_lib::MPI_Scan(&nodeCount, &nodeStart, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
         int nNodes = nodeStart;
-        MPI_Bcast(&nNodes, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+        ep_lib::MPI_Bcast(&nNodes, 1, EP_UNSIGNED_LONG, mpiSize-1, comm);
         nbNodesGlo = nNodes;
 
         nodeStart -= nodeCount;
@@ -1417,9 +1417,9 @@ namespace xios {
 
         unsigned long edgeCount = edgeIdx2Idx.size();
         unsigned long edgeStart, nbEdges;
-        MPI_Scan(&edgeCount, &edgeStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, comm);
+        ep_lib::MPI_Scan(&edgeCount, &edgeStart, 1, EP_UNSIGNED_LONG, EP_SUM, comm);
         int nEdges = edgeStart;
-        MPI_Bcast(&nEdges, 1, MPI_UNSIGNED_LONG, mpiSize-1, comm);
+        ep_lib::MPI_Bcast(&nEdges, 1, EP_UNSIGNED_LONG, mpiSize-1, comm);
         nbEdgesGlo = nEdges;
 
         edgeStart -= edgeCount;
@@ -1613,7 +1613,7 @@ namespace xios {
    * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
    */
 
-  void CMesh::getGloNghbFacesNodeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
+  void CMesh::getGloNghbFacesNodeType(const ep_lib::MPI_Comm& comm, const CArray<int, 1>& face_idx,
                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                CArray<int, 2>& nghbFaces)
   {
@@ -1622,8 +1622,8 @@ namespace xios {
     nghbFaces.resize(2, nbFaces*10);    // some estimate on max number of neighbouring cells
 
     int mpiRank, mpiSize;
-    MPI_Comm_rank(comm, &mpiRank);
-    MPI_Comm_size(comm, &mpiSize);
+    ep_lib::MPI_Comm_rank(comm, &mpiRank);
+    ep_lib::MPI_Comm_size(comm, &mpiSize);
 
     // (1) Generating unique node indexes
     // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
@@ -1769,7 +1769,7 @@ namespace xios {
    * \param [out] nghbFaces 2D array of storing global indexes of neighboring cells and their owner procs.
    */
 
-  void CMesh::getGloNghbFacesEdgeType(const MPI_Comm& comm, const CArray<int, 1>& face_idx,
+  void CMesh::getGloNghbFacesEdgeType(const ep_lib::MPI_Comm& comm, const CArray<int, 1>& face_idx,
                                const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                CArray<int, 2>& nghbFaces)
   {
@@ -1778,8 +1778,8 @@ namespace xios {
     nghbFaces.resize(2, nbFaces*10);    // estimate of max number of neighbouring cells
 
     int mpiRank, mpiSize;
-    MPI_Comm_rank(comm, &mpiRank);
-    MPI_Comm_size(comm, &mpiSize);
+    ep_lib::MPI_Comm_rank(comm, &mpiRank);
+    ep_lib::MPI_Comm_size(comm, &mpiSize);
 
     // (1) Generating unique node indexes
     // (1.1) Creating a list of hashes for each node and a map nodeHash2Idx <hash, <idx,rank> >
@@ -1950,7 +1950,7 @@ namespace xios {
    * \param [out] nghbFaces 2D array containing neighboring faces and owner ranks.
    */
 
-  void CMesh::getGlobalNghbFaces(const int nghbType, const MPI_Comm& comm,
+  void CMesh::getGlobalNghbFaces(const int nghbType, const ep_lib::MPI_Comm& comm,
                                  const CArray<int, 1>& face_idx,
                                  const CArray<double, 2>& bounds_lon, const CArray<double, 2>& bounds_lat,
                                  CArray<int, 2>& nghbFaces)

@@ -36,7 +36,7 @@ public:
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClient, int nbServer) = 0;
 
     static std::map<int,int> computeConnectedClients(int nbServer, int nbClient,
-                                                     MPI_Comm& clientIntraComm,
+                                                     ep_lib::MPI_Comm& clientIntraComm,
                                                      const std::vector<int>& connectedServerRank);
 
     const GlobalIndexMap& getGlobalIndexOnServer() const;

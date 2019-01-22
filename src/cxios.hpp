@@ -14,7 +14,7 @@ namespace xios
   {
     public:
      static void initialize(void) ;
-     static void initClientSide(const string & codeId, MPI_Comm& localComm, MPI_Comm& returnComm) ;
+     static void initClientSide(const string & codeId, ep_lib::MPI_Comm& localComm, ep_lib::MPI_Comm& returnComm) ;
      static void initServerSide(void) ;
      static void clientFinalize(void) ;
      static void parseFile(const string& filename) ;
@@ -39,7 +39,7 @@ namespace xios
      static bool isClient ; //!< Check if xios is client
      static bool isServer ; //!< Check if xios is server
 
-     static MPI_Comm globalComm ; //!< Global communicator
+     static ep_lib::MPI_Comm globalComm ; //!< Global communicator
 
      static bool printLogs2Files; //!< Printing out logs into files
      static bool usingOasis ;     //!< Using Oasis

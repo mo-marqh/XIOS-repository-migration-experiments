@@ -48,7 +48,7 @@ namespace xios
 //  }
 //}
 
-DivideAdaptiveComm::DivideAdaptiveComm(const MPI_Comm& mpiComm)
+DivideAdaptiveComm::DivideAdaptiveComm(const ep_lib::MPI_Comm& mpiComm)
   : internalComm_(mpiComm), level_(0), groupBegin_(), nbInGroup_(), computed_(false)
 {
 
@@ -60,8 +60,8 @@ void DivideAdaptiveComm::computeMPICommLevel()
   computed_ = true;
 
   int mpiSize, mpiRank;
-  MPI_Comm_size(internalComm_,&mpiSize);
-  MPI_Comm_rank(internalComm_,&mpiRank);
+  ep_lib::MPI_Comm_size(internalComm_,&mpiSize);
+  ep_lib::MPI_Comm_rank(internalComm_,&mpiRank);
 
   int maxChild=1;
   int m;

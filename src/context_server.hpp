@@ -13,10 +13,10 @@ namespace xios
   {
     public:
 
-    CContextServer(CContext* parent,MPI_Comm intraComm,MPI_Comm interComm) ;
+    CContextServer(CContext* parent,ep_lib::MPI_Comm intraComm,ep_lib::MPI_Comm interComm) ;
     bool eventLoop(bool enableEventsProcessing = true);
     void listen(void) ;
-    bool listenPendingRequest(MPI_Status& status) ;
+    bool listenPendingRequest(ep_lib::MPI_Status& status) ;
     void checkPendingRequest(void) ;
     void processRequest(int rank, char* buff,int count) ;
     void processEvents(void) ;
@@ -25,15 +25,15 @@ namespace xios
     void setPendingEvent(void) ;
     bool hasPendingEvent(void) ;
 
-    MPI_Comm intraComm ;
+    ep_lib::MPI_Comm intraComm ;
     int intraCommSize ;
     int intraCommRank ;
 
-    MPI_Comm interComm ;
+    ep_lib::MPI_Comm interComm ;
     int commSize ;
 
     map<int,CServerBuffer*> buffers ;
-    map<int,MPI_Request> pendingRequest ;
+    map<int,ep_lib::MPI_Request> pendingRequest ;
     map<int,char*> bufferRequest ;
 
     map<size_t,CEventServer*> events ;

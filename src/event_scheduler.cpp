@@ -7,11 +7,11 @@ namespace xios
 {
  
  
-  CEventScheduler::CEventScheduler(const MPI_Comm& comm) 
+  CEventScheduler::CEventScheduler(const ep_lib::MPI_Comm& comm) 
   {
-    MPI_Comm_dup(comm, &communicator) ;
-    MPI_Comm_size(communicator,&mpiSize) ;
-    MPI_Comm_rank(communicator,&mpiRank);
+    ep_lib::MPI_Comm_dup(comm, &communicator) ;
+    ep_lib::MPI_Comm_size(communicator,&mpiSize) ;
+    ep_lib::MPI_Comm_rank(communicator,&mpiRank);
 
 
     int maxChild=1 ;
@@ -87,7 +87,7 @@ namespace xios
     sentRequest->buffer[2]=lev-1 ;
 
     pendingSentParentRequest.push(sentRequest) ;
-    MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, parent[lev], 0, communicator, &sentRequest->request) ;
+    ep_lib::MPI_Isend(sentRequest->buffer,3, EP_UNSIGNED_LONG, parent[lev], 0, communicator, &sentRequest->request) ;
     traceOn() ;
   } 
 
@@ -114,7 +114,7 @@ namespace xios
   void CEventScheduler::checkParentRequest(void)
   {
     int completed ;
-    MPI_Status status ;
+    ep_lib::MPI_Status status ;
     int received ;
     SPendingRequest* recvRequest ;
     completed=true ;
@@ -134,11 +134,19 @@ namespace xios
     received=true ;
     while(received)
     {
+      #ifdef _usingMPI
       MPI_Iprobe(MPI_ANY_SOURCE,1,communicator,&received, &status) ;
+      #elif _usingEP
+      ep_lib::MPI_Iprobe(-2,1,communicator,&received, &status) ;
+      #endif
       if (received)
       {
         recvRequest=new SPendingRequest ;
+        #ifdef _usingMPI
         MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 1, communicator, &(recvRequest->request)) ;
+        #elif _usingEP
+        ep_lib::MPI_Irecv(recvRequest->buffer, 3, EP_UNSIGNED_LONG, -2, 1, communicator, &(recvRequest->request)) ;
+        #endif
         pendingRecvParentRequest.push(recvRequest) ;
       }
     }
@@ -148,7 +156,7 @@ namespace xios
     while (! pendingRecvParentRequest.empty() && completed)
     {
       recvRequest=pendingRecvParentRequest.front() ;
-      MPI_Test( &(recvRequest->request), &completed, &status) ;
+      ep_lib::MPI_Test( &(recvRequest->request), &completed, &status) ;
       if (completed) 
       {
         size_t timeLine=recvRequest->buffer[0] ;
@@ -168,7 +176,7 @@ namespace xios
   {
 // function call only by parent mpi process
 
-    MPI_Status status ; 
+    ep_lib::MPI_Status status ; 
     int received ;
     received=true ;
     SPendingRequest* recvRequest ;
@@ -176,11 +184,19 @@ namespace xios
     // check for posted requests and make the corresponding receive
     while(received)
     {
+      #ifdef _usingMPI
       MPI_Iprobe(MPI_ANY_SOURCE,0,communicator,&received, &status) ;
+      #elif _usingEP
+      ep_lib::MPI_Iprobe(-2,0,communicator,&received, &status) ;
+      #endif
       if (received)
       {
         recvRequest=new SPendingRequest ;
+        #ifdef _usingMPI
         MPI_Irecv(recvRequest->buffer, 3, MPI_UNSIGNED_LONG, MPI_ANY_SOURCE, 0, communicator, &recvRequest->request) ;
+        #elif _usingEP
+        ep_lib::MPI_Irecv(recvRequest->buffer, 3, EP_UNSIGNED_LONG, -2, 0, communicator, &recvRequest->request) ;
+        #endif
         pendingRecvChildRequest.push_back(recvRequest) ;
       }
     }
@@ -189,7 +205,7 @@ namespace xios
     
     for(list<SPendingRequest*>::iterator it=pendingRecvChildRequest.begin(); it!=pendingRecvChildRequest.end() ; )
     {
-      MPI_Test(&((*it)->request),&received,&status) ;
+      ep_lib::MPI_Test(&((*it)->request),&received,&status) ;
       if (received)
       {
         size_t timeLine=(*it)->buffer[0] ;
@@ -227,7 +243,7 @@ namespace xios
 
     for(list<SPendingRequest*>::iterator it=pendingSentChildRequest.begin(); it!=pendingSentChildRequest.end() ; )
     {
-      MPI_Test(&(*it)->request,&received,&status) ;
+      ep_lib::MPI_Test(&(*it)->request,&received,&status) ;
       if (received)
       {
         delete *it ;    // free memory
@@ -250,7 +266,7 @@ namespace xios
       sentRequest->buffer[0]=timeLine ;
       sentRequest->buffer[1]=contextHashId ;
       sentRequest->buffer[2]=lev+1 ;
-      MPI_Isend(sentRequest->buffer,3, MPI_UNSIGNED_LONG, child[lev][i], 1, communicator, & sentRequest->request) ;
+      ep_lib::MPI_Isend(sentRequest->buffer,3, EP_UNSIGNED_LONG, child[lev][i], 1, communicator, & sentRequest->request) ;
       pendingSentChildRequest.push_back(sentRequest) ;
     }
   }

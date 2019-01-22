@@ -25,11 +25,11 @@ namespace xios
         static void listenOasisEnddef(void);
         static void registerContext(void* buff,int count, int leaderRank=0);
 
-        static MPI_Comm intraComm;
-        static std::list<MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
-        static std::list<MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
-        static std::list<MPI_Comm> contextInterComms;  // list of context intercomms
-        static std::list<MPI_Comm> contextIntraComms;  // list of context intercomms (needed only in case of secondary servers)
+        static ep_lib::MPI_Comm intraComm;
+        static std::list<ep_lib::MPI_Comm> interCommLeft;           // interComm between server (primary, classical or secondary) and its client (client or primary server)
+        static std::list<ep_lib::MPI_Comm> interCommRight;          // interComm between primary server and secondary server (non-empty only for primary server pool)
+        static std::list<ep_lib::MPI_Comm> contextInterComms;  // list of context intercomms
+        static std::list<ep_lib::MPI_Comm> contextIntraComms;  // list of context intercomms (needed only in case of secondary servers)
         static CEventScheduler* eventScheduler;
 
         static int serverLevel ;

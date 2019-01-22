@@ -21,20 +21,20 @@ namespace xios
   */
 
   CDHTAutoIndexing::CDHTAutoIndexing(const CArray<size_t,1>& hashValue,
-                                     const MPI_Comm& clientIntraComm)
+                                     const ep_lib::MPI_Comm& clientIntraComm)
     : CClientClientDHTTemplate<size_t>(clientIntraComm)
   {
 
     nbIndexOnProc_ = hashValue.size();
     size_t nbIndexAccum;
-    MPI_Scan(&nbIndexOnProc_, &nbIndexAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, clientIntraComm);
+    ep_lib::MPI_Scan(&nbIndexOnProc_, &nbIndexAccum, 1, EP_UNSIGNED_LONG, EP_SUM, clientIntraComm);
 
     // Broadcasting the total number of indexes
     int rank, size;
-    MPI_Comm_rank(clientIntraComm, &rank);
-    MPI_Comm_size(clientIntraComm, &size);
+    ep_lib::MPI_Comm_rank(clientIntraComm, &rank);
+    ep_lib::MPI_Comm_size(clientIntraComm, &size);
     if (rank == (size-1)) nbIndexesGlobal_ = nbIndexAccum;
-    MPI_Bcast(&nbIndexesGlobal_, 1, MPI_UNSIGNED_LONG, size-1, clientIntraComm);
+    ep_lib::MPI_Bcast(&nbIndexesGlobal_, 1, EP_UNSIGNED_LONG, size-1, clientIntraComm);
 
     CArray<size_t,1>::const_iterator itbIdx = hashValue.begin(), itIdx,
                                      iteIdx = hashValue.end();
@@ -57,19 +57,19 @@ namespace xios
    * \param [in] clientIntraComm
   */
   CDHTAutoIndexing::CDHTAutoIndexing(Index2VectorInfoTypeMap& hashInitMap,
-                                     const MPI_Comm& clientIntraComm)
+                                     const ep_lib::MPI_Comm& clientIntraComm)
     : CClientClientDHTTemplate<size_t>(clientIntraComm)
   {
 
     nbIndexOnProc_ = hashInitMap.size();
     size_t nbIndexAccum;
-    MPI_Scan(&nbIndexOnProc_, &nbIndexAccum, 1, MPI_UNSIGNED_LONG, MPI_SUM, clientIntraComm);
+    ep_lib::MPI_Scan(&nbIndexOnProc_, &nbIndexAccum, 1, EP_UNSIGNED_LONG, EP_SUM, clientIntraComm);
 
     int rank, size;
-    MPI_Comm_rank(clientIntraComm, &rank);
-    MPI_Comm_size(clientIntraComm, &size);
+    ep_lib::MPI_Comm_rank(clientIntraComm, &rank);
+    ep_lib::MPI_Comm_size(clientIntraComm, &size);
     if (rank == (size-1)) nbIndexesGlobal_ = nbIndexAccum;
-    MPI_Bcast(&nbIndexesGlobal_, 1, MPI_UNSIGNED_LONG, size-1, clientIntraComm);
+    ep_lib::MPI_Bcast(&nbIndexesGlobal_, 1, EP_UNSIGNED_LONG, size-1, clientIntraComm);
 
     Index2VectorInfoTypeMap::iterator itbIdx = hashInitMap.begin(), itIdx,
                                       iteIdx = hashInitMap.end();

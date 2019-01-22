@@ -174,7 +174,7 @@ namespace xios {
          CDate lastSplit;
          int nbAxis, nbDomains;
          bool isOpen;         
-         MPI_Comm fileComm;
+         ep_lib::MPI_Comm fileComm;
 
       private:
          void createSubComFile();
