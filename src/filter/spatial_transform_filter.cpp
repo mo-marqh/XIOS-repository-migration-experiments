@@ -187,6 +187,8 @@ namespace xios
     CTimer::get("CSpatialTransformFilterEngine::apply").resume(); 
     
     CContextClient* client = CContext::getCurrent()->client;
+    int rank;
+    MPI_Comm_rank (client->intraComm, &rank);
 
     // Get default value for output data
     bool ignoreMissingValue = false; 
@@ -216,10 +218,17 @@ namespace xios
                                                     iteSend = localIndexToSend.end();
       int idxSendBuff = 0;
       std::vector<double*> sendBuff(localIndexToSend.size());
+      double* sendBuffRank;
       for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
       {
+        int destRank = itSend->first;
         if (0 != itSend->second.numElements())
-          sendBuff[idxSendBuff] = new double[itSend->second.numElements()];
+        {
+          if (rank != itSend->first)
+            sendBuff[idxSendBuff] = new double[itSend->second.numElements()];
+          else
+            sendBuffRank = new double[itSend->second.numElements()];
+        }
       }
 
       idxSendBuff = 0;
@@ -229,12 +238,22 @@ namespace xios
         int destRank = itSend->first;
         const CArray<int,1>& localIndex_p = itSend->second;
         int countSize = localIndex_p.numElements();
-        for (int idx = 0; idx < countSize; ++idx)
+        if (destRank != rank)
         {
-          sendBuff[idxSendBuff][idx] = dataCurrentSrc(localIndex_p(idx));
+          for (int idx = 0; idx < countSize; ++idx)
+          {
+            sendBuff[idxSendBuff][idx] = dataCurrentSrc(localIndex_p(idx));
+            sendRecvRequest.push_back(MPI_Request());
+            MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
+          }
         }
-        sendRecvRequest.push_back(MPI_Request());
-        MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
+        else
+        {
+          for (int idx = 0; idx < countSize; ++idx)
+          {
+            sendBuffRank[idx] = dataCurrentSrc(localIndex_p(idx));
+          }
+        }
       }
 
       // Receiving data on destination fields
@@ -242,18 +261,26 @@ namespace xios
       CGridTransformation::RecvIndexGridDestinationMap::const_iterator itbRecv = localIndexToReceive.begin(), itRecv,
                                                                        iteRecv = localIndexToReceive.end();
       int recvBuffSize = 0;
-      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv) recvBuffSize += itRecv->second.size(); //(recvBuffSize < itRecv->second.size())
-                                                                       //? itRecv->second.size() : recvBuffSize;
+      for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
+      {
+        if (itRecv->first != rank )
+          recvBuffSize += itRecv->second.size();
+      }
+      //(recvBuffSize < itRecv->second.size()) ? itRecv->second.size() : recvBuffSize;
       double* recvBuff;
+
       if (0 != recvBuffSize) recvBuff = new double[recvBuffSize];
       int currentBuff = 0;
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
         int srcRank = itRecv->first;
-        int countSize = itRecv->second.size();
-        sendRecvRequest.push_back(MPI_Request());
-        MPI_Irecv(recvBuff + currentBuff, countSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &sendRecvRequest.back());
-        currentBuff += countSize;
+        if (srcRank != rank)
+        {
+          int countSize = itRecv->second.size();
+          sendRecvRequest.push_back(MPI_Request());
+          MPI_Irecv(recvBuff + currentBuff, countSize, MPI_DOUBLE, srcRank, 12, client->intraComm, &sendRecvRequest.back());
+          currentBuff += countSize;
+        }
       }
       std::vector<MPI_Status> status(sendRecvRequest.size());
       MPI_Waitall(sendRecvRequest.size(), &sendRecvRequest[0], &status[0]);
@@ -266,15 +293,27 @@ namespace xios
       bool firstPass=true; 
       for (itRecv = itbRecv; itRecv != iteRecv; ++itRecv)
       {
-        int countSize = itRecv->second.size();
         const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
-        (*itAlgo)->apply(localIndex_p,
-                         recvBuff+currentBuff,
-                         dataCurrentDest,
-                         localInitFlag,
-                         ignoreMissingValue,firstPass);
+        int srcRank = itRecv->first;
+        if (srcRank != rank)
+        {
+          int countSize = itRecv->second.size();
+          (*itAlgo)->apply(localIndex_p,
+                           recvBuff+currentBuff,
+                           dataCurrentDest,
+                           localInitFlag,
+                           ignoreMissingValue,firstPass);
+          currentBuff += countSize;
+        }
+        else
+        {
+          (*itAlgo)->apply(localIndex_p,
+                           sendBuffRank,
+                           dataCurrentDest,
+                           localInitFlag,
+                           ignoreMissingValue,firstPass);
+        }
 
-        currentBuff += countSize;
         firstPass=false ;
       }
 
@@ -284,7 +323,12 @@ namespace xios
       for (itSend = itbSend; itSend != iteSend; ++itSend, ++idxSendBuff)
       {
         if (0 != itSend->second.numElements())
-          delete [] sendBuff[idxSendBuff];
+        {
+          if (rank != itSend->first)
+            delete [] sendBuff[idxSendBuff];
+          else
+            delete [] sendBuffRank;
+        }
       }
       if (0 != recvBuffSize) delete [] recvBuff;
     }
