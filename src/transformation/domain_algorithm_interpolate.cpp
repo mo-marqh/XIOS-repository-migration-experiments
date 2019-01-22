@@ -433,16 +433,12 @@ TRY
   CContext* context = CContext::getCurrent();
   CContextClient* client=context->client;
 
-  ep_lib::MPI_Comm poleComme(EP_COMM_NULL);
-  #ifdef _usingMPI
+  MPI_Comm poleComme(MPI_COMM_NULL);
   MPI_Comm_split(client->intraComm, interMapValuePole.empty() ? MPI_UNDEFINED : 1, 0, &poleComme);
-  #elif _usingEP
-  ep_lib::MPI_Comm_split(client->intraComm, interMapValuePole.empty() ? 0 : 1, 0, &poleComme);
-  #endif
-  if (EP_COMM_NULL != poleComme)
+  if (MPI_COMM_NULL != poleComme)
   {
     int nbClientPole;
-    ep_lib::MPI_Comm_size(poleComme, &nbClientPole);
+    MPI_Comm_size(poleComme, &nbClientPole);
 
     std::map<int,std::vector<std::pair<int,double> > >::iterator itePole = interMapValuePole.end(), itPole,
                                                                  itbPole = interMapValuePole.begin();
@@ -453,7 +449,7 @@ TRY
 
     std::vector<int> recvCount(nbClientPole,0);
     std::vector<int> displ(nbClientPole,0);
-    ep_lib::MPI_Allgather(&nbWeight,1,EP_INT,&recvCount[0],1,EP_INT,poleComme) ;
+    MPI_Allgather(&nbWeight,1,MPI_INT,&recvCount[0],1,MPI_INT,poleComme) ;
 
     displ[0]=0;
     for(int n=1;n<nbClientPole;++n) displ[n]=displ[n-1]+recvCount[n-1] ;
@@ -476,8 +472,8 @@ TRY
     std::vector<double> recvSourceWeightBuff(recvSize);
 
     // Gather all index and weight for pole
-    ep_lib::MPI_Allgatherv(&sendSourceIndexBuff[0],nbWeight,EP_INT,&recvSourceIndexBuff[0],&recvCount[0],&displ[0],EP_INT,poleComme);
-    ep_lib::MPI_Allgatherv(&sendSourceWeightBuff[0],nbWeight,EP_DOUBLE,&recvSourceWeightBuff[0],&recvCount[0],&displ[0],EP_DOUBLE,poleComme);
+    MPI_Allgatherv(&sendSourceIndexBuff[0],nbWeight,MPI_INT,&recvSourceIndexBuff[0],&recvCount[0],&displ[0],MPI_INT,poleComme);
+    MPI_Allgatherv(&sendSourceWeightBuff[0],nbWeight,MPI_DOUBLE,&recvSourceWeightBuff[0],&recvCount[0],&displ[0],MPI_DOUBLE,poleComme);
 
     std::map<int,double> recvTemp;
     for (int idx = 0; idx < recvSize; ++idx)
@@ -634,13 +630,13 @@ TRY
   }
 
 
-  ep_lib::MPI_Allreduce(sendBuff, recvBuff, nbClient, EP_INT, EP_SUM, client->intraComm);
+  MPI_Allreduce(sendBuff, recvBuff, nbClient, MPI_INT, MPI_SUM, client->intraComm);
 
   int* sendIndexDestBuff = new int [sendBuffSize];
   int* sendIndexSrcBuff  = new int [sendBuffSize];
   double* sendWeightBuff = new double [sendBuffSize];
 
-  std::vector<ep_lib::MPI_Request> sendRequest;
+  std::vector<MPI_Request> sendRequest;
 
   int sendOffSet = 0, l = 0;
   for (itMap = itbMap; itMap != iteMap; ++itMap)
@@ -661,26 +657,26 @@ TRY
       }
     }
 
-    sendRequest.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Isend(sendIndexDestBuff + sendOffSet,
+    sendRequest.push_back(MPI_Request());
+    MPI_Isend(sendIndexDestBuff + sendOffSet,
              k,
-             EP_INT,
+             MPI_INT,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
              client->intraComm,
              &sendRequest.back());
-    sendRequest.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Isend(sendIndexSrcBuff + sendOffSet,
+    sendRequest.push_back(MPI_Request());
+    MPI_Isend(sendIndexSrcBuff + sendOffSet,
              k,
-             EP_INT,
+             MPI_INT,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
              client->intraComm,
              &sendRequest.back());
-    sendRequest.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Isend(sendWeightBuff + sendOffSet,
+    sendRequest.push_back(MPI_Request());
+    MPI_Isend(sendWeightBuff + sendOffSet,
              k,
-             EP_DOUBLE,
+             MPI_DOUBLE,
              itMap->first,
              MPI_DOMAIN_INTERPOLATION_WEIGHT,
              client->intraComm,
@@ -696,44 +692,30 @@ TRY
   int clientSrcRank;
   while (receivedSize < recvBuffSize)
   {
-    ep_lib::MPI_Status recvStatus;
-    #ifdef _usingMPI
+    MPI_Status recvStatus;
     MPI_Recv((recvIndexDestBuff + receivedSize),
              recvBuffSize,
-             EP_INT,
+             MPI_INT,
              MPI_ANY_SOURCE,
              MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
              client->intraComm,
              &recvStatus);
-    #elif _usingEP
-    ep_lib::MPI_Recv((recvIndexDestBuff + receivedSize),
-             recvBuffSize,
-             EP_INT,
-             -2,
-             MPI_DOMAIN_INTERPOLATION_DEST_INDEX,
-             client->intraComm,
-             &recvStatus);
-    #endif
 
     int countBuff = 0;
-    ep_lib::MPI_Get_count(&recvStatus, EP_INT, &countBuff);
-    #ifdef _usingMPI
+    MPI_Get_count(&recvStatus, MPI_INT, &countBuff);
     clientSrcRank = recvStatus.MPI_SOURCE;
-    #elif _usingEP
-    clientSrcRank = recvStatus.ep_src;
-    #endif
 
-    ep_lib::MPI_Recv((recvIndexSrcBuff + receivedSize),
+    MPI_Recv((recvIndexSrcBuff + receivedSize),
              recvBuffSize,
-             EP_INT,
+             MPI_INT,
              clientSrcRank,
              MPI_DOMAIN_INTERPOLATION_SRC_INDEX,
              client->intraComm,
              &recvStatus);
 
-    ep_lib::MPI_Recv((recvWeightBuff + receivedSize),
+    MPI_Recv((recvWeightBuff + receivedSize),
              recvBuffSize,
-             EP_DOUBLE,
+             MPI_DOUBLE,
              clientSrcRank,
              MPI_DOMAIN_INTERPOLATION_WEIGHT,
              client->intraComm,
@@ -747,13 +729,8 @@ TRY
     receivedSize += countBuff;
   }
 
-  std::vector<ep_lib::MPI_Status> requestStatus(sendRequest.size());
-  #ifdef _usingMPI
+  std::vector<MPI_Status> requestStatus(sendRequest.size());
   MPI_Waitall(sendRequest.size(), &sendRequest[0], MPI_STATUS_IGNORE);
-  #elif _usingEP
-  std::vector<ep_lib::MPI_Status> waitstat(sendRequest.size());
-  ep_lib::MPI_Waitall(sendRequest.size(), &sendRequest[0], &waitstat[0]);
-  #endif
 
   delete [] sendIndexDestBuff;
   delete [] sendIndexSrcBuff;
@@ -767,7 +744,7 @@ TRY
 CATCH
  
 /*! Redefined some functions of CONetCDF4 to make use of them */
-CDomainAlgorithmInterpolate::WriteNetCdf::WriteNetCdf(const StdString& filename, const ep_lib::MPI_Comm comm)
+CDomainAlgorithmInterpolate::WriteNetCdf::WriteNetCdf(const StdString& filename, const MPI_Comm comm)
   : CNc4DataOutput(NULL, filename, false, false, true, comm, false, true) {}
 int CDomainAlgorithmInterpolate::WriteNetCdf::addDimensionWrite(const StdString& name, 
                                                                 const StdSize size)
@@ -857,8 +834,8 @@ TRY
     }    
   }
 
-  ep_lib::MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, EP_LONG, EP_SUM, client->intraComm);
-  ep_lib::MPI_Scan(&localNbWeight, &startIndex, 1, EP_LONG, EP_SUM, client->intraComm);
+  MPI_Allreduce(&localNbWeight, &globalNbWeight, 1, MPI_LONG, MPI_SUM, client->intraComm);
+  MPI_Scan(&localNbWeight, &startIndex, 1, MPI_LONG, MPI_SUM, client->intraComm);
   
   if (0 == globalNbWeight)
   {

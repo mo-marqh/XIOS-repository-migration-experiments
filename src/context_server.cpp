@@ -22,18 +22,18 @@
 namespace xios
 {
 
-  CContextServer::CContextServer(CContext* parent,ep_lib::MPI_Comm intraComm_,ep_lib::MPI_Comm interComm_)
+  CContextServer::CContextServer(CContext* parent,MPI_Comm intraComm_,MPI_Comm interComm_)
   {
     context=parent;
     intraComm=intraComm_;
-    ep_lib::MPI_Comm_size(intraComm,&intraCommSize);
-    ep_lib::MPI_Comm_rank(intraComm,&intraCommRank);
+    MPI_Comm_size(intraComm,&intraCommSize);
+    MPI_Comm_rank(intraComm,&intraCommRank);
 
     interComm=interComm_;
     int flag;
-    ep_lib::MPI_Comm_test_inter(interComm,&flag);
-    if (flag) ep_lib::MPI_Comm_remote_size(interComm,&commSize);
-    else  ep_lib::MPI_Comm_size(interComm,&commSize);
+    MPI_Comm_test_inter(interComm,&flag);
+    if (flag) MPI_Comm_remote_size(interComm,&commSize);
+    else  MPI_Comm_size(interComm,&commSize);
 
     currentTimeLine=0;
     scheduled=false;
@@ -75,25 +75,17 @@ namespace xios
     int flag;
     int count;
     char * addr;
-    ep_lib::MPI_Status status;
+    MPI_Status status;
     map<int,CServerBuffer*>::iterator it;
     bool okLoop;
 
     traceOff();
-    #ifdef _usingMPI
     MPI_Iprobe(MPI_ANY_SOURCE, 20,interComm,&flag,&status);
-    #elif _usingEP
-    ep_lib::MPI_Iprobe(-2, 20,interComm,&flag,&status);
-    #endif
     traceOn();
 
     if (flag==true)
     {
-      #ifdef _usingMPI
       rank=status.MPI_SOURCE ;
-      #elif _usingEP
-      rank=status.ep_src ;
-      #endif
       okLoop = true;
       if (pendingRequest.find(rank)==pendingRequest.end())
         okLoop = !listenPendingRequest(status) ;
@@ -105,7 +97,7 @@ namespace xios
           {
 
             traceOff();
-            ep_lib::MPI_Iprobe(rank, 20,interComm,&flag,&status);
+            MPI_Iprobe(rank, 20,interComm,&flag,&status);
             traceOn();
             if (flag==true) listenPendingRequest(status) ;
           }
@@ -114,33 +106,29 @@ namespace xios
     }
   }
 
-  bool CContextServer::listenPendingRequest(ep_lib::MPI_Status& status)
+  bool CContextServer::listenPendingRequest(MPI_Status& status)
   {
     int count;
     char * addr;
     map<int,CServerBuffer*>::iterator it;
-    #ifdef _usingMPI
     int rank=status.MPI_SOURCE ;
-    #elif _usingEP
-    int rank=status.ep_src ;
-    #endif
 
     it=buffers.find(rank);
     if (it==buffers.end()) // Receive the buffer size and allocate the buffer
     {
        StdSize buffSize = 0;
-       ep_lib::MPI_Recv(&buffSize, 1, EP_LONG, rank, 20, interComm, &status);
+       MPI_Recv(&buffSize, 1, MPI_LONG, rank, 20, interComm, &status);
        mapBufferSize_.insert(std::make_pair(rank, buffSize));
        it=(buffers.insert(pair<int,CServerBuffer*>(rank,new CServerBuffer(buffSize)))).first;
        return true;
     }
     else
     {
-      ep_lib::MPI_Get_count(&status,EP_CHAR,&count);
+      MPI_Get_count(&status,MPI_CHAR,&count);
       if (it->second->isBufferFree(count))
       {
          addr=(char*)it->second->getBuffer(count);
-         ep_lib::MPI_Irecv(addr,count,EP_CHAR,rank,20,interComm,&pendingRequest[rank]);
+         MPI_Irecv(addr,count,MPI_CHAR,rank,20,interComm,&pendingRequest[rank]);
          bufferRequest[rank]=addr;
          return true;
        }
@@ -152,24 +140,24 @@ namespace xios
 
   void CContextServer::checkPendingRequest(void)
   {
-    map<int,ep_lib::MPI_Request>::iterator it;
+    map<int,MPI_Request>::iterator it;
     list<int> recvRequest;
     list<int>::iterator itRecv;
     int rank;
     int flag;
     int count;
-    ep_lib::MPI_Status status;
+    MPI_Status status;
 
     for(it=pendingRequest.begin();it!=pendingRequest.end();it++)
     {
       rank=it->first;
       traceOff();
-      ep_lib::MPI_Test(& it->second, &flag, &status);
+      MPI_Test(& it->second, &flag, &status);
       traceOn();
       if (flag==true)
       {
         recvRequest.push_back(rank);
-        ep_lib::MPI_Get_count(&status,EP_CHAR,&count);
+        MPI_Get_count(&status,MPI_CHAR,&count);
         processRequest(rank,bufferRequest[rank],count);
       }
     }
@@ -229,7 +217,7 @@ namespace xios
          // When using attached mode, synchronise the processes to avoid that differents event be scheduled by differents processes
          // The best way to properly solve this problem will be to use the event scheduler also in attached mode
          // for now just set up a MPI barrier
-         if (!CServer::eventScheduler && CXios::isServer) ep_lib::MPI_Barrier(intraComm) ;
+         if (!CServer::eventScheduler && CXios::isServer) MPI_Barrier(intraComm) ;
 
          CTimer::get("Process events").resume();
          dispatchEvent(*event);

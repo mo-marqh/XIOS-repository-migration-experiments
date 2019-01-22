@@ -25,7 +25,7 @@ namespace xios
 
   bool CXios::isClient ;
   bool CXios::isServer ;
-  ep_lib::MPI_Comm CXios::globalComm ;
+  MPI_Comm CXios::globalComm ;
   bool CXios::usingOasis ;
   bool CXios::usingServer = false;
   bool CXios::usingServer2 = false;
@@ -89,15 +89,8 @@ namespace xios
       ERROR("CXios::parseXiosConfig()", "recv_field_timeout cannot be negative.");
 
     checkEventSync = getin<bool>("check_event_sync", checkEventSync);
-    #ifdef _usingMPI
+
     globalComm=MPI_COMM_WORLD ;
-    #elif _usingEP
-    ep_lib::MPI_Comm *ep_comm;
-    ep_lib::MPI_Info info;
-    ep_lib::MPI_Comm_create_endpoints(EP_COMM_WORLD->mpi_comm, 1, info, ep_comm);
-    ep_lib::passage = ep_comm;
-    globalComm=ep_lib::passage[0] ;
-    #endif
   }
 
   /*!
@@ -106,18 +99,15 @@ namespace xios
   \param [in] localComm local communicator
   \param [in/out] returnComm communicator corresponding to group of client with same codeId
   */
-  void CXios::initClientSide(const string& codeId, ep_lib::MPI_Comm& localComm, ep_lib::MPI_Comm& returnComm)
+  void CXios::initClientSide(const string& codeId, MPI_Comm& localComm, MPI_Comm& returnComm)
   TRY
   {
-    isClient = true;
-    isServer = false;
-
     initialize() ;
 
+    isClient = true;
 
     CClient::initialize(codeId,localComm,returnComm) ;
     if (CClient::getRank()==0) globalRegistry = new CRegistry(returnComm) ;
-
 
     // If there are no server processes then we are in attached mode
     // and the clients are also servers
@@ -176,12 +166,10 @@ namespace xios
   //! Initialize server then put it into listening state
   void CXios::initServerSide(void)
   {
-    isClient = false;
-    isServer = true;
-
     initServer();
     isClient = false;
     isServer = true;
+
     // Initialize all aspects MPI
     CServer::initialize();
     if (CServer::getRank()==0 && CServer::serverLevel != 1) globalRegistry = new CRegistry(CServer::intraComm) ;
@@ -234,7 +222,7 @@ namespace xios
         vector<int>& secondaryServerGlobalRanks = CServer::getSecondaryServerGlobalRanks();
         int firstPoolGlobalRank = secondaryServerGlobalRanks[0];
         int rankGlobal;
-        ep_lib::MPI_Comm_rank(globalComm, &rankGlobal);
+        MPI_Comm_rank(globalComm, &rankGlobal);
 
         // Merge registries defined on each pools
         CRegistry globalRegistrySndServers (CServer::intraComm);
@@ -246,17 +234,17 @@ namespace xios
           {
             globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
             int registrySize = globalRegistrySndServers.size();
-            ep_lib::MPI_Send(&registrySize,1,EP_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
+            MPI_Send(&registrySize,1,MPI_LONG,firstPoolGlobalRank,15,CXios::globalComm) ;
             CBufferOut buffer(registrySize) ;
             globalRegistrySndServers.toBuffer(buffer) ;
-            ep_lib::MPI_Send(buffer.start(),registrySize,EP_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
+            MPI_Send(buffer.start(),registrySize,MPI_CHAR,firstPoolGlobalRank,15,CXios::globalComm) ;
           }
         }
 
         // First pool: receive globalRegistry of all secondary server pools, merge and write the resultant registry
         if (rankGlobal == firstPoolGlobalRank)
         {
-          ep_lib::MPI_Status status;
+          MPI_Status status;
           char* recvBuff;
 
           globalRegistrySndServers.mergeRegistry(*globalRegistry) ;
@@ -265,9 +253,9 @@ namespace xios
           {
             int rank = secondaryServerGlobalRanks[i];
             int registrySize = 0;
-            ep_lib::MPI_Recv(&registrySize, 1, EP_LONG, rank, 15, CXios::globalComm, &status);
+            MPI_Recv(&registrySize, 1, MPI_LONG, rank, 15, CXios::globalComm, &status);
             recvBuff = new char[registrySize];
-            ep_lib::MPI_Recv(recvBuff, registrySize, EP_CHAR, rank, 15, CXios::globalComm, &status);
+            MPI_Recv(recvBuff, registrySize, MPI_CHAR, rank, 15, CXios::globalComm, &status);
             CBufferIn buffer(recvBuff, registrySize) ;
             CRegistry recvRegistry;
             recvRegistry.fromBuffer(buffer) ;

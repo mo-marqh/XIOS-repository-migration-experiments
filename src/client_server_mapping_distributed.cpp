@@ -19,7 +19,7 @@ namespace xios
 {
 
 CClientServerMappingDistributed::CClientServerMappingDistributed(const std::unordered_map<size_t,int>& globalIndexOfServer,
-                                                                 const ep_lib::MPI_Comm& clientIntraComm, bool isDataDistributed)
+                                                                 const MPI_Comm& clientIntraComm, bool isDataDistributed)
   : CClientServerMapping(), ccDHT_(0)
 {
   ccDHT_ = new CClientClientDHTInt(globalIndexOfServer,

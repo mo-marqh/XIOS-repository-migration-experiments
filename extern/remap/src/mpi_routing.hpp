@@ -10,7 +10,7 @@ namespace sphereRemap {
 class CMPIRouting
 {
 
-	ep_lib::MPI_Comm communicator;
+	MPI_Comm communicator;
 	int mpiRank;
 	int mpiSize;
 
@@ -28,7 +28,7 @@ class CMPIRouting
 
 
 public:
-	CMPIRouting(ep_lib::MPI_Comm comm);
+	CMPIRouting(MPI_Comm comm);
 	~CMPIRouting();
 	template<typename T> void init(const std::vector<T>& route, CMPICascade *cascade = NULL);
 	int getTotalSourceElement(void);
@@ -43,10 +43,10 @@ public:
 
 template <typename T>
 void alltoalls_known(const std::vector<std::vector<T> >& send, std::vector<std::vector<T> >& recv,
-                     const std::vector<int>& ranks, ep_lib::MPI_Comm communicator);
+                     const std::vector<int>& ranks, MPI_Comm communicator);
 
 template <typename T>
 void alltoalls_unknown(const std::vector<std::vector<T> >& send, std::vector<std::vector<T> >& recv,
-                       const std::vector<int>& ranks, ep_lib::MPI_Comm communicator);
+                       const std::vector<int>& ranks, MPI_Comm communicator);
 }
 #endif

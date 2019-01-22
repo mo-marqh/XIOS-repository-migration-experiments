@@ -59,26 +59,17 @@ extern "C"
    TRY
    {
       std::string str;
-      ep_lib::MPI_Comm local_comm;
-      ep_lib::MPI_Comm return_comm;
+      MPI_Comm local_comm;
+      MPI_Comm return_comm;
 
       if (!cstr2string(client_id, len_client_id, str)) return;
 
       int initialized;
-      ep_lib::MPI_Initialized(&initialized);
-      #ifdef _usingMPI
+      MPI_Initialized(&initialized);
       if (initialized) local_comm=MPI_Comm_f2c(*f_local_comm);
       else local_comm=MPI_COMM_NULL;
-      #elif _usingEP
-      if (initialized) local_comm=EP_Comm_f2c(f_local_comm);
-      else local_comm=EP_COMM_NULL;
-      #endif
       CXios::initClientSide(str, local_comm, return_comm);
-      #ifdef _usingMPI
       *f_return_comm=MPI_Comm_c2f(return_comm);
-      #elif _usingEP
-      *f_return_comm=*static_cast<MPI_Fint* >(EP_Comm_c2f(return_comm));
-      #endif
       CTimer::get("XIOS init").suspend();
       CTimer::get("XIOS").suspend();
    }
@@ -88,16 +79,12 @@ extern "C"
    TRY
    {
      std::string str;
-     ep_lib::MPI_Comm comm;
+     MPI_Comm comm;
 
      if (!cstr2string(context_id, len_context_id, str)) return;
      CTimer::get("XIOS").resume();
      CTimer::get("XIOS init context").resume();
-     #ifdef _usingMPI
      comm=MPI_Comm_f2c(*f_comm);
-     #elif _usingEP
-     comm=EP_Comm_f2c(f_comm);
-     #endif
      CClient::registerContext(str, comm);
      CTimer::get("XIOS init context").suspend();
      CTimer::get("XIOS").suspend();

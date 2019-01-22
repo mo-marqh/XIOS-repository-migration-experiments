@@ -20,27 +20,27 @@ namespace xios
     fxios_oasis_enddef() ;
   }
 
-  void oasis_get_localcomm(ep_lib::MPI_Comm& comm)
+  void oasis_get_localcomm(MPI_Comm& comm)
   {
-    ep_lib::MPI_Fint f_comm ;
+    MPI_Fint f_comm ;
     
     fxios_oasis_get_localcomm(&f_comm) ;
-    //comm=MPI_Comm_f2c(f_comm) ;
+    comm=MPI_Comm_f2c(f_comm) ;
   }
  
-  void oasis_get_intracomm(ep_lib::MPI_Comm& comm_client_server,const std::string& server_id)
+  void oasis_get_intracomm(MPI_Comm& comm_client_server,const std::string& server_id)
   {
-    ep_lib::MPI_Fint f_comm ;
+    MPI_Fint f_comm ;
     
     fxios_oasis_get_intracomm(&f_comm,server_id.data(),server_id.size()) ;
-    //comm_client_server=MPI_Comm_f2c(f_comm) ;
+    comm_client_server=MPI_Comm_f2c(f_comm) ;
   }
  
-  void oasis_get_intercomm(ep_lib::MPI_Comm& comm_client_server,const std::string& server_id)
+  void oasis_get_intercomm(MPI_Comm& comm_client_server,const std::string& server_id)
   {
-    ep_lib::MPI_Fint f_comm ;
+    MPI_Fint f_comm ;
     
     fxios_oasis_get_intercomm(&f_comm,server_id.data(),server_id.size()) ;
-    //comm_client_server=MPI_Comm_f2c(f_comm) ;
+    comm_client_server=MPI_Comm_f2c(f_comm) ;
   }
 }

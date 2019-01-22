@@ -9,38 +9,38 @@ namespace sphereRemap {
 
 const int verbose = 0;
 
-CMPIRouting::CMPIRouting(ep_lib::MPI_Comm comm) : communicator(comm)
+CMPIRouting::CMPIRouting(MPI_Comm comm) : communicator(comm)
 {
-	ep_lib::MPI_Comm_rank(comm, &mpiRank);
-	ep_lib::MPI_Comm_size(comm, &mpiSize);
+	MPI_Comm_rank(comm, &mpiRank);
+	MPI_Comm_size(comm, &mpiSize);
 }
 
 /* sparse alltoallv when it is known that only a subset of ranks will communicate,
     but message lengths are *known* to receiver */
 template <typename T>
-void alltoalls_known(const vector<vector<T> >& send, vector<vector<T> >& recv, const vector<int>& ranks, ep_lib::MPI_Comm communicator)
+void alltoalls_known(const vector<vector<T> >& send, vector<vector<T> >& recv, const vector<int>& ranks, MPI_Comm communicator)
 {
-	vector<ep_lib::MPI_Request> request(ranks.size() * 2);
-	vector<ep_lib::MPI_Status>  status(ranks.size() * 2);
+	vector<MPI_Request> request(ranks.size() * 2);
+	vector<MPI_Status>  status(ranks.size() * 2);
 
 	// communicate data
 	int nbRequest = 0;
 	for (int i = 0; i < ranks.size(); i++)
 		if (recv[i].size())
-			ep_lib::MPI_Irecv(&recv[i][0], recv[i].size()*sizeof(T), EP_CHAR, ranks[i], 0, communicator, &request[nbRequest++]);
+			MPI_Irecv(&recv[i][0], recv[i].size()*sizeof(T), MPI_CHAR, ranks[i], 0, communicator, &request[nbRequest++]);
 	for (int i = 0; i < ranks.size(); i++)
 		if (send[i].size())
-			ep_lib::MPI_Isend((void *) &send[i][0], send[i].size()*sizeof(T), EP_CHAR, ranks[i], 0, communicator, &request[nbRequest++]);
-	ep_lib::MPI_Waitall(nbRequest, &request[0], &status[0]);
+			MPI_Isend((void *) &send[i][0], send[i].size()*sizeof(T), MPI_CHAR, ranks[i], 0, communicator, &request[nbRequest++]);
+	MPI_Waitall(nbRequest, &request[0], &status[0]);
 }
 
 /* sparse alltoallv when it is known that only a subset of ranks will communicate,
     but message lengths are *unknown* to receiver */
 template <typename T>
-void alltoalls_unknown(const vector<vector<T> >& send, vector<vector<T> >& recv, const vector<int>& ranks, ep_lib::MPI_Comm communicator)
+void alltoalls_unknown(const vector<vector<T> >& send, vector<vector<T> >& recv, const vector<int>& ranks, MPI_Comm communicator)
 {
-	vector<ep_lib::MPI_Request> request(ranks.size() * 2);
-	vector<ep_lib::MPI_Status>  status(ranks.size() * 2);
+	vector<MPI_Request> request(ranks.size() * 2);
+	vector<MPI_Status>  status(ranks.size() * 2);
 
 	// communicate sizes
 	int nbRequest = 0;
@@ -49,10 +49,10 @@ void alltoalls_unknown(const vector<vector<T> >& send, vector<vector<T> >& recv,
 	for (int i = 0; i < ranks.size(); i++)
 		sendSizes[i] = send[i].size();
 	for (int i = 0; i < ranks.size(); i++)
-		ep_lib::MPI_Irecv(&recvSizes[i], 1, EP_INT, ranks[i], 0, communicator, &request[nbRequest++]);
+		MPI_Irecv(&recvSizes[i], 1, MPI_INT, ranks[i], 0, communicator, &request[nbRequest++]);
 	for (int i = 0; i < ranks.size(); i++)
-		ep_lib::MPI_Isend(&sendSizes[i], 1, EP_INT, ranks[i], 0, communicator, &request[nbRequest++]);
-	ep_lib::MPI_Waitall(nbRequest, &request[0], &status[0]);
+		MPI_Isend(&sendSizes[i], 1, MPI_INT, ranks[i], 0, communicator, &request[nbRequest++]);
+	MPI_Waitall(nbRequest, &request[0], &status[0]);
 
 	// allocate
 	for (int i = 0; i < ranks.size(); i++)
@@ -117,12 +117,12 @@ destRanks.push_back(i);
 	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::init(reduce_scatter)").reset();
 	CTimer::get("CMPIRouting::init(reduce_scatter)").resume();
-	ep_lib::MPI_Reduce_scatter(toSend, &nbSource, recvCount, EP_INT, EP_SUM, communicator);
+	MPI_Reduce_scatter(toSend, &nbSource, recvCount, MPI_INT, MPI_SUM, communicator);
 	CTimer::get("CMPIRouting::init(reduce_scatter)").suspend();
 	CTimer::get("CMPIRouting::init(reduce_scatter)").print();
 
-	ep_lib::MPI_Alloc_mem(nbTarget *sizeof(int), EP_INFO_NULL, &targetRank);
-	ep_lib::MPI_Alloc_mem(nbSource *sizeof(int), EP_INFO_NULL, &sourceRank);
+	MPI_Alloc_mem(nbTarget *sizeof(int), MPI_INFO_NULL, &targetRank);
+	MPI_Alloc_mem(nbSource *sizeof(int), MPI_INFO_NULL, &sourceRank);
 
 	targetRankToIndex = new int[mpiSize];
 	int index = 0;
@@ -136,12 +136,12 @@ destRanks.push_back(i);
 		}
 	}
 
-	ep_lib::MPI_Barrier(communicator);
+	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::init(get_source)").reset();
 	CTimer::get("CMPIRouting::init(get_source)").resume();
 
-	ep_lib::MPI_Request *request = new ep_lib::MPI_Request[nbSource + nbTarget];
-	ep_lib::MPI_Status  *status = new ep_lib::MPI_Status[nbSource + nbTarget];
+	MPI_Request *request = new MPI_Request[nbSource + nbTarget];
+	MPI_Status  *status = new MPI_Status[nbSource + nbTarget];
 
 	int indexRequest = 0;
 	if (verbose) cout << "CMPIRouting::init     nbSource : " << nbSource << " nbTarget : " << nbTarget << endl;
@@ -149,17 +149,13 @@ destRanks.push_back(i);
 //cout << mpiRank <<  "DEB : " << recvCntDeb << "    nbSource " << nbSource << " nbTarget : " << nbTarget << endl;
 	for (int i = 0; i < nbSource; i++)
 	{
-		#ifdef _usingMPI
-                ep_lib::MPI_Irecv(&sourceRank[i], 1, EP_INT, MPI_ANY_SOURCE, 0, communicator, &request[indexRequest]);
-		#elif _usingEP
-                ep_lib::MPI_Irecv(&sourceRank[i], 1, EP_INT, -2, 0, communicator, &request[indexRequest]);
-		#endif
-                indexRequest++;
+		MPI_Irecv(&sourceRank[i], 1, MPI_INT, MPI_ANY_SOURCE, 0, communicator, &request[indexRequest]);
+		indexRequest++;
 	}
 	MPI_Barrier(communicator);
 	for (int i = 0; i < nbTarget; i++)
 	{
-		ep_lib::MPI_Isend(&mpiRank, 1, EP_INT, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(&mpiRank, 1, MPI_INT, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 	MPI_Waitall(indexRequest, request, status);
@@ -173,17 +169,13 @@ destRanks.push_back(i);
 	indexRequest = 0;
 	for (int i = 0; i < nbSource; i++)
 	{
-		#ifdef _usingMPI
-                ep_lib::MPI_Irecv(&sourceRank[i], 1, EP_INT, MPI_ANY_SOURCE, 0, communicator, &request[indexRequest]);
-		#elif _usingEP
-                ep_lib::MPI_Irecv(&sourceRank[i], 1, EP_INT, -2, 0, communicator, &request[indexRequest]);
-		#endif
-                indexRequest++;
+		MPI_Irecv(&sourceRank[i], 1, MPI_INT, MPI_ANY_SOURCE, 0, communicator, &request[indexRequest]);
+		indexRequest++;
 	}
 
 	for (int i = 0; i < nbTarget; i++)
 	{
-		ep_lib::MPI_Isend(&mpiRank, 1, EP_INT, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(&mpiRank, 1, MPI_INT, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 	MPI_Waitall(indexRequest, request, status);
@@ -208,14 +200,14 @@ destRanks.push_back(i);
 	totalTargetElement = 0;
 	for (int i = 0; i < nbSource; i++)
 	{
-		ep_lib::MPI_Irecv(&nbSourceElement[i], 1, EP_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(&nbSourceElement[i], 1, MPI_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
 	for (int i = 0; i < nbTarget; i++)
 	{
 		totalTargetElement += nbTargetElement[i];
-		ep_lib::MPI_Isend(&nbTargetElement[i], 1, EP_INT, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(&nbTargetElement[i], 1, MPI_INT, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
@@ -283,31 +275,31 @@ void CMPIRouting::transferToTarget(T* targetElements, T* sourceElements)
 	}
 
 
-	ep_lib::MPI_Request* request=new ep_lib::MPI_Request[nbSource+nbTarget];
-	ep_lib::MPI_Status*  status=new ep_lib::MPI_Status[nbSource+nbTarget];
+	MPI_Request* request=new MPI_Request[nbSource+nbTarget];
+	MPI_Status*  status=new MPI_Status[nbSource+nbTarget];
 	int indexRequest=0;
 
-	ep_lib::MPI_Barrier(communicator);
+	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::transferToTarget").reset();
 	CTimer::get("CMPIRouting::transferToTarget").resume();
 
 	for(int i=0; i<nbSource; i++)
 	{
-		ep_lib::MPI_Irecv(sourceBuffer[i],nbSourceElement[i]*sizeof(T),EP_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(sourceBuffer[i],nbSourceElement[i]*sizeof(T),MPI_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
 	for(int i=0;i<nbTarget; i++)
 	{
-		ep_lib::MPI_Isend(targetBuffer[i],nbTargetElement[i]*sizeof(T), EP_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(targetBuffer[i],nbTargetElement[i]*sizeof(T), MPI_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
-	ep_lib::MPI_Waitall(indexRequest,request,status);
+	MPI_Waitall(indexRequest,request,status);
 
 	CTimer::get("CMPIRouting::transferToTarget").suspend();
 	CTimer::get("CMPIRouting::transferToTarget").print();
-	ep_lib::MPI_Barrier(communicator);
+	MPI_Barrier(communicator);
 
 	// unpack the data
 	for(int i=0;i<totalSourceElement;i++)
@@ -347,29 +339,29 @@ void CMPIRouting::transferToTarget(T* targetElements, T* sourceElements, t_pack 
 		pack(targetElements[i], NULL, targetMessageSize[index]);
 	}
 
-	ep_lib::MPI_Request *request = new ep_lib::MPI_Request[nbSource + nbTarget];
-	ep_lib::MPI_Status  *status = new ep_lib::MPI_Status[nbSource + nbTarget];
+	MPI_Request *request = new MPI_Request[nbSource + nbTarget];
+	MPI_Status  *status = new MPI_Status[nbSource + nbTarget];
 	int indexRequest = 0;
 
-	ep_lib::MPI_Barrier(communicator);
+	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::transferToTarget(messageSize)").reset();
 	CTimer::get("CMPIRouting::transferToTarget(messageSize)").resume();
 
 	for(int i=0; i<nbSource; i++)
 	{
-		ep_lib::MPI_Irecv(&sourceMessageSize[i],1,EP_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(&sourceMessageSize[i],1,MPI_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
 	for(int i=0; i<nbTarget; i++)
 	{
-		ep_lib::MPI_Isend(&targetMessageSize[i],1, EP_INT, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(&targetMessageSize[i],1, MPI_INT, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
-	ep_lib::MPI_Waitall(indexRequest,request,status);
+	MPI_Waitall(indexRequest,request,status);
 
-	ep_lib::MPI_Barrier(communicator);
+	MPI_Barrier(communicator);
 	CTimer::get("CMPIRouting::transferToTarget(messageSize)").suspend();
 	CTimer::get("CMPIRouting::transferToTarget(messageSize)").print();
 
@@ -402,13 +394,13 @@ void CMPIRouting::transferToTarget(T* targetElements, T* sourceElements, t_pack 
 	CTimer::get("CMPIRouting::transferToTarget(data)").resume();
 	for(int i=0; i<nbSource; i++)
 	{
-		ep_lib::MPI_Irecv(sourceBuffer[i],sourceMessageSize[i],EP_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(sourceBuffer[i],sourceMessageSize[i],MPI_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
 	for(int i=0;i<nbTarget; i++)
 	{
-		ep_lib::MPI_Isend(targetBuffer[i],targetMessageSize[i], EP_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(targetBuffer[i],targetMessageSize[i], MPI_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
@@ -467,23 +459,23 @@ void CMPIRouting::transferFromSource(T* targetElements, T* sourceElements)
 		indexSourceBuffer[index] += sizeof(T);
 	}
 
-	ep_lib::MPI_Request* request=new ep_lib::MPI_Request[nbSource+nbTarget];
-	ep_lib::MPI_Status*  status=new ep_lib::MPI_Status[nbSource+nbTarget];
+	MPI_Request* request=new MPI_Request[nbSource+nbTarget];
+	MPI_Status*  status=new MPI_Status[nbSource+nbTarget];
 	int indexRequest=0;
 
 	for(int i=0; i<nbSource; i++)
 	{
-		ep_lib::MPI_Isend(sourceBuffer[i],nbSourceElement[i]*sizeof(T),EP_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(sourceBuffer[i],nbSourceElement[i]*sizeof(T),MPI_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
 	for(int i=0;i<nbTarget; i++)
 	{
-		ep_lib::MPI_Irecv(targetBuffer[i],nbTargetElement[i]*sizeof(T), EP_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(targetBuffer[i],nbTargetElement[i]*sizeof(T), MPI_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 
-	ep_lib::MPI_Waitall(indexRequest,request,status);
+	MPI_Waitall(indexRequest,request,status);
 
 	// unpack the data
 	for(int i=0;i<totalTargetElement;i++)
@@ -523,20 +515,20 @@ void CMPIRouting::transferFromSource(T *targetElements, T *sourceElements, t_pac
 		pack(sourceElements[i], NULL, sourceMessageSize[index]);
 	}
 
-	ep_lib::MPI_Request *request = new ep_lib::MPI_Request[nbSource + nbTarget];
-	ep_lib::MPI_Status  *status = new ep_lib::MPI_Status[nbSource + nbTarget];
+	MPI_Request *request = new MPI_Request[nbSource + nbTarget];
+	MPI_Status  *status = new MPI_Status[nbSource + nbTarget];
 	int indexRequest = 0;
 	for (int i = 0; i < nbSource; i++)
 	{
-		ep_lib::MPI_Isend(&sourceMessageSize[i], 1, EP_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(&sourceMessageSize[i], 1, MPI_INT, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 	for (int i = 0; i < nbTarget; i++)
 	{
-		ep_lib::MPI_Irecv(&targetMessageSize[i], 1, EP_INT, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(&targetMessageSize[i], 1, MPI_INT, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
-	ep_lib::MPI_Waitall(indexRequest, request, status);
+	MPI_Waitall(indexRequest, request, status);
 
 	for (int i = 0; i < nbTarget; i++)
 	{
@@ -564,15 +556,15 @@ void CMPIRouting::transferFromSource(T *targetElements, T *sourceElements, t_pac
 	indexRequest = 0;
 	for (int i = 0; i < nbSource; i++)
 	{
-		ep_lib::MPI_Isend(sourceBuffer[i], sourceMessageSize[i], EP_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Isend(sourceBuffer[i], sourceMessageSize[i], MPI_CHAR, sourceRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
 	for (int i = 0; i < nbTarget; i++)
 	{
-		ep_lib::MPI_Irecv(targetBuffer[i], targetMessageSize[i], EP_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
+		MPI_Irecv(targetBuffer[i], targetMessageSize[i], MPI_CHAR, targetRank[i], 0, communicator, &request[indexRequest]);
 		indexRequest++;
 	}
-	ep_lib::MPI_Waitall(indexRequest, request, status);
+	MPI_Waitall(indexRequest, request, status);
 
 	// unpack the data
 	for (int i = 0; i < totalTargetElement; i++)
@@ -612,9 +604,9 @@ template void CMPIRouting::transferFromSource(std::vector<int> *targetElements, 
 struct NES { int cnt; int risc; int rank; };
 
 template void alltoalls_unknown(const std::vector<std::vector<NES> >& send, std::vector<std::vector<NES> >& recv,
-                                const std::vector<int>& ranks, ep_lib::MPI_Comm communicator);
+                                const std::vector<int>& ranks, MPI_Comm communicator);
 
 template void alltoalls_known(const std::vector<std::vector<int> >& send, std::vector<std::vector<int> >& recv,
-                              const std::vector<int>& ranks, ep_lib::MPI_Comm communicator);
+                              const std::vector<int>& ranks, MPI_Comm communicator);
 
 }

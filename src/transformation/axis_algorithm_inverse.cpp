@@ -160,15 +160,15 @@ TRY
     sendSizeBuff[n] = sendSize;
     sendRankSizeMap[itIndex->first] = sendSize;
   }
-  ep_lib::MPI_Allgather(&connectedClient,1,EP_INT,recvCount,1,EP_INT,client->intraComm);
+  MPI_Allgather(&connectedClient,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
 
   displ[0]=0 ;
   for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
   int recvSize=displ[nbClient-1]+recvCount[nbClient-1];
   int* recvRankBuff=new int[recvSize];
   int* recvSizeBuff=new int[recvSize];
-  ep_lib::MPI_Allgatherv(sendRankBuff,connectedClient,EP_INT,recvRankBuff,recvCount,displ,EP_INT,client->intraComm);
-  ep_lib::MPI_Allgatherv(sendSizeBuff,connectedClient,EP_INT,recvSizeBuff,recvCount,displ,EP_INT,client->intraComm);
+  MPI_Allgatherv(sendRankBuff,connectedClient,MPI_INT,recvRankBuff,recvCount,displ,MPI_INT,client->intraComm);
+  MPI_Allgatherv(sendSizeBuff,connectedClient,MPI_INT,recvSizeBuff,recvCount,displ,MPI_INT,client->intraComm);
   for (int i = 0; i < nbClient; ++i)
   {
     int currentPos = displ[i];
@@ -180,8 +180,8 @@ TRY
   }
 
   // Sending global index of grid source to corresponding process as well as the corresponding mask
-  std::vector<ep_lib::MPI_Request> requests;
-  std::vector<ep_lib::MPI_Status> status;
+  std::vector<MPI_Request> requests;
+  std::vector<MPI_Status> status;
   std::unordered_map<int, unsigned long* > recvGlobalIndexSrc;
   std::unordered_map<int, double* > sendValueToDest;
   for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
@@ -191,8 +191,8 @@ TRY
     recvGlobalIndexSrc[recvRank] = new unsigned long [recvSize];
     sendValueToDest[recvRank] = new double [recvSize];
 
-    requests.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, EP_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvGlobalIndexSrc[recvRank], recvSize, MPI_UNSIGNED_LONG, recvRank, 46, client->intraComm, &requests.back());
   }
 
   std::unordered_map<int, unsigned long* > sendGlobalIndexSrc;
@@ -213,16 +213,16 @@ TRY
     }
 
     // Send global index source and mask
-    requests.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, EP_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendGlobalIndexSrc[sendRank], sendSize, MPI_UNSIGNED_LONG, sendRank, 46, client->intraComm, &requests.back());
   }
 
   status.resize(requests.size());
-  ep_lib::MPI_Waitall(requests.size(), &requests[0], &status[0]);
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
 
-  std::vector<ep_lib::MPI_Request>().swap(requests);
-  std::vector<ep_lib::MPI_Status>().swap(status);
+  std::vector<MPI_Request>().swap(requests);
+  std::vector<MPI_Status>().swap(status);
 
   // Okie, on destination side, we will wait for information of masked index of source
   for (std::map<int,int>::const_iterator itSend = sendRankSizeMap.begin(); itSend != sendRankSizeMap.end(); ++itSend)
@@ -230,8 +230,8 @@ TRY
     int recvRank = itSend->first;
     int recvSize = itSend->second;
 
-    requests.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Irecv(recvValueFromSrc[recvRank], recvSize, EP_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Irecv(recvValueFromSrc[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
   }
 
   for (std::map<int,int>::const_iterator itRecv = recvRankSizeMap.begin(); itRecv != recvRankSizeMap.end(); ++itRecv)
@@ -248,11 +248,11 @@ TRY
       *(sendValue + idx) = axisSrc_->value(localIndex);
     }
     // Okie, now inform the destination which source index are masked
-    requests.push_back(ep_lib::MPI_Request());
-    ep_lib::MPI_Isend(sendValueToDest[recvRank], recvSize, EP_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
+    requests.push_back(MPI_Request());
+    MPI_Isend(sendValueToDest[recvRank], recvSize, MPI_DOUBLE, recvRank, 48, client->intraComm, &requests.back());
   }
   status.resize(requests.size());
-  ep_lib::MPI_Waitall(requests.size(), &requests[0], &status[0]);
+  MPI_Waitall(requests.size(), &requests[0], &status[0]);
 
 
   size_t nGloAxisDest = axisDest_->n_glo.getValue() - 1;

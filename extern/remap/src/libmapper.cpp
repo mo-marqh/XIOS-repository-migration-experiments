@@ -42,7 +42,7 @@ extern "C" void remap_get_num_weights(const double* src_bounds_lon, const double
 	assert(1 <= order && order <= 2);
   double* src_area=NULL ;
   double* dst_area=NULL ;
-  mapper = new Mapper(EP_COMM_WORLD);
+  mapper = new Mapper(MPI_COMM_WORLD);
   mapper->setVerbosity(PROGRESS) ;
   mapper->setSourceMesh(src_bounds_lon, src_bounds_lat, src_area, n_vert_per_cell_src, n_cell_src, src_pole ) ;
   mapper->setTargetMesh(dst_bounds_lon, dst_bounds_lat, dst_area, n_vert_per_cell_dst, n_cell_dst, dst_pole ) ;

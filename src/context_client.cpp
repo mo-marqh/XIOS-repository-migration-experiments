@@ -20,19 +20,19 @@ namespace xios
     \param [in] interComm_ communicator of group server
     \cxtSer [in] cxtSer Pointer to context of server side. (It is only used in case of attached mode).
     */
-    CContextClient::CContextClient(CContext* parent, ep_lib::MPI_Comm intraComm_, ep_lib::MPI_Comm interComm_, CContext* cxtSer)
+    CContextClient::CContextClient(CContext* parent, MPI_Comm intraComm_, MPI_Comm interComm_, CContext* cxtSer)
      : mapBufferSize_(), parentServer(cxtSer), maxBufferedEvents(4)
     {
       context = parent;
       intraComm = intraComm_;
       interComm = interComm_;
-      ep_lib::MPI_Comm_rank(intraComm, &clientRank);
-      ep_lib::MPI_Comm_size(intraComm, &clientSize);
+      MPI_Comm_rank(intraComm, &clientRank);
+      MPI_Comm_size(intraComm, &clientSize);
 
       int flag;
-      ep_lib::MPI_Comm_test_inter(interComm, &flag);
-      if (flag) ep_lib::MPI_Comm_remote_size(interComm, &serverSize);
-      else  ep_lib::MPI_Comm_size(interComm, &serverSize);
+      MPI_Comm_test_inter(interComm, &flag);
+      if (flag) MPI_Comm_remote_size(interComm, &serverSize);
+      else  MPI_Comm_size(interComm, &serverSize);
 
       computeLeader(clientRank, clientSize, serverSize, ranksServerLeader, ranksServerNotLeader);
 
@@ -101,9 +101,9 @@ namespace xios
         typeId_in=event.getTypeId() ;
         classId_in=event.getClassId() ;
 //        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_UINT64_T, MPI_SUM, intraComm) ; // MPI_UINT64_T standardized by MPI 3
-        ep_lib::MPI_Allreduce(&timeLine,&timeLine_out, 1, EP_LONG_LONG_INT, EP_SUM, intraComm) ; 
-        ep_lib::MPI_Allreduce(&typeId_in,&typeId, 1, EP_INT, EP_SUM, intraComm) ;
-        ep_lib::MPI_Allreduce(&classId_in,&classId, 1, EP_INT, EP_SUM, intraComm) ;
+        MPI_Allreduce(&timeLine,&timeLine_out, 1, MPI_LONG_LONG_INT, MPI_SUM, intraComm) ; 
+        MPI_Allreduce(&typeId_in,&typeId, 1, MPI_INT, MPI_SUM, intraComm) ;
+        MPI_Allreduce(&classId_in,&classId, 1, MPI_INT, MPI_SUM, intraComm) ;
         if (typeId/clientSize!=event.getTypeId() || classId/clientSize!=event.getClassId() || timeLine_out/clientSize!=timeLine)
         {
            ERROR("void CContextClient::sendEvent(CEventClient& event)",
@@ -342,11 +342,7 @@ namespace xios
        double ratio = double(it->second) / maxEventSizes[it->first];
        if (ratio < minBufferSizeEventSizeRatio) minBufferSizeEventSizeRatio = ratio;
      }
-     #ifdef _usingMPI
-     ep_lib::MPI_Allreduce(MPI_IN_PLACE, &minBufferSizeEventSizeRatio, 1, EP_DOUBLE, EP_MIN, intraComm);
-     #elif _usingEP
-     ep_lib::MPI_Allreduce(&minBufferSizeEventSizeRatio, &minBufferSizeEventSizeRatio, 1, EP_DOUBLE, EP_MIN, intraComm);
-     #endif
+     MPI_Allreduce(MPI_IN_PLACE, &minBufferSizeEventSizeRatio, 1, MPI_DOUBLE, MPI_MIN, intraComm);
 
      if (minBufferSizeEventSizeRatio < 1.0)
      {

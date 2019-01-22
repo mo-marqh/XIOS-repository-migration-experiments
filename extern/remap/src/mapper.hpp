@@ -17,7 +17,7 @@ void cptOffsetsFromLengths(const int *lengths, int *offsets, int sz);
 class Mapper
 {
 public:
-       Mapper(ep_lib::MPI_Comm comm=EP_COMM_WORLD) : communicator(comm), verbose(SILENT), neighbourElements(NULL), sstree(comm) {}
+       Mapper(MPI_Comm comm=MPI_COMM_WORLD) : communicator(comm), verbose(SILENT), neighbourElements(NULL), sstree(comm) {}
        ~Mapper();
        void setVerbosity(verbosity v) {verbose=v ;}
 
@@ -66,7 +66,7 @@ private:
        Elt* neighbourElements;
 
        CParallelTree sstree;
-       ep_lib::MPI_Comm communicator ;
+       MPI_Comm communicator ;
        std::vector<Elt>  sourceElements ;
        std::vector<Node> sourceMesh ;
        std::vector<Elt>  targetElements ;

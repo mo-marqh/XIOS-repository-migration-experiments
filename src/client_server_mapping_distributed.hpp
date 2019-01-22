@@ -34,7 +34,7 @@ class CClientServerMappingDistributed : public CClientServerMapping
   public:
     /** Default constructor */
     CClientServerMappingDistributed(const std::unordered_map<size_t,int>& globalIndexOfServer,
-                                    const ep_lib::MPI_Comm& clientIntraComm,
+                                    const MPI_Comm& clientIntraComm,
                                     bool isDataDistributed = true);
 
     virtual void computeServerIndexMapping(const CArray<size_t,1>& globalIndexOnClientSendToServer, int nbServer);

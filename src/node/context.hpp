@@ -87,8 +87,8 @@ namespace xios {
 
       public :
          // Initialize server or client
-         void initClient(ep_lib::MPI_Comm intraComm, ep_lib::MPI_Comm interComm, CContext* cxtServer = 0);
-         void initServer(ep_lib::MPI_Comm intraComm, ep_lib::MPI_Comm interComm, CContext* cxtClient = 0);
+         void initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer = 0);
+         void initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient = 0);
          bool isInitialized(void);
 
          StdString dumpClassAttributes(void);
@@ -262,7 +262,7 @@ namespace xios {
          int countChildCtx_;        //!< Counter of child contexts (for now it is the number of secondary server pools)
          StdString idServer_;
          CGarbageCollector garbageCollector;
-         std::list<ep_lib::MPI_Comm> comms; //!< Communicators allocated internally
+         std::list<MPI_Comm> comms; //!< Communicators allocated internally
 
       public: // Some function maybe removed in the near future
         // virtual void toBinary  (StdOStream & os) const;

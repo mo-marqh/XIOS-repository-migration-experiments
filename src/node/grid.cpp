@@ -660,8 +660,8 @@ namespace xios {
         if (isDataDistributed_)
         {
           CContextServer* server = CContext::getCurrent()->server;      
-          ep_lib::MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, EP_INT, EP_SUM, server->intraComm);
-          ep_lib::MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, EP_INT, EP_SUM, server->intraComm);
+          MPI_Allreduce(&numberWrittenIndexes_, &totalNumberWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
+          MPI_Scan(&numberWrittenIndexes_, &offsetWrittenIndexes_, 1, MPI_INT, MPI_SUM, server->intraComm);
           offsetWrittenIndexes_ -= numberWrittenIndexes_;
         }
         else
@@ -855,13 +855,13 @@ namespace xios {
          std::vector<int> displs (client->clientSize);
          displs[0] = 0;
          int localCount = connectedServerRank_[receiverSize].size() ;
-         ep_lib::MPI_Gather(&localCount, 1, EP_INT, &counts[0], 1, EP_INT, 0, client->intraComm) ;
+         MPI_Gather(&localCount, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, client->intraComm) ;
          for (int i = 0; i < client->clientSize-1; ++i)
          {
            displs[i+1] = displs[i] + counts[i];
          }
          std::vector<int> allConnectedServers(displs[client->clientSize-1]+counts[client->clientSize-1]);
-         ep_lib::MPI_Gatherv(&(connectedServerRank_[receiverSize])[0], localCount, EP_INT, &allConnectedServers[0], &counts[0], &displs[0], EP_INT, 0, client->intraComm);
+         MPI_Gatherv(&(connectedServerRank_[receiverSize])[0], localCount, MPI_INT, &allConnectedServers[0], &counts[0], &displs[0], MPI_INT, 0, client->intraComm);
 
          if ((allConnectedServers.size() != receiverSize) && (client->clientRank == 0))
          {

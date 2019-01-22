@@ -11,7 +11,7 @@ namespace sphereRemap {
 class CParallelTree
 {
 public:
-	CParallelTree(ep_lib::MPI_Comm comm);
+	CParallelTree(MPI_Comm comm);
 	~CParallelTree();
 
 	void build(vector<Node>& node, vector<Node>& node2);
@@ -33,7 +33,7 @@ private:
 	//CSampleTree sampleTree;
 	vector<CSampleTree> treeCascade; // first for sample tree, then for routing tree
 	CMPICascade cascade;
-  ep_lib::MPI_Comm communicator ;
+  MPI_Comm communicator ;
 
 };
 

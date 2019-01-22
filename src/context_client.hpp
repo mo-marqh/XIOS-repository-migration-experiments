@@ -26,7 +26,7 @@ namespace xios
   {
     public:
       // Contructor
-      CContextClient(CContext* parent, ep_lib::MPI_Comm intraComm, ep_lib::MPI_Comm interComm, CContext* parentServer = 0);
+      CContextClient(CContext* parent, MPI_Comm intraComm, MPI_Comm interComm, CContext* parentServer = 0);
 
       // Send event to server
       void sendEvent(CEventClient& event);
@@ -70,9 +70,9 @@ namespace xios
 
       int serverSize; //!< Size of server group
 
-      ep_lib::MPI_Comm interComm; //!< Communicator of server group
+      MPI_Comm interComm; //!< Communicator of server group
 
-      ep_lib::MPI_Comm intraComm; //!< Communicator of client group
+      MPI_Comm intraComm; //!< Communicator of client group
 
       map<int,CClientBuffer*> buffers; //!< Buffers for connection to servers
 

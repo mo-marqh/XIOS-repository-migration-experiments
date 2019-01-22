@@ -135,13 +135,13 @@ TRY
       if (2 == axisDomainSrcOrder(elementPositionInGrid)) // It's domain
       {
         distributed=domainListSrcP[elementPositionInGridSrc2DomainPosition_[elementPositionInGrid]]->isDistributed() ;
-        ep_lib::MPI_Allreduce(&distributed,&distributed_glo, 1, EP_INT, EP_LOR, client->intraComm) ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
     
       }
       else if (1 == axisDomainSrcOrder(elementPositionInGrid))//it's an axis
       {
         distributed=axisListSrcP[elementPositionInGridSrc2AxisPosition_[elementPositionInGrid]]->isDistributed() ;
-        ep_lib::MPI_Allreduce(&distributed,&distributed_glo, 1, EP_INT, EP_LOR, client->intraComm) ;
+        MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, client->intraComm) ;
       }
       else //it's a scalar
       {
@@ -237,7 +237,7 @@ TRY
       
   int sendValue = (computeGlobalIndexOnProc) ? 1 : 0;
   int recvValue = 0;
-  ep_lib::MPI_Allreduce(&sendValue, &recvValue, 1, EP_INT, EP_SUM, client->intraComm);
+  MPI_Allreduce(&sendValue, &recvValue, 1, MPI_INT, MPI_SUM, client->intraComm);
   computeGlobalIndexOnProc = (0 < recvValue);
 
 //  CClientClientDHTInt::Index2VectorInfoTypeMap globalIndexOfTransformedElementOnProc;

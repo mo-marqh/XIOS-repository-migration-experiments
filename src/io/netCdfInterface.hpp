@@ -31,13 +31,13 @@ namespace xios
     static int create(const StdString& path, int cmode, int& ncId);
 
     //! Create a netcdf file on a parallel file system
-    static int createPar(const StdString& path, int cmode, ep_lib::MPI_Comm comm, ep_lib::MPI_Info info, int& ncId);
+    static int createPar(const StdString& path, int cmode, MPI_Comm comm, MPI_Info info, int& ncId);
 
     //! Open a netcdf file
     static int open(const StdString& path, int oMode, int& ncId);
 
     //! Open a netcdf file
-    static int openPar(const StdString& path, int cmode, ep_lib::MPI_Comm comm, ep_lib::MPI_Info info, int& ncId);
+    static int openPar(const StdString& path, int cmode, MPI_Comm comm, MPI_Info info, int& ncId);
 
     //! Close a netcdf file
     static int close(int ncId);

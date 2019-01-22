@@ -22,7 +22,7 @@ namespace xios
     public:
 
 /** Constructor, the communicator is used for bcast or gather operation between MPI processes */
-      CRegistry(const ep_lib::MPI_Comm& comm=EP_COMM_WORLD) : communicator(comm) {}
+      CRegistry(const MPI_Comm& comm=MPI_COMM_WORLD) : communicator(comm) {}
 
 /** Copy constructor */
       CRegistry(const CRegistry& reg) ;
@@ -105,10 +105,10 @@ namespace xios
       void getKey_(const std::string& key, CBaseType& value) ;
 
 /** use internally for recursivity */
-      void gatherRegistry(const ep_lib::MPI_Comm& comm) ;
+      void gatherRegistry(const MPI_Comm& comm) ;
 
 /** use internally for recursivity */
-      void hierarchicalGatherRegistry(const ep_lib::MPI_Comm& comm) ;
+      void hierarchicalGatherRegistry(const MPI_Comm& comm) ;
 
 
 /** Prefix added systematically to the keys, with "::" as separator*/
@@ -119,7 +119,7 @@ namespace xios
       std::map<std::string,std::pair<size_t,char*> > registry ;
 
 /** MPI communicator used for broadcast and gather operation */
-      ep_lib::MPI_Comm communicator ;
+      MPI_Comm communicator ;
   } ;
 
   inline CMessage& operator<<(CMessage& msg, CRegistry& registry)

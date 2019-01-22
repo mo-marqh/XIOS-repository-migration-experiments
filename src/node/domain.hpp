@@ -93,10 +93,10 @@ namespace xios {
          bool IsWritten(const StdString & filename) const;
          bool isWrittenCompressed(const StdString& filename) const;
          
-         int getNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom);
-         int getTotalNumberWrittenIndexes(ep_lib::MPI_Comm writtenCom);
-         int getOffsetWrittenIndexes(ep_lib::MPI_Comm writtenCom);
-         CArray<int,1>& getCompressedIndexToWriteOnServer(ep_lib::MPI_Comm writtenCom);
+         int getNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getTotalNumberWrittenIndexes(MPI_Comm writtenCom);
+         int getOffsetWrittenIndexes(MPI_Comm writtenCom);
+         CArray<int,1>& getCompressedIndexToWriteOnServer(MPI_Comm writtenCom);
 
          std::map<int, StdSize> getAttributesBufferSize(CContextClient* client, bool bufferForWriting = false);
 
@@ -115,7 +115,7 @@ namespace xios {
          void addRelFileCompressed(const StdString& filename);            
          
          void computeWrittenIndex();
-         void computeWrittenCompressedIndex(ep_lib::MPI_Comm);
+         void computeWrittenCompressedIndex(MPI_Comm);
 
          void AllgatherRectilinearLonLat(CArray<double,1>& lon, CArray<double,1>& lat,
                                          CArray<double,1>& lon_g, CArray<double,1>& lat_g);

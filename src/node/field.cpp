@@ -530,11 +530,7 @@ namespace xios{
 
     if (!nstepMaxRead)
     {
-       #ifdef _usingMPI
        MPI_Allreduce(MPI_IN_PLACE, &nstepMax, 1, MPI_INT, MPI_MAX, context->server->intraComm);
-       #elif _usingEP
-       ep_lib::MPI_Allreduce(&nstepMax, &nstepMax, 1, EP_INT, EP_MAX, context->server->intraComm);
-       #endif
        nstepMaxRead = true;
     }
 

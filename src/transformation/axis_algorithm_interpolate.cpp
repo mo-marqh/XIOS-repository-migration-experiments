@@ -271,15 +271,15 @@ TRY
     }
 
     int* recvCount=new int[nbClient];
-    ep_lib::MPI_Allgather(&numValue,1,EP_INT,recvCount,1,EP_INT,client->intraComm);
+    MPI_Allgather(&numValue,1,MPI_INT,recvCount,1,MPI_INT,client->intraComm);
 
     int* displ=new int[nbClient];
     displ[0]=0 ;
     for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1];
 
     // Each client have enough global info of axis
-    ep_lib::MPI_Allgatherv(sendIndexBuff,numValue,EP_INT,recvIndexBuff,recvCount,displ,EP_INT,client->intraComm);
-    ep_lib::MPI_Allgatherv(sendValueBuff,numValue,EP_DOUBLE,&(recvBuff[0]),recvCount,displ,EP_DOUBLE,client->intraComm);
+    MPI_Allgatherv(sendIndexBuff,numValue,MPI_INT,recvIndexBuff,recvCount,displ,MPI_INT,client->intraComm);
+    MPI_Allgatherv(sendValueBuff,numValue,MPI_DOUBLE,&(recvBuff[0]),recvCount,displ,MPI_DOUBLE,client->intraComm);
 
     for (int idx = 0; idx < srcSize; ++idx)
     {

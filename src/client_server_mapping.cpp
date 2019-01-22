@@ -29,7 +29,7 @@ some clients. In order to write data correctly, each server must know from how m
   \param [in] connectedServerRank Rank of servers connected to one client
 */
 std::map<int,int> CClientServerMapping::computeConnectedClients(int nbServer, int nbClient,
-                                                                ep_lib::MPI_Comm& clientIntraComm,
+                                                                MPI_Comm& clientIntraComm,
                                                                 const std::vector<int>& connectedServerRank)
 {
   std::map<int, int> connectedClients; // number of clients connected to a server
@@ -61,7 +61,7 @@ std::map<int,int> CClientServerMapping::computeConnectedClients(int nbServer, in
   for(int n=0;n<nbConnectedServer;n++) sendBuff[n]=connectedServer[n] ;
 
   // get connected server for everybody
-  ep_lib::MPI_Allgather(&nbConnectedServer,1,EP_INT,recvCount,1,EP_INT,clientIntraComm) ;
+  MPI_Allgather(&nbConnectedServer,1,MPI_INT,recvCount,1,MPI_INT,clientIntraComm) ;
 
   displ[0]=0 ;
   for(int n=1;n<nbClient;n++) displ[n]=displ[n-1]+recvCount[n-1] ;
@@ -69,7 +69,7 @@ std::map<int,int> CClientServerMapping::computeConnectedClients(int nbServer, in
   int* recvBuff=new int[recvSize] ;
 
 
-  ep_lib::MPI_Allgatherv(sendBuff,nbConnectedServer,EP_INT,recvBuff,recvCount,displ,EP_INT,clientIntraComm) ;
+  MPI_Allgatherv(sendBuff,nbConnectedServer,MPI_INT,recvBuff,recvCount,displ,MPI_INT,clientIntraComm) ;
   for(int n=0;n<recvSize;n++) clientRes[recvBuff[n]]++ ;
 
   for(int n=0;n<nbConnectedServer;n++)

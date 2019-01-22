@@ -190,21 +190,21 @@ namespace xios
   void CRegistry::bcastRegistry(void)
   {
     int rank ;
-    ep_lib::MPI_Comm_rank(communicator,&rank);
+    MPI_Comm_rank(communicator,&rank);
     if (rank==0)
     {
       CBufferOut buffer(this->size()) ;
       this->toBuffer(buffer) ;
       int size=buffer.count() ;
-      ep_lib::MPI_Bcast(&size,1,EP_INT,0,communicator) ;
-      ep_lib::MPI_Bcast(buffer.start(),size,EP_CHAR,0,communicator) ;
+      MPI_Bcast(&size,1,MPI_INT,0,communicator) ;
+      MPI_Bcast(buffer.start(),size,MPI_CHAR,0,communicator) ;
     }
     else
     {
       int size ;
-      ep_lib::MPI_Bcast(&size,1,EP_INT,0,communicator) ;
+      MPI_Bcast(&size,1,MPI_INT,0,communicator) ;
       CBufferIn buffer(size) ;
-      ep_lib::MPI_Bcast(buffer.start(),size,EP_CHAR,0,communicator) ;
+      MPI_Bcast(buffer.start(),size,MPI_CHAR,0,communicator) ;
       this->fromBuffer(buffer) ;
     }
   }
@@ -213,17 +213,17 @@ namespace xios
     gatherRegistry(communicator) ;
   }
 
-  void CRegistry::gatherRegistry(const ep_lib::MPI_Comm& comm)
+  void CRegistry::gatherRegistry(const MPI_Comm& comm)
   {
     int rank,mpiSize ;
-    ep_lib::MPI_Comm_rank(comm,&rank);
-    ep_lib::MPI_Comm_size(comm,&mpiSize);
+    MPI_Comm_rank(comm,&rank);
+    MPI_Comm_size(comm,&mpiSize);
 
     int* sizes=new int[mpiSize] ;
     CBufferOut localBuffer(this->size()) ;
     this->toBuffer(localBuffer) ;
     int localSize=localBuffer.count() ;
-    ep_lib::MPI_Gather(&localSize,1,EP_INT,sizes,1,EP_INT,0,comm) ;
+    MPI_Gather(&localSize,1,MPI_INT,sizes,1,MPI_INT,0,comm) ;
 
     char* globalBuffer ;
     int*   displs ;
@@ -239,7 +239,7 @@ namespace xios
       }
 
       globalBuffer=new char[globalBufferSize] ;
-      ep_lib::MPI_Gatherv(localBuffer.start(),localSize,EP_CHAR,globalBuffer,sizes,displs,EP_CHAR,0,comm) ;
+      MPI_Gatherv(localBuffer.start(),localSize,MPI_CHAR,globalBuffer,sizes,displs,MPI_CHAR,0,comm) ;
       for(int i=1;i<mpiSize;++i)
       {
         CBufferIn buffer(globalBuffer+displs[i],sizes[i]) ;
@@ -250,7 +250,7 @@ namespace xios
       delete[] displs ;
       delete[] globalBuffer ;
     }
-    else  ep_lib::MPI_Gatherv(localBuffer.start(),localSize,EP_CHAR,globalBuffer,sizes,displs,EP_CHAR,0,comm) ;   
+    else  MPI_Gatherv(localBuffer.start(),localSize,MPI_CHAR,globalBuffer,sizes,displs,MPI_CHAR,0,comm) ;   
     delete[] sizes ;
     
   }
@@ -260,33 +260,33 @@ namespace xios
     hierarchicalGatherRegistry(communicator) ;
   }
 
-  void CRegistry::hierarchicalGatherRegistry(const ep_lib::MPI_Comm& comm)
+  void CRegistry::hierarchicalGatherRegistry(const MPI_Comm& comm)
   {
     int mpiRank,mpiSize ;
-    ep_lib::MPI_Comm_rank(comm,&mpiRank);
-    ep_lib::MPI_Comm_size(comm,&mpiSize);    
+    MPI_Comm_rank(comm,&mpiRank);
+    MPI_Comm_size(comm,&mpiSize);    
 
     if (mpiSize>2)
     {
       int color ;
       if (mpiRank<mpiSize/2+mpiSize%2) color=0 ;
       else color=1 ;
-      ep_lib::MPI_Comm commUp ;
-      ep_lib::MPI_Comm_split(comm,color,mpiRank,&commUp) ,
+      MPI_Comm commUp ;
+      MPI_Comm_split(comm,color,mpiRank,&commUp) ,
       hierarchicalGatherRegistry(commUp) ;
-      ep_lib::MPI_Comm_free(&commUp) ;
+      MPI_Comm_free(&commUp) ;
     }
 
     if (mpiSize>1)
     {
-      ep_lib::MPI_Comm commDown ;
+      MPI_Comm commDown ;
       int color ;
       
       if (mpiRank==0 || mpiRank==mpiSize/2+mpiSize%2) color=0 ;
       else color=1 ;
-      ep_lib::MPI_Comm_split(comm,color,mpiRank,&commDown) ;
+      MPI_Comm_split(comm,color,mpiRank,&commDown) ;
       if (color==0) gatherRegistry(commDown) ;
-      ep_lib::MPI_Comm_free(&commDown) ;    
+      MPI_Comm_free(&commDown) ;    
     }
   }
 

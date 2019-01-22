@@ -26,7 +26,7 @@ namespace xios
             CNc4DataOutput
                (CFile* file, const StdString & filename, bool exist, bool useClassicFormat,
                 bool useCFConvention,
-                ep_lib::MPI_Comm comm_file, bool multifile, bool isCollective = true,
+                MPI_Comm comm_file, bool multifile, bool isCollective = true,
                 const StdString& timeCounterName = "time_counter");
 
             CNc4DataOutput(const CNc4DataOutput & dataoutput);       // Not implemented.
@@ -116,7 +116,7 @@ namespace xios
             void setWrittenScalar(const std::string& scalarName);
 
             /// Propriétés privées ///
-            ep_lib::MPI_Comm comm_file;
+            MPI_Comm comm_file;
             const StdString filename;
             std::map<Time, StdSize> timeToRecordCache;
 

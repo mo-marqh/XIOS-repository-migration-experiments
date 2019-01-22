@@ -1,12 +1,10 @@
 #include "timer.hpp"
-//#include "mpi_std.hpp"
 #include "mpi.hpp"
 #include <string>
 #include <map>
 #include <iostream>
 #include <sstream>
 #include "tracer.hpp"
-//extern ::MPI_Comm MPI_COMM_WORLD;
 
 namespace xios
 {
@@ -19,7 +17,6 @@ namespace xios
 
   double CTimer::getTime(void)
   {
-    MPI_COMM_WORLD;
     return MPI_Wtime();
   }
   

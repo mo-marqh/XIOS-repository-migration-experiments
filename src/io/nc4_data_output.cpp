@@ -27,7 +27,7 @@ namespace xios
 
       CNc4DataOutput::CNc4DataOutput
          (CFile* file, const StdString & filename, bool exist, bool useClassicFormat, bool useCFConvention,
-          ep_lib::MPI_Comm comm_file, bool multifile, bool isCollective, const StdString& timeCounterName)
+          MPI_Comm comm_file, bool multifile, bool isCollective, const StdString& timeCounterName)
             : SuperClass()
             , SuperClassWriter(filename, exist, useClassicFormat, useCFConvention, &comm_file, multifile, timeCounterName)
             , comm_file(comm_file)

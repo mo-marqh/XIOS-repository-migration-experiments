@@ -6,14 +6,14 @@
 
 namespace xios
 {
-  CINetCDF4::CINetCDF4(const StdString& filename, const ep_lib::MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/,
+  CINetCDF4::CINetCDF4(const StdString& filename, const MPI_Comm* comm /*= NULL*/, bool multifile /*= true*/,
                        bool readMetaDataPar /*= false*/, const StdString& timeCounterName /*= "time_counter"*/)
   {
     // Don't use parallel mode if there is only one process
     if (comm)
     {
       int commSize = 0;
-      ep_lib::MPI_Comm_size(*comm, &commSize);
+      MPI_Comm_size(*comm, &commSize);
       if (commSize <= 1)
         comm = NULL;
     }
@@ -22,7 +22,7 @@ namespace xios
     // The file format will be detected automatically by NetCDF, it is safe to always set NC_MPIIO
     // even if Parallel NetCDF ends up being used.
     if (mpi)
-      CNetCdfInterface::openPar(filename, NC_NOWRITE | NC_MPIIO, *comm, EP_INFO_NULL, this->ncidp);
+      CNetCdfInterface::openPar(filename, NC_NOWRITE | NC_MPIIO, *comm, MPI_INFO_NULL, this->ncidp);
     else
       CNetCdfInterface::open(filename, NC_NOWRITE, this->ncidp);
 

@@ -264,12 +264,12 @@ namespace xios {
    ///---------------------------------------------------------------
 
    //! Initialize client side
-   void CContext::initClient(ep_lib::MPI_Comm intraComm, ep_lib::MPI_Comm interComm, CContext* cxtServer /*= 0*/)
+   void CContext::initClient(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtServer /*= 0*/)
    TRY
    {
 
      hasClient = true;
-     ep_lib::MPI_Comm intraCommServer, interCommServer;
+     MPI_Comm intraCommServer, interCommServer;
      
 
      if (CServer::serverLevel != 1)
@@ -283,9 +283,9 @@ namespace xios {
        }
        else
        {
-         ep_lib::MPI_Comm_dup(intraComm, &intraCommServer);
+         MPI_Comm_dup(intraComm, &intraCommServer);
          comms.push_back(intraCommServer);
-         ep_lib::MPI_Comm_dup(interComm, &interCommServer);
+         MPI_Comm_dup(interComm, &interCommServer);
          comms.push_back(interCommServer);
        }
 /* for registry take the id of client context */
@@ -308,9 +308,9 @@ namespace xios {
      // initClient is called by primary server
      {
        clientPrimServer.push_back(new CContextClient(this, intraComm, interComm));
-       ep_lib::MPI_Comm_dup(intraComm, &intraCommServer);
+       MPI_Comm_dup(intraComm, &intraCommServer);
        comms.push_back(intraCommServer);
-       ep_lib::MPI_Comm_dup(interComm, &interCommServer);
+       MPI_Comm_dup(interComm, &interCommServer);
        comms.push_back(interCommServer);
        serverPrimServer.push_back(new CContextServer(this, intraCommServer, interCommServer));
      }
@@ -382,7 +382,7 @@ namespace xios {
    }
    CATCH_DUMP_ATTR
 
-   void CContext::initServer(ep_lib::MPI_Comm intraComm, ep_lib::MPI_Comm interComm, CContext* cxtClient /*= 0*/)
+   void CContext::initServer(MPI_Comm intraComm, MPI_Comm interComm, CContext* cxtClient /*= 0*/)
    TRY
    {
      hasServer=true;
@@ -401,7 +401,7 @@ namespace xios {
      registryOut=new CRegistry(intraComm) ;
      registryOut->setPath(contextRegistryId) ;
 
-     ep_lib::MPI_Comm intraCommClient, interCommClient;
+     MPI_Comm intraCommClient, interCommClient;
      if (cxtClient) // Attached mode
      {
        intraCommClient = intraComm;
@@ -409,9 +409,9 @@ namespace xios {
      }
      else
      {
-       ep_lib::MPI_Comm_dup(intraComm, &intraCommClient);
+       MPI_Comm_dup(intraComm, &intraCommClient);
        comms.push_back(intraCommClient);
-       ep_lib::MPI_Comm_dup(interComm, &interCommClient);
+       MPI_Comm_dup(interComm, &interCommClient);
        comms.push_back(interCommClient);
      }
      client = new CContextClient(this,intraCommClient,interCommClient, cxtClient);
@@ -501,8 +501,8 @@ namespace xios {
          client->releaseBuffers();
 
          //! Free internally allocated communicators
-         for (std::list<ep_lib::MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           ep_lib::MPI_Comm_free(&(*it));
+         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+           MPI_Comm_free(&(*it));
          comms.clear();
 
          info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
@@ -543,8 +543,8 @@ namespace xios {
            clientPrimServer[i]->releaseBuffers();
 
          //! Free internally allocated communicators
-         for (std::list<ep_lib::MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-           ep_lib::MPI_Comm_free(&(*it));
+         for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+           MPI_Comm_free(&(*it));
          comms.clear();
 
          info(20)<<"CContext: Context <"<<getId()<<"> is finalized."<<endl;
@@ -559,8 +559,8 @@ namespace xios {
    void CContext::freeComms(void)
    TRY
    {
-     for (std::list<ep_lib::MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
-       ep_lib::MPI_Comm_free(&(*it));
+     for (std::list<MPI_Comm>::iterator it = comms.begin(); it != comms.end(); ++it)
+       MPI_Comm_free(&(*it));
      comms.clear();
    }
    CATCH_DUMP_ATTR
