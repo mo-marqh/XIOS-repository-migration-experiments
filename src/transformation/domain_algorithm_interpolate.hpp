@@ -69,7 +69,7 @@ private:
   class WriteNetCdf : public CNc4DataOutput
   {
   public:
-    WriteNetCdf(const StdString& filename, const ep_lib::MPI_Comm comm);
+    WriteNetCdf(const StdString& filename, const MPI_Comm comm);
     int addDimensionWrite(const StdString& name, const StdSize size = UNLIMITED_DIM);
     int addVariableWrite(const StdString& name, nc_type type,
                          const std::vector<StdString>& dim);
