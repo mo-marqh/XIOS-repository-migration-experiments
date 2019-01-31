@@ -243,9 +243,9 @@ namespace xios
           for (int idx = 0; idx < countSize; ++idx)
           {
             sendBuff[idxSendBuff][idx] = dataCurrentSrc(localIndex_p(idx));
-            sendRecvRequest.push_back(MPI_Request());
-            MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
           }
+          sendRecvRequest.push_back(MPI_Request());
+          MPI_Isend(sendBuff[idxSendBuff], countSize, MPI_DOUBLE, destRank, 12, client->intraComm, &sendRecvRequest.back());
         }
         else
         {
