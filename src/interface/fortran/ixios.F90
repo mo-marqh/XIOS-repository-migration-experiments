@@ -7,7 +7,7 @@ USE icalendar, ONLY : xios(define_calendar), xios(set_timestep), xios(set_start_
                       xios(update_calendar), xios(get_current_date),                                            &
                       xios(get_year_length_in_seconds), xios(get_day_length_in_seconds)
 
-USE icontext, ONLY : txios(context), xios(set_current_context), xios(is_valid_context)
+USE icontext, ONLY : txios(context), xios(set_current_context), xios(get_current_context), xios(is_valid_context)
 
 USE icontext_attr, ONLY : xios(set_context_attr), xios(get_context_attr), xios(is_defined_context_attr)
 
