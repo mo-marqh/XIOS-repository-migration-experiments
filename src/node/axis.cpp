@@ -846,7 +846,10 @@ namespace xios {
       }
 
       numberWrittenIndexes_[writtenCommSize] = nbWritten;
-      if (isDistributed())
+
+      bool distributed_glo, distributed=isDistributed() ;
+      MPI_Allreduce(&distributed,&distributed_glo, 1, MPI_INT, MPI_LOR, writtenComm) ;
+      if (distributed_glo)
       {
              
         MPI_Allreduce(&numberWrittenIndexes_[writtenCommSize], &totalNumberWrittenIndexes_[writtenCommSize], 1, MPI_INT, MPI_SUM, writtenComm);
