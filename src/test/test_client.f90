@@ -131,13 +131,15 @@ PROGRAM test_client
 
   PRINT*,"field field_A is active ? ",xios_field_is_active("field_A")
   ! CALL xios_recv_field("field", scalar)
-  DO ts=1,4
+  DO ts=1,24
     CALL xios_update_calendar(ts)
     CALL xios_send_field("field_A",field_A)
-    CALL xios_send_field("field_Axis",axisValue)
+    CALL xios_send_field("field_B",field_A)
+    CALL xios_send_field("field_C",field_A)
+    ! CALL xios_send_field("field_Axis",axisValue)
     ! CALL xios_send_field("field_Axis",lval)
-    CALL xios_send_field("field_Domain",field_domain)
-    CALL xios_send_field("field_Scalar",scalar)
+    ! CALL xios_send_field("field_Domain",field_domain)
+    ! CALL xios_send_field("field_Scalar",scalar)
     CALL wait_us(5000) ;
   ENDDO
 

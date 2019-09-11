@@ -38,6 +38,8 @@ public:
 
   static bool registerTrans();
 
+  virtual StdString getName() {return "Scalar Trans. Filter \\n Extract Axis";}
+
 protected:
   int pos_;
 

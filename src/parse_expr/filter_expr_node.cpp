@@ -11,7 +11,7 @@ namespace xios
   { /* Nothing to do */ }
 
   
-  std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
     std::shared_ptr<COutputPin> outputPin;
 
@@ -39,7 +39,8 @@ namespace xios
                 << "The field " << id << " has an invalid reference to itself. "
                 << "Use the keyword \"this\" if you want to reference the input data sent to this field.");
 
-        field->buildFilterGraph(gc, false);
+        // field->buildFilterGraph(gc, false);
+        field->buildFilterGraph(gc, false, start_graph, end_graph);
         outputPin = field->getInstantDataFilter();
       }
       else ERROR("boost::shared_ptr<COutputPin> CFilterFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const",
@@ -54,7 +55,7 @@ namespace xios
   { /* Nothing to do */ }
 
 
-  std::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterTemporalFieldExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
     std::shared_ptr<COutputPin> outputPin;
 
@@ -103,10 +104,22 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterUnaryOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterUnaryOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch = child->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CUnaryArithmeticFilter> filter(new CUnaryArithmeticFilter(gc, opId));
-    child->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch->connectOutput(filter, 0);
+
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch;
+
+    filter->tag = ch->tag;
+    filter->start_graph = ch->start_graph;
+    filter->end_graph = ch->end_graph;
+    filter->field = &thisField;
+
+
     return filter;
   }
 
@@ -120,10 +133,20 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
     std::shared_ptr<CScalarFieldArithmeticFilter> filter(new CScalarFieldArithmeticFilter(gc, opId, child1->reduce()));
-    child2->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch2->connectOutput(filter, 0);
+    
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch2;
+
+    filter->tag = ch2->tag;
+    filter->start_graph = ch2->start_graph;
+    filter->end_graph = ch2->end_graph;
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -137,10 +160,21 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldScalarArithmeticFilter> filter(new CFieldScalarArithmeticFilter(gc, opId, child2->reduce()));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch1->connectOutput(filter, 0);
+
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch1;
+
+    filter->tag = ch1->tag;
+    filter->start_graph = ch1->start_graph;
+    filter->end_graph = ch1->end_graph;
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -154,11 +188,26 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldFieldArithmeticFilter> filter(new CFieldFieldArithmeticFilter(gc, opId));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
-    child2->reduce(gc, thisField)->connectOutput(filter, 1);
+    ch1->connectOutput(filter, 0);
+    ch2->connectOutput(filter, 1); 
+
+    (filter->parent_filters).resize(2);
+    (filter->parent_filters)[0] = ch1;
+    (filter->parent_filters)[1] = ch2;
+
+    filter->tag = (ch1->tag || ch2->tag);
+    filter->start_graph = ch1->tag? ch1->start_graph : (ch2->tag? ch2->start_graph: -1);
+    filter->end_graph = ch1->tag? ch1->end_graph : (ch2->tag? ch2->end_graph: -1);
+
+    filter->field = &thisField;
+
+
     return filter;
   }
 
@@ -176,10 +225,21 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterScalarScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch3 = child3->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CScalarScalarFieldArithmeticFilter> filter(new CScalarScalarFieldArithmeticFilter(gc, opId, child1->reduce(),child2->reduce()));
-    child3->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch3->connectOutput(filter, 0);
+    
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch3;
+
+    filter->tag = ch3->tag;
+    filter->start_graph = ch3->start_graph;
+    filter->end_graph = ch3->end_graph;
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -195,10 +255,21 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterScalarFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CScalarFieldScalarArithmeticFilter> filter(new CScalarFieldScalarArithmeticFilter(gc, opId, child1->reduce(),child3->reduce()));
-    child2->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch2->connectOutput(filter, 0);
+
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch2;
+
+    filter->tag = ch2->tag;
+    filter->start_graph = ch2->start_graph;
+    filter->end_graph = ch2->end_graph;
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -214,11 +285,24 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterScalarFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterScalarFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch3 = child3->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CScalarFieldFieldArithmeticFilter> filter(new CScalarFieldFieldArithmeticFilter(gc, opId, child1->reduce()));
-    child2->reduce(gc, thisField)->connectOutput(filter, 0);
-    child3->reduce(gc, thisField)->connectOutput(filter, 1);
+    ch2->connectOutput(filter, 0);
+    ch3->connectOutput(filter, 1);
+
+    (filter->parent_filters).resize(2);
+    (filter->parent_filters)[0] = ch2;
+    (filter->parent_filters)[1] = ch3;
+
+    filter->tag = (ch3->tag || ch2->tag);
+    filter->start_graph = ch3->tag? ch3->start_graph : (ch2->tag? ch2->start_graph: -1);
+    filter->end_graph = ch3->tag? ch3->end_graph : (ch2->tag? ch2->end_graph: -1);
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -235,10 +319,21 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldScalarScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldScalarScalarArithmeticFilter> filter(new CFieldScalarScalarArithmeticFilter(gc, opId, child2->reduce(),child3->reduce()));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
+    ch1->connectOutput(filter, 0);
+
+    (filter->parent_filters).resize(1);
+    (filter->parent_filters)[0] = ch1;
+
+    filter->tag = ch1->tag;
+    filter->start_graph = ch1->start_graph;
+    filter->end_graph = ch1->end_graph;
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -255,11 +350,24 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldScalarFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch3 = child3->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldScalarFieldArithmeticFilter> filter(new CFieldScalarFieldArithmeticFilter(gc, opId, child2->reduce()));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
-    child3->reduce(gc, thisField)->connectOutput(filter, 1);
+    ch1->connectOutput(filter, 0);
+    ch3->connectOutput(filter, 1);
+
+    (filter->parent_filters).resize(2);
+    (filter->parent_filters)[0] = ch1;
+    (filter->parent_filters)[1] = ch3;
+
+    filter->tag = (ch3->tag || ch1->tag);
+    filter->start_graph = ch3->tag? ch3->start_graph : (ch1->tag? ch1->start_graph: -1);
+    filter->end_graph = ch3->tag? ch3->end_graph : (ch1->tag? ch1->end_graph: -1);
+    filter->field = &thisField;
+
     return filter;
   }
 
@@ -276,11 +384,23 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldScalarOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldFieldScalarArithmeticFilter> filter(new CFieldFieldScalarArithmeticFilter(gc, opId, child3->reduce()));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
-    child2->reduce(gc, thisField)->connectOutput(filter, 1);
+    ch1->connectOutput(filter, 0);
+    ch2->connectOutput(filter, 1);
+
+    (filter->parent_filters).resize(2);
+    (filter->parent_filters)[0] = ch1;
+    (filter->parent_filters)[1] = ch2;
+
+    filter->tag = (ch2->tag || ch1->tag);
+    filter->start_graph = ch2->tag? ch2->start_graph : (ch1->tag? ch1->start_graph: -1);
+    filter->end_graph = ch2->tag? ch2->end_graph : (ch1->tag? ch1->end_graph: -1);
+    filter->field = &thisField;
     return filter;
   }
 
@@ -296,12 +416,30 @@ namespace xios
             "Impossible to create the new expression node, an invalid child node was provided.");
   }
 
-  std::shared_ptr<COutputPin> CFilterFieldFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField) const
+  std::shared_ptr<COutputPin> CFilterFieldFieldFieldOpExprNode::reduce(CGarbageCollector& gc, CField& thisField, Time start_graph, Time end_graph) const
   {
+    std::shared_ptr<COutputPin> ch1 = child1->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch2 = child2->reduce(gc, thisField, start_graph, end_graph);
+    std::shared_ptr<COutputPin> ch3 = child3->reduce(gc, thisField, start_graph, end_graph);
+
     std::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId));
-    child1->reduce(gc, thisField)->connectOutput(filter, 0);
-    child2->reduce(gc, thisField)->connectOutput(filter, 1);
-    child3->reduce(gc, thisField)->connectOutput(filter, 2);
+    std::cout<<"std::shared_ptr<CFieldFieldFieldArithmeticFilter> filter(new CFieldFieldFieldArithmeticFilter(gc, opId))" <<std::endl;
+    ch1->connectOutput(filter, 0);
+    ch2->connectOutput(filter, 1);
+    ch3->connectOutput(filter, 2);
+
+    (filter->parent_filters).resize(3);
+    (filter->parent_filters)[0] = ch1;
+    (filter->parent_filters)[1] = ch2;
+    (filter->parent_filters)[2] = ch3;
+
+
+    filter->tag = (ch1->tag || ch1->tag || ch3->tag);
+    filter->start_graph = ch1->tag? ch1->start_graph : (ch2->tag? ch2->start_graph: (ch3->tag? ch3->start_graph: -1));
+    filter->end_graph = ch1->tag? ch1->end_graph : (ch2->tag? ch2->end_graph: (ch3->tag? ch3->end_graph: -1));
+    filter->field = &thisField;
+
+
     return filter;
   }
   

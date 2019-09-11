@@ -2,11 +2,14 @@
 #define __XIOS_CStoreFilter__
 
 #include "input_pin.hpp"
+#include "workflow_graph.hpp"
+
 
 namespace xios
 {
   class CContext;
   class CGrid;
+  class CField;
 
   /*!
    * A terminal filter which stores all the packets it receives.
@@ -72,6 +75,14 @@ namespace xios
        */
       void virtual invalidate(Time timestamp);
 
+      int filterID;
+      int tag;
+      Time start_graph;
+      Time end_graph;
+      CField *field;
+      int distance;
+
+
     protected:
       /*!
        * Stores the packet for later access.
@@ -79,6 +90,7 @@ namespace xios
        * \param data a vector of packets corresponding to each slot
        */
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
+      void virtual buildGraph(std::vector<CDataPacketPtr> data);
 
     private:
       CGarbageCollector& gc; //!< The garbage collector associated to the filter

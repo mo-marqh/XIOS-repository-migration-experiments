@@ -2,6 +2,7 @@
 #include "context.hpp"
 #include "grid.hpp"
 #include "timer.hpp"
+#include "file.hpp"
 
 namespace xios
 {
@@ -75,8 +76,36 @@ namespace xios
   template CDataPacket::StatusCode CStoreFilter::getData<6>(Time timestamp, CArray<double, 6>& data);
   template CDataPacket::StatusCode CStoreFilter::getData<7>(Time timestamp, CArray<double, 7>& data);
 
+  void CStoreFilter::buildGraph(std::vector<CDataPacketPtr> data)
+  {
+    bool building_graph = this->tag ? data[0]->timestamp >= this->start_graph && data[0]->timestamp <= this->end_graph : false;
+
+    if(building_graph)
+    {
+      this->filterID = InvalidableObject::filterIdGenerator++;
+      int edgeID = InvalidableObject::edgeIdGenerator++;
+
+      CWorkflowGraph::allocNodeEdge();
+ 
+      CWorkflowGraph::addNode(this->filterID, "Store Filter", 7, 0, 1, data[0]);
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = ++(data[0]->distance);
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
+      if(this->field->file) (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes += "</br>file attributes : </br>" +this->field->file->record4graphXiosAttributes();
+
+      // if(CXios::isClient) std::cout<<"CStoreFilter::apply filter tag = "<<this->tag<<std::endl;
+
+      if(CXios::isClient && CWorkflowGraph::build_begin) 
+      {
+        CWorkflowGraph::addEdge(edgeID, this->filterID, data[0]);;
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[data[0]->src_filterID].filter_filled = 0;
+      }
+      else CWorkflowGraph::build_begin = true;
+    }
+  }
+
   void CStoreFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
+    buildGraph(data);
 
     CDataPacketPtr packet;
     if (detectMissingValues)

@@ -33,6 +33,7 @@ namespace xios
        * \return the result of the unary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CUnaryArithmeticFilter
 } // namespace xios
 

@@ -30,6 +30,8 @@ public:
 
   virtual ~CSumReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Sum reduction";}
+
 public:
   static bool registerTrans();
 

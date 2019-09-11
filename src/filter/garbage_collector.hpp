@@ -19,6 +19,17 @@ namespace xios
      * \param timestamp the timestamp used for invalidation
      */
     void virtual invalidate(Time timestamp) = 0;
+  
+    
+
+    static int filterIdGenerator;
+
+    static int edgeIdGenerator;
+
+    static int clusterIdGenerator;
+
+    
+    
   }; // struct InvalidableObject
 
   /*!

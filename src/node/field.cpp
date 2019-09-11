@@ -23,6 +23,7 @@
 #include "temporal_filter.hpp"
 #include "spatial_transform_filter.hpp"
 #include "file_server_writer_filter.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios{
 
@@ -44,7 +45,10 @@ namespace xios{
       , wasDataAlreadyReceivedFromServer(false)
       , mustAutoTrigger(false)
       , isEOF(false), nstepMaxRead(false)
-   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
+   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); 
+     field_graph_start = -2;
+     field_graph_end = -2;
+   }
 
    CField::CField(const StdString& id)
       : CObjectTemplate<CField>(id), CFieldAttributes()
@@ -62,7 +66,11 @@ namespace xios{
       , wasDataAlreadyReceivedFromServer(false)
       , mustAutoTrigger(false)
       , isEOF(false), nstepMaxRead(false)
-   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); }
+   { setVirtualVariableGroup(CVariableGroup::create(getId() + "_virtual_variable_group")); 
+     field_graph_start = -2;
+     field_graph_end = -2;
+   }
+
 
    CField::~CField(void)
    {}
@@ -1105,16 +1113,74 @@ namespace xios{
     * \param enableOutput must be true when the field data is to be
     *                     read by the client or/and written to a file
     */
-   void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput)
+   void CField::buildFilterGraph(CGarbageCollector& gc, bool enableOutput, Time start_graph, Time end_graph)
    TRY
    {     
-    if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
-    if (!isGridChecked) checkGridOfEnabledFields();
+     if (!isReferenceSolvedAndTransformed) solveAllEnabledFieldsAndTransform();
+     if (!isGridChecked) checkGridOfEnabledFields();
 
      const bool detectMissingValues = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
+     
+     const bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
+
+     
      const double defaultValue  = detectMissingValues ? default_value : (!default_value.isEmpty() ? default_value : 0.0);
 
      CContext* context = CContext::getCurrent();
+     
+     Time filter_start;
+     if(!build_workflow_graph_start.isEmpty() && buildWorkflowGraph) filter_start = context->calendar->getInitDate()+build_workflow_graph_start;
+     else if(build_workflow_graph_start.isEmpty() && buildWorkflowGraph) filter_start = 0;
+     else filter_start = -1;
+
+     Time filter_end;
+     if(!build_workflow_graph_end.isEmpty() && buildWorkflowGraph) filter_end = context->calendar->getInitDate()+build_workflow_graph_end;
+     else if(build_workflow_graph_end.isEmpty() && buildWorkflowGraph) filter_end = 9223372036854775807;
+     else filter_end = -1;
+
+     if(this->field_graph_start==-2) this->field_graph_start = filter_start;
+     if(this->field_graph_end==-2) this->field_graph_end = filter_end;         // init
+
+     // if(CXios::isClient) std::cout<<"****************** buildFilterGraph : field_id = "<<this->getId()<<" BEFORE: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
+
+     if(start_graph == -1)
+     {
+       //nothing
+       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case1: this->field_graph_start = "<<this->field_graph_start<<std::endl;
+     }
+     else //if(start_graph != -1)
+     {
+       if(this->field_graph_start == -1) this->field_graph_start = start_graph;
+       else this->field_graph_start = min(this->field_graph_start, start_graph);
+
+       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case2: this->field_graph_start = "<<this->field_graph_start<<std::endl;
+     }
+
+
+     if(end_graph == -1)
+     {
+       //nothing
+       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case1: this->field_graph_end = "<<this->field_graph_end<<std::endl;
+     }
+     else
+     {
+       if(this->field_graph_end == -1) this->field_graph_end = end_graph;
+       else this->field_graph_end = max(this->field_graph_end, end_graph);
+
+       // if(CXios::isClient) std::cout<<"buildFilterGraph field_id = "<<this->getId()<<" case2: this->field_graph_end = "<<this->field_graph_end<<std::endl;
+     }
+    
+
+     filter_start = this->field_graph_start;
+     filter_end = this->field_graph_end;
+
+
+     // if(CXios::isClient) std::cout<<"****************** buildFilterGraph : field_id = "<<this->getId()<<" AFTER: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
+     
+
+     
+     
+
      bool hasWriterServer = context->hasServer && !context->hasClient;
      bool hasIntermediateServer = context->hasServer && context->hasClient;
 
@@ -1158,7 +1224,7 @@ namespace xios{
          if (hasExpression())
          {
            boost::scoped_ptr<IFilterExprNode> expr(parseExpr(getExpression() + '\0'));
-           std::shared_ptr<COutputPin> filter = expr->reduce(gc, *this);
+           std::shared_ptr<COutputPin> filter = expr->reduce(gc, *this, filter_start, filter_end);
 
            // Check if a spatial transformation is needed
            if (!field_ref.isEmpty())
@@ -1167,7 +1233,7 @@ namespace xios{
 
              if (grid && grid != gridRef && grid->hasTransform())
              {
-                 std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, detectMissingValues, defaultValue); 
+               std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters = CSpatialTransformFilter::buildFilterGraph(gc, gridRef, grid, detectMissingValues, defaultValue);
 
                filter->connectOutput(filters.first, 0);
                filter = filters.second;
@@ -1175,22 +1241,47 @@ namespace xios{
            }
 
            instantDataFilter = filter;
+           instantDataFilter->field = this;
+           filter->tag = buildWorkflowGraph;
+           
+           filter->start_graph = filter_start;
+           filter->end_graph = filter_end;
+
+           for(int i=0; i<filter->parent_filters.size(); i++)
+           {
+             filter->tag = filter->tag || filter->parent_filters[i]->tag;
+           }
          }
          // Check if we have a reference on another field
          else if (!field_ref.isEmpty())
-           instantDataFilter = getFieldReference(gc);
+         {
+           instantDataFilter = getFieldReference(gc, filter_start, filter_end);
+           instantDataFilter->tag = buildWorkflowGraph;
+           instantDataFilter->start_graph = filter_start;
+           instantDataFilter->end_graph = filter_end;
+         }
          // Check if the data is to be read from a file
          else if (file && !file->mode.isEmpty() && file->mode == CFile::mode_attr::read)
          {
            checkTimeAttributes();
            instantDataFilter = serverSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, true, false, freq_offset, true,
                                                                                                        detectMissingValues, defaultValue));
+           instantDataFilter->tag = buildWorkflowGraph;
+           instantDataFilter->start_graph = filter_start;
+           instantDataFilter->end_graph = filter_end;
+           instantDataFilter->field = this;
+
          }
          else // The data might be passed from the model
          {
             if (check_if_active.isEmpty()) check_if_active = false; 
             instantDataFilter = clientSourceFilter = std::shared_ptr<CSourceFilter>(new CSourceFilter(gc, grid, false, true, NoneDu, false,
-                                                                                                        detectMissingValues, defaultValue));
+                                                                                                      detectMissingValues, defaultValue)); 
+            instantDataFilter->tag = buildWorkflowGraph;
+            instantDataFilter->start_graph = filter_start;
+            instantDataFilter->end_graph = filter_end;
+            instantDataFilter->field = this;
+            // if(CXios::isClient) std::cout<<"***********************buildFilterGraph init source filter : field_id = "<<this->getId()<<" sourcefilter->start_graph = "<<clientSourceFilter->start_graph<<" sourcefilter->end_graph = "<<clientSourceFilter->end_graph<<std::endl;
          }
        }
 
@@ -1202,12 +1293,34 @@ namespace xios{
            storeFilter = std::shared_ptr<CStoreFilter>(new CStoreFilter(gc, CContext::getCurrent(), grid,
                                                                           detectMissingValues, defaultValue));
            instantDataFilter->connectOutput(storeFilter, 0);
+
+           storeFilter->tag = (instantDataFilter->tag || buildWorkflowGraph);
+           instantDataFilter->start_graph = filter_start;
+           instantDataFilter->end_graph = filter_end;
+
+           instantDataFilter->setParentFiltersTag();
+           storeFilter->start_graph = filter_start;
+           storeFilter->end_graph = filter_end;
+           storeFilter->field = this;
+           storeFilter->distance = instantDataFilter->distance+1;
          }
 
          if (file && (file->mode.isEmpty() || file->mode == CFile::mode_attr::write))
          {
            fileWriterFilter = std::shared_ptr<CFileWriterFilter>(new CFileWriterFilter(gc, this));
            getTemporalDataFilter(gc, file->output_freq)->connectOutput(fileWriterFilter, 0);
+           
+           fileWriterFilter->tag = (getTemporalDataFilter(gc, file->output_freq)->tag || buildWorkflowGraph);
+           getTemporalDataFilter(gc, file->output_freq)->start_graph = filter_start;
+           getTemporalDataFilter(gc, file->output_freq)->end_graph = filter_end;
+           getTemporalDataFilter(gc, file->output_freq)->tag = buildWorkflowGraph;
+           getTemporalDataFilter(gc, file->output_freq)->setParentFiltersTag();
+           fileWriterFilter->start_graph = filter_start;
+           fileWriterFilter->end_graph = filter_end;
+           fileWriterFilter->distance = getTemporalDataFilter(gc, file->output_freq)->distance+1;
+
+           // std::cout<<"CFileWriterFilter filter start = "<<filter_start<<" end = "<<filter_end<<" field = "<<this->getId()<<std::endl;
+
          }
        }
      }
@@ -1221,7 +1334,7 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to the field reference
     */
-   std::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc)
+   std::shared_ptr<COutputPin> CField::getFieldReference(CGarbageCollector& gc, Time start_graph, Time end_graph)
    TRY
    {
      if (instantDataFilter || field_ref.isEmpty())
@@ -1229,7 +1342,57 @@ namespace xios{
              "Impossible to get the field reference for a field which has already been parsed or which does not have a field_ref.");
 
      CField* fieldRef = CField::get(field_ref);
-     fieldRef->buildFilterGraph(gc, false);
+     fieldRef->buildFilterGraph(gc, false, start_graph, end_graph);
+     const bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
+
+     CContext* context = CContext::getCurrent();
+
+     Time filter_start;
+     if(!build_workflow_graph_start.isEmpty() && buildWorkflowGraph) filter_start = context->calendar->getInitDate()+build_workflow_graph_start;
+     else if(build_workflow_graph_start.isEmpty() && buildWorkflowGraph) filter_start = 0;
+     else filter_start = -1;
+
+     Time filter_end;
+     if(!build_workflow_graph_end.isEmpty() && buildWorkflowGraph) filter_end = context->calendar->getInitDate()+build_workflow_graph_end;
+     else if(build_workflow_graph_end.isEmpty() && buildWorkflowGraph) filter_end = 9223372036854775807;
+     else filter_end = -1;
+
+     if(this->field_graph_start==-2) this->field_graph_start = filter_start;
+     if(this->field_graph_end==-2) this->field_graph_end = filter_end;         // init
+
+     // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" BEFORE: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
+
+     if(start_graph == -1)
+     {
+       //nothing
+       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case1: this->field_graph_start = "<<this->field_graph_start<<std::endl;
+     }
+     else //if(start_graph != -1)
+     {
+       if(this->field_graph_start == -1) this->field_graph_start = start_graph;
+       else this->field_graph_start = min(this->field_graph_start, start_graph);
+
+       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case2: this->field_graph_start = "<<this->field_graph_start<<std::endl;
+     }
+
+     if(end_graph == -1)
+     {
+       //nothing
+       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case1: this->field_graph_end = "<<this->field_graph_end<<std::endl;
+     }
+     else
+     {
+       if(this->field_graph_end == -1) this->field_graph_end = end_graph;
+       else this->field_graph_end = max(this->field_graph_end, end_graph);
+
+       // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" case2: this->field_graph_end = "<<this->field_graph_end<<std::endl;
+     }
+
+     filter_start = this->field_graph_start;
+     filter_end = this->field_graph_end;
+
+     // if(CXios::isClient) std::cout<<"getFieldReference field_id = "<<this->getId()<<" AFTER: this->field_graph_start = "<<this->field_graph_start<<" this->field_graph_end = "<<this->field_graph_end<<std::endl;
+
 
      std::pair<std::shared_ptr<CFilter>, std::shared_ptr<CFilter> > filters;
      // Check if a spatial transformation is needed
@@ -1238,11 +1401,38 @@ namespace xios{
        bool hasMissingValue = (!detect_missing_value.isEmpty() && !default_value.isEmpty() && detect_missing_value == true);
        double defaultValue  = hasMissingValue ? default_value : (!default_value.isEmpty() ? default_value : 0.0);                                
        filters = CSpatialTransformFilter::buildFilterGraph(gc, fieldRef->grid, grid, hasMissingValue, defaultValue);
+
+       fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+
+     
+
+       filters.second->parent_filters.resize(1);
+       filters.second->parent_filters[0]= fieldRef->getInstantDataFilter();
+
+       filters.second->tag = (buildWorkflowGraph || filters.second->parent_filters[0]->tag);
+       
+       filters.second->start_graph = filter_start;
+       filters.second->end_graph = filter_end;
+       filters.second->field = this;
+       
      }
      else
+     {
        filters.first = filters.second = std::shared_ptr<CFilter>(new CPassThroughFilter(gc));
 
-     fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+       fieldRef->getInstantDataFilter()->connectOutput(filters.first, 0);
+     
+
+       filters.second->parent_filters.resize(1);
+       filters.second->parent_filters[0]= fieldRef->getInstantDataFilter();
+
+       filters.second->tag = (buildWorkflowGraph || filters.second->parent_filters[0]->tag);
+
+       filters.second->start_graph = filter_start;
+       filters.second->end_graph = filter_end;
+       filters.second->field = this;
+
+     }
 
      return filters.second;
    }
@@ -1257,12 +1447,16 @@ namespace xios{
     * \param gc the garbage collector to use
     * \return the output pin corresponding to a self reference
     */
-   std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc)
+   std::shared_ptr<COutputPin> CField::getSelfReference(CGarbageCollector& gc, Time start_graph, Time end_graph)
    TRY
    {
+     if(CXios::isClient) std::cout<<"getSelfReference field_id = "<<this->getId()<<" start_graph = "<<start_graph<<" end_graph = "<<end_graph<<std::endl;
+
      if (instantDataFilter || !hasExpression())
        ERROR("COutputPin* CField::getSelfReference(CGarbageCollector& gc)",
              "Impossible to add a self reference to a field which has already been parsed or which does not have an expression.");
+     
+     bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
 
      if (!selfReferenceFilter)
      {
@@ -1299,6 +1493,8 @@ namespace xios{
        }
      }
 
+     selfReferenceFilter->tag = buildWorkflowGraph;
+     selfReferenceFilter->field = this;
      return selfReferenceFilter;
    }
    CATCH_DUMP_ATTR
@@ -1316,6 +1512,10 @@ namespace xios{
    TRY
    {
      std::map<CDuration, std::shared_ptr<COutputPin> >::iterator it = temporalDataFilters.find(outFreq);
+     const bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
+
+     CContext* context = CContext::getCurrent();
+
 
      if (it == temporalDataFilters.end())
      {
@@ -1331,6 +1531,17 @@ namespace xios{
                                                                              freq_op, freq_offset, outFreq, detectMissingValues));
 
        instantDataFilter->connectOutput(temporalFilter, 0);
+       // temporalFilter->tag = buildWorkflowGraph;
+       
+       temporalFilter->parent_filters.resize(1);
+       temporalFilter->parent_filters[0] = instantDataFilter;
+       
+
+       if(temporalFilter->parent_filters[0]->tag) temporalFilter->tag=true;
+
+       // temporalFilter->start_graph = filter_start;
+       // temporalFilter->end_graph = filter_end;
+       temporalFilter->field = this;
 
        it = temporalDataFilters.insert(std::make_pair(outFreq, temporalFilter)).first;
      }
@@ -1366,11 +1577,15 @@ namespace xios{
        checkTimeAttributes(&outFreq);
 
        const bool detectMissingValues = (!detect_missing_value.isEmpty() && detect_missing_value == true);
+       bool buildWorkflowGraph = (!build_workflow_graph.isEmpty() && build_workflow_graph == true);
        std::shared_ptr<CTemporalFilter> temporalFilter(new CTemporalFilter(gc, operation,
-                                                                             CContext::getCurrent()->getCalendar()->getInitDate(),
-                                                                             freq_op, freq_offset, outFreq, detectMissingValues));
+                                                                           CContext::getCurrent()->getCalendar()->getInitDate(),
+                                                                           freq_op, freq_offset, outFreq, detectMissingValues));
 
        selfReferenceFilter->connectOutput(temporalFilter, 0);
+       temporalFilter->tag = buildWorkflowGraph;
+       temporalFilter->field = this;
+
        return temporalFilter ;
      }
      else if (!field_ref.isEmpty())

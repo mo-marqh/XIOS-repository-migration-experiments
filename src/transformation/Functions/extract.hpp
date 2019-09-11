@@ -30,6 +30,8 @@ public:
 
   virtual ~CExtractReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Extract reduction";}
+
 public:
   static bool registerTrans();
 

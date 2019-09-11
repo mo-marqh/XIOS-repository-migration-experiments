@@ -11,6 +11,8 @@
 #include "memtrack.hpp"
 #include "registry.hpp"
 
+#include "graphviz.hpp"
+
 namespace xios
 {
   string CXios::rootFile="./iodef.xml" ;
@@ -134,6 +136,7 @@ namespace xios
        info(80)<<"Write data base Registry"<<endl<<globalRegistry->toString()<<endl ;
        globalRegistry->toFile("xios_registry.bin") ;
        delete globalRegistry ;
+       CGraphviz::buildWorkflowGraphVisjs_with_info();
      }
 
 #ifdef XIOS_MEMTRACK

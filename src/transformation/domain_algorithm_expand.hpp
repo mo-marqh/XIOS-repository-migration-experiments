@@ -28,6 +28,8 @@ public:
 
   static bool registerTrans();
 
+  virtual StdString getName() {return "Domain Trans. Filter \\n Expand";}
+
 protected:
   bool isXPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)
   bool isYPeriodic_; // Flag to determine the periodicity of expansion (only for rectilinear)

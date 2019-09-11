@@ -12,7 +12,6 @@
 #include "reduce_axis_to_scalar.hpp"
 #include "grid.hpp"
 #include "grid_transformation_factory_impl.hpp"
-#include "reduction.hpp"
 
 #include "reduction.hpp"
 

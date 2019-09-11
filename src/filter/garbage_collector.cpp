@@ -2,6 +2,12 @@
 
 namespace xios
 {
+  int InvalidableObject::filterIdGenerator = 0;
+
+  int InvalidableObject::edgeIdGenerator = 0;
+
+  int InvalidableObject::clusterIdGenerator = 0;
+  
   void CGarbageCollector::registerObject(InvalidableObject* Object, Time timestamp)
   {
     registeredObjects[timestamp].insert(Object);

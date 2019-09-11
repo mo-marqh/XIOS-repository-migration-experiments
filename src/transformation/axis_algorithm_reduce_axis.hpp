@@ -38,6 +38,8 @@ public:
   virtual ~CAxisAlgorithmReduceAxis();
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Axis Trans. Filter \\n Reduce Axis";}
 protected:
   
 protected:

@@ -5,6 +5,7 @@
 #include <string>
 #include "operator_expr.hpp"
 #include <unordered_map>
+#include <tuple>
 
 namespace xios
 {
@@ -22,6 +23,8 @@ namespace xios
        * \param value the scalar value
        */
       CScalarFieldArithmeticFilter(CGarbageCollector& gc, const std::string& op, double value);
+      StdString virtual GetName(void);
+
 
     protected:
       COperatorExpr::functionScalarField op; //!< The binary scalar-field operator attached to the binary arithmeric filter
@@ -34,6 +37,9 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
+      
+
   }; // class CScalarFieldArithmeticFilter
 
   /*!
@@ -50,6 +56,8 @@ namespace xios
        * \param value the scalar value
        */
       CFieldScalarArithmeticFilter(CGarbageCollector& gc, const std::string& op, double value);
+      StdString virtual GetName(void);
+
 
     protected:
       COperatorExpr::functionFieldScalar op; //!< The binary field-scalar operator attached to the binary arithmeric filter
@@ -62,6 +70,7 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldScalarArithmeticFilter
 
   /*!
@@ -77,6 +86,8 @@ namespace xios
        * \param op the string identifing the binary field-field operator
        */
       CFieldFieldArithmeticFilter(CGarbageCollector& gc, const std::string& op);
+      StdString virtual GetName(void);
+
 
     protected:
       COperatorExpr::functionFieldField op; //!< The binary field-field operator attached to the binary arithmeric filter
@@ -88,6 +99,7 @@ namespace xios
        * \return the result of the binary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldFieldArithmeticFilter
 } // namespace xios
 

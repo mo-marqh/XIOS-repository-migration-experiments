@@ -30,6 +30,8 @@ public:
 
   virtual ~CMinReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Min reduction";}
+
 public:
   static bool registerTrans();
 

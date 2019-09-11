@@ -4,10 +4,12 @@ namespace xios
 {
   CFilter::CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine)
     : CInputPin(gc, inputSlotsCount)
-    , COutputPin(gc)
+    , COutputPin(gc, false)
     , engine(engine)
     , inputSlotCount(inputSlotCount)
   { /* Nothing to do */ }
+
+  StdString CFilter::GetName(void)    { return StdString("Filter"); }
 
   void CFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {

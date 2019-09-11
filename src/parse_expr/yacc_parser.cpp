@@ -69,6 +69,8 @@
 #include <iostream>
 #include "exception.hpp"
 
+#include "yacc_var.hpp"
+
 using namespace std;
 using namespace xios;
 
@@ -83,8 +85,15 @@ extern "C"
   std::string globalInputText;
   size_t globalReadOffset = 0;
 
+  std::string *xios::yacc_globalInputText_ptr = 0;
+
   int readInputForLexer(char* buffer, size_t* numBytesRead, size_t maxBytesToRead)
   {
+    yacc_globalInputText_ptr = &globalInputText;
+    //*yacc_globalInputText_ptr = globalInputText;
+
+    std::cout<<"========= yacc_globalInputText_ptr = "<<*yacc_globalInputText_ptr<<std::endl;
+    
     size_t numBytesToRead = maxBytesToRead;
     size_t bytesRemaining = globalInputText.length()-globalReadOffset;
     size_t i;

@@ -2,12 +2,15 @@
 #define __XIOS_CSpatialTransformFilter__
 
 #include "filter.hpp"
+#include "field.hpp"
 
 namespace xios
 {
   class CGrid;
   class CGridTransformation;
   class CSpatialTransformFilterEngine;
+
+  class CField;
 
   /*!
    * A generic filter with multiple input slots wrapping any type of spatial transformations.
@@ -23,7 +26,10 @@ namespace xios
        * \param outputValue default value of output pin
        * \param [in] inputSlotsCount number of input, by default there is only one for field src
        */
-      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine, double outputValue, size_t inputSlotsCount = 1);
+      CSpatialTransformFilter(CGarbageCollector& gc, CSpatialTransformFilterEngine* engine,
+                              double outputValue, size_t inputSlotsCount = 1);
+
+      inline StdString GetName(void) {return StdString("Spatial transform filter");};
 
       /*!
        * Builds the filter graph needed to transform the specified source grid into the specified destination grid.
@@ -92,6 +98,10 @@ namespace xios
   class CSpatialTransformFilterEngine : public IFilterEngine
   {
     public:
+
+      int filterID;
+      int tag;
+      CField *field;
       /*!
        * Returns the engine wrapping the specified grid transformation.
        * If the engine already exists it is reused, otherwise it is created.
@@ -108,7 +118,8 @@ namespace xios
        * \param [in] defaultValue default value of output data
        * \return the result of the grid transformation
        */
-      CDataPacketPtr applyFilter(std::vector<CDataPacketPtr> data, double defaultValue = 0);
+      CDataPacketPtr applyFilter(std::vector<CDataPacketPtr> data, double defaultValue = 0, int tag=0, Time start_graph=0, Time end_graph=-1, CField *field=0);
+      bool buildGraph(std::vector<CDataPacketPtr> data, int tag=0, Time start_graph=0, Time end_graph=-1, CField *field=0);
 
        /*!
        * Applies the grid transformation to the input data and returns the result.
@@ -135,7 +146,7 @@ namespace xios
        * \param dataSrc the source data
        * \param dataDest the resulting transformed data
        */
-      void apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest);
+      void apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest, int filterID=-1);
 
       CGridTransformation* gridTransformation; //!< The grid transformation used by the engine
 

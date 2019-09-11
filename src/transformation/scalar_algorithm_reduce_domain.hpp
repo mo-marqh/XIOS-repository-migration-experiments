@@ -39,6 +39,9 @@ public:
   virtual ~CScalarAlgorithmReduceDomain();
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Scalar Trans. Filter \\n Reduce Domain";}
+
 protected:
   bool local ;
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);

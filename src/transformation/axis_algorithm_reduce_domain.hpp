@@ -39,6 +39,9 @@ public:
   virtual ~CAxisAlgorithmReduceDomain();
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Axis Trans. Filter \\n Reduce Domain";}
+
 protected:
   enum ReduceDirection {
     undefined = 0,

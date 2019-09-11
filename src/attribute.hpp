@@ -41,6 +41,7 @@ namespace xios
             virtual StdString toString(void) const = 0;
             virtual void fromString(const StdString & str) = 0;
             virtual StdString dump(void) const = 0;
+            virtual StdString dump4graph(void) const = 0;
             virtual bool isEqual(const CAttribute& ) = 0;
 
             //! Returns true if and only if the attribute should be publicly exposed in the API

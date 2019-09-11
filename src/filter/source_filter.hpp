@@ -34,6 +34,8 @@ namespace xios
                     bool hasMissingValue = false,
                     double defaultValue = 0.0);
 
+      inline StdString GetName(void) {return StdString("Source filter");};
+
       /*!
        * Transforms the data received from the model into a packet and send it
        * in the filter graph. The array containing the data can safely be reused
@@ -44,6 +46,8 @@ namespace xios
        */
       template <int N>
       void streamData(CDate date, const CArray<double, N>& data);
+
+      void virtual buildGraph(CDataPacketPtr packet);
 
       /*!
        * Transforms the data received from the server into a packet and send it
@@ -61,6 +65,7 @@ namespace xios
        * \param date the date at which the end of stream occurred
        */
       void signalEndOfStream(CDate date);
+      int filterID;
 
     private:
       CGrid* grid;             //!< The grid attached to the data the filter can accept

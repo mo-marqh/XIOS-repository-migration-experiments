@@ -56,6 +56,8 @@ public:
 
   virtual ~CReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Reduction";}
+
 protected:
   typedef CReductionAlgorithm* (*CreateOperationCallBack)();
   typedef std::map<EReductionType, CreateOperationCallBack> CallBackMap;

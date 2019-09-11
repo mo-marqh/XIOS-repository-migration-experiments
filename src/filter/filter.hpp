@@ -25,6 +25,8 @@ namespace xios
        */
       CFilter(CGarbageCollector& gc, size_t inputSlotsCount, IFilterEngine* engine);
 
+      StdString virtual GetName(void);
+
       /*!
        * Sets the trigger for a specific input slot.
        *
@@ -60,6 +62,12 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+
+      
+      
+
+      int filterID;
+      StdString expression;
 
     protected:
       IFilterEngine* engine; //!< The filter engine, might be the filter itself

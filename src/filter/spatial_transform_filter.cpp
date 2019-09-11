@@ -3,6 +3,8 @@
 #include "context.hpp"
 #include "context_client.hpp"
 #include "timer.hpp"
+#include "workflow_graph.hpp"
+#include "file.hpp"
 
 namespace xios
 {
@@ -63,7 +65,7 @@ namespace xios
   void CSpatialTransformFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
     CSpatialTransformFilterEngine* spaceFilter = static_cast<CSpatialTransformFilterEngine*>(engine);
-    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue);
+    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue, this->tag, this->start_graph, this->end_graph, this->field);
     if (outputPacket)
       onOutputReady(outputPacket);
   }
@@ -95,7 +97,7 @@ namespace xios
   void CSpatialTemporalFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
     CSpatialTransformFilterEngine* spaceFilter = static_cast<CSpatialTransformFilterEngine*>(engine);
-    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue);
+    CDataPacketPtr outputPacket = spaceFilter->applyFilter(data, outputDefaultValue, this->tag, this->start_graph, this->end_graph, this->field);
 
     if (outputPacket)
     {
@@ -120,6 +122,7 @@ namespace xios
         packet->status = data[0]->status;
         packet->data.resize(tmpData.numElements());
         packet->data = tmpData;
+        packet->field = this->field;
         onOutputReady(packet);
         tmpData.resize(0) ;
       }
@@ -158,8 +161,39 @@ namespace xios
     /* Nothing to do */
   }
 
-  CDataPacketPtr CSpatialTransformFilterEngine::applyFilter(std::vector<CDataPacketPtr> data, double defaultValue)
+  bool CSpatialTransformFilterEngine::buildGraph(std::vector<CDataPacketPtr> data, int tag, Time start_graph, Time end_graph, CField *field)
   {
+    bool building_graph = tag ? data[0]->timestamp >= start_graph && data[0]->timestamp <= end_graph : false;
+    if(building_graph)
+    {
+      this->filterID = InvalidableObject::filterIdGenerator++;
+      int edgeID = InvalidableObject::edgeIdGenerator++;    
+
+      CWorkflowGraph::allocNodeEdge();
+
+      CWorkflowGraph::addNode(this->filterID, "Spatial Transform Filter", 4, 1, 1, data[0]);
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = field->record4graphXiosAttributes();
+      if(field->file) (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes += "</br>file attributes : </br>" +field->file->record4graphXiosAttributes();
+
+
+      if(CWorkflowGraph::build_begin)
+      {
+        CWorkflowGraph::addEdge(edgeID, this->filterID, data[0]);
+
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[data[0]->src_filterID].filter_filled = 0;
+      }
+      else CWorkflowGraph::build_begin = true;
+    }
+
+    return building_graph;
+  }
+
+  CDataPacketPtr CSpatialTransformFilterEngine::applyFilter(std::vector<CDataPacketPtr> data, double defaultValue, int tag, Time start_graph, Time end_graph, CField *field)
+  {
+    
+    bool BG = buildGraph(data, tag, start_graph, end_graph, field);
+
     CDataPacketPtr packet(new CDataPacket);
     packet->date = data[0]->date;
     packet->timestamp = data[0]->timestamp;
@@ -176,13 +210,18 @@ namespace xios
       packet->data.resize(gridTransformation->getGridDestination()->storeIndex_client.numElements());
       if (0 != packet->data.numElements())
         (packet->data)(0) = defaultValue;
-      apply(data[0]->data, packet->data);
+      if(BG) apply(data[0]->data, packet->data, this->filterID);
+      else apply(data[0]->data, packet->data);
     }
+
+    if(BG) packet->src_filterID=this->filterID;
+    if(BG) packet->distance=data[0]->distance+1;
+    packet->field = field;
 
     return packet;
   }
 
-  void CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest)
+  void CSpatialTransformFilterEngine::apply(const CArray<double, 1>& dataSrc, CArray<double,1>& dataDest, int filterID)
   {
     CTimer::get("CSpatialTransformFilterEngine::apply").resume(); 
     
@@ -295,6 +334,11 @@ namespace xios
       {
         const std::vector<std::pair<int,double> >& localIndex_p = itRecv->second;
         int srcRank = itRecv->first;
+
+        if(filterID >=0) // building_graph
+        {
+           (*CWorkflowGraph::mapFilters_ptr_with_info)[filterID].filter_name = (*itAlgo)->getName();
+        } 
         if (srcRank != rank)
         {
           int countSize = itRecv->second.size();

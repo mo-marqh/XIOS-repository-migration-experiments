@@ -2,6 +2,8 @@
 #include "exception.hpp"
 #include "field.hpp"
 #include "utils.hpp"
+#include "workflow_graph.hpp"
+#include "graphviz.hpp"
 
 namespace xios
 {
@@ -14,8 +16,42 @@ namespace xios
             "The field cannot be null.");
   }
 
+  void CFileWriterFilter::buildGraph(std::vector<CDataPacketPtr> data)
+  {
+    bool building_graph = this->tag ? data[0]->timestamp >= this->start_graph && data[0]->timestamp <= this->end_graph: false;
+    
+    if(building_graph)
+    {
+      this->filterID = InvalidableObject::filterIdGenerator++;
+      int edgeID = InvalidableObject::edgeIdGenerator++;
+
+      CWorkflowGraph::allocNodeEdge();
+      StdString namestring = to_string(this->field->name);
+      namestring.erase(0, 6);
+      namestring.erase(namestring.length()-1, 1);
+
+      CWorkflowGraph::addNode(this->filterID, namestring + "\\n("+this->field->file->getId()+".nc)", 6, 0, 1, data[0]);
+
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes += "</br>file attributes : </br>" +this->field->file->record4graphXiosAttributes();
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].clusterID =1;
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = data[0]->distance+1;
+
+      if(CXios::isClient && CWorkflowGraph::build_begin) 
+      {
+
+        CWorkflowGraph::addEdge(edgeID, this->filterID, data[0]);
+
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[data[0]->src_filterID].filter_filled = 0 ;
+      }
+      else CWorkflowGraph::build_begin=true;
+    }
+  }
+
   void CFileWriterFilter::onInputReady(std::vector<CDataPacketPtr> data)
   {
+    buildGraph(data);
+    
     const bool detectMissingValue = ( !field->default_value.isEmpty() &&
                                ( (!field->detect_missing_value.isEmpty() || field->detect_missing_value == true)
                                  || field->hasGridMask()) );

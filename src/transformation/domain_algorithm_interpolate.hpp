@@ -38,6 +38,9 @@ public:
   virtual void updateData(CArray<double,1>& dataOut);
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Domain Trans. Filter \\n Interpolation";}
+
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

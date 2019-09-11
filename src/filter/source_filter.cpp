@@ -3,6 +3,7 @@
 #include "exception.hpp"
 #include "calendar_util.hpp"
 #include <limits> 
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -22,6 +23,30 @@ namespace xios
       ERROR("CSourceFilter::CSourceFilter(CGrid* grid)",
             "Impossible to construct a source filter without providing a grid.");
   }
+
+  void CSourceFilter::buildGraph(CDataPacketPtr packet)
+  {
+    bool building_graph = this->tag ? packet->timestamp >= this->field->field_graph_start && packet->timestamp <= this->field->field_graph_end : false;
+    if(building_graph)
+    {
+      this->filterID = InvalidableObject::filterIdGenerator++;  
+      packet->src_filterID=this->filterID;
+      packet->field = this->field;
+      packet->distance = 1;
+      
+    
+      CWorkflowGraph::allocNodeEdge();
+
+      CWorkflowGraph::addNode(this->filterID, "Source Filter ", 1, 1, 0, packet);
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].field_id = this->field->getId();
+      (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = 1;
+
+      CWorkflowGraph::build_begin = true;
+    }
+
+  }
+
 
   template <int N>
   void CSourceFilter::streamData(CDate date, const CArray<double, N>& data)
@@ -58,6 +83,10 @@ namespace xios
           packet->data(idx) = nanValue;
       }
     }
+
+    if(CXios::isClient) buildGraph(packet);
+    
+
 
     onOutputReady(packet);
   }

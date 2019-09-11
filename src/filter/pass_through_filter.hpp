@@ -19,6 +19,8 @@ namespace xios
        */
       CPassThroughFilter(CGarbageCollector& gc);
 
+      inline StdString GetName(void) {return StdString("Pass through filter");};
+
     protected:
       /*!
        * Returns the input packet without making any modification to it.
@@ -27,6 +29,7 @@ namespace xios
        * \return the untouched source data packet
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      void virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CPassThroughFilter
 } // namespace xios
 

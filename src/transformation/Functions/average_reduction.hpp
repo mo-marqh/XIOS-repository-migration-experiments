@@ -32,6 +32,8 @@ public:
 
   virtual ~CAverageReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Average reduction";}
+
 protected:
   CArray<double,1> weights_;
   bool resetWeight_;

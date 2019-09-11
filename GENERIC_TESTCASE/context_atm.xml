@@ -288,10 +288,10 @@
   
   
   <field_definition level="1" prec="8" operation="instant" freq_op="1ts" enabled=".true." default_value="1.e+20" detect_missing_value="true">
-    <field id="field2D" grid_ref="grid2D"/>
-    <field id="field3D" grid_ref="grid3D"  />
+    <field id="field2D" grid_ref="grid2D" />
+    <field id="field3D" grid_ref="grid3D" build_workflow_graph="true"  />
     <field id="pressure" grid_ref="grid3D"  />
-    <field id="field3D_recv" read_access="true" grid_ref="grid3D"  field_ref="field3D"/>
+    <field id="field3D_recv" read_access="true" grid_ref="grid3D"  field_ref="field3D" />
     <field id="field3D_resend" grid_ref="grid3D" />
 
     <field id="field_X" grid_ref="grid_X" />
@@ -362,7 +362,7 @@
 
   <file_definition  type="one_file" >
     
-    <file id="atm_output" output_freq="1ts" type="one_file" enabled="true">
+    <file id="atm_output" output_freq="4ts" type="one_file" enabled="true">
 <!--      <field field_ref="field3D" />
       <field field_ref="field2D" /> 
       <field field_ref="field3D" grid_ref="grid_vert_reduce" name="field_vert_reduced" /> 
@@ -384,15 +384,15 @@
     </file>
 
     <file id="atm_output_other" output_freq="1ts" type="one_file" enabled="true">
-       <field field_ref="other_field3D" enabled="false"/>
+       <field field_ref="other_field3D" enabled="true"/>
        <field field_ref="other_field2D" enabled="true"/> 
-       <field field_ref="other_field_X" enabled="false"/>
-       <field field_ref="other_field_Y" enabled="false"/>
-       <field field_ref="other_field_XY" enabled="false"/>
-       <field field_ref="other_field_Z" enabled="false"/>
-       <field field_ref="other_field_XYZ" enabled="false"/>
-       <field field_ref="other_field_XZ" enabled="false"/>
-       <field field_ref="other_field_YZ" enabled="false"/>
+       <field field_ref="other_field_X" enabled="true"/>
+       <field field_ref="other_field_Y" enabled="true"/>
+       <field field_ref="other_field_XY" enabled="true"/>
+       <field field_ref="other_field_Z" enabled="true"/>
+       <field field_ref="other_field_XYZ" enabled="true"/>
+       <field field_ref="other_field_XZ" enabled="true"/>
+       <field field_ref="other_field_YZ" enabled="true"/>
     </file>
 
     <file id="atm_output_W" output_freq="1ts" enabled="false">
@@ -406,6 +406,7 @@
        <field field_ref="field_XZW" enabled="true"/>
        <field field_ref="field_YZW" enabled="true"/>
     </file>
+    
 
     <file id="atm_output_reorder" output_freq="1ts" enabled="false" >
        <field field_ref="field2D" grid_ref="grid2D_invert" enabled="true"/>

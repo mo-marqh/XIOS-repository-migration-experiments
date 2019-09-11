@@ -6,6 +6,7 @@
 #include "group_factory.hpp"
 #include "functor.hpp"
 #include "functor_type.hpp"
+#include "filter.hpp"
 #include "duration.hpp"
 #include "date.hpp"
 #include "declare_group.hpp"
@@ -138,12 +139,12 @@ namespace xios {
          /// Vérifications ///
          void checkTimeAttributes(CDuration* freqOp=NULL);
 
-         void buildFilterGraph(CGarbageCollector& gc, bool enableOutput);
+         void buildFilterGraph(CGarbageCollector& gc, bool enableOutput, Time start_graph=-1, Time end_graph=-1);
          size_t getGlobalWrittenSize(void) ;
          
          
-         std::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc);
-         std::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc);
+         std::shared_ptr<COutputPin> getFieldReference(CGarbageCollector& gc, Time start_graph=-1, Time end_graph=-1);
+         std::shared_ptr<COutputPin> getSelfReference(CGarbageCollector& gc, Time start_graph=-1, Time end_graph=-1);
          std::shared_ptr<COutputPin> getTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
          std::shared_ptr<COutputPin> getSelfTemporalDataFilter(CGarbageCollector& gc, CDuration outFreq);
 
@@ -241,6 +242,9 @@ namespace xios {
          // Two variables to identify the time_counter meta data written in file, which has no time_counter
          bool hasTimeInstant;
          bool hasTimeCentered;
+
+         Time field_graph_start;
+         Time field_graph_end;
 
 
          DECLARE_REF_FUNC(Field,field)

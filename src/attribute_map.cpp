@@ -58,6 +58,33 @@ namespace xios
         return str;
       }
 
+
+
+      StdString CAttributeMap::record4graphXiosAttributes(void) const
+      {
+        int maxNbChar = 250;
+        StdString str;
+        typedef std::pair<StdString, CAttribute*> StdStrAttPair;
+        auto it = SuperClassMap::begin(), end = SuperClassMap::end();
+        for (; it != end; it++)
+        {
+          const StdStrAttPair& att = *it;
+          if (!att.second->isEmpty())
+          {
+            if (str.length() < maxNbChar)
+            {
+              str.append(att.second->dump4graph());
+              str.append(" ");
+            }
+            else if (str.length() == maxNbChar)
+            {
+              str.append("...");
+            }
+          }
+        }
+        return str;
+      }
+
       //---------------------------------------------------------------
 
       /*

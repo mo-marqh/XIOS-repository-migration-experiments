@@ -30,6 +30,8 @@ public:
 
   virtual ~CMaxReductionAlgorithm() {}
 
+  virtual StdString getName() {return "Max reduction";}
+
 public:
   static bool registerTrans();
 

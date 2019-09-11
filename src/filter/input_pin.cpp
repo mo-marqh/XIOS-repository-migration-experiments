@@ -2,6 +2,7 @@
 #include "output_pin.hpp"
 #include "garbage_collector.hpp"
 #include "exception.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
@@ -10,7 +11,12 @@ namespace xios
     , slotsCount(slotsCount)
     , triggers(slotsCount)
     , hasTriggers(false)
-  { /* Nothing to do */ }
+  {  }
+
+  StdString CInputPin::GetName(void)
+  {
+    return StdString("Input pin");
+  }
 
   void CInputPin::setInput(size_t inputSlot, CDataPacketPtr packet)
   {

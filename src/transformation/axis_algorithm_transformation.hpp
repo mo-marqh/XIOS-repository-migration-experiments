@@ -30,6 +30,8 @@ public:
 
   virtual ~CAxisAlgorithmTransformation();
 
+  virtual StdString getName() {return "Axis Trans. Filter \\n Transformation";}
+
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

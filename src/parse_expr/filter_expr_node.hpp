@@ -5,6 +5,8 @@
 #include <boost/smart_ptr/scoped_ptr.hpp>
 #include "scalar_expr_node.hpp"
 
+#include "duration.hpp"
+
 namespace xios
 {
   class COutputPin;
@@ -24,7 +26,7 @@ namespace xios
      * \param thisField the field to which the expression is attached
      * \return the output pin of the filter producing the result of the expression 
      */
-    virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const = 0;
+    virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const = 0;
   };
 
   /*!
@@ -41,7 +43,7 @@ namespace xios
        */
       CFilterFieldExprNode(const std::string& fieldId);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string fieldId; //!< The identifier of the field
@@ -62,7 +64,7 @@ namespace xios
        */
       CFilterTemporalFieldExprNode(const std::string& fieldId);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string fieldId; //!< The identifier of the field
@@ -85,7 +87,7 @@ namespace xios
        */
       CFilterUnaryOpExprNode(const std::string& opId, IFilterExprNode* child);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -110,7 +112,7 @@ namespace xios
        */
       CFilterScalarFieldOpExprNode(IScalarExprNode* child1, const std::string& opId, IFilterExprNode* child2);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -136,7 +138,7 @@ namespace xios
        */
       CFilterFieldScalarOpExprNode(IFilterExprNode* child1, const std::string& opId, IScalarExprNode* child2);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -161,7 +163,7 @@ namespace xios
        */
       CFilterFieldFieldOpExprNode(IFilterExprNode* child1, const std::string& opId, IFilterExprNode* child2);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -189,7 +191,7 @@ namespace xios
       */
       CFilterScalarScalarFieldOpExprNode(IScalarExprNode* child1, const std::string& opId, IScalarExprNode* child2, IFilterExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -218,7 +220,7 @@ namespace xios
       */
       CFilterScalarFieldScalarOpExprNode(IScalarExprNode* child1, const std::string& opId, IFilterExprNode* child2, IScalarExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -247,7 +249,7 @@ namespace xios
       */
       CFilterScalarFieldFieldOpExprNode(IScalarExprNode* child1, const std::string& opId, IFilterExprNode* child2, IFilterExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -277,7 +279,7 @@ namespace xios
       */
       CFilterFieldScalarScalarOpExprNode(IFilterExprNode* child1, const std::string& opId, IScalarExprNode* child2, IScalarExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -306,7 +308,7 @@ namespace xios
       */
       CFilterFieldScalarFieldOpExprNode(IFilterExprNode* child1, const std::string& opId, IScalarExprNode* child2, IFilterExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -334,7 +336,7 @@ namespace xios
       */
       CFilterFieldFieldScalarOpExprNode(IFilterExprNode* child1, const std::string& opId, IFilterExprNode* child2, IScalarExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field
@@ -363,7 +365,7 @@ namespace xios
       */
       CFilterFieldFieldFieldOpExprNode(IFilterExprNode* child1, const std::string& opId, IFilterExprNode* child2, IFilterExprNode* child3);
 
-      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField) const;
+      virtual std::shared_ptr<COutputPin> reduce(CGarbageCollector& gc, CField& thisField, Time start_graph=-1, Time end_graph=-1) const;
 
     private:
       std::string opId; //!< The identifier of the field

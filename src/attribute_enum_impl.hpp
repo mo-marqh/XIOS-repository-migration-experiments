@@ -148,6 +148,15 @@ namespace xios
      return (oss.str());
   }
 
+template <class T>
+  StdString CAttributeEnum<T>::_dump4graph(void) const
+  {
+     StdOStringStream oss;
+     if (!CEnum<T>::isEmpty() && this->hasId())
+        oss << this->getName() << "=" << CEnum<T>::toString() << "</br>";
+     return (oss.str());
+  }
+
   template <class T>
   void CAttributeEnum<T>::_fromString(const StdString & str)
   {

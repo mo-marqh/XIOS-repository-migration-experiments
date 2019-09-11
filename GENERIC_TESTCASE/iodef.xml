@@ -5,7 +5,7 @@
     <variable_definition>
 
       <variable id="timestep"> 1h </variable>
-      <variable id="domain"> gaussian </variable>
+      <variable id="domain"> lmdz </variable>
       <variable id="domain_mask"> true </variable>
       <variable id="axis_mask"> true </variable>
       <variable id="init_field2D"> rank </variable>

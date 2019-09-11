@@ -8,6 +8,7 @@
 
 namespace xios
 {
+  class CField;
   /*!
    * A packet corresponds to a timestamped array of data.
    */
@@ -25,7 +26,11 @@ namespace xios
     CDate date;             //!< Date associated to the data
     Time timestamp;         //!< Timestamp of the data
     StatusCode status;      //!< Status of the packet
-
+    int src_filterID;
+    std::vector<int> filterIDoutputs;
+    CField *field;
+    int distance;
+    
     /*!
      * Creates a deep copy of the packet.
      *

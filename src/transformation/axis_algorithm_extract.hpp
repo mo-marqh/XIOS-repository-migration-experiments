@@ -26,6 +26,9 @@ public:
   virtual ~CAxisAlgorithmExtract() {}
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Axis Trans. Filter \\n Extract";}
+
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

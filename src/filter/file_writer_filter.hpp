@@ -2,6 +2,8 @@
 #define __XIOS_CFileWriterFilter__
 
 #include "input_pin.hpp"
+#include "file.hpp"
+#include "duration.hpp"
 
 namespace xios
 {
@@ -13,6 +15,13 @@ namespace xios
   class CFileWriterFilter : public CInputPin
   {
     public:
+      int tag;
+      Time start_graph;
+      Time end_graph;
+      CField* field; //<! The associated field
+      int filterID;
+      int distance;
+
       /*!
        * Constructs the filter (with one input slot) associated to the specified field
        * and a garbage collector.
@@ -21,6 +30,9 @@ namespace xios
        * \param field the associated field
        */
       CFileWriterFilter(CGarbageCollector& gc, CField* field);
+
+      inline StdString GetName(void) {return "File writer filter";};
+
 
       /*!
        * Tests if the filter must auto-trigger.
@@ -43,9 +55,9 @@ namespace xios
        * \param data a vector of packets corresponding to each slot
        */
       void virtual onInputReady(std::vector<CDataPacketPtr> data);
+      void virtual buildGraph(std::vector<CDataPacketPtr> data);
 
     private:
-      CField* field; //<! The associated field
       std::map<Time, CDataPacketPtr> packets; //<! The stored packets
   }; // class CFileWriterFilter
 } // namespace xios

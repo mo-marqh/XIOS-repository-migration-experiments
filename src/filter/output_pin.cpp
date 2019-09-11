@@ -1,12 +1,18 @@
 #include "output_pin.hpp"
 #include "exception.hpp"
+#include "workflow_graph.hpp"
 
 namespace xios
 {
   COutputPin::COutputPin(CGarbageCollector& gc, bool manualTrigger /*= false*/)
     : gc(gc)
     , manualTrigger(manualTrigger)
-  { /* Nothing to do */ }
+  {  }
+
+  StdString COutputPin::GetName(void)
+  {
+    return StdString("Output pin");
+  }
 
   void COutputPin::connectOutput(std::shared_ptr<CInputPin> inputPin, size_t inputSlot)
   {
@@ -100,4 +106,26 @@ namespace xios
   {
     outputPackets.erase(outputPackets.begin(), outputPackets.lower_bound(timestamp));
   }
+
+  void COutputPin::setParentFiltersTag()
+  {
+    for(int i=0; i<parent_filters.size(); i++)
+    {
+
+      if(parent_filters[i]->start_graph<0) parent_filters[i]->start_graph = start_graph;
+      else parent_filters[i]->start_graph = min(parent_filters[i]->start_graph, start_graph);
+
+
+      if(parent_filters[i]->end_graph<0) parent_filters[i]->end_graph = end_graph;  
+      else parent_filters[i]->end_graph = max(parent_filters[i]->end_graph, end_graph);
+      
+      
+      parent_filters[i]->tag += tag;
+      parent_filters[i]->setParentFiltersTag();
+    }
+  }
+
+
+
+
 } // namespace xios

@@ -25,6 +25,8 @@ namespace xios
        * \param slotsCount the number of slots
        */
       CInputPin(CGarbageCollector& gc, size_t slotsCount);
+      
+      StdString virtual GetName(void);
 
       /*!
        * Sets the trigger for a specific input slot.

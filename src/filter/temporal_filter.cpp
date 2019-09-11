@@ -1,6 +1,8 @@
 #include "temporal_filter.hpp"
 #include "functor_type.hpp"
 #include "calendar_util.hpp"
+#include "workflow_graph.hpp"
+#include "file.hpp"
 
 namespace xios
 {
@@ -21,17 +23,67 @@ namespace xios
                         this->samplingOffset.hour, this->samplingOffset.minute,
                         this->samplingOffset.second, this->samplingOffset.timestep)
     , initDate(initDate)
-//    , nextSamplingDate(initDate + (this->samplingOffset + initDate.getRelCalendar().getTimeStep()))
     , nextSamplingDate(initDate + offsetMonth + ( offsetAllButMonth + initDate.getRelCalendar().getTimeStep()))
     , nbOperationDates(1)
     , nbSamplingDates(0)
 //    , nextOperationDate(initDate + opFreq + this->samplingOffset)
     , isFirstOperation(true)
+    , temp_op(opId)
   {
   }
 
+  
+
+
+
+  bool CTemporalFilter::buildGraph(std::vector<CDataPacketPtr> data)
+  {
+    bool building_graph=this->tag ? data[0]->timestamp >= this->start_graph && data[0]->timestamp <= this->end_graph : false;
+   
+    if(building_graph)
+    {
+      if(this->filterIDoutputs.size()==0) this->filterID = InvalidableObject::filterIdGenerator++;
+      int edgeID = InvalidableObject::edgeIdGenerator++;
+      
+      // std::cout<<"CTemporalFilter::apply filter tag = "<<this->tag<<" start = "<<this->start_graph<<" end = "<<this->end_graph<<std::endl;
+
+      CWorkflowGraph::allocNodeEdge();
+
+      if(this->filterIDoutputs.size()==0)
+      {
+        CWorkflowGraph::addNode(this->filterID, "Temporal Filter\\n("+this->temp_op+")", 5, 1, 0, data[0]);   
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].transform_type = this->temp_op;   
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].inputs_complete = false ;
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].clusterID = 1 ;
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = (data[0]->distance);
+
+
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes = this->field->record4graphXiosAttributes();
+        if(this->field->file) (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].attributes += "</br>file attributes : </br>" +this->field->file->record4graphXiosAttributes();
+      }
+
+      if(CWorkflowGraph::build_begin)
+      {
+
+        CWorkflowGraph::addEdge(edgeID, this->filterID, data[0]);
+
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[data[0]->src_filterID].filter_filled = 0 ;
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].expected_entry_nb += 1 ;
+        (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance = max(data[0]->distance+1, (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].distance);
+      }
+
+
+      this->filterIDoutputs.push_back(data[0]->src_filterID); 
+    }
+
+    return building_graph;
+  }
+
+
   CDataPacketPtr CTemporalFilter::apply(std::vector<CDataPacketPtr> data)
   {
+    bool BG = buildGraph(data);
+
     CDataPacketPtr packet;
 
     if (data[0]->status != CDataPacket::END_OF_STREAM)
@@ -42,7 +94,6 @@ namespace xios
       else
       {
         usePacket = (data[0]->date >= nextSamplingDate);
-//        outputResult = (data[0]->date + samplingFreq > nextOperationDate);
         outputResult = (data[0]->date  > initDate + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth);
         copyLess = (isInstantOperation && usePacket && outputResult);
       }
@@ -79,7 +130,17 @@ namespace xios
           packet = data[0];
 
         isFirstOperation = false;
-//        nextOperationDate = initDate + samplingFreq + nbOperationDates*opFreq - samplingFreq + offsetMonth + offsetAllButMonth;
+        
+        packet->field = this->field;
+        
+        if(BG)
+        {
+          packet->src_filterID=this->filterID;
+          packet->distance = data[0]->distance+1;
+          this->filterIDoutputs.clear();
+          CWorkflowGraph::build_begin=true;
+          (*CWorkflowGraph::mapFilters_ptr_with_info)[this->filterID].inputs_complete = true ;
+        }
       }
     }
 

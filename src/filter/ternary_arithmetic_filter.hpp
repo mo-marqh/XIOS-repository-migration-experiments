@@ -4,6 +4,7 @@
 #include "filter.hpp"
 #include <string>
 #include "operator_expr.hpp"
+#include <tuple>
 
 namespace xios
 {
@@ -35,6 +36,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CScalarScalarFieldArithmeticFilter
 
  
@@ -66,6 +68,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CScalarScalarFieldArithmeticFilter
 
   /*!
@@ -94,6 +97,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CScalarScalarFieldArithmeticFilter
 
 
@@ -126,6 +130,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldScalarScalarArithmeticFilter
 
 
@@ -155,6 +160,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldScalarFieldArithmeticFilter
 
 
@@ -184,6 +190,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldFielScalardArithmeticFilter
 
 
@@ -211,6 +218,7 @@ namespace xios
        * \return the result of the ternary operation
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      std::tuple<int, int, int> virtual buildGraph(std::vector<CDataPacketPtr> data);
   }; // class CFieldFielFieldArithmeticFilter
 
 

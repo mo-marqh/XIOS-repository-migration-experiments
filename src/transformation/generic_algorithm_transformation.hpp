@@ -73,6 +73,8 @@ public:
                      std::vector<bool>& flagInitial,                     
                      bool ignoreMissingValue, bool firstPass);
 
+  virtual StdString getName() {return "Generic Trans. Filter";}
+
   /*!
    * Update whole dataOut (on necessary).
    * (Example:  Impose a weight, whose value is only known after being applied an operation, on dataOut)

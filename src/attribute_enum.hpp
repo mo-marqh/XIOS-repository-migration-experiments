@@ -62,6 +62,7 @@ namespace xios
             virtual StdString toString(void) const { return _toString();}
             virtual void fromString(const StdString & str) { if (str==resetInheritanceStr) { reset(); _canInherite=false ;}  else _fromString(str);}
             virtual StdString dump(void) const { return _toString();}
+            virtual StdString dump4graph(void) const { return _dump4graph();}
 
             virtual bool toBuffer  (CBufferOut& buffer) const { return _toBuffer(buffer);} 
             virtual bool fromBuffer(CBufferIn& buffer) { return _fromBuffer(buffer); } 
@@ -78,6 +79,7 @@ namespace xios
          private :
           bool isEqual_(const CAttributeEnum& attr );
           StdString _toString(void) const;
+          StdString _dump4graph(void) const;
           void _fromString(const StdString & str);
           bool _toBuffer  (CBufferOut& buffer) const;
           bool _fromBuffer(CBufferIn& buffer) ;

@@ -3,15 +3,30 @@
 
 #include "garbage_collector.hpp"
 #include "input_pin.hpp"
+#include "duration.hpp"
 
 namespace xios
 {
+  class CField;
+  class CInputPin;
+  class CFilter;
+  class CDuration;
   /*!
    * An output pin handles the connections with downstream filters.
    */
   class COutputPin : public InvalidableObject
   {
     public:
+      int tag;
+      Time start_graph;
+      Time end_graph;
+      CField *field;
+      int distance;
+
+
+
+      std::vector< std::shared_ptr<COutputPin> > parent_filters;
+
       /*!
        * Constructs an ouput pin with manual or automatic trigger
        * and an associated garbage collector.
@@ -21,6 +36,8 @@ namespace xios
        */
       COutputPin(CGarbageCollector& gc, bool manualTrigger = false);
 
+      StdString virtual GetName(void);
+      
       /*!
        * Connects to a specific slot of the input pin of a downstream filter.
        * Note that the output pin holds a reference on the downstream filter.
@@ -64,6 +81,9 @@ namespace xios
        * \param timestamp the timestamp used for invalidation
        */
       void virtual invalidate(Time timestamp);
+
+      void virtual setParentFiltersTag();
+
 
     protected:
       /*!

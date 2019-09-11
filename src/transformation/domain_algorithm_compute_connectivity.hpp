@@ -27,6 +27,9 @@ public:
   virtual ~CDomainAlgorithmComputeConnectivity() {}
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Domain Trans. Filter \\n Compute Connectivity";}
+
 protected:
   void computeIndexSourceMapping_(const std::vector<CArray<double,1>* >& dataAuxInputs);
 

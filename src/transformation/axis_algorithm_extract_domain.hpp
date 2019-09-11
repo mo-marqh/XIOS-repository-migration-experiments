@@ -38,6 +38,9 @@ public:
   virtual ~CAxisAlgorithmExtractDomain();
 
   static bool registerTrans();
+
+  virtual StdString getName() {return "Axis Trans. Filter \\n Extract Domain";}
+
 protected:
   enum ExtractDirection {
     undefined = 0,

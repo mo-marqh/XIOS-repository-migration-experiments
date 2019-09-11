@@ -30,6 +30,8 @@ namespace xios
                       const CDate& initDate, const CDuration samplingFreq, const CDuration samplingOffset, const CDuration opFreq,
                       bool ignoreMissingValue = false);
 
+      inline StdString GetName(void) {return StdString("Temporal filter");};
+
       /*!
        * Applies the temporal operation to the input data and returns the result when it is ready.
        *
@@ -37,6 +39,7 @@ namespace xios
        * \return the result of the temporal operation or null if it is not ready yet
        */
       CDataPacketPtr virtual apply(std::vector<CDataPacketPtr> data);
+      bool virtual buildGraph(std::vector<CDataPacketPtr> data);
 
       /*!
        * Tests if the filter must auto-trigger.
@@ -51,6 +54,10 @@ namespace xios
        * \param date the date associated to the data
        */
       bool virtual isDataExpected(const CDate& date) const;
+      std::vector<int > filterIDoutputs;
+      std::vector<std::pair<int, int> > filterIDoutputs_pair;
+
+      StdString temp_op;
 
     private:
       // Warning the declaration order matters here, double-check the constructor before changing it
