@@ -10,8 +10,9 @@ namespace xios
 {
   std::map<std::string,CTimer> CTimer::allTimer;
   
-  CTimer::CTimer(const std::string& name_) : name(name_) 
+  CTimer::CTimer(const std::string& name_, bool trace) : name(name_) 
   { 
+    isTracing_=trace ;
     reset();
   }
 
@@ -24,7 +25,7 @@ namespace xios
   {
     if (!suspended) 
     {
-      traceEnd(name);
+      if (isTracing_) traceEnd(name);
       cumulatedTime += getTime() - lastTime;
     }
     suspended = true;
@@ -35,7 +36,7 @@ namespace xios
     if (suspended) 
     {
       lastTime = getTime();
-      traceBegin(name);
+      if (isTracing_) traceBegin(name);
     }
     suspended = false;
   }
@@ -51,11 +52,11 @@ namespace xios
     return cumulatedTime;
   }
   
-  CTimer& CTimer::get(const std::string name)
+  CTimer& CTimer::get(const std::string name, bool trace)
   {
     std::map<std::string,CTimer>::iterator it = allTimer.find(name);
     if (it == allTimer.end())
-      it = allTimer.insert(std::make_pair(name, CTimer(name))).first;
+      it = allTimer.insert(std::make_pair(name, CTimer(name,trace))).first;
     return it->second;
   }
 

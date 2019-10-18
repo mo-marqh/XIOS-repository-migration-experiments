@@ -24,9 +24,15 @@ namespace xios
 
   std::map<std::string,int> regionId ;
   int count=0 ;
+  bool traceIsOn=true ;
+  int stackOnOffdeep=0 ;
   
   void traceOn(void)
   {
+    stackOnOffdeep-- ;
+    if (stackOnOffdeep!=0) return ;
+    traceIsOn=true; 
+
 #if defined(VTRACE)
     VT_ON() ;
 #elif defined(SCOREP)
@@ -38,6 +44,9 @@ namespace xios
   
   void traceOff(void) 
   {
+    stackOnOffdeep++ ;
+    if (stackOnOffdeep!=1) return ;
+    traceIsOn=false; 
 #if defined(VTRACE)
     VT_OFF() ;
 #elif defined(SCOREP)
@@ -50,7 +59,8 @@ namespace xios
   void traceBegin(const string& name)
   {
 #if defined(VTRACE)
-    VT_USER_START(name.c_str()) ;
+    
+    if (traceIsOn) VT_USER_START(name.c_str()) ;
 #elif defined(SCOREP)
     SCOREP_USER_REGION_BY_NAME_BEGIN(name.c_str(),SCOREP_USER_REGION_TYPE_COMMON)
 
@@ -75,7 +85,7 @@ namespace xios
   void traceEnd(const string& name)
   {
 #if defined (VTRACE)
-    VT_USER_END(name.c_str()) ;
+    if (traceIsOn) VT_USER_END(name.c_str()) ;
 #elif defined(SCOREP)
     SCOREP_USER_REGION_BY_NAME_END(name.c_str())
 #elif defined(ITAC)
