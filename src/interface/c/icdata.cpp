@@ -64,6 +64,8 @@ extern "C"
 
       if (!cstr2string(client_id, len_client_id, str)) return;
 
+      CTimer::get("XIOS").resume();
+      CTimer::get("XIOS init").resume();
       int initialized;
       MPI_Initialized(&initialized);
       if (initialized) local_comm=MPI_Comm_f2c(*f_local_comm);

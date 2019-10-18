@@ -12,11 +12,13 @@ extern "C"
   TRY
   {
     CTimer::get("XIOS").resume();
+    CTimer::get("XIOS update calendar").resume();
     xios::CContext* context = CContext::getCurrent();
     if (!context->hasServer && !context->client->isAttachedModeEnabled())
       context->checkBuffersAndListen();
     context->updateCalendar(step);
     context->sendUpdateCalendar(step);
+    CTimer::get("XIOS update calendar").suspend();
     CTimer::get("XIOS").suspend();
   }
   CATCH_DUMP_STACK
