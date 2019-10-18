@@ -23,6 +23,7 @@
 #include "temporal_filter.hpp"
 #include "spatial_transform_filter.hpp"
 #include "file_server_writer_filter.hpp"
+#include "tracer.hpp"
 
 namespace xios{
 
@@ -618,7 +619,10 @@ namespace xios{
     if (wasDataRequestedFromServer && !isEOF)
     {
       CTimer timer("CField::checkForLateDataFromServer");
-
+      timer.resume();
+      traceOff() ;
+      timer.suspend();
+      
       bool isDataLate;
       do
       {
@@ -635,6 +639,10 @@ namespace xios{
         }
       }
       while (isDataLate && timer.getCumulatedTime() < CXios::recvFieldTimeout);
+      timer.resume();
+      traceOn() ;
+      timer.suspend() ;
+
 
       if (isDataLate)
         ERROR("void CField::checkForLateDataFromServer(void)",
