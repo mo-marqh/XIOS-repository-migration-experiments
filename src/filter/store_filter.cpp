@@ -2,6 +2,7 @@
 #include "context.hpp"
 #include "grid.hpp"
 #include "timer.hpp"
+#include "tracer.hpp"
 
 namespace xios
 {
@@ -25,6 +26,10 @@ namespace xios
   CConstDataPacketPtr CStoreFilter::getPacket(Time timestamp)
   {
     CTimer timer("CStoreFilter::getPacket");
+//    timer.resume(); 
+    info(0)<<"ENTERING CStoreFilter::getPacket"<<std::endl ;
+    traceOff() ;
+//    timer.suspend();
     CConstDataPacketPtr packet;
     const double timeout = CXios::recvFieldTimeout;
 
@@ -43,6 +48,9 @@ namespace xios
 
       timer.suspend();
     } while (!packet && timer.getCumulatedTime() < timeout);
+//    timer.resume();
+    traceOn() ;
+//    timer.suspend();
 
     if (!packet)
     {
